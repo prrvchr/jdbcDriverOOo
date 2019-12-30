@@ -1,10 +1,10 @@
 
-cd .\CloudContactOOo
+cd .\jdbcDriverOOo
 
-..\zip.exe -0 CloudContactOOo.zip mimetype
+..\zip.exe -0 jdbcDriverOOo.zip mimetype
 
-..\zip.exe -r CloudContactOOo.zip *
+..\zip.exe -r jdbcDriverOOo.zip *
 
 cd ..
 
-move /Y .\CloudContactOOo\CloudContactOOo.zip .\CloudContactOOo.oxt
+move /Y .\jdbcDriverOOo\jdbcDriverOOo.zip .\jdbcDriverOOo.oxt

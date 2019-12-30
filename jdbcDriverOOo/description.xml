@@ -28,8 +28,8 @@
         <name lang="en">jdbcDriverOOo</name>
     </display-name>
     <icon>
-        <default xlink:href="jdbcDriverOOo/jdbcDriverOOo.png" />
-        <high-contrast xlink:href="jdbcDriverOOo/jdbcDriverOOo.png" />
+        <default xlink:href="jdbcDriverOOo/jdbcDriver.png" />
+        <high-contrast xlink:href="jdbcDriverOOo/jdbcDriver.png" />
     </icon>
     <extension-description>
         <src xlink:href="description/desc_en.txt" lang="en" />
