@@ -22,8 +22,6 @@ from com.sun.star.uno import Exception as UnoException
 from unolib import getConfiguration
 
 from cloudcontact import g_identifier
-from cloudcontact import User
-from cloudcontact import DataSource
 from cloudcontact import Connection
 from cloudcontact import getDataSourceUrl
 from cloudcontact import getDataSourceConnection
@@ -47,8 +45,8 @@ class Driver(unohelper.Base,
 
     def __init__(self, ctx):
         self.ctx = ctx
-        self._supportedProtocol = 'sdbc:google:'
-        self._supportedSubProtocols = ('people', 'peoples')
+        self._supportedProtocol = 'sdbc:hsqldb1:'
+        self._supportedSubProtocols = ('test', 'tests')
         print("Driver.__init__()")
 
     def __del__(self):
