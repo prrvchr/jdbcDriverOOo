@@ -1,0 +1,1 @@
+../../../CloudContactOOo/python/cloudcontact/connection.py
