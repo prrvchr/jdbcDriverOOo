@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:component-data
+  xml:lang="en-US"
+  xmlns:oor="http://openoffice.org/2001/registry"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  oor:package="org.openoffice.Office"
+  oor:name="DataAccess">
+    <node oor:name="UserDefinedDriverSettings">
+        <node oor:name="com.gmail.prrvchr.extensions.jdbcDriverOOo.Driver" oor:op="replace">
+            <prop oor:name="DriverName">
+                <value>com.gmail.prrvchr.extensions.jdbcDriverOOo.Driver</value>
+            </prop>
+            <prop oor:name="DriverTypeDisplayName">
+                <value>RestSQL</value>
+            </prop>
+            <prop oor:name="DriverPageDisplayName">
+                <value>RestSQL</value>
+            </prop>
+            <prop oor:name="DriverDsnPrefix">
+                <value>sdbc:hsqldb1:</value>
+            </prop>
+        </node>
+    </node>
+    <node oor:name="ConnectionPool">
+        <node oor:name="DriverSettings">
+            <node oor:name="com.gmail.prrvchr.extensions.jdbcDriverOOo.Driver" oor:op="replace">
+                <prop oor:name="DriverName">
+                    <value>com.gmail.prrvchr.extensions.jdbcDriverOOo.Driver</value>
+                </prop>
+                <prop oor:name="Enable">
+                    <value>true</value>
+                </prop>
+                <prop oor:name="Timeout">
+                    <value>60</value>
+                </prop>
+           </node>
+        </node>
+    </node>
+    <node oor:name="Drivers">
+        <node oor:name="Installed">
+            <node oor:name="sdbc:hqldb1:*" oor:op="replace">
+                <prop oor:name="Driver">
+                    <value>com.gmail.prrvchr.extensions.jdbcDriverOOo.Driver</value>
+                </prop>
+           </node>
+        </node>
+    </node>
+</oor:component-data>
