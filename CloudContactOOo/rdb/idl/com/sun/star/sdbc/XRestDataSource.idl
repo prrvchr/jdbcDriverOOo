@@ -1,0 +1,47 @@
+#ifndef __com_sun_star_sdbc_XRestDataSource_idl__
+#define __com_sun_star_sdbc_XRestDataSource_idl__
+
+#include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/sdbc/XRestProvider.idl>
+#include <com/sun/star/auth/XRestKeyMap.idl>
+#include <com/sun/star/sdbc/XConnection.idl>
+#include <com/sun/star/sdbc/XPreparedStatement.idl>
+#include <com/sun/star/beans/Optional.idl>
+#include <com/sun/star/logging/XLogger.idl>
+
+module com { module sun { module star { module sdbc {
+
+interface XRestDataSource: com::sun::star::uno::XInterface
+{
+
+    any getWarnings();
+    void clearWarnings();
+
+    boolean isConnected();
+    boolean connect([in] ::com::sun::star::uno::XInterface DbContext,
+                    [in] string Url);
+
+    ::com::sun::star::uno::XInterface getUser([in] string Key);
+    boolean setUser([in] ::com::sun::star::uno::XInterface User,
+                    [in] string Scheme,
+                    [in] string Key,
+                    [in] string Password);
+
+    ::com::sun::star::auth::XRestKeyMap selectUser([in] string Name,
+                                                   [out] boolean Retrieved);
+    ::com::sun::star::auth::XRestKeyMap inserUser([in] ::com::sun::star::auth::XRestKeyMap User,
+                                                  [in] string Name);
+    boolean createUser([in] ::com::sun::star::uno::XInterface User,
+                       [in] string Password);
+
+    ::com::sun::star::auth::XRestKeyMap getFieldsMap([in] boolean Reverse);
+    boolean synchronize([in] ::com::sun::star::uno::XInterface User);
+
+    [attribute, readonly] ::com::sun::star::sdbc::XRestProvider Provider;
+    [attribute, readonly] ::com::sun::star::uno::XInterface Connection;
+
+};
+
+}; }; }; };
+
+#endif
