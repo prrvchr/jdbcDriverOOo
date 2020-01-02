@@ -3,7 +3,7 @@
 
 import traceback
 try:
-    from .datasource import DataSource
+
     from .connection import Connection
 
     from .configuration import g_extension
