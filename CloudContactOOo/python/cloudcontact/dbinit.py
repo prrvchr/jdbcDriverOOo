@@ -1,6 +1,7 @@
 #!
 # -*- coding: utf_8 -*-
 
+from com.sun.star.sdbc import SQLException
 
 from unolib import KeyMap
 from unolib import getResourceLocation
@@ -39,8 +40,11 @@ def getDataSourceUrl(ctx, dbname, plugin, register):
     return url, error
 
 def _createDataBase(ctx, datasource, url, dbname):
-    connection, error = getDataSourceConnection(ctx, url, dbname)
-    #connection, error = getDataSourceConnection(datasource)
+    error = None
+    try:
+        connection = datasource.getConnection('', '')
+    except SQLException as e:
+        error = e
     if error is not None:
         return error
     error = checkDataBase(connection)
