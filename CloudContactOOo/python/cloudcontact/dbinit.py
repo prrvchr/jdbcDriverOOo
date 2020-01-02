@@ -24,21 +24,23 @@ from .dbtools import createStaticTable
 import traceback
 
 
-def getDataSourceUrl(ctx, dbcontext, dbname, plugin, register):
+def getDataSourceUrl(ctx, dbname, plugin, register):
     error = None
-    location = getResourceLocation(ctx, plugin, g_path)
-    url = '%s/%s.odb' % (location, dbname)
-    if not getSimpleFile(ctx).exists(url):
-        datasource = createDataSource(dbcontext, location, dbname)
-        error = _createDataBase(ctx, datasource)
+    url = getResourceLocation(ctx, plugin, g_path)
+    odb = '%s/%s.odb' % (url, dbname)
+    if not getSimpleFile(ctx).exists(odb):
+        dbcontext = ctx.ServiceManager.createInstance('com.sun.star.sdb.DatabaseContext')
+        datasource = createDataSource(dbcontext, url, dbname)
+        error = _createDataBase(ctx, datasource, url, dbname)
         if error is None:
-            datasource.DatabaseDocument.storeAsURL(url, ())
+            datasource.DatabaseDocument.storeAsURL(odb, ())
             if register:
-                registerDataSource(dbcontext, dbname, url)
+                registerDataSource(dbcontext, dbname, odb)
     return url, error
 
-def _createDataBase(ctx, datasource):
-    connection, error = getDataSourceConnection(datasource)
+def _createDataBase(ctx, datasource, url, dbname):
+    connection, error = getDataSourceConnection(ctx, url, dbname)
+    #connection, error = getDataSourceConnection(datasource)
     if error is not None:
         return error
     error = checkDataBase(connection)
@@ -89,6 +91,7 @@ def _createDynamicView(statement):
     executeSqlQueries(statement, views)
     for trigger in triggers:
         print("dbinit._createDynamicView(): %s" % trigger)
+    executeSqlQueries(statement, triggers)
 
 def _getViewsAndTriggers(statement):
     c1 = []
@@ -96,6 +99,7 @@ def _getViewsAndTriggers(statement):
     f1 = []
     queries = []
     triggers = []
+    triggercore = []
     call = getDataSourceCall(statement.getConnection(), 'getViews')
     tables = getSequenceFromResult(statement.executeQuery(getSqlQuery('getViewName')))
     for table in tables:
@@ -125,14 +129,14 @@ def _getViewsAndTriggers(statement):
             f2.append('"%s"' % table)
             f = 'JOIN "Labels" ON "%s"."Label"="Labels"."Label" AND "Labels"."Label"=%s'
             f2.append(f % (table, labelid))
-            if typeid:
+            if typeid is not None:
                 f = 'JOIN "Types" ON "%s"."Type"="Types"."Type" AND "Types"."Type"=%s'
                 f2.append(f % (table, typeid))
             format = (view, ','.join(c2), ','.join(s2), ' '.join(f2))
             query = getSqlQuery('createView', format)
             print("dbtool._getCreateViewQueries(): 4 %s" % query)
             queries.append(query)
-            triggers.append(getSqlQuery('createTriggerUpdateAddressBook', data))
+            triggercore.append(getSqlQuery('createTriggerUpdateAddressBookCore', data))
     call.close()
     if queries:
         c1.insert(0, '"%s"' % pcolumn)
@@ -145,6 +149,8 @@ def _getViewsAndTriggers(statement):
         queries.append(query)
         queries.append( getSqlQuery('grantRole'))
         print("dbtool._getCreateViewQueries(): 5 %s" % query)
+        trigger = getSqlQuery('createTriggerUpdateAddressBook', ' '.join(triggercore))
+        triggers.append(trigger)
     return queries, triggers
 
 def _getStaticTables():

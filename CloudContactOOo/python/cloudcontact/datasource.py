@@ -17,6 +17,7 @@ from com.sun.star.sdbc import XRestDataSource
 
 from unolib import KeyMap
 from unolib import getResourceLocation
+from unolib import getPropertyValueSet
 from unolib import getPropertyValue
 from unolib import parseDateTime
 
@@ -24,9 +25,13 @@ from .configuration import g_identifier
 from .provider import Provider
 from .dataparser import DataParser
 
+from .dbconfig import g_path
 from .dbqueries import getSqlQuery
 from .dbinit import getDataSourceUrl
+from .dbtools import getDataSourceJavaInfo
+from .dbtools import getDataSourceLocation
 from .dbtools import getDataBaseConnection
+from .dbtools import getDataSourceConnection
 from .dbtools import getKeyMapFromResult
 from .dbtools import getDataSourceCall
 
@@ -80,8 +85,8 @@ class DataSource(unohelper.Base,
         if self.Connection:
             return not self.Connection.isClosed()
         return False
-    def connect(self, dbcontext, url):
-        connection, error = getDataBaseConnection(dbcontext, url)
+    def connect(self, url):
+        connection, error = getDataSourceConnection(self.ctx, url, self.Provider.Host)
         if error:
             self._Warnings.append(error)
             return False
@@ -114,15 +119,20 @@ class DataSource(unohelper.Base,
         return user
 
     def setUser(self, user, scheme, key, password):
-        dbcontext = self.ctx.ServiceManager.createInstance('com.sun.star.sdb.DatabaseContext')
-        path, error = getDataSourceUrl(self.ctx, dbcontext, scheme, g_identifier, False)
-        credential = user.getCredential(password)
-        print("DataSource.setUser() %s - %s" % credential)
-        connection, error = getDataBaseConnection(dbcontext, path, *credential)
+        url, error = getDataSourceUrl(self.ctx, scheme, g_identifier, False)
         if error is not None:
             print("DataSource.setUser %s" % error)
             self._Warnings.append(error)
             return False
+        credential = user.getCredential(password)
+        print("DataSource.setUser() 1 %s - %s" % credential)
+        connection, error = getDataSourceConnection(self.ctx, scheme, url, *credential)
+        if error is not None:
+            print("DataSource.setUser %s" % error)
+            self._Warnings.append(error)
+            return False
+        version = connection.getMetaData().getDriverVersion()
+        print("DataSource.setUser() 2 %s" % version)
         user.setConnection(connection)
         self._UsersPool[key] = user
         self.synchronize(user)

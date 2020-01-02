@@ -132,14 +132,16 @@ def getSqlQuery(name, format=None):
 
 # Create Trigger Query
     elif name == 'createTriggerUpdateAddressBook':
-        q = 'CREATE TRIGGER "InsteadOfUpdateAddressBook%(View)s" '
-        q += 'INSTEAD OF UPDATE OF "%(View)s" ON "AddressBook" '
-        q += 'REFERENCING NEW AS "new" OLD AS "old" FOR EACH ROW '
-        q += 'BEGIN ATOMIC UPDATE "%(Table)s" SET "Value"="new"."%(View)s" WHERE '
-        q += '"People"="new"."People" AND "Label"=%(LabelId)s '
-        if format['TypeId']:
-            q += 'AND "Type"=%(TypeId)s '
-        q += 'END'
+        query = 'CREATE TRIGGER "AddressBookUpdate" INSTEAD OF UPDATE ON "AddressBook" '
+        query += 'REFERENCING NEW AS "new" OLD AS "old" FOR EACH ROW BEGIN ATOMIC %s END' % format
+
+    elif name == 'createTriggerUpdateAddressBookCore':
+        q = 'IF "new"."%(View)s" <> "old"."%(View)s" THEN '
+        q += 'UPDATE "%(Table)s" SET "Value"="new"."%(View)s" WHERE '
+        q += '"People"="new"."People" AND "Label"=%(LabelId)s'
+        if format['TypeId'] is not None:
+            q += ' AND "Type"=%(TypeId)s'
+        q += '; END IF;'
         query = q % format
 
 # Create Role Query
