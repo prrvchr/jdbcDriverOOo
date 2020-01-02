@@ -126,7 +126,7 @@ class DataSource(unohelper.Base,
             return False
         credential = user.getCredential(password)
         print("DataSource.setUser() 1 %s - %s" % credential)
-        connection, error = getDataSourceConnection(self.ctx, scheme, url, *credential)
+        connection, error = getDataSourceConnection(self.ctx, url, scheme, *credential)
         if error is not None:
             print("DataSource.setUser %s" % error)
             self._Warnings.append(error)
