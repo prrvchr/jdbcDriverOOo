@@ -119,21 +119,6 @@ class DataSource(unohelper.Base,
         return user
 
     def setUser(self, user, scheme, key, password):
-        url, error = getDataSourceUrl(self.ctx, scheme, g_identifier, False)
-        if error is not None:
-            print("DataSource.setUser %s" % error)
-            self._Warnings.append(error)
-            return False
-        credential = user.getCredential(password)
-        print("DataSource.setUser() 1 %s - %s" % credential)
-        connection, error = getDataSourceConnection(self.ctx, url, scheme, *credential)
-        if error is not None:
-            print("DataSource.setUser %s" % error)
-            self._Warnings.append(error)
-            return False
-        version = connection.getMetaData().getDriverVersion()
-        print("DataSource.setUser() 2 %s" % version)
-        user.setConnection(connection)
         self._UsersPool[key] = user
         self.synchronize(user)
         return True

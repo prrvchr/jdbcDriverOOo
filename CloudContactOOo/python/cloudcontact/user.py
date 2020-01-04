@@ -4,7 +4,6 @@
 import uno
 import unohelper
 
-from com.sun.star.sdbc import SQLWarning
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
@@ -13,6 +12,13 @@ from com.sun.star.sdbc import XRestUser
 
 from unolib import KeyMap
 from unolib import g_oauth2
+from unolib import createService
+
+from .configuration import g_identifier
+from .dbinit import getDataSourceUrl
+from .dbtools import getDataSourceConnection
+from .dbtools import getDataBaseConnection
+from .dbtools import getWarning
 
 import traceback
 
@@ -38,11 +44,6 @@ class User(unohelper.Base,
     @property
     def Token(self):
         return self.MetaData.getDefaultValue('Token', None)
-    @property
-    def Connection(self):
-        if self._Statement:
-            return self._Statement.getConnection()
-        return None
 
     def getWarnings(self):
         if self._Warnings:
@@ -52,12 +53,12 @@ class User(unohelper.Base,
         self._Warnings = []
 
     def _getRequest(self, url, name):
-        request = self.ctx.ServiceManager.createInstanceWithContext(g_oauth2, self.ctx)
+        request = createService(self.ctx, g_oauth2)
         if request:
             request.initializeSession(url, name)
         else:
             msg = "Service: %s is not available... Check your installed extensions!!!" % g_oauth2
-            warning = self._getWarning('Setup ERROR', 1013, msg, self, None)
+            warning = getWarning('Setup ERROR', 1013, msg, self, None)
             self._Warnings.append(warning)
         return request
 
@@ -74,18 +75,18 @@ class User(unohelper.Base,
                     if datasource.createUser(self, password):
                         return True
                     else:
-                        error = "DataBase ERROR"
-                        no = 1014
+                        state = "DataBase ERROR"
+                        code = 1014
                         msg = "ERROR: Can't insert User: %s in DataBase" % name
                 else:
-                    error = "Provider ERROR"
-                    no = 1015
+                    state = "Provider ERROR"
+                    code = 1015
                     msg = "ERROR: User: %s does not exist at this Provider" % name
             else:
-                error = "OffLine ERROR"
-                no = 1013
+                state = "OffLine ERROR"
+                code = 1013
                 msg = "ERROR: Can't retrieve User: %s from provider: network is OffLine" % name
-            warning = self._getWarning(error, no, msg, self, None)
+            warning = getWarning(state, code, msg, self, None)
             self._Warnings.append(warning)
             return False
         except Exception as e:
@@ -94,18 +95,25 @@ class User(unohelper.Base,
     def setMetaData(self, metadata):
         self.MetaData = metadata
 
-    def setConnection(self, connection):
-        # Piggyback DataBase Connections (easy and clean ShutDown ;-) )
-        self._Statement = connection.createStatement()
+    def getConnection(self, scheme, password):
+        url, error = getDataSourceUrl(self.ctx, scheme, g_identifier, False)
+        if error is None:
+            credential = self.getCredential(password)
+            print("User.getConnection() 1 %s - %s" % credential)
+            connection, error = getDataBaseConnection(self.ctx, url, scheme, *credential)
+            if error is None:
+                return connection
+            else:
+                state = "DataBase ERROR"
+                code = 1017
+                msg = "ERROR: Can't connect to new DataBase: %s" % scheme
+        else:
+            state = "DataBase ERROR"
+            code = 1016
+            msg = "ERROR: Can't create new DataBase: %s" % scheme
+        warning = getWarning(state, code, msg, self, error)
+        self._Warnings.append(warning)
+        return False
 
     def getCredential(self, password):
         return self.People, password
-
-    def _getWarning(self, state, code, message, context=None, exception=None):
-        warning = SQLWarning()
-        warning.SQLState = state
-        warning.ErrorCode = code
-        warning.NextException = exception
-        warning.Message = message
-        warning.Context = context
-        return warning

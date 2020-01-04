@@ -15,9 +15,11 @@ interface XRestUser: com::sun::star::uno::XInterface
                        [in] ::com::sun::star::sdbc::XRestDataSource DataSource,
                        [in] string Name,
                        [in] string Password);
+
     void setMetaData([in] ::com::sun::star::auth::XRestKeyMap MetaData);
 
-    void setConnection([in] ::com::sun::star::sdbc::XConnection Connection);
+    ::com::sun::star::sdbc::XConnection getConnection([in] string Scheme,
+                                                      [in] string Password);
 
     sequence<string> getCredential([in] string Password);
 
@@ -25,7 +27,6 @@ interface XRestUser: com::sun::star::uno::XInterface
     void clearWarnings();
 
     [attribute, readonly] ::com::sun::star::uno::XInterface Request;
-    [attribute, readonly] ::com::sun::star::sdbc::XConnection Connection;
     [attribute, readonly] ::com::sun::star::auth::XRestKeyMap MetaData;
     [attribute, readonly] long People;
     [attribute, readonly] string Resource;
