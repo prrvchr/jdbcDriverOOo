@@ -1,1 +1,1 @@
-Your preferred JDBC driver available in LibreOffice / OpenOffice.
+Hsqldb driver of any version now readily available in LibreOffice / OpenOffice

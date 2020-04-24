@@ -59,7 +59,7 @@ class Driver(unohelper.Base,
     # XDataDefinitionSupplier
     def getDataDefinitionByConnection(self, connection):
         print("Driver.getDataDefinitionByConnection()")
-        return connection.getTables()
+        return connection
     def getDataDefinitionByURL(self, url, infos):
         print("Driver.getDataDefinitionByURL()")
         connection = self.connect(url, infos)
@@ -101,7 +101,7 @@ class Driver(unohelper.Base,
             #mri.inspect(self.DataSource.Connection)
             version = connection.getMetaData().getDriverVersion()
             print("Driver.connect() 4 %s" % version)
-            return connection
+            return Connection(self.ctx, connection, protocols, user)
         except SQLException as e:
             raise e
         except Exception as e:

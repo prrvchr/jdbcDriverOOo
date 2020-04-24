@@ -3,7 +3,7 @@
   xmlns="http://openoffice.org/extensions/description/2006"
   xmlns:d="http://openoffice.org/extensions/description/2006"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-    <version value="0.0.3" />
+    <version value="0.0.1" />
     <identifier value="com.gmail.prrvchr.extensions.jdbcDriverOOo" />
     <platform value="all" />
     <dependencies>
@@ -13,7 +13,7 @@
         <src xlink:href="https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo.update.xml" />
     </update-information>
     <publisher>
-        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo" lang="en">Your preferred JDBC driver available in LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo" lang="en">Hsqldb driver of any version now available in LibreOffice / OpenOffice</name>
     </publisher>
     <registration>
         <simple-license accept-by="admin" suppress-on-update="true" >
