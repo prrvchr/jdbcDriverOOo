@@ -90,10 +90,10 @@ class Driver(unohelper.Base,
             manager = self.ctx.ServiceManager.createInstance('com.sun.star.sdbc.DriverManager')
             location = getResourceLocation(self.ctx, g_identifier, g_path)
             info = getDataSourceJavaInfo(location)
-            if user:
+            if user != '':
                 info += getPropertyValueSet({'user', user})
-            if password:
-                info += getPropertyValueSet({'password', password})
+                if password != '':
+                    info += getPropertyValueSet({'password', password})
             path = 'jdbc:%s' % ':'.join(protocols[1:])
             print("Driver.connect() 3 %s" % path)
             connection = manager.getConnectionWithInfo(path, info)
