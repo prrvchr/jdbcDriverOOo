@@ -18,23 +18,32 @@ interface XRestDataSource: com::sun::star::uno::XInterface
     void clearWarnings();
 
     boolean isConnected();
-    boolean connect([in] string Url);
+    long getIdentity();
 
-    ::com::sun::star::uno::XInterface getUser([in] string Key);
-    boolean setUser([in] ::com::sun::star::uno::XInterface User,
-                    [in] string Scheme,
-                    [in] string Key,
-                    [in] string Password);
+    ::com::sun::star::uno::XInterface getRequest([in] string Name);
+    sequence<string> getUserFields();
+    ::com::sun::star::uno::XInterface getUser([in] string Name,
+                                              [in] string Password);
+    ::com::sun::star::auth::XRestKeyMap selectUser([in] string Name);
+    ::com::sun::star::auth::XRestKeyMap getFieldsMap([in] string Method,
+                                                     [in] boolean Reverse);
+    sequence<string> getUpdatedGroups([in] ::com::sun::star::uno::XInterface User,
+                                      [in] string Prefix);
 
-    ::com::sun::star::auth::XRestKeyMap selectUser([in] string Name,
-                                                   [out] boolean Retrieved);
-    ::com::sun::star::auth::XRestKeyMap inserUser([in] ::com::sun::star::auth::XRestKeyMap User,
-                                                  [in] string Name);
-    boolean createUser([in] ::com::sun::star::uno::XInterface User,
-                       [in] string Password);
+    void createGroupView([in] ::com::sun::star::uno::XInterface User,
+                         [in] string Name,
+                         [in] long Group);
+    void dropGroupView([in] ::com::sun::star::uno::XInterface User,
+                       [in] string Name);
 
-    ::com::sun::star::auth::XRestKeyMap getFieldsMap([in] boolean Reverse);
-    boolean synchronize([in] ::com::sun::star::uno::XInterface User);
+    void updateSyncToken([in] ::com::sun::star::uno::XInterface User,
+                         [in] string Token,
+                         [in] string Value,
+                         [in] ::com::sun::star::util::DateTime TimeStamp);
+
+    ::com::sun::star::sdbc::XPreparedStatement getDataSourceCall([in] string Name);
+    ::com::sun::star::sdbc::XPreparedStatement getPreparedCall([in] string Name);
+    void closeDataSourceCall();
 
     [attribute, readonly] ::com::sun::star::sdbc::XRestProvider Provider;
     [attribute, readonly] ::com::sun::star::uno::XInterface Connection;

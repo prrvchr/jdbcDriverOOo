@@ -10,6 +10,7 @@ from .configuration import g_refresh_overlap
 from .oauth2setting import OAuth2Setting
 from .wizardcontroller import WizardController
 
+from .request import Request
 from .request import Enumeration
 from .request import Enumerator
 from .request import InputStream
@@ -31,5 +32,6 @@ from .logger import getLoggerUrl
 from .logger import setLoggerSetting
 from .logger import clearLogger
 from .logger import logMessage
+from .logger import getMessage
 
 from . import requests

@@ -8,8 +8,10 @@ from unolib import getResourceLocation
 from unolib import getSimpleFile
 
 from .dbconfig import g_path
+from .dbconfig import g_version
+
 from .dbqueries import getSqlQuery
-from .dbtools import getTablesAndStatements
+
 from .dbtools import getDataSourceCall
 from .dbtools import getSequenceFromResult
 from .dbtools import getDataFromResult
@@ -45,23 +47,27 @@ def _createDataBase(ctx, datasource, url, dbname):
         connection = datasource.getConnection('', '')
     except SQLException as e:
         error = e
-    if error is not None:
-        return error
-    error = checkDataBase(connection)
-    if error is None:
-        print("dbinit._createDataBase()")
-        statement = connection.createStatement()
-        createStaticTable(statement, _getStaticTables())
-        tables, statements = getTablesAndStatements(statement)
-        executeSqlQueries(statement, tables)
-        _createPreparedStatement(ctx, datasource, statements)
-        executeQueries(statement, _getQueries())
-        _createDynamicView(statement)
-        #mri = ctx.ServiceManager.createInstance('mytools.Mri')
-        #mri.inspect(connection)
-    connection.close()
-    connection.dispose()
+    else:
+        version, error = checkDataBase(ctx, connection)
+        if error is None:
+            statement = connection.createStatement()
+            createStaticTable(statement, _getStaticTables())
+            tables, queries = _getTablesAndStatements(statement, version)
+            executeSqlQueries(statement, tables)
+            _executeQueries(statement, _getQueries())
+            executeSqlQueries(statement, queries)
+            print("dbinit._createDataBase()")
+            views, triggers = _getViewsAndTriggers(statement)
+            executeSqlQueries(statement, views)
+            #executeSqlQueries(statement, triggers)
+        connection.close()
+        connection.dispose()
     return error
+
+def _executeQueries(statement, queries):
+    for name, format in queries.items():
+        query = getSqlQuery(name, format)
+        statement.executeQuery(query)
 
 def _getTableColumns(connection, tables):
     columns = {}
@@ -75,7 +81,6 @@ def _getColumns(metadata, table):
     result = metadata.getColumns("", "", table, "%")
     while result.next():
         column = '"%s"' % result.getString(4)
-        print("DbTools._getColumns() %s - %s" % (table, column))
         columns.append(column)
     return columns
 
@@ -86,16 +91,70 @@ def _createPreparedStatement(ctx, datasource, statements):
             query = ctx.ServiceManager.createInstance("com.sun.star.sdb.QueryDefinition")
             query.Command = sql
             queries.insertByName(name, query)
-    #datasource.DatabaseDocument.store()
-    #mri = ctx.ServiceManager.createInstance('mytools.Mri')
-    #mri.inspect(datasource)
 
-def _createDynamicView(statement):
-    views, triggers = _getViewsAndTriggers(statement)
-    executeSqlQueries(statement, views)
-    for trigger in triggers:
-        print("dbinit._createDynamicView(): %s" % trigger)
-    executeSqlQueries(statement, triggers)
+def _getTablesAndStatements(statement, version=g_version):
+    tables = []
+    statements = []
+    call = getDataSourceCall(statement.getConnection(), 'getTables')
+    for table in getSequenceFromResult(statement.executeQuery(getSqlQuery('getTableName'))):
+        view = False
+        versioned = False
+        columns = []
+        primary = []
+        unique = []
+        constraint = []
+        call.setString(1, table)
+        result = call.executeQuery()
+        while result.next():
+            data = getKeyMapFromResult(result, KeyMap())
+            view = data.getValue('View')
+            versioned = data.getValue('Versioned')
+            column = data.getValue('Column')
+            definition = '"%s"' % column
+            definition += ' %s' % data.getValue('Type')
+            lenght = data.getValue('Lenght')
+            definition += '(%s)' % lenght if lenght else ''
+            default = data.getValue('Default')
+            definition += ' DEFAULT %s' % default if default else ''
+            options = data.getValue('Options')
+            definition += ' %s' % options if options else ''
+            columns.append(definition)
+            if data.getValue('Primary'):
+                primary.append('"%s"' % column)
+            if data.getValue('Unique'):
+                unique.append({'Table': table, 'Column': column})
+            if data.getValue('ForeignTable') and data.getValue('ForeignColumn'):
+                constraint.append({'Table': table,
+                                   'Column': column,
+                                   'ForeignTable': data.getValue('ForeignTable'),
+                                   'ForeignColumn': data.getValue('ForeignColumn')})
+        if primary:
+            columns.append(getSqlQuery('getPrimayKey', primary))
+        for format in unique:
+            columns.append(getSqlQuery('getUniqueConstraint', format))
+        for format in constraint:
+            columns.append(getSqlQuery('getForeignConstraint', format))
+        if version >= '2.5.0' and versioned:
+            columns.append(getSqlQuery('getPeriodColumns'))
+        format = (table, ','.join(columns))
+        query = getSqlQuery('createTable', format)
+        if version >= '2.5.0' and versioned:
+            query += getSqlQuery('getSystemVersioning')
+        tables.append(query)
+        if view:
+            typed = False
+            for format in constraint:
+                if format['Column'] == 'Type':
+                    typed = True
+                    break
+            format = {'Table': table}
+            if typed:
+                merge = getSqlQuery('createTypedDataMerge', format)
+            else:
+                merge = getSqlQuery('createUnTypedDataMerge', format)
+            statements.append(merge)
+    call.close()
+    return tables, statements
 
 def _getViewsAndTriggers(statement):
     c1 = []
@@ -118,8 +177,6 @@ def _getViewsAndTriggers(statement):
             view = data['View']
             ptable = data['PrimaryTable']
             pcolumn = data['PrimaryColumn']
-            ftable = data['ForeignTable']
-            fcolumn = data['ForeignColumn']
             labelid = data['LabelId']
             typeid = data['TypeId']
             c1.append('"%s"' % view)
@@ -128,7 +185,7 @@ def _getViewsAndTriggers(statement):
             s1.append('"%s"."Value"' % view)
             s2.append('"%s"."%s"' % (table, pcolumn))
             s2.append('"%s"."Value"' % table)
-            f = 'LEFT JOIN "%s" ON "%s"."%s"="%s"."%s"' % (view, ftable, fcolumn, view, pcolumn)
+            f = 'LEFT JOIN "%s" ON "%s"."%s"="%s"."%s"' % (view, ptable, pcolumn, view, pcolumn)
             f1.append(f)
             f2.append('"%s"' % table)
             f = 'JOIN "Labels" ON "%s"."Label"="Labels"."Label" AND "Labels"."Label"=%s'
@@ -138,21 +195,19 @@ def _getViewsAndTriggers(statement):
                 f2.append(f % (table, typeid))
             format = (view, ','.join(c2), ','.join(s2), ' '.join(f2))
             query = getSqlQuery('createView', format)
-            print("dbtool._getCreateViewQueries(): 4 %s" % query)
             queries.append(query)
             triggercore.append(getSqlQuery('createTriggerUpdateAddressBookCore', data))
     call.close()
     if queries:
-        c1.insert(0, '"%s"' % pcolumn)
-        s1.insert(0, '"%s"."%s"' % (ftable, fcolumn))
-        f1.insert(0, 'JOIN "%s" ON "%s"."%s"="%s"."%s"' % (ftable, ptable, pcolumn, ftable, pcolumn))
+        column = 'Resource'
+        c1.insert(0, '"%s"' % column)
+        s1.insert(0, '"%s"."%s"' % (ptable, column))
         f1.insert(0, '"%s"' % ptable)
-        f1.append('WHERE "%s"."%s"=CURRENT_USER' % (ptable, pcolumn))
+        f1.append('ORDER BY "%s"."%s"' % (ptable, pcolumn))
         format = ('AddressBook', ','.join(c1), ','.join(s1), ' '.join(f1))
         query = getSqlQuery('createView', format)
+        #print("dbinit._getViewsAndTriggers() %s"  % query)
         queries.append(query)
-        queries.append( getSqlQuery('grantRole'))
-        print("dbtool._getCreateViewQueries(): 5 %s" % query)
         trigger = getSqlQuery('createTriggerUpdateAddressBook', ' '.join(triggercore))
         triggers.append(trigger)
     return queries, triggers
@@ -170,4 +225,10 @@ def _getStaticTables():
     return tables
 
 def _getQueries():
-    return ('createRole', )
+    return {'createInsertUser': None,
+            'createGetPeopleIndex': None,
+            'createGetLabelIndex': None,
+            'createGetTypeIndex': None,
+            'createMergePeople': None,
+            'createMergeGroup': None,
+            'createMergeConnection': None}

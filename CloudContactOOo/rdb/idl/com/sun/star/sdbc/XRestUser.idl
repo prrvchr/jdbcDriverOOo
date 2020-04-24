@@ -11,11 +11,6 @@ module com { module sun { module star { module sdbc {
 interface XRestUser: com::sun::star::uno::XInterface
 {
 
-    boolean initialize([in] ::com::sun::star::sdbc::XConnection Connection,
-                       [in] ::com::sun::star::sdbc::XRestDataSource DataSource,
-                       [in] string Name,
-                       [in] string Password);
-
     void setMetaData([in] ::com::sun::star::auth::XRestKeyMap MetaData);
 
     ::com::sun::star::sdbc::XConnection getConnection([in] string Scheme,
@@ -27,12 +22,14 @@ interface XRestUser: com::sun::star::uno::XInterface
     void clearWarnings();
 
     [attribute, readonly] ::com::sun::star::uno::XInterface Request;
-    [attribute, readonly] ::com::sun::star::auth::XRestKeyMap MetaData;
+    [attribute] ::com::sun::star::auth::XRestKeyMap MetaData;
+    [attribute, readonly] sequence<string> Fields;
     [attribute, readonly] long People;
+    [attribute, readonly] long Group;
     [attribute, readonly] string Resource;
     [attribute, readonly] string Account;
-    [attribute, readonly] string Token;
-    [attribute, readonly] boolean Retrieved;
+    [attribute, readonly] string PeopleSync;
+    [attribute, readonly] string GroupSync;
 
 };
 

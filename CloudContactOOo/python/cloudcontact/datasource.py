@@ -8,22 +8,31 @@ from com.sun.star.sdbc import SQLException
 from com.sun.star.lang import XEventListener
 from com.sun.star.frame import XTerminateListener
 from com.sun.star.util import XCloseListener
+from com.sun.star.sdbc import XRestDataSource
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.sdb.CommandType import QUERY
-from com.sun.star.ucb.ConnectionMode import ONLINE
-
-from com.sun.star.sdbc import XRestDataSource
+from com.sun.star.sdbc.DataType import VARCHAR
 
 from unolib import KeyMap
+from unolib import g_oauth2
+from unolib import createService
 from unolib import getResourceLocation
 from unolib import getPropertyValueSet
 from unolib import getPropertyValue
 from unolib import parseDateTime
+from unolib import unparseDateTime
+from unolib import unparseTimeStamp
 
 from .configuration import g_identifier
+from .configuration import g_admin
+from .configuration import g_group
+from .configuration import g_db_timestamp
+from .configuration import g_compact
 from .provider import Provider
 from .dataparser import DataParser
+from .user import User
+from .replicator import Replicator
 
 from .dbconfig import g_path
 from .dbqueries import getSqlQuery
@@ -33,99 +42,177 @@ from .dbtools import getDataSourceLocation
 from .dbtools import getDataBaseConnection
 from .dbtools import getDataSourceConnection
 from .dbtools import getKeyMapFromResult
+from .dbtools import getKeyMapSequenceFromResult
+from .dbtools import getKeyMapKeyMapFromResult
+from .dbtools import getSequenceFromResult
 from .dbtools import getDataSourceCall
+from .dbtools import getSqlException
+from .logger import logMessage
+from .logger import getMessage
 
-import binascii
+from collections import OrderedDict
+from threading import Condition
+from threading import Event
 import traceback
 
 
 class DataSource(unohelper.Base,
                  XTerminateListener,
                  XRestDataSource):
-    def __init__(self, ctx):
+    def __init__(self, ctx, event):
+        print("DataSource.__init__() 1")
         self.ctx = ctx
         self.Provider = Provider(self.ctx)
-        self._Calls = {}
-        self._Warnings = []
-        self._Error = ''
+        self._Warnings = None
         self._Statement = None
-        self._FieldsMap = None
-        self._PrimaryField = None
-        self._PeopleIndex = None
-        self._Types = None
-        self._LabelIndex = None
+        self._FieldsMap = {}
         self._UsersPool = {}
-        msg = "DataSource for Scheme: %s loading ... Done" % self.Provider.Host
-        self.Logger.logp(INFO, 'DataSource', '__init__()', msg)
-        print(msg)
+        self._CallsPool = OrderedDict()
+        self._batchedCall = []
+        self.event = event
+        self.replicator = None
+        self.count = 0
+        print("DataSource.__init__() 2")
 
     @property
-    def IsValid(self):
-        return not self.Error
-    @property
-    def Error(self):
-        return self.Provider.Error if self.Provider and self.Provider.Error else self._Error
-    @property
     def Connection(self):
-        if self._Statement:
+        if self._Statement is not None:
             return self._Statement.getConnection()
         return None
     @property
-    def Logger(self):
-        return self.Provider.Logger
+    def Warnings(self):
+        return self._Warnings
+    @Warnings.setter
+    def Warnings(self, warning):
+        if warning is None:
+            return
+        warning.NextException = self._Warnings
+        self._Warnings = warning
 
     def getWarnings(self):
-        if self._Warnings:
-            return self._Warnings.pop(0)
-        return None
+        return self._Warnings
     def clearWarnings(self):
-        self._Warnings = []
+        self._Warnings = None
 
     def isConnected(self):
-        if self.Connection:
-            return not self.Connection.isClosed()
-        return False
-    def connect(self, url):
-        connection, error = getDataSourceConnection(self.ctx, url, self.Provider.Host)
-        if error:
-            self._Warnings.append(error)
+        print("DataSource.isConnected() 1")
+        if self.Connection is not None and not self.Connection.isClosed():
+            return True
+        dbname = self.Provider.Host
+        print("DataSource.isConnected() 2")
+        url, self.Warnings = getDataSourceUrl(self.ctx, dbname, g_identifier, True)
+        if self.Warnings is not None:
             return False
+        print("DataSource.isConnected() 3")
+        connection, self.Warnings = getDataSourceConnection(self.ctx, url, dbname)
+        if self.Warnings is not None:
+            return False
+        print("DataSource.isConnected() 4")
         # Piggyback DataBase Connections (easy and clean ShutDown ;-) )
         self._Statement = connection.createStatement()
+        # Add a TerminateListener  which is responsible for the shutdown of the database
         desktop = 'com.sun.star.frame.Desktop'
+        print("DataSource.isConnected() 5")
         self.ctx.ServiceManager.createInstance(desktop).addTerminateListener(self)
         print("DataSource.connect() OK")
+        #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
+        #mri.inspect(connection)
         return True
 
     # XTerminateListener
     def queryTermination(self, event):
-        print("DataSource.queryTermination()")
-        msg = "DataSource queryTermination: Scheme: %s ... " % self.Provider.Host
-        if self._Statement is None:
-            msg += "ERROR: database connection already dropped..."
+        level = INFO
+        msg = getMessage(self.ctx, 101, self.Provider.Host)
+        print("DataSource.queryTermination() 1")
+        self.event.set()
+        self.replicator.join(30)
+        print("DataSource.queryTermination() 2")
+        if self.Connection is None or self.Connection.isClosed():
+            level = SEVERE
+            msg += getMessage(self.ctx, 103)
         else:
-            query = getSqlQuery('shutdown')
+            compact = self.count >= g_compact
+            query = getSqlQuery('shutdown', compact)
+            print("DataSource.queryTermination() 3")
             self._Statement.execute(query)
-            msg += "Done"
-        print("DataSource.queryTermination() %s" % msg)
+            msg += getMessage(self.ctx, 102)
+        logMessage(self.ctx, level, msg, 'DataSource', 'queryTermination()')
+        print("DataSource.queryTermination() 4 - %s" % msg)
     def notifyTermination(self, event):
         pass
 
-    def getUser(self, key):
-        user = None
-        if key in self._UsersPool:
-            user = self._UsersPool[key]
-            self.synchronize(user)
+    # XRestDataSource
+    def getUser(self, name, password):
+        if name in self._UsersPool:
+            user = self._UsersPool[name]
+        else:
+            user = User(self.ctx, self, name)
+            if not self._initializeUser(user, name, password):
+                return None
+            self._UsersPool[name] = user
+        # User has been initialized and the connection to the database is done...
+        # We can start the database replication in a background task.
+        if self.replicator is None or not self.replicator.is_alive():
+            self.replicator = Replicator(self.ctx, self, self.event)
+        else:
+            self.replicator.event.clear()
         return user
 
-    def setUser(self, user, scheme, key, password):
-        self._UsersPool[key] = user
-        self.synchronize(user)
-        return True
+    def setLoggingChanges(self, state):
+        sql = getSqlQuery('loggingChanges', state)
+        self._Statement.execute(sql)
 
-    # XRestDataSource
-    def selectUser(self, account, retrieved=False):
-        user = KeyMap()
+    def saveChanges(self, compact=False):
+        if self.count >= g_compact:
+            compact = True
+            self.count = 0
+        sql = getSqlQuery('saveChanges', compact)
+        self._Statement.execute(sql)
+
+    def shutdownDataBase(self, compact=False):
+        try:
+            print("DataSource.shutdownDataBase() 1")
+            level = INFO
+            msg = getMessage(self.ctx, 101, self.Provider.Host)
+            print("DataSource.shutdownDataBase() 2")
+            if self.Connection is None or self.Connection.isClosed():
+                print("DataSource.shutdownDataBase() 3")
+                level = SEVERE
+                msg += getMessage(self.ctx, 103)
+            else:
+                print("DataSource.shutdownDataBase() 4")
+                compact = self.replicator.Compact
+                query = getSqlQuery('shutdown', compact)
+                print("DataSource.shutdownDataBase() 5")
+                self._Statement.execute(query)
+                print("DataSource.shutdownDataBase() 6")
+                msg += getMessage(self.ctx, 102)
+            logMessage(self.ctx, level, msg, 'DataSource', 'queryTermination()')
+            print("DataSource.shutdownDataBase() %s" % msg)
+        except Exception as e:
+            print("datasource.shutdownDataBase() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+    def getUserFields(self):
+        fields = []
+        call = getDataSourceCall(self.Connection, 'getFieldNames')
+        result = call.executeQuery()
+        fields = getSequenceFromResult(result)
+        call.close()
+        print("DataSource.getUserFields() %s" % (fields, ))
+        return tuple(fields)
+
+    def getRequest(self, name):
+        request = createService(self.ctx, g_oauth2)
+        if request:
+            request.initializeSession(self.Provider.Host, name)
+        else:
+            state = getMessage(self.ctx, 1003)
+            msg = getMessage(self.ctx, 1105, g_oauth2)
+            self.Warnings = getSqlException(state, 1105, msg, self)
+        return request
+
+    def selectUser(self, account):
+        user = None
         print("DataSource.selectUser() %s - %s" % (account, user))
         try:
             call = getDataSourceCall(self.Connection, 'getPerson')
@@ -133,310 +220,200 @@ class DataSource(unohelper.Base,
             result = call.executeQuery()
             if result.next():
                 user = getKeyMapFromResult(result)
-                retrieved = True
             call.close()
             print("DataSource.selectUser() %s - %s" % (account, user))
         except SQLException as e:
-            self._Warnings.append(e)
-        return user, retrieved
+            self.Warnings = e
+        return user
 
-    def insertUser(self, user, account):
-        data = KeyMap()
-        resource = self.Provider.getUserId(user)
-        call = getDataSourceCall(self.Connection, 'insertPerson')
-        call.setString(1, resource)
-        call.setString(2, account)
-        row = call.executeUpdate()
-        call.close()
-        if row == 1:
-            call = getDataSourceCall(self.Connection, 'getIdentity')
-            result = call.executeQuery()
-            if result.next():
-                key = result.getLong(1)
-                print("DataSource.insertUser(): %s" % key)
-                data.insertValue('People', key)
-                data.insertValue('Resource', resource)
-                data.insertValue('Account', account)
-                data.insertValue('Token', '')
-                print("DataSource.insertUser() %s" % data.getValue('People'))
-            call.close()
-        return data
-
-    def createUser(self, user, password):
-        try:
-            print("createUser 1")
-            credential = user.getCredential(password)
-            print("createUser 2 %s - %s" % credential)
-            sql = getSqlQuery('createUser', credential)
-            print("createUser 3 %s " % sql)
-            created = self._Statement.executeUpdate(sql)
-            sql = getSqlQuery('grantUser', credential[0])
-            print("createUser 4 %s " % sql)
-            created = self._Statement.executeUpdate(sql)
-            print("createUser 5 %s" % created)
-            return created == 0
-        except Exception as e:
-            print("DataSource.createUser() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def synchronize(self, user) :
-        try:
-            print("DataSource.synchronize() 1")
-            if user.Request.isOffLine(self.Provider.Host):
-                print("DataSource.synchronize() 2 OffLine")
-                return True
-            status = False
-            timestamp = parseDateTime()
-            parameter = self.Provider.getRequestParameter('getPeople', user.MetaData)
-            parser = DataParser(self)
-            map = self.getFieldsMap(False)
-            pattern = self.getPrimaryField()
-            enumerator = user.Request.getEnumeration(parameter, parser)
-            while enumerator.hasMoreElements():
-                response = enumerator.nextElement()
-                status = response.IsPresent
-                if status:
-                    self._syncResponse(user, map, pattern, response.Value, timestamp)
-            self._closeDataSourceCall()
-            print("DataSource.synchronize() 3")
-            return status
-        except Exception as e:
-            print("DataSource._syncPeople() ERROR: %s - %s" % (e, traceback.print_exc()))
-
-    def _syncResponse(self, user, map, pattern, data, timestamp):
-        if data.hasValue(pattern):
-            self._mergeResource(user, map, pattern, data, timestamp)
+    def getFieldsMap(self, method, reverse):
+        if method not in self._FieldsMap:
+            self._FieldsMap[method] = self._getFieldsMap(method)
+        if reverse:
+            map = KeyMap(**{i: {'Map': j, 'Type': k, 'Table': l} for i, j, k, l in self._FieldsMap[method]})
         else:
-            for key in data.getKeys():
-                d = data.getValue(key)
-                m = map.getValue(key).getValue('Type')
-                self._mergeResponse(user, map, pattern, key, d, timestamp, m)
+            map = KeyMap(**{j: {'Map': i, 'Type': k, 'Table': l} for i, j, k, l in self._FieldsMap[method]})
+        return map
 
-    def _mergeResponse(self, user, map, pattern, key, data, timestamp, method):
-        print("DataSource._mergeResponse: %s" % (method, ))
-        if method == 'Sequence':
-            m = map.getValue(key).getValue('Table')
-            for d in data:
-                self._mergeResponse(user, map, pattern, key, d, timestamp, m)
-        elif method == 'Field':
-            self._updateField(user, key, data, timestamp)
-        elif method == 'Header':
-            pass
-        elif data.hasValue(pattern):
-            self._mergeResource(user, map, pattern, data, timestamp)
+    def getUpdatedGroups(self, user, prefix):
+        groups = None
+        call = self.getDataSourceCall('selectUpdatedGroup')
+        call.setString(1, prefix)
+        call.setLong(2, user.People)
+        call.setString(3, user.Resource)
+        result = call.executeQuery()
+        groups = getKeyMapKeyMapFromResult(result)
+        return groups
 
-    def _mergeData(self, map, index, key, data, timestamp, method):
-        if method == 'Sequence':
-            m = map.getValue(key).getValue('Table')
-            for d in data:
-                self._mergeData(map, index, key, d, timestamp, m)
-        elif method == 'Tables':
-            t = self.getTypeIndex(key, data)
-            for k in data.getKeys():
-                if k == 'Type':
-                    continue
-                d = data.getValue(k)
-                print("DataSource._mergeData: 1 %s - %s - %s - %s" % (key, t, k, d))
-                self._mergeField(key, index, t, k, d, timestamp)
-        elif method == 'Field':
-            print("DataSource._mergeData: 2 %s - %s" % (key, data))
+    def truncatGroup(self, start):
+        format = {'TimeStamp': unparseTimeStamp(start)}
+        query = getSqlQuery('truncatGroup', format)
+        self._Statement.execute(query)
 
-    def _mergeResource(self, user, map, pattern, data, timestamp):
-        index = self.getPeopleIndex(user, data.getValue(pattern))
-        for key in data.getKeys():
-            if key == pattern:
-                continue
-            d = data.getValue(key)
-            method = map.getValue(key).getValue('Type')
-            self._mergeData(map, index, key, data.getValue(key), timestamp, method)
-        print("DataSource._mergeResource: %s" % (data.getValue(pattern), ))
+    def createSynonym(self, user, name):
+        format = {'Schema': user.Resource, 'View': name.title()}
+        query = getSqlQuery('createSynonym', format)
+        self._Statement.execute(query)
 
-    def _mergeField(self, table, index, typ, field, value, timestamp):
-        label = self.getLabelIndex(field)
-        print("DataSource._mergeField: 1: %s - %s - %s - %s" % (value, index, label, typ))
-        if label is None:
-            return
-        call = self._getPreparedCall('update' + table)
-        call.setString(1, value)
-        call.setTimestamp(2, timestamp)
-        call.setLong(3, index)
-        call.setLong(4, label)
-        if typ is not None:
-            call.setLong(5, typ)
-        row = call.executeUpdate()
-        #call.close()
-        if row != 1:
-            call = self._getPreparedCall('insert' + table)
-            call.setString(1, value)
-            call.setLong(2, index)
-            call.setLong(3, label)
-            if typ is not None:
-                call.setLong(4, typ)
-            row = call.executeUpdate()
-            #call.close()
-            print("DataSource._mergeField: 2: %s - %s - %s" % (value, field, label))
+    def createGroupView(self, user, name, group):
+        self.dropGroupView(user, name)
+        query = self._getGroupViewQuery('create', user, name, group)
+        self._Statement.execute(query)
 
-    def _updateField(self, user, key, value, timestamp):
-        print("DataSource._updateField: %s - %s" % (key, value))
-        call = self._getDataSourceCall('update' + key)
+    def dropGroupView(self, user, name):
+        query = self._getGroupViewQuery('drop', user, name)
+        self._Statement.execute(query)
+
+    def _getGroupViewQuery(self, method, user, name, group=0):
+        query = '%sGroupView' % method
+        account, pwd = user.getCredential('')
+        format = {'User': account,
+                  'View': '%s.%s' % (user.Name, name.title()),
+                  'Group': group}
+        return getSqlQuery(query, format)
+
+    def updateSyncToken(self, user, token, data, timestamp):
+        value = data.getValue(token)
+        call = self.getDataSourceCall('update%s' % token, True)
         call.setString(1, value)
         call.setTimestamp(2, timestamp)
         call.setLong(3, user.People)
-        row = call.executeUpdate()
-        if row and user.MetaData.hasValue(key):
-            oldvalue = user.MetaData.getValue(key)
-            user.MetaData.setValue(key, value)
-            print("DataSource._updateField: %s - %s" % (oldvalue, user.MetaData.getValue(key)))
-        #call.close()
+        call.addBatch()
+        return KeyMap(**{token: value})
 
-    def getPeopleIndex(self, user, resource):
-        if self._PeopleIndex is None:
-            self._PeopleIndex = self._getPeopleIndex()
-        if resource not in self._PeopleIndex:
-            people = self._insertResource(user, resource)
-            if people is not None:
-                self._PeopleIndex[resource] = people
-        else:
-            people = self._PeopleIndex[resource]
-        return people
+    def mergePeople(self, user, resource, timestamp, deleted):
+        call = self.getDataSourceCall('mergePeople', True)
+        call.setString(1, 'people/')
+        call.setString(2, resource)
+        call.setLong(3, user.Group)
+        call.setTimestamp(4, timestamp)
+        call.setBoolean(5, deleted)
+        call.addBatch()
+        return (0, 1) if deleted else (1, 0)
 
-    def _getPeopleIndex(self):
-        map = {}
-        call = getDataSourceCall(self.Connection, 'getPeopleIndex')
-        result = call.executeQuery()
-        while result.next():
-            map[result.getString(1)] = result.getLong(2)
-        call.close()
-        return map
+    def mergePeopleData(self, table, resource, typename, label, value, timestamp):
+        format = {'Table': table, 'Type': typename}
+        call = self.getDataSourceCall(table, True, 'mergePeopleData', format)
+        call.setString(1, 'people/')
+        call.setString(2, resource)
+        call.setString(3, label)
+        call.setString(4, value)
+        call.setTimestamp(5, timestamp)
+        if typename is not None:
+            call.setString(6, table)
+            call.setString(7, typename)
+        call.addBatch()
+        return 1
 
-    def _insertResource(self, user, resource):
-        people = None
-        call = self._getDataSourceCall('insertPeople')
-        call.setString(1, resource)
-        row = call.executeUpdate()
-        #call.close()
-        if row == 1:
-            call = self._getDataSourceCall('getIdentity')
-            result = call.executeQuery()
-            if result.next():
-                people = result.getLong(1)
-                call = self._getDataSourceCall('insertConnection')
-                call.setLong(1, user.People)
-                call.setLong(2, people)
-                row = call.executeUpdate()
-            #call.close()
-        return people
+    def mergeGroup(self, user, resource, name, timestamp, deleted):
+        call = self.getDataSourceCall('mergeGroup', True)
+        call.setString(1, 'contactGroups/')
+        call.setLong(2, user.People)
+        call.setString(3, resource)
+        call.setString(4, name)
+        call.setTimestamp(5, timestamp)
+        call.setBoolean(6, deleted)
+        call.addBatch()
+        return (0, 1) if deleted else (1, 0)
 
-    def getTypeIndex(self, key, data):
-        if self._Types is None:
-            self._Types = self._getTypes()
-        if not data.hasValue('Type'):
-            if key in self._Types['Default']:
-                print("DataSource.getTypeIndex() %s - %s **********************" % (key, self._Types['Default'][key]))
-                return self._Types['Default'][key]
-            return None
-        value = data.getValue('Type')
-        if value in self._Types['Index']:
-            return self._Types['Index'][value]
-        print("DataSource.getTypeIndex() %s ******************************" % value)
-        idx = self._insertType(value)
-        if idx is not None:
-            self._Types['Index'][value] = idx
-        print("DataSource.getTypeIndex() %s ******************************" % idx)
-        return idx
+    def mergeConnection(self, user, data, timestamp):
+        separator = ','
+        call = self.getDataSourceCall('mergeConnection', True)
+        call.setString(1, 'contactGroups/')
+        call.setString(2, 'people/')
+        call.setString(3, data.getValue('Resource'))
+        call.setTimestamp(4, timestamp)
+        call.setString(5, separator)
+        members = data.getDefaultValue('Connections', ())
+        call.setString(6, separator.join(members))
+        call.addBatch()
+        print("datasource._mergeConnection() %s - %s" % (data.getValue('Resource'), len(members)))
+        return len(members)
 
-    def _getTypes(self):
-        map = {}
-        for method in ('Index','Default'):
-            map[method] = {}
-            call = getDataSourceCall(self.Connection, 'getTypes' + method)
-            result = call.executeQuery()
-            while result.next():
-               map[method][result.getString(1)] = result.getLong(2)
-            call.close()
-        return map
-
-    def _insertType(self, value):
-        identity = None
-        call = self._getDataSourceCall('insertTypes')
-        call.setString(1, value)
-        call.setString(2, value)
-        row = call.executeUpdate()
-        #call.close()
-        if row == 1:
-            call = self._getDataSourceCall('getIdentity')
-            result = call.executeQuery()
-            if result.next():
-                identity = result.getLong(1)
-            #call.close()
-        return identity
-
-    def getLabelIndex(self, value):
-        if self._LabelIndex is None:
-            self._LabelIndex = self._getLabelIndex()
-        if value in self._LabelIndex:
-            return self._LabelIndex[value]
-        print("DataSource.getLabelIndex() %s ******************************" % value)
-        return None
-
-    def _getLabelIndex(self):
-        map = {}
-        call = getDataSourceCall(self.Connection, 'getLabelIndex')
-        result = call.executeQuery()
-        while result.next():
-            map[result.getString(1)] = result.getLong(2)
-        call.close()
-        return map
-
-    def getFieldsMap(self, reverse):
-        if self._FieldsMap is None:
-            self._FieldsMap = self._getFieldsMap()
-        if reverse:
-            map = KeyMap(**{i: {'Map': j, 'Type': k, 'Table': l} for i, j, k, l in self._FieldsMap})
-        else:
-            map = KeyMap(**{j: {'Map': i, 'Type': k, 'Table': l} for i, j, k, l in self._FieldsMap})
-        return map
-
-    def _getFieldsMap(self):
+    def _getFieldsMap(self, method):
         map = []
         call = getDataSourceCall(self.Connection, 'getFieldsMap')
+        call.setString(1, method)
         r = call.executeQuery()
         while r.next():
             map.append((r.getString(1), r.getString(2), r.getString(3), r.getString(4)))
         call.close()
         return tuple(map)
 
-    def getPrimaryField(self):
-        if self._PrimaryField is None:
-            self._PrimaryField = self._getPrimaryField()
-        return self._PrimaryField
+    def _initializeUser(self, user, name, password):
+        if user.Request is None:
+            return False
+        if user.MetaData is not None:
+            return True
+        if self.Provider.isOnLine():
+            data = self.Provider.getUser(user.Request, user)
+            if data.IsPresent:
+                user.MetaData = self._insertUser(data.Value, name)
+                credential = user.getCredential(password)
+                if self._createUser(*credential):
+                    self.createGroupView(user, g_group, user.Group)
+                    return True
+                else:
+                    state = getMessage(self.ctx, 1005)
+                    code = 1106
+                    msg = getMessage(self.ctx, code, name)
+            else:
+                state = getMessage(self.ctx, 1006)
+                code = 1107
+                msg = getMessage(self.ctx, code, name)
+        else:
+            state = getMessage(self.ctx, 1004)
+            code = 1108
+            msg = getMessage(self.ctx, code, name)
+        self.Warnings = getSqlException(state, code, msg, self)
+        return False
 
-    def _getPrimaryField(self):
-        primary = ''
-        call = getDataSourceCall(self.Connection, 'getPrimaryField')
-        r = call.executeQuery()
-        while r.next():
-            primary = r.getString(1)
+    def _insertUser(self, data, account):
+        user = KeyMap()
+        call = getDataSourceCall(self.Connection, 'insertUser')
+        call.setString(1, self.Provider.getUserId(data))
+        call.setString(2, account)
+        call.setString(3, g_group)
+        result = call.executeQuery()
+        if result.next():
+            user = getKeyMapFromResult(result)
         call.close()
-        return primary
+        return user
 
-    def _closeDataSourceCall(self):
-        for call in self._Calls.values():
+    def _createUser(self, name, password):
+        format = {'User': name, 'Password': password, 'Admin': g_admin}
+        sql = getSqlQuery('createUser', format)
+        status = self._Statement.executeUpdate(sql)
+        return status == 0
+
+    def getDataSourceCall(self, key, batched=False, name=None, format=None):
+        if key not in self._CallsPool:
+            name = key if name is None else name
+            self._CallsPool[key] = getDataSourceCall(self.Connection, name, format)
+        if batched and key not in self._batchedCall:
+            self._batchedCall.append(key)
+        return self._CallsPool[key]
+
+    def getPreparedCall(self, name):
+        if name not in self._CallsPool:
+            # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)
+            # TODO: it trow a: java.lang.IncompatibleClassChangeError
+            query = self.Connection.getQueries().getByName(name).Command
+            self._CallsPool[name] = self.Connection.prepareCall(query)
+        if name not in self._batchedCall:
+            self._batchedCall.append(name)
+        return self._CallsPool[name]
+
+    def executeBatchCall(self):
+        for name in self._batchedCall:
+            self._CallsPool[name].executeBatch()
+        self._batchedCall = []
+
+    def closeDataSourceCall(self):
+        for name in self._CallsPool:
+            call = self._CallsPool[name]
+            if name in self._batchedCall:
+                call.executeBatch()
             call.close()
-        self._Calls = {}
-
-    def _getPreparedCall(self, name):
-        if name in self._Calls:
-            return self._Calls[name]
-        # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)
-        # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        query = self.Connection.getQueries().getByName(name).Command
-        call = self.Connection.prepareCall(query)
-        self._Calls[name] = call
-        return call
-
-    def _getDataSourceCall(self, name):
-        if name in self._Calls:
-            return self._Calls[name]
-        call = getDataSourceCall(self.Connection, name)
-        self._Calls[name] = call
-        return call
+        self._CallsPool = OrderedDict()
+        self._batchedCall = []
