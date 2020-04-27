@@ -190,7 +190,7 @@ class Statement(BaseStatement,
                 XStatement,
                 XBatchExecution):
     def __init__(self, connection):
-        self.connection = connection
+        self._connection = connection
         self._statement = connection._connection.createStatement()
         self._statement.ResultSetType = SCROLL_INSENSITIVE
         print("Statement.__init__()")
@@ -224,7 +224,7 @@ class Statement(BaseStatement,
         return self._statement.execute(sql)
     def getConnection(self):
         print("Connection.Statement.getConnection()")
-        return self.connection
+        return self._connection
 
 
 class PreparedStatement(BaseStatement,
@@ -237,8 +237,7 @@ class PreparedStatement(BaseStatement,
         # TODO: cannot use: result = self._statement.executeQuery()
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
         # TODO: fallback to: self._statement as connection.prepareCall(sql)
-        self.connection = connection
-        self.sql = sql
+        self._connection = connection
         self._statement = connection._connection.prepareCall(sql)
         self._statement.ResultSetType = SCROLL_INSENSITIVE
 
@@ -267,7 +266,7 @@ class PreparedStatement(BaseStatement,
         return self._statement.execute()
     def getConnection(self):
         print("Connection.PreparedStatement.getConnection()")
-        return self.connection
+        return self._connection
 
     # XResultSetMetaDataSupplier
     def getMetaData(self):
@@ -337,8 +336,7 @@ class CallableStatement(PreparedStatement,
                         XOutParameters,
                         XRow):
     def __init__(self, connection, sql):
-        self.connection = connection
-        self.sql = sql
+        self._connection = connection
         self._statement = connection._connection.prepareCall(sql)
         self._statement.ResultSetType = SCROLL_INSENSITIVE
 
@@ -352,7 +350,6 @@ class CallableStatement(PreparedStatement,
     def wasNull(self):
         return self._statement.wasNull()
     def getString(self, index):
-        print("CallableStatement.getString()")
         return self._statement.getString(index)
     def getBoolean(self, index):
         return self._statement.getBoolean(index)
@@ -381,7 +378,6 @@ class CallableStatement(PreparedStatement,
     def getCharacterStream(self, index):
         return self._statement.getCharacterStream(index)
     def getObject(self, index, typemap):
-        print("CallableStatement.getObject()")
         return self._statement.getObject(index, typemap)
     def getRef(self, index):
         return self._statement.getRef(index)

@@ -43,6 +43,7 @@ def getDataSourceUrl(ctx, dbname, plugin, register):
 
 def _createDataBase(ctx, datasource, url, dbname):
     error = None
+    print("dbinit._createDataBase() 1")
     try:
         connection = datasource.getConnection('', '')
     except SQLException as e:
@@ -56,12 +57,13 @@ def _createDataBase(ctx, datasource, url, dbname):
             executeSqlQueries(statement, tables)
             _executeQueries(statement, _getQueries())
             executeSqlQueries(statement, queries)
-            print("dbinit._createDataBase()")
+            print("dbinit._createDataBase() 2")
             views, triggers = _getViewsAndTriggers(statement)
             executeSqlQueries(statement, views)
             #executeSqlQueries(statement, triggers)
         connection.close()
         connection.dispose()
+    print("dbinit._createDataBase() 3")
     return error
 
 def _executeQueries(statement, queries):

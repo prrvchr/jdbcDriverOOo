@@ -101,18 +101,19 @@ class DataSource(unohelper.Base,
         dbname = self.Provider.Host
         print("DataSource.isConnected() 2")
         url, self.Warnings = getDataSourceUrl(self.ctx, dbname, g_identifier, True)
-        if self.Warnings is not None:
-            return False
-        print("DataSource.isConnected() 3")
-        connection, self.Warnings = getDataSourceConnection(self.ctx, url, dbname)
+        print("DataSource.isConnected() 3 %s" % url)
         if self.Warnings is not None:
             return False
         print("DataSource.isConnected() 4")
+        connection, self.Warnings = getDataSourceConnection(self.ctx, url, dbname)
+        if self.Warnings is not None:
+            return False
+        print("DataSource.isConnected() 5")
         # Piggyback DataBase Connections (easy and clean ShutDown ;-) )
         self._Statement = connection.createStatement()
         # Add a TerminateListener  which is responsible for the shutdown of the database
         desktop = 'com.sun.star.frame.Desktop'
-        print("DataSource.isConnected() 5")
+        print("DataSource.isConnected() 6")
         self.ctx.ServiceManager.createInstance(desktop).addTerminateListener(self)
         print("DataSource.connect() OK")
         #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')

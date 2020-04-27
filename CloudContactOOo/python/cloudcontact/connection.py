@@ -16,6 +16,11 @@ from com.sun.star.lang import XMultiServiceFactory
 from com.sun.star.container import XChild
 from com.sun.star.sdb.application import XTableUIProvider
 from com.sun.star.sdb.tools import XConnectionTools
+from com.sun.star.sdb.CommandType import TABLE
+from com.sun.star.sdb.CommandType import QUERY
+from com.sun.star.sdb.CommandType import COMMAND
+
+from com.sun.star.sdbc import SQLException 
 
 from com.sun.star.uno import XWeak
 from com.sun.star.uno import XAdapter
@@ -38,11 +43,11 @@ from unolib import createService
 from .dbtools import getSequenceFromResult
 from .dbqueries import getSqlQuery
 
-from .unodb.documentdatasource import DocumentDataSource
-from .unodb.databasemetadata import DatabaseMetaData
-from .unodb.statement import Statement
-from .unodb.statement import PreparedStatement
-from .unodb.statement import CallableStatement
+from .documentdatasource import DocumentDataSource
+from .databasemetadata import DatabaseMetaData
+from .statement import Statement
+from .statement import PreparedStatement
+from .statement import CallableStatement
 
 import traceback
 
@@ -126,8 +131,23 @@ class Connection(unohelper.Base,
 
     # XCommandPreparation
     def prepareCommand(self, command, commandtype):
+        # TODO: cannot use: self._connection.prepareCommand()
+        # TODO: it trow a: java.lang.IncompatibleClassChangeError
+        # TODO: in the same way when using self._connection.prepareStatement(sql)
+        # TODO: fallback to: self._connection.prepareCall(sql)
         print("Connection.prepareCommand()")
-        return self._connection.prepareCommand(command, commandtype)
+        sql = None
+        if commandtype == TABLE:
+            sql = 'SELECT * FROM "%s"' % command
+        elif commandtype == QUERY:
+            if self.getQueries().hasByName(command):
+                sql = self.getQueries().getByName(command).Command
+        elif commandtype == COMMAND:
+            sql = command
+        if sql is not None:
+            statement = PreparedStatement(self, sql)
+            return statement
+        raise SQLException()
 
     # XQueriesSupplier
     def getQueries(self):
@@ -152,11 +172,10 @@ class Connection(unohelper.Base,
 
     # XChild
     def getParent(self):
-        #print("Connection.getParent() *************************************************************")
         parent = self._connection.getParent()
         return DocumentDataSource(parent, self._protocols, self._username)
     def setParent(self):
-        print("Connection.setParent() *************************************************************")
+        pass
 
     # XTablesSupplier
     def getTables(self):
@@ -230,7 +249,7 @@ class Connection(unohelper.Base,
         print("Connection.isClosed()")
         return self._connection.isClosed()
     def getMetaData(self):
-        #print("Connection.getMetaData()")
+        print("Connection.getMetaData()")
         metadata = self._connection.getMetaData()
         return DatabaseMetaData(self, metadata, self._protocols, self._username)
     def setReadOnly(self, readonly):

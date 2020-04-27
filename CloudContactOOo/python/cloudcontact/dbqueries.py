@@ -329,7 +329,7 @@ GRANT SELECT ON "%(View)s" TO "%(User)s";
         query = 'UPDATE "Peoples" SET "GroupSync"=?,"TimeStamp"=? WHERE "People"=?'
 
 # Get DataBase Version Query
-    elif name == 'getVerion':
+    elif name == 'getVersion':
         query = 'Select DISTINCT DATABASE_VERSION() as "HSQL Version" From INFORMATION_SCHEMA.SYSTEM_TABLES'
 
 # Create Trigger Query
