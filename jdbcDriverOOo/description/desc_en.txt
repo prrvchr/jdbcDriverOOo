@@ -1,1 +1,1 @@
-Hsqldb driver of any version now readily available in LibreOffice / OpenOffice
+The latest Hsqldb driver finally available in LibreOffice / OpenOffice

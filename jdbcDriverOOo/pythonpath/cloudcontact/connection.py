@@ -161,8 +161,10 @@ class Connection(unohelper.Base,
     def createStatement(self):
         return Statement(self)
     def prepareStatement(self, sql):
+        print("Connection.prepareStatement() %s" % sql)
         return PreparedStatement(self, sql)
     def prepareCall(self, sql):
+        print("Connection.prepareCall() %s" % sql)
         return CallableStatement(self, sql)
     def nativeSQL(self, sql):
         return self._connection.nativeSQL(sql)

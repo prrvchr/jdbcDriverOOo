@@ -13,7 +13,8 @@
         <src xlink:href="https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo.update.xml" />
     </update-information>
     <publisher>
-        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo" lang="en">Hsqldb driver of any version now available in LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo" lang="fr-FR">Le pilote Hsqldb pour LibreOffice / OpenOffice</name>
+        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo" lang="en-US">Hsqldb driver for LibreOffice / OpenOffice</name>
     </publisher>
     <registration>
         <simple-license accept-by="admin" suppress-on-update="true" >
