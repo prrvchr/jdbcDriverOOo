@@ -24,14 +24,14 @@ from unolib import getConfiguration
 from unolib import getResourceLocation
 from unolib import getPropertyValueSet
 
-from cloudcontact import g_identifier
-from cloudcontact import g_path
-from cloudcontact import Connection
-from cloudcontact import getDataSourceUrl
-from cloudcontact import getDataSourceJavaInfo
-from cloudcontact import getDataSourceConnection
-from cloudcontact import getDataBaseInfo
-from cloudcontact import logMessage
+from jdbcdriver import g_identifier
+from jdbcdriver import g_path
+from jdbcdriver import Connection
+from jdbcdriver import getDataSourceUrl
+from jdbcdriver import getDataSourceJavaInfo
+from jdbcdriver import getDataSourceConnection
+from jdbcdriver import getDataBaseInfo
+from jdbcdriver import logMessage
 
 import traceback
 
@@ -90,9 +90,11 @@ class Driver(unohelper.Base,
             manager = self.ctx.ServiceManager.createInstance('com.sun.star.sdbc.DriverManager')
             location = getResourceLocation(self.ctx, g_identifier, g_path)
             info = getDataSourceJavaInfo(location)
-            if user != '':
+            if user is None:
+                user = 'SA'
+            else:
                 info += getPropertyValueSet({'user', user})
-                if password != '':
+                if password is not None:
                     info += getPropertyValueSet({'password', password})
             path = 'jdbc:%s' % ':'.join(protocols[1:])
             print("Driver.connect() 3 %s" % path)
@@ -138,8 +140,8 @@ class Driver(unohelper.Base,
         return 0
 
     def _getUserCredential(self, infos):
-        username = ''
-        password = ''
+        username = None
+        password = None
         for info in infos:
             if info.Name == 'user':
                 username = info.Value.strip()
@@ -154,16 +156,6 @@ class Driver(unohelper.Base,
 
     def _isSupportedSubProtocols(self, protocols):
         return protocols[2].lower() in self._supportedSubProtocols
-
-    def _getSupplierWarnings(self, supplier, error):
-        self._getWarnings(supplier, error)
-        supplier.clearWarnings()
-
-    def _getWarnings(self, supplier, error):
-        warning = supplier.getWarnings()
-        if warning:
-            error.NextException = warning
-            self._getWarnings(supplier, warning)
 
     def _getException(self, state, code, message, context=None, exception=None):
         error = SQLException()

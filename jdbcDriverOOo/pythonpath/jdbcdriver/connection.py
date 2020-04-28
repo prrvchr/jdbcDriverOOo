@@ -16,6 +16,12 @@ from com.sun.star.lang import XMultiServiceFactory
 from com.sun.star.container import XChild
 from com.sun.star.sdb.application import XTableUIProvider
 from com.sun.star.sdb.tools import XConnectionTools
+from com.sun.star.sdb.CommandType import TABLE
+from com.sun.star.sdb.CommandType import QUERY
+from com.sun.star.sdb.CommandType import COMMAND
+from com.sun.star.beans.PropertyAttribute import READONLY
+
+from com.sun.star.sdbc import SQLException
 
 from com.sun.star.uno import XWeak
 from com.sun.star.uno import XAdapter
@@ -38,11 +44,11 @@ from unolib import createService
 from .dbtools import getSequenceFromResult
 from .dbqueries import getSqlQuery
 
-from .unodb.documentdatasource import DocumentDataSource
-from .unodb.databasemetadata import DatabaseMetaData
-from .unodb.statement import Statement
-from .unodb.statement import PreparedStatement
-from .unodb.statement import CallableStatement
+from .documentdatasource import DocumentDataSource
+from .databasemetadata import DatabaseMetaData
+from .statement import Statement
+from .statement import PreparedStatement
+from .statement import CallableStatement
 
 import traceback
 
@@ -109,7 +115,23 @@ class Connection(unohelper.Base,
 
     # XCommandPreparation
     def prepareCommand(self, command, commandtype):
-        return self._connection.prepareCommand(command, commandtype)
+        # TODO: cannot use: self._connection.prepareCommand()
+        # TODO: it trow a: java.lang.IncompatibleClassChangeError
+        # TODO: in the same way when using self._connection.prepareStatement(sql)
+        # TODO: fallback to: self._connection.prepareCall(sql)
+        print("Connection.prepareCommand()")
+        sql = None
+        if commandtype == TABLE:
+            sql = 'SELECT * FROM "%s"' % command
+        elif commandtype == QUERY:
+            if self.getQueries().hasByName(command):
+                sql = self.getQueries().getByName(command).Command
+        elif commandtype == COMMAND:
+            sql = command
+        if sql is not None:
+            statement = PreparedStatement(self, sql)
+            return statement
+        raise SQLException()
 
     # XQueriesSupplier
     def getQueries(self):
@@ -144,7 +166,18 @@ class Connection(unohelper.Base,
 
     # XUsersSupplier
     def getUsers(self):
-        return self._connection.getUsers()
+        try:
+            print("Connection.getUsers()1")
+            query = getSqlQuery('getUsers')
+            result = self._connection.createStatement().executeQuery(query)
+            users = getSequenceFromResult(result)
+            #mri = createService(self.ctx, 'mytools.Mri')
+            #mri.inspect(result)
+            #users = self._connection.getUsers()
+            print("Connection.getUsers()2 %s" % users)
+            return DataContainer(users, 'string')
+        except Exception as e:
+            print("Connection.getUsers(): %s - %s" % (e, traceback.print_exc()))
 
     # XGroupsSupplier
     def getGroups(self):
@@ -205,3 +238,112 @@ class Connection(unohelper.Base,
         return self._connection.getImplementationName()
     def getSupportedServiceNames(self):
         return self._connection.getSupportedServiceNames()
+
+
+class DataContainer(unohelper.Base,
+                    XWeak,
+                    XAdapter,
+                    XNameAccess,
+                    XIndexAccess,
+                    XEnumerationAccess):
+    def __init__(self, names, typename):
+        self._elements = {name: DataBaseUser(name) for name in names}
+        self._typename = typename
+        print("DataContainer.__init__()")
+
+    # XWeak
+    def queryAdapter(self):
+        print("DataContainer.queryAdapter()")
+        return self
+    # XAdapter
+    def queryAdapted(self):
+        print("DataContainer.queryAdapter()")
+        return self
+    def addReference(self, reference):
+        pass
+    def removeReference(self, reference):
+        pass
+
+    # XNameAccess
+    def getByName(self, name):
+        print("DataContainer.getByName() %s" % name)
+        return self._elements[name]
+    def getElementNames(self):
+        elements = tuple(self._elements.keys())
+        print("DataContainer.getElementNames() %s" % (elements, ))
+        return elements
+    def hasByName(self, name):
+        print("DataContainer.hasByName() %s" % name)
+        return name in self._elements
+
+    # XIndexAccess
+    def getCount(self):
+        print("DataContainer.getCount()")
+        return len(self._elements)
+    def getByIndex(self, index):
+        print("DataContainer.getByIndex() %s" % index)
+        return None
+
+    # XEnumerationAccess
+    def createEnumeration(self):
+        print("DataContainer.createEnumeration()")
+
+    # XElementAccess
+    def getElementType(self):
+        print("DataContainer.getElementType()")
+        return uno.getTypeByName(self._typename)
+    def hasElements(self):
+        print("DataContainer.hasElements()")
+        return len(self._elements) != 0
+
+
+class DataBaseUser(unohelper.Base,
+                   XUser,
+                   XWeak,
+                   XAdapter,
+                   XGroupsSupplier,
+                   PropertySet):
+    def __init__(self, username):
+        self.Name = username
+        print("DataBaseUser.__init__()")
+
+    # XWeak
+    def queryAdapter(self):
+        print("DataBaseUser.queryAdapter()")
+        return self
+    # XAdapter
+    def queryAdapted(self):
+        print("DataBaseUser.queryAdapted()")
+        return self
+    def addReference(self, reference):
+        pass
+    def removeReference(self, reference):
+        pass
+
+    # XUser, 
+    def changePassword(self, oldpwd, newpwd):
+        print("DataBaseUser.changePassword()")
+        pass
+    def getPrivileges(self, objname, objtype):
+        print("DataBaseUser.getPrivileges()")
+        pass
+    def getGrantablePrivileges(self, objname, objtype):
+        print("DataBaseUser.getGrantablePrivileges()")
+        pass
+    def grantPrivileges(self, objname, objtype, objprivilege):
+        print("DataBaseUser.grantPrivileges()")
+        pass
+    def revokePrivileges(self, objname, objtype, objprivilege):
+        print("DataBaseUser.revokePrivileges()")
+        pass
+
+    # XGroupsSupplier
+    def getGroups(self):
+        print("DataBaseUser.getGroups()")
+        return None
+
+    # XPropertySet
+    def _getPropertySetInfo(self):
+        properties = {}
+        properties['Name'] = getProperty('Name', 'string', READONLY)
+        return properties
