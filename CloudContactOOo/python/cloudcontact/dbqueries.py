@@ -209,9 +209,13 @@ GRANT SELECT ON "%(View)s" TO "%(User)s";
     elif name == 'getIdentity':
         query = 'CALL IDENTITY();'
 
-# Get Users Query
+# Get Users and Privileges Query
     elif name == 'getUsers':
         query = 'SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS'
+    elif name == 'getPrivileges':
+        query = 'SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES'
+    elif name == 'changePassword':
+        query = "SET PASSWORD '%s'" % format
 
 # Select Queries
     elif name == 'getTableName':

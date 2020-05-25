@@ -108,7 +108,7 @@ class OAuth2Service(unohelper.Base,
         # TODO: IDL file of com.sun.star.auth.OAuth2Request Exception who is normally returned...
         url = interaction.getRequest().ResourceUrl
         provider = self._getProviderNameFromUrl(url)
-        dialog = getDialog(self.ctx, self.Parent, DialogHandler(), 'OAuth2OOo', 'UserDialog')
+        dialog = getDialog(self.ctx, 'OAuth2OOo', 'UserDialog', DialogHandler(), self.Parent)
         self._initUserDialog(dialog, provider)
         status = dialog.execute()
         approved = status == OK

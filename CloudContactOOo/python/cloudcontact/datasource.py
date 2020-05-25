@@ -84,10 +84,10 @@ class DataSource(unohelper.Base,
         return self._Warnings
     @Warnings.setter
     def Warnings(self, warning):
-        if warning is None:
-            return
-        warning.NextException = self._Warnings
-        self._Warnings = warning
+        if warning is not None:
+            if self._Warnings is not None:
+                warning.NextException = self._Warnings
+            self._Warnings = warning
 
     def getWarnings(self):
         return self._Warnings
@@ -399,8 +399,9 @@ class DataSource(unohelper.Base,
         if name not in self._CallsPool:
             # TODO: cannot use: call = self.Connection.prepareCommand(name, QUERY)
             # TODO: it trow a: java.lang.IncompatibleClassChangeError
-            query = self.Connection.getQueries().getByName(name).Command
-            self._CallsPool[name] = self.Connection.prepareCall(query)
+            #query = self.Connection.getQueries().getByName(name).Command
+            #self._CallsPool[name] = self.Connection.prepareCall(query)
+            self._CallsPool[name] = self.Connection.prepareCommand(name, QUERY)
         if name not in self._batchedCall:
             self._batchedCall.append(name)
         return self._CallsPool[name]
