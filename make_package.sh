@@ -1,11 +1,8 @@
 #!/bin/bash
 
-cd ./CloudContactOOo/
-./make_rdb.sh
-
-cd ../jdbcDriverOOo/
-zip -0 jdbcDriverOOo.zip mimetype
-zip -r jdbcDriverOOo.zip *
+cd ./HsqlDBDriverOOo/
+zip -0 HsqlDBDriverOOo.zip mimetype
+zip -r HsqlDBDriverOOo.zip *
 cd ..
 
-mv ./jdbcDriverOOo/jdbcDriverOOo.zip ./jdbcDriverOOo.oxt
+mv ./HsqlDBDriverOOo/HsqlDBDriverOOo.zip ./HsqlDBDriverOOo.oxt
