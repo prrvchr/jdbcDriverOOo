@@ -1,1 +1,0 @@
-../../../CloudContactOOo/python/cloudcontact/dbinit.py

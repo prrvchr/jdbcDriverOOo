@@ -1,6 +1,32 @@
 #!
 # -*- coding: utf_8 -*-
 
+"""
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+"""
+
 import uno
 import unohelper
 
@@ -16,20 +42,20 @@ from unolib import getResourceLocation
 from unolib import getDialog
 from unolib import createService
 
-from jdbcdriver import getDataSourceLocation
-from jdbcdriver import getDataSourceJavaInfo
-from jdbcdriver import getDataSourceUrl
+from hsqldbdriver import getDataSourceLocation
+from hsqldbdriver import getDataSourceJavaInfo
+from hsqldbdriver import getDataSourceUrl
 
-from jdbcdriver import getLoggerUrl
-from jdbcdriver import getLoggerSetting
-from jdbcdriver import setLoggerSetting
-from jdbcdriver import clearLogger
-from jdbcdriver import logMessage
+from hsqldbdriver import getLoggerUrl
+from hsqldbdriver import getLoggerSetting
+from hsqldbdriver import setLoggerSetting
+from hsqldbdriver import clearLogger
+from hsqldbdriver import logMessage
 
-from jdbcdriver import g_extension
-from jdbcdriver import g_identifier
-from jdbcdriver import g_path
-from jdbcdriver import g_host
+from hsqldbdriver import g_extension
+from hsqldbdriver import g_identifier
+from hsqldbdriver import g_path
+from hsqldbdriver import g_host
 
 import traceback
 
