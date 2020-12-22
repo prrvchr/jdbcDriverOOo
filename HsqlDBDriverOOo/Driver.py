@@ -111,10 +111,10 @@ class Driver(unohelper.Base,
             options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
             print("Driver.connect() 1 %s - %s - %s" % (user, password, url))
-            if len(protocols) != 4 or not all(protocols):
-                msg = "Invalide protocol: '%s'" % url
-                raise self._getException('Protocol ERROR', 1001, msg, self)
-            elif not self._isSupportedSubProtocols(protocols):
+            #if len(protocols) < 4 or not all(protocols):
+            #    msg = "Invalide protocol: '%s'" % url
+            #    raise self._getException('Protocol ERROR', 1001, msg, self)
+            if not self._isSupportedSubProtocols(protocols):
                 msg = "Invalide subprotocol: '%s' are not supported\n" % protocols[2]
                 msg += "Supported subprotocols are: %s" % self._getSupportedSubProtocols()
                 raise self._getException('Protocol ERROR', 1002, msg, self)
