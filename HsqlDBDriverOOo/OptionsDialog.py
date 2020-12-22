@@ -44,7 +44,6 @@ from unolib import createService
 
 from hsqldbdriver import getDataSourceLocation
 from hsqldbdriver import getDataSourceJavaInfo
-from hsqldbdriver import getDataSourceUrl
 
 from hsqldbdriver import getLoggerUrl
 from hsqldbdriver import getLoggerSetting
@@ -55,7 +54,6 @@ from hsqldbdriver import logMessage
 from hsqldbdriver import g_extension
 from hsqldbdriver import g_identifier
 from hsqldbdriver import g_path
-from hsqldbdriver import g_host
 
 import traceback
 

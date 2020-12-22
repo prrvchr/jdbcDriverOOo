@@ -46,18 +46,21 @@ from com.sun.star.sdbc.ResultSetConcurrency import UPDATABLE
 
 from com.sun.star.uno import Exception as UnoException
 
-from unolib import getConfiguration
 from unolib import getResourceLocation
-from unolib import getPropertyValueSet
+from unolib import createService
+from unolib import getSimpleFile
+from unolib import getUrl
 
 from hsqldbdriver import g_identifier
 from hsqldbdriver import g_path
+from hsqldbdriver import g_jar
+from hsqldbdriver import g_class
 from hsqldbdriver import Connection
-from hsqldbdriver import getDataSourceUrl
-from hsqldbdriver import getDataSourceJavaInfo
-from hsqldbdriver import getDataSourceConnection
 from hsqldbdriver import getDataBaseInfo
+
 from hsqldbdriver import logMessage
+from hsqldbdriver import getMessage
+g_message = 'Driver'
 
 import traceback
 
@@ -76,7 +79,8 @@ class Driver(unohelper.Base,
     def __init__(self, ctx):
         self.ctx = ctx
         self._supportedProtocol = 'sdbc:hsqldb:'
-        self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https','mem', 'file', 'res')
+        self._supportedSubProtocols = ('file',)
+        #self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https','mem', 'file', 'res')
         print("Driver.__init__()")
 
     def __del__(self):
@@ -102,7 +106,9 @@ class Driver(unohelper.Base,
     # XDriver
     def connect(self, url, infos):
         try:
-            protocols = url.strip().split(':')
+            url, has_option, option = url.strip().partition(';')
+            protocols = url.split(':')
+            options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
             print("Driver.connect() 1 %s - %s - %s" % (user, password, url))
             if len(protocols) != 4 or not all(protocols):
@@ -112,23 +118,17 @@ class Driver(unohelper.Base,
                 msg = "Invalide subprotocol: '%s' are not supported\n" % protocols[2]
                 msg += "Supported subprotocols are: %s" % self._getSupportedSubProtocols()
                 raise self._getException('Protocol ERROR', 1002, msg, self)
-            print("Driver.connect() 2 *****************")
-            manager = self.ctx.ServiceManager.createInstance('com.sun.star.sdbc.DriverManager')
-            location = getResourceLocation(self.ctx, g_identifier, g_path)
-            info = getDataSourceJavaInfo(location)
-            if user is None:
-                user = 'SA'
-            else:
-                info += getPropertyValueSet({'user', user})
-                if password is not None:
-                    info += getPropertyValueSet({'password', password})
-            path = 'jdbc:%s' % ':'.join(protocols[1:])
-            print("Driver.connect() 3 %s" % path)
-            connection = manager.getConnectionWithInfo(path, info)
+            dblocation = ':'.join(protocols[2:])
+            print("Driver.connect() 2 %s" % dblocation)
+            dburl = getUrl(self.ctx, dblocation)
+            print("Driver.connect() 3 %s - %s" % (dburl.Path, dburl.Name))
+            datasource = self._getDataSource(dburl, options)
+            print("Driver.connect() 4 %s" % datasource.URL)
+            connection = datasource.getConnection(user, password)
             #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-            #mri.inspect(self.DataSource.Connection)
+            #mri.inspect(connection)
             version = connection.getMetaData().getDriverVersion()
-            print("Driver.connect() 4 %s" % version)
+            print("Driver.connect() 5 %s" % version)
             return Connection(self.ctx, connection, protocols, user)
         except SQLException as e:
             raise e
@@ -166,8 +166,8 @@ class Driver(unohelper.Base,
         return 0
 
     def _getUserCredential(self, infos):
-        username = None
-        password = None
+        username = ''
+        password = ''
         for info in infos:
             if info.Name == 'user':
                 username = info.Value.strip()
@@ -202,6 +202,27 @@ class Driver(unohelper.Base,
             info.Value = value
         info.Choices = ()
         return info
+
+    def _getDataSource(self, url, options):
+        odb = '%s.odb' % url.Main
+        dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
+        if getSimpleFile(self.ctx).exists(odb):
+            name = url.Name if dbcontext.hasByName(url.Name) else odb
+            datasource = dbcontext.getByName(name)
+        else:
+            datasource = self._createDataSource(dbcontext, url, options)
+        return datasource
+
+    def _createDataSource(self, dbcontext, url, options):
+        datasource = dbcontext.createInstance()
+        location = 'jdbc:hsqldb:%s'  % url.Main
+        if options is not None:
+            location += ';%s' % ';'.join(options)
+        datasource.URL = location
+        datasource.Settings.JavaDriverClass = g_class
+        path = getResourceLocation(self.ctx, g_identifier, g_path)
+        datasource.Settings.JavaDriverClassPath = '%s/%s' % (path, g_jar)
+        return datasource
 
     # XServiceInfo
     def supportsService(self, service):

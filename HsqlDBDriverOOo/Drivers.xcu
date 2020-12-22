@@ -7,10 +7,11 @@
     <node oor:name="Installed">
         <node oor:name="sdbc:hsqldb:*" oor:op="replace">
             <prop oor:name="Driver">
-                <value>com.gmail.prrvchr.extensions.jdbcDriverOOo.Driver</value>
+                <value>com.gmail.prrvchr.extensions.HsqlDBDriverOOo.Driver</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-                <value xml:lang="en-US">jdbcDriverOOo</value>
+                <value xml:lang="en-US">HsqlDB Driver</value>
+                <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
             <node oor:name="Features">
                 <node oor:name="EscapeDateTime" oor:op="replace">

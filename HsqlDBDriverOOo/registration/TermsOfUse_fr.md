@@ -1,20 +1,20 @@
-## Conditions d'utilisation pour [jdbcDriverOOo](https://github.com/prrvchr/jdbcDriverOOo)
+## Conditions d'utilisation pour [HsqlDBDriverOOo](https://github.com/prrvchr/HsqlDBDriverOOo)
 
 
 ### Introduction:
 
-La bibliothèque jdbcDriverOOo fait partie d'un projet personnel.
-La documentation complète est disponible [sur cette page](https://prrvchr.github.io/jdbcDriverOOo).
+La bibliothèque HsqlDBDriverOOo fait partie d'un projet personnel.
+La documentation complète est disponible [sur cette page](https://prrvchr.github.io/HsqlDBDriverOOo).
 
 
 ### Responsabilités:
 
-jdbcDriverOOo est distribué dans l'espoir qu'il sera utile, mais **SANS AUCUNE GARANTIE**; sans même la garantie implicite de **QUALITÉ MARCHANDE** ou **ADAPTATION À UN USAGE PARTICULIER**.
+HsqlDBDriverOOo est distribué dans l'espoir qu'il sera utile, mais **SANS AUCUNE GARANTIE**; sans même la garantie implicite de **QUALITÉ MARCHANDE** ou **ADAPTATION À UN USAGE PARTICULIER**.
 
 
 ### Licence:
 
-jdbcDriverOOo est un logiciel gratuit; Vous pouvez le redistribuer et/ou le modifier selon les termes (à votre choix):
+HsqlDBDriverOOo est un logiciel gratuit; Vous pouvez le redistribuer et/ou le modifier selon les termes (à votre choix):
 
 - La Licence Publique Mozilla, version 2.0. Si une copie du LPM n'était pas distribué avec ce fichier, vous pouvez l'obtenir à [l'adresse](http://mozilla.org/MPL/2.0/).
 

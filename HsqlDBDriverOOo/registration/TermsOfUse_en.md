@@ -1,20 +1,20 @@
-## Terms Of Use for [jdbcDriverOOo](https://github.com/prrvchr/jdbcDriverOOo)
+## Terms Of Use for [HsqlDBDriverOOo](https://github.com/prrvchr/HsqlDBDriverOOo)
 
 
 ### Introduction:
 
-The jdbcDriverOOo library is a part of a personnal project.
-Full documentation is available [on this page](https://prrvchr.github.io/jdbcDriverOOo).
+The HsqlDBDriverOOo library is a part of a personnal project.
+Full documentation is available [on this page](https://prrvchr.github.io/HsqlDBDriverOOo).
 
 
 ### Responsibilities:
 
-jdbcDriverOOo is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**.
+HsqlDBDriverOOo is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**.
 
 
 ### License:
 
-jdbcDriverOOo is free software; you can redistribute it and/or modify it under the terms of either (at your option):
+HsqlDBDriverOOo is free software; you can redistribute it and/or modify it under the terms of either (at your option):
 
 - The Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, you can obtain one [at](http://mozilla.org/MPL/2.0/).
 
