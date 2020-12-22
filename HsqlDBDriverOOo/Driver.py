@@ -125,8 +125,8 @@ class Driver(unohelper.Base,
             datasource = self._getDataSource(dburl, options)
             print("Driver.connect() 4 %s" % datasource.URL)
             connection = datasource.getConnection(user, password)
-            #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-            #mri.inspect(connection)
+            #mri = createService(self.ctx, 'mytools.Mri')
+            #mri.inspect(datasource)
             version = connection.getMetaData().getDriverVersion()
             print("Driver.connect() 5 %s" % version)
             return Connection(self.ctx, connection, protocols, user)
@@ -210,10 +210,10 @@ class Driver(unohelper.Base,
             name = url.Name if dbcontext.hasByName(url.Name) else odb
             datasource = dbcontext.getByName(name)
         else:
-            datasource = self._createDataSource(dbcontext, url, options)
+            datasource = self._createDataSource(dbcontext, url, options, odb)
         return datasource
 
-    def _createDataSource(self, dbcontext, url, options):
+    def _createDataSource(self, dbcontext, url, options, odb):
         datasource = dbcontext.createInstance()
         location = 'jdbc:hsqldb:%s'  % url.Main
         if options is not None:
@@ -222,6 +222,7 @@ class Driver(unohelper.Base,
         datasource.Settings.JavaDriverClass = g_class
         path = getResourceLocation(self.ctx, g_identifier, g_path)
         datasource.Settings.JavaDriverClassPath = '%s/%s' % (path, g_jar)
+        datasource.DatabaseDocument.storeAsURL(odb, ())
         return datasource
 
     # XServiceInfo
