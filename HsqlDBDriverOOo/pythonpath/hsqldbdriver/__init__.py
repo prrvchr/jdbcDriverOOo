@@ -27,30 +27,23 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import traceback
-try:
+from .connection import Connection
 
-    from .connection import Connection
+from .configuration import g_extension
+from .configuration import g_identifier
 
-    from .configuration import g_extension
-    from .configuration import g_identifier
+from .dbconfig import g_path
+from .dbconfig import g_class
+from .dbconfig import g_jar
 
-    from .dbconfig import g_path
-    from .dbconfig import g_class
-    from .dbconfig import g_jar
+from .dbtools import getDataSourceConnection
+from .dbtools import getDataBaseInfo
+from .dbtools import getDataSourceLocation
+from .dbtools import getDataSourceJavaInfo
 
-    from .dbtools import getDataSourceConnection
-    from .dbtools import getDataBaseInfo
-    from .dbtools import getDataSourceLocation
-    from .dbtools import getDataSourceJavaInfo
-
-    from .logger import getLoggerSetting
-    from .logger import getLoggerUrl
-    from .logger import setLoggerSetting
-    from .logger import clearLogger
-    from .logger import logMessage
-    from .logger import getMessage
-
-except Exception as e:
-    print("cloudcontact.__init__() ERROR: %s - %s" % (e, traceback.print_exc()))
-
+from .logger import getLoggerSetting
+from .logger import getLoggerUrl
+from .logger import setLoggerSetting
+from .logger import clearLogger
+from .logger import logMessage
+from .logger import getMessage

@@ -35,14 +35,11 @@ from com.sun.star.sdbc import XDriver
 from com.sun.star.sdbcx import XDataDefinitionSupplier
 from com.sun.star.sdbcx import XCreateCatalog
 from com.sun.star.sdbcx import XDropCatalog
+
 from com.sun.star.sdbc import SQLException
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
-from com.sun.star.sdbc.ResultSetType import SCROLL_INSENSITIVE
-from com.sun.star.sdbc.ResultSetType import SCROLL_SENSITIVE
-from com.sun.star.sdbc.ResultSetType import FORWARD_ONLY
-from com.sun.star.sdbc.ResultSetConcurrency import READ_ONLY
-from com.sun.star.sdbc.ResultSetConcurrency import UPDATABLE
 
 from com.sun.star.uno import Exception as UnoException
 
@@ -111,24 +108,20 @@ class Driver(unohelper.Base,
             options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
             print("Driver.connect() 1 %s - %s - %s" % (user, password, url))
-            #if len(protocols) < 4 or not all(protocols):
-            #    msg = "Invalide protocol: '%s'" % url
-            #    raise self._getException('Protocol ERROR', 1001, msg, self)
+            if len(protocols) < 4 or not all(protocols):
+                msg = "Invalide protocol: '%s'" % url
+                raise self._getException('Protocol ERROR', 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
                 msg = "Invalide subprotocol: '%s' are not supported\n" % protocols[2]
                 msg += "Supported subprotocols are: %s" % self._getSupportedSubProtocols()
                 raise self._getException('Protocol ERROR', 1002, msg, self)
-            dblocation = ':'.join(protocols[2:])
-            print("Driver.connect() 2 %s" % dblocation)
-            dburl = getUrl(self.ctx, dblocation)
-            print("Driver.connect() 3 %s - %s" % (dburl.Path, dburl.Name))
-            datasource = self._getDataSource(dburl, options)
-            print("Driver.connect() 4 %s" % datasource.URL)
+            location = getUrl(self.ctx, ':'.join(protocols[2:]))
+            print("Driver.connect() 2 %s - %s" % (location.Path, location.Name))
+            datasource = self._getDataSource(location, options)
+            print("Driver.connect() 3 %s" % datasource.URL)
             connection = datasource.getConnection(user, password)
-            #mri = createService(self.ctx, 'mytools.Mri')
-            #mri.inspect(datasource)
             version = connection.getMetaData().getDriverVersion()
-            print("Driver.connect() 5 %s" % version)
+            print("Driver.connect() 4 %s" % version)
             return Connection(self.ctx, connection, protocols, user)
         except SQLException as e:
             raise e
@@ -204,16 +197,16 @@ class Driver(unohelper.Base,
         return info
 
     def _getDataSource(self, url, options):
-        odb = '%s.odb' % url.Main
+        location = '%s.odb' % url.Main
         dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        if getSimpleFile(self.ctx).exists(odb):
-            name = url.Name if dbcontext.hasByName(url.Name) else odb
-            datasource = dbcontext.getByName(name)
+        if getSimpleFile(self.ctx).exists(location):
+            datasource = dbcontext.getByName(location)
         else:
-            datasource = self._createDataSource(dbcontext, url, options, odb)
+            datasource = self._createDataSource(dbcontext, url, options)
+            datasource.DatabaseDocument.storeAsURL(location, ())
         return datasource
 
-    def _createDataSource(self, dbcontext, url, options, odb):
+    def _createDataSource(self, dbcontext, url, options):
         datasource = dbcontext.createInstance()
         location = 'jdbc:hsqldb:%s'  % url.Main
         if options is not None:
@@ -222,7 +215,6 @@ class Driver(unohelper.Base,
         datasource.Settings.JavaDriverClass = g_class
         path = getResourceLocation(self.ctx, g_identifier, g_path)
         datasource.Settings.JavaDriverClassPath = '%s/%s' % (path, g_jar)
-        datasource.DatabaseDocument.storeAsURL(odb, ())
         return datasource
 
     # XServiceInfo
