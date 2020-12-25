@@ -4,7 +4,7 @@
 ### Introduction:
 
 La bibliothèque HsqlDBDriverOOo fait partie d'un projet personnel.
-La documentation complète est disponible [sur cette page](https://prrvchr.github.io/HsqlDBDriverOOo).
+La documentation complète est disponible [sur cette page](https://prrvchr.github.io/HsqlDBDriverOOo/README_fr).
 
 
 ### Responsabilités:

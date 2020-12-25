@@ -10,9 +10,9 @@
 This extension allows you to use the HsqlDB driver of your choice directly in Base.
 
 Being free software I encourage you:
-- To duplicate its [source code](https://github.com/prrvchr/gContactOOo).
+- To duplicate its [source code](https://github.com/prrvchr/HsqlDBDriverOOo).
 - To make changes, corrections, improvements.
-- To open [issue](https://github.com/prrvchr/gContactOOo/issues/new) if needed.
+- To open [issue](https://github.com/prrvchr/HsqlDBDriverOOo/issues/new) if needed.
 
 In short, to participate in the development of this extension.
 Because it is together that we can make Free Software smarter.
@@ -76,7 +76,7 @@ Have fun...
 * LibreOffice 6.4.4.2 (x64) - Windows 7 SP1
 
 I encourage you in case of problem :-(  
-to create an [issue](https://github.com/prrvchr/gContactOOo/issues/new)  
+to create an [issue](https://github.com/prrvchr/HsqlDBDriverOOo/issues/new)  
 I will try to solve it ;-)
 
 ## Historical:
