@@ -83,6 +83,8 @@ J'essaierai de le résoudre ;-)
 
 ### Ce qui a été fait pour la version 0.0.1:
 
+- La rédaction de ce pilote a été facilitée par une [discussion avec Villeroy](https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912), sur le forum OpenOffice, que je tiens à remercier, car la connaissance ne vaut que si elle est partagée...
+
 - Utilisation de la nouvelle version de HsqlDB 2.5.1.
 
 - Beaucoup d'autres correctifs...

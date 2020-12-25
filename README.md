@@ -83,6 +83,8 @@ I will try to solve it ;-)
 
 ### What has been done for version 0.0.1:
 
+- The writing of this driver was facilitated by a [discussion with Villeroy](https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912), on the OpenOffice forum, which I would like to thank, because knowledge is only worth if it is shared...
+
 - Using the new version of HsqlDB 2.5.1.
 
 - Many other fix...
