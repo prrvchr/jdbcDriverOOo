@@ -25,7 +25,7 @@ LibreOffice / OpenOffice of a **JRE version 1.8 minimum** (ie: Java version 8)
 
 Sometimes it may be necessary for LibreOffice users must have no HsqlDB driver installed with LibreOffice  
 (check your Installed Application under Windows or your Packet Manager under Linux)  
-It seems that versions 6.4.x and 7.x of LibreOffice have fixed this problem and are able to work with different driver version of Hsqldb simultaneously.  
+It seems that versions 6.4.x and 7.x of LibreOffice have fixed this problem and are able to work with different driver version of HsqlDB simultaneously.  
 OpenOffice doesn't seem to need this workaround.
 
 ## Installation:

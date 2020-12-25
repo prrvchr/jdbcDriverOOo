@@ -25,7 +25,7 @@ LibreOffice / OpenOffice d'un **JRE version 1.8 minimum** (c'est-à-dire: Java v
 
 Parfois, il peut être nécessaire pour les utilisateurs de LibreOffice de ne pas avoir de pilote HsqlDB installé avec LibreOffice  
 (vérifiez vos applications installées sous Windows ou votre gestionnaire de paquets sous Linux)  
-Il semble que les versions 6.4.x et 7.x de LibreOffice aient résolu ce problème et sont capables de fonctionner simultanément avec différentes versions de pilote de Hsqldb.  
+Il semble que les versions 6.4.x et 7.x de LibreOffice aient résolu ce problème et sont capables de fonctionner simultanément avec différentes versions de pilote de HsqlDB.  
 OpenOffice ne semble pas avoir besoin de cette solution de contournement.
 
 ## Installation:
