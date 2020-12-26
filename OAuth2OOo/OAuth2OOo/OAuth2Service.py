@@ -48,8 +48,8 @@ from com.sun.star.auth import OAuth2Request
 
 from oauth2lib import OAuth2OOo
 from oauth2lib import NoOAuth2
-from oauth2lib import KeyMap
 
+from unolib import KeyMap
 from unolib import getStringResource
 from unolib import createService
 from unolib import getConfiguration

@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .keymap import KeyMap
-
 from .oauth2config import g_oauth2
 
 from .oauth2lib import InteractionRequest

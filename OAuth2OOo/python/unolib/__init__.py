@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .keymap import KeyMap
+
 from .unolib import InteractionHandler
 from .unolib import Initialization
 from .unolib import PropertySet

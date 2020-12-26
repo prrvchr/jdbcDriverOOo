@@ -32,9 +32,9 @@ import uno
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from oauth2lib import KeyMap
 from oauth2lib import NoOAuth2
 
+from unolib import KeyMap
 from unolib import getCurrentLocale
 
 from .requests.compat import urlencode
