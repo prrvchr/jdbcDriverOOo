@@ -36,14 +36,15 @@ from com.sun.star.awt import XDialogEventHandler
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from oauth2lib import InteractionRequest
+from oauth2lib import getOAuth2UserName
+
 from unolib import createService
 from unolib import getFileSequence
 from unolib import getStringResource
 from unolib import getNamedValueSet
 from unolib import getConfiguration
 from unolib import getInteractionHandler
-from unolib import InteractionRequest
-from unolib import getOAuth2UserName
 from unolib import getDialog
 from unolib import getExceptionMessage
 

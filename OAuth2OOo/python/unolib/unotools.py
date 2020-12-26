@@ -36,8 +36,6 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from .unolib import InteractionHandler
 
-from .oauth2config import g_oauth2
-
 import datetime
 import binascii
 from six import binary_type, string_types
@@ -67,18 +65,6 @@ def getUrl(ctx, location, protocol=None):
     else:
         success, url = transformer.parseSmart(url, protocol)
     return url if success else None
-
-def getRequest(ctx, scheme, name):
-    request = createService(ctx, g_oauth2)
-    if request is not None:
-        request.initializeSession(scheme, name)
-    return request
-
-def getOAuth2(ctx, url, name):
-    oauth2 = createService(ctx, g_oauth2)
-    if oauth2 is not None:
-        oauth2.initializeSession(url, name)
-    return oauth2
 
 def getExceptionMessage(exception):
     messages = []

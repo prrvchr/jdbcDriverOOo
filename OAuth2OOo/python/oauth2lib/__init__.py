@@ -27,24 +27,16 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .keymap import KeyMap
+
+from .oauth2config import g_oauth2
+
 from .oauth2lib import InteractionRequest
-from .unotools import getInteractionHandler
+from .oauth2lib import NoOAuth2
+from .oauth2lib import OAuth2OOo
 
+from .oauth2tools import getRequest
+from .oauth2tools import getOAuth2
 
-def getOAuth2UserName(ctx, source, url, message=''):
-    username = ''
-    handler = getInteractionHandler(ctx)
-    interaction = InteractionRequest(source, url, '', '', message)
-    if handler.handleInteractionRequest(interaction):
-        continuation = interaction.getContinuations()[-1]
-        username = continuation.getUserName()
-    return username
-
-def getOAuth2Token(ctx, source, url, user, format=''):
-    token = ''
-    handler = getInteractionHandler(ctx)
-    interaction = InteractionRequest(source, url, user, format, '')
-    if handler.handleInteractionRequest(interaction):
-        continuation = interaction.getContinuations()[-1]
-        token = continuation.getToken()
-    return token
+from .oauth2core import getOAuth2UserName
+from .oauth2core import getOAuth2Token

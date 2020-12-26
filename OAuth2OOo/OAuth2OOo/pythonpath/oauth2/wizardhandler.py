@@ -44,13 +44,12 @@ from unolib import getStringResource
 
 from .dialoghandler import DialogHandler
 
-print("wizardhandler.py 1")
 from .oauth2tools import getActivePath
 from .oauth2tools import openUrl
 from .oauth2tools import updatePageTokenUI
 from .oauth2tools import getRefreshToken
 from .oauth2tools import saveTokenToConfiguration
-print("wizardhandler.py 2")
+
 from .configuration import g_identifier
 
 from .logger import logMessage
@@ -65,8 +64,6 @@ class WizardHandler(unohelper.Base,
         self.Configuration = configuration
         self.Wizard = wizard
         self._stringResource = getStringResource(self.ctx, g_identifier, 'OAuth2OOo')
-        #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-        #mri.inspect(self.Wizard)
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):

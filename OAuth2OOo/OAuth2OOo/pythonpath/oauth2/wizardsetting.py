@@ -33,10 +33,11 @@ import unohelper
 from com.sun.star.embed import XTransactedObject
 from com.sun.star.util import XUpdatable
 
+from oauth2lib import KeyMap
+
 from unolib import PropertySet
 from unolib import getProperty
 from unolib import getConfiguration
-from unolib import KeyMap
 
 from .configuration import g_identifier
 from .configuration import g_refresh_overlap

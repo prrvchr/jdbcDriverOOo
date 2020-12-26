@@ -54,21 +54,16 @@ from com.sun.star.auth.RestRequestTokenType import TOKEN_QUERY
 from com.sun.star.auth.RestRequestTokenType import TOKEN_JSON
 from com.sun.star.auth.RestRequestTokenType import TOKEN_SYNC
 
-from unolib import KeyMap
-print("request.py 1")
-from unolib import NoOAuth2
-print("request.py 2")
+from oauth2lib import KeyMap
+from oauth2lib import NoOAuth2
+
 from .logger import logMessage
-print("request.py 3")
+
 from . import requests
-print("request.py 4")
 
 import traceback
 import sys
 import json
-
-# Request / OAuth2 configuration
-g_auth = 'com.gmail.prrvchr.extensions.OAuth2OOo'
 
 
 def getConnectionMode(ctx, host):

@@ -63,15 +63,4 @@ from .logger import clearLogger
 from .logger import logMessage
 from .logger import getMessage
 
-#try:
-#    import ssl
-#    print("oauth2.__init__.py 1")
-#except ImportError:
-#    try:
-#        from . import ssl
-#        print("oauth2.__init__.py 2")
-#    except ImportError:
-#        ssl = None
-#        print("oauth2.__init__.py 3")
-
 from . import requests

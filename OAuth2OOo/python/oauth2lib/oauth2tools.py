@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,41 +27,17 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .unolib import InteractionHandler
-from .unolib import Initialization
-from .unolib import PropertySet
-from .unolib import PropertySetInfo
-from .unolib import PropertiesChangeNotifier
-from .unolib import PropertySetInfoChangeNotifier
+from .oauth2config import g_oauth2
 
-from .unotools import createMessageBox
-from .unotools import createService
-from .unotools import getContainerWindow
-from .unotools import getProperty
-from .unotools import getPropertyValue
-from .unotools import getPropertyValueSet
-from .unotools import getResourceLocation
-from .unotools import getCurrentLocale
-from .unotools import getFileSequence
-from .unotools import getConfiguration
-from .unotools import getSimpleFile
-from .unotools import getStringResource
-from .unotools import generateUuid
-from .unotools import getNamedValue
-from .unotools import getNamedValueSet
-from .unotools import getSimpleFile
-from .unotools import getInteractionHandler
-from .unotools import getDialog
-from .unotools import getDialogUrl
-from .unotools import getDateTime
-from .unotools import getInterfaceTypes
-from .unotools import hasInterface
-from .unotools import parseDateTime
-from .unotools import unparseDateTime
-from .unotools import unparseTimeStamp
-from .unotools import getConnectionMode
-from .unotools import getParentWindow
-from .unotools import getUrl
-from .unotools import getExceptionMessage
 
-from .unocore import PropertyContainer
+def getRequest(ctx, scheme, name):
+    request = createService(ctx, g_oauth2)
+    if request is not None:
+        request.initializeSession(scheme, name)
+    return request
+
+def getOAuth2(ctx, url, name):
+    oauth2 = createService(ctx, g_oauth2)
+    if oauth2 is not None:
+        oauth2.initializeSession(url, name)
+    return oauth2

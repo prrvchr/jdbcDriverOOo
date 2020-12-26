@@ -46,9 +46,10 @@ from com.sun.star.frame.FrameSearchFlag import GLOBAL
 from com.sun.star.uno import Exception as UnoException
 from com.sun.star.auth import OAuth2Request
 
-from unolib import OAuth2OOo
-from unolib import NoOAuth2
-from unolib import KeyMap
+from oauth2lib import OAuth2OOo
+from oauth2lib import NoOAuth2
+from oauth2lib import KeyMap
+
 from unolib import getStringResource
 from unolib import createService
 from unolib import getConfiguration
@@ -145,10 +146,6 @@ class OAuth2Service(unohelper.Base,
         # TODO: IDL file of com.sun.star.auth.OAuth2Request Exception who is normally returned...
         print("OAuth2Service.handleInteractionRequest() 1")
         request = interaction.getRequest()
-        mri = createService(self.ctx, 'mytools.Mri')
-        if mri:
-            print("OAuth2Service.handleInteractionRequest() 2")
-            mri.inspect(interaction)
         url = request.ResourceUrl
         user = request.UserName
         if user != '':

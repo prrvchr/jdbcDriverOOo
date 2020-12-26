@@ -27,41 +27,25 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .unolib import InteractionHandler
-from .unolib import Initialization
-from .unolib import PropertySet
-from .unolib import PropertySetInfo
-from .unolib import PropertiesChangeNotifier
-from .unolib import PropertySetInfoChangeNotifier
+from unolib import getInteractionHandler
 
-from .unotools import createMessageBox
-from .unotools import createService
-from .unotools import getContainerWindow
-from .unotools import getProperty
-from .unotools import getPropertyValue
-from .unotools import getPropertyValueSet
-from .unotools import getResourceLocation
-from .unotools import getCurrentLocale
-from .unotools import getFileSequence
-from .unotools import getConfiguration
-from .unotools import getSimpleFile
-from .unotools import getStringResource
-from .unotools import generateUuid
-from .unotools import getNamedValue
-from .unotools import getNamedValueSet
-from .unotools import getSimpleFile
-from .unotools import getInteractionHandler
-from .unotools import getDialog
-from .unotools import getDialogUrl
-from .unotools import getDateTime
-from .unotools import getInterfaceTypes
-from .unotools import hasInterface
-from .unotools import parseDateTime
-from .unotools import unparseDateTime
-from .unotools import unparseTimeStamp
-from .unotools import getConnectionMode
-from .unotools import getParentWindow
-from .unotools import getUrl
-from .unotools import getExceptionMessage
+from .oauth2lib import InteractionRequest
 
-from .unocore import PropertyContainer
+
+def getOAuth2UserName(ctx, source, url, message=''):
+    username = ''
+    handler = getInteractionHandler(ctx)
+    interaction = InteractionRequest(source, url, '', '', message)
+    if handler.handleInteractionRequest(interaction):
+        continuation = interaction.getContinuations()[-1]
+        username = continuation.getUserName()
+    return username
+
+def getOAuth2Token(ctx, source, url, user, format=''):
+    token = ''
+    handler = getInteractionHandler(ctx)
+    interaction = InteractionRequest(source, url, user, format, '')
+    if handler.handleInteractionRequest(interaction):
+        continuation = interaction.getContinuations()[-1]
+        token = continuation.getToken()
+    return token
