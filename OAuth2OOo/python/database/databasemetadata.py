@@ -37,10 +37,10 @@ import traceback
 
 class DatabaseMetaData(unohelper.Base,
                        XDatabaseMetaData2):
-    def __init__(self, connection, metadata, protocols, username):
+    def __init__(self, connection, metadata, url, username):
         self._connection = connection
         self._metadata = metadata
-        self._protocols = protocols
+        self._url = url
         self._username = username
 
     # XDatabaseMetaData2
@@ -55,7 +55,7 @@ class DatabaseMetaData(unohelper.Base,
         return self._metadata.allTablesAreSelectable()
     def getURL(self):
         print("Connection.MetaData.getURL()")
-        return ':'.join(self._protocols)
+        return self._url
     def getUserName(self):
         print("Connection.MetaData.getUserName()")
         return self._username

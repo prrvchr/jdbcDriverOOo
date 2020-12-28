@@ -62,9 +62,9 @@ class DocumentDataSource(unohelper.Base,
                          XDocumentDataSource,
                          XWeak,
                          PropertySet):
-    def __init__(self, datasource, protocols, username):
+    def __init__(self, datasource, url, username):
         self._datasource = datasource
-        self._protocols = protocols
+        self._url = url
         self._username = username
 
     @property
@@ -72,7 +72,7 @@ class DocumentDataSource(unohelper.Base,
         return self._datasource.Name
     @property
     def URL(self):
-        return ':'.join(self._protocols)
+        return self._url
     @URL.setter
     def URL(self, url):
         self._datasource.URL = url

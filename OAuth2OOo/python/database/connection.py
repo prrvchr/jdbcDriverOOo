@@ -98,10 +98,10 @@ class Connection(unohelper.Base,
                  XTableUIProvider,
                  XConnectionTools,
                  XWeak):
-    def __init__(self, ctx, connection, protocols, username, event=None):
+    def __init__(self, ctx, connection, url, username, event=None):
         self.ctx = ctx
         self._connection = connection
-        self._protocols = protocols
+        self._url = url
         self._username = username
         self._event = event
 
@@ -203,7 +203,7 @@ class Connection(unohelper.Base,
     # XChild
     def getParent(self):
         parent = self._connection.getParent()
-        return DocumentDataSource(parent, self._protocols, self._username)
+        return DocumentDataSource(parent, self._url, self._username)
     def setParent(self):
         pass
 
@@ -283,7 +283,7 @@ class Connection(unohelper.Base,
     def getMetaData(self):
         #print("Connection.getMetaData()")
         metadata = self._connection.getMetaData()
-        return DatabaseMetaData(self, metadata, self._protocols, self._username)
+        return DatabaseMetaData(self, metadata, self._url, self._username)
     def setReadOnly(self, readonly):
         print("Connection.setReadOnly()")
         self._connection.setReadOnly(readonly)
