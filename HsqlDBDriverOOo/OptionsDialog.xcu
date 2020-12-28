@@ -11,8 +11,8 @@
                 <value>com.gmail.prrvchr.extensions.HsqlDBDriverOOo</value>
             </prop>
             <prop oor:name="Label">
-                <value xml:lang="en-US">Internet</value>
-                <value xml:lang="fr-FR">Internet</value>
+                <value xml:lang="en-US">Base drivers</value>
+                <value xml:lang="fr-FR">Pilotes Base</value>
             </prop>
             <prop oor:name="AllModules">
                 <value>true</value>
@@ -23,8 +23,8 @@
                         <value>com.gmail.prrvchr.extensions.HsqlDBDriverOOo</value>
                     </prop>
                     <prop oor:name="Label">
-                        <value xml:lang="en-US">HsqlDBDriverOOo</value>
-                        <value xml:lang="fr-FR">HsqlDBDriverOOo</value>
+                        <value xml:lang="en-US">HsqlDB Driver</value>
+                        <value xml:lang="fr-FR">Pilote HsqlDB</value>
                     </prop>
                     <prop oor:name="OptionsPage">
                         <value>%origin%/HsqlDBDriverOOo/OptionsDialog.xdl</value>

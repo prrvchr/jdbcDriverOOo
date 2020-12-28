@@ -33,6 +33,8 @@ import unohelper
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
+
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -40,7 +42,9 @@ from unolib import getFileSequence
 from unolib import getStringResource
 from unolib import getResourceLocation
 from unolib import getDialog
+from unolib import getSimpleFile
 from unolib import createService
+from unolib import getUrl
 
 from hsqldbdriver import getDataSourceLocation
 from hsqldbdriver import getDataSourceJavaInfo
@@ -50,11 +54,16 @@ from hsqldbdriver import getLoggerSetting
 from hsqldbdriver import setLoggerSetting
 from hsqldbdriver import clearLogger
 from hsqldbdriver import logMessage
+from hsqldbdriver import getMessage
+g_message = 'OptionsDialog'
 
 from hsqldbdriver import g_extension
 from hsqldbdriver import g_identifier
 from hsqldbdriver import g_path
+from hsqldbdriver import g_jar
 
+import os
+import sys
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -68,6 +77,7 @@ class OptionsDialog(unohelper.Base,
                     XDialogEventHandler):
     def __init__(self, ctx):
         self.ctx = ctx
+        self._index = 0
         self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
         logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
 
@@ -79,7 +89,7 @@ class OptionsDialog(unohelper.Base,
                 self._saveSetting(dialog)
                 handled = True
             elif event == 'back':
-                self._loadSetting(dialog)
+                self._reloadSetting(dialog)
                 handled = True
             elif event == 'initialize':
                 self._loadSetting(dialog)
@@ -100,15 +110,38 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
-        elif method == 'ViewData':
-            self._viewData(dialog)
+        elif method == 'Upload':
+            self._upload(dialog)
+            handled = True
+        elif method == 'LogInfo':
+            self._logInfo(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'ViewData')
+                'ViewLog', 'ClearLog', 'Upload', 'LogInfo')
 
     def _loadSetting(self, dialog):
+        self._loadLoggerSetting(dialog)
+        self._loadVersion(dialog)
+
+    def _loadVersion(self, dialog):
+        dialog.getControl('Label3').Text = self._getDriverVersion()
+
+    def _getDriverVersion(self):
+        try:
+            service = '%s.Driver' % g_identifier
+            driver = createService(self.ctx, service)
+            self._index += 1
+            url = 'sdbc:hsqldb:mem:///test%sdb' % self._index
+            connection = driver.connect(url, ())
+            version = connection.getMetaData().getDriverVersion()
+            connection.close()
+            return version
+        except Exception as e:
+            print("OptionsDialog._getDriverVersion() ERROR: %s - %s" % (e, traceback.print_exc()))
+
+    def _reloadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
 
     def _saveSetting(self, dialog):
@@ -116,7 +149,7 @@ class OptionsDialog(unohelper.Base,
 
     def _toggleLogger(self, dialog, enabled):
         dialog.getControl('Label1').Model.Enabled = enabled
-        dialog.getControl('ComboBox1').Model.Enabled = enabled
+        dialog.getControl('ListBox1').Model.Enabled = enabled
         dialog.getControl('OptionButton1').Model.Enabled = enabled
         control = dialog.getControl('OptionButton2')
         control.Model.Enabled = enabled
@@ -136,51 +169,60 @@ class OptionsDialog(unohelper.Base,
     def _clearLog(self, dialog):
         try:
             clearLogger()
-            logMessage(self.ctx, INFO, "ClearingLog ... Done", 'OptionsDialog', '_doClearLog()')
+            msg = getMessage(self.ctx, g_message, 101)
+            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
             url = getLoggerUrl(self.ctx)
             self._setDialogText(dialog, url)
         except Exception as e:
             msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_doClearLog()")
+            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
+
+    def _logInfo(self, dialog):
+        version  = ' '.join(sys.version.split())
+        msg = getMessage(self.ctx, g_message, 111, version)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        path = os.pathsep.join(sys.path)
+        msg = getMessage(self.ctx, g_message, 112, path)
+        logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
+        url = getLoggerUrl(self.ctx)
+        self._setDialogText(dialog, url)
 
     def _setDialogText(self, dialog, url):
+        control = dialog.getControl('TextField1')
         length, sequence = getFileSequence(self.ctx, url)
-        dialog.getControl('TextField1').Text = sequence.value.decode('utf-8')
+        control.Text = sequence.value.decode('utf-8')
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
 
     def _loadLoggerSetting(self, dialog):
         enabled, index, handler = getLoggerSetting(self.ctx)
         dialog.getControl('CheckBox1').State = int(enabled)
-        self._setLoggerLevel(dialog.getControl('ComboBox1'), index)
+        dialog.getControl('ListBox1').selectItemPos(index, True)
         dialog.getControl('OptionButton%s' % handler).State = 1
         self._toggleLogger(dialog, enabled)
 
-    def _setLoggerLevel(self, control, index):
-        control.Text = self._getLoggerLevelText(control.Model.Name, index)
-
-    def _getLoggerLevel(self, control):
-        name = control.Model.Name
-        for index in range(control.ItemCount):
-            if self._getLoggerLevelText(name, index) == control.Text:
-                break
-        return index
-
-    def _getLoggerLevelText(self, name, index):
-        text = 'OptionsDialog.%s.StringItemList.%s' % (name, index)
-        return self.stringResource.resolveString(text)
-
     def _saveLoggerSetting(self, dialog):
         enabled = bool(dialog.getControl('CheckBox1').State)
-        index = self._getLoggerLevel(dialog.getControl('ComboBox1'))
+        index = dialog.getControl('ListBox1').getSelectedItemPos()
         handler = dialog.getControl('OptionButton1').State
         setLoggerSetting(self.ctx, enabled, index, handler)
 
-    def _viewData(self, dialog):
-        dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        url, error = getDataSourceUrl(self.ctx, dbcontext, g_host, g_identifier, False)
-        if error is not None:
-            return
-        desktop = createService(self.ctx, 'com.sun.star.frame.Desktop')
-        desktop.loadComponentFromURL(url, '_default', 0, ())
+    def _upload(self, dialog):
+        service = 'com.sun.star.util.PathSubstitution'
+        ps = createService(self.ctx, service)
+        path = ps.substituteVariables('$(work)', True)
+        service = 'com.sun.star.ui.dialogs.FilePicker'
+        fp = createService(self.ctx, service)
+        fp.setDisplayDirectory(path)
+        fp.appendFilter(g_jar, '*.jar')
+        fp.setCurrentFilter(g_jar)
+        if fp.execute() == OK:
+            url = getUrl(self.ctx, fp.getFiles()[0])
+            if url.Name == g_jar:
+                jar = '%s/%s' % (g_path, g_jar)
+                target = getResourceLocation(self.ctx, g_identifier, jar)
+                getSimpleFile(self.ctx).copy(url.Complete, target)
+                self._loadVersion(dialog)
 
     # XServiceInfo
     def supportsService(self, service):

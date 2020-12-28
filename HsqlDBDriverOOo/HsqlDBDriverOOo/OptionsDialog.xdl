@@ -35,8 +35,13 @@
   <dlg:button dlg:id="CommandButton1" dlg:tab-index="6" dlg:disabled="true" dlg:left="205" dlg:top="12" dlg:width="45" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton1.HelpText" dlg:value="&amp;OptionsDialog.CommandButton1.Label">
    <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewLog" script:language="UNO"/>
   </dlg:button>
-  <dlg:button dlg:id="CommandButton2" dlg:tab-index="7" dlg:disabled="false" dlg:left="80" dlg:top="50" dlg:width="100" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
-   <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewData" script:language="UNO"/>
+  <dlg:titledbox dlg:style-id="0" dlg:id="FrameControl2" dlg:tab-index="7" dlg:left="5" dlg:top="40" dlg:width="250" dlg:height="35" dlg:help-text="&amp;OptionsDialog.FrameControl2.HelpText">
+   <dlg:title dlg:value="&amp;OptionsDialog.FrameControl2.Label"/>
+  </dlg:titledbox>
+  <dlg:text dlg:id="Label2" dlg:tab-index="8" dlg:left="10" dlg:top="52" dlg:width="60" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label2.HelpText" dlg:value="&amp;OptionsDialog.Label2.Label" dlg:valign="center"/>
+  <dlg:text dlg:id="Label3" dlg:tab-index="9" dlg:left="75" dlg:top="52" dlg:width="40" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label3.HelpText" dlg:valign="center"/>
+  <dlg:button dlg:id="CommandButton2" dlg:tab-index="10" dlg:disabled="false" dlg:left="190" dlg:top="52" dlg:width="60" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton2.HelpText" dlg:value="&amp;OptionsDialog.CommandButton2.Label">
+   <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Upload" script:language="UNO"/>
   </dlg:button>
  </dlg:bulletinboard>
 </dlg:window>

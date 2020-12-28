@@ -76,8 +76,9 @@ class Driver(unohelper.Base,
     def __init__(self, ctx):
         self.ctx = ctx
         self._supportedProtocol = 'sdbc:hsqldb:'
-        self._supportedSubProtocols = ('file',)
-        #self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https','mem', 'file', 'res')
+        #self._supportedSubProtocols = ('file',)
+        self._subProtocolIndex = 2
+        self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https','mem', 'file', 'res')
         print("Driver.__init__()")
 
     def __del__(self):
@@ -109,16 +110,18 @@ class Driver(unohelper.Base,
             user, password = self._getUserCredential(infos)
             print("Driver.connect() 1 %s - %s - %s" % (user, password, url))
             if len(protocols) < 4 or not all(protocols):
-                msg = "Invalide protocol: '%s'" % url
-                raise self._getException('Protocol ERROR', 1001, msg, self)
+                code = getMessage(self.ctx, 112)
+                msg = getMessage(self.ctx, 1101, url)
+                raise self._getException(code, 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
-                msg = "Invalide subprotocol: '%s' are not supported\n" % protocols[2]
-                msg += "Supported subprotocols are: %s" % self._getSupportedSubProtocols()
-                raise self._getException('Protocol ERROR', 1002, msg, self)
-            location = getUrl(self.ctx, ':'.join(protocols[2:]))
+                code = getMessage(self.ctx, 112)
+                msg = getMessage(self.ctx, 1102, self._getSubProtocol(protocols))
+                msg += getMessage(self.ctx, 1103, self._getSupportedSubProtocols())
+                raise self._getException(code, 1002, msg, self)
+            location = self._getUrl(protocols)
             print("Driver.connect() 2 %s - %s" % (location.Path, location.Name))
             datasource = self._getDataSource(location, options)
-            print("Driver.connect() 3 %s" % datasource.URL)
+            print("Driver.connect() 3: %s\n%s" % (datasource.URL, datasource.Settings.JavaDriverClassPath))
             connection = datasource.getConnection(user, password)
             version = connection.getMetaData().getDriverVersion()
             print("Driver.connect() 4 %s" % version)
@@ -170,11 +173,18 @@ class Driver(unohelper.Base,
                 break
         return username, password
 
+    def _getUrl(self, protocols):
+        url = ':'.join(protocols[self._subProtocolIndex:])
+        return getUrl(self.ctx, url)
+
+    def _getSubProtocol(self, protocols):
+        return protocols[self._subProtocolIndex]
+
     def _getSupportedSubProtocols(self):
         return ', '.join(self._supportedSubProtocols).title()
 
     def _isSupportedSubProtocols(self, protocols):
-        return protocols[2].lower() in self._supportedSubProtocols
+        return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
 
     def _getException(self, state, code, message, context=None, exception=None):
         error = SQLException()
@@ -197,25 +207,25 @@ class Driver(unohelper.Base,
         return info
 
     def _getDataSource(self, url, options):
-        location = '%s.odb' % url.Main
-        dbcontext = createService(self.ctx, 'com.sun.star.sdb.DatabaseContext')
-        if getSimpleFile(self.ctx).exists(location):
-            datasource = dbcontext.getByName(location)
-        else:
-            datasource = self._createDataSource(dbcontext, url, options)
-            datasource.DatabaseDocument.storeAsURL(location, ())
+        service = 'com.sun.star.sdb.DatabaseContext'
+        datasource = createService(self.ctx, service).createInstance()
+        self._setDataSource(datasource, url, options)
         return datasource
 
-    def _createDataSource(self, dbcontext, url, options):
-        datasource = dbcontext.createInstance()
+    def _setDataSource(self, datasource, url, options):
+        datasource.URL = self._getDataSourceUrl(url, options)
+        datasource.Settings.JavaDriverClass = g_class
+        datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
+
+    def _getDataSourceUrl(self, url, options):
         location = 'jdbc:hsqldb:%s'  % url.Main
         if options is not None:
             location += ';%s' % ';'.join(options)
-        datasource.URL = location
-        datasource.Settings.JavaDriverClass = g_class
+        return location
+
+    def _getDataSourceClassPath(self):
         path = getResourceLocation(self.ctx, g_identifier, g_path)
-        datasource.Settings.JavaDriverClassPath = '%s/%s' % (path, g_jar)
-        return datasource
+        return '%s/%s' % (path, g_jar)
 
     # XServiceInfo
     def supportsService(self, service):
