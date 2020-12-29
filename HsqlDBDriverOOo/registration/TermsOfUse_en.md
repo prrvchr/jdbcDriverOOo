@@ -1,18 +1,16 @@
-## Terms Of Use for [HsqlDBDriverOOo](https://github.com/prrvchr/HsqlDBDriverOOo)
+Regarding installation, configuration and use, please consult the [documentation](https://prrvchr.github.io/HsqlDBDriverOOo/).
 
+# Terms Of Use for [HsqlDBDriverOOo](https://github.com/prrvchr/HsqlDBDriverOOo)
 
-### Introduction:
+## Introduction:
 
 The HsqlDBDriverOOo library is a part of a personnal project.
-Full documentation is available [on this page](https://prrvchr.github.io/HsqlDBDriverOOo).
 
-
-### Responsibilities:
+## Responsibilities:
 
 HsqlDBDriverOOo is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**.
 
-
-### License:
+## License:
 
 HsqlDBDriverOOo is free software; you can redistribute it and/or modify it under the terms of either (at your option):
 
