@@ -128,6 +128,10 @@ class OptionsDialog(unohelper.Base,
     def _loadVersion(self, dialog):
         dialog.getControl('Label3').Text = self._getDriverVersion()
 
+    def _reloadVersion(self, dialog):
+        msg = getMessage(self.ctx, g_message, 121)
+        dialog.getControl('Label3').Text = msg
+
     def _getDriverVersion(self):
         try:
             service = '%s.Driver' % g_identifier
@@ -221,8 +225,8 @@ class OptionsDialog(unohelper.Base,
             if url.Name == g_jar:
                 jar = '%s/%s' % (g_path, g_jar)
                 target = getResourceLocation(self.ctx, g_identifier, jar)
-                getSimpleFile(self.ctx).copy(url.Complete, target)
-                self._loadVersion(dialog)
+                getSimpleFile(self.ctx).copy(url.Main, target)
+                self._reloadVersion(dialog)
 
     # XServiceInfo
     def supportsService(self, service):

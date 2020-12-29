@@ -104,8 +104,8 @@ class Driver(unohelper.Base,
     # XDriver
     def connect(self, url, infos):
         try:
-            url, has_option, option = url.strip().partition(';')
-            protocols = url.split(':')
+            path, has_option, option = url.strip().partition(';')
+            protocols = path.split(':')
             options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
             print("Driver.connect() 1 %s - %s - %s" % (user, password, url))
@@ -125,7 +125,8 @@ class Driver(unohelper.Base,
             connection = datasource.getConnection(user, password)
             version = connection.getMetaData().getDriverVersion()
             print("Driver.connect() 4 %s" % version)
-            return Connection(self.ctx, connection, protocols, user)
+            print("Driver.connect() 5 %s" % url)
+            return Connection(self.ctx, connection, url, user)
         except SQLException as e:
             raise e
         except Exception as e:
