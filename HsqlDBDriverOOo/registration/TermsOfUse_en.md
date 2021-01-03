@@ -1,6 +1,6 @@
 Regarding installation, configuration and use, please consult the [documentation](https://prrvchr.github.io/HsqlDBDriverOOo/).
 
-# Terms Of Use for [HsqlDBDriverOOo](https://github.com/prrvchr/HsqlDBDriverOOo)
+# Terms Of Use
 
 ## Introduction:
 
