@@ -220,8 +220,7 @@ class Driver(unohelper.Base,
         datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
 
     def _getDataSourceUrl(self, url, options):
-        path = uno.fileUrlToSystemPath(url.Main)
-        location = '%s%s%s'  % (g_protocol, url.Protocol, path)
+        location = '%s%s'  % (g_protocol, url.Main)
         if options is not None:
             location += ';%s' % ';'.join(options)
         return location
