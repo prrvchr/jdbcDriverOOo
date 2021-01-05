@@ -49,6 +49,7 @@ from unolib import getSimpleFile
 from unolib import getUrl
 
 from hsqldbdriver import g_identifier
+from hsqldbdriver import g_protocol
 from hsqldbdriver import g_path
 from hsqldbdriver import g_jar
 from hsqldbdriver import g_class
@@ -78,7 +79,7 @@ class Driver(unohelper.Base,
         self._supportedProtocol = 'sdbc:hsqldb:'
         #self._supportedSubProtocols = ('file',)
         self._subProtocolIndex = 2
-        self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https','mem', 'file', 'res')
+        self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https', 'mem', 'file', 'res')
         print("Driver.__init__()")
 
     def __del__(self):
@@ -219,7 +220,8 @@ class Driver(unohelper.Base,
         datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
 
     def _getDataSourceUrl(self, url, options):
-        location = 'jdbc:hsqldb:%s'  % url.Main
+        path = uno.fileUrlToSystemPath(url.Main)
+        location = '%s%s%s'  % (g_protocol, url.Protocol, path)
         if options is not None:
             location += ';%s' % ';'.join(options)
         return location
