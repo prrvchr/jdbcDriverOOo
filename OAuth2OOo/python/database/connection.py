@@ -107,46 +107,35 @@ class Connection(unohelper.Base,
 
     # XComponent
     def dispose(self):
-        print("Connection.dispose()")
-        self.close()
         self._connection.dispose()
     def addEventListener(self, listener):
-        print("Connection.addEventListener()")
         self._connection.addEventListener(listener)
     def removeEventListener(self, listener):
-        print("Connection.removeEventListener()")
         self._connection.removeEventListener(listener)
 
     # XWeak
     def queryAdapter(self):
-        print("Connection.queryAdapter()")
-        return self._connection.queryAdapter()
+        #return self._connection.queryAdapter()
+        return self
 
     # XTableUIProvider
     def getTableIcon(self, tablename, colormode):
-        print("Connection.getTableIcon()")
         return self._connection.getTableIcon(tablename, colormode)
-    def getTableEditor(self, documentui, tablename):
-        print("Connection.getTableEditor()")
-        return self._connection.getTableEditor(documentui, tablename)
+    def getTableEditor(self, document, tablename):
+        return self._connection.getTableEditor(document, tablename)
 
     # XConnectionTools
     def createTableName(self):
-        print("Connection.createTableName()")
         return self._connection.createTableName()
     def getObjectNames(self):
-        print("Connection.getObjectNames()")
         return self._connection.getObjectNames()
     def getDataSourceMetaData(self):
         print("Connection.getDataSourceMetaData()")
         return self._connection.getDataSourceMetaData()
     def getFieldsByCommandDescriptor(self, commandtype, command, keep):
-        print("Connection.getFieldsByCommandDescriptor() 1")
         fields, keep = self._connection.getFieldsByCommandDescriptor(commandtype, command, keep)
-        print("Connection.getFieldsByCommandDescriptor() 2")
         return fields, keep
     def getComposer(self, commandtype, command):
-        print("Connection.getComposer()")
         return self._connection.getComposer(commandtype, command)
 
     # XCloseable
@@ -160,61 +149,38 @@ class Connection(unohelper.Base,
 
     # XCommandPreparation
     def prepareCommand(self, command, commandtype):
-        # TODO: cannot use: self._connection.prepareCommand()
-        # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        # TODO: in the same way when using self._connection.prepareStatement(sql)
-        # TODO: fallback to: self._connection.prepareCall(sql)
-        print("Connection.prepareCommand()")
-        query = None
-        if commandtype == TABLE:
-            query = 'SELECT * FROM "%s"' % command
-        elif commandtype == QUERY:
-            queries = self.getQueries()
-            if queries.hasByName(command):
-                query = queries.getByName(command).Command
-        elif commandtype == COMMAND:
-            query = command
-        if query is not None:
-            statement = CallableStatement(self, query)
-            return statement
-        raise SQLException()
+        return self._connection.prepareCommand(command, commandtype)
 
     # XQueriesSupplier
     def getQueries(self):
-        print("Connection.getQueries()")
         return self._connection.getQueries()
 
     # XSQLQueryComposerFactory
     def createQueryComposer(self):
-        print("Connection.getQueries()")
         return self._connection.createQueryComposer()
 
     # XMultiServiceFactory
     def createInstance(self, service):
-        print("Connection.createInstance() %s" % service)
         return self._connection.createInstance(service)
     def createInstanceWithArguments(self, service, arguments):
-        print("Connection.createInstanceWithArguments()")
         return self._connection.createInstanceWithArguments(service, arguments)
     def getAvailableServiceNames(self):
-        print("Connection.getAvailableServiceNames()")
         return self._connection.getAvailableServiceNames()
 
     # XChild
     def getParent(self):
-        parent = self._connection.getParent()
-        return DocumentDataSource(parent, self._url, self._username)
+        #parent = self._connection.getParent()
+        #return DocumentDataSource(parent, self._url, self._username)
+        return self._connection.getParent()
     def setParent(self):
         pass
 
     # XTablesSupplier
     def getTables(self):
-        print("Connection.getTables()")
         return self._connection.getTables()
 
     # XViewsSupplier
     def getViews(self):
-        print("Connection.getViews()")
         return self._connection.getViews()
 
     # XUsersSupplier
@@ -252,61 +218,49 @@ class Connection(unohelper.Base,
     # XConnection
     def createStatement(self):
         print("Connection.createStatement()")
-        return Statement(self)
+        #return Statement(self)
+        return self._connection.createStatement()
     def prepareStatement(self, sql):
         print("Connection.prepareStatement(): %s" % sql)
-        statement = PreparedStatement(self, sql)
-        #mri = self.ctx.ServiceManager.createInstance('mytools.Mri')
-        #mri.inspect(statement)
-        return statement
+        #statement = PreparedStatement(self, sql)
+        #return statement
+        return self._connection.prepareStatement(sql)
     def prepareCall(self, sql):
         print("Connection.prepareCall(): %s" % sql)
-        return CallableStatement(self, sql)
+        #return CallableStatement(self, sql)
+        return self._connection.prepareCall(sql)
     def nativeSQL(self, sql):
-        print("Connection.nativeSQL()")
         return self._connection.nativeSQL(sql)
     def setAutoCommit(self, auto):
-        print("Connection.setAutoCommit()")
         self._connection.setAutoCommit(auto)
     def getAutoCommit(self):
-        print("Connection.getAutoCommit()")
         return self._connection.getAutoCommit()
     def commit(self):
-        print("Connection.commit()")
         self._connection.commit()
     def rollback(self):
-        print("Connection.rollback()")
         self._connection.rollback()
     def isClosed(self):
-        print("Connection.isClosed()")
         return self._connection.isClosed()
     def getMetaData(self):
         #print("Connection.getMetaData()")
-        metadata = self._connection.getMetaData()
-        return DatabaseMetaData(self, metadata, self._url, self._username)
+        #metadata = self._connection.getMetaData()
+        #return DatabaseMetaData(self, metadata, self._url, self._username)
+        return self._connection.getMetaData()
     def setReadOnly(self, readonly):
-        print("Connection.setReadOnly()")
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):
-        print("Connection.isReadOnly()")
         return self._connection.isReadOnly()
     def setCatalog(self, catalog):
-        print("Connection.setCatalog()")
         self._connection.setCatalog(catalog)
     def getCatalog(self):
-        print("Connection.getCatalog()")
         return self._connection.getCatalog()
     def setTransactionIsolation(self, level):
-        print("Connection.setTransactionIsolation()")
         self._connection.setTransactionIsolation(level)
     def getTransactionIsolation(self):
-        print("Connection.getTransactionIsolation()")
         return self._connection.getTransactionIsolation()
     def getTypeMap(self):
-        print("Connection.getTypeMap()")
         return self._connection.getTypeMap()
     def setTypeMap(self, typemap):
-        print("Connection.setTypeMap()")
         self._connection.setTypeMap(typemap)
 
     # XServiceInfo
