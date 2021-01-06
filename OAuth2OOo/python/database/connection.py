@@ -169,9 +169,9 @@ class Connection(unohelper.Base,
 
     # XChild
     def getParent(self):
-        #parent = self._connection.getParent()
-        #return DocumentDataSource(parent, self._url, self._username)
-        return self._connection.getParent()
+        parent = self._connection.getParent()
+        return DocumentDataSource(parent, self._url, self._username)
+        #return self._connection.getParent()
     def setParent(self):
         pass
 
