@@ -105,7 +105,8 @@ class Driver(unohelper.Base,
             username = user if user != '' else self._defaultUser
             msg = getMessage(self.ctx, g_message, 116, (version, username))
             logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
-            return Connection(self.ctx, connection, url, user)
+            return connection
+            #return Connection(self.ctx, connection, url, user)
         except SQLException as e:
             raise e
         except Exception as e:
