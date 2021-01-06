@@ -77,71 +77,57 @@ class Driver(unohelper.Base,
     def __init__(self, ctx):
         self.ctx = ctx
         self._supportedProtocol = 'sdbc:hsqldb:'
-        #self._supportedSubProtocols = ('file',)
         self._subProtocolIndex = 2
         self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https', 'mem', 'file', 'res')
-        print("Driver.__init__()")
-
-    def __del__(self):
-        print("Driver.__del__()")
-
-    # XDataDefinitionSupplier
-    def getDataDefinitionByConnection(self, connection):
-        print("Driver.getDataDefinitionByConnection()")
-        return connection
-    def getDataDefinitionByURL(self, url, infos):
-        print("Driver.getDataDefinitionByURL()")
-        connection = self.connect(url, infos)
-        return self.getDataDefinitionByConnection(connection)
-
-    # XCreateCatalog
-    def createCatalog(self, info):
-        print("Driver.createCatalog()")
-
-    # XDropCatalog
-    def dropCatalog(self, name, info):
-        print("Driver.dropCatalog()")
+        self._defaultUser = 'SA'
+        msg = getMessage(self.ctx, g_message, 101)
+        logMessage(self.ctx, INFO, msg, 'Driver', '__init__()')
 
     # XDriver
     def connect(self, url, infos):
         try:
+            msg = getMessage(self.ctx, g_message, 111, url)
+            logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
             path, has_option, option = url.strip().partition(';')
             protocols = path.split(':')
             options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
-            print("Driver.connect() 1 %s - %s - %s" % (user, password, url))
             if len(protocols) < 4 or not all(protocols):
                 code = getMessage(self.ctx, 112)
-                msg = getMessage(self.ctx, 1101, url)
+                msg = getMessage(self.ctx, 113, url)
                 raise self._getException(code, 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
                 code = getMessage(self.ctx, 112)
-                msg = getMessage(self.ctx, 1102, self._getSubProtocol(protocols))
-                msg += getMessage(self.ctx, 1103, self._getSupportedSubProtocols())
+                msg = getMessage(self.ctx, 114, self._getSubProtocol(protocols))
+                msg += getMessage(self.ctx, 115, self._getSupportedSubProtocols())
                 raise self._getException(code, 1002, msg, self)
             location = self._getUrl(protocols)
-            print("Driver.connect() 2 %s - %s" % (location.Path, location.Name))
             datasource = self._getDataSource(location, options)
-            print("Driver.connect() 3: %s\n%s" % (datasource.URL, datasource.Settings.JavaDriverClassPath))
             connection = datasource.getConnection(user, password)
             version = connection.getMetaData().getDriverVersion()
-            print("Driver.connect() 4 %s" % version)
-            print("Driver.connect() 5 %s" % url)
+            username = user if user != '' else self._defaultUser
+            msg = getMessage(self.ctx, g_message, 116, (version, username))
+            logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
             return Connection(self.ctx, connection, url, user)
         except SQLException as e:
             raise e
         except Exception as e:
-            print("Driver.connect() ERROR: %s - %s" % (e, traceback.print_exc()))
+            msg = getMessage(self.ctx, g_message, 117, (e, traceback.print_exc()))
+            logMessage(self.ctx, SEVERE, msg, 'Driver', 'connect()')
 
     def acceptsURL(self, url):
-        print("Driver.acceptsURL() %s" % url)
-        return url.startswith(self._supportedProtocol)
+        accept = url.startswith(self._supportedProtocol)
+        msg = getMessage(self.ctx, g_message, 121, (url, accept))
+        logMessage(self.ctx, INFO, msg, 'Driver', 'acceptsURL()')
+        return accept
 
     def getPropertyInfo(self, url, infos):
         try:
-            print("Driver.getPropertyInfo() %s" % url)
+            msg = getMessage(self.ctx, g_message, 131, url)
+            logMessage(self.ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
             for info in infos:
-                print("Driver.getPropertyInfo():   %s - '%s'" % (info.Name, info.Value))
+                msg = getMessage(self.ctx, g_message, 132, (info.Name, info.Value))
+                logMessage(self.ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
             drvinfo = []
             dbinfo = getDataBaseInfo()
             for info in dbinfo:
@@ -149,19 +135,39 @@ class Driver(unohelper.Base,
             for info in infos:
                 if info.Name not in dbinfo:
                     drvinfo.append(self._getDriverPropertyInfo(info.Name, info.Value))
-            print("Driver.getPropertyInfo():\n")
             for info in drvinfo:
-                print("Driver.getPropertyInfo():   %s - %s" % (info.Name, info.Value))
+                msg = getMessage(self.ctx, g_message, 133, (info.Name, info.Value))
+                logMessage(self.ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
             return tuple(drvinfo)
         except Exception as e:
-            print("Driver.getPropertyInfo() ERROR: %s - %s" % (e, traceback.print_exc()))
+            msg = getMessage(self.ctx, g_message, 134, (e, traceback.print_exc()))
+            logMessage(self.ctx, SEVERE, msg, 'Driver', 'getPropertyInfo()')
 
     def getMajorVersion(self):
-        print("Driver.getMajorVersion()")
         return 1
     def getMinorVersion(self):
-        print("Driver.getMinorVersion()")
         return 0
+
+    # XDataDefinitionSupplier
+    def getDataDefinitionByConnection(self, connection):
+        msg = getMessage(self.ctx, g_message, 141)
+        logMessage(self.ctx, INFO, msg, 'Driver', 'getDataDefinitionByConnection()')
+        return connection
+    def getDataDefinitionByURL(self, url, infos):
+        msg = getMessage(self.ctx, g_message, 151, url)
+        logMessage(self.ctx, INFO, msg, 'Driver', 'getDataDefinitionByURL()')
+        connection = self.connect(url, infos)
+        return self.getDataDefinitionByConnection(connection)
+
+    # XCreateCatalog
+    def createCatalog(self, info):
+        msg = getMessage(self.ctx, g_message, 161)
+        logMessage(self.ctx, INFO, msg, 'Driver', 'createCatalog()')
+
+    # XDropCatalog
+    def dropCatalog(self, name, info):
+        msg = getMessage(self.ctx, g_message, 171, name)
+        logMessage(self.ctx, INFO, msg, 'Driver', 'dropCatalog()')
 
     def _getUserCredential(self, infos):
         username = ''
@@ -188,18 +194,8 @@ class Driver(unohelper.Base,
     def _isSupportedSubProtocols(self, protocols):
         return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
 
-    def _getException(self, state, code, message, context=None, exception=None):
-        error = SQLException()
-        error.SQLState = state
-        error.ErrorCode = code
-        error.NextException = exception
-        error.Message = message
-        error.Context = context
-        return error
-
     def _getDriverPropertyInfo(self, name, value):
         info = uno.createUnoStruct('com.sun.star.sdbc.DriverPropertyInfo')
-        print("Driver._getDriverPropertyInfo() %s - %s - %s" % (name, value, type(value)))
         info.Name = name
         required = value is not None and not isinstance(value, tuple)
         info.IsRequired = required
@@ -228,6 +224,15 @@ class Driver(unohelper.Base,
     def _getDataSourceClassPath(self):
         path = getResourceLocation(self.ctx, g_identifier, g_path)
         return '%s/%s' % (path, g_jar)
+
+    def _getException(self, state, code, message, context=None, exception=None):
+        error = SQLException()
+        error.SQLState = state
+        error.ErrorCode = code
+        error.NextException = exception
+        error.Message = message
+        error.Context = context
+        return error
 
     # XServiceInfo
     def supportsService(self, service):
