@@ -2,7 +2,7 @@
 
 **The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo/registration/TermsOfUse_en)
 
-# version [0.0.2](https://prrvchr.github.io/HsqlDBDriverOOo#historical)
+# version [0.0.3](https://prrvchr.github.io/HsqlDBDriverOOo#historical)
 
 ## Introduction:
 
@@ -34,7 +34,7 @@ OpenOffice doesn't seem to need this workaround.
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt) extension version 0.0.2.
+- Install [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt) extension version 0.0.3.
 
 Restart LibreOffice / OpenOffice after installation.
 

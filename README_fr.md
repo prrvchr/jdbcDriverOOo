@@ -2,7 +2,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo/registration/TermsOfUse_fr)
 
-# version [0.0.2](https://prrvchr.github.io/HsqlDBDriverOOo/README_fr#historique)
+# version [0.0.3](https://prrvchr.github.io/HsqlDBDriverOOo/README_fr#historique)
 
 ## Introduction:
 
@@ -34,7 +34,7 @@ OpenOffice ne semble pas avoir besoin de cette solution de contournement.
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt) version 0.0.2.
+- Installer l'extension [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt) version 0.0.3.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
