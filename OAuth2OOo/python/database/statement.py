@@ -264,7 +264,8 @@ class PreparedStatement(BaseStatement,
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
         # TODO: fallback to: self._statement as connection.prepareCall(sql)
         self._connection = connection
-        self._statement = connection._connection.prepareCall(sql)
+        #self._statement = connection._connection.prepareCall(sql)
+        self._statement = connection._connection.prepareStatement(sql)
         self._statement.ResultSetType = SCROLL_INSENSITIVE
 
    # XPreparedBatchExecution
