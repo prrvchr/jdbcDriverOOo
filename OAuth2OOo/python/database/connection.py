@@ -149,7 +149,19 @@ class Connection(unohelper.Base,
 
     # XCommandPreparation
     def prepareCommand(self, command, commandtype):
-        return self._connection.prepareCommand(command, commandtype)
+        #return self._connection.prepareCommand(command, commandtype)
+        sql = None
+        if commandtype == TABLE:
+            sql = 'SELECT * FROM "%s"' % command
+        elif commandtype == QUERY:
+            if self.getQueries().hasByName(command):
+                sql = self.getQueries().getByName(command).Command
+        elif commandtype == COMMAND:
+            sql = command
+        if sql is not None:
+            statement = PreparedStatement(self, sql)
+            return statement
+        raise SQLException()
 
     # XQueriesSupplier
     def getQueries(self):
@@ -216,18 +228,11 @@ class Connection(unohelper.Base,
 
     # XConnection
     def createStatement(self):
-        print("Connection.createStatement()")
         return Statement(self)
-        #return self._connection.createStatement()
     def prepareStatement(self, sql):
-        #print("Connection.prepareStatement(): %s" % sql)
-        statement = PreparedStatement(self, sql)
-        return statement
-        #return self._connection.prepareStatement(sql)
+        return PreparedStatement(self, sql)
     def prepareCall(self, sql):
-        #print("Connection.prepareCall(): %s" % sql)
         return CallableStatement(self, sql)
-        #return self._connection.prepareCall(sql)
     def nativeSQL(self, sql):
         return self._connection.nativeSQL(sql)
     def setAutoCommit(self, auto):
@@ -241,10 +246,7 @@ class Connection(unohelper.Base,
     def isClosed(self):
         return self._connection.isClosed()
     def getMetaData(self):
-        #print("Connection.getMetaData()")
-        metadata = self._connection.getMetaData()
-        return DatabaseMetaData(self, metadata, self._url, self._username)
-        #return self._connection.getMetaData()
+        return DatabaseMetaData(self, self._url, self._username)
     def setReadOnly(self, readonly):
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):
