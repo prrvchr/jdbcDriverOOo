@@ -69,9 +69,6 @@ g_ImplementationName = '%s.Driver' % g_identifier
 
 class Driver(unohelper.Base,
              XServiceInfo,
-             XDataDefinitionSupplier,
-             XCreateCatalog,
-             XDropCatalog,
              XDriver):
 
     def __init__(self, ctx):
@@ -246,5 +243,4 @@ class Driver(unohelper.Base,
 g_ImplementationHelper.addImplementation(Driver,
                                          g_ImplementationName,
                                         (g_ImplementationName,
-                                        'com.sun.star.sdbc.Driver',
-                                        'com.sun.star.sdbcx.Driver'))
+                                        'com.sun.star.sdbc.Driver', ))
