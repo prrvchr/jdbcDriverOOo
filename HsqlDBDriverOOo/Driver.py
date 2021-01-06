@@ -103,12 +103,12 @@ class Driver(unohelper.Base,
                 raise self._getException(code, 1002, msg, self)
             location = self._getUrl(protocols)
             datasource = self._getDataSource(location, options)
-            connection = datasource.getConnection(user, password)
+            connection = Connection(self.ctx, datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
             msg = getMessage(self.ctx, g_message, 116, (version, username))
             logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
-            return Connection(self.ctx, connection, url, user)
+            return connection
         except SQLException as e:
             raise e
         except Exception as e:

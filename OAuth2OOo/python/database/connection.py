@@ -98,11 +98,11 @@ class Connection(unohelper.Base,
                  XTableUIProvider,
                  XConnectionTools,
                  XWeak):
-    def __init__(self, ctx, connection, url, username, event=None):
+    def __init__(self, ctx, datasource, url, user, password, event=None):
         self.ctx = ctx
-        self._connection = connection
+        self._connection = datasource.getConnection(user, password)
         self._url = url
-        self._username = username
+        self._username = user
         self._event = event
 
     # XComponent
