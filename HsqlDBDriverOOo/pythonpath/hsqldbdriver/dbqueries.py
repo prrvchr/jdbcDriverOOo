@@ -37,8 +37,12 @@ g_message = 'dbqueries'
 
 def getSqlQuery(ctx, name, format=None):
 
+# Get prepareCommand Query
+    if name == 'prepareCommand':
+        query = 'SELECT * FROM "%s"' % format
+
 # Get Users and Privileges Query
-    if name == 'getUsers':
+    elif name == 'getUsers':
         query = 'SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS'
     elif name == 'getPrivileges':
         query = 'SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES'

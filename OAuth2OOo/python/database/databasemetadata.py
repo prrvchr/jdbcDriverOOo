@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
 import unohelper
 
 from com.sun.star.sdbc import XDatabaseMetaData2
@@ -37,9 +36,9 @@ import traceback
 
 class DatabaseMetaData(unohelper.Base,
                        XDatabaseMetaData2):
-    def __init__(self, connection, url, username):
+    def __init__(self, connection, metadata, url, username):
         self._connection = connection
-        self._metadata = connection._connection.getMetaData()
+        self._metadata = metadata
         self._url = url
         self._username = username
 

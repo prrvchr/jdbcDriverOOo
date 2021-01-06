@@ -149,18 +149,16 @@ class Connection(unohelper.Base,
 
     # XCommandPreparation
     def prepareCommand(self, command, commandtype):
-        #return self._connection.prepareCommand(command, commandtype)
-        sql = None
+        query = None
         if commandtype == TABLE:
-            sql = 'SELECT * FROM "%s"' % command
+            query = getSqlQuery(self.ctx, 'prepareCommand', command)
         elif commandtype == QUERY:
             if self.getQueries().hasByName(command):
-                sql = self.getQueries().getByName(command).Command
+                query = self.getQueries().getByName(command).Command
         elif commandtype == COMMAND:
-            sql = command
-        if sql is not None:
-            statement = PreparedStatement(self, sql)
-            return statement
+            query = command
+        if query is not None:
+            return PreparedStatement(self, query)
         raise SQLException()
 
     # XQueriesSupplier
@@ -246,7 +244,8 @@ class Connection(unohelper.Base,
     def isClosed(self):
         return self._connection.isClosed()
     def getMetaData(self):
-        return DatabaseMetaData(self, self._url, self._username)
+        metadata = self._connection.getMetaData()
+        return DatabaseMetaData(self, metadata, self._url, self._username)
     def setReadOnly(self, readonly):
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):
