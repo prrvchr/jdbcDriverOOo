@@ -93,13 +93,13 @@ class Driver(unohelper.Base,
             options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
             if len(protocols) < 4 or not all(protocols):
-                code = getMessage(self.ctx, 112)
-                msg = getMessage(self.ctx, 113, url)
+                code = getMessage(self.ctx, g_message, 112)
+                msg = getMessage(self.ctx, g_message, 113, url)
                 raise self._getException(code, 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
-                code = getMessage(self.ctx, 112)
-                msg = getMessage(self.ctx, 114, self._getSubProtocol(protocols))
-                msg += getMessage(self.ctx, 115, self._getSupportedSubProtocols())
+                code = getMessage(self.ctx, g_message, 112)
+                msg = getMessage(self.ctx, g_message, 114, self._getSubProtocol(protocols))
+                msg += getMessage(self.ctx, g_message, 115, self._getSupportedSubProtocols())
                 raise self._getException(code, 1002, msg, self)
             location = self._getUrl(protocols)
             datasource = self._getDataSource(location, options)
