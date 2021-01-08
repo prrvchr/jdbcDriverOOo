@@ -107,6 +107,8 @@ J'essaierai de le résoudre ;-)
 
 ### Ce qui a été fait pour la version 0.0.3:
 
+- Fonctionne désormais avec OpenOffice sous Windows.
+
 - Un protocole non pris en charge affiche désormais une erreur précise.
 
 - une url non analysable affiche désormais une erreur précise.

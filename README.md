@@ -107,6 +107,8 @@ I will try to solve it ;-)
 
 ### What has been done for version 0.0.3:
 
+- Now works with OpenOffice on Windows.
+
 - An unsupported protocol now displays an accurate error.
 
 - A non-parsable url now displays a precise error.
