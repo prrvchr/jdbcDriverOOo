@@ -55,6 +55,7 @@ from hsqldbdriver import g_jar
 from hsqldbdriver import g_class
 from hsqldbdriver import Connection
 from hsqldbdriver import getDataBaseInfo
+from hsqldbdriver import getDataSourceClassPath
 
 from hsqldbdriver import logMessage
 from hsqldbdriver import getMessage
@@ -198,22 +199,15 @@ class Driver(unohelper.Base,
     def _setDataSource(self, datasource, transformer, url, options):
         datasource.URL = self._getDataSourceUrl(transformer, url, options)
         datasource.Settings.JavaDriverClass = g_class
-        datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
+        path = getDataSourceClassPath(self.ctx, g_identifier)
+        datasource.Settings.JavaDriverClassPath = path
 
     def _getDataSourceUrl(self, transformer, url, options):
-        format = (g_protocol, url.Main)
-        location = parseUrl(transformer, '%s%s'  % format)
-        return self._getDataSourceUrlOptions(transformer, location, options)
-
-    def _getDataSourceUrlOptions(self, transformer, url, options):
-        location = transformer.getPresentation(url, False)
+        location = g_protocol
+        location += transformer.getPresentation(url, False)
         if options is not None:
             location += ';%s' % ';'.join(options)
         return location
-
-    def _getDataSourceClassPath(self):
-        path = getResourceLocation(self.ctx, g_identifier, g_path)
-        return '%s/%s' % (path, g_jar)
 
     def _getUserCredential(self, infos):
         username = ''

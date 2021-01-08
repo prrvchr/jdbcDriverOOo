@@ -124,6 +124,10 @@ def executeQueries(ctx, statement, queries):
         query = getSqlQuery(ctx, name, format)
         statement.executeQuery(query)
 
+def getDataSourceClassPath(ctx, identifier):
+    path = getResourceLocation(ctx, identifier, g_path)
+    return '%s/%s' % (path, g_jar)
+
 def getDataSourceJavaInfo(location):
     info = {}
     info['JavaDriverClass'] = g_class

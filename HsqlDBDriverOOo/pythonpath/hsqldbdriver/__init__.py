@@ -41,6 +41,7 @@ from .dbtools import getDataSourceConnection
 from .dbtools import getDataBaseInfo
 from .dbtools import getDataSourceLocation
 from .dbtools import getDataSourceJavaInfo
+from .dbtools import getDataSourceClassPath
 
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl

@@ -111,7 +111,7 @@ J'essaierai de le résoudre ;-)
 
 - Un protocole non pris en charge affiche désormais une erreur précise.
 
-- une url non analysable affiche désormais une erreur précise.
+- Une url non analysable affiche désormais une erreur précise.
 
 - Gère désormais correctement les espaces dans les noms de fichiers et les chemins.
 
