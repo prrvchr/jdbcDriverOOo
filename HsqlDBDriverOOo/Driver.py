@@ -98,21 +98,26 @@ class Driver(unohelper.Base,
                 raise self._getException(code, 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
                 code = getMessage(self.ctx, g_message, 112)
-                msg = getMessage(self.ctx, g_message, 114, self._getSubProtocol(protocols))
-                msg += getMessage(self.ctx, g_message, 115, self._getSupportedSubProtocols())
+                subprotocol = self._getSubProtocol(protocols)
+                supported = self._getSupportedSubProtocols()
+                msg = getMessage(self.ctx, g_message, 114, (subprotocol, supported))
                 raise self._getException(code, 1002, msg, self)
             location = self._getUrl(protocols)
+            if location is None:
+                code = getMessage(self.ctx, g_message, 115)
+                msg = getMessage(self.ctx, g_message, 116, url)
+                raise self._getException(code, 1003, msg, self)
             datasource = self._getDataSource(location, options)
             connection = Connection(self.ctx, datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
-            msg = getMessage(self.ctx, g_message, 116, (version, username))
+            msg = getMessage(self.ctx, g_message, 117, (version, username))
             logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
             return connection
         except SQLException as e:
             raise e
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 117, (e, traceback.print_exc()))
+            msg = getMessage(self.ctx, g_message, 118, (e, traceback.print_exc()))
             logMessage(self.ctx, SEVERE, msg, 'Driver', 'connect()')
 
     def acceptsURL(self, url):
@@ -189,7 +194,7 @@ class Driver(unohelper.Base,
         return protocols[self._subProtocolIndex]
 
     def _getSupportedSubProtocols(self):
-        return ', '.join(self._supportedSubProtocols).title()
+        return ', '.join(self._supportedSubProtocols)
 
     def _isSupportedSubProtocols(self, protocols):
         return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
