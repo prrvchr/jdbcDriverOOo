@@ -43,9 +43,9 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.uno import Exception as UnoException
 
-from unolib import getResourceLocation
 from unolib import createService
-from unolib import getSimpleFile
+from unolib import getResourceLocation
+from unolib import getUrlTransformer
 from unolib import getUrl
 
 from hsqldbdriver import g_identifier
@@ -88,8 +88,9 @@ class Driver(unohelper.Base,
         try:
             msg = getMessage(self.ctx, g_message, 111, url)
             logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
+            transformer = getUrlTransformer(self.ctx)
             path, has_option, option = url.strip().partition(';')
-            protocols = path.split(':')
+            protocols = url.split(':')
             options = option.split(';') if has_option != '' else None
             user, password = self._getUserCredential(infos)
             if len(protocols) < 4 or not all(protocols):
@@ -102,12 +103,12 @@ class Driver(unohelper.Base,
                 supported = self._getSupportedSubProtocols()
                 msg = getMessage(self.ctx, g_message, 114, (subprotocol, supported))
                 raise self._getException(code, 1002, msg, self)
-            location = self._getUrl(protocols)
+            location = self._getUrl(transformer, protocols)
             if location is None:
                 code = getMessage(self.ctx, g_message, 115)
                 msg = getMessage(self.ctx, g_message, 116, url)
                 raise self._getException(code, 1003, msg, self)
-            datasource = self._getDataSource(location, options)
+            datasource = self._getDataSource(transformer, location, options)
             connection = Connection(self.ctx, datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
@@ -186,9 +187,9 @@ class Driver(unohelper.Base,
                 break
         return username, password
 
-    def _getUrl(self, protocols):
-        url = ':'.join(protocols[self._subProtocolIndex:])
-        return getUrl(self.ctx, url)
+    def _getUrl(self, transformer, protocols):
+        location = ':'.join(protocols[self._subProtocolIndex:])
+        return parseUrl(transformer, location)
 
     def _getSubProtocol(self, protocols):
         return protocols[self._subProtocolIndex]
@@ -199,6 +200,29 @@ class Driver(unohelper.Base,
     def _isSupportedSubProtocols(self, protocols):
         return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
 
+    def _getDataSource(self, transformer, url, options):
+        service = 'com.sun.star.sdb.DatabaseContext'
+        datasource = createService(self.ctx, service).createInstance()
+        self._setDataSource(datasource, transformer, url, options)
+        return datasource
+
+    def _setDataSource(self, datasource, transformer, url, options):
+        datasource.URL = self._getDataSourceUrl(transformer, url, options)
+        datasource.Settings.JavaDriverClass = g_class
+        datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
+
+    def _getDataSourceUrl(self, transformer, url, options):
+        print("Driver._getDataSourceUrl() 1 %s %s" % (url.Main, url.Arguments))
+        location = '%s%s'  % (g_protocol, url.Main)
+        print("Driver._getDataSourceUrl() 2 %s" % location)
+        if options is not None:
+            location += ';%s' % ';'.join(options)
+        return location
+
+    def _getDataSourceClassPath(self):
+        path = getResourceLocation(self.ctx, g_identifier, g_path)
+        return '%s/%s' % (path, g_jar)
+
     def _getDriverPropertyInfo(self, name, value):
         info = uno.createUnoStruct('com.sun.star.sdbc.DriverPropertyInfo')
         info.Name = name
@@ -208,27 +232,6 @@ class Driver(unohelper.Base,
             info.Value = value
         info.Choices = ()
         return info
-
-    def _getDataSource(self, url, options):
-        service = 'com.sun.star.sdb.DatabaseContext'
-        datasource = createService(self.ctx, service).createInstance()
-        self._setDataSource(datasource, url, options)
-        return datasource
-
-    def _setDataSource(self, datasource, url, options):
-        datasource.URL = self._getDataSourceUrl(url, options)
-        datasource.Settings.JavaDriverClass = g_class
-        datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
-
-    def _getDataSourceUrl(self, url, options):
-        location = '%s%s'  % (g_protocol, url.Main)
-        if options is not None:
-            location += ';%s' % ';'.join(options)
-        return location
-
-    def _getDataSourceClassPath(self):
-        path = getResourceLocation(self.ctx, g_identifier, g_path)
-        return '%s/%s' % (path, g_jar)
 
     def _getException(self, state, code, message, context=None, exception=None):
         error = SQLException()
