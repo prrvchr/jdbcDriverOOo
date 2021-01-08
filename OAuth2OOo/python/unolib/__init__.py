@@ -52,6 +52,7 @@ from .unotools import generateUuid
 from .unotools import getNamedValue
 from .unotools import getNamedValueSet
 from .unotools import getSimpleFile
+from .unotools import getUrlTransformer
 from .unotools import getInteractionHandler
 from .unotools import getDialog
 from .unotools import getDialogUrl
@@ -64,6 +65,7 @@ from .unotools import unparseTimeStamp
 from .unotools import getConnectionMode
 from .unotools import getParentWindow
 from .unotools import getUrl
+from .unotools import parseUrl
 from .unotools import getExceptionMessage
 
 from .unocore import PropertyContainer
