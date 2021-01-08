@@ -105,7 +105,17 @@ J'essaierai de le résoudre ;-)
 
 - Beaucoup d'autres correctifs...
 
-### Que reste-t-il à faire pour la version 0.0.2:
+### Ce qui a été fait pour la version 0.0.3:
+
+- Un protocole non pris en charge affiche désormais une erreur précise.
+
+- une url non analysable affiche désormais une erreur précise.
+
+- Gère désormais correctement les espaces dans les noms de fichiers et les chemins.
+
+- Beaucoup d'autres correctifs...
+
+### Que reste-t-il à faire pour la version 0.0.3:
 
 - Ajouter de nouvelles langue pour l'internationalisation...
 

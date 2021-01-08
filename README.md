@@ -105,7 +105,17 @@ I will try to solve it ;-)
 
 - Many other fix...
 
-### What remains to be done for version 0.0.2:
+### What has been done for version 0.0.3:
+
+- An unsupported protocol now displays an accurate error.
+
+- A non-parsable url now displays a precise error.
+
+- Now correctly handles spaces in filenames and paths.
+
+- Many other fix...
+
+### What remains to be done for version 0.0.3:
 
 - Add new language for internationalization...
 
