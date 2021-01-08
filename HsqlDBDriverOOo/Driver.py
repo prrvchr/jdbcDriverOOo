@@ -46,7 +46,7 @@ from com.sun.star.uno import Exception as UnoException
 from unolib import createService
 from unolib import getResourceLocation
 from unolib import getUrlTransformer
-from unolib import getUrl
+from unolib import parseUrl
 
 from hsqldbdriver import g_identifier
 from hsqldbdriver import g_protocol
@@ -88,11 +88,8 @@ class Driver(unohelper.Base,
         try:
             msg = getMessage(self.ctx, g_message, 111, url)
             logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
-            transformer = getUrlTransformer(self.ctx)
             path, has_option, option = url.strip().partition(';')
-            protocols = url.split(':')
-            options = option.split(';') if has_option != '' else None
-            user, password = self._getUserCredential(infos)
+            protocols = path.split(':')
             if len(protocols) < 4 or not all(protocols):
                 code = getMessage(self.ctx, g_message, 112)
                 msg = getMessage(self.ctx, g_message, 113, url)
@@ -103,12 +100,15 @@ class Driver(unohelper.Base,
                 supported = self._getSupportedSubProtocols()
                 msg = getMessage(self.ctx, g_message, 114, (subprotocol, supported))
                 raise self._getException(code, 1002, msg, self)
+            transformer = getUrlTransformer(self.ctx)
             location = self._getUrl(transformer, protocols)
             if location is None:
                 code = getMessage(self.ctx, g_message, 115)
                 msg = getMessage(self.ctx, g_message, 116, url)
                 raise self._getException(code, 1003, msg, self)
+            options = option.split(';') if has_option != '' else None
             datasource = self._getDataSource(transformer, location, options)
+            user, password = self._getUserCredential(infos)
             connection = Connection(self.ctx, datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
@@ -175,21 +175,9 @@ class Driver(unohelper.Base,
         msg = getMessage(self.ctx, g_message, 171, name)
         logMessage(self.ctx, INFO, msg, 'Driver', 'dropCatalog()')
 
-    def _getUserCredential(self, infos):
-        username = ''
-        password = ''
-        for info in infos:
-            if info.Name == 'user':
-                username = info.Value.strip()
-            elif info.Name == 'password':
-                password = info.Value.strip()
-            if username and password:
-                break
-        return username, password
-
-    def _getUrl(self, transformer, protocols):
-        location = ':'.join(protocols[self._subProtocolIndex:])
-        return parseUrl(transformer, location)
+    #Private method
+    def _isSupportedSubProtocols(self, protocols):
+        return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
 
     def _getSubProtocol(self, protocols):
         return protocols[self._subProtocolIndex]
@@ -197,8 +185,9 @@ class Driver(unohelper.Base,
     def _getSupportedSubProtocols(self):
         return ', '.join(self._supportedSubProtocols)
 
-    def _isSupportedSubProtocols(self, protocols):
-        return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
+    def _getUrl(self, transformer, protocols):
+        location = ':'.join(protocols[self._subProtocolIndex:])
+        return parseUrl(transformer, location)
 
     def _getDataSource(self, transformer, url, options):
         service = 'com.sun.star.sdb.DatabaseContext'
@@ -212,9 +201,12 @@ class Driver(unohelper.Base,
         datasource.Settings.JavaDriverClassPath = self._getDataSourceClassPath()
 
     def _getDataSourceUrl(self, transformer, url, options):
-        print("Driver._getDataSourceUrl() 1 %s %s" % (url.Main, url.Arguments))
-        location = '%s%s'  % (g_protocol, url.Main)
-        print("Driver._getDataSourceUrl() 2 %s" % location)
+        format = (g_protocol, url.Main)
+        location = parseUrl(transformer, '%s%s'  % format)
+        return self._getDataSourceUrlOptions(transformer, location, options)
+
+    def _getDataSourceUrlOptions(self, transformer, url, options):
+        location = transformer.getPresentation(url, False)
         if options is not None:
             location += ';%s' % ';'.join(options)
         return location
@@ -222,6 +214,18 @@ class Driver(unohelper.Base,
     def _getDataSourceClassPath(self):
         path = getResourceLocation(self.ctx, g_identifier, g_path)
         return '%s/%s' % (path, g_jar)
+
+    def _getUserCredential(self, infos):
+        username = ''
+        password = ''
+        for info in infos:
+            if info.Name == 'user':
+                username = info.Value.strip()
+            elif info.Name == 'password':
+                password = info.Value.strip()
+            if username and password:
+                break
+        return username, password
 
     def _getDriverPropertyInfo(self, name, value):
         info = uno.createUnoStruct('com.sun.star.sdbc.DriverPropertyInfo')
