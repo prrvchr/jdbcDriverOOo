@@ -34,6 +34,8 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
 
+from com.sun.star.uno import Exception as UnoException
+
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -77,9 +79,9 @@ class OptionsDialog(unohelper.Base,
                     XDialogEventHandler):
     def __init__(self, ctx):
         self.ctx = ctx
-        self._index = 0
         self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')
-        logMessage(self.ctx, INFO, "Loading ... Done", 'OptionsDialog', '__init__()')
+        msg = getMessage(self.ctx, g_message, 101)
+        logMessage(self.ctx, INFO, msg, 'OptionsDialog', '__init__()')
 
     # XContainerWindowEventHandler, XDialogEventHandler
     def callHandlerMethod(self, dialog, event, method):
@@ -110,16 +112,16 @@ class OptionsDialog(unohelper.Base,
         elif method == 'ClearLog':
             self._clearLog(dialog)
             handled = True
-        elif method == 'Upload':
-            self._upload(dialog)
-            handled = True
         elif method == 'LogInfo':
             self._logInfo(dialog)
+            handled = True
+        elif method == 'Upload':
+            self._upload(dialog)
             handled = True
         return handled
     def getSupportedMethodNames(self):
         return ('external_event', 'ToggleLogger', 'EnableViewer', 'DisableViewer',
-                'ViewLog', 'ClearLog', 'Upload', 'LogInfo')
+                'ViewLog', 'ClearLog', 'LogInfo', 'Upload')
 
     def _loadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
@@ -127,23 +129,6 @@ class OptionsDialog(unohelper.Base,
 
     def _loadVersion(self, dialog):
         dialog.getControl('Label3').Text = self._getDriverVersion()
-
-    def _reloadVersion(self, dialog):
-        msg = getMessage(self.ctx, g_message, 121)
-        dialog.getControl('Label3').Text = msg
-
-    def _getDriverVersion(self):
-        try:
-            service = '%s.Driver' % g_identifier
-            driver = createService(self.ctx, service)
-            self._index += 1
-            url = 'sdbc:hsqldb:mem:///test%sdb' % self._index
-            connection = driver.connect(url, ())
-            version = connection.getMetaData().getDriverVersion()
-            connection.close()
-            return version
-        except Exception as e:
-            print("OptionsDialog._getDriverVersion() ERROR: %s - %s" % (e, traceback.print_exc()))
 
     def _reloadSetting(self, dialog):
         self._loadLoggerSetting(dialog)
@@ -171,22 +156,18 @@ class OptionsDialog(unohelper.Base,
         dialog.dispose()
 
     def _clearLog(self, dialog):
-        try:
-            clearLogger()
-            msg = getMessage(self.ctx, g_message, 101)
-            logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
-            url = getLoggerUrl(self.ctx)
-            self._setDialogText(dialog, url)
-        except Exception as e:
-            msg = "Error: %s - %s" % (e, traceback.print_exc())
-            logMessage(self.ctx, SEVERE, msg, "OptionsDialog", "_clearLog()")
+        clearLogger()
+        msg = getMessage(self.ctx, g_message, 111)
+        logMessage(self.ctx, INFO, msg, 'OptionsDialog', '_clearLog()')
+        url = getLoggerUrl(self.ctx)
+        self._setDialogText(dialog, url)
 
     def _logInfo(self, dialog):
         version  = ' '.join(sys.version.split())
-        msg = getMessage(self.ctx, g_message, 111, version)
+        msg = getMessage(self.ctx, g_message, 121, version)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         path = os.pathsep.join(sys.path)
-        msg = getMessage(self.ctx, g_message, 112, path)
+        msg = getMessage(self.ctx, g_message, 122, path)
         logMessage(self.ctx, INFO, msg, "OptionsDialog", "_logInfo()")
         url = getLoggerUrl(self.ctx)
         self._setDialogText(dialog, url)
@@ -210,6 +191,26 @@ class OptionsDialog(unohelper.Base,
         index = dialog.getControl('ListBox1').getSelectedItemPos()
         handler = dialog.getControl('OptionButton1').State
         setLoggerSetting(self.ctx, enabled, index, handler)
+
+    def _reloadVersion(self, dialog):
+        msg = getMessage(self.ctx, g_message, 131)
+        dialog.getControl('Label3').Text = msg
+
+    def _getDriverVersion(self):
+        try:
+            service = '%s.Driver' % g_identifier
+            driver = createService(self.ctx, service)
+            url = 'sdbc:hsqldb:mem:///dbversion'
+            connection = driver.connect(url, ())
+            version = connection.getMetaData().getDriverVersion()
+            connection.close()
+            return version
+        except UnoException as e:
+            msg = getMessage(self.ctx, g_message, 141, e.Message)
+            logMessage(self.ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
+        except Exception as e:
+            msg = getMessage(self.ctx, g_message, 142, (e, traceback.print_exc()))
+            logMessage(self.ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
 
     def _upload(self, dialog):
         service = 'com.sun.star.util.PathSubstitution'
