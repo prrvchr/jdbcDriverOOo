@@ -52,9 +52,18 @@ In step: Select database:
 ![HsqlDBDriverOOo screenshot 2](HsqlDBDriverOOo-2.png)
 
 In step: Connection settings:
-- in Datasource URL put:
-    - for Linux: file:///tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
-    - for Windows: file:///c:/tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
+
+- for the protocol: **file://**
+    - in Datasource URL put:
+        - for Linux: file:///tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
+        - for Windows: file:///c:/tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
+
+- for the protocol: **hsql://**
+    - In a terminal, go to a folder containing the hsqldb.jar archive and run:
+        - for Linux: java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///tmp/testdb --silent false
+        - for windows: java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///c:/tmp/testdb --silent false
+    - in Datasource URL put: hsql://localhost/;default_schema=true
+
 - click on button: Next
 
 ![HsqlDBDriverOOo screenshot 3](HsqlDBDriverOOo-3.png)
