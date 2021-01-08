@@ -41,17 +41,12 @@ from com.sun.star.sdbc import SQLException
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.uno import Exception as UnoException
-
 from unolib import createService
-from unolib import getResourceLocation
 from unolib import getUrlTransformer
 from unolib import parseUrl
 
 from hsqldbdriver import g_identifier
 from hsqldbdriver import g_protocol
-from hsqldbdriver import g_path
-from hsqldbdriver import g_jar
 from hsqldbdriver import g_class
 from hsqldbdriver import Connection
 from hsqldbdriver import getDataBaseInfo

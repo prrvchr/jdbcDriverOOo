@@ -48,9 +48,6 @@ from unolib import getSimpleFile
 from unolib import createService
 from unolib import getUrl
 
-from hsqldbdriver import getDataSourceLocation
-from hsqldbdriver import getDataSourceJavaInfo
-
 from hsqldbdriver import getLoggerUrl
 from hsqldbdriver import getLoggerSetting
 from hsqldbdriver import setLoggerSetting
