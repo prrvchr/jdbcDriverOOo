@@ -259,13 +259,15 @@ class PreparedStatement(BaseStatement,
                         XParameters,
                         XColumnsSupplier,
                         XPreparedBatchExecution):
-    def __init__(self, connection, sql):
-        # TODO: cannot use: result = self._statement.executeQuery()
+    def __init__(self, connection, sql, patched=False):
+        # TODO: sometime we cannot use: connection.prepareStatement(sql)
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        # TODO: fallback to: self._statement as connection.prepareCall(sql)
+        # TODO: if patched: fallback to connection.prepareCall(sql)
         self._connection = connection
-        #self._statement = connection._connection.prepareCall(sql)
-        self._statement = connection._connection.prepareStatement(sql)
+        if patched:
+            self._statement = connection._connection.prepareCall(sql)
+        else:
+            self._statement = connection._connection.prepareStatement(sql)
         self._statement.ResultSetType = SCROLL_INSENSITIVE
 
    # XPreparedBatchExecution
