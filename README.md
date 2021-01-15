@@ -83,9 +83,15 @@ Have fun...
 
 ## Has been tested with:
 
-* OpenOffice 4.1.8 x86_64 - Ubuntu 20.04 - LxQt 0.14.1
+* OpenOffice 4.1.8 - Ubuntu 20.04 - LxQt 0.14.1
 
-* LibreOffice 6.4.4.2 (x64) - Windows 7 SP1
+* OpenOffice 4.1.8 - Windows 7 SP1
+
+* OpenOffice 4.1.8 - MacOS.High Sierra
+
+* LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1
+
+* LibreOffice 6.4.4.2 - Windows 7 SP1
 
 I encourage you in case of problem :-(  
 to create an [issue](https://github.com/prrvchr/HsqlDBDriverOOo/issues/new)  
