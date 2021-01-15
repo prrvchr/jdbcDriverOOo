@@ -27,6 +27,7 @@ Si vous utilisez LibreOffice sous Linux, alors vous êtes sujet au [dysfonctionn
 Pour contourner le problème, veuillez désinstaller les paquets:
 - libreoffice-sdbc-hsqldb
 - libhsqldb1.8.0-java
+
 Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HsqlDBembeddedOOo](https://prrvchr.github.io/HsqlDBembeddedOOo/README_fr).  
 OpenOffice et LibreOffice sous Windows ne sont pas soumis à ce dysfonctionnement.
 
