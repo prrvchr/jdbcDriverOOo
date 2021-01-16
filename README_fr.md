@@ -7,7 +7,7 @@
 ## Introduction:
 
 **HsqlDBDriverOOo** fait partie d'une [Suite](https://prrvchr.github.io/README_fr) d'extensions [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) et/ou [OpenOffice](https://www.openoffice.org/fr/Telecharger/) permettant de vous offrir des services inovants dans ces suites bureautique.  
-Cette extension vous permet d'utiliser le pilote HsqlDB de votre choix directement dans Base.
+Cette extension vous permet d'utiliser le pilote HsqlDB de votre choix, avec toutes ses fonctionnalités, directement dans Base.
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/HsqlDBDriverOOo/).
@@ -23,7 +23,7 @@ Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 L'utilisation de HsqlDB nécessite l'installation et la configuration dans LibreOffice / OpenOffice d'un **JRE version 1.8 minimum** (c'est-à-dire: Java version 8)  
 Je vous recommande [AdoptOpenJDK](https://adoptopenjdk.net/) comme source d'installation de Java.
 
-Si vous utilisez LibreOffice sous Linux, alors vous êtes sujet au [dysfonctionnement 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
+Si vous utilisez **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
 Pour contourner le problème, veuillez désinstaller les paquets:
 - libreoffice-sdbc-hsqldb
 - libhsqldb1.8.0-java
