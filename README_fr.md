@@ -89,7 +89,7 @@ Maintenant à vous d'en profiter...
 
 Si vous souhaitez mettre à jour le pilote HsqlDB (hsqldb.jar) vers une version plus récente, procédez comme suit:
 - 1 - Faite une copie (sauvegarde) du dossier contenant votre base de données.
-- 2 - Lancer LibreOffice / OpenOffice et changez la version du pilote HsqlDB dans: Outils -> Options -> Pilotes Base -> Pilote HsqlDB par une version plus récente (Si nécessaire, vous devez renommer le fichier jar en hsqldb.jar pour qu'il soit pris en compte).
+- 2 - Lancer LibreOffice / OpenOffice et changez la version du pilote HsqlDB dans: Outils -> Options -> Pilotes Base -> Pilote HsqlDB, par une version plus récente (Si nécessaire, vous devez renommer le fichier jar en hsqldb.jar pour qu'il soit pris en compte).
 - 3 - Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar).
 - 4 - Dans Base, aprés avoir ouvert votre base de données, allez à: Outils -> SQL et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
 
