@@ -44,6 +44,8 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ## Utilisation:
 
+### Comment créer une nouvelle base de données:
+
 Dans LibreOffice / OpenOffice aller à: Fichier -> Nouveau -> Base de données...:
 
 ![HsqlDBDriverOOo screenshot 1](HsqlDBDriverOOo-1.png)
@@ -82,6 +84,16 @@ Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 ![HsqlDBDriverOOo screenshot 5](HsqlDBDriverOOo-5.png)
 
 Maintenant à vous d'en profiter...
+
+### Comment mettre à jour le pilote HsqlDB:
+
+Si vous souhaitez mettre à jour le pilote HsqlDB (hsqldb.jar) vers une version plus récente, procédez comme suit:
+- 1 - Faite une copie (sauvegarde) du dossier contenant votre base de données.
+- 2 - Lancer LibreOffice / OpenOffice et changez la version du pilote HsqlDB dans: Outils -> Options -> Pilotes Base -> Pilote HsqlDB par une version plus récente (Si nécessaire, vous devez renommer le fichier jar en hsqldb.jar pour qu'il soit pris en compte).
+- 3 - Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar).
+- 4 - Dans Base, aprés avoir ouvert votre base de données, allez à: Outils -> SQL et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
+
+Maintenant votre base de données est à jour.
 
 ## A été testé avec:
 

@@ -44,6 +44,8 @@ Restart LibreOffice / OpenOffice after installation.
 
 ## Use:
 
+### How to create a new database:
+
 In LibreOffice / OpenOffice go to File -> New -> Database...:
 
 ![HsqlDBDriverOOo screenshot 1](HsqlDBDriverOOo-1.png)
@@ -82,6 +84,16 @@ If the connection was successful, you should see this dialog window:
 ![HsqlDBDriverOOo screenshot 5](HsqlDBDriverOOo-5.png)
 
 Have fun...
+
+### How to update the HsqlDB driver:
+
+If you want to update the HsqlDB driver (hsqldb.jar) to a newer version, follow these steps:
+- 1 - Make a copy (backup) of the folder containing your database.
+- 2 - Start LibreOffice / OpenOffice and change the version of the HsqlDB driver in: Tools -> Options -> Base drivers -> HsqlDB driver by a more recent version (If necessary, you must rename the jar file to hsqldb.jar so that it is taken into account).
+- 3 - Restart LibreOffice / OpenOffice after changing the driver (hsqldb.jar).
+- 4 - In Base, after opening your database, go to: Tools -> SQL and type the SQL command: `SHUTDOWN COMPACT` or `SHUTDOWN SCRIPT`.
+
+Now your database is up to date.
 
 ## Has been tested with:
 
