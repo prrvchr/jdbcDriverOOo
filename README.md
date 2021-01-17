@@ -7,7 +7,9 @@
 ## Introduction:
 
 **HsqlDBDriverOOo** is part of a [Suite](https://prrvchr.github.io/) of [LibreOffice](https://www.libreoffice.org/download/download/) and/or [OpenOffice](https://www.openoffice.org/download/index.html) extensions allowing to offer you innovative services in these office suites.  
-This extension allows you to use the HsqlDB driver of your choice, with all its features, directly in Base.
+
+This extension allows you to use the HsqlDB driver of your choice, with all its features, directly in Base.  
+It supports all protocols natively managed by HsqlDB, namely: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
 
 Being free software I encourage you:
 - To duplicate its [source code](https://github.com/prrvchr/HsqlDBDriverOOo/).
