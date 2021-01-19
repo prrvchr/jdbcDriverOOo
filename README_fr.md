@@ -61,13 +61,13 @@ A l'étape: Paramètres de connexion:
 
 - pour le protocole: **file://**
     - dans URL de la source de données saisir:
-        - pour Linux: file:///tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
-        - pour Windows: file:///c:/tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
+        - pour **Linux**: file:///tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
+        - pour **Windows**: file:///c:/tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false
 
 - pour le protocole: **hsql://**
     - Dans un terminal, se placer dans un dossier contenant l'archive hsqldb.jar et lancer:
-        - pour Linux: java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///tmp/testdb --silent false
-        - pour windows: java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///c:/tmp/testdb --silent false
+        - pour **Linux**: java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///tmp/testdb --silent false
+        - pour **Windows**: java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///c:/tmp/testdb --silent false
     - dans URL de la source de données saisir: hsql://localhost/;default_schema=true
 
 - cliquer sur le bouton: Suivant
