@@ -105,7 +105,7 @@ class Driver(unohelper.Base,
             options = option.split(';') if has_option != '' else None
             datasource = self._getDataSource(transformer, location, options)
             user, password = self._getUserCredential(infos)
-            connection = Connection(self.ctx, datasource, url, user, password)
+            connection = Connection(self.ctx, datasource, url, user, password, None, True)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
             msg = getMessage(self.ctx, g_message, 117, (version, username))

@@ -2,7 +2,7 @@
 
 **The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo/registration/TermsOfUse_en)
 
-# version [0.0.3](https://prrvchr.github.io/HsqlDBDriverOOo#historical)
+# version [0.0.4](https://prrvchr.github.io/HsqlDBDriverOOo#historical)
 
 ## Introduction:
 
@@ -38,7 +38,7 @@ OpenOffice and LibreOffice on Windows are not subject to this malfunction.
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/releases/download/v0.0.3/HsqlDBDriverOOo.oxt) extension version 0.0.3.
+- Install [HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt) extension version 0.0.4.
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -147,7 +147,13 @@ I will try to solve it ;-)
 
 - Many other fix...
 
-### What remains to be done for version 0.0.3:
+### What has been done for version 0.0.4:
+
+- Modification of [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) in order to make possible the use of the Uno service: `com.sun.star.sdb.RowSet`.
+
+- Many other fix...
+
+### What remains to be done for version 0.0.4:
 
 - Add new language for internationalization...
 
