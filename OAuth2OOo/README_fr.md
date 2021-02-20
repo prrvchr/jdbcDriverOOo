@@ -12,7 +12,7 @@ Cette extension est l'implémentation du protocole OAuth 2.0. Protocole permetta
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/OAuth2OOo).
 - A apporter des modifications, des corrections, des ameliorations.
-- D'ouvrir une [issue](https://github.com/prrvchr/OAuth2OOo/issues/new) si nécessaire.
+- D'ouvrir un [dysfonctionnement](https://github.com/prrvchr/OAuth2OOo/issues/new) si nécessaire.
 
 Bref, à participer au developpement de cette extension.
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
@@ -75,7 +75,7 @@ La valeur renvoyée:: `initialized` est True si `registered_url` et/ou `user_acc
 
 * LibreOffice 7.0.0.0.alpha1 - Ubuntu 20.04 -  LxQt 0.14.1
 
-* OpenOffice 4.1.5 x86_64 - Ubuntu 20.04 - LxQt 0.14.1
+* OpenOffice 4.1.8 x86_64 - Ubuntu 20.04 - LxQt 0.14.1
 
 * OpenOffice 4.2.0.Build:9820 x86_64 - Ubuntu 20.04 - LxQt 0.14.1
 
@@ -84,7 +84,7 @@ La valeur renvoyée:: `initialized` est True si `registered_url` et/ou `user_acc
 * LibreOffice 6.4.4.2 (x64) - Windows 7 SP1
 
 Je vous encourage en cas de problème :-(  
-de créer une [issue](https://github.com/prrvchr/OAuth2OOo/issues/new)  
+de créer un [dysfonctionnement](https://github.com/prrvchr/OAuth2OOo/issues/new)  
 J'essaierai de la résoudre ;-)
 
 ## Historique:

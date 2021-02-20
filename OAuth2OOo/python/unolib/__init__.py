@@ -51,20 +51,25 @@ from .unotools import getStringResource
 from .unotools import generateUuid
 from .unotools import getNamedValue
 from .unotools import getNamedValueSet
+from .unotools import getDesktop
 from .unotools import getSimpleFile
 from .unotools import getUrlTransformer
+from .unotools import getPathSettings
 from .unotools import getInteractionHandler
 from .unotools import getDialog
 from .unotools import getDialogUrl
 from .unotools import getDateTime
 from .unotools import getInterfaceTypes
 from .unotools import hasInterface
+from .unotools import executeShell
+from .unotools import executeDispatch
 from .unotools import parseDateTime
 from .unotools import unparseDateTime
 from .unotools import unparseTimeStamp
 from .unotools import getConnectionMode
 from .unotools import getParentWindow
 from .unotools import getUrl
+from .unotools import getUrlPresentation
 from .unotools import parseUrl
 from .unotools import getExceptionMessage
 

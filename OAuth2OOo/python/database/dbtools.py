@@ -318,13 +318,14 @@ def getRowResult(result, index=(0,), separator=' '):
     return tuple(sequence)
 
 def getValueFromResult(result, index, default=None):
+    # TODO: 'TINYINT' is buggy: don't use it
     dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
         value = result.getString(index)
     elif dbtype == 'BOOLEAN':
         value = result.getBoolean(index)
     elif dbtype == 'TINYINT':
-        value = result.getByte(index)
+        value = result.getShort(index)
     elif dbtype == 'SMALLINT':
         value = result.getShort(index)
     elif dbtype == 'INTEGER':
