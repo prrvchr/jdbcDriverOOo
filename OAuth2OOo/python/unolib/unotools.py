@@ -66,7 +66,8 @@ def getUrlTransformer(ctx):
     return createService(ctx, 'com.sun.star.util.URLTransformer')
 
 def getUrlPresentation(ctx, location, password=False):
-    url = uno.createUnoStruct('com.sun.star.util.URL', Complete=location)
+    url = uno.createUnoStruct('com.sun.star.util.URL')
+    url.Complete = location
     return getUrlTransformer(ctx).getPresentation(url, password)
 
 def getUrl(ctx, location, protocol=None):
@@ -74,7 +75,8 @@ def getUrl(ctx, location, protocol=None):
     return parseUrl(transformer, location, protocol)
 
 def parseUrl(transformer, location, protocol=None):
-    url = uno.createUnoStruct('com.sun.star.util.URL', Complete=location)
+    url = uno.createUnoStruct('com.sun.star.util.URL')
+    url.Complete = location
     if protocol is None:
         success, url = transformer.parseStrict(url)
     else:
