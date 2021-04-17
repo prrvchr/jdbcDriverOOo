@@ -71,65 +71,65 @@ class Driver(unohelper.Base,
              XDriver):
 
     def __init__(self, ctx):
-        self.ctx = ctx
+        self._ctx = ctx
         self._supportedProtocol = 'sdbc:hsqldb:'
         self._subProtocolIndex = 2
         self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https', 'mem', 'file', 'res')
         self._defaultUser = 'SA'
-        msg = getMessage(self.ctx, g_message, 101)
-        logMessage(self.ctx, INFO, msg, 'Driver', '__init__()')
+        msg = getMessage(self._ctx, g_message, 101)
+        logMessage(self._ctx, INFO, msg, 'Driver', '__init__()')
 
     # XDriver
     def connect(self, url, infos):
         try:
-            msg = getMessage(self.ctx, g_message, 111, url)
-            logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
+            msg = getMessage(self._ctx, g_message, 111, url)
+            logMessage(self._ctx, INFO, msg, 'Driver', 'connect()')
             path, has_option, option = url.strip().partition(';')
             protocols = path.split(':')
             if len(protocols) < 4 or not all(protocols):
-                code = getMessage(self.ctx, g_message, 112)
-                msg = getMessage(self.ctx, g_message, 113, url)
+                code = getMessage(self._ctx, g_message, 112)
+                msg = getMessage(self._ctx, g_message, 113, url)
                 raise self._getException(code, 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
-                code = getMessage(self.ctx, g_message, 112)
+                code = getMessage(self._ctx, g_message, 112)
                 subprotocol = self._getSubProtocol(protocols)
                 supported = self._getSupportedSubProtocols()
-                msg = getMessage(self.ctx, g_message, 114, (subprotocol, supported))
+                msg = getMessage(self._ctx, g_message, 114, (subprotocol, supported))
                 raise self._getException(code, 1002, msg, self)
-            transformer = getUrlTransformer(self.ctx)
+            transformer = getUrlTransformer(self._ctx)
             location = self._getUrl(transformer, protocols)
             if location is None:
-                code = getMessage(self.ctx, g_message, 115)
-                msg = getMessage(self.ctx, g_message, 116, url)
+                code = getMessage(self._ctx, g_message, 115)
+                msg = getMessage(self._ctx, g_message, 116, url)
                 raise self._getException(code, 1003, msg, self)
             options = option.split(';') if has_option != '' else None
             datasource = self._getDataSource(transformer, location, options)
             user, password = self._getUserCredential(infos)
-            connection = Connection(self.ctx, datasource, url, user, password, None, True)
+            connection = Connection(self._ctx, datasource, url, user, password, None, True)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
-            msg = getMessage(self.ctx, g_message, 117, (version, username))
-            logMessage(self.ctx, INFO, msg, 'Driver', 'connect()')
+            msg = getMessage(self._ctx, g_message, 117, (version, username))
+            logMessage(self._ctx, INFO, msg, 'Driver', 'connect()')
             return connection
         except SQLException as e:
             raise e
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 118, (e, traceback.print_exc()))
-            logMessage(self.ctx, SEVERE, msg, 'Driver', 'connect()')
+            msg = getMessage(self._ctx, g_message, 118, (e, traceback.print_exc()))
+            logMessage(self._ctx, SEVERE, msg, 'Driver', 'connect()')
 
     def acceptsURL(self, url):
         accept = url.startswith(self._supportedProtocol)
-        msg = getMessage(self.ctx, g_message, 121, (url, accept))
-        logMessage(self.ctx, INFO, msg, 'Driver', 'acceptsURL()')
+        msg = getMessage(self._ctx, g_message, 121, (url, accept))
+        logMessage(self._ctx, INFO, msg, 'Driver', 'acceptsURL()')
         return accept
 
     def getPropertyInfo(self, url, infos):
         try:
-            msg = getMessage(self.ctx, g_message, 131, url)
-            logMessage(self.ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
+            msg = getMessage(self._ctx, g_message, 131, url)
+            logMessage(self._ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
             for info in infos:
-                msg = getMessage(self.ctx, g_message, 132, (info.Name, info.Value))
-                logMessage(self.ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
+                msg = getMessage(self._ctx, g_message, 132, (info.Name, info.Value))
+                logMessage(self._ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
             drvinfo = []
             dbinfo = getDataBaseInfo()
             for info in dbinfo:
@@ -138,12 +138,12 @@ class Driver(unohelper.Base,
                 if info.Name not in dbinfo:
                     drvinfo.append(self._getDriverPropertyInfo(info.Name, info.Value))
             for info in drvinfo:
-                msg = getMessage(self.ctx, g_message, 133, (info.Name, info.Value))
-                logMessage(self.ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
+                msg = getMessage(self._ctx, g_message, 133, (info.Name, info.Value))
+                logMessage(self._ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
             return tuple(drvinfo)
         except Exception as e:
-            msg = getMessage(self.ctx, g_message, 134, (e, traceback.print_exc()))
-            logMessage(self.ctx, SEVERE, msg, 'Driver', 'getPropertyInfo()')
+            msg = getMessage(self._ctx, g_message, 134, (e, traceback.print_exc()))
+            logMessage(self._ctx, SEVERE, msg, 'Driver', 'getPropertyInfo()')
 
     def getMajorVersion(self):
         return 1
@@ -152,24 +152,24 @@ class Driver(unohelper.Base,
 
     # XDataDefinitionSupplier
     def getDataDefinitionByConnection(self, connection):
-        msg = getMessage(self.ctx, g_message, 141)
-        logMessage(self.ctx, INFO, msg, 'Driver', 'getDataDefinitionByConnection()')
+        msg = getMessage(self._ctx, g_message, 141)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'getDataDefinitionByConnection()')
         return connection
     def getDataDefinitionByURL(self, url, infos):
-        msg = getMessage(self.ctx, g_message, 151, url)
-        logMessage(self.ctx, INFO, msg, 'Driver', 'getDataDefinitionByURL()')
+        msg = getMessage(self._ctx, g_message, 151, url)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'getDataDefinitionByURL()')
         connection = self.connect(url, infos)
         return self.getDataDefinitionByConnection(connection)
 
     # XCreateCatalog
     def createCatalog(self, info):
-        msg = getMessage(self.ctx, g_message, 161)
-        logMessage(self.ctx, INFO, msg, 'Driver', 'createCatalog()')
+        msg = getMessage(self._ctx, g_message, 161)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'createCatalog()')
 
     # XDropCatalog
     def dropCatalog(self, name, info):
-        msg = getMessage(self.ctx, g_message, 171, name)
-        logMessage(self.ctx, INFO, msg, 'Driver', 'dropCatalog()')
+        msg = getMessage(self._ctx, g_message, 171, name)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'dropCatalog()')
 
     #Private method
     def _isSupportedSubProtocols(self, protocols):
@@ -187,14 +187,14 @@ class Driver(unohelper.Base,
 
     def _getDataSource(self, transformer, url, options):
         service = 'com.sun.star.sdb.DatabaseContext'
-        datasource = createService(self.ctx, service).createInstance()
+        datasource = createService(self._ctx, service).createInstance()
         self._setDataSource(datasource, transformer, url, options)
         return datasource
 
     def _setDataSource(self, datasource, transformer, url, options):
         datasource.URL = self._getDataSourceUrl(transformer, url, options)
         datasource.Settings.JavaDriverClass = g_class
-        path = getDataSourceClassPath(self.ctx, g_identifier)
+        path = getDataSourceClassPath(self._ctx, g_identifier)
         datasource.Settings.JavaDriverClassPath = path
 
     def _getDataSourceUrl(self, transformer, url, options):
