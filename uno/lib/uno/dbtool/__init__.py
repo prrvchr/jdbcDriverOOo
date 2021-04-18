@@ -40,8 +40,11 @@ from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceClassPath
 from .dbtool import getDataSourceConnection
+from .dbtool import getDictFromResult
 from .dbtool import getKeyMapFromResult
+from .dbtool import getKeyMapKeyMapFromResult
 from .dbtool import getKeyMapSequenceFromResult
 from .dbtool import getSequenceFromResult
+from .dbtool import getSqlException
 from .dbtool import getValueFromResult
 from .dbtool import registerDataSource
