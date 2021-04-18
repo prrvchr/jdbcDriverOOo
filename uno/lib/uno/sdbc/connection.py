@@ -108,12 +108,12 @@ class Connection(unohelper.Base,
                  XTableUIProvider,
                  XConnectionTools,
                  XWeak):
-    def __init__(self, ctx, datasource, url, user, password, event=None, patched=False):
+    def __init__(self, ctx, datasource, url, user, password, patched=True):
         self.ctx = ctx
         self._connection = datasource.getConnection(user, password)
         self._url = url
         self._username = user
-        self._event = event
+        self._listeners = []
         # TODO: sometime we cannot use: connection.prepareStatement(sql)
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
         # TODO: if self._patched: fallback to connection.prepareCall(sql)
@@ -121,15 +121,19 @@ class Connection(unohelper.Base,
 
     # XComponent
     def dispose(self):
+        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+        event.Source = self
+        for listener in self._listeners:
+            listener.disposing(event)
         self._connection.dispose()
     def addEventListener(self, listener):
-        self._connection.addEventListener(listener)
+        self._listeners.append(listener)
     def removeEventListener(self, listener):
-        self._connection.removeEventListener(listener)
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
     # XWeak
     def queryAdapter(self):
-        #return self._connection.queryAdapter()
         return self
 
     # XTableUIProvider
