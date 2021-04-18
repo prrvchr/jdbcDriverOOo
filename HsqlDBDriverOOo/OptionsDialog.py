@@ -40,25 +40,27 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from hsqldbdriver import getFileSequence
-from hsqldbdriver import getStringResource
-from hsqldbdriver import getResourceLocation
-from hsqldbdriver import getDialog
-from hsqldbdriver import getSimpleFile
 from hsqldbdriver import createService
+from hsqldbdriver import getDialog
+from hsqldbdriver import getFilePicker
+from hsqldbdriver import getFileSequence
+from hsqldbdriver import getPathSettings
+from hsqldbdriver import getResourceLocation
+from hsqldbdriver import getSimpleFile
+from hsqldbdriver import getStringResource
 from hsqldbdriver import getUrl
 
-from hsqldbdriver import getLoggerUrl
-from hsqldbdriver import getLoggerSetting
-from hsqldbdriver import setLoggerSetting
 from hsqldbdriver import clearLogger
-from hsqldbdriver import logMessage
+from hsqldbdriver import getLoggerSetting
+from hsqldbdriver import getLoggerUrl
 from hsqldbdriver import getMessage
+from hsqldbdriver import logMessage
+from hsqldbdriver import setLoggerSetting
 g_message = 'OptionsDialog'
 
 from hsqldbdriver import g_extension
 from hsqldbdriver import g_identifier
-from hsqldbdriver import g_path
+from hsqldbdriver import g_folder
 from hsqldbdriver import g_jar
 
 import os
@@ -210,18 +212,15 @@ class OptionsDialog(unohelper.Base,
             logMessage(self.ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
 
     def _upload(self, dialog):
-        service = 'com.sun.star.util.PathSubstitution'
-        ps = createService(self.ctx, service)
-        path = ps.substituteVariables('$(work)', True)
-        service = 'com.sun.star.ui.dialogs.FilePicker'
-        fp = createService(self.ctx, service)
+        path = getPathSetting(self._ctx).Work
+        fp = getFilePicker(self.ctx)
         fp.setDisplayDirectory(path)
         fp.appendFilter(g_jar, '*.jar')
         fp.setCurrentFilter(g_jar)
         if fp.execute() == OK:
             url = getUrl(self.ctx, fp.getFiles()[0])
             if url.Name == g_jar:
-                jar = '%s/%s' % (g_path, g_jar)
+                jar = '%s/%s' % (g_folder, g_jar)
                 target = getResourceLocation(self.ctx, g_identifier, jar)
                 getSimpleFile(self.ctx).copy(url.Main, target)
                 self._reloadVersion(dialog)

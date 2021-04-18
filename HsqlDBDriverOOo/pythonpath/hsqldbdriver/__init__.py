@@ -39,7 +39,9 @@ from .dbconfig import g_jar
 
 from .unotool import createService
 from .unotool import getDialog
+from .unotool import getFilePicker
 from .unotool import getFileSequence
+from .unotool import getPathSettings
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 from .unotool import getStringResource
@@ -49,8 +51,6 @@ from .unotool import parseUrl
 
 from .dbtool import getDataSourceConnection
 from .dbtool import getDataBaseInfo
-from .dbtool import getDataSourceLocation
-from .dbtool import getDataSourceJavaInfo
 from .dbtool import getDataSourceClassPath
 
 from .logger import clearLogger

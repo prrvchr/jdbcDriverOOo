@@ -61,6 +61,9 @@ def getDesktop(ctx):
 def getSimpleFile(ctx):
     return createService(ctx, 'com.sun.star.ucb.SimpleFileAccess')
 
+def getFilePicker(ctx):
+    return createService(ctx, 'com.sun.star.ui.dialogs.FilePicker')
+
 def getPathSettings(ctx):
     return createService(ctx, 'com.sun.star.util.PathSettings')
 
@@ -223,8 +226,7 @@ def getContainerWindow(ctx, parent, handler, library, xdl):
 
 def getFileUrl(ctx, title, path, filters=(), multi=False):
     url = None
-    service = 'com.sun.star.ui.dialogs.FilePicker'
-    filepicker = createService(ctx, service)
+    filepicker = getFilePicker(ctx)
     filepicker.setTitle(title)
     filepicker.setDisplayDirectory(path)
     for name, filter in filters:

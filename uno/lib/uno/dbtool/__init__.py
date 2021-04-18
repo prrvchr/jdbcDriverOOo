@@ -33,12 +33,15 @@ from .dbtool import createStaticTable
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
 from .dbtool import getDataBaseConnection
+from .dbtool import getDataBaseInfo
 from .dbtool import getDataBaseUrl
 from .dbtool import getDataFromResult
 from .dbtool import getDataSource
 from .dbtool import getDataSourceCall
+from .dbtool import getDataSourceClassPath
 from .dbtool import getDataSourceConnection
 from .dbtool import getKeyMapFromResult
+from .dbtool import getKeyMapSequenceFromResult
 from .dbtool import getSequenceFromResult
 from .dbtool import getValueFromResult
 from .dbtool import registerDataSource
