@@ -41,9 +41,9 @@ from com.sun.star.sdbc import SQLException
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import createService
-from unolib import getUrlTransformer
-from unolib import parseUrl
+from hsqldbdriver import createService
+from hsqldbdriver import getUrlTransformer
+from hsqldbdriver import parseUrl
 
 from hsqldbdriver import g_identifier
 from hsqldbdriver import g_protocol

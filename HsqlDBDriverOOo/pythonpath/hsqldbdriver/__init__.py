@@ -27,21 +27,31 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .connection import Connection
+from .sdbc import Connection
 
 from .configuration import g_extension
 from .configuration import g_identifier
 
 from .dbconfig import g_class
-from .dbconfig import g_path
+from .dbconfig import g_folder
 from .dbconfig import g_protocol
 from .dbconfig import g_jar
 
-from .dbtools import getDataSourceConnection
-from .dbtools import getDataBaseInfo
-from .dbtools import getDataSourceLocation
-from .dbtools import getDataSourceJavaInfo
-from .dbtools import getDataSourceClassPath
+from .unotool import createService
+from .unotool import getDialog
+from .unotool import getFileSequence
+from .unotool import getResourceLocation
+from .unotool import getSimpleFile
+from .unotool import getStringResource
+from .unotool import getUrl
+from .unotool import getUrlTransformer
+from .unotool import parseUrl
+
+from .dbtool import getDataSourceConnection
+from .dbtool import getDataBaseInfo
+from .dbtool import getDataSourceLocation
+from .dbtool import getDataSourceJavaInfo
+from .dbtool import getDataSourceClassPath
 
 from .logger import clearLogger
 from .logger import getLoggerSetting

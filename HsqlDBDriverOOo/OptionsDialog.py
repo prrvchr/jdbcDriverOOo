@@ -40,13 +40,13 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from unolib import getFileSequence
-from unolib import getStringResource
-from unolib import getResourceLocation
-from unolib import getDialog
-from unolib import getSimpleFile
-from unolib import createService
-from unolib import getUrl
+from hsqldbdriver import getFileSequence
+from hsqldbdriver import getStringResource
+from hsqldbdriver import getResourceLocation
+from hsqldbdriver import getDialog
+from hsqldbdriver import getSimpleFile
+from hsqldbdriver import createService
+from hsqldbdriver import getUrl
 
 from hsqldbdriver import getLoggerUrl
 from hsqldbdriver import getLoggerSetting

@@ -24,7 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 COMMENT
-./rdb/make_rdb.sh
+./uno/rdb/make_rdb.sh
 
 cd ./HsqlDBDriverOOo/
 zip -0 HsqlDBDriverOOo.zip mimetype
