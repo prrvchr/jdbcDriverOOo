@@ -44,6 +44,7 @@ from .unotool import getFileSequence
 from .unotool import getPathSettings
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
+from .unotool import getSqlException
 from .unotool import getStringResource
 from .unotool import getUrl
 from .unotool import getUrlTransformer

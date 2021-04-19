@@ -45,12 +45,13 @@ from hsqldbdriver import createService
 from hsqldbdriver import getUrlTransformer
 from hsqldbdriver import parseUrl
 
-from hsqldbdriver import g_identifier
-from hsqldbdriver import g_protocol
-from hsqldbdriver import g_class
 from hsqldbdriver import Connection
 from hsqldbdriver import getDataBaseInfo
 from hsqldbdriver import getDataSourceClassPath
+from hsqldbdriver import getSqlException
+from hsqldbdriver import g_class
+from hsqldbdriver import g_identifier
+from hsqldbdriver import g_protocol
 
 from hsqldbdriver import logMessage
 from hsqldbdriver import getMessage
@@ -89,23 +90,23 @@ class Driver(unohelper.Base,
             if len(protocols) < 4 or not all(protocols):
                 code = getMessage(self._ctx, g_message, 112)
                 msg = getMessage(self._ctx, g_message, 113, url)
-                raise self._getException(code, 1001, msg, self)
+                raise getSqlException(code, 1001, msg, self)
             if not self._isSupportedSubProtocols(protocols):
                 code = getMessage(self._ctx, g_message, 112)
                 subprotocol = self._getSubProtocol(protocols)
                 supported = self._getSupportedSubProtocols()
                 msg = getMessage(self._ctx, g_message, 114, (subprotocol, supported))
-                raise self._getException(code, 1002, msg, self)
+                raise getSqlException(code, 1002, msg, self)
             transformer = getUrlTransformer(self._ctx)
             location = self._getUrl(transformer, protocols)
             if location is None:
                 code = getMessage(self._ctx, g_message, 115)
                 msg = getMessage(self._ctx, g_message, 116, url)
-                raise self._getException(code, 1003, msg, self)
+                raise getSqlException(code, 1003, msg, self)
             options = option.split(';') if has_option != '' else None
             datasource = self._getDataSource(transformer, location, options)
             user, password = self._getUserCredential(infos)
-            connection = Connection(self._ctx, datasource, url, user, password)
+            connection = self._getConnection(datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
             username = user if user != '' else self._defaultUser
             msg = getMessage(self._ctx, g_message, 117, (version, username))
@@ -226,14 +227,9 @@ class Driver(unohelper.Base,
         info.Choices = ()
         return info
 
-    def _getException(self, state, code, message, context=None, exception=None):
-        error = SQLException()
-        error.SQLState = state
-        error.ErrorCode = code
-        error.NextException = exception
-        error.Message = message
-        error.Context = context
-        return error
+    def _getConnection(self, datasource, url, user, password):
+        connection = datasource.getConnection(user, password)
+        return Connection(self._ctx, connection, url, user)
 
     # XServiceInfo
     def supportsService(self, service):
