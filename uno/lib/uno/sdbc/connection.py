@@ -380,8 +380,9 @@ class DataSource(unohelper.Base,
 # XDocumentDataSource
     @property
     def DatabaseDocument(self):
-        database = self._datasource.DatabaseDocument
-        return DataBase(database, self)
+        return self._datasource.DatabaseDocument
+        #database = self._datasource.DatabaseDocument
+        #return DataBase(database, self)
 
 # XComponent
     def dispose(self):
