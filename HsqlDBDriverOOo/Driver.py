@@ -229,7 +229,10 @@ class Driver(unohelper.Base,
 
     def _getConnection(self, datasource, url, user, password):
         connection = datasource.getConnection(user, password)
-        return Connection(self._ctx, connection, url, user)
+        # TODO: Now that we have the connection we have to restore the original url
+        # TODO: ie: replace the <jdbc> protocol by the <sdbc> protocol
+        datasource.URL = url
+        return Connection(self._ctx, connection)
 
     # XServiceInfo
     def supportsService(self, service):

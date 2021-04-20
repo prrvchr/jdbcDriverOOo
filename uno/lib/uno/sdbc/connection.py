@@ -111,11 +111,9 @@ class Connection(unohelper.Base,
                  XTableUIProvider,
                  XConnectionTools,
                  XWeak):
-    def __init__(self, ctx, connection, url, user, datasource=None):
+    def __init__(self, ctx, connection, datasource=None):
         self._ctx = ctx
         self._connection = connection
-        self._url = url
-        self._user = user
         self._datasource = datasource
         self._listeners = []
         # TODO: sometime we cannot use: connection.prepareStatement(sql)
@@ -210,7 +208,7 @@ class Connection(unohelper.Base,
         # TODO: This wrapping is only there for the following lines:
         if self._datasource is None:
             parent = self._connection.getParent()
-            datasource = DataSource(self._ctx, parent, self._url, self._user)
+            datasource = DataSource(self._ctx, parent)
         else:
             datasource =  self._datasource
         return datasource
@@ -267,7 +265,7 @@ class Connection(unohelper.Base,
         return self._connection.isClosed()
     def getMetaData(self):
         metadata = self._connection.getMetaData()
-        return DatabaseMetaData(self, metadata, self._url, self._user)
+        return DatabaseMetaData(self, metadata)
     def setReadOnly(self, readonly):
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):
@@ -306,18 +304,16 @@ class DataSource(unohelper.Base,
                  XDocumentDataSource,
                  XWeak,
                  PropertySet):
-    def __init__(self, ctx, datasource, url, username):
+    def __init__(self, ctx, datasource):
         self._ctx = ctx
         self._datasource = datasource
-        self._url = url
-        self._user = username
 
     @property
     def Name(self):
         return self._datasource.Name
     @property
     def URL(self):
-        return self._url
+        return self._datasource.URL
     @URL.setter
     def URL(self, url):
         self._datasource.URL = url
@@ -332,10 +328,10 @@ class DataSource(unohelper.Base,
         return self._datasource.Settings
     @property
     def User(self):
-        return self._user
+        return self._datasource.User
     @User.setter
     def User(self, user):
-        pass
+        self._datasource.User = user
     @property
     def Password(self):
         return self._datasource.Password
@@ -394,19 +390,17 @@ class DataSource(unohelper.Base,
     def connectWithCompletion(self, handler):
         # TODO: This wrapping is only there for the following lines:
         connection = self._datasource.connectWithCompletion(handler)
-        user = connection.getParent().User
-        return Connection(self._ctx, connection, self._url, user, self)
+        return Connection(self._ctx, connection, self)
 
 # XIsolatedConnection
     def getIsolatedConnectionWithCompletion(self, handler):
         # TODO: This wrapping is only there for the following lines:
         connection = self._datasource.getIsolatedConnectionWithCompletion(handler)
-        user = connection.getParent().User
-        return Connection(self._ctx, connection, self._url, user, self)
+        return Connection(self._ctx, connection, self)
     def getIsolatedConnection(self, user, password):
         # TODO: This wrapping is only there for the following lines:
         connection = self._datasource.getIsolatedConnection(user, password)
-        return Connection(self._ctx, connection, self._url, user, self)
+        return Connection(self._ctx, connection, self)
 
 # XFlushable
     def flush(self):
@@ -424,7 +418,7 @@ class DataSource(unohelper.Base,
     def getConnection(self, user, password):
         # TODO: This wrapping is only there for the following lines:
         connection = self._datasource.getConnection(user, password)
-        return Connection(self._ctx, connection, self._url, user, self)
+        return Connection(self._ctx, connection, self)
     def setLoginTimeout(self, seconds):
         self._datasource.setLoginTimeout(seconds)
     def getLoginTimeout(self):
