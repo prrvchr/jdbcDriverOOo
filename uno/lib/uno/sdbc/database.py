@@ -32,7 +32,6 @@ import unohelper
 
 from com.sun.star.document import XDocumentEventBroadcaster
 from com.sun.star.document import XDocumentRecovery
-from com.sun.star.document import XEventBroadcaster
 from com.sun.star.document import XEventsSupplier
 from com.sun.star.document import XStorageBasedDocument
 from com.sun.star.document import XDocumentSubStorageSupplier
@@ -71,7 +70,6 @@ class DataBase(unohelper.Base,
                XCloseable,
                XDocumentEventBroadcaster,
                XDocumentRecovery,
-               XEventBroadcaster,
                XEventsSupplier,
                XLoadable,
                XModel2,
@@ -112,6 +110,7 @@ class DataBase(unohelper.Base,
         return self.getCurrentSelection()
     @property
     def DataSource(self):
+        # TODO: This wrapping is only there for the following lines:
         return self._datasource
     @property
     def DocumentStorage(self):
@@ -182,8 +181,12 @@ class DataBase(unohelper.Base,
         self._database.removeCloseListener(listener)
 
 # XComponent <- XModel <- XModel2
+    def addEventListener(self, listener):
+        self._database.addEventListener(listener)
     def dispose(self):
         self._database.dispose()
+    def removeEventListener(self, listener):
+        self._database.removeEventListener(listener)
 
 # XDocumentEventBroadcaster
     def addDocumentEventListener(self, listener):
@@ -206,12 +209,6 @@ class DataBase(unohelper.Base,
         return self._database.getDocumentSubStorage(storage, mode)
     def getDocumentSubStoragesNames(self):
         return self._database.getDocumentSubStoragesNames()
-
-# XEventBroadcaster / XComponent
-    def addEventListener(self, listener):
-        self._database.addEventListener(listener)
-    def removeEventListener(self, listener):
-        self._database.removeEventListener(listener)
 
 # XEventsSupplier
     def getEvents(self):
