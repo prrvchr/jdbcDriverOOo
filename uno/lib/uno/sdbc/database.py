@@ -30,6 +30,9 @@
 import uno
 import unohelper
 
+from com.sun.star.beans.PropertyAttribute import BOUND
+from com.sun.star.beans.PropertyAttribute import READONLY
+
 from com.sun.star.document import XDocumentEventBroadcaster
 from com.sun.star.document import XDocumentRecovery
 from com.sun.star.document import XEventsSupplier
