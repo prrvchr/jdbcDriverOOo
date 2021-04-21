@@ -30,52 +30,51 @@
 import uno
 import unohelper
 
-from com.sun.star.lang import XServiceInfo
+from com.sun.star.beans.PropertyAttribute import BOUND
+from com.sun.star.beans.PropertyAttribute import READONLY
+from com.sun.star.beans.PropertyAttribute import TRANSIENT
+
+from com.sun.star.container import XChild
+
 from com.sun.star.lang import XComponent
 from com.sun.star.lang import XMultiServiceFactory
-
-from com.sun.star.util import XFlushable
-
-from com.sun.star.sdbc import XConnection
-from com.sun.star.sdbc import XCloseable
-from com.sun.star.sdbc import XWarningsSupplier
-
-from com.sun.star.sdbc import XIsolatedConnection
-from com.sun.star.sdbc import XDataSource
-
-from com.sun.star.sdb import XCompletedConnection
-from com.sun.star.sdb import XQueryDefinitionsSupplier
-from com.sun.star.sdb import XBookmarksSupplier
-from com.sun.star.sdb import XDocumentDataSource
-
-from com.sun.star.sdb import XCommandPreparation
-from com.sun.star.sdb import XQueriesSupplier
-from com.sun.star.sdb import XSQLQueryComposerFactory
-
-from com.sun.star.sdb.application import XTableUIProvider
-
-from com.sun.star.sdb.tools import XConnectionTools
+from com.sun.star.lang import XServiceInfo
+from com.sun.star.lang import XUnoTunnel
 
 from com.sun.star.sdb.CommandType import TABLE
 from com.sun.star.sdb.CommandType import QUERY
 from com.sun.star.sdb.CommandType import COMMAND
 
-from com.sun.star.beans.PropertyAttribute import BOUND
-from com.sun.star.beans.PropertyAttribute import READONLY
+from com.sun.star.sdb import XBookmarksSupplier
+from com.sun.star.sdb import XCommandPreparation
+from com.sun.star.sdb import XCompletedConnection
+from com.sun.star.sdb import XDocumentDataSource
+from com.sun.star.sdb import XQueriesSupplier
+from com.sun.star.sdb import XQueryDefinitionsSupplier
+from com.sun.star.sdb import XSQLQueryComposerFactory
+from com.sun.star.sdb.application import XTableUIProvider
+from com.sun.star.sdb.tools import XConnectionTools
 
 from com.sun.star.sdbc import SQLException
 
+from com.sun.star.sdbc import XConnection
+from com.sun.star.sdbc import XDataSource
+from com.sun.star.sdbc import XIsolatedConnection
+from com.sun.star.sdbc import XWarningsSupplier
+
+from com.sun.star.sdbcx import XGroupsSupplier
+from com.sun.star.sdbcx import XTablesSupplier
+from com.sun.star.sdbcx import XUsersSupplier
+from com.sun.star.sdbcx import XViewsSupplier
+
 from com.sun.star.uno import XWeak
 
-from com.sun.star.sdbcx import XTablesSupplier
-from com.sun.star.sdbcx import XViewsSupplier
-from com.sun.star.sdbcx import XUsersSupplier
-from com.sun.star.sdbcx import XGroupsSupplier
-
-from com.sun.star.container import XChild
+from com.sun.star.util import XFlushable
+from com.sun.star.util import XFlushListener
 
 from ..unolib import PropertySet
 
+from ..unotool import createService
 from ..unotool import getProperty
 
 from ..dbqueries import getSqlQuery
@@ -94,22 +93,22 @@ import traceback
 
 
 class Connection(unohelper.Base,
-                 XServiceInfo,
-                 XComponent,
-                 XWarningsSupplier,
-                 XConnection,
-                 XCloseable,
-                 XCommandPreparation,
-                 XQueriesSupplier,
-                 XSQLQueryComposerFactory,
-                 XMultiServiceFactory,
                  XChild,
-                 XTablesSupplier,
-                 XViewsSupplier,
-                 XUsersSupplier,
-                 XGroupsSupplier,
-                 XTableUIProvider,
+                 XCommandPreparation,
+                 XComponent,
+                 XConnection,
                  XConnectionTools,
+                 XGroupsSupplier,
+                 XMultiServiceFactory,
+                 XQueriesSupplier,
+                 XServiceInfo,
+                 XSQLQueryComposerFactory,
+                 XTablesSupplier,
+                 XTableUIProvider,
+                 XUnoTunnel,
+                 XUsersSupplier,
+                 XViewsSupplier,
+                 XWarningsSupplier,
                  XWeak):
     def __init__(self, ctx, connection, datasource=None):
         self._ctx = ctx
@@ -120,55 +119,29 @@ class Connection(unohelper.Base,
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
         # TODO: if self._patched: fallback to connection.prepareCall(sql)
         self._patched = True
+        print("Connection.__init__()")
+        mri = createService(self._ctx, 'mytools.Mri')
+        mri.inspect(connection)
+        mri.inspect(self)
 
-# XComponent
-    def dispose(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in self._listeners:
-            listener.disposing(event)
-        self._connection.dispose()
-    def addEventListener(self, listener):
-        self._listeners.append(listener)
-    def removeEventListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
+# XChild
+    def getParent(self):
+        # TODO: This wrapping is only there for the following lines:
+        if self._datasource is None:
+            parent = self._connection.getParent()
+            datasource = DataSource(self._ctx, parent)
+        else:
+            datasource =  self._datasource
+        return datasource
+    def setParent(self, parent):
+        self._connection.setParent(parent)
 
-# XWeak
-    def queryAdapter(self):
-        return self
-
-# XTableUIProvider
-    def getTableIcon(self, tablename, colormode):
-        return self._connection.getTableIcon(tablename, colormode)
-    def getTableEditor(self, document, tablename):
-        return self._connection.getTableEditor(document, tablename)
-
-# XConnectionTools
-    def createTableName(self):
-        return self._connection.createTableName()
-    def getObjectNames(self):
-        return self._connection.getObjectNames()
-    def getDataSourceMetaData(self):
-        return self._connection.getDataSourceMetaData()
-    def getFieldsByCommandDescriptor(self, commandtype, command, keep):
-        fields, keep = self._connection.getFieldsByCommandDescriptor(commandtype, command, keep)
-        return fields, keep
-    def getComposer(self, commandtype, command):
-        return self._connection.getComposer(commandtype, command)
-
-# XCloseable
+# XCloseable <- XConnection
     def close(self):
         print("Connection.close()********* 1")
         if not self._connection.isClosed():
             self._connection.close()
         print("Connection.close()********* 2")
-
-# XCloseBroadcaster <- XCloseable
-    def addCloseListener(self, listener):
-        self._connection.addCloseListener(listener)
-    def removeCloseListener(self, listener):
-        self._connection.removeCloseListener(listener)
 
 # XCommandPreparation
     def prepareCommand(self, command, commandtype):
@@ -187,59 +160,18 @@ class Connection(unohelper.Base,
             raise SQLException()
         return PreparedStatement(self, query, self._patched)
 
-# XQueriesSupplier
-    def getQueries(self):
-        return self._connection.getQueries()
-
-# XSQLQueryComposerFactory
-    def createQueryComposer(self):
-        return self._connection.createQueryComposer()
-
-# XMultiServiceFactory
-    def createInstance(self, service):
-        return self._connection.createInstance(service)
-    def createInstanceWithArguments(self, service, arguments):
-        return self._connection.createInstanceWithArguments(service, arguments)
-    def getAvailableServiceNames(self):
-        return self._connection.getAvailableServiceNames()
-
-# XChild
-    def getParent(self):
-        # TODO: This wrapping is only there for the following lines:
-        if self._datasource is None:
-            parent = self._connection.getParent()
-            datasource = DataSource(self._ctx, parent)
-        else:
-            datasource =  self._datasource
-        return datasource
-    def setParent(self):
-        pass
-
-# XTablesSupplier
-    def getTables(self):
-        return self._connection.getTables()
-
-# XViewsSupplier
-    def getViews(self):
-        return self._connection.getViews()
-
-# XUsersSupplier
-    def getUsers(self):
-        try:
-            return UsersSupplier(self._ctx, self._connection)
-        except Exception as e:
-            print("Connection.getUsers(): %s" % traceback.print_exc())
-
-# XGroupsSupplier
-    def getGroups(self):
-        return self._connection.getGroups()
-
-# XWarningsSupplier
-    def getWarnings(self):
-        warning = self._connection.getWarnings()
-        return warning
-    def clearWarnings(self):
-        self._connection.clearWarnings()
+# XComponent
+    def dispose(self):
+        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+        event.Source = self
+        for listener in self._listeners:
+            listener.disposing(event)
+        self._connection.dispose()
+    def addEventListener(self, listener):
+        self._listeners.append(listener)
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
 # XConnection
     def createStatement(self):
@@ -264,8 +196,10 @@ class Connection(unohelper.Base,
     def isClosed(self):
         return self._connection.isClosed()
     def getMetaData(self):
+        # TODO: This wrapping is only there for the following lines:
         metadata = self._connection.getMetaData()
-        return DatabaseMetaData(self, metadata)
+        url = self._connection.getParent().URL
+        return DatabaseMetaData(self, metadata, url)
     def setReadOnly(self, readonly):
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):
@@ -283,6 +217,35 @@ class Connection(unohelper.Base,
     def setTypeMap(self, typemap):
         self._connection.setTypeMap(typemap)
 
+# XConnectionTools
+    def createTableName(self):
+        return self._connection.createTableName()
+    def getObjectNames(self):
+        return self._connection.getObjectNames()
+    def getDataSourceMetaData(self):
+        return self._connection.getDataSourceMetaData()
+    def getFieldsByCommandDescriptor(self, commandtype, command, keep):
+        fields, keep = self._connection.getFieldsByCommandDescriptor(commandtype, command, keep)
+        return fields, keep
+    def getComposer(self, commandtype, command):
+        return self._connection.getComposer(commandtype, command)
+
+# XGroupsSupplier
+    def getGroups(self):
+        return self._connection.getGroups()
+
+# XMultiServiceFactory
+    def createInstance(self, service):
+        return self._connection.createInstance(service)
+    def createInstanceWithArguments(self, service, arguments):
+        return self._connection.createInstanceWithArguments(service, arguments)
+    def getAvailableServiceNames(self):
+        return self._connection.getAvailableServiceNames()
+
+# XQueriesSupplier
+    def getQueries(self):
+        return self._connection.getQueries()
+
 # XServiceInfo
     def supportsService(self, service):
         return self._connection.supportsService(service)
@@ -291,32 +254,73 @@ class Connection(unohelper.Base,
     def getSupportedServiceNames(self):
         return self._connection.getSupportedServiceNames()
 
+# XSQLQueryComposerFactory
+    def createQueryComposer(self):
+        return self._connection.createQueryComposer()
+
+# XTablesSupplier
+    def getTables(self):
+        return self._connection.getTables()
+
+# XTableUIProvider
+    def getTableIcon(self, tablename, colormode):
+        return self._connection.getTableIcon(tablename, colormode)
+    def getTableEditor(self, document, tablename):
+        return self._connection.getTableEditor(document, tablename)
+
+# XUnoTunnel
+    def getSomething(self, identifier):
+        return self._connection.getSomething(identifier)
+
+# XUsersSupplier
+    def getUsers(self):
+        try:
+            print("Connection.getUsers() 1")
+            return UsersSupplier(self._ctx, self._connection)
+        except Exception as e:
+            print("Connection.getUsers(): %s" % traceback.print_exc())
+
+# XViewsSupplier
+    def getViews(self):
+        return self._connection.getViews()
+
+# XWarningsSupplier
+    def getWarnings(self):
+        warning = self._connection.getWarnings()
+        return warning
+    def clearWarnings(self):
+        self._connection.clearWarnings()
+
+# XWeak
+    def queryAdapter(self):
+        return self
+
 
 class DataSource(unohelper.Base,
-                 XServiceInfo,
-                 XComponent,
-                 XCompletedConnection,
-                 XIsolatedConnection,
-                 XFlushable,
-                 XQueryDefinitionsSupplier,
-                 XDataSource,
                  XBookmarksSupplier,
+                 XCompletedConnection,
+                 XComponent,
+                 XDataSource,
                  XDocumentDataSource,
+                 XFlushable,
+                 XFlushListener,
+                 XIsolatedConnection,
+                 XQueryDefinitionsSupplier,
+                 XServiceInfo,
+                 XTablesSupplier,
                  XWeak,
                  PropertySet):
     def __init__(self, ctx, datasource):
         self._ctx = ctx
         self._datasource = datasource
 
+# XDocumentDataSource
     @property
-    def Name(self):
-        return self._datasource.Name
-    @property
-    def URL(self):
-        return self._datasource.URL
-    @URL.setter
-    def URL(self, url):
-        self._datasource.URL = url
+    def DatabaseDocument(self):
+        # TODO: This wrapping is only there for the following lines:
+        database = self._datasource.DatabaseDocument
+        return DataBase(database, self)
+
     @property
     def Info(self):
         return self._datasource.Info
@@ -324,14 +328,26 @@ class DataSource(unohelper.Base,
     def Info(self, info):
         self._datasource.Info = info
     @property
-    def Settings(self):
-        return self._datasource.Settings
+    def IsPasswordRequired(self):
+        return self._datasource.IsPasswordRequired
+    @IsPasswordRequired.setter
+    def IsPasswordRequired(self, state):
+        self._datasource.IsPasswordRequired = state
     @property
-    def User(self):
-        return self._datasource.User
-    @User.setter
-    def User(self, user):
-        self._datasource.User = user
+    def IsReadOnly(self):
+        return self._datasource.IsReadOnly
+    @property
+    def LayoutInformation(self):
+        return self._datasource.LayoutInformation
+    @LayoutInformation.setter
+    def LayoutInformation(self, layout):
+        self._datasource.LayoutInformation = layout
+    @property
+    def Name(self):
+        return self._datasource.Name
+    @property
+    def NumberFormatsSupplier(self):
+        return self._datasource.NumberFormatsSupplier
     @property
     def Password(self):
         return self._datasource.Password
@@ -339,23 +355,14 @@ class DataSource(unohelper.Base,
     def Password(self, password):
         self._datasource.Password = password
     @property
-    def IsPasswordRequired(self):
-        return self._datasource.IsPasswordRequired
-    @IsPasswordRequired.setter
-    def IsPasswordRequired(self, state):
-        self._datasource.IsPasswordRequired = state
+    def Settings(self):
+        return self._datasource.Settings
     @property
     def SuppressVersionColumns(self):
         return self._datasource.SuppressVersionColumns
     @SuppressVersionColumns.setter
     def SuppressVersionColumns(self, state):
         self._datasource.SuppressVersionColumns = state
-    @property
-    def IsReadOnly(self):
-        return self._datasource.IsReadOnly
-    @property
-    def NumberFormatsSupplier(self):
-        return self._datasource.NumberFormatsSupplier
     @property
     def TableFilter(self):
         return self._datasource.TableFilter
@@ -369,10 +376,27 @@ class DataSource(unohelper.Base,
     def TableTypeFilter(self, filter):
         self._datasource.TableTypeFilter = filter
     @property
-    def DatabaseDocument(self):
+    def URL(self):
+        return self._datasource.URL
+    @URL.setter
+    def URL(self, url):
+        self._datasource.URL = url
+    @property
+    def User(self):
+        return self._datasource.User
+    @User.setter
+    def User(self, user):
+        self._datasource.User = user
+
+# XBookmarksSupplier
+    def getBookmarks(self):
+        return self._datasource.getBookmarks()
+
+# XCompletedConnection
+    def connectWithCompletion(self, handler):
         # TODO: This wrapping is only there for the following lines:
-        database = self._datasource.DatabaseDocument
-        return DataBase(database, self)
+        connection = self._datasource.connectWithCompletion(handler)
+        return Connection(self._ctx, connection, self)
 
 # XComponent
     def dispose(self):
@@ -381,38 +405,6 @@ class DataSource(unohelper.Base,
         self._datasource.addEventListener(listener)
     def removeEventListener(self, listener):
         self._datasource.removeEventListener(listener)
-
-# XWeak
-    def queryAdapter(self):
-        return self
-
-# XCompletedConnection
-    def connectWithCompletion(self, handler):
-        # TODO: This wrapping is only there for the following lines:
-        connection = self._datasource.connectWithCompletion(handler)
-        return Connection(self._ctx, connection, self)
-
-# XIsolatedConnection
-    def getIsolatedConnectionWithCompletion(self, handler):
-        # TODO: This wrapping is only there for the following lines:
-        connection = self._datasource.getIsolatedConnectionWithCompletion(handler)
-        return Connection(self._ctx, connection, self)
-    def getIsolatedConnection(self, user, password):
-        # TODO: This wrapping is only there for the following lines:
-        connection = self._datasource.getIsolatedConnection(user, password)
-        return Connection(self._ctx, connection, self)
-
-# XFlushable
-    def flush(self):
-        self._datasource.flush()
-    def addFlushListener(self, listener):
-        self._datasource.addFlushListener(listener)
-    def removeFlushListener(self, listener):
-        self._datasource.removeFlushListener(listener)
-
-# XQueryDefinitionsSupplier
-    def getQueryDefinitions(self):
-        return self._datasource.getQueryDefinitions()
 
 # XDataSource
     def getConnection(self, user, password):
@@ -424,9 +416,31 @@ class DataSource(unohelper.Base,
     def getLoginTimeout(self):
         return self._datasource.getLoginTimeout()
 
-# XBookmarksSupplier
-    def getBookmarks(self):
-        return self._datasource.getBookmarks()
+# XFlushable
+    def flush(self):
+        self._datasource.flush()
+    def addFlushListener(self, listener):
+        self._datasource.addFlushListener(listener)
+    def removeFlushListener(self, listener):
+        self._datasource.removeFlushListener(listener)
+
+# XFlushListener
+    def flushed(self, event):
+        self._datasource.flushed(event)
+
+# XIsolatedConnection
+    def getIsolatedConnectionWithCompletion(self, handler):
+        # TODO: This wrapping is only there for the following lines:
+        connection = self._datasource.getIsolatedConnectionWithCompletion(handler)
+        return Connection(self._ctx, connection, self)
+    def getIsolatedConnection(self, user, password):
+        # TODO: This wrapping is only there for the following lines:
+        connection = self._datasource.getIsolatedConnection(user, password)
+        return Connection(self._ctx, connection, self)
+
+# XQueryDefinitionsSupplier
+    def getQueryDefinitions(self):
+        return self._datasource.getQueryDefinitions()
 
 # XServiceInfo
     def supportsService(self, service):
@@ -436,33 +450,41 @@ class DataSource(unohelper.Base,
     def getSupportedServiceNames(self):
         return self._datasource.getSupportedServiceNames()
 
+# XTablesSupplier
+    def getTables(self):
+        return self._datasource.getTables()
+
+# XWeak
+    def queryAdapter(self):
+        return self
+
 # XPropertySet
     def _getPropertySetInfo(self):
         properties = {}
-        unotype = 'string'
-        properties['Name'] = getProperty('Name', unotype, READONLY)
-        unotype = 'string'
-        properties['URL'] = getProperty('URL', unotype, BOUND)
         unotype = '[]com.sun.star.beans.PropertyValue'
         properties['Info'] = getProperty('Info', unotype, BOUND)
-        unotype = '[]com.sun.star.beans.XPropertySet'
-        properties['Settings'] = getProperty('Settings', unotype, READONLY)
-        unotype = 'string'
-        properties['User'] = getProperty('User', unotype, BOUND)
-        unotype = 'string'
-        properties['Password'] = getProperty('Password', unotype, BOUND)
         unotype = 'boolean'
         properties['IsPasswordRequired'] = getProperty('IsPasswordRequired', unotype, BOUND)
         unotype = 'boolean'
-        properties['SuppressVersionColumns'] = getProperty('SuppressVersionColumns', unotype, BOUND)
-        unotype = 'boolean'
         properties['IsReadOnly'] = getProperty('IsReadOnly', unotype, READONLY)
+        unotype = '[]com.sun.star.beans.PropertyValue'
+        properties['LayoutInformation'] = getProperty('LayoutInformation', unotype, BOUND)
+        unotype = 'string'
+        properties['Name'] = getProperty('Name', unotype, READONLY)
         unotype = 'com.sun.star.util.XNumberFormatsSupplier'
-        properties['NumberFormatsSupplier'] = getProperty('NumberFormatsSupplier', unotype, READONLY)
+        properties['NumberFormatsSupplier'] = getProperty('NumberFormatsSupplier', unotype, TRANSIENT+READONLY)
+        unotype = 'string'
+        properties['Password'] = getProperty('Password', unotype, TRANSIENT)
+        unotype = '[]com.sun.star.beans.XPropertySet'
+        properties['Settings'] = getProperty('Settings', unotype, BOUND+READONLY)
+        unotype = 'boolean'
+        properties['SuppressVersionColumns'] = getProperty('SuppressVersionColumns', unotype, BOUND)
         unotype = '[]string'
         properties['TableFilter'] = getProperty('TableFilter', unotype, BOUND)
         unotype = '[]string'
         properties['TableTypeFilter'] = getProperty('TableTypeFilter', unotype, BOUND)
-        unotype = 'com.sun.star.sdb.XOfficeDatabaseDocument'
-        properties['DatabaseDocument'] = getProperty('DatabaseDocument', unotype, READONLY)
+        unotype = 'string'
+        properties['URL'] = getProperty('URL', unotype, BOUND)
+        unotype = 'string'
+        properties['User'] = getProperty('User', unotype, BOUND)
         return properties

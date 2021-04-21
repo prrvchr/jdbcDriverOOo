@@ -292,13 +292,11 @@ def getPropertyValueSet(kwargs):
         properties.append(getPropertyValue(key, value))
     return tuple(properties)
 
-def getPropertyValue(name, value, state=None, handle=-1):
+def getPropertyValue(name, value, state=0, handle=-1):
     property = uno.createUnoStruct('com.sun.star.beans.PropertyValue')
     property.Name = name
     property.Handle = handle
     property.Value = value
-    if state is None:
-        state = uno.Enum('com.sun.star.beans.PropertyState', 'DIRECT_VALUE')
     property.State = state
     return property
 

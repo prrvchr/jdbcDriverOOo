@@ -87,91 +87,16 @@ class DataBase(unohelper.Base,
                XTitleChangeBroadcaster,
                XUIConfigurationManagerSupplier,
                XUntitledNumbers,
-               XWeak,
-               PropertySet):
+               XWeak):
     def __init__(self, database, datasource):
         self._database = database
         self._datasource = datasource
 
-    @property
-    def Args(self):
-        return self.getArgs()
-    @Args.setter
-    def Args(self, arguments):
-        self.setArgs(arguments)
-    @property
-    def AvailableViewControllerNames(self):
-        return self.getAvailableViewControllerNames()
-    @property
-    def CurrentController(self):
-        return self.getCurrentController()
-    @CurrentController.setter
-    def CurrentController(self, controller):
-        self.setCurrentController(controller)
-    @property
-    def CurrentSelection(self):
-        return self.getCurrentSelection()
+# XOfficeDatabaseDocument
     @property
     def DataSource(self):
         # TODO: This wrapping is only there for the following lines:
         return self._datasource
-    @property
-    def DocumentStorage(self):
-        return self.getDocumentStorage()
-    @property
-    def DocumentSubStoragesNames(self):
-        return self.getDocumentSubStoragesNames()
-    @property
-    def Events(self):
-        return self.getEvents()
-    @property
-    def FormDocuments(self):
-        return self.getFormDocuments()
-    @property
-    def ImplementationId(self):
-        return self.getImplementationId()
-    @property
-    def ImplementationName(self):
-        return self.getImplementationName()
-    @property
-    def Location(self):
-        return self.getLocation()
-    @property
-    def Modified(self):
-        return self.getModified()
-    @Modified.setter
-    def Modified(self, modified):
-        self.setModified(modified)
-    @property
-    def Printer(self):
-        return self.getPrinter()
-    @Printer.setter
-    def Printer(self, printer):
-        self.setPrinter(printer)
-    @property
-    def ReportDocuments(self):
-        return self.getReportDocuments()
-    @property
-    def ScriptProvider(self):
-        return self.getScriptProvider()
-    @property
-    def SupportedServiceNames(self):
-        return self.getSupportedServiceNames()
-    @property
-    def Title(self):
-        return self.getTitle()
-    @Title.setter
-    def Title(self, title):
-        self.setTitle(title)
-    @property
-    def UIConfigurationManager(self):
-        return self.getUIConfigurationManager()
-    @property
-    def URL(self):
-        return self.getURL()
-    @property
-    def UntitledPrefix(self):
-        return self.getUntitledPrefix()
 
 # XCloseable
     def close(self, ownership):
@@ -356,49 +281,3 @@ class DataBase(unohelper.Base,
 # XWeak
     def queryAdapter(self):
         return self
-
-    def _getPropertySetInfo(self):
-        properties = {}
-        unotype = '[]com.sun.star.beans.PropertyValue'
-        properties['Args'] = getProperty('Args', unotype, BOUND)
-        unotype = '[]string'
-        properties['AvailableViewControllerNames'] = getProperty('AvailableViewControllerNames', unotype, READONLY)
-        unotype = 'com.sun.star.frame.XController'
-        properties['CurrentController'] = getProperty('CurrentController', unotype, BOUND)
-        unotype = 'com.sun.star.uno.XInterface'
-        properties['CurrentSelection'] = getProperty('CurrentSelection', unotype, READONLY)
-        unotype = 'com.sun.star.sdbc.XDataSource'
-        properties['DataSource'] = getProperty('DataSource', unotype, READONLY)
-        unotype = 'com.sun.star.embed.XStorage'
-        properties['DocumentStorage'] = getProperty('DocumentStorage', unotype, READONLY)
-        unotype = '[]string'
-        properties['DocumentSubStoragesNames'] = getProperty('DocumentSubStoragesNames', unotype, READONLY)
-        unotype = 'com.sun.star.container.XNameReplace'
-        properties['Events'] = getProperty('Events', unotype, READONLY)
-        unotype = 'com.sun.star.container.XNameAccess'
-        properties['FormDocuments'] = getProperty('FormDocuments', unotype, READONLY)
-        unotype = '[]byte'
-        properties['ImplementationId'] = getProperty('ImplementationId', unotype, READONLY)
-        unotype = 'string'
-        properties['ImplementationName'] = getProperty('ImplementationName', unotype, READONLY)
-        unotype = 'string'
-        properties['Location'] = getProperty('Location', unotype, READONLY)
-        unotype = 'boolean'
-        properties['Modified'] = getProperty('Modified', unotype, BOUND)
-        unotype = '[]com.sun.star.beans.PropertyValue'
-        properties['Printer'] = getProperty('Printer', unotype, BOUND)
-        unotype = 'com.sun.star.container.XNameAccess'
-        properties['ReportDocuments'] = getProperty('ReportDocuments', unotype, READONLY)
-        unotype = 'com.sun.star.script.provider.XScriptProvider'
-        properties['ScriptProvider'] = getProperty('ScriptProvider', unotype, READONLY)
-        unotype = '[]string'
-        properties['SupportedServiceNames'] = getProperty('SupportedServiceNames', unotype, READONLY)
-        unotype = 'string'
-        properties['Title'] = getProperty('Title', unotype, BOUND)
-        unotype = 'com.sun.star.ui.XUIConfigurationManager'
-        properties['UIConfigurationManager'] = getProperty('UIConfigurationManager', unotype, READONLY)
-        unotype = 'string'
-        properties['URL'] = getProperty('URL', unotype, READONLY)
-        unotype = 'string'
-        properties['UntitledPrefix'] = getProperty('UntitledPrefix', unotype, READONLY)
-        return properties

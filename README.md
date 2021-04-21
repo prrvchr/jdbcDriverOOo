@@ -113,6 +113,25 @@ I will try to solve it ;-)
 
 ## Historical:
 
+### Introduction:
+
+This driver was written to work around certain problems inherent in the UNO implementation of the JDBC driver built into LibreOffice / OpenOffice, namely: 
+
+- The inability to provide the path to the Java driver archive (hsqldb.jar) when loading the JDBC driver.
+
+The only possible workaround for this problem is to put the driver's Java archive (hsqldb.jar) in the Java ClassPath, but the problem is that if the driver version is other than version 1.8, then Base can no longer open odb files: HsqlDB embedded database functionality is lost. This amounts to saying that you cannot use an HsqlDB driver other than version 1.8, which is now over 10 years old...
+
+In order to take advantage of the latest features offered by HsqlDB, it was necessary to write a new driver.
+
+This new driver is just a wrapper in Python around the UNO services provided by the faulty LibreOffice / OpenOffice JDBC driver.
+It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:
+
+- The management of rights and users in Base.
+- The use of the SQL Array type in the queries.
+- Everything we are ready to implement.
+
+For now, only user management (read only) is available.
+
 ### What has been done for version 0.0.1:
 
 - The writing of this driver was facilitated by a [discussion with Villeroy](https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912), on the OpenOffice forum, which I would like to thank, because knowledge is only worth if it is shared...
@@ -149,7 +168,17 @@ I will try to solve it ;-)
 
 ### What has been done for version 0.0.4:
 
-- Modification of [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) in order to make possible the use of the Uno service: `com.sun.star.sdb.RowSet`.
+- Modification of [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) in order:
+    - To make possible the use of the Uno service: `com.sun.star.sdb.RowSet`.
+    - That the `com.sun.star.sdb.DataSource` service returns a URL using the `sdbc` protocol required for proper functioning.
+
+- Modification of the wrapper of the service [com.sun.star.sdb.DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py), in order to make the SQL queries contained in an odb file accessible from the connection.
+
+- Writing the wrapper of the service [com.sun.star.sdb.DatabaseDocument](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py), so that its `DataSource` property returns the modified version of the `com.sun.star.sdb.DataSource` service.
+
+- Modification of the wrapper of the [com.sun.star.sdb.Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service, in order:
+    - To take into account the changes of the modified services: `com.sun.star.sdb.DataSource` and `com.sun.star. sdb.DatabaseDocument`
+    - To provide the properties present in the `com.sun.star.sdb.Connection` service of JDBC (thanks to hanya for [MRI](https://github.com/hanya/MRI) which was of great help to me...)
 
 - Many other fix...
 

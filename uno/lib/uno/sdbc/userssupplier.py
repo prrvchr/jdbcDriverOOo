@@ -33,16 +33,16 @@ import unohelper
 from com.sun.star.beans.PropertyAttribute import BOUND
 from com.sun.star.beans.PropertyAttribute import READONLY
 
-from com.sun.star.uno import XWeak
-from com.sun.star.uno import XAdapter
+from com.sun.star.container import XElementAccess
+from com.sun.star.container import XEnumerationAccess
+from com.sun.star.container import XIndexAccess
+from com.sun.star.container import XNameAccess
 
 from com.sun.star.sdbcx import XGroupsSupplier
 from com.sun.star.sdbcx import XUser
 
-from com.sun.star.container import XNameAccess
-from com.sun.star.container import XIndexAccess
-from com.sun.star.container import XEnumerationAccess
-from com.sun.star.container import XElementAccess
+from com.sun.star.uno import XAdapter
+from com.sun.star.uno import XWeak
 
 from ..unolib import PropertySet
 
@@ -73,7 +73,7 @@ class UsersSupplier(unohelper.Base,
         #privileges = getKeyMapSequenceFromResult(result)
         self._elements = {user: DataBaseUser(ctx, connection, user) for user in users}
         self._typename = 'string'
-        print("DataContainer.__init__()")
+        print("DataContainer.__init__() 2")
 
     # XWeak
     def queryAdapter(self):

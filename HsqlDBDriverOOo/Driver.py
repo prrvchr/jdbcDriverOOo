@@ -76,7 +76,6 @@ class Driver(unohelper.Base,
         self._supportedProtocol = 'sdbc:hsqldb:'
         self._subProtocolIndex = 2
         self._supportedSubProtocols = ('hsql', 'hsqls', 'http', 'https', 'mem', 'file', 'res')
-        self._defaultUser = 'SA'
         msg = getMessage(self._ctx, g_message, 101)
         logMessage(self._ctx, INFO, msg, 'Driver', '__init__()')
 
@@ -108,7 +107,7 @@ class Driver(unohelper.Base,
             user, password = self._getUserCredential(infos)
             connection = self._getConnection(datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
-            username = user if user != '' else self._defaultUser
+            username = connection.getMetaData().getUserName()
             msg = getMessage(self._ctx, g_message, 117, (version, username))
             logMessage(self._ctx, INFO, msg, 'Driver', 'connect()')
             return connection
