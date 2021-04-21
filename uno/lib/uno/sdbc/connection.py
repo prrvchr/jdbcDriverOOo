@@ -74,7 +74,6 @@ from com.sun.star.util import XFlushListener
 
 from ..unolib import PropertySet
 
-from ..unotool import createService
 from ..unotool import getProperty
 
 from ..dbqueries import getSqlQuery
@@ -119,10 +118,6 @@ class Connection(unohelper.Base,
         # TODO: it trow a: java.lang.IncompatibleClassChangeError
         # TODO: if self._patched: fallback to connection.prepareCall(sql)
         self._patched = True
-        print("Connection.__init__()")
-        mri = createService(self._ctx, 'mytools.Mri')
-        mri.inspect(connection)
-        mri.inspect(self)
 
 # XChild
     def getParent(self):
