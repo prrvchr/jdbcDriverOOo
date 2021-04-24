@@ -123,7 +123,8 @@ Le seul contournement possible face à ce problème est de mettre l'archive Java
 
 Afin de profiter des dernières fonctionnalités offertes par HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
-Ce nouveau pilote n'est qu'une surcouche ou emballage (wrapper) en Python autour des services UNO fournis par le pilote LibreOffice / OpenOffice JDBC défectueux.
+Ce nouveau pilote n'est qu'une surcouche ou emballage (wrapper) en Python autour des services UNO fournis par le pilote LibreOffice / OpenOffice JDBC défectueux: il se charge lorsqu'on appelle le protocole `sdbc:hsqldb:*` mais utilise le protocole `jdbc:hsqldb:*` en interne pour se connecter.
+
 Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice / OpenOffice ne fournit pas, à savoir:
 
 - La gestion des droits et des utilisateurs dans Base.

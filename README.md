@@ -123,7 +123,8 @@ The only possible workaround for this problem is to put the driver's Java archiv
 
 In order to take advantage of the latest features offered by HsqlDB, it was necessary to write a new driver.
 
-This new driver is just a wrapper in Python around the UNO services provided by the faulty LibreOffice / OpenOffice JDBC driver.
+This new driver is just a wrapper in Python around the UNO services provided by the faulty LibreOffice / OpenOffice JDBC driver: it loads when calling the `sdbc:hsqldb:*` protocol but uses the `jdbc:hsqldb:*` protocol internally to connect.
+
 It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:
 
 - The management of rights and users in Base.
