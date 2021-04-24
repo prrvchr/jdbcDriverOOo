@@ -178,9 +178,9 @@ For now, only user management (read only) is available.
 
 - Writing the [ResultSet](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/resultset.py) wrapper so that its `getStatement` method returns the modified version of the `Statement` or `PreparedStatement` or `CallableStatement` service, respectively.
 
-- Modification of the wrapper of the [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service, in order:
-    - To take into account the changes of the modified DataSource and DataBase services.
-    - To make possible the use of the: `com.sun.star.sdb.RowSet` service, see using `self._patched` as a workaround.
+- Modifying the [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) wrapper, in order:
+    - To take into account the changes of the modified [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) and [DataBase](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py) services.
+    - To make possible the use of the: `com.sun.star.sdb.RowSet` service, see using `self._patched` property as a workaround.
 
 - Many other fix...
 

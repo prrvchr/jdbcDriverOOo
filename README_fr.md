@@ -179,8 +179,8 @@ Pour l'instant, seule la gestion des utilisateurs (lecture seule) est disponible
 - Ecriture de la surcouche [ResultSet](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/resultset.py) afin que sa methode `getStatement` renvoie la version modifiée du service `Statement` ou `PreparedStatement` ou `CallableStatement`, respectivement.
 
 - Modification de la surcouche [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin:
-    - De prendre en compte les changement des services modifiés DataSource et DataBase.
-    - De rendre possible l'utilisation du service: `com.sun.star.sdb.RowSet`, voir l'utilisation de `self._patched` comme solution de contournement.
+    - De prendre en compte les changement des services modifiés [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) et [DataBase](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py).
+    - De rendre possible l'utilisation du service: `com.sun.star.sdb.RowSet`, voir l'utilisation de la propriété `self._patched` comme solution de contournement.
 
 - Beaucoup d'autres correctifs...
 
