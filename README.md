@@ -168,17 +168,19 @@ For now, only user management (read only) is available.
 
 ### What has been done for version 0.0.4:
 
-- Modification of [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) in order:
-    - To make possible the use of the Uno service: `com.sun.star.sdb.RowSet`.
-    - That the `com.sun.star.sdb.DataSource` service returns a URL using the `sdbc` protocol required for proper functioning.
+- Modification of [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) so that the `com.sun.star.sdb.DataSource` service returns a URL using the `sdbc` protocol required for proper functioning.
 
-- Modification of the wrapper of the service [com.sun.star.sdb.DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py), in order to make the SQL queries contained in an odb file accessible from the connection.
+- Modification of the wrapper of the [com.sun.star.sdb.DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service in order to make the SQL queries contained in an odb file accessible from the connection: its methods returning the connection (`getConnection`, `getIsolatedConnection`, etc) now return the modified version of the `com.sun.star.sdb.Connection` service.
 
-- Writing the wrapper of the service [com.sun.star.sdb.DatabaseDocument](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py), so that its `DataSource` property returns the modified version of the `com.sun.star.sdb.DataSource` service.
+- Writing the wrapper of the [com.sun.star.sdb.DatabaseDocument](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py) service so that its `DataSource` property returns the modified version of the `com.sun.star.sdb.DataSource` service.
+
+- Modification of the wrapper of the [com.sun.star.sdb.Statement](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/statement.py) service in order to provide the properties and methods present in the `com.sun.star.sdb.Statement` service of JDBC (thanks to hanya for [MRI](https://github.com/hanya/MRI) which was of great help to me...)
+
+- Writing the wrapper of the [com.sun.star.sdb.ResultSet](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/resultset.py) service so that its `getStatement` method returns the modified version of the `com.sun.star.sdb.Statement` service.
 
 - Modification of the wrapper of the [com.sun.star.sdb.Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service, in order:
-    - To take into account the changes of the modified services: `com.sun.star.sdb.DataSource` and `com.sun.star. sdb.DatabaseDocument`
-    - To provide the properties present in the `com.sun.star.sdb.Connection` service of JDBC (thanks to hanya for [MRI](https://github.com/hanya/MRI) which was of great help to me...)
+    - To take into account the changes of the modified services: `com.sun.star.sdb.DataSource` and `com.sun.star.sdb.DatabaseDocument`
+    - To make possible the use of the Uno service: `com.sun.star.sdb.RowSet`, see using `self._patched` as a workaround.
 
 - Many other fix...
 

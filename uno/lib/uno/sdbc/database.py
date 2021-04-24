@@ -30,9 +30,6 @@
 import uno
 import unohelper
 
-from com.sun.star.beans.PropertyAttribute import BOUND
-from com.sun.star.beans.PropertyAttribute import READONLY
-
 from com.sun.star.document import XDocumentEventBroadcaster
 from com.sun.star.document import XDocumentRecovery
 from com.sun.star.document import XEventsSupplier
@@ -62,10 +59,6 @@ from com.sun.star.util import XCloseable
 
 from com.sun.star.view import XPrintable
 
-from ..unolib import PropertySet
-
-from ..unotool import getProperty
-
 import traceback
 
 
@@ -91,12 +84,6 @@ class DataBase(unohelper.Base,
     def __init__(self, database, datasource):
         self._database = database
         self._datasource = datasource
-
-# XOfficeDatabaseDocument
-    @property
-    def DataSource(self):
-        # TODO: This wrapping is only there for the following lines:
-        return self._datasource
 
 # XCloseable
     def close(self, ownership):
@@ -199,6 +186,12 @@ class DataBase(unohelper.Base,
         self._database.addModifyListener(listener)
     def removeModifyListener(self, listener):
         self._database.removeModifyListener(listener)
+
+# XOfficeDatabaseDocument
+    @property
+    def DataSource(self):
+        # TODO: This wrapping is only there for the following lines:
+        return self._datasource
 
 # XPrintable
     def getPrinter(self):

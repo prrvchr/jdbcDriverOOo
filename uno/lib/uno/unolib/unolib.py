@@ -40,8 +40,11 @@ from com.sun.star.lang import XInitialization
 
 class PropertySetInfo(unohelper.Base,
                       XPropertySetInfo):
-    def __init__(self, properties={}):
-        self.properties = properties
+    def __init__(self, properties=None):
+        if properties is None:
+            self.properties = {}
+        else:
+            self.properties = properties
 
     # XPropertySetInfo
     def getProperties(self):
@@ -57,7 +60,7 @@ class PropertySetInfo(unohelper.Base,
 
 class PropertySet(XPropertySet):
     def _getPropertySetInfo(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     # XPropertySet
     def getPropertySetInfo(self):

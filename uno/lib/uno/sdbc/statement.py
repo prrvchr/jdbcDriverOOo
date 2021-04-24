@@ -30,72 +30,46 @@
 import uno
 import unohelper
 
-from com.sun.star.uno import XWeak
+from com.sun.star.beans import XPropertySet
 
-from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XComponent
+from com.sun.star.lang import XServiceInfo
 
-from com.sun.star.util import XCancellable
-
-from com.sun.star.sdbc import XCloseable
-from com.sun.star.sdbc import XWarningsSupplier
-from com.sun.star.sdbc import XStatement
 from com.sun.star.sdbc import XBatchExecution
-from com.sun.star.sdbc import XPreparedBatchExecution
+from com.sun.star.sdbc import XCloseable
 from com.sun.star.sdbc import XMultipleResults
+from com.sun.star.sdbc import XOutParameters
+from com.sun.star.sdbc import XParameters
+from com.sun.star.sdbc import XPreparedBatchExecution
 from com.sun.star.sdbc import XPreparedStatement
 from com.sun.star.sdbc import XResultSetMetaDataSupplier
-from com.sun.star.sdbc import XParameters
 from com.sun.star.sdbc import XRow
-from com.sun.star.sdbc import XOutParameters
-from com.sun.star.sdbc import XGeneratedResultSet
-from com.sun.star.sdbc.ResultSetType import SCROLL_INSENSITIVE
+from com.sun.star.sdbc import XStatement
+from com.sun.star.sdbc import XWarningsSupplier
 
 from com.sun.star.sdbcx import XColumnsSupplier
 
-from com.sun.star.beans.PropertyAttribute import BOUND
-from com.sun.star.beans.PropertyAttribute import READONLY
+from com.sun.star.uno import XWeak
 
-from ..unolib import PropertySet
+from com.sun.star.util import XCancellable
 
-from ..unotool import getProperty
-
-from .resultsetmetadata import ResultSetMetaData
+from .resultset import ResultSet
 
 import traceback
 
 
 class BaseStatement(unohelper.Base,
-                    XServiceInfo,
-                    XComponent,
-                    XCloseable,
-                    XWarningsSupplier,
-                    XMultipleResults,
                     XCancellable,
-                    XGeneratedResultSet,
-                    XWeak,
-                    PropertySet):
-
-    @property
-    def QueryTimeOut(self):
-        return 0
-    @QueryTimeOut.setter
-    def QueryTimeOut(self, timeout):
-        pass
-
-    @property
-    def MaxFieldSize(self):
-        return self._statement.MaxFieldSize
-    @MaxFieldSize.setter
-    def MaxFieldSize(self, size):
-        self._statement.MaxFieldSize = size
-
-    @property
-    def MaxRows(self):
-        return self._statement.MaxRows
-    @MaxRows.setter
-    def MaxRows(self, row):
-        self._statement.MaxRows = row
+                    XCloseable,
+                    XComponent,
+                    XMultipleResults,
+                    XPropertySet,
+                    XServiceInfo,
+                    XWarningsSupplier,
+                    XWeak):
+    def __init__(self, connection, statement):
+        self._connection = connection
+        self._statement = statement
 
     @property
     def CursorName(self):
@@ -103,94 +77,102 @@ class BaseStatement(unohelper.Base,
     @CursorName.setter
     def CursorName(self, name):
         pass
-
     @property
-    def ResultSetConcurrency(self):
-        return self._statement.ResultSetConcurrency
-    @ResultSetConcurrency.setter
-    def ResultSetConcurrency(self, constant):
-        self._statement.ResultSetConcurrency = constant
-
-    @property
-    def ResultSetType(self):
-        return self._statement.ResultSetType
-    @ResultSetType.setter
-    def ResultSetType(self, constant):
-        self._statement.ResultSetType = constant
-
+    def EscapeProcessing(self):
+        return self._statement.EscapeProcessing
+    @EscapeProcessing.setter
+    def EscapeProcessing(self, state):
+        self._statement.EscapeProcessing = state
     @property
     def FetchDirection(self):
         return self._statement.FetchDirection
     @FetchDirection.setter
     def FetchDirection(self, row):
         self._statement.FetchDirection = row
-
     @property
     def FetchSize(self):
         return self._statement.FetchSize
     @FetchSize.setter
     def FetchSize(self, size):
         self._statement.FetchSize = size
-
+    @property
+    def MaxFieldSize(self):
+        return self._statement.MaxFieldSize
+    @MaxFieldSize.setter
+    def MaxFieldSize(self, size):
+        self._statement.MaxFieldSize = size
+    @property
+    def MaxRows(self):
+        return self._statement.MaxRows
+    @MaxRows.setter
+    def MaxRows(self, row):
+        self._statement.MaxRows = row
+    @property
+    def QueryTimeOut(self):
+        return 0
+    @QueryTimeOut.setter
+    def QueryTimeOut(self, timeout):
+        pass
+    @property
+    def ResultSetConcurrency(self):
+        return self._statement.ResultSetConcurrency
+    @ResultSetConcurrency.setter
+    def ResultSetConcurrency(self, constant):
+        self._statement.ResultSetConcurrency = constant
+    @property
+    def ResultSetType(self):
+        return self._statement.ResultSetType
+    @ResultSetType.setter
+    def ResultSetType(self, constant):
+        self._statement.ResultSetType = constant
     @property
     def UseBookmarks(self):
-        use = self._statement.UseBookmarks
-        print("BaseStatement.UseBookmarks(): 1 %s" % use)
-        return use
+        return self._statement.UseBookmarks
+    @UseBookmarks.setter
+    def UseBookmarks(self, state):
+        self._statement.UseBookmarks = state
 
-    # XComponent
-    def dispose(self):
-        print("BaseStatement.dispose()")
-        self._statement.dispose()
-    def addEventListener(self, listener):
-        print("BaseStatement.addEventListener()")
-        self._statement.addEventListener(listener)
-    def removeEventListener(self, listener):
-        print("BaseStatement.removeEventListener()")
-        self._statement.removeEventListener(listener)
-
-    # XWeak
-    def queryAdapter(self):
-        print("BaseStatement.queryAdapter()")
-        return self._statement.queryAdapter()
-
-    # XCloseable
-    def close(self):
-        print("BaseStatement.close()")
-        self._statement.close()
-
-    # XCancellable
+# XCancellable
     def cancel(self):
-        print("BaseStatement.cancel()")
         self._statement.cancel()
 
-    # XWarningsSupplier
-    def getWarnings(self):
-        print("BaseStatement.getWarnings() 1")
-        warning = self._statement.getWarnings()
-        print("BaseStatement.getWarnings() 2 %s" % warning)
-        return warning
-    def clearWarnings(self):
-        print("BaseStatement.clearWarnings()")
-        self._statement.clearWarnings()
+# XCloseable
+    def close(self):
+        self._statement.close()
 
-    # XMultipleResults
+# XComponent
+    def dispose(self):
+        self._statement.dispose()
+    def addEventListener(self, listener):
+        self._statement.addEventListener(listener)
+    def removeEventListener(self, listener):
+        self._statement.removeEventListener(listener)
+
+# XMultipleResults
     def getResultSet(self):
-        print("BaseStatement.getResultSet()")
         return self._statement.getResultSet()
     def getUpdateCount(self):
-        print("BaseStatement.getUpdateCount()")
         return self._statement.getUpdateCount()
     def getMoreResults(self):
-        print("BaseStatement.getMoreResults()")
         return self._statement.getMoreResults()
 
-    # XGeneratedResultSet
-    def getGeneratedValues(self):
-        print("BaseStatement.getGeneratedValues()")
-        return self._statement.getGeneratedValues()
+# XPropertySet
+    def getPropertySetInfo(self):
+        return self._statement.getPropertySetInfo()
+    def setPropertyValue(self, name, value):
+        self._statement.setPropertyValue(name, value)
+    def getPropertyValue(self, name):
+        return self._statement.getPropertyValue(name)
+    def addPropertyChangeListener(self, name, listener):
+        self._statement.addPropertyChangeListener(name, value)
+    def removePropertyChangeListener(self, name, listener):
+        self._statement.removePropertyChangeListener(name, listener)
+    def addVetoableChangeListener(self, name, listener):
+        self._statement.addVetoableChangeListener(name, value)
+    def removeVetoableChangeListener(self, name, listener):
+        self._statement.removeVetoableChangeListener(name, listener)
 
-    # XServiceInfo
+# XServiceInfo
     def supportsService(self, service):
         return self._statement.supportsService(service)
     def getImplementationName(self):
@@ -198,39 +180,22 @@ class BaseStatement(unohelper.Base,
     def getSupportedServiceNames(self):
         return self._statement.getSupportedServiceNames()
 
-    # XPropertySet
-    def _getPropertySetInfo(self):
-        properties = {}
-        properties['QueryTimeOut'] = getProperty('QueryTimeOut', 'long', BOUND)
-        properties['MaxFieldSize'] = getProperty('MaxFieldSize', 'long', BOUND)
-        properties['MaxRows'] = getProperty('MaxRows', 'long', BOUND)
-        properties['CursorName'] = getProperty('CursorName', 'string', BOUND)
-        properties['ResultSetConcurrency'] = getProperty('ResultSetConcurrency', 'long', BOUND)
-        properties['ResultSetType'] = getProperty('ResultSetType', 'long', BOUND)
-        properties['FetchDirection'] = getProperty('FetchDirection', 'long', BOUND)
-        properties['FetchSize'] = getProperty('FetchSize', 'long', BOUND)
-        properties['EscapeProcessing'] = getProperty('EscapeProcessing', 'boolean', BOUND)
-        properties['UseBookmarks'] = getProperty('UseBookmarks', 'boolean', BOUND + READONLY)
-        return properties
+# XWarningsSupplier
+    def getWarnings(self):
+        return self._statement.getWarnings()
+    def clearWarnings(self):
+        self._statement.clearWarnings()
+
+# XWeak
+    def queryAdapter(self):
+        return self
 
 
 class Statement(BaseStatement,
-                XStatement,
-                XBatchExecution):
-    def __init__(self, connection):
-        self._connection = connection
-        self._statement = connection._connection.createStatement()
-        self._statement.ResultSetType = SCROLL_INSENSITIVE
-        print("Statement.__init__()")
+                XBatchExecution,
+                XStatement):
 
-    @property
-    def EscapeProcessing(self):
-        return self._statement.EscapeProcessing
-    @EscapeProcessing.setter
-    def EscapeProcessing(self, state):
-        self._statement.EscapeProcessing = state
-
-   # XBatchExecution
+# XBatchExecution
     def addBatch(self, sql):
         self._statement.addBatch(sql)
     def clearBatch(self):
@@ -238,101 +203,49 @@ class Statement(BaseStatement,
     def executeBatch(self):
         return self._statement.executeBatch()
 
-    # XStatement
+# XStatement
     def executeQuery(self, sql):
-        print("Statement.executeQuery(): %s" % sql)
         result = self._statement.executeQuery(sql)
-        #result = ResultSet(self, sql)
-        return result
+        return ResultSet(self, result)
     def executeUpdate(self, sql):
-        print("Statement.executeUpdate(): %s" % sql)
         return self._statement.executeUpdate(sql)
     def execute(self, sql):
-        print("Statement.execute(): %s" % sql)
         return self._statement.execute(sql)
     def getConnection(self):
-        print("Connection.Statement.getConnection()")
         return self._connection
 
 
 class PreparedStatement(BaseStatement,
-                        XPreparedStatement,
-                        XResultSetMetaDataSupplier,
-                        XParameters,
                         XColumnsSupplier,
-                        XPreparedBatchExecution):
-    def __init__(self, connection, sql, patched=False):
-        # TODO: sometime we cannot use: connection.prepareStatement(sql)
-        # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        # TODO: if patched: fallback to connection.prepareCall(sql)
-        self._connection = connection
-        if patched:
-            self._statement = connection._connection.prepareCall(sql)
-        else:
-            self._statement = connection._connection.prepareStatement(sql)
-        self._statement.ResultSetType = SCROLL_INSENSITIVE
+                        XParameters,
+                        XPreparedBatchExecution,
+                        XPreparedStatement,
+                        XResultSetMetaDataSupplier):
 
-   # XPreparedBatchExecution
-    def addBatch(self):
-        self._statement.addBatch()
-    def clearBatch(self):
-        self._statement.clearBatch()
-    def executeBatch(self):
-        return self._statement.executeBatch()
-
-    # XColumnsSupplier
+# XColumnsSupplier
     def getColumns(self):
-        print("Connection.PreparedStatement.getColumns()")
         return self._statement.getColumns()
 
-    # XPreparedStatement
-    def executeQuery(self):
-        print("Connection.PreparedStatement.executeQuery()")
-        return self._statement.executeQuery()
-    def executeUpdate(self):
-        print("Connection.PreparedStatement.executeUpdate()")
-        return self._statement.executeUpdate()
-    def execute(self):
-        print("Connection.PreparedStatement.execute()")
-        return self._statement.execute()
-    def getConnection(self):
-        print("Connection.PreparedStatement.getConnection()")
-        return self._connection
-
-    # XResultSetMetaDataSupplier
-    def getMetaData(self):
-        print("Connection.PreparedStatement.getMetaData()")
-        metadata = ResultSetMetaData(self._statement.getMetaData())
-        return metadata
-
-    # XParameters
+# XParameters
     def setNull(self, index, sqltype):
-        print("PreparedStatement.setNull()")
         self._statement.setNull(index, sqltype)
     def setObjectNull(self, index, sqltype, typename):
         self._statement.setObjectNull(index, sqltype, typename)
     def setBoolean(self, index, value):
-        print("PreparedStatement.setBoolean()1 %s - %s" % (index, value))
         self._statement.setBoolean(index, value)
     def setByte(self, index, value):
         self._statement.setByte(index, value)
     def setShort(self, index, value):
-        print("PreparedStatement.setShort()")
         self._statement.setShort(index, value)
     def setInt(self, index, value):
-        print("PreparedStatement.setInt()")
         self._statement.setInt(index, value)
     def setLong(self, index, value):
-        print("PreparedStatement.setLong()")
         self._statement.setLong(index, value)
     def setFloat(self, index, value):
-        print("PreparedStatement.setFloat()")
         self._statement.setFloat(index, value)
     def setDouble(self, index, value):
-        print("PreparedStatement.setDouble()")
         self._statement.setDouble(index, value)
     def setString(self, index, value):
-        print("PreparedStatement.setString()1 %s - %s" % (index, value))
         self._statement.setString(index, value)
     def setBytes(self, index, value):
         self._statement.setBytes(index, value)
@@ -347,7 +260,6 @@ class PreparedStatement(BaseStatement,
     def setCharacterStream(self, index, value, length):
         self._statement.setCharacterStream(index, value, length)
     def setObject(self, index, value):
-        print("PreparedStatement.setObject()")
         self._statement.setObject(index, value)
     def setObjectWithInfo(self, index, value, sqltype, scale):
         self._statement.setObjectWithInfo(index, value, sqltype, scale)
@@ -362,22 +274,41 @@ class PreparedStatement(BaseStatement,
     def clearParameters(self):
         self._statement.clearParameters()
 
+# XPreparedBatchExecution
+    def addBatch(self):
+        self._statement.addBatch()
+    def clearBatch(self):
+        self._statement.clearBatch()
+    def executeBatch(self):
+        return self._statement.executeBatch()
+
+# XPreparedStatement
+    def executeQuery(self):
+        result = self._statement.executeQuery()
+        return ResultSet(self, result)
+    def executeUpdate(self):
+        return self._statement.executeUpdate()
+    def execute(self):
+        return self._statement.execute()
+    def getConnection(self):
+        return self._connection
+
+# XResultSetMetaDataSupplier
+    def getMetaData(self):
+        return self._statement.getMetaData()
+
 
 class CallableStatement(PreparedStatement,
                         XOutParameters,
                         XRow):
-    def __init__(self, connection, sql):
-        self._connection = connection
-        self._statement = connection._connection.prepareCall(sql)
-        self._statement.ResultSetType = SCROLL_INSENSITIVE
 
-    # XOutParameters
+# XOutParameters
     def registerOutParameter(self, index, sqltype, typename):
         self._statement.registerOutParameter(index, sqltype, typename)
     def registerNumericOutParameter(self, index, sqltype, scale):
         self._statement.registerNumericOutParameter(index, sqltype, scale)
 
-    # XRow
+# XRow
     def wasNull(self):
         return self._statement.wasNull()
     def getString(self, index):

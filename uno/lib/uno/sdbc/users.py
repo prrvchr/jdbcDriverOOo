@@ -33,7 +33,6 @@ import unohelper
 from com.sun.star.beans.PropertyAttribute import BOUND
 from com.sun.star.beans.PropertyAttribute import READONLY
 
-from com.sun.star.container import XElementAccess
 from com.sun.star.container import XEnumerationAccess
 from com.sun.star.container import XIndexAccess
 from com.sun.star.container import XNameAccess
@@ -44,25 +43,24 @@ from com.sun.star.sdbcx import XUser
 from com.sun.star.uno import XAdapter
 from com.sun.star.uno import XWeak
 
+from ..dbqueries import getSqlQuery
+
+from ..dbtool import getKeyMapSequenceFromResult
+from ..dbtool import getSequenceFromResult
+
 from ..unolib import PropertySet
 
 from ..unotool import getProperty
 
-from ..dbtool import getSequenceFromResult
-from ..dbtool import getKeyMapSequenceFromResult
-
-from ..dbqueries import getSqlQuery
-
 import traceback
 
 
-class UsersSupplier(unohelper.Base,
-                    XWeak,
-                    XAdapter,
-                    XNameAccess,
-                    XIndexAccess,
-                    XEnumerationAccess,
-                    XElementAccess):
+class Users(unohelper.Base,
+            XAdapter,
+            XEnumerationAccess,
+            XIndexAccess,
+            XNameAccess,
+            XWeak):
     def __init__(self, ctx, connection):
         print("DataContainer.__init__() 1")
         query = getSqlQuery(ctx, 'getUsers')
@@ -71,14 +69,9 @@ class UsersSupplier(unohelper.Base,
         #query = getSqlQuery(self._ctx, 'getPrivileges')
         #result = self._connection.createStatement().executeQuery(query)
         #privileges = getKeyMapSequenceFromResult(result)
-        self._elements = {user: DataBaseUser(ctx, connection, user) for user in users}
+        self._elements = {user: User(ctx, connection, user) for user in users}
         self._typename = 'string'
         print("DataContainer.__init__() 2")
-
-    # XWeak
-    def queryAdapter(self):
-        print("DataContainer.queryAdapter()")
-        return self
 
     # XAdapter
     def queryAdapted(self):
@@ -88,6 +81,26 @@ class UsersSupplier(unohelper.Base,
         pass
     def removeReference(self, reference):
         pass
+
+    # XElementAccess <- XEnumerationAccess / XIndexAccess / XNameAccess
+    def getElementType(self):
+        print("DataContainer.getElementType()")
+        return uno.getTypeByName(self._typename)
+    def hasElements(self):
+        print("DataContainer.hasElements()")
+        return len(self._elements) != 0
+
+    # XEnumerationAccess
+    def createEnumeration(self):
+        print("DataContainer.createEnumeration()")
+
+    # XIndexAccess
+    def getCount(self):
+        print("DataContainer.getCount()")
+        return len(self._elements)
+    def getByIndex(self, index):
+        print("DataContainer.getByIndex() %s" % index)
+        return None
 
     # XNameAccess
     def getByName(self, name):
@@ -101,45 +114,25 @@ class UsersSupplier(unohelper.Base,
         print("DataContainer.hasByName() %s" % name)
         return name in self._elements
 
-    # XIndexAccess
-    def getCount(self):
-        print("DataContainer.getCount()")
-        return len(self._elements)
-    def getByIndex(self, index):
-        print("DataContainer.getByIndex() %s" % index)
-        return None
-
-    # XEnumerationAccess
-    def createEnumeration(self):
-        print("DataContainer.createEnumeration()")
-
-    # XElementAccess
-    def getElementType(self):
-        print("DataContainer.getElementType()")
-        return uno.getTypeByName(self._typename)
-    def hasElements(self):
-        print("DataContainer.hasElements()")
-        return len(self._elements) != 0
+    # XWeak
+    def queryAdapter(self):
+        print("DataContainer.queryAdapter()")
+        return self
 
 
-class DataBaseUser(unohelper.Base,
-                   XUser,
-                   XWeak,
-                   XAdapter,
-                   XGroupsSupplier,
-                   PropertySet):
+class User(unohelper.Base,
+           XAdapter,
+           XGroupsSupplier,
+           XUser,
+           XWeak,
+           PropertySet):
     def __init__(self, ctx, connection, name):
         self._ctx = ctx
         self._connection = connection
         self.Name = name
         print("DataBaseUser.__init__() %s" % name)
 
-    # XWeak
-    def queryAdapter(self):
-        print("DataBaseUser.queryAdapter()")
-        return self
-
-    # XAdapter
+# XAdapter
     def queryAdapted(self):
         print("DataBaseUser.queryAdapted()")
         return self
@@ -148,15 +141,7 @@ class DataBaseUser(unohelper.Base,
     def removeReference(self, reference):
         pass
 
-    # XUser
-    def changePassword(self, oldpwd, newpwd):
-        print("DataBaseUser.changePassword()")
-        query = getSqlQuery(self._ctx, 'changePassword', newpwd)
-        print("DataBaseUser.changePassword() %s" % query)
-        result = self._connection.createStatement().executeUpdate(query)
-        print("DataBaseUser.changePassword() %s" % result)
-
-    # XAuthorizable
+# XAuthorizable <- XUser
     def getPrivileges(self, objname, objtype):
         print("DataBaseUser.getPrivileges() %s - %s" % (objname, objtype))
         pass
@@ -170,12 +155,25 @@ class DataBaseUser(unohelper.Base,
         print("DataBaseUser.revokePrivileges() %s - %s - %s" % (objname, objtype, objprivilege))
         pass
 
-    # XGroupsSupplier
+# XGroupsSupplier
     def getGroups(self):
         print("DataBaseUser.getGroups()")
         return None
 
-    # XPropertySet
+# XUser
+    def changePassword(self, oldpwd, newpwd):
+        print("DataBaseUser.changePassword()")
+        query = getSqlQuery(self._ctx, 'changePassword', newpwd)
+        print("DataBaseUser.changePassword() %s" % query)
+        result = self._connection.createStatement().executeUpdate(query)
+        print("DataBaseUser.changePassword() %s" % result)
+
+# XWeak
+    def queryAdapter(self):
+        print("DataBaseUser.queryAdapter()")
+        return self
+
+# XPropertySet
     def _getPropertySetInfo(self):
         properties = {}
         properties['Name'] = getProperty('Name', 'string', READONLY)

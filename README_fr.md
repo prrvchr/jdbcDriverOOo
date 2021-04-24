@@ -123,7 +123,7 @@ Le seul contournement possible face à ce problème est de mettre l'archive Java
 
 Afin de profiter des dernières fonctionnalités offertes par HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
-Ce nouveau pilote n'est qu'un emballage (wrapper) en Python autour des services UNO fournis par le pilote LibreOffice / OpenOffice JDBC défectueux.
+Ce nouveau pilote n'est qu'une surcouche ou emballage (wrapper) en Python autour des services UNO fournis par le pilote LibreOffice / OpenOffice JDBC défectueux.
 Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice / OpenOffice ne fournit pas, à savoir:
 
 - La gestion des droits et des utilisateurs dans Base.
@@ -168,17 +168,19 @@ Pour l'instant, seule la gestion des utilisateurs (lecture seule) est disponible
 
 ### Ce qui a été fait pour la version 0.0.4:
 
-- Modification de [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) afin:
-    - De rendre possible l'utilisation du service Uno: `com.sun.star.sdb.RowSet`.
-    - Que le service `com.sun.star.sdb.DataSource` retourne une URL utilisant le protocole `sdbc` necessaire au bon fonctionnement.
+- Modification de [Driver.py](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) afin que le service `com.sun.star.sdb.DataSource` retourne une URL utilisant le protocole `sdbc` nécessaire au bon fonctionnement.
 
-- Modification de l'emballage (wrapper) du service [com.sun.star.sdb.DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py), afin de rendre les requêtes SQL contenues dans un fichier odb accessibles depuis la connexion.
+- Modification de l'emballage (wrapper) du service [com.sun.star.sdb.DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin de rendre les requêtes SQL contenues dans un fichier odb accessibles depuis la connexion: ses methodes retournant la connexion (`getConnection`, `getIsolatedConnection`, etc) renvoies maintenant la version modifiée du service `com.sun.star.sdb.Connection`.
 
-- Ecriture de l'emballage (wrapper) du service [com.sun.star.sdb.DatabaseDocument](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py), afin que sa propriété `DataSource` renvoie la version modifiée du service `com.sun.star.sdb.DataSource`.
+- Ecriture de l'emballage (wrapper) du service [com.sun.star.sdb.DatabaseDocument](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py) afin que sa propriété `DataSource` renvoie la version modifiée du service `com.sun.star.sdb.DataSource`.
 
-- Modification de l'emballage (wrapper) du service [com.sun.star.sdb.Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py), afin:
-    - De prendre en compte les changement des services modifiés: `com.sun.star.sdb.DataSource` et `com.sun.star.sdb.DatabaseDocument`
-    - De fournir les propriétés présentes dans le service `com.sun.star.sdb.Connection` de JDBC (merci à hanya pour [MRI](https://github.com/hanya/MRI) qui m'a été d'une aide précieuse...)
+- Modification de l'emballage (wrapper) du service [com.sun.star.sdb.Statement](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/statement.py) afin de fournir les propriétés et méthodes présentes dans le service `com.sun.star.sdb.Statement` de JDBC (merci à hanya pour [MRI](https://github.com/hanya/MRI) qui m'a été d'une aide précieuse...)
+
+- Ecriture de l'emballage (wrapper) du service [com.sun.star.sdb.ResultSet](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/resultset.py) afin que sa methode `getStatement` renvoie la version modifiée du service `com.sun.star.sdb.Statement`.
+
+- Modification de l'emballage (wrapper) du service [com.sun.star.sdb.Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin:
+    - De prendre en compte les changement des services modifiés: `com.sun.star.sdb.DataSource` et `com.sun.star.sdb.DatabaseDocument`.
+    - De rendre possible l'utilisation du service UNO: `com.sun.star.sdb.RowSet`, voir l'utilisation de `self._patched` comme solution de contournement.
 
 - Beaucoup d'autres correctifs...
 

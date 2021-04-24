@@ -38,10 +38,10 @@ from com.sun.star.uno import XWeak
 import traceback
 
 
-class DatabaseMetaData(unohelper.Base,
-                       XDatabaseMetaData2,
-                       XEventListener,
-                       XWeak):
+class MetaData(unohelper.Base,
+               XDatabaseMetaData2,
+               XEventListener,
+               XWeak):
     def __init__(self, connection, metadata, url):
         self._connection = connection
         self._metadata = metadata

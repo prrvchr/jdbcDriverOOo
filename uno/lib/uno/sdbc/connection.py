@@ -30,13 +30,15 @@
 import uno
 import unohelper
 
-from com.sun.star.beans.PropertyAttribute import BOUND
-from com.sun.star.beans.PropertyAttribute import READONLY
-from com.sun.star.beans.PropertyAttribute import TRANSIENT
+from com.sun.star.beans import XFastPropertySet
+from com.sun.star.beans import XMultiPropertySet
+from com.sun.star.beans import XPropertySet
 
 from com.sun.star.container import XChild
+from com.sun.star.container import XContainerListener
 
 from com.sun.star.lang import XComponent
+from com.sun.star.lang import XInitialization
 from com.sun.star.lang import XMultiServiceFactory
 from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XUnoTunnel
@@ -72,17 +74,13 @@ from com.sun.star.uno import XWeak
 from com.sun.star.util import XFlushable
 from com.sun.star.util import XFlushListener
 
-from ..unolib import PropertySet
-
-from ..unotool import getProperty
-
 from ..dbqueries import getSqlQuery
 
-from .databasemetadata import DatabaseMetaData
+from .metadata import MetaData
 
 from .database import DataBase
 
-from .userssupplier import UsersSupplier
+from .users import Users
 
 from .statement import Statement
 from .statement import PreparedStatement
@@ -114,9 +112,13 @@ class Connection(unohelper.Base,
         self._connection = connection
         self._datasource = datasource
         self._listeners = []
-        # TODO: sometime we cannot use: connection.prepareStatement(sql)
-        # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        # TODO: if self._patched: fallback to connection.prepareCall(sql)
+        # TODO: We cannot use: connection.prepareStatement(sql).
+        # TODO: It trow a: receiver class org.hsqldb.jdbc.JDBCPreparedStatement does not implement
+        # TODO: The interface java.sql.CallableStatement defining the method to be called
+        # TODO: (org.hsqldb.jdbc.JDBCPreparedStatement is in unnamed module of loader
+        # TODO: java.net.URLClassLoader @4eb26a26; java.sql.CallableStatement is in module
+        # TODO: java.sql of loader 'platform').
+        # TODO: If self._patched: fallback to connection.prepareCall(sql).
         self._patched = True
 
 # XChild
@@ -133,51 +135,58 @@ class Connection(unohelper.Base,
 
 # XCloseable <- XConnection
     def close(self):
-        print("Connection.close()********* 1")
-        if not self._connection.isClosed():
-            self._connection.close()
-        print("Connection.close()********* 2")
-
-# XCommandPreparation
-    def prepareCommand(self, command, commandtype):
-        query = None
-        if commandtype == TABLE:
-            query = getSqlQuery(self._ctx, 'prepareCommand', command)
-        elif commandtype == QUERY:
-            if self.getQueries().hasByName(command):
-                query = self.getQueries().getByName(command).Command
-        elif commandtype == COMMAND:
-            query = command
-        # TODO: sometime we cannot use: connection.prepareStatement(sql)
-        # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        # TODO: if self._patched: fallback to connection.prepareCall(sql)
-        if query is None:
-            raise SQLException()
-        return PreparedStatement(self, query, self._patched)
-
-# XComponent
-    def dispose(self):
         event = uno.createUnoStruct('com.sun.star.lang.EventObject')
         event.Source = self
         for listener in self._listeners:
             listener.disposing(event)
-        self._connection.dispose()
-    def addEventListener(self, listener):
+        if not self._connection.isClosed():
+            self._connection.close()
+
+# XCloseBroadcaster <- XCloseable <- XConnection
+    def addCloseListener(self, listener):
         self._listeners.append(listener)
-    def removeEventListener(self, listener):
+    def removeCloseListener(self, listener):
         if listener in self._listeners:
             self._listeners.remove(listener)
 
+# XCommandPreparation
+    def prepareCommand(self, command, commandtype):
+        sql = None
+        if commandtype == TABLE:
+            sql = getSqlQuery(self._ctx, 'prepareCommand', command)
+        elif commandtype == QUERY:
+            if self.getQueries().hasByName(command):
+                sql = self.getQueries().getByName(command).Command
+        elif commandtype == COMMAND:
+            sql = command
+        if sql is None:
+            raise SQLException()
+        return self.prepareStatement(sql)
+
+# XComponent
+    def dispose(self):
+        self._connection.dispose()
+    def addEventListener(self, listener):
+        self._connection.addEventListener(listener)
+    def removeEventListener(self, listener):
+        self._connection.removeEventListener(listener)
+
 # XConnection
     def createStatement(self):
-        return Statement(self)
+        statement = self._connection.createStatement()
+        return Statement(self, statement)
     def prepareStatement(self, sql):
-        # TODO: sometime we cannot use: connection.prepareStatement(sql)
-        # TODO: it trow a: java.lang.IncompatibleClassChangeError
-        # TODO: if self._patched: fallback to connection.prepareCall(sql)
-        return PreparedStatement(self, sql, self._patched)
+        # TODO: We cannot use: connection.prepareStatement(sql).
+        # TODO: It trow a: java.lang.IncompatibleClassChangeError.
+        # TODO: If self._patched: fallback to connection.prepareCall(sql).
+        if self._patched:
+            statement = self._connection.prepareCall(sql)
+        else:
+            statement = self._connection.prepareStatement(sql)
+        return PreparedStatement(self, statement)
     def prepareCall(self, sql):
-        return CallableStatement(self, sql)
+        statement = self._connection.prepareCall(sql)
+        return CallableStatement(self, statement)
     def nativeSQL(self, sql):
         return self._connection.nativeSQL(sql)
     def setAutoCommit(self, auto):
@@ -194,7 +203,7 @@ class Connection(unohelper.Base,
         # TODO: This wrapping is only there for the following lines:
         metadata = self._connection.getMetaData()
         url = self._connection.getParent().URL
-        return DatabaseMetaData(self, metadata, url)
+        return MetaData(self, metadata, url)
     def setReadOnly(self, readonly):
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):
@@ -269,11 +278,7 @@ class Connection(unohelper.Base,
 
 # XUsersSupplier
     def getUsers(self):
-        try:
-            print("Connection.getUsers() 1")
-            return UsersSupplier(self._ctx, self._connection)
-        except Exception as e:
-            print("Connection.getUsers(): %s" % traceback.print_exc())
+        return Users(self._ctx, self._connection)
 
 # XViewsSupplier
     def getViews(self):
@@ -295,26 +300,23 @@ class DataSource(unohelper.Base,
                  XBookmarksSupplier,
                  XCompletedConnection,
                  XComponent,
+                 XContainerListener,
                  XDataSource,
                  XDocumentDataSource,
+                 XFastPropertySet,
                  XFlushable,
                  XFlushListener,
+                 XInitialization,
                  XIsolatedConnection,
+                 XMultiPropertySet,
+                 XPropertySet,
                  XQueryDefinitionsSupplier,
                  XServiceInfo,
                  XTablesSupplier,
-                 XWeak,
-                 PropertySet):
+                 XWeak):
     def __init__(self, ctx, datasource):
         self._ctx = ctx
         self._datasource = datasource
-
-# XDocumentDataSource
-    @property
-    def DatabaseDocument(self):
-        # TODO: This wrapping is only there for the following lines:
-        database = self._datasource.DatabaseDocument
-        return DataBase(database, self)
 
     @property
     def Info(self):
@@ -401,6 +403,14 @@ class DataSource(unohelper.Base,
     def removeEventListener(self, listener):
         self._datasource.removeEventListener(listener)
 
+# XContainerListener
+    def elementInserted(self, event):
+       self._datasource.elementInserted(event)
+    def elementRemoved(self, event):
+       self._datasource.elementRemoved(event)
+    def elementReplaced(self, event):
+       self._datasource.elementReplaced(event)
+
 # XDataSource
     def getConnection(self, user, password):
         # TODO: This wrapping is only there for the following lines:
@@ -410,6 +420,23 @@ class DataSource(unohelper.Base,
         self._datasource.setLoginTimeout(seconds)
     def getLoginTimeout(self):
         return self._datasource.getLoginTimeout()
+
+# XDocumentDataSource
+    @property
+    def DatabaseDocument(self):
+        # TODO: This wrapping is only there for the following lines:
+        database = self._datasource.DatabaseDocument
+        return DataBase(database, self)
+
+# XEventListener <- XContainerListener
+    def disposing(self, source):
+        self._datasource.disposing(source)
+
+# XFastPropertySet
+    def setFastPropertyValue(self, handle, value):
+        self._datasource.setFastPropertyValue(handle, value)
+    def getFastPropertyValue(self, handle):
+        return self._datasource.getFastPropertyValue(handle)
 
 # XFlushable
     def flush(self):
@@ -423,6 +450,10 @@ class DataSource(unohelper.Base,
     def flushed(self, event):
         self._datasource.flushed(event)
 
+# XInitialization
+    def initialize(self, arguments):
+        self._datasource.initialize(arguments)
+
 # XIsolatedConnection
     def getIsolatedConnectionWithCompletion(self, handler):
         # TODO: This wrapping is only there for the following lines:
@@ -432,6 +463,34 @@ class DataSource(unohelper.Base,
         # TODO: This wrapping is only there for the following lines:
         connection = self._datasource.getIsolatedConnection(user, password)
         return Connection(self._ctx, connection, self)
+
+# XMultiPropertySet
+    def setPropertyValues(self, names, values):
+        self._datasource.setPropertyValues(names, values)
+    def getPropertyValues(self, names):
+        return self._datasource.getPropertyValues(names)
+    def addPropertiesChangeListener(self, names, listener):
+        self._datasource.addPropertiesChangeListener(names, listener)
+    def removePropertiesChangeListener(self, listener):
+        self._datasource.removePropertiesChangeListener(listener)
+    def firePropertiesChangeEvent(self, names, listener):
+        self._datasource.firePropertiesChangeEvent(names, listener)
+
+# XPropertySet
+    def getPropertySetInfo(self):
+        return self._datasource.getPropertySetInfo()
+    def setPropertyValue(self, name, value):
+        self._datasource.setPropertyValue(name, value)
+    def getPropertyValue(self, name):
+        return self._datasource.getPropertyValue(name)
+    def addPropertyChangeListener(self, name, listener):
+        self._datasource.addPropertyChangeListener(name, value)
+    def removePropertyChangeListener(self, name, listener):
+        self._datasource.removePropertyChangeListener(name, listener)
+    def addVetoableChangeListener(self, name, listener):
+        self._datasource.addVetoableChangeListener(name, value)
+    def removeVetoableChangeListener(self, name, listener):
+        self._datasource.removeVetoableChangeListener(name, listener)
 
 # XQueryDefinitionsSupplier
     def getQueryDefinitions(self):
@@ -452,34 +511,3 @@ class DataSource(unohelper.Base,
 # XWeak
     def queryAdapter(self):
         return self
-
-# XPropertySet
-    def _getPropertySetInfo(self):
-        properties = {}
-        unotype = '[]com.sun.star.beans.PropertyValue'
-        properties['Info'] = getProperty('Info', unotype, BOUND)
-        unotype = 'boolean'
-        properties['IsPasswordRequired'] = getProperty('IsPasswordRequired', unotype, BOUND)
-        unotype = 'boolean'
-        properties['IsReadOnly'] = getProperty('IsReadOnly', unotype, READONLY)
-        unotype = '[]com.sun.star.beans.PropertyValue'
-        properties['LayoutInformation'] = getProperty('LayoutInformation', unotype, BOUND)
-        unotype = 'string'
-        properties['Name'] = getProperty('Name', unotype, READONLY)
-        unotype = 'com.sun.star.util.XNumberFormatsSupplier'
-        properties['NumberFormatsSupplier'] = getProperty('NumberFormatsSupplier', unotype, TRANSIENT+READONLY)
-        unotype = 'string'
-        properties['Password'] = getProperty('Password', unotype, TRANSIENT)
-        unotype = '[]com.sun.star.beans.XPropertySet'
-        properties['Settings'] = getProperty('Settings', unotype, BOUND+READONLY)
-        unotype = 'boolean'
-        properties['SuppressVersionColumns'] = getProperty('SuppressVersionColumns', unotype, BOUND)
-        unotype = '[]string'
-        properties['TableFilter'] = getProperty('TableFilter', unotype, BOUND)
-        unotype = '[]string'
-        properties['TableTypeFilter'] = getProperty('TableTypeFilter', unotype, BOUND)
-        unotype = 'string'
-        properties['URL'] = getProperty('URL', unotype, BOUND)
-        unotype = 'string'
-        properties['User'] = getProperty('User', unotype, BOUND)
-        return properties
