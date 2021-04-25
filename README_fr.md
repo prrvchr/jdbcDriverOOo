@@ -189,6 +189,10 @@ HsqlDBDriverOOo est désormais **entièrement compatible** avec l'API UNO
 
 ### Que reste-t-il à faire pour la version 0.0.4:
 
+- La gestion des droits et des utilisateurs dans Base en lecture et écriture...
+
+- L'utilisation du type SQL Array dans les requêtes.
+
 - Ajouter de nouvelles langues pour l'internationalisation...
 
 - Tout ce qui est bienvenu...
