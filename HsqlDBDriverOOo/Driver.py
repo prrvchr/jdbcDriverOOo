@@ -31,15 +31,16 @@ import uno
 import unohelper
 
 from com.sun.star.lang import XServiceInfo
-from com.sun.star.sdbc import XDriver
-from com.sun.star.sdbcx import XDataDefinitionSupplier
-from com.sun.star.sdbcx import XCreateCatalog
-from com.sun.star.sdbcx import XDropCatalog
-
-from com.sun.star.sdbc import SQLException
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
+
+from com.sun.star.sdbc import SQLException
+from com.sun.star.sdbc import XDriver
+
+from com.sun.star.sdbcx import XCreateCatalog
+from com.sun.star.sdbcx import XDataDefinitionSupplier
+from com.sun.star.sdbcx import XDropCatalog
 
 from hsqldbdriver import createService
 from hsqldbdriver import getUrlTransformer
@@ -65,11 +66,11 @@ g_ImplementationName = '%s.Driver' % g_identifier
 
 
 class Driver(unohelper.Base,
-             XServiceInfo,
-             XDataDefinitionSupplier,
              XCreateCatalog,
+             XDataDefinitionSupplier,
+             XDriver,
              XDropCatalog,
-             XDriver):
+             XServiceInfo):
 
     def __init__(self, ctx):
         self._ctx = ctx
@@ -79,7 +80,23 @@ class Driver(unohelper.Base,
         msg = getMessage(self._ctx, g_message, 101)
         logMessage(self._ctx, INFO, msg, 'Driver', '__init__()')
 
-    # XDriver
+# XCreateCatalog
+    def createCatalog(self, info):
+        msg = getMessage(self._ctx, g_message, 161)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'createCatalog()')
+
+# XDataDefinitionSupplier
+    def getDataDefinitionByConnection(self, connection):
+        msg = getMessage(self._ctx, g_message, 141)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'getDataDefinitionByConnection()')
+        return connection
+    def getDataDefinitionByURL(self, url, infos):
+        msg = getMessage(self._ctx, g_message, 151, url)
+        logMessage(self._ctx, INFO, msg, 'Driver', 'getDataDefinitionByURL()')
+        connection = self.connect(url, infos)
+        return self.getDataDefinitionByConnection(connection)
+
+# XDriver
     def connect(self, url, infos):
         try:
             msg = getMessage(self._ctx, g_message, 111, url)
@@ -132,28 +149,20 @@ class Driver(unohelper.Base,
     def getMinorVersion(self):
         return 0
 
-    # XDataDefinitionSupplier
-    def getDataDefinitionByConnection(self, connection):
-        msg = getMessage(self._ctx, g_message, 141)
-        logMessage(self._ctx, INFO, msg, 'Driver', 'getDataDefinitionByConnection()')
-        return connection
-    def getDataDefinitionByURL(self, url, infos):
-        msg = getMessage(self._ctx, g_message, 151, url)
-        logMessage(self._ctx, INFO, msg, 'Driver', 'getDataDefinitionByURL()')
-        connection = self.connect(url, infos)
-        return self.getDataDefinitionByConnection(connection)
-
-    # XCreateCatalog
-    def createCatalog(self, info):
-        msg = getMessage(self._ctx, g_message, 161)
-        logMessage(self._ctx, INFO, msg, 'Driver', 'createCatalog()')
-
-    # XDropCatalog
+# XDropCatalog
     def dropCatalog(self, name, info):
         msg = getMessage(self._ctx, g_message, 171, name)
         logMessage(self._ctx, INFO, msg, 'Driver', 'dropCatalog()')
 
-    #Private method
+# XServiceInfo
+    def supportsService(self, service):
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+    def getImplementationName(self):
+        return g_ImplementationName
+    def getSupportedServiceNames(self):
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
+#Private method
     def _isSupportedSubProtocols(self, protocols):
         return self._getSubProtocol(protocols).lower() in self._supportedSubProtocols
 
@@ -204,14 +213,6 @@ class Driver(unohelper.Base,
         # TODO: ie: replace the <jdbc> protocol by the <sdbc> protocol
         datasource.URL = url
         return Connection(self._ctx, connection)
-
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
 g_ImplementationHelper.addImplementation(Driver,
