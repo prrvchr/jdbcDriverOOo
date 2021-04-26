@@ -171,7 +171,7 @@ Pour l'instant, seule la gestion des utilisateurs (lecture seule) est disponible
 
 - Modification de [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) afin que la surcouche [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) retourne une URL utilisant le protocole `sdbc` nécessaire au bon fonctionnement.
 
-- Modification de la surcouche [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin de rendre les requêtes SQL contenues dans un fichier odb accessibles depuis la connexion: ses methodes retournant la connexion (`getConnection`, `getIsolatedConnection`, etc) renvoies maintenant la version modifiée du service [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py).
+- Modification de la surcouche [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin que ses methodes retournant la connexion (`getConnection`, `getIsolatedConnection`, etc) renvoies maintenant la version modifiée du service [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py).
 
 - Ecriture de la surcouche [DataBase](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py) afin que sa propriété `DataSource` renvoie la version modifiée du service [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py).
 
@@ -185,7 +185,6 @@ Pour l'instant, seule la gestion des utilisateurs (lecture seule) est disponible
 
 - Beaucoup d'autres correctifs...
 
-HsqlDBDriverOOo est désormais **entièrement compatible** avec l'API UNO
 
 ### Que reste-t-il à faire pour la version 0.0.4:
 

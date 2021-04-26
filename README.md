@@ -171,7 +171,7 @@ For now, only user management (read only) is available.
 
 - Modifying the [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) so that the [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) wrapper returns a URL using the `sdbc` protocol necessary for proper functioning.
 
-- Modifying the [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) wrapper to make the SQL queries contained in an odb file accessible from the connection: its methods returning the connection (`getConnection`, `getIsolatedConnection`, etc) now return the modified version of the [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service.
+- Modifying the [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) wrapper so that its methods returning the connection (`getConnection`, `getIsolatedConnection`, etc) now return the modified version of the [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service.
 
 - Writing the [DataBase](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py) wrapper so that its `DataSource` property returns the modified version of the [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) service.
 
@@ -184,8 +184,6 @@ For now, only user management (read only) is available.
     - To make possible the use of the: `com.sun.star.sdb.RowSet` service, see the use of the `self._patched` property as a workaround.
 
 - Many other fix...
-
-HsqlDBDriverOOo is now **fully compatible** with UNO API.
 
 ### What remains to be done for version 0.0.4:
 

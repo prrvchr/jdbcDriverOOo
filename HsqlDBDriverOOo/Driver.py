@@ -46,7 +46,7 @@ from hsqldbdriver import getUrlTransformer
 from hsqldbdriver import parseUrl
 
 from hsqldbdriver import Connection
-from hsqldbdriver import getDataBaseInfo
+from hsqldbdriver import getDriverPropertyInfos
 from hsqldbdriver import getDataSourceClassPath
 from hsqldbdriver import getSqlException
 from hsqldbdriver import g_class
@@ -119,31 +119,13 @@ class Driver(unohelper.Base,
 
     def acceptsURL(self, url):
         accept = url.startswith(self._supportedProtocol)
-        msg = getMessage(self._ctx, g_message, 121, (url, accept))
-        logMessage(self._ctx, INFO, msg, 'Driver', 'acceptsURL()')
         return accept
 
     def getPropertyInfo(self, url, infos):
-        try:
-            msg = getMessage(self._ctx, g_message, 131, url)
-            logMessage(self._ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
-            for info in infos:
-                msg = getMessage(self._ctx, g_message, 132, (info.Name, info.Value))
-                logMessage(self._ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
-            drvinfo = []
-            dbinfo = getDataBaseInfo()
-            for info in dbinfo:
-                drvinfo.append(self._getDriverPropertyInfo(info, dbinfo[info]))
-            for info in infos:
-                if info.Name not in dbinfo:
-                    drvinfo.append(self._getDriverPropertyInfo(info.Name, info.Value))
-            for info in drvinfo:
-                msg = getMessage(self._ctx, g_message, 133, (info.Name, info.Value))
-                logMessage(self._ctx, INFO, msg, 'Driver', 'getPropertyInfo()')
-            return tuple(drvinfo)
-        except Exception as e:
-            msg = getMessage(self._ctx, g_message, 134, (e, traceback.print_exc()))
-            logMessage(self._ctx, SEVERE, msg, 'Driver', 'getPropertyInfo()')
+        properties = ()
+        if self.acceptsURL(url):
+            properties = getDriverPropertyInfos()
+        return properties
 
     def getMajorVersion(self):
         return 1
@@ -215,16 +197,6 @@ class Driver(unohelper.Base,
             if username and password:
                 break
         return username, password
-
-    def _getDriverPropertyInfo(self, name, value):
-        info = uno.createUnoStruct('com.sun.star.sdbc.DriverPropertyInfo')
-        info.Name = name
-        required = value is not None and not isinstance(value, tuple)
-        info.IsRequired = required
-        if required:
-            info.Value = value
-        info.Choices = ()
-        return info
 
     def _getConnection(self, datasource, url, user, password):
         connection = datasource.getConnection(user, password)
