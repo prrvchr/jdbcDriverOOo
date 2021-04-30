@@ -50,7 +50,6 @@ from ..dbconfig import g_folder
 from ..dbconfig import g_jar
 from ..dbconfig import g_class
 from ..dbconfig import g_options
-from ..dbconfig import g_shutdown
 from ..dbconfig import g_version
 
 from ..logger import getMessage
@@ -59,30 +58,31 @@ g_message = 'dbtools'
 import traceback
 
 
-def getDataBaseConnection(ctx, url, user='', password=''):
-    property = {}
-    if user != '':
-        property['user'] = user
-        if password != '':
-            property['password'] = password
-    info = getPropertyValueSet(property)
+def createDataSource(ctx, url, path=None):
+    service = 'com.sun.star.sdb.DatabaseContext'
+    dbcontext = createService(ctx, service)
+    datasource = dbcontext.createInstance()
+    datasource.URL = getDataBaseUrl(url)
+    if path is not None:
+        datasource.Settings.JavaDriverClassPath = path
+    return datasource
+
+def getDataBaseConnection(ctx, url, info):
     service = 'com.sun.star.sdbc.DriverManager'
     manager = createService(ctx, service)
-    connection = None
-    try:
-        connection = manager.getConnectionWithInfo(url, info)
-    except SQLException as e:
-        print("dbtool.getDataBaseConnection() %s - %s" % (e.Message, traceback.print_exc()))
+    url = getDataBaseUrl(url)
+    connection = manager.getConnectionWithInfo(url, info)
     return connection
 
-def getDataBaseUrl(url, shutdown):
-    url = g_protocol + url + g_options
-    if shutdown:
-        url += g_shutdown
-    print("dbtool.getDataBaseUrl() %s" % url)
-    return url
+def getDataBaseUrl(url):
+    return g_protocol + url + g_options
 
-
+def getConnectionInfo(user, password, path):
+    values = {'user': user,
+              'password': password,
+              'JavaDriverClassPath': path}
+    info = getPropertyValueSet(values)
+    return info
 
 def getDataSource(ctx, name, identifier, register, shutdown=False):
     location = getResourceLocation(ctx, identifier, g_folder)
@@ -95,15 +95,15 @@ def getDataSource(ctx, name, identifier, register, shutdown=False):
             datasource = dbcontext.getByName(url)
         created = False
     else:
-        datasource = createDataSource(dbcontext, location, name, shutdown)
+        datasource = createDataSource1(dbcontext, location, name, shutdown)
         created = True
-    #datasource = createDataSource(dbcontext, location, name, shutdown)
+    #datasource = createDataSource1(dbcontext, location, name, shutdown)
     if register:
        if not dbcontext.hasByName(name) or dbcontext.getDatabaseLocation(name) != url:
         registerDataSource(dbcontext, name, url)
     return datasource, url, created
 
-def createDataSource(dbcontext, location, dbname, shutdown):
+def createDataSource1(dbcontext, location, dbname, shutdown):
     datasource = dbcontext.createInstance()
     datasource.URL = getDataSourceLocation(location, dbname, shutdown)
     return datasource

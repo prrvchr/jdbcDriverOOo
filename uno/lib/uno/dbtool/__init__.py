@@ -32,6 +32,7 @@ from .dbtool import createDataSource
 from .dbtool import createStaticTable
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
+from .dbtool import getConnectionInfo
 from .dbtool import getDataBaseConnection
 from .dbtool import getDataBaseInfo
 from .dbtool import getDataBaseUrl
