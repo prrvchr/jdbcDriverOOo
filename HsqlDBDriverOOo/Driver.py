@@ -120,8 +120,8 @@ class Driver(unohelper.Base,
                 msg = getMessage(self._ctx, g_message, 116, url)
                 raise getSqlException(code, 1003, msg, self)
             options = option.split(';') if has_option != '' else None
-            datasource = self._getDataSource(transformer, location, options)
-            user, password = self._getUserCredential(infos)
+            user, password, classpath = self._getConnectionInfos(infos)
+            datasource = self._getDataSource(transformer, location, options, classpath)
             connection = self._getConnection(datasource, url, user, password)
             version = connection.getMetaData().getDriverVersion()
             username = connection.getMetaData().getUserName()
@@ -176,16 +176,15 @@ class Driver(unohelper.Base,
         location = ':'.join(protocols[self._subProtocolIndex:])
         return parseUrl(transformer, location)
 
-    def _getDataSource(self, transformer, url, options):
+    def _getDataSource(self, transformer, url, options, path):
         service = 'com.sun.star.sdb.DatabaseContext'
         datasource = createService(self._ctx, service).createInstance()
-        self._setDataSource(datasource, transformer, url, options)
+        self._setDataSource(datasource, transformer, url, options, path)
         return datasource
 
-    def _setDataSource(self, datasource, transformer, url, options):
+    def _setDataSource(self, datasource, transformer, url, options, path):
         datasource.URL = self._getDataSourceUrl(transformer, url, options)
         datasource.Settings.JavaDriverClass = g_class
-        path = getDataSourceClassPath(self._ctx, g_identifier)
         datasource.Settings.JavaDriverClassPath = path
 
     def _getDataSourceUrl(self, transformer, url, options):
@@ -195,24 +194,25 @@ class Driver(unohelper.Base,
             location += ';%s' % ';'.join(options)
         return location
 
-    def _getUserCredential(self, infos):
-        username = ''
+    def _getConnectionInfos(self, infos):
+        user = ''
         password = ''
+        path = getDataSourceClassPath(self._ctx, g_identifier)
         for info in infos:
             if info.Name == 'user':
-                username = info.Value.strip()
+                user = info.Value.strip()
             elif info.Name == 'password':
                 password = info.Value.strip()
-            if username and password:
-                break
-        return username, password
+            elif info.Name == 'JavaDriverClassPath':
+                path = info.Value.strip()
+        return user, password, path
 
     def _getConnection(self, datasource, url, user, password):
         connection = datasource.getConnection(user, password)
-        # TODO: Now that we have the connection we have to restore the original url
-        # TODO: ie: replace the <jdbc> protocol by the <sdbc> protocol
-        datasource.URL = url
-        return Connection(self._ctx, connection)
+        # TODO: Now that we have the connection, we return a
+        # TODO: com.sun.star.sdbc.Connection service wrapper
+        # TODO: that provides an url with the <sdbc> protocol
+        return Connection(self._ctx, connection, url)
 
 
 g_ImplementationHelper.addImplementation(Driver,
