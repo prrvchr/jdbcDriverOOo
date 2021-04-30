@@ -188,7 +188,7 @@ class Wizard(unohelper.Base,
             reason = self._getCommitReason()
             if self._model.doFinish(reason):
                 if self._controller.confirmFinish():
-                    self.view.endDialog()
+                    self._view.endDialog()
 
 # Wizard private getter methods
     def _isComplete(self):

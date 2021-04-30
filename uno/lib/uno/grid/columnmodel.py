@@ -48,26 +48,32 @@ class ColumnModel(unohelper.Base):
         # TODO: done after its assignment at com.sun.star.awt.grid.UnoControlGridModel.
         return self._width != 0
 
-    def getColumnModel(self, rowset, widths, titles, width, factor=1):
+    def getModel(self, rowset, widths, titles, width, factor=1):
         self._width = width
         self._factor = factor
-        self._initColumnModel(rowset, widths, titles)
+        self._initModel(rowset, widths, titles)
         return self._model
 
-    def getColumnWidth(self):
+    def getWidths(self):
         widths = OrderedDict()
         for column in self._model.getColumns():
             widths[column.Identifier] = column.ColumnWidth
         return widths
 
 # ColumnModel setter methods
-    def initColumnModel(self, rowset, widths, titles):
-        # TODO: First we need to clear the existing columns
+    def resetModel(self):
+        # TODO: If rowset change we need to reset <DefaultGridColumnModel>
+        # TODO: ie: remove all existing columns
         for index in range(self._model.getColumnCount() -1, -1, -1):
             self._model.removeColumn(index)
-        self._initColumnModel(rowset, widths, titles)
 
-    def setColumnModel(self, rowset, titles, reset):
+    def initModel(self, rowset, widths, titles):
+        # TODO: First we need to remove the existing columns
+        for index in range(self._model.getColumnCount() -1, -1, -1):
+            self._model.removeColumn(index)
+        self._initModel(rowset, widths, titles)
+
+    def setModel(self, rowset, titles, reset):
         total = 0
         added = False
         for index in range(self._model.getColumnCount() -1, -1, -1):
@@ -85,23 +91,24 @@ class ColumnModel(unohelper.Base):
                 self._createColumn(rowset, name, title)
                 added = True
         if added:
-            self._setDefaultColumnWidth(total)
+            self._setDefaultWidths(total)
 
 # ColumnModel private methods
-    def _initColumnModel(self, rowset, widths, titles):
+    def _initModel(self, rowset, widths, titles):
         # TODO: ColumnWidth should be assigned after all columns have 
         # TODO: been added to the GridColumnModel
         if widths:
             for name in widths:
-                title = titles[name]
-                self._createColumn(rowset, name, title)
-            self._setSavedColumnWidth(widths)
+                if name in titles:
+                    title = titles[name]
+                    self._createColumn(rowset, name, title)
+            self._setSavedWidths(widths)
         else:
             total = 0
             for name, title in titles.items():
                 total += len(title)
                 self._createColumn(rowset, name, title)
-            self._setDefaultColumnWidth(total)
+            self._setDefaultWidths(total)
 
     def _createColumn(self, rowset, name, title):
         column = self._model.createColumn()
@@ -111,7 +118,7 @@ class ColumnModel(unohelper.Base):
         column.DataColumnIndex = index -1
         self._model.addColumn(column)
 
-    def _setSavedColumnWidth(self, widths):
+    def _setSavedWidths(self, widths):
         for column in self._model.getColumns():
             name = column.Identifier
             flex = len(column.Title)
@@ -122,13 +129,13 @@ class ColumnModel(unohelper.Base):
             else:
                 column.Flexibility = 0
 
-    def _setDefaultColumnWidth(self, total):
+    def _setDefaultWidths(self, total):
         sum = 0
         last = self._model.getColumnCount() -1
         for column in self._model.getColumns():
             flex = len(column.Title)
             index = column.Index
-            width = self._getColumnWidth(flex, total, last, index, sum)
+            width = self._getWidth(flex, total, last, index, sum)
             column.ColumnWidth = width
             column.MinWidth = flex * 5
             if self._factor == 1:
@@ -137,7 +144,7 @@ class ColumnModel(unohelper.Base):
                 column.Flexibility = 0
             sum += width
 
-    def _getColumnWidth(self, flex, total, last, index, sum):
+    def _getWidth(self, flex, total, last, index, sum):
         if index == last:
             # TODO: To display a Grid without a scroll bar, 1 must be subtracted
             width = (self._width * self._factor) - sum -1
