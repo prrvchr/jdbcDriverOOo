@@ -48,8 +48,6 @@ from com.sun.star.sdbcx import XColumnsSupplier
 from com.sun.star.sdbcx import XDeleteRows
 from com.sun.star.sdbcx import XRowLocate
 
-from com.sun.star.uno import XWeak
-
 from com.sun.star.util import XCancellable
 
 import traceback
@@ -69,8 +67,8 @@ class ResultSet(unohelper.Base,
                 XRowLocate,
                 XRowUpdate,
                 XServiceInfo,
-                XWarningsSupplier,
-                XWeak):
+                XWarningsSupplier):
+
     def __init__(self, statement, result):
         self._statement = statement
         self._result = result
@@ -309,7 +307,3 @@ class ResultSet(unohelper.Base,
         return self._result.getWarnings()
     def clearWarnings(self):
         self._result.clearWarnings()
-
-# XWeak
-    def queryAdapter(self):
-        return self

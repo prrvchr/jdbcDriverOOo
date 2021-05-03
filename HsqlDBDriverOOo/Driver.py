@@ -42,11 +42,12 @@ from com.sun.star.sdbcx import XCreateCatalog
 from com.sun.star.sdbcx import XDataDefinitionSupplier
 from com.sun.star.sdbcx import XDropCatalog
 
+from hsqldbdriver import Connection
+
 from hsqldbdriver import createService
 from hsqldbdriver import getUrlTransformer
 from hsqldbdriver import parseUrl
 
-from hsqldbdriver import Connection
 from hsqldbdriver import getDriverPropertyInfos
 from hsqldbdriver import getDataSourceClassPath
 from hsqldbdriver import getSqlException
@@ -178,14 +179,12 @@ class Driver(unohelper.Base,
 
     def _getDataSource(self, transformer, url, options, path):
         service = 'com.sun.star.sdb.DatabaseContext'
-        datasource = createService(self._ctx, service).createInstance()
-        self._setDataSource(datasource, transformer, url, options, path)
-        return datasource
-
-    def _setDataSource(self, datasource, transformer, url, options, path):
+        dbcontext = createService(self._ctx, service)
+        datasource = dbcontext.createInstance()
         datasource.URL = self._getDataSourceUrl(transformer, url, options)
         datasource.Settings.JavaDriverClass = g_class
         datasource.Settings.JavaDriverClassPath = path
+        return datasource
 
     def _getDataSourceUrl(self, transformer, url, options):
         location = g_protocol
@@ -208,15 +207,15 @@ class Driver(unohelper.Base,
         return user, password, path
 
     def _getConnection(self, datasource, url, user, password):
-        connection = datasource.getConnection(user, password)
+        connection = datasource.getIsolatedConnection(user, password)
+        datasource.URL = url
         # TODO: Now that we have the connection, we return a
         # TODO: com.sun.star.sdbc.Connection service wrapper
         # TODO: that provides an url with the <sdbc> protocol
-        return Connection(self._ctx, connection, url)
+        return Connection(self._ctx, connection, datasource, url)
 
 
 g_ImplementationHelper.addImplementation(Driver,
                                          g_ImplementationName,
-                                        (g_ImplementationName,
-                                        'com.sun.star.sdbc.Driver',
+                                        ('com.sun.star.sdbc.Driver',
                                         'com.sun.star.sdbcx.Driver'))

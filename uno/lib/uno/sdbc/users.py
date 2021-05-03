@@ -41,7 +41,6 @@ from com.sun.star.sdbcx import XGroupsSupplier
 from com.sun.star.sdbcx import XUser
 
 from com.sun.star.uno import XAdapter
-from com.sun.star.uno import XWeak
 
 from ..dbqueries import getSqlQuery
 
@@ -59,8 +58,8 @@ class Users(unohelper.Base,
             XAdapter,
             XEnumerationAccess,
             XIndexAccess,
-            XNameAccess,
-            XWeak):
+            XNameAccess):
+
     def __init__(self, ctx, connection):
         print("DataContainer.__init__() 1")
         query = getSqlQuery(ctx, 'getUsers')
@@ -114,18 +113,13 @@ class Users(unohelper.Base,
         print("DataContainer.hasByName() %s" % name)
         return name in self._elements
 
-    # XWeak
-    def queryAdapter(self):
-        print("DataContainer.queryAdapter()")
-        return self
-
 
 class User(unohelper.Base,
            XAdapter,
            XGroupsSupplier,
            XUser,
-           XWeak,
            PropertySet):
+
     def __init__(self, ctx, connection, name):
         self._ctx = ctx
         self._connection = connection
@@ -167,11 +161,6 @@ class User(unohelper.Base,
         print("DataBaseUser.changePassword() %s" % query)
         result = self._connection.createStatement().executeUpdate(query)
         print("DataBaseUser.changePassword() %s" % result)
-
-# XWeak
-    def queryAdapter(self):
-        print("DataBaseUser.queryAdapter()")
-        return self
 
 # XPropertySet
     def _getPropertySetInfo(self):

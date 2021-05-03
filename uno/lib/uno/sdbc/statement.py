@@ -49,8 +49,6 @@ from com.sun.star.sdbc import XWarningsSupplier
 
 from com.sun.star.sdbcx import XColumnsSupplier
 
-from com.sun.star.uno import XWeak
-
 from com.sun.star.util import XCancellable
 
 from .resultset import ResultSet
@@ -65,8 +63,8 @@ class BaseStatement(unohelper.Base,
                     XMultipleResults,
                     XPropertySet,
                     XServiceInfo,
-                    XWarningsSupplier,
-                    XWeak):
+                    XWarningsSupplier):
+
     def __init__(self, connection, statement):
         self._connection = connection
         self._statement = statement
@@ -185,10 +183,6 @@ class BaseStatement(unohelper.Base,
         return self._statement.getWarnings()
     def clearWarnings(self):
         self._statement.clearWarnings()
-
-# XWeak
-    def queryAdapter(self):
-        return self
 
 
 class Statement(BaseStatement,

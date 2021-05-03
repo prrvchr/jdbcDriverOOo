@@ -30,34 +30,73 @@
 import uno
 import unohelper
 
+from com.sun.star.container import XChild
+
 from com.sun.star.lang import XComponent
+from com.sun.star.lang import XMultiServiceFactory
 from com.sun.star.lang import XServiceInfo
+from com.sun.star.lang import XUnoTunnel
+
+from com.sun.star.sdb.CommandType import TABLE
+from com.sun.star.sdb.CommandType import QUERY
+from com.sun.star.sdb.CommandType import COMMAND
+
+from com.sun.star.sdb import XCommandPreparation
+from com.sun.star.sdb import XQueriesSupplier
+from com.sun.star.sdb import XSQLQueryComposerFactory
+from com.sun.star.sdb.application import XTableUIProvider
+from com.sun.star.sdb.tools import XConnectionTools
+
+from com.sun.star.sdbc import SQLException
 
 from com.sun.star.sdbc import XConnection
 from com.sun.star.sdbc import XWarningsSupplier
 
-from com.sun.star.uno import XWeak
+from com.sun.star.sdbcx import XGroupsSupplier
+from com.sun.star.sdbcx import XTablesSupplier
+from com.sun.star.sdbcx import XUsersSupplier
+from com.sun.star.sdbcx import XViewsSupplier
+
+from ..dbqueries import getSqlQuery
 
 from .metadata import MetaData
+
+from .users import Users
 
 from .statement import Statement
 from .statement import PreparedStatement
 from .statement import CallableStatement
 
+from .datasource import DataSource
+
+from ..unotool import createService
+
 import traceback
 
 
 class Connection(unohelper.Base,
+                 XChild,
+                 XCommandPreparation,
                  XComponent,
                  XConnection,
+                 XConnectionTools,
+                 XGroupsSupplier,
+                 XMultiServiceFactory,
+                 XQueriesSupplier,
                  XServiceInfo,
-                 XWarningsSupplier,
-                 XWeak):
-    def __init__(self, ctx, connection, url):
+                 XSQLQueryComposerFactory,
+                 XTablesSupplier,
+                 XTableUIProvider,
+                 XUnoTunnel,
+                 XUsersSupplier,
+                 XViewsSupplier,
+                 XWarningsSupplier):
+
+    def __init__(self, ctx, connection, datasource, url):
         self._ctx = ctx
         self._connection = connection
         self._url = url
-        self._listeners = []
+        self._datasource = datasource
         # TODO: We cannot use: connection.prepareStatement(sql).
         # TODO: It trow a: receiver class org.hsqldb.jdbc.JDBCPreparedStatement does not implement
         # TODO: The interface java.sql.CallableStatement defining the method to be called
@@ -67,10 +106,32 @@ class Connection(unohelper.Base,
         # TODO: If self._patched: fallback to connection.prepareCall(sql).
         self._patched = True
 
+# XChild
+    def getParent(self):
+        # TODO: This wrapping is only there for the following lines:
+        return self._datasource
+    def setParent(self, parent):
+        # TODO: This wrapping is only there for the following lines:
+        self._datasource = parent
+
 # XCloseable <- XConnection
     def close(self):
         if not self.isClosed():
             self.dispose()
+
+# XCommandPreparation
+    def prepareCommand(self, command, commandtype):
+        sql = None
+        if commandtype == TABLE:
+            sql = getSqlQuery(self._ctx, 'prepareCommand', command)
+        elif commandtype == QUERY:
+            if self.getQueries().hasByName(command):
+                sql = self.getQueries().getByName(command).Command
+        elif commandtype == COMMAND:
+            sql = command
+        if sql is None:
+            raise SQLException()
+        return self.prepareStatement(sql)
 
 # XComponent
     def dispose(self):
@@ -129,13 +190,68 @@ class Connection(unohelper.Base,
     def setTypeMap(self, typemap):
         self._connection.setTypeMap(typemap)
 
+# XConnectionTools
+    def createTableName(self):
+        return self._connection.createTableName()
+    def getObjectNames(self):
+        return self._connection.getObjectNames()
+    def getDataSourceMetaData(self):
+        return self._connection.getDataSourceMetaData()
+    def getFieldsByCommandDescriptor(self, commandtype, command, keep):
+        fields, keep = self._connection.getFieldsByCommandDescriptor(commandtype, command, keep)
+        return fields, keep
+    def getComposer(self, commandtype, command):
+        return self._connection.getComposer(commandtype, command)
+
+# XGroupsSupplier
+    def getGroups(self):
+        return self._connection.getGroups()
+
+# XMultiServiceFactory
+    def createInstance(self, service):
+        return self._connection.createInstance(service)
+    def createInstanceWithArguments(self, service, arguments):
+        return self._connection.createInstanceWithArguments(service, arguments)
+    def getAvailableServiceNames(self):
+        return self._connection.getAvailableServiceNames()
+
+# XQueriesSupplier
+    def getQueries(self):
+        return self._connection.getQueries()
+
 # XServiceInfo
     def supportsService(self, service):
-        return service in self.getSupportedServiceNames()
+        return self._connection.supportsService(service)
     def getImplementationName(self):
         return self._connection.getImplementationName()
     def getSupportedServiceNames(self):
-        return ('com.sun.star.sdbc.Connection', )
+        return self._connection.getSupportedServiceNames()
+
+# XSQLQueryComposerFactory
+    def createQueryComposer(self):
+        return self._connection.createQueryComposer()
+
+# XTablesSupplier
+    def getTables(self):
+        return self._connection.getTables()
+
+# XTableUIProvider
+    def getTableIcon(self, tablename, colormode):
+        return self._connection.getTableIcon(tablename, colormode)
+    def getTableEditor(self, document, tablename):
+        return self._connection.getTableEditor(document, tablename)
+
+# XUnoTunnel
+    def getSomething(self, identifier):
+        return self._connection.getSomething(identifier)
+
+# XUsersSupplier
+    def getUsers(self):
+        return Users(self._ctx, self._connection)
+
+# XViewsSupplier
+    def getViews(self):
+        return self._connection.getViews()
 
 # XWarningsSupplier
     def getWarnings(self):
@@ -143,7 +259,3 @@ class Connection(unohelper.Base,
         return warning
     def clearWarnings(self):
         self._connection.clearWarnings()
-
-# XWeak
-    def queryAdapter(self):
-        return self

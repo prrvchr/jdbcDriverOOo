@@ -76,6 +76,7 @@ class OptionsDialog(unohelper.Base,
                     XServiceInfo,
                     XContainerWindowEventHandler,
                     XDialogEventHandler):
+
     def __init__(self, ctx):
         self.ctx = ctx
         self.stringResource = getStringResource(self.ctx, g_identifier, g_extension, 'OptionsDialog')

@@ -28,6 +28,7 @@
 """
 
 from .sdbc import Connection
+from .sdbc import DataSource
 
 from .configuration import g_extension
 from .configuration import g_identifier

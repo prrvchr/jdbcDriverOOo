@@ -169,18 +169,14 @@ Pour l'instant, seule la gestion des utilisateurs (lecture seule) est disponible
 
 ### Ce qui a été fait pour la version 0.0.4:
 
-- Modification de [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) afin que la surcouche [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) retourne une URL utilisant le protocole `sdbc` nécessaire au bon fonctionnement.
-
-- Modification de la surcouche [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin que ses methodes retournant la connexion (`getConnection`, `getIsolatedConnection`, etc) renvoies maintenant la version modifiée du service [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py).
-
-- Ecriture de la surcouche [DataBase](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py) afin que sa propriété `DataSource` renvoie la version modifiée du service [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py).
+- Modification de [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) afin de renvoyer une interface XConnection fournissant un service DataSource avec sa propriété `URL` ayant le protocole `sbdc` nécessaire au bon fonctionnement.
 
 - Modification de la surcouche [Statement](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/statement.py) afin de fournir les propriétés et méthodes présentes dans les services `Statement`, `PreparedStatement` et `CallableStatement` de JDBC (merci à hanya pour [MRI](https://github.com/hanya/MRI) qui m'a été d'une aide précieuse...)
 
 - Ecriture de la surcouche [ResultSet](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/resultset.py) afin que sa methode `getStatement` renvoie la version modifiée du service [Statement](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/statement.py).
 
 - Modification de la surcouche [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) afin:
-    - De prendre en compte les changement des services modifiés [DataSource](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) et [DataBase](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/database.py).
+    - De rendre possible la réaffectation du service DataSource par sa methode `setParent`.
     - De rendre possible l'utilisation du service: `com.sun.star.sdb.RowSet`, voir l'utilisation de la propriété `self._patched` comme solution de contournement.
 
 - Beaucoup d'autres correctifs...

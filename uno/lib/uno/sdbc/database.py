@@ -51,7 +51,6 @@ from com.sun.star.script.provider import XScriptProviderSupplier
 
 from com.sun.star.ui import XUIConfigurationManagerSupplier
 
-from com.sun.star.uno import XWeak
 from com.sun.star.uno import XAdapter
 
 from com.sun.star.util import XModifiable
@@ -79,8 +78,8 @@ class DataBase(unohelper.Base,
                XTitle,
                XTitleChangeBroadcaster,
                XUIConfigurationManagerSupplier,
-               XUntitledNumbers,
-               XWeak):
+               XUntitledNumbers):
+
     def __init__(self, database, datasource):
         self._database = database
         self._datasource = datasource
@@ -270,7 +269,3 @@ class DataBase(unohelper.Base,
         self._database.releaseNumber(number)
     def releaseNumberForComponent(self, component):
         self._database.releaseNumberForComponent(component)
-
-# XWeak
-    def queryAdapter(self):
-        return self

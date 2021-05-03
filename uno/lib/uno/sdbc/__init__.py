@@ -28,3 +28,4 @@
 """
 
 from .connection import Connection
+from .datasource import DataSource

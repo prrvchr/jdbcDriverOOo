@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,34 +27,26 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
-from com.sun.star.container import XNameAccess
+from com.sun.star.uno import XAdapter
 
-from com.sun.star.container import NoSuchElementException
+import weakref
+import traceback
 
 
-class TypeMap(unohelper.Base,
-              XNameAccess):
-    def __init__(self, typemap, typeclass):
-        self._typemap = typemap
-        self._typeclass = typeclass
+class Adapter(XAdapter):
 
-# XNameAccess
-    def getByName(self, name):
-        if not self.hasByName(name):
-            raise NoSuchElementException()
-        return self._typemap[name]
+    def __init__(self, adapted, references):
+        self._adapted = weakref.ref(adapted)
+        self._references = references
 
-    def getElementNames(self):
-        names = self._typemap.keys()
-        return tuple(names)
-
-    def hasByName(self, name):
-        return name in self._typemap
-
-    def getElementType(self):
-        return self._typeclass
-
-    def hasElements(self):
-        return len(self._typemap) > 0
+# XAdapter
+    def queryAdapted(self):
+        return self._adapted()
+    def addReference(self, reference):
+        self._references.append(reference)
+    def removeReference(self, reference):
+        if reference in self._references:
+            self._references.remove(reference)

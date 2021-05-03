@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -23,14 +25,37 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<!DOCTYPE manifest:manifest PUBLIC "-//OpenOffice.org//DTD Manifest 1.0//EN" "Manifest.dtd">
-<manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-typelibrary;type=RDB" manifest:full-path="types.rdb"/>
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.basic-library" manifest:full-path="HsqlDBDriverOOo/"/>
-<!--<manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="DatabaseContext.py"/>-->
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="Driver.py"/>
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.configuration-data" manifest:full-path="Drivers.xcu"/>
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="OptionsDialog.py"/>
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.configuration-data" manifest:full-path="OptionsDialog.xcu"/>
-</manifest:manifest>
+"""
+
+import unohelper
+
+from com.sun.star.container import XNameAccess
+
+from com.sun.star.container import NoSuchElementException
+
+
+class TypeMap(unohelper.Base,
+              XNameAccess):
+
+    def __init__(self, typemap, typeclass):
+        self._typemap = typemap
+        self._typeclass = typeclass
+
+# XNameAccess
+    def getByName(self, name):
+        if not self.hasByName(name):
+            raise NoSuchElementException()
+        return self._typemap[name]
+
+    def getElementNames(self):
+        names = self._typemap.keys()
+        return tuple(names)
+
+    def hasByName(self, name):
+        return name in self._typemap
+
+    def getElementType(self):
+        return self._typeclass
+
+    def hasElements(self):
+        return len(self._typemap) > 0
