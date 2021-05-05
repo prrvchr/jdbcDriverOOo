@@ -67,20 +67,23 @@ def createDataSource(ctx, url, path=None):
         datasource.Settings.JavaDriverClassPath = path
     return datasource
 
-def getDataBaseConnection(ctx, url, info):
+def getDataBaseConnection(ctx, url, info=()):
     service = 'com.sun.star.sdbc.DriverManager'
     manager = createService(ctx, service)
     url = getDataBaseUrl(url)
-    connection = manager.getConnectionWithInfo(url, info)
+    if info:
+        connection = manager.getConnectionWithInfo(url, info)
+    else:
+        connection = manager.getConnection(url)
     return connection
 
 def getDataBaseUrl(url):
     return g_protocol + url + g_options
 
-def getConnectionInfo(user, password, path):
-    values = {'user': user,
-              'password': password,
-              'JavaDriverClassPath': path}
+def getConnectionInfo(user='', password='', path=None):
+    values = {'user': user, 'password': password}
+    if path is not None:
+        values['JavaDriverClassPath'] = path
     info = getPropertyValueSet(values)
     return info
 
