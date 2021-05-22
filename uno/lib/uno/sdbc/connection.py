@@ -92,11 +92,12 @@ class Connection(unohelper.Base,
                  XViewsSupplier,
                  XWarningsSupplier):
 
-    def __init__(self, ctx, connection, datasource, url):
+    def __init__(self, ctx, connection, datasource, info, url):
         self._ctx = ctx
         self._connection = connection
-        self._url = url
         self._datasource = datasource
+        self._info = info
+        self._url = url
         # TODO: We cannot use: connection.prepareStatement(sql).
         # TODO: It trow a: receiver class org.hsqldb.jdbc.JDBCPreparedStatement does not implement
         # TODO: The interface java.sql.CallableStatement defining the method to be called
@@ -172,7 +173,7 @@ class Connection(unohelper.Base,
     def getMetaData(self):
         # TODO: This wrapping is only there for the following lines:
         metadata = self._connection.getMetaData()
-        return MetaData(self, metadata, self._url)
+        return MetaData(self, metadata, self._info, self._url)
     def setReadOnly(self, readonly):
         self._connection.setReadOnly(readonly)
     def isReadOnly(self):

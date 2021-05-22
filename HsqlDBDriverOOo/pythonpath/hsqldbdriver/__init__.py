@@ -50,8 +50,9 @@ from .unotool import getUrl
 from .unotool import getUrlTransformer
 from .unotool import parseUrl
 
+from .dbtool import getConnectionInfo
 from .dbtool import getDataSourceConnection
-from .dbtool import getDriverPropertyInfos
+from .dbtool import getDriverPropertyInfo
 from .dbtool import getDataSourceClassPath
 from .dbtool import getSqlException
 

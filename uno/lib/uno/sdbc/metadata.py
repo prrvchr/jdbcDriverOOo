@@ -33,18 +33,16 @@ from com.sun.star.lang import XEventListener
 
 from com.sun.star.sdbc import XDatabaseMetaData2
 
-from com.sun.star.uno import XWeak
-
 import traceback
 
 
 class MetaData(unohelper.Base,
                XDatabaseMetaData2,
-               XEventListener,
-               XWeak):
-    def __init__(self, connection, metadata, url):
+               XEventListener):
+    def __init__(self, connection, metadata, info, url):
         self._connection = connection
         self._metadata = metadata
+        self._info = info
         self._url = url
 
 # XDatabaseMetaData2
@@ -76,7 +74,8 @@ class MetaData(unohelper.Base,
         # TODO: This wrapping is only there for the following lines:
         return self._connection
     def getConnectionInfo(self):
-        return self._metadata.getConnectionInfo()
+        # TODO: This wrapping is only there for the following lines:
+        return self._info
     def getCrossReference(self, catalog, schema, table, foreigncatalog, foreignschema, foreigntable):
         return self._metadata.getCrossReference(catalog, schema, table, foreigncatalog, foreignschema, foreigntable)
     def getDatabaseProductName(self):
@@ -354,7 +353,3 @@ class MetaData(unohelper.Base,
 # XEventListener
     def disposing(self, source):
         self._metadata.disposing(source)
-
-# XWeak
-    def queryAdapter(self):
-        return self

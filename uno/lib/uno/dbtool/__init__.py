@@ -42,7 +42,7 @@ from .dbtool import getDataSourceCall
 from .dbtool import getDataSourceClassPath
 from .dbtool import getDataSourceConnection
 from .dbtool import getDictFromResult
-from .dbtool import getDriverPropertyInfos
+from .dbtool import getDriverPropertyInfo
 from .dbtool import getKeyMapFromResult
 from .dbtool import getKeyMapKeyMapFromResult
 from .dbtool import getKeyMapSequenceFromResult

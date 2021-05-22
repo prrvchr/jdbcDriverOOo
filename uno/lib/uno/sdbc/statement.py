@@ -66,6 +66,7 @@ class BaseStatement(unohelper.Base,
                     XWarningsSupplier):
 
     def __init__(self, connection, statement):
+        print("BaseStatement.__init__() 1")
         self._connection = connection
         self._statement = statement
 
@@ -125,10 +126,15 @@ class BaseStatement(unohelper.Base,
         self._statement.ResultSetType = constant
     @property
     def UseBookmarks(self):
-        return self._statement.UseBookmarks
+        print("Statement.UseBookmarks getter 1")
+        use = self._statement.UseBookmarks
+        print("Statement.UseBookmarks getter: %s " % use)
+        return use
     @UseBookmarks.setter
     def UseBookmarks(self, state):
+        print("Statement.UseBookmarks setter 1")
         self._statement.UseBookmarks = state
+        print("Statement.UseBookmarks setter: %s - %s " % (state, self._statement.UseBookmarks))
 
 # XCancellable
     def cancel(self):
@@ -148,10 +154,13 @@ class BaseStatement(unohelper.Base,
 
 # XMultipleResults
     def getResultSet(self):
+        print("Statement.getResultSet() 1")
         return self._statement.getResultSet()
     def getUpdateCount(self):
+        print("Statement.getUpdateCount() 1")
         return self._statement.getUpdateCount()
     def getMoreResults(self):
+        print("Statement.getMoreResults() 1")
         return self._statement.getMoreResults()
 
 # XPropertySet
@@ -199,6 +208,7 @@ class Statement(BaseStatement,
 
 # XStatement
     def executeQuery(self, sql):
+        print("Statement.executeQuery() 1")
         result = self._statement.executeQuery(sql)
         return ResultSet(self, result)
     def executeUpdate(self, sql):

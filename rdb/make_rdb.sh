@@ -30,6 +30,7 @@ Path=$(dirname "${0}")
 rm -f ${Path}/types.rdb
 
 ${Path}/merge_rdb.sh ${OOoPath} com/sun/star/auth/XRestKeyMap
+${Path}/merge_rdb.sh ${OOoPath} com/sun/star/sdbc/Bookmark
 
 read -p "Press enter to continue"
 

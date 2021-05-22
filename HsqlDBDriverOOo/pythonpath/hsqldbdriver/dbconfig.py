@@ -29,7 +29,7 @@
 
 # DataSource configuration
 g_protocol = 'jdbc:hsqldb:'
-g_folder = 'hsqldb'
+g_folder = 'lib'
 g_jar = 'hsqldb.jar'
 g_class = 'org.hsqldb.jdbcDriver'
 g_options = ';default_schema=true;hsqldb.default_table_type=cached;get_column_name=false;ifexists=false;shutdown=true'

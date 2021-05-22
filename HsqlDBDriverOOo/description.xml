@@ -24,42 +24,40 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<description
-  xmlns="http://openoffice.org/extensions/description/2006"
-  xmlns:d="http://openoffice.org/extensions/description/2006"
-  xmlns:xlink="http://www.w3.org/1999/xlink">
-    <version value="0.0.4"/>
-    <identifier value="com.gmail.prrvchr.extensions.HsqlDBDriverOOo"/>
-    <platform value="all"/>
-    <dependencies>
-        <OpenOffice.org-minimal-version value="4.1" d:name="OpenOffice.org 4.1"/>
-    </dependencies>
-    <update-information>
-        <src xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo.update.xml"/>
-    </update-information>
-    <publisher>
-        <name xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/" lang="en-US">HsqlDB driver for LibreOffice / OpenOffice</name>
-        <name xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/README_fr" lang="fr-FR">Le pilote HsqlDB pour LibreOffice / OpenOffice</name>
-    </publisher>
-    <registration>
-        <simple-license accept-by="admin" suppress-on-update="true">
-            <license-text xlink:href="registration/TermsOfUse_en.md" lang="en-US"/>
-            <license-text xlink:href="registration/TermsOfUse_fr.md" lang="fr-FR"/>
-        </simple-license>
-    </registration>
-    <release-notes>
-        <src xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/" lang="en-US"/>
-        <src xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/README_fr" lang="fr-FR"/>
-    </release-notes>
-    <display-name>
-        <name lang="en-US">HsqlDBDriverOOo</name>
-    </display-name>
-    <icon>
-        <default xlink:href="HsqlDBDriverOOo/HsqlDBDriver.png"/>
-        <high-contrast xlink:href="HsqlDBDriverOOo/HsqlDBDriver.png"/>
-    </icon>
-    <extension-description>
-        <src xlink:href="description/desc_en.txt" lang="en-US"/>
-        <src xlink:href="description/desc_fr.txt" lang="fr-FR"/>
-    </extension-description>
+<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <version value="0.0.4"/>
+  <identifier value="io.github.prrvchr.hsqldb.driver"/>
+  <platform value="all"/>
+  <dependencies>
+    <OpenOffice.org-minimal-version d:name="4.1" value="4.1"/>
+  </dependencies>
+  <update-information>
+    <src xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo.update.xml"/>
+  </update-information>
+  <publisher>
+    <name lang="en-US" xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/">HsqlDB driver for LibreOffice / OpenOffice</name>
+    <name lang="fr-FR" xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/README_fr">Le pilote HsqlDB pour LibreOffice / OpenOffice</name>
+  </publisher>
+  <registration>
+    <simple-license accept-by="admin" suppress-on-update="true">
+      <license-text lang="en-US" xlink:href="registration/TermsOfUse_en.md"/>
+      <license-text lang="fr-FR" xlink:href="registration/TermsOfUse_fr.md"/>
+    </simple-license>
+  </registration>
+  <release-notes>
+    <src lang="en-US" xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/"/>
+    <src lang="fr-FR" xlink:href="https://prrvchr.github.io/HsqlDBDriverOOo/README_fr"/>
+  </release-notes>
+  <display-name>
+    <name lang="en-US">HsqlDBDriverOOo</name>
+    <name lang="fr-FR">HsqlDBDriverOOo</name>
+  </display-name>
+  <icon>
+    <default xlink:href="image/HsqlDBDriver.png"/>
+    <high-contrast xlink:href="image/HsqlDBDriver.png"/>
+  </icon>
+  <extension-description>
+    <src lang="en-US" xlink:href="description/desc_en.txt"/>
+    <src lang="fr-FR" xlink:href="description/desc_fr.txt"/>
+  </extension-description>
 </description>

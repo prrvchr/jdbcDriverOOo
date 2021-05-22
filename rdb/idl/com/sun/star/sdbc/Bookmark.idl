@@ -1,0 +1,17 @@
+#ifndef __com_sun_star_sdbc_Bookmark_idl__
+#define __com_sun_star_sdbc_Bookmark_idl__
+
+
+module com { module sun { module star { module sdbc {
+
+struct Bookmark
+{
+
+    long Value;
+    any Identifier;
+
+};
+
+}; }; }; };
+
+#endif

@@ -29,4 +29,4 @@
 
 # General configuration
 g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'com.gmail.prrvchr.extensions.%s' % g_extension
+g_identifier = 'io.github.prrvchr.hsqldb.driver'

@@ -48,7 +48,8 @@ from hsqldbdriver import createService
 from hsqldbdriver import getUrlTransformer
 from hsqldbdriver import parseUrl
 
-from hsqldbdriver import getDriverPropertyInfos
+from hsqldbdriver import getConnectionInfo
+from hsqldbdriver import getDriverPropertyInfo
 from hsqldbdriver import getDataSourceClassPath
 from hsqldbdriver import getSqlException
 from hsqldbdriver import g_class
@@ -121,9 +122,9 @@ class Driver(unohelper.Base,
                 msg = getMessage(self._ctx, g_message, 116, url)
                 raise getSqlException(code, 1003, msg, self)
             options = option.split(';') if has_option != '' else None
-            user, password, classpath = self._getConnectionInfos(infos)
+            user, password, classpath = self._getConnectionInfo(infos)
             datasource = self._getDataSource(transformer, location, options, classpath)
-            connection = self._getConnection(datasource, url, user, password)
+            connection = self._getConnection(datasource, url, user, password, classpath)
             version = connection.getMetaData().getDriverVersion()
             username = connection.getMetaData().getUserName()
             msg = getMessage(self._ctx, g_message, 117, (version, username))
@@ -142,7 +143,7 @@ class Driver(unohelper.Base,
     def getPropertyInfo(self, url, infos):
         properties = ()
         if self.acceptsURL(url):
-            properties = getDriverPropertyInfos()
+            properties = getDriverPropertyInfo()
         return properties
 
     def getMajorVersion(self):
@@ -183,6 +184,8 @@ class Driver(unohelper.Base,
         datasource = dbcontext.createInstance()
         datasource.URL = self._getDataSourceUrl(transformer, url, options)
         datasource.Settings.JavaDriverClass = g_class
+        if path is None:
+            path = getDataSourceClassPath(self._ctx, g_identifier)
         datasource.Settings.JavaDriverClassPath = path
         return datasource
 
@@ -193,10 +196,10 @@ class Driver(unohelper.Base,
             location += ';%s' % ';'.join(options)
         return location
 
-    def _getConnectionInfos(self, infos):
+    def _getConnectionInfo(self, infos):
         user = ''
         password = ''
-        path = getDataSourceClassPath(self._ctx, g_identifier)
+        path = None
         for info in infos:
             if info.Name == 'user':
                 user = info.Value.strip()
@@ -206,13 +209,15 @@ class Driver(unohelper.Base,
                 path = info.Value.strip()
         return user, password, path
 
-    def _getConnection(self, datasource, url, user, password):
+    def _getConnection(self, datasource, url, user, password, classpath):
         connection = datasource.getIsolatedConnection(user, password)
+        info = getConnectionInfo(user, password, classpath)
+        datasource.Info = info
         datasource.URL = url
         # TODO: Now that we have the connection, we return a
         # TODO: com.sun.star.sdbc.Connection service wrapper
         # TODO: that provides an url with the <sdbc> protocol
-        return Connection(self._ctx, connection, datasource, url)
+        return Connection(self._ctx, connection, datasource, info, url)
 
 
 g_ImplementationHelper.addImplementation(Driver,

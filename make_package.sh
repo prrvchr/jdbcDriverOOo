@@ -24,7 +24,9 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 COMMENT
-./uno/rdb/make_rdb.sh
+#./rdb/make_rdb.sh
+
+unzip -o -d ./java/Driver/dist/ ./java/Driver/dist/Driver.oxt
 
 cd ./HsqlDBDriverOOo/
 zip -0 HsqlDBDriverOOo.zip mimetype

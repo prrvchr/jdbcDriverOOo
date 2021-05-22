@@ -44,11 +44,18 @@ from com.sun.star.sdbc import XRow
 from com.sun.star.sdbc import XRowUpdate
 from com.sun.star.sdbc import XWarningsSupplier
 
+from com.sun.star.sdbcx.CompareBookmark import LESS
+from com.sun.star.sdbcx.CompareBookmark import EQUAL
+from com.sun.star.sdbcx.CompareBookmark import GREATER
+from com.sun.star.sdbcx.CompareBookmark import NOT_EQUAL
+from com.sun.star.sdbcx.CompareBookmark import NOT_COMPARABLE
 from com.sun.star.sdbcx import XColumnsSupplier
 from com.sun.star.sdbcx import XDeleteRows
 from com.sun.star.sdbcx import XRowLocate
 
 from com.sun.star.util import XCancellable
+
+from ..dbtool import getValueFromResult
 
 import traceback
 
@@ -70,6 +77,7 @@ class ResultSet(unohelper.Base,
                 XWarningsSupplier):
 
     def __init__(self, statement, result):
+        print("ResultSet.__init__() 1")
         self._statement = statement
         self._result = result
 
@@ -246,17 +254,54 @@ class ResultSet(unohelper.Base,
 
 # XRowLocate
     def getBookmark(self):
-        return self._result.getBookmark()
+        print("ResultSet.getBookmark() 1")
+        bookmark = uno.createUnoStruct('com.sun.star.sdbc.Bookmark')
+        index = self._result.getMetaData().getColumnCount()
+        bookmark.Identifier = getValueFromResult(self._result, 1)
+        bookmark.Value = getValueFromResult(self._result, index)
+        print("ResultSet.getBookmark() %s - %s" % (bookmark.Identifier, bookmark.Value))
+        return bookmark
     def moveToBookmark(self, bookmark):
-        return self._result.moveToBookmark(bookmark)
+        print("ResultSet.moveToBookmark() 1")
+        state = False
+        if self._result.absolute(bookmark.Value):
+            value = getValueFromResult(self._result, 1)
+            if value == bookmark.Identifier:
+                print("ResultSet.moveToBookmark() %s - %s" % (bookmark.Identifier, value))
+                state = True
+        if not state:
+            self._result.afterLast()
+        print("ResultSet.moveToBookmark() %s" % (state, ))
+        return state
     def moveRelativeToBookmark(self, bookmark, rows):
-        return self._result.moveRelativeToBookmark(bookmark, rows)
+        print("ResultSet.moveRelativeToBookmark() 1")
+        value = bookmak.Value
+        value += rows
+        bookmak.Value = value
+        print("ResultSet.moveRelativeToBookmark() %s" % (value, ))
+        return self.moveToBookmark(bookmark)
     def compareBookmarks(self, first, second):
-        return self._result.compareBookmarks(first, second)
+        print("ResultSet.compareBookmarks() 1")
+        equal = first.Identifier == second.Identifier
+        if first.Value == second.Value and not equal:
+            compare = NOT_EQUAL
+        elif first.Value < second.Value and not equal:
+            compare = LESS
+        elif first.Value > second.Value and not equal:
+            compare = GREATER
+        elif first.Value == second.Value and equal:
+            compare = EQUAL
+        else:
+            compare = NOT_COMPARABLE
+        return compare
     def hasOrderedBookmarks(self):
-        return self._result.hasOrderedBookmarks()
+        print("ResultSet.hasOrderedBookmarks() 1")
+        return True
     def hashBookmark(self, bookmark):
-        return self._result.hashBookmark(bookmark)
+        print("ResultSet.hashBookmark() 1")
+        hashed = hash(bookmark.Value)
+        print("ResultSet.hashBookmark() %s" % (hashed, ))
+        return hashed
 
 # XRowUpdate
     def updateNull(self, index):
