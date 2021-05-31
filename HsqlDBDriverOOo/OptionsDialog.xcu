@@ -31,9 +31,9 @@
   oor:package="org.openoffice.Office"
   oor:name="OptionsDialog">
     <node oor:name="Nodes">
-        <node oor:name="io.github.prrvchr.hsqldb.driver" oor:op="fuse">
+        <node oor:name="io.github.prrvchr.BaseDriver" oor:op="fuse">
             <prop oor:name="Id">
-                <value>io.github.prrvchr.hsqldb.driver</value>
+                <value>io.github.prrvchr.BaseDriver</value>
             </prop>
             <prop oor:name="Label">
                 <value xml:lang="en-US">Base drivers</value>
@@ -43,19 +43,19 @@
                 <value>true</value>
             </prop>
             <node oor:name="Leaves">
-                <node oor:name="io.github.prrvchr.hsqldb.driver.HsqlDBDriverOOo" oor:op="fuse">
+                <node oor:name="io.github.prrvchr.BaseDriver.HsqlDBDriverOOo" oor:op="fuse">
                     <prop oor:name="Id">
-                        <value>io.github.prrvchr.hsqldb.driver.HsqlDBDriverOOo</value>
+                        <value>io.github.prrvchr.BaseDriver.HsqlDBDriverOOo</value>
                     </prop>
                     <prop oor:name="Label">
                         <value xml:lang="en-US">HsqlDB Driver</value>
                         <value xml:lang="fr-FR">Pilote HsqlDB</value>
                     </prop>
                     <prop oor:name="OptionsPage">
-                        <value>%origin%/dialog/OptionsDialog.xdl</value>
+                        <value>%origin%/HsqlDBDriverOOo/OptionsDialog.xdl</value>
                     </prop>
                     <prop oor:name="EventHandlerService">
-                        <value>io.github.prrvchr.hsqldb.driver.OptionsDialog</value>
+                        <value>io.github.prrvchr.HsqlDBDriverOOo.OptionsDialog</value>
                     </prop>
                 </node>
             </node>

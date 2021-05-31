@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,59 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.sdbc;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+
+public final class ResultSet
+extends BaseResultSet<ResultSet>
+{
+	private static final String m_name = ResultSet.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
+	private java.sql.ResultSet m_ResultSet;
+
+
+	// The constructor method:
+	public ResultSet(XComponentContext ctx,
+                     java.sql.ResultSet resultset)
+	{
+		super(ctx, resultset);
+		m_ResultSet = resultset;
+	}
+	public ResultSet(XComponentContext ctx,
+                     XInterface statement,
+                     java.sql.ResultSet resultset)
+	{
+		super(ctx, statement, resultset);
+		m_ResultSet = resultset;
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String _getImplementationName()
+	{
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames() {
+		return m_services;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper(){
+		return m_ResultSet;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
+	}
+
+
+}

@@ -27,7 +27,7 @@
 <!DOCTYPE manifest:manifest PUBLIC "-//OpenOffice.org//DTD Manifest 1.0//EN" "Manifest.dtd">
 <manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-typelibrary;type=RDB" manifest:full-path="types.rdb"/>
-    <manifest:file-entry manifest:media-type="application/vnd.sun.star.basic-library" manifest:full-path="dialog/"/>
+    <manifest:file-entry manifest:media-type="application/vnd.sun.star.basic-library" manifest:full-path="HsqlDBDriverOOo/"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Java" manifest:full-path="Driver.jar"/>
 <!--<manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="DatabaseContext.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="Driver.py"/>-->

@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,32 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.beans;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+
+
+public class PropertySetInfo
+implements XPropertySetInfo
+{
+	private final Map<String, Property> m_properties;
+
+	// The constructor method:
+	public PropertySetInfo(Map<String, Property> properties)
+	{
+		m_properties = properties;
+	}
+
+
+	// XPropertySetInfo
+	public Map<String, Property> _getProperties()
+	{
+		return m_properties;
+	}
+
+
+
+}

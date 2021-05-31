@@ -32,7 +32,7 @@
     <node oor:name="Installed">
         <node oor:name="sdbc:hsqldb:*" oor:op="replace">
             <prop oor:name="Driver">
-                <value>io.github.prrvchr.hsqldb.Driver</value>
+                <value>io.github.prrvchr.HsqlDBDriverOOo.Driver</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">HsqlDB Driver</value>

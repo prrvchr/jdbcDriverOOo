@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,74 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.helper;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+
+public class DriverHelper implements Driver
+{
+	private Driver m_driver;
+
+	// The constructor method:
+	public DriverHelper(Driver driver)
+	{
+		m_driver = driver;
+	}
+
+	// java.sql.Driver:
+	@Override
+	public boolean acceptsURL(String url)
+	throws SQLException
+	{
+		return m_driver.acceptsURL(url);
+	}
+
+	@Override
+	public Connection connect(String url, Properties properties)
+	throws SQLException
+	{
+		return m_driver.connect(url, properties);
+	}
+
+	@Override
+	public int getMajorVersion()
+	{
+		return m_driver.getMajorVersion();
+	}
+
+	@Override
+	public int getMinorVersion()
+	{
+		return m_driver.getMinorVersion();
+	}
+
+	@Override
+	public Logger getParentLogger()
+	throws SQLFeatureNotSupportedException
+	{
+		return null;
+	}
+
+	@Override
+	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
+	throws SQLException
+	{
+		return m_driver.getPropertyInfo(url, properties);
+	}
+
+	@Override
+	public boolean jdbcCompliant()
+	{
+		return m_driver.jdbcCompliant();
+	}
+
+
+}

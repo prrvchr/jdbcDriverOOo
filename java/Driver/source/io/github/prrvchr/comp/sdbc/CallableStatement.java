@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,55 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.sdbc;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+
+public class CallableStatement
+extends BaseCallableStatement<CallableStatement>
+{
+	private static final String m_name = CallableStatement.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
+	private java.sql.CallableStatement m_Statement;
+	
+
+	// The constructor method:
+	public CallableStatement(XComponentContext context,
+                             XConnection connection,
+                             java.sql.CallableStatement statement)
+	{
+		super(context, connection, statement);
+		m_Statement = statement;
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String _getImplementationName()
+	{
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper(){
+		return m_Statement;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
+	}
+
+
+}

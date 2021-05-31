@@ -1,11 +1,11 @@
 #UNO project configuration file
-#Tue May 18 16:02:38 CEST 2021
-project.prefix=io.github.prrvchr.hsqldb
+#Sat May 29 15:31:05 CEST 2021
+project.prefix=io.github.prrvchr.comp
 project.language=Java
 project.ooo=LibreOffice 7.1
 project.idl=/idl
-regclassname=io.github.prrvchr.hsqldb.comp.RegistrationHandler
-project.implementation=comp
+regclassname=io.github.prrvchr.comp.sdbc.RegistrationHandler
+project.implementation=sdbc
 project.build=build
 project.sdk=7.1.2.2
 project.srcdir=/source

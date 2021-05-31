@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,88 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.sdbc;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.comp.helper.UnoHelper;
+
+
+public class WarningsSupplier
+implements com.sun.star.sdbc.XWarningsSupplier
+{
+	private java.sql.Wrapper m_Wrapper;
+	private XInterface m_Interface;
+
+
+	public WarningsSupplier(java.sql.Wrapper wrapper, XInterface component)
+	{
+		m_Wrapper = wrapper;
+		m_Interface = component;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public void clearWarnings() throws SQLException
+	{
+		try
+		{
+			if (m_Wrapper.isWrapperFor(Connection.class))
+			{
+				m_Wrapper.unwrap(Connection.class).clearWarnings();
+			}
+			else if(m_Wrapper.isWrapperFor(ResultSet.class))
+			{
+				m_Wrapper.unwrap(ResultSet.class).clearWarnings();
+			}
+			else if(m_Wrapper.isWrapperFor(Statement.class))
+			{
+				m_Wrapper.unwrap(Statement.class).clearWarnings();
+			}
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, m_Interface);
+		}
+	}
+
+
+	@Override
+	public Object getWarnings() throws SQLException
+	{
+		java.sql.SQLWarning warning = null;
+		try
+		{
+			if (m_Wrapper.isWrapperFor(Connection.class))
+			{
+				warning = m_Wrapper.unwrap(Connection.class).getWarnings();
+			}
+			else if(m_Wrapper.isWrapperFor(ResultSet.class))
+			{
+				warning = m_Wrapper.unwrap(ResultSet.class).getWarnings();
+			}
+			else if(m_Wrapper.isWrapperFor(Statement.class))
+			{
+				warning = m_Wrapper.unwrap(Statement.class).getWarnings();
+			}
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, m_Interface);
+		}
+		if (warning != null)
+		{
+			return UnoHelper.getWarning(warning, m_Interface);
+		}
+		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
+		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
+		return null;
+	}
+
+
+}

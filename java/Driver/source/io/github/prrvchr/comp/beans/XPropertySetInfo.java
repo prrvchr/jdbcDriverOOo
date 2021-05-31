@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,43 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.beans;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.beans.UnknownPropertyException;
+
+
+interface XPropertySetInfo extends com.sun.star.beans.XPropertySetInfo
+{
+
+	Map<String, Property> _getProperties();
+
+
+	// com.sun.star.beans.XPropertySetInfo:
+	@Override
+	default Property[] getProperties()
+	{
+		Map<String, Property> properties = _getProperties();
+		int len = properties.size();
+		return properties.values().toArray(new Property[len]);
+	}
+
+	@Override
+	default Property getPropertyByName(String name)
+	throws UnknownPropertyException
+	{
+		Map<String, Property> properties = _getProperties();
+		if (!properties.containsKey(name)) throw new UnknownPropertyException();
+		return properties.get(name);
+	}
+
+	@Override
+	default boolean hasPropertyByName(String name)
+	{
+		Map<String, Property> properties = _getProperties();
+		return properties.containsKey(name);
+	}
+}

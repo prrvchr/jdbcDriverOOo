@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,50 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.lang;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+
+public class ServiceInfo
+implements com.sun.star.lang.XServiceInfo
+{
+	private String m_name;
+	private String[] m_services;
+
+
+	public ServiceInfo(String name, String[] services)
+	{
+		m_name = name;
+		m_services = services;
+	}
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String getImplementationName()
+	{
+		return m_name;
+	}
+
+	@Override
+	public String[] getSupportedServiceNames()
+	{
+		return m_services;
+	}
+
+	@Override
+	public boolean supportsService(String service)
+	{
+		boolean support = false;
+		int len = m_services.length;
+		for (int i = 0; i < len; i++)
+		{
+			if (service.equals(m_services[i]))
+			{
+				support = true;
+				break;
+			}
+		}
+		return support;
+	}
+
+
+}

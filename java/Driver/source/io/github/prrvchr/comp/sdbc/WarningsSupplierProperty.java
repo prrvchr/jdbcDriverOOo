@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,52 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.sdbc;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.comp.lang.ServiceProperty;
+
+
+public abstract class WarningsSupplierProperty
+extends ServiceProperty
+implements com.sun.star.sdbc.XWarningsSupplier
+{
+	private WarningsSupplier m_WarningsSupplier;
+	public abstract java.sql.Wrapper _getWrapper();
+	public abstract XInterface _getInterface();
+
+
+	// The constructor method:
+	public WarningsSupplierProperty()
+	{
+		m_WarningsSupplier = new WarningsSupplier(_getWrapper(), _getInterface());
+	}
+	public WarningsSupplierProperty(Map<String, Property> properties)
+	{
+		super(properties);
+		m_WarningsSupplier = new WarningsSupplier(_getWrapper(), _getInterface());
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public void clearWarnings() throws SQLException
+	{
+		m_WarningsSupplier.clearWarnings();
+	}
+
+
+	@Override
+	public Object getWarnings() throws SQLException
+	{
+		return m_WarningsSupplier.getWarnings();
+	}
+
+
+}

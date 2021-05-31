@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,81 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.sdbcx;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.util.HashMap;
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.comp.sdbc.BasePreparedStatement;
+import io.github.prrvchr.comp.helper.UnoHelper;
+
+
+public final class PreparedStatement
+extends BasePreparedStatement<PreparedStatement>
+{
+	private static String m_name = PreparedStatement.class.getName();
+	private static String[] m_services = {"com.sun.star.sdbc.PreparedStatement",
+                                          "com.sun.star.sdbcx.PreparedStatement"};
+	private java.sql.PreparedStatement m_Statement;
+	private boolean m_UseBookmarks = true;
+
+	private static Map<String, Property> _getPropertySet()
+	{
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
+	}
+
+
+	// The constructor method:
+	public PreparedStatement(XComponentContext context,
+                             XConnection connection,
+                             java.sql.PreparedStatement statement)
+	{
+		super(context, connection, statement, _getPropertySet());
+		m_Statement = statement;
+	}
+
+
+	public boolean getUseBookmarks()
+	{
+		return m_UseBookmarks;
+	}
+	public void setUseBookmarks(boolean value)
+	{
+		m_UseBookmarks = value;
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String _getImplementationName()
+	{
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames() {
+		return m_services;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper(){
+		return m_Statement;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
+	}
+
+
+}

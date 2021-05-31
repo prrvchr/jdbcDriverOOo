@@ -79,7 +79,7 @@ class OptionsDialog(unohelper.Base,
 
     def __init__(self, ctx):
         self._ctx = ctx
-        self.stringResource = getStringResource(ctx, g_identifier, 'dialog', 'OptionsDialog')
+        self.stringResource = getStringResource(ctx, g_identifier, g_extension, 'OptionsDialog')
         msg = getMessage(ctx, g_message, 101)
         logMessage(ctx, INFO, msg, 'OptionsDialog', '__init__()')
 
@@ -200,7 +200,7 @@ class OptionsDialog(unohelper.Base,
 
     def _getDriverVersion(self):
         try:
-            service = 'io.github.prrvchr.hsqldb.Driver'
+            service = '%s.Driver' % g_identifier
             driver = createService(self._ctx, service)
             url = 'sdbc:hsqldb:mem:///dbversion'
             connection = driver.connect(url, ())

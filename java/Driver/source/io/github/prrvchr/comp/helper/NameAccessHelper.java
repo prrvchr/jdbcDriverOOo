@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,67 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.helper;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import java.util.Map;
+
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.uno.Type;
+
+
+public class NameAccessHelper<T>
+implements XNameAccess
+{
+	private final Map<String, T> m_elements;
+	private final String m_type;
+
+	// The constructor method:
+	public NameAccessHelper(Map<String, T> elements,
+                            String type)
+	{
+		m_elements = elements;
+		m_type = type;
+	}
+
+
+	// com.sun.star.container.XElementAccess <- XNameAccess:
+	@Override
+	public Type getElementType()
+	{
+		return new Type(m_type);
+	}
+
+	@Override
+	public boolean hasElements()
+	{
+		return !m_elements.isEmpty();
+	}
+
+
+	// com.sun.star.container.XNameAccess:
+	@Override
+	public Object getByName(String name)
+	throws NoSuchElementException, WrappedTargetException
+	{
+		if (!hasByName(name)) throw new NoSuchElementException();
+		return m_elements.get(name);
+	}
+
+	@Override
+	public String[] getElementNames()
+	{
+		int len = m_elements.size();
+		return m_elements.keySet().toArray(new String[len]);
+	}
+
+	@Override
+	public boolean hasByName(String name)
+	{
+		return m_elements.containsKey(name);
+	}
+
+
+}

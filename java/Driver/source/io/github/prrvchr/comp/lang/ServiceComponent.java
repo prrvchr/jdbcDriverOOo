@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,8 +22,45 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.comp.lang;
 
-# General configuration
-g_extension = 'HsqlDBDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
+import com.sun.star.lib.uno.helper.ComponentBase;
+
+
+public abstract class ServiceComponent
+extends ComponentBase
+implements com.sun.star.lang.XServiceInfo
+{
+	private ServiceInfo m_ServiceInfo;
+	public abstract String _getImplementationName();
+	public abstract String[] _getServiceNames();
+
+	// The constructor method:
+	public ServiceComponent()
+	{
+		m_ServiceInfo = new ServiceInfo(_getImplementationName(), _getServiceNames());
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String getImplementationName()
+	{
+		return m_ServiceInfo.getImplementationName();
+	}
+
+	@Override
+	public String[] getSupportedServiceNames()
+	{
+		return m_ServiceInfo.getSupportedServiceNames();
+	}
+
+	@Override
+	public boolean supportsService(String service)
+	{
+		return m_ServiceInfo.supportsService(service);
+	}
+
+
+}
