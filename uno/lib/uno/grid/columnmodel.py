@@ -58,6 +58,7 @@ class ColumnModel(unohelper.Base):
         widths = OrderedDict()
         for column in self._model.getColumns():
             widths[column.Identifier] = column.ColumnWidth
+        self.resetModel()
         return widths
 
 # ColumnModel setter methods
@@ -83,7 +84,7 @@ class ColumnModel(unohelper.Base):
                 self._model.removeColumn(index)
         if reset:
             total = 0
-            self._model.removeColumn(0)
+            #self._model.removeColumn(0)
         columns = [column.Identifier for column in self._model.getColumns()]
         for name, title in titles.items():
             if name not in columns:

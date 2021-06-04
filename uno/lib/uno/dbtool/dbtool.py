@@ -58,6 +58,14 @@ g_message = 'dbtools'
 import traceback
 
 
+def getDataSourceConnection(ctx, url, name='', password='', create=True):
+    if create:
+        datasource = createDataSource(ctx, url)
+    else:
+        datasource = getDataSource(ctx, url)
+    connection = datasource.getIsolatedConnection(name, password)
+    return connection
+
 def createDataSource(ctx, url, path=None):
     service = 'com.sun.star.sdb.DatabaseContext'
     dbcontext = createService(ctx, service)
@@ -65,6 +73,13 @@ def createDataSource(ctx, url, path=None):
     datasource.URL = getDataBaseUrl(url)
     if path is not None:
         datasource.Settings.JavaDriverClassPath = path
+    return datasource
+
+def getDataSource(ctx, url):
+    location = '%s.odb' % url
+    service = 'com.sun.star.sdb.DatabaseContext'
+    dbcontext = createService(ctx, service)
+    datasource = dbcontext.getByName(location)
     return datasource
 
 def getDataBaseConnection(ctx, url, info=()):
@@ -91,7 +106,7 @@ def getConnectionInfo(user='', password='', path=None):
     info = getPropertyValueSet(values)
     return info
 
-def getDataSource(ctx, name, identifier, register, shutdown=False):
+def getDataSource1(ctx, name, identifier, register, shutdown=False):
     location = getResourceLocation(ctx, identifier, g_folder)
     url = '%s/%s.odb' % (location, name)
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
@@ -122,7 +137,7 @@ def getDataSourceLocation1(location, dbname, shutdown):
         url += g_shutdown
     return url
 
-def getDataSourceConnection(ctx, url, dbname, name='', password=''):
+def getDataSourceConnection1(ctx, url, dbname, name='', password=''):
     dbcontext = createService(ctx, 'com.sun.star.sdb.DatabaseContext')
     odb = dbname if dbcontext.hasByName(dbname) else '%s/%s.odb' % (url, dbname)
     datasource = dbcontext.getByName(odb)
@@ -411,9 +426,11 @@ def createStaticTable(ctx, statement, tables, readonly=False):
         query = getSqlQuery(ctx, 'createTable' + table)
         statement.executeUpdate(query)
     for table in tables:
-        statement.executeUpdate(getSqlQuery(ctx, 'setTableSource', table))
+        query = getSqlQuery(ctx, 'setTableSource', table)
+        statement.executeUpdate(query)
         if readonly:
-            statement.executeUpdate(getSqlQuery(ctx, 'setTableReadOnly', table))
+            query = getSqlQuery(ctx, 'setTableReadOnly', table)
+            statement.executeUpdate(query)
 
 def executeSqlQueries(statement, queries):
     for query in queries:
