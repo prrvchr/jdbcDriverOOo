@@ -35,30 +35,26 @@ public abstract class WarningsSupplierComponent
 extends ServiceComponent
 implements com.sun.star.sdbc.XWarningsSupplier
 {
-	private WarningsSupplier m_WarningsSupplier;
 	public abstract java.sql.Wrapper _getWrapper();
 	public abstract XInterface _getInterface();
-
-
-	// The constructor method:
-	public WarningsSupplierComponent()
-	{
-		m_WarningsSupplier = new WarningsSupplier(_getWrapper(), _getInterface());
-	}
 
 
 	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
 	public void clearWarnings() throws SQLException
 	{
-		m_WarningsSupplier.clearWarnings();
+		java.sql.Wrapper wrapper = _getWrapper();
+		XInterface component =  _getInterface();
+		WarningsSupplier.clearWarnings(wrapper, component);
 	}
 
 
 	@Override
 	public Object getWarnings() throws SQLException
 	{
-		return m_WarningsSupplier.getWarnings();
+		java.sql.Wrapper wrapper = _getWrapper();
+		XInterface component =  _getInterface();
+		return WarningsSupplier.getWarnings(wrapper, component);
 	}
 
 

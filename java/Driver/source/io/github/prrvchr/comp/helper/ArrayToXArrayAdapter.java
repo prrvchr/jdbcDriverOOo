@@ -23,73 +23,98 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp.helper;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.Array;
 
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XInterface;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.comp.helper.UnoHelper;
-
-
-final class WarningsSupplier
+public class ArrayToXArrayAdapter
+extends WeakBase
+implements XArray
 {
+	private final Array m_Array;
 
-	static void clearWarnings(java.sql.Wrapper wrapper, XInterface component)
+	// The constructor method:
+	public ArrayToXArrayAdapter(Array array)
+	{
+		m_Array = array;
+	}
+
+	@Override
+	public Object[] getArray(XNameAccess arg0)
 	throws SQLException
 	{
+		// TODO Auto-generated method stub
 		try
 		{
-			if (wrapper.isWrapperFor(Connection.class))
-			{
-				wrapper.unwrap(Connection.class).clearWarnings();
-			}
-			else if(wrapper.isWrapperFor(ResultSet.class))
-			{
-				wrapper.unwrap(ResultSet.class).clearWarnings();
-			}
-			else if(wrapper.isWrapperFor(Statement.class))
-			{
-				wrapper.unwrap(Statement.class).clearWarnings();
-			}
-		} catch (java.sql.SQLException e)
+			return (Object[]) m_Array.getArray();
+		}
+		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getSQLException(e, component);
+			throw new SQLException(e.getMessage());
 		}
 	}
 
-
-	static Object getWarnings(java.sql.Wrapper wrapper, XInterface component)
+	@Override
+	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
 	throws SQLException
 	{
-		java.sql.SQLWarning warning = null;
 		try
 		{
-			if (wrapper.isWrapperFor(Connection.class))
-			{
-				warning = wrapper.unwrap(Connection.class).getWarnings();
-			}
-			else if(wrapper.isWrapperFor(ResultSet.class))
-			{
-				warning = wrapper.unwrap(ResultSet.class).getWarnings();
-			}
-			else if(wrapper.isWrapperFor(Statement.class))
-			{
-				warning = wrapper.unwrap(Statement.class).getWarnings();
-			}
-		} catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, component);
+			return (Object[]) m_Array.getArray(index, count);
 		}
-		if (warning != null)
+		catch (java.sql.SQLException e)
 		{
-			return UnoHelper.getSQLWarning(warning, component);
+			throw new SQLException(e.getMessage());
 		}
-		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
-		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
+	}
+
+	@Override
+	public int getBaseType()
+	throws SQLException
+	{
+		try
+		{
+			return m_Array.getBaseType();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public String getBaseTypeName()
+	throws SQLException
+	{
+		try
+		{
+			return m_Array.getBaseTypeName();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public XResultSet getResultSet(XNameAccess arg0)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
 		return null;
 	}
 

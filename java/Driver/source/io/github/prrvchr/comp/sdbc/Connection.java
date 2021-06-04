@@ -58,7 +58,6 @@ implements XConnection
                       String url,
                       boolean bookmark)
 	{
-		super();
 		System.out.println("Connection.Connection() 1");
 		m_xContext = ctx;
 		m_Connection = connection;
@@ -75,7 +74,6 @@ implements XConnection
                       String url,
                       boolean bookmark)
 	{
-		super();
 		m_name = name;
 		m_services = services;
 		m_xContext = ctx;
@@ -306,20 +304,16 @@ implements XConnection
 			int type, concurrency;
 			if (m_bookmark)
 			{
-				System.out.println("Connection.createStatement() 1");
 				type = io.github.prrvchr.comp.sdbcx.Statement.m_ResultSetType;
 				concurrency = io.github.prrvchr.comp.sdbcx.Statement.m_ResultSetConcurrency;
 				java.sql.Statement statement = m_Connection.createStatement(type, concurrency);
-				System.out.println("Connection.createStatement() 2");
 				return new io.github.prrvchr.comp.sdbcx.Statement(m_xContext, this, statement);
 			}
 			else
 			{
-				System.out.println("Connection.createStatement() 3");
 				type = io.github.prrvchr.comp.sdbc.Statement.m_ResultSetType;
 				concurrency = io.github.prrvchr.comp.sdbc.Statement.m_ResultSetConcurrency;
 				java.sql.Statement statement = m_Connection.createStatement(type, concurrency);
-				System.out.println("Connection.createStatement() 4");
 				return new io.github.prrvchr.comp.sdbc.Statement(m_xContext, this, statement);
 			}
 

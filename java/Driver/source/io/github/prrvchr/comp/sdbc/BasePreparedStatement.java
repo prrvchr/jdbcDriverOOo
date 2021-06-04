@@ -25,10 +25,13 @@
 */
 package io.github.prrvchr.comp.sdbc;
 
+import java.io.InputStream;
+import java.io.Reader;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
@@ -102,7 +105,8 @@ implements XParameters,
 		try
 		{
 			m_Statement.clearParameters();
-		} catch (java.sql.SQLException e)
+		}
+		catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);
 		}
@@ -111,19 +115,42 @@ implements XParameters,
 	@Override
 	public void setArray(int index, XArray value) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			java.sql.Array array =  UnoHelper.getJavaArray(m_Statement, value);
+			m_Statement.setArray(index, array);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
 	public void setBinaryStream(int index, XInputStream value, int lenght) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			InputStream input = new XInputStreamToInputStreamAdapter(value);
+			m_Statement.setBinaryStream(index, input, lenght);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
 	public void setBlob(int index, XBlob value) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			java.sql.Blob blob = UnoHelper.getJavaBlob(m_Statement, value);
+			m_Statement.setBlob(index, blob);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
@@ -165,13 +192,29 @@ implements XParameters,
 	@Override
 	public void setCharacterStream(int index, XInputStream value, int lenght) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			InputStream input = new XInputStreamToInputStreamAdapter(value);
+			Reader reader = new java.io.InputStreamReader(input);
+			m_Statement.setCharacterStream(index, reader, lenght);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
 	public void setClob(int index, XClob value) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			java.sql.Clob clob = UnoHelper.getJavaClob(m_Statement, value);
+			m_Statement.setClob(index, clob);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override

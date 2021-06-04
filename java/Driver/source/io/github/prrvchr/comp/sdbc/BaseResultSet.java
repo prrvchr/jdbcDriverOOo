@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.comp.sdbc;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
@@ -48,6 +50,7 @@ import com.sun.star.uno.XInterface;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
+
 
 import io.github.prrvchr.comp.helper.UnoHelper;
 
@@ -460,15 +463,31 @@ implements XCloseable,
 	@Override
 	public XArray getArray(int index) throws SQLException
 	{
+		/*try
+		{
+			java.sql.Array array = m_ResultSet.getArray(index);
+			return null;
+		} catch (java.sql.SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
 		// TODO: Implement me!!!
+		 */
 		return null;
 	}
 
 	@Override
 	public XInputStream getBinaryStream(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			InputStream input = m_ResultSet.getBinaryStream(index);
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
@@ -514,7 +533,8 @@ implements XCloseable,
 			byte[] value = m_ResultSet.getBytes(index);
 			if (m_ResultSet.wasNull()) value = new byte[0];
 			return value;
-		} catch (java.sql.SQLException e)
+		}
+		catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);
 		}
@@ -523,8 +543,15 @@ implements XCloseable,
 	@Override
 	public XInputStream getCharacterStream(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			InputStream input = m_ResultSet.getAsciiStream(index);
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override

@@ -13,6 +13,9 @@ import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.SQLWarning;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XBlob;
+import com.sun.star.sdbc.XClob;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.UnoRuntime;
@@ -152,6 +155,11 @@ public class UnoHelper
 
 	public static SQLException getException(java.sql.SQLException e, XInterface component)
 	{
+		return getSQLException(e, component);
+	}
+
+	public static SQLException getSQLException(java.sql.SQLException e, XInterface component)
+	{
 		SQLException exception = null;
 		if (e != null)
 		{
@@ -160,13 +168,18 @@ public class UnoHelper
 			exception.Context = component;
 			exception.SQLState = e.getSQLState();
 			exception.ErrorCode = e.getErrorCode();
-			exception.NextException = getException(e.getNextException(), component);
+			exception.NextException = getSQLException(e.getNextException(), component);
 		}
 		return exception;
 	}
 
 
-	public static SQLWarning getWarning(java.sql.SQLWarning w, XInterface component)
+	public static Object getWarning(java.sql.SQLWarning w, XInterface component)
+	{
+		return getSQLWarning(w, component);
+	}
+
+	public static Object getSQLWarning(java.sql.SQLWarning w, XInterface component)
 	{
 		SQLWarning warning = null;
 		if (w != null)
@@ -176,7 +189,7 @@ public class UnoHelper
 			warning.Context = component;
 			warning.SQLState = w.getSQLState();
 			warning.ErrorCode = w.getErrorCode();
-			warning.NextException = getWarning(w.getNextWarning(), component);
+			warning.NextException = getSQLWarning(w.getNextWarning(), component);
 		}
 		return warning;
 	}
@@ -337,5 +350,53 @@ public class UnoHelper
 		return value;
 	}
 
+
+	public static XArray getUnoArray(java.sql.CallableStatement statement, int index)
+	throws java.sql.SQLException
+	{
+		XArray value = null;
+		System.out.println("UnoHelper.getUnoArray() 1");
+		java.sql.Array array = statement.getArray(index);
+		System.out.println("UnoHelper.getUnoArray() 2");
+		if (!statement.wasNull()) value = new ArrayToXArrayAdapter(array);
+		System.out.println("UnoHelper.getUnoArray() 3");
+		return value;
+	}
+
+
+	public static java.sql.Array getJavaArray(java.sql.Statement statement, XArray array)
+	throws java.sql.SQLException, SQLException
+	{
+		String type = array.getBaseTypeName();
+		Object[] value = array.getArray(null);
+		return statement.getConnection().createArrayOf(type, value);
+	}
+
+
+	public static java.sql.Clob getJavaClob(java.sql.Statement statement, XClob clob)
+	throws java.sql.SQLException, SQLException
+	{
+		System.out.println("UnoHelper.getJavaClob() 1");
+		String value = clob.toString();
+		System.out.println("UnoHelper.getJavaClob() 2");
+		java.sql.Clob c = statement.getConnection().createClob();
+		c.setString(1, value);
+		System.out.println("UnoHelper.getJavaClob() 3");
+		return c;
+	}
+
+	public static java.sql.Blob getJavaBlob(java.sql.Statement statement, XBlob blob)
+	throws java.sql.SQLException, SQLException
+	{
+		System.out.println("UnoHelper.getJavaBlob() 1");
+		int len =  (int) blob.length();
+		byte[] value = blob.getBytes(1, len);
+		System.out.println("UnoHelper.getJavaBlob() 2");
+		java.sql.Blob b = statement.getConnection().createBlob();
+		b.setBytes(1, value);
+		System.out.println("UnoHelper.getJavaBlob() 3");
+		return b;
+	}
+	
 
 }

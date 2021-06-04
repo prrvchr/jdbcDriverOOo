@@ -23,75 +23,99 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp.helper;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XInterface;
+import com.sun.star.sdbc.XClob;
 
-import io.github.prrvchr.comp.helper.UnoHelper;
+import org.apache.commons.io.input.ReaderInputStream;
 
 
-final class WarningsSupplier
+public class ClobToXClobAdapter
+extends WeakBase
+implements XClob
 {
+	private java.sql.Clob m_Clob;
 
-	static void clearWarnings(java.sql.Wrapper wrapper, XInterface component)
-	throws SQLException
+	// The constructor method:
+	public ClobToXClobAdapter(java.sql.Clob clob)
 	{
+		m_Clob = clob;
+	}
+
+	// com.sun.star.sdbc.XClob:
+	@Override
+	public XInputStream getCharacterStream() throws SQLException {
 		try
 		{
-			if (wrapper.isWrapperFor(Connection.class))
-			{
-				wrapper.unwrap(Connection.class).clearWarnings();
-			}
-			else if(wrapper.isWrapperFor(ResultSet.class))
-			{
-				wrapper.unwrap(ResultSet.class).clearWarnings();
-			}
-			else if(wrapper.isWrapperFor(Statement.class))
-			{
-				wrapper.unwrap(Statement.class).clearWarnings();
-			}
-		} catch (java.sql.SQLException e)
+			java.io.Reader reader = m_Clob.getCharacterStream();
+			Charset cs = Charset.forName("UTF-8");
+			InputStream input = new ReaderInputStream(reader, cs);
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getSQLException(e, component);
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public String getSubString(long position, int lenght) throws SQLException {
+		try
+		{
+			return m_Clob.getSubString(position, lenght);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long length() throws SQLException {
+		try
+		{
+			return m_Clob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long position(String str, int start) throws SQLException {
+		try
+		{
+			return m_Clob.position(str, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long positionOfClob(XClob clob, long start) throws SQLException {
+		try
+		{
+			java.sql.Clob c = new XClobToClobAdapter(clob);
+			return m_Clob.position(c, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
 		}
 	}
 
 
-	static Object getWarnings(java.sql.Wrapper wrapper, XInterface component)
-	throws SQLException
-	{
-		java.sql.SQLWarning warning = null;
-		try
-		{
-			if (wrapper.isWrapperFor(Connection.class))
-			{
-				warning = wrapper.unwrap(Connection.class).getWarnings();
-			}
-			else if(wrapper.isWrapperFor(ResultSet.class))
-			{
-				warning = wrapper.unwrap(ResultSet.class).getWarnings();
-			}
-			else if(wrapper.isWrapperFor(Statement.class))
-			{
-				warning = wrapper.unwrap(Statement.class).getWarnings();
-			}
-		} catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, component);
-		}
-		if (warning != null)
-		{
-			return UnoHelper.getSQLWarning(warning, component);
-		}
-		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
-		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
-		return null;
-	}
+
 
 
 }

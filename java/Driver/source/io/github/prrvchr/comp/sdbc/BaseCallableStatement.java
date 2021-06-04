@@ -43,6 +43,7 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.comp.helper.ClobToXClobAdapter;
 import io.github.prrvchr.comp.helper.UnoHelper;
 
 
@@ -100,8 +101,13 @@ implements XOutParameters,
 	@Override
 	public XArray getArray(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			return UnoHelper.getUnoArray(m_Statement, index);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
@@ -170,8 +176,16 @@ implements XOutParameters,
 	@Override
 	public XClob getClob(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			java.sql.Clob value = m_Statement.getClob(index);
+			XClob clob = null;
+			if (!m_Statement.wasNull()) clob = new ClobToXClobAdapter(value);
+			return clob;
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
