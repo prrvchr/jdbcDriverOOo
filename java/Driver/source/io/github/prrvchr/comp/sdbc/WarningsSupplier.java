@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.comp.helper.UnoHelper;
@@ -90,7 +91,8 @@ final class WarningsSupplier
 		}
 		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
 		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
-		return null;
+		// XXX: returning <Any.VOID> seem to be the solution...
+		return Any.VOID;
 	}
 
 

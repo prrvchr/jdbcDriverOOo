@@ -23,42 +23,66 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.beans;
+package io.github.prrvchr.comp.sdb;
 
-import java.util.Map;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.XComponentContext;
 
-import com.sun.star.beans.Property;
-import com.sun.star.beans.UnknownPropertyException;
+import io.github.prrvchr.comp.sdbcx.BaseCallableStatement;
+import io.github.prrvchr.comp.sdbcx.ColumnsSupplier;
 
 
-interface XPropertySetInfo extends com.sun.star.beans.XPropertySetInfo
+public class CallableStatement
+extends BaseCallableStatement<CallableStatement>
+implements XColumnsSupplier
 {
+	private static final String m_name = CallableStatement.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
+                                                "com.sun.star.sdbc.CallableStatement",
+                                                "com.sun.star.sdbcx.CallableStatement"};
+	private final java.sql.CallableStatement m_Statement;
 
-	Map<String, Property> _getProperties();
-
-
-	// com.sun.star.beans.XPropertySetInfo:
-	@Override
-	default Property[] getProperties()
+	
+	// The constructor method:
+	public CallableStatement(XComponentContext context,
+                             XConnection connection,
+                             java.sql.CallableStatement statement)
 	{
-		Map<String, Property> properties = _getProperties();
-		int len = properties.size();
-		return properties.values().toArray(new Property[len]);
+		super(context, connection, statement);
+		m_Statement = statement;
 	}
 
+
+	// com.sun.star.sdbcx.XColumnsSupplier:
 	@Override
-	default Property getPropertyByName(String name)
-	throws UnknownPropertyException
+	public XNameAccess getColumns()
 	{
-		Map<String, Property> properties = _getProperties();
-		if (!properties.containsKey(name)) throw new UnknownPropertyException();
-		return properties.get(name);
+		try
+		{
+			java.sql.ResultSetMetaData metadata = m_Statement.getMetaData();
+			return ColumnsSupplier.getColumns(metadata);
+		}
+		catch (java.sql.SQLException e)
+		{
+			// pass
+		}
+		return null;
 	}
 
+
+	// com.sun.star.lang.XServiceInfo:
 	@Override
-	default boolean hasPropertyByName(String name)
+	public String _getImplementationName()
 	{
-		Map<String, Property> properties = _getProperties();
-		return properties.containsKey(name);
+		return m_name;
 	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
+	}
+
+
 }

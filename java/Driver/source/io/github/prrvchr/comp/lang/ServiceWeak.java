@@ -23,57 +23,39 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp.lang;
 
-import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
+import com.sun.star.lib.uno.helper.WeakBase;
 
 
-public final class ResultSet
-extends SuperResultSet<ResultSet>
+public abstract class ServiceWeak
+extends WeakBase
+implements com.sun.star.lang.XServiceInfo
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
-
-
-	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
-	}
-	public ResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, statement, resultset);
-		m_ResultSet = resultset;
-	}
+	public abstract String _getImplementationName();
+	public abstract String[] _getServiceNames();
 
 
 	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public String _getImplementationName()
+	public String getImplementationName()
 	{
-		return m_name;
-	}
-	@Override
-	public String[] _getServiceNames() {
-		return m_services;
+		String name = _getImplementationName();
+		return ServiceInfo.getImplementationName(name);
 	}
 
-
-	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
-	}
-	@Override
-	public XInterface _getInterface()
+	public String[] getSupportedServiceNames()
 	{
-		return this;
+		String[] services = _getServiceNames();
+		return ServiceInfo.getSupportedServiceNames(services);
+	}
+
+	@Override
+	public boolean supportsService(String service)
+	{
+		String[] services = _getServiceNames();
+		return ServiceInfo.supportsService(services, service);
 	}
 
 

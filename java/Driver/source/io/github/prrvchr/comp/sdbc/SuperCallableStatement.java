@@ -43,29 +43,28 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.comp.helper.ClobToXClobAdapter;
 import io.github.prrvchr.comp.helper.UnoHelper;
 
 
-public abstract class BaseCallableStatement<T>
-extends BasePreparedStatement<T>
+public abstract class SuperCallableStatement<T>
+extends SuperPreparedStatement<T>
 implements XOutParameters,
            XRow
 {
 	private final java.sql.CallableStatement m_Statement;
 
 	// The constructor method:
-	public BaseCallableStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.CallableStatement statement)
+	public SuperCallableStatement(XComponentContext context,
+                                  XConnection connection,
+                                  java.sql.CallableStatement statement)
 	{
 		super(context, connection, statement);
 		m_Statement = statement;
 	}
-	public BaseCallableStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.CallableStatement statement,
-                                 Map<String, Property> properties)
+	public SuperCallableStatement(XComponentContext context,
+                                  XConnection connection,
+                                  java.sql.CallableStatement statement,
+                                  Map<String, Property> properties)
 	{
 		super(context, connection, statement, properties);
 		m_Statement = statement;
@@ -103,7 +102,10 @@ implements XOutParameters,
 	{
 		try
 		{
-			return UnoHelper.getUnoArray(m_Statement, index);
+			XArray value = null;
+			java.sql.Array array = m_Statement.getArray(index);
+			if (!m_Statement.wasNull()) value = new Array(array);
+			return value;
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);
@@ -120,8 +122,16 @@ implements XOutParameters,
 	@Override
 	public XBlob getBlob(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			XBlob blob = null;
+			java.sql.Blob value = m_Statement.getBlob(index);
+			if (!m_Statement.wasNull()) blob = new Blob(m_Statement, value);
+			return blob;
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
@@ -178,9 +188,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			java.sql.Clob value = m_Statement.getClob(index);
 			XClob clob = null;
-			if (!m_Statement.wasNull()) clob = new ClobToXClobAdapter(value);
+			java.sql.Clob value = m_Statement.getClob(index);
+			if (!m_Statement.wasNull()) clob = new Clob(m_Statement, value);
 			return clob;
 		} catch (java.sql.SQLException e)
 		{

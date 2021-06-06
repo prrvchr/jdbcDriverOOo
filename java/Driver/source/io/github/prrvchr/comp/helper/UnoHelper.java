@@ -16,6 +16,7 @@ import com.sun.star.sdbc.SQLWarning;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
 import com.sun.star.sdbc.XClob;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.UnoRuntime;
@@ -351,20 +352,7 @@ public class UnoHelper
 	}
 
 
-	public static XArray getUnoArray(java.sql.CallableStatement statement, int index)
-	throws java.sql.SQLException
-	{
-		XArray value = null;
-		System.out.println("UnoHelper.getUnoArray() 1");
-		java.sql.Array array = statement.getArray(index);
-		System.out.println("UnoHelper.getUnoArray() 2");
-		if (!statement.wasNull()) value = new ArrayToXArrayAdapter(array);
-		System.out.println("UnoHelper.getUnoArray() 3");
-		return value;
-	}
-
-
-	public static java.sql.Array getJavaArray(java.sql.Statement statement, XArray array)
+	public static java.sql.Array getSQLArray(java.sql.Statement statement, XArray array)
 	throws java.sql.SQLException, SQLException
 	{
 		String type = array.getBaseTypeName();
@@ -373,7 +361,7 @@ public class UnoHelper
 	}
 
 
-	public static java.sql.Clob getJavaClob(java.sql.Statement statement, XClob clob)
+	public static java.sql.Clob getSQLClob(java.sql.Statement statement, XClob clob)
 	throws java.sql.SQLException, SQLException
 	{
 		System.out.println("UnoHelper.getJavaClob() 1");
@@ -385,7 +373,7 @@ public class UnoHelper
 		return c;
 	}
 
-	public static java.sql.Blob getJavaBlob(java.sql.Statement statement, XBlob blob)
+	public static java.sql.Blob getSQLBlob(java.sql.Statement statement, XBlob blob)
 	throws java.sql.SQLException, SQLException
 	{
 		System.out.println("UnoHelper.getJavaBlob() 1");

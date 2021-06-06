@@ -23,33 +23,52 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp.sdb;
 
+import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.comp.sdbcx.BaseResultSet;
+import io.github.prrvchr.comp.sdbcx.ColumnsSupplier;
+
 
 public final class ResultSet
-extends SuperResultSet<ResultSet>
+extends BaseResultSet<ResultSet>
+implements XColumnsSupplier
 {
 	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
+	private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
+                                                "com.sun.star.sdbc.ResultSet", 
+                                                "com.sun.star.sdbcx.ResultSet"};
+	private final java.sql.ResultSet m_ResultSet;
 
 
 	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
-	}
 	public ResultSet(XComponentContext ctx,
                      XInterface statement,
                      java.sql.ResultSet resultset)
 	{
 		super(ctx, statement, resultset);
 		m_ResultSet = resultset;
+	}
+
+
+	// com.sun.star.sdbcx.XColumnsSupplier:
+	@Override
+	public XNameAccess getColumns()
+	{
+		try
+		{
+			java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
+			return ColumnsSupplier.getColumns(metadata);
+		}
+		catch (java.sql.SQLException e)
+		{
+			// pass
+		}
+		return null;
 	}
 
 
@@ -60,20 +79,9 @@ extends SuperResultSet<ResultSet>
 		return m_name;
 	}
 	@Override
-	public String[] _getServiceNames() {
-		return m_services;
-	}
-
-
-	// com.sun.star.sdbc.XWarningsSupplier:
-	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
-	}
-	@Override
-	public XInterface _getInterface()
+	public String[] _getServiceNames()
 	{
-		return this;
+		return m_services;
 	}
 
 

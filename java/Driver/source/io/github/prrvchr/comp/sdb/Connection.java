@@ -57,9 +57,14 @@ implements XChild,
            XUsersSupplier,
            XViewsSupplier
 {
+	@SuppressWarnings("unused")
 	private final XComponentContext m_xContext;
 	private final java.sql.Connection m_Connection;
+	
+	@SuppressWarnings("unused")
 	private final PropertyValue[] m_info;
+	
+	@SuppressWarnings("unused")
 	private final String m_url;
 	private static final String m_name = Connection.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdb.Connection",
@@ -69,10 +74,9 @@ implements XChild,
 	public Connection(XComponentContext ctx,
                       java.sql.Connection connection,
                       PropertyValue[] info,
-                      String url,
-                      Boolean bookmark)
+                      String url)
 	{
-		super( m_name, m_services, ctx, connection, info, url, bookmark);
+		super(m_name, m_services, ctx, connection, info, url);
 		m_xContext = ctx;
 		m_Connection = connection;
 		m_info = info;

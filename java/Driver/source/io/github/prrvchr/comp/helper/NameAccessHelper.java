@@ -37,9 +37,13 @@ public class NameAccessHelper<T>
 implements XNameAccess
 {
 	private final Map<String, T> m_elements;
-	private final String m_type;
+	private String m_type = "com.sun.star.uno.XInterface";
 
 	// The constructor method:
+	public NameAccessHelper(Map<String, T> elements)
+	{
+		m_elements = elements;
+	}
 	public NameAccessHelper(Map<String, T> elements,
                             String type)
 	{

@@ -23,52 +23,59 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp.sdbcx;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.comp.sdbc.SuperCallableStatement;
+import io.github.prrvchr.comp.helper.UnoHelper;
 
-public final class ResultSet
-extends SuperResultSet<ResultSet>
+
+public abstract class BaseCallableStatement<T>
+extends SuperCallableStatement<T>
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
+	private java.sql.CallableStatement m_Statement;
+	private boolean m_UseBookmarks = true;
+
+	private static Map<String, Property> _getPropertySet()
+	{
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
+	}
 
 
 	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
+	public BaseCallableStatement(XComponentContext context,
+                                 XConnection connection,
+                                 java.sql.CallableStatement statement)
 	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
-	}
-	public ResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, statement, resultset);
-		m_ResultSet = resultset;
+		super(context, connection, statement, _getPropertySet());
+		m_Statement = statement;
 	}
 
 
-	// com.sun.star.lang.XServiceInfo:
-	@Override
-	public String _getImplementationName()
+	public boolean getUseBookmarks()
 	{
-		return m_name;
+		return m_UseBookmarks;
 	}
-	@Override
-	public String[] _getServiceNames() {
-		return m_services;
+	public void setUseBookmarks(boolean value)
+	{
+		m_UseBookmarks = value;
 	}
 
 
 	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
 	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
+		return m_Statement;
 	}
 	@Override
 	public XInterface _getInterface()

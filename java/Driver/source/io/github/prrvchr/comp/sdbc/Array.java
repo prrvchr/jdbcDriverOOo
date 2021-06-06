@@ -25,55 +25,94 @@
 */
 package io.github.prrvchr.comp.sdbc;
 
-import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XResultSet;
 
-
-public final class ResultSet
-extends SuperResultSet<ResultSet>
+public class Array
+extends WeakBase
+implements XArray
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
-
+	private final java.sql.Array m_Array;
 
 	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
+	public Array(java.sql.Array array)
 	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
-	}
-	public ResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, statement, resultset);
-		m_ResultSet = resultset;
+		m_Array = array;
 	}
 
-
-	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public String _getImplementationName()
+	public Object[] getArray(XNameAccess arg0)
+	throws SQLException
 	{
-		return m_name;
-	}
-	@Override
-	public String[] _getServiceNames() {
-		return m_services;
+		try
+		{
+			return (Object[]) m_Array.getArray();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
-
-	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
-	}
-	@Override
-	public XInterface _getInterface()
+	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
+	throws SQLException
 	{
-		return this;
+		try
+		{
+			return (Object[]) m_Array.getArray(index, count);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public int getBaseType()
+	throws SQLException
+	{
+		try
+		{
+			return m_Array.getBaseType();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public String getBaseTypeName()
+	throws SQLException
+	{
+		try
+		{
+			return m_Array.getBaseTypeName();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public XResultSet getResultSet(XNameAccess arg0)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

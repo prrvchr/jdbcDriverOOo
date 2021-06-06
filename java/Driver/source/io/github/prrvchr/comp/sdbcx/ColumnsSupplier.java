@@ -23,57 +23,32 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp.sdbcx;
 
-import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.sun.star.container.XNameAccess;
 
 
-public final class ResultSet
-extends SuperResultSet<ResultSet>
+public final class ColumnsSupplier
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
 
-
-	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
+	public static XNameAccess getColumns(java.sql.ResultSetMetaData metadata)
+	throws java.sql.SQLException
 	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
-	}
-	public ResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, statement, resultset);
-		m_ResultSet = resultset;
-	}
-
-
-	// com.sun.star.lang.XServiceInfo:
-	@Override
-	public String _getImplementationName()
-	{
-		return m_name;
-	}
-	@Override
-	public String[] _getServiceNames() {
-		return m_services;
-	}
-
-
-	// com.sun.star.sdbc.XWarningsSupplier:
-	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
-	}
-	@Override
-	public XInterface _getInterface()
-	{
-		return this;
+		List<String> index = new ArrayList<String>();
+		Map<String, Columns> map = new HashMap<String, Columns>();
+		for (int i = 1; i <= metadata.getColumnCount(); i++)
+		{
+			String name = metadata.getColumnName(i);
+			index.add(name);
+			Columns column = new Columns(i, metadata);
+			map.put(name, column);
+		}
+		return new Container<Columns>(index, map);
 	}
 
 

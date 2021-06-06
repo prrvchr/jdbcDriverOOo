@@ -45,14 +45,16 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XResultSetMetaData;
 import com.sun.star.sdbc.XResultSetMetaDataSupplier;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.comp.helper.UnoHelper;
+import io.github.prrvchr.comp.sdb.ResultSet;
 
 
-public abstract class BasePreparedStatement<T>
+public abstract class SuperPreparedStatement<T>
 extends SuperStatement<T>
 implements XParameters,
            XPreparedBatchExecution,
@@ -63,35 +65,35 @@ implements XParameters,
 
 
 	// The constructor method:
-	public BasePreparedStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.PreparedStatement statement)
+	public SuperPreparedStatement(XComponentContext context,
+                                  XConnection connection,
+                                  java.sql.PreparedStatement statement)
 	{
 		super(context, connection, statement);
 		m_Statement = statement;
 	}
 
-	public BasePreparedStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.PreparedStatement statement,
-                                 Map<String, Property> properties)
+	public SuperPreparedStatement(XComponentContext context,
+                                  XConnection connection,
+                                  java.sql.PreparedStatement statement,
+                                  Map<String, Property> properties)
 	{
 		super(context, connection, statement, properties);
 		m_Statement = statement;
 	}
 
-	public BasePreparedStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.CallableStatement statement)
+	public SuperPreparedStatement(XComponentContext context,
+                                  XConnection connection,
+                                  java.sql.CallableStatement statement)
 	{
 		super(context, connection, statement);
 		m_Statement = statement;
 	}
 
-	public BasePreparedStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.CallableStatement statement,
-                                 Map<String, Property> properties)
+	public SuperPreparedStatement(XComponentContext context,
+                                  XConnection connection,
+                                  java.sql.CallableStatement statement,
+                                  Map<String, Property> properties)
 	{
 		super(context, connection, statement, properties);
 		m_Statement = statement;
@@ -117,7 +119,7 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.Array array =  UnoHelper.getJavaArray(m_Statement, value);
+			java.sql.Array array =  UnoHelper.getSQLArray(m_Statement, value);
 			m_Statement.setArray(index, array);
 		}
 		catch (java.sql.SQLException e)
@@ -144,7 +146,7 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.Blob blob = UnoHelper.getJavaBlob(m_Statement, value);
+			java.sql.Blob blob = UnoHelper.getSQLBlob(m_Statement, value);
 			m_Statement.setBlob(index, blob);
 		}
 		catch (java.sql.SQLException e)
@@ -208,7 +210,7 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.Clob clob = UnoHelper.getJavaClob(m_Statement, value);
+			java.sql.Clob clob = UnoHelper.getSQLClob(m_Statement, value);
 			m_Statement.setClob(index, clob);
 		}
 		catch (java.sql.SQLException e)
@@ -422,7 +424,8 @@ implements XParameters,
 		try
 		{
 			java.sql.ResultSet resultset = m_Statement.executeQuery();
-			return new ResultSet(m_xContext, this, resultset);
+			XInterface component = _getInterface();
+			return new ResultSet(m_xContext, component, resultset);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);

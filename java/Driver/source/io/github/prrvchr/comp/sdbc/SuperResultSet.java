@@ -53,9 +53,10 @@ import com.sun.star.util.Time;
 
 
 import io.github.prrvchr.comp.helper.UnoHelper;
+import io.github.prrvchr.comp.sdbc.Array;
+import io.github.prrvchr.comp.sdbc.Clob;
 
-
-public abstract class BaseResultSet<T>
+public abstract class SuperResultSet<T>
 extends WarningsSupplierProperty
 implements XCloseable,
            XColumnLocate,
@@ -93,27 +94,27 @@ implements XCloseable,
 
 
 	// The constructor method:
-	public BaseResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
+	public SuperResultSet(XComponentContext ctx,
+                          java.sql.ResultSet resultset)
 	{
 		super(_getPropertySet());
 		m_xContext = ctx;
 		m_xStatement = null;
 		m_ResultSet = resultset;
 	}
-	public BaseResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
+	public SuperResultSet(XComponentContext ctx,
+                          XInterface statement,
+                          java.sql.ResultSet resultset)
 	{
 		super(_getPropertySet());
 		m_xContext = ctx;
 		m_xStatement = statement;
 		m_ResultSet = resultset;
 	}
-	public BaseResultSet(XComponentContext ctx,
-                         XInterface statement,
-                         java.sql.ResultSet resultset,
-                         Map<String, Property> properties)
+	public SuperResultSet(XComponentContext ctx,
+                          XInterface statement,
+                          java.sql.ResultSet resultset,
+                          Map<String, Property> properties)
 	{
 		super(_getPropertySet(properties));
 		m_xContext = ctx;
@@ -463,17 +464,15 @@ implements XCloseable,
 	@Override
 	public XArray getArray(int index) throws SQLException
 	{
-		/*try
+		try
 		{
+			XArray value = null;
 			java.sql.Array array = m_ResultSet.getArray(index);
-			return null;
+			if (!m_ResultSet.wasNull()) value = new Array(array);
+			return value;
 		} catch (java.sql.SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw UnoHelper.getException(e, this);
 		} 
-		// TODO: Implement me!!!
-		 */
-		return null;
 	}
 
 	@Override
@@ -493,8 +492,21 @@ implements XCloseable,
 	@Override
 	public XBlob getBlob(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			XBlob value = null;
+			java.sql.Blob blob = m_ResultSet.getBlob(index);
+			if (!m_ResultSet.wasNull())
+			{
+				java.sql.Statement statement = m_ResultSet.getStatement();
+				value = new Blob(statement, blob);
+			}
+			return value;
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override
@@ -557,8 +569,21 @@ implements XCloseable,
 	@Override
 	public XClob getClob(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			XClob value = null;
+			java.sql.Clob clob = m_ResultSet.getClob(index);
+			if (!m_ResultSet.wasNull())
+			{
+				java.sql.Statement statement = m_ResultSet.getStatement();
+				value = new Clob(statement, clob);
+			}
+			return value;
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getException(e, this);
+		}
 	}
 
 	@Override

@@ -61,7 +61,6 @@ extends BaseStatement<Statement>
                      java.sql.Statement statement)
 	{
 		super(context, connection, statement, _getPropertySet());
-		System.out.println("Statement.Statement() sdbcx 1");
 		m_Statement = statement;
 	}
 
@@ -83,14 +82,16 @@ extends BaseStatement<Statement>
 		return m_name;
 	}
 	@Override
-	public String[] _getServiceNames() {
+	public String[] _getServiceNames()
+	{
 		return m_services;
 	}
 
 
 	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public java.sql.Wrapper _getWrapper(){
+	public java.sql.Wrapper _getWrapper()
+	{
 		return m_Statement;
 	}
 	@Override

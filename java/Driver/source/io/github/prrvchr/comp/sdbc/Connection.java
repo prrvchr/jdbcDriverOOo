@@ -35,6 +35,9 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.comp.sdb.CallableStatement;
+import io.github.prrvchr.comp.sdb.PreparedStatement;
+import io.github.prrvchr.comp.sdbcx.Statement;
 import io.github.prrvchr.comp.sdbc.DatabaseMetaData;
 import io.github.prrvchr.comp.helper.UnoHelper;
 
@@ -47,7 +50,6 @@ implements XConnection
 	private final java.sql.Connection m_Connection;
 	private final PropertyValue[] m_info;
 	private final String m_url;
-	private final boolean m_bookmark;
 	private static String m_name = Connection.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Connection"};
 
@@ -55,15 +57,13 @@ implements XConnection
 	public Connection(XComponentContext ctx,
                       java.sql.Connection connection,
                       PropertyValue[] info,
-                      String url,
-                      boolean bookmark)
+                      String url)
 	{
 		System.out.println("Connection.Connection() 1");
 		m_xContext = ctx;
 		m_Connection = connection;
 		m_info = info;
 		m_url = url;
-		m_bookmark = bookmark;
 		System.out.println("Connection.Connection() 2");
 	}
 	public Connection(String name,
@@ -71,8 +71,7 @@ implements XConnection
                       XComponentContext ctx,
                       java.sql.Connection connection,
                       PropertyValue[] info,
-                      String url,
-                      boolean bookmark)
+                      String url)
 	{
 		m_name = name;
 		m_services = services;
@@ -80,7 +79,6 @@ implements XConnection
 		m_Connection = connection;
 		m_info = info;
 		m_url = url;
-		m_bookmark = bookmark;
 	}
 	
 
@@ -300,23 +298,11 @@ implements XConnection
 	{
 		try
 		{
-
 			int type, concurrency;
-			if (m_bookmark)
-			{
-				type = io.github.prrvchr.comp.sdbcx.Statement.m_ResultSetType;
-				concurrency = io.github.prrvchr.comp.sdbcx.Statement.m_ResultSetConcurrency;
-				java.sql.Statement statement = m_Connection.createStatement(type, concurrency);
-				return new io.github.prrvchr.comp.sdbcx.Statement(m_xContext, this, statement);
-			}
-			else
-			{
-				type = io.github.prrvchr.comp.sdbc.Statement.m_ResultSetType;
-				concurrency = io.github.prrvchr.comp.sdbc.Statement.m_ResultSetConcurrency;
-				java.sql.Statement statement = m_Connection.createStatement(type, concurrency);
-				return new io.github.prrvchr.comp.sdbc.Statement(m_xContext, this, statement);
-			}
-
+			type = Statement.m_ResultSetType;
+			concurrency = Statement.m_ResultSetConcurrency;
+			java.sql.Statement statement = m_Connection.createStatement(type, concurrency);
+			return new Statement(m_xContext, this, statement);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);
@@ -329,20 +315,10 @@ implements XConnection
 		try
 		{
 			int type, concurrency;
-			if (m_bookmark)
-			{
-				type = io.github.prrvchr.comp.sdbcx.CallableStatement.m_ResultSetType;
-				concurrency = io.github.prrvchr.comp.sdbcx.CallableStatement.m_ResultSetConcurrency;
-				java.sql.CallableStatement statement = m_Connection.prepareCall(sql, type, concurrency);
-				return new io.github.prrvchr.comp.sdbcx.CallableStatement(m_xContext, this, statement);
-			}
-			else
-			{
-				type = io.github.prrvchr.comp.sdbc.CallableStatement.m_ResultSetType;
-				concurrency = io.github.prrvchr.comp.sdbc.CallableStatement.m_ResultSetConcurrency;
-				java.sql.CallableStatement statement = m_Connection.prepareCall(sql, type, concurrency);
-				return new io.github.prrvchr.comp.sdbc.CallableStatement(m_xContext, this, statement);
-			}
+			type = CallableStatement.m_ResultSetType;
+			concurrency = CallableStatement.m_ResultSetConcurrency;
+			java.sql.CallableStatement statement = m_Connection.prepareCall(sql, type, concurrency);
+			return new CallableStatement(m_xContext, this, statement);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);
@@ -355,20 +331,10 @@ implements XConnection
 		try
 		{
 			int type, concurrency;
-			if (m_bookmark)
-			{
-				type = io.github.prrvchr.comp.sdbcx.PreparedStatement.m_ResultSetType;
-				concurrency = io.github.prrvchr.comp.sdbcx.PreparedStatement.m_ResultSetConcurrency;
-				java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, type, concurrency);
-				return new io.github.prrvchr.comp.sdbcx.PreparedStatement(m_xContext, this, statement);
-			}
-			else
-			{
-				type = io.github.prrvchr.comp.sdbc.PreparedStatement.m_ResultSetType;
-				concurrency = io.github.prrvchr.comp.sdbc.PreparedStatement.m_ResultSetConcurrency;
-				java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, type, concurrency);
-				return new io.github.prrvchr.comp.sdbc.PreparedStatement(m_xContext, this, statement);
-			}
+			type = PreparedStatement.m_ResultSetType;
+			concurrency = PreparedStatement.m_ResultSetConcurrency;
+			java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, type, concurrency);
+			return new PreparedStatement(m_xContext, this, statement);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getException(e, this);

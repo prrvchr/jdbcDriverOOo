@@ -25,55 +25,99 @@
 */
 package io.github.prrvchr.comp.sdbc;
 
-import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
+import java.io.InputStream;
+
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XBlob;
+
+import io.github.prrvchr.comp.helper.UnoHelper;
 
 
-public final class ResultSet
-extends SuperResultSet<ResultSet>
+public class Blob
+extends WeakBase
+implements XBlob
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
+	private java.sql.Statement m_Statement;
+	private java.sql.Blob m_Blob;
 
-
+	
 	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
+	public Blob(java.sql.Statement statement,
+                java.sql.Blob blob)
 	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
-	}
-	public ResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, statement, resultset);
-		m_ResultSet = resultset;
+		m_Statement = statement;
+		m_Blob = blob;
 	}
 
 
-	// com.sun.star.lang.XServiceInfo:
+	// com.sun.star.sdbc.XBlob:
 	@Override
-	public String _getImplementationName()
-	{
-		return m_name;
-	}
-	@Override
-	public String[] _getServiceNames() {
-		return m_services;
+	public XInputStream getBinaryStream() throws SQLException {
+		try
+		{
+			InputStream input = m_Blob.getBinaryStream();
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 
-	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
+	public byte[] getBytes(long position, int length) throws SQLException {
+		try
+		{
+			return m_Blob.getBytes(position, length);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
+
+
 	@Override
-	public XInterface _getInterface()
-	{
-		return this;
+	public long length() throws SQLException {
+		try
+		{
+			return m_Blob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	@Override
+	public long position(byte[] pattern, long start) throws SQLException {
+		try
+		{
+			return m_Blob.position(pattern, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	@Override
+	public long positionOfBlob(XBlob blob, long start) throws SQLException {
+		try
+		{
+			java.sql.Blob b = UnoHelper.getSQLBlob(m_Statement, blob);
+			return m_Blob.position(b, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 

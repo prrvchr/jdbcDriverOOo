@@ -30,8 +30,8 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 
-public class CallableStatement
-extends BaseCallableStatement<CallableStatement>
+public final class CallableStatement
+extends SuperCallableStatement<CallableStatement>
 {
 	private static final String m_name = CallableStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};

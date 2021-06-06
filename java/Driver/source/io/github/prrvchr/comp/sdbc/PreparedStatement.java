@@ -31,7 +31,7 @@ import com.sun.star.uno.XInterface;
 
 
 public class PreparedStatement
-extends BasePreparedStatement<PreparedStatement>
+extends SuperPreparedStatement<PreparedStatement>
 {
 	private static final String m_name = PreparedStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};

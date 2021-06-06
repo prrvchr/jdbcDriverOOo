@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,101 +25,60 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-*/
-package io.github.prrvchr.comp.helper;
+"""
 
-import java.sql.Array;
+import uno
+import unohelper
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XArray;
-import com.sun.star.sdbc.XResultSet;
+from com.sun.star.lang import XComponent
+from com.sun.star.lang import XServiceInfo
+from com.sun.star.lang import XInitialization
 
-public class ArrayToXArrayAdapter
-extends WeakBase
-implements XArray
-{
-	private final Array m_Array;
+from hsqldbdriver import createService
+from hsqldbdriver import g_identifier
 
-	// The constructor method:
-	public ArrayToXArrayAdapter(Array array)
-	{
-		m_Array = array;
-	}
+import traceback
 
-	@Override
-	public Object[] getArray(XNameAccess arg0)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		try
-		{
-			return (Object[]) m_Array.getArray();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
-	@Override
-	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
-	throws SQLException
-	{
-		try
-		{
-			return (Object[]) m_Array.getArray(index, count);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
-	@Override
-	public int getBaseType()
-	throws SQLException
-	{
-		try
-		{
-			return m_Array.getBaseType();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
-	@Override
-	public String getBaseTypeName()
-	throws SQLException
-	{
-		try
-		{
-			return m_Array.getBaseTypeName();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
-	@Override
-	public XResultSet getResultSet(XNameAccess arg0)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+# pythonloader looks for a static g_ImplementationHelper variable
+g_ImplementationHelper = unohelper.ImplementationHelper()
+g_ImplementationName = '%s.DefinitionContainer' % g_identifier
 
 
-}
+class DefinitionContainer(unohelper.Base,
+                          XComponent,
+                          XInitialization,
+                          XServiceInfo):
+
+    def __init__(self, ctx, *args):
+        print("DefinitionContainer.__init__() *************************************")
+        self._ctx = ctx
+        self._listeners = []
+        self.initialize(args)
+
+# XComponent
+    def dispose(self):
+        pass
+    def addEventListener(self, listener):
+        self._listeners.append(listener)
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
+# XServiceInfo
+    def supportsService(self, service):
+        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+    def getImplementationName(self):
+        return g_ImplementationName
+    def getSupportedServiceNames(self):
+        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+
+# XInitialization
+    def initialize(self, arguments):
+        print("DefinitionContainer.initialize() *************************************")
+        mri = createService(self._ctx, 'mytools.Mri')
+        mri.inspect(arguments)
+
+
+g_ImplementationHelper.addImplementation(DefinitionContainer,
+                                         g_ImplementationName,
+                                        ('com.sun.star.sdb.DefinitionContainer', ))

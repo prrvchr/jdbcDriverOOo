@@ -25,56 +25,104 @@
 */
 package io.github.prrvchr.comp.sdbc;
 
-import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XClob;
+
+import org.apache.commons.io.input.ReaderInputStream;
+
+import io.github.prrvchr.comp.helper.UnoHelper;
 
 
-public final class ResultSet
-extends SuperResultSet<ResultSet>
+public class Clob
+extends WeakBase
+implements XClob
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
+	private java.sql.Statement m_Statement;
+	private java.sql.Clob m_Clob;
 
-
+	
 	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, resultset);
-		m_ResultSet = resultset;
+	public Clob(java.sql.Statement statement,
+            java.sql.Clob clob)
+{
+		m_Statement = statement;
+	m_Clob = clob;
+}
+
+	
+	// com.sun.star.sdbc.XClob:
+	@Override
+	public XInputStream getCharacterStream() throws SQLException {
+		try
+		{
+			java.io.Reader reader = m_Clob.getCharacterStream();
+			Charset cs = Charset.forName("UTF-8");
+			InputStream input = new ReaderInputStream(reader, cs);
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
-	public ResultSet(XComponentContext ctx,
-                     XInterface statement,
-                     java.sql.ResultSet resultset)
-	{
-		super(ctx, statement, resultset);
-		m_ResultSet = resultset;
+
+	@Override
+	public String getSubString(long position, int lenght) throws SQLException {
+		try
+		{
+			return m_Clob.getSubString(position, lenght);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long length() throws SQLException {
+		try
+		{
+			return m_Clob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long position(String str, int start) throws SQLException {
+		try
+		{
+			return m_Clob.position(str, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long positionOfClob(XClob clob, long start) throws SQLException {
+		try
+		{
+			java.sql.Clob c = UnoHelper.getSQLClob(m_Statement, clob);
+			return m_Clob.position(c, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 
-	// com.sun.star.lang.XServiceInfo:
-	@Override
-	public String _getImplementationName()
-	{
-		return m_name;
-	}
-	@Override
-	public String[] _getServiceNames() {
-		return m_services;
-	}
 
-
-	// com.sun.star.sdbc.XWarningsSupplier:
-	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_ResultSet;
-	}
-	@Override
-	public XInterface _getInterface()
-	{
-		return this;
-	}
 
 
 }

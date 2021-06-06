@@ -26,21 +26,21 @@
 package io.github.prrvchr.comp.lang;
 
 
-final class ServiceInfo
+public final class ServiceInfo
 {
 
 	// com.sun.star.lang.XServiceInfo:
-	static String getImplementationName(String name)
+	public static String getImplementationName(String name)
 	{
 		return name;
 	}
 
-	static String[] getSupportedServiceNames(String[] services)
+	public static String[] getSupportedServiceNames(String[] services)
 	{
 		return services;
 	}
 
-	static boolean supportsService(String[] services, String service)
+	public static boolean supportsService(String[] services, String service)
 	{
 		boolean support = false;
 		int len = services.length;

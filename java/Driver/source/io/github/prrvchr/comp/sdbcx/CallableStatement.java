@@ -25,16 +25,8 @@
 */
 package io.github.prrvchr.comp.sdbcx;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
-
-import io.github.prrvchr.comp.sdbc.BaseCallableStatement;
-import io.github.prrvchr.comp.helper.UnoHelper;
 
 
 public class CallableStatement
@@ -43,16 +35,6 @@ extends BaseCallableStatement<CallableStatement>
 	private static final String m_name = CallableStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement",
                                                 "com.sun.star.sdbcx.CallableStatement"};
-	private java.sql.CallableStatement m_Statement;
-	private boolean m_UseBookmarks = true;
-
-	private static Map<String, Property> _getPropertySet()
-	{
-		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
-		map.put(UnoHelper.getPropertyName(p1), p1);
-		return map;
-	}
 
 
 	// The constructor method:
@@ -60,18 +42,7 @@ extends BaseCallableStatement<CallableStatement>
                              XConnection connection,
                              java.sql.CallableStatement statement)
 	{
-		super(context, connection, statement, _getPropertySet());
-		m_Statement = statement;
-	}
-
-
-	public boolean getUseBookmarks()
-	{
-		return m_UseBookmarks;
-	}
-	public void setUseBookmarks(boolean value)
-	{
-		m_UseBookmarks = value;
+		super(context, connection, statement);
 	}
 
 
@@ -82,20 +53,9 @@ extends BaseCallableStatement<CallableStatement>
 		return m_name;
 	}
 	@Override
-	public String[] _getServiceNames() {
-		return m_services;
-	}
-
-
-	// com.sun.star.sdbc.XWarningsSupplier:
-	@Override
-	public java.sql.Wrapper _getWrapper(){
-		return m_Statement;
-	}
-	@Override
-	public XInterface _getInterface()
+	public String[] _getServiceNames()
 	{
-		return this;
+		return m_services;
 	}
 
 

@@ -30,7 +30,10 @@
   oor:package="org.openoffice.Office.DataAccess"
   oor:name="Drivers">
     <node oor:name="Installed">
-        <node oor:name="sdbc:hsqldb:*" oor:op="replace">
+        <node oor:name="sdbc:hsqldb:" oor:op="replace">
+            <prop oor:name="ParentURLPattern">
+                <value>sdbc:hsqldb:*</value>
+            </prop>
             <prop oor:name="Driver">
                 <value>io.github.prrvchr.HsqlDBDriverOOo.Driver</value>
             </prop>
@@ -38,6 +41,23 @@
                 <value xml:lang="en-US">HsqlDB Driver</value>
                 <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
+            <node oor:name="Properties">
+                <node oor:name="Forms" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>io.github.prrvchr.HsqlDBDriverOOo.DefinitionContainer</value>
+                    </prop>
+                </node>
+                <node oor:name="Reports" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>io.github.prrvchr.HsqlDBDriverOOo.DefinitionContainer</value>
+                    </prop>
+                </node>
+                <node oor:name="CommandDefinitions" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>io.github.prrvchr.HsqlDBDriverOOo.DefinitionContainer</value>
+                    </prop>
+                </node>
+            </node>
             <node oor:name="Features">
                 <node oor:name="EscapeDateTime" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
@@ -93,5 +113,5 @@
                 </node>
             </node>
         </node>
-     </node>
+    </node>
 </oor:component-data>

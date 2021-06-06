@@ -23,99 +23,64 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.helper;
+package io.github.prrvchr.comp.sdb;
 
-import java.io.InputStream;
-import java.nio.charset.Charset;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.XComponentContext;
 
-import com.sun.star.io.XInputStream;
-import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
-import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XClob;
-
-import org.apache.commons.io.input.ReaderInputStream;
+import io.github.prrvchr.comp.sdbcx.BasePreparedStatement;
+import io.github.prrvchr.comp.sdbcx.ColumnsSupplier;
 
 
-public class ClobToXClobAdapter
-extends WeakBase
-implements XClob
+public final class PreparedStatement
+extends BasePreparedStatement<PreparedStatement>
+implements XColumnsSupplier
 {
-	private java.sql.Clob m_Clob;
+	private static String m_name = PreparedStatement.class.getName();
+	private static String[] m_services = {"com.sun.star.sdb.PreparedStatement",
+                                          "com.sun.star.sdbc.PreparedStatement",
+                                          "com.sun.star.sdbcx.PreparedStatement"};
+	private final java.sql.PreparedStatement m_Statement;
 
 	// The constructor method:
-	public ClobToXClobAdapter(java.sql.Clob clob)
+	public PreparedStatement(XComponentContext context,
+                             XConnection connection,
+                             java.sql.PreparedStatement statement)
 	{
-		m_Clob = clob;
+		super(context, connection, statement);
+		m_Statement = statement;
 	}
 
-	// com.sun.star.sdbc.XClob:
+	// com.sun.star.sdbcx.XColumnsSupplier:
 	@Override
-	public XInputStream getCharacterStream() throws SQLException {
+	public XNameAccess getColumns()
+	{
 		try
 		{
-			java.io.Reader reader = m_Clob.getCharacterStream();
-			Charset cs = Charset.forName("UTF-8");
-			InputStream input = new ReaderInputStream(reader, cs);
-			return new InputStreamToXInputStreamAdapter(input);
+			java.sql.ResultSetMetaData metadata = m_Statement.getMetaData();
+			return ColumnsSupplier.getColumns(metadata);
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw new SQLException(e.getMessage());
+			// pass
 		}
+		return null;
 	}
 
+
+	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public String getSubString(long position, int lenght) throws SQLException {
-		try
-		{
-			return m_Clob.getSubString(position, lenght);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+	public String _getImplementationName()
+	{
+		return m_name;
 	}
-
 	@Override
-	public long length() throws SQLException {
-		try
-		{
-			return m_Clob.length();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+	public String[] _getServiceNames()
+	{
+		return m_services;
 	}
-
-	@Override
-	public long position(String str, int start) throws SQLException {
-		try
-		{
-			return m_Clob.position(str, start);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
-	@Override
-	public long positionOfClob(XClob clob, long start) throws SQLException {
-		try
-		{
-			java.sql.Clob c = new XClobToClobAdapter(clob);
-			return m_Clob.position(c, start);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
-	}
-
-
-
 
 
 }

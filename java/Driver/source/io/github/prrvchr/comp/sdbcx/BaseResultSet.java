@@ -23,31 +23,121 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.beans;
+package io.github.prrvchr.comp.sdbcx;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XRowLocate;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.comp.sdbc.SuperResultSet;
+import io.github.prrvchr.comp.helper.UnoHelper;
 
 
-public class PropertySetInfo
-implements XPropertySetInfo
+public abstract class BaseResultSet<T>
+extends SuperResultSet<T>
+implements XRowLocate
 {
-	private final Map<String, Property> m_properties;
+	private final java.sql.ResultSet m_ResultSet;
+	private boolean m_IsBookmarkable = true;
+
+	private static Map<String, Property> _getPropertySet()
+	{
+		short readonly = PropertyAttribute.READONLY;
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("IsBookmarkable", "boolean", readonly);
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
+	}
+
 
 	// The constructor method:
-	public PropertySetInfo(Map<String, Property> properties)
+	public BaseResultSet(XComponentContext ctx,
+                         XInterface statement,
+                         java.sql.ResultSet resultset)
 	{
-		m_properties = properties;
+		super(ctx, statement, resultset, _getPropertySet());
+		m_ResultSet = resultset;
 	}
 
 
-	// XPropertySetInfo
-	public Map<String, Property> _getProperties()
+	public boolean getIsBookmarkable()
 	{
-		return m_properties;
+		System.out.println("ResultSet.getIsBookmarkable()");
+		return m_IsBookmarkable;
 	}
 
+
+	// com.sun.star.sdbcx.XRowLocate:
+	@Override
+	public int compareBookmarks(Object bookmark1, Object bookmark2)
+	throws SQLException
+	{
+		System.out.println("ResultSet.compareBookmarks()");
+		return 0;
+	}
+
+
+	@Override
+	public Object getBookmark()
+	throws SQLException
+	{
+		System.out.println("ResultSet.getBookmark()");
+		return null;
+	}
+
+
+	@Override
+	public boolean hasOrderedBookmarks()
+	throws SQLException
+	{
+		System.out.println("ResultSet.hasOrderedBookmarks()");
+		return false;
+	}
+
+
+	@Override
+	public int hashBookmark(Object arg0)
+	throws SQLException
+	{
+		System.out.println("ResultSet.hashBookmark()");
+		return 0;
+	}
+
+
+	@Override
+	public boolean moveRelativeToBookmark(Object arg0, int arg1)
+	throws SQLException
+	{
+		System.out.println("ResultSet.moveRelativeToBookmark()");
+		return false;
+	}
+
+
+	@Override
+	public boolean moveToBookmark(Object arg0)
+	throws SQLException
+	{
+		System.out.println("ResultSet.moveToBookmark()");
+		return false;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper(){
+		return m_ResultSet;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
+	}
 
 
 }

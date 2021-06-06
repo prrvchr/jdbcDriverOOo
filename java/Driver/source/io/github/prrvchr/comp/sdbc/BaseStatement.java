@@ -38,6 +38,7 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.comp.helper.UnoHelper;
+import io.github.prrvchr.comp.sdb.ResultSet;
 
 
 public abstract class BaseStatement<T>

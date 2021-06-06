@@ -148,7 +148,7 @@ implements XDriver
 			throw UnoHelper.getException(e, this);
 		}
 		System.out.println("Driver.connect() 2");
-		return new Connection(m_xContext, connection, info, url, false);
+		return new Connection(m_xContext, connection, info, url);
 	}
 
 	public boolean acceptsURL(String url)
