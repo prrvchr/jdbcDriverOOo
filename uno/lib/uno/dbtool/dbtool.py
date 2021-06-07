@@ -37,6 +37,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from ..unolib import KeyMap
 
+from .object import Object
+
 from ..unotool import createService
 from ..unotool import getPropertyValue
 from ..unotool import getPropertyValueSet
@@ -56,6 +58,7 @@ from ..logger import getMessage
 g_message = 'dbtools'
 
 import traceback
+
 
 
 def getDataSourceConnection(ctx, url, name='', password='', create=True):
@@ -308,6 +311,20 @@ def getDataFromResult(result, provider=None):
             value = provider.transform(name, value)
         data[name] = value
     return data
+
+def getObjectSequenceFromResult(result, default=None):
+    sequence = []
+    count = result.MetaData.ColumnCount +1
+    while result.next():
+        obj = Object()
+        for i in range(1, count):
+            name = result.MetaData.getColumnName(i)
+            value = getValueFromResult(result, i, default)
+            if result.wasNull():
+                value = default
+            setattr(obj, name, value)
+        sequence.append(obj)
+    return sequence
 
 def getKeyMapSequenceFromResult(result, provider=None):
     sequence = []

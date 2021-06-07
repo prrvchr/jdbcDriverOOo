@@ -27,29 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dbtool import checkDataBase
-from .dbtool import createDataSource
-from .dbtool import createStaticTable
-from .dbtool import executeQueries
-from .dbtool import executeSqlQueries
-from .dbtool import getConnectionInfo
-from .dbtool import getDataBaseConnection
-from .dbtool import getDataBaseInfo
-from .dbtool import getDataBaseUrl
-from .dbtool import getDataFromResult
-from .dbtool import getDataSource
-from .dbtool import getDataSourceCall
-from .dbtool import getDataSourceClassPath
-from .dbtool import getDataSourceConnection
-from .dbtool import getDictFromResult
-from .dbtool import getDriverPropertyInfo
-from .dbtool import getKeyMapFromResult
-from .dbtool import getKeyMapKeyMapFromResult
-from .dbtool import getKeyMapSequenceFromResult
-from .dbtool import getObjectSequenceFromResult
-from .dbtool import getSequenceFromResult
-from .dbtool import getSqlException
-from .dbtool import getValueFromResult
-from .dbtool import registerDataSource
+import unohelper
 
-from .array import Array
+
+class Object(object):
+    pass
