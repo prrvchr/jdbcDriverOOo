@@ -318,7 +318,7 @@ def getObjectSequenceFromResult(result, default=None):
     while result.next():
         obj = Object()
         for i in range(1, count):
-            name = result.MetaData.getColumnName(i)
+            name = result.MetaData.getColumnLabel(i)
             value = getValueFromResult(result, i, default)
             if result.wasNull():
                 value = default

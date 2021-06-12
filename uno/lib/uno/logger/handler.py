@@ -27,14 +27,70 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .logger import Logger
-from .handler import LogHandler
+import uno
+import unohelper
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+from com.sun.star.logging.LogLevel import SEVERE
+from com.sun.star.logging.LogLevel import WARNING
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import CONFIG
+from com.sun.star.logging.LogLevel import FINE
+from com.sun.star.logging.LogLevel import FINER
+from com.sun.star.logging.LogLevel import FINEST
+from com.sun.star.logging.LogLevel import ALL
+from com.sun.star.logging.LogLevel import OFF
+
+from com.sun.star.logging import XLogHandler
+
+
+class LogHandler(unohelper.Base,
+                 XLogHandler):
+    def __init__(self):
+        self._encoding = 'UTF-8'
+        self._formatter = None
+        self._level = ALL
+        self._listener = []
+
+    @property
+    def Encoding(self):
+        return self._encoding
+    @Encoding.setter
+    def Encoding(self, value):
+        self._encoding = value
+
+    @property
+    def Formatter(self):
+        return self._formatter
+    @Formatter.setter
+    def Formatter(self, value):
+        print("LogHandler.Formatter.setter()")
+        self._formatter = value
+
+    @property
+    def Level(self):
+        return self._level
+    @Level.setter
+    def Level(self, value):
+        self._level = value
+
+# XLogHandler
+    def flush(self):
+        print("LogHandler.flush()")
+
+    def publish(self, record):
+        print("LogHandler.publish() %s" % record.Message)
+        return True
+
+# XComponent <- XLogHandler
+    def dispose(self):
+        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
+        event.Source = self
+        for listener in self._listeners:
+            listener.disposing(event)
+
+    def addEventListener(self, listener):
+        self._listeners.append(listener)
+
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)

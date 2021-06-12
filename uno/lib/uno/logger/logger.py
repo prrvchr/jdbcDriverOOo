@@ -27,6 +27,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import unohelper
+
 from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.logging.LogLevel import WARNING
 from com.sun.star.logging.LogLevel import INFO
@@ -37,186 +39,176 @@ from com.sun.star.logging.LogLevel import FINEST
 from com.sun.star.logging.LogLevel import ALL
 from com.sun.star.logging.LogLevel import OFF
 
+from ..unotool import createService
 from ..unotool import getConfiguration
 from ..unotool import getStringResource
 
 from ..configuration import g_identifier
+from ..configuration import g_resource
 
-g_resources = {}
-g_logger = None
-g_debug = False
-g_settings = None
 
+class Logger(unohelper.Base):
+    def __init__(self, ctx, name='Logger', resource=None):
+        self._ctx = ctx
+        self._name = '%s.%s' % (g_identifier, name)
+        self._resolver = self._getStringResource(resource)
+
+    _loggerpool = {}
+    _logsetting = {}
 
 # Public getter method
-def isDebugMode():
-    return g_debug
+    def isDebugMode(self):
+        return self._name in Logger._logsetting
 
-def isLoggerEnabled(ctx):
-    level = _getLogConfig(ctx).LogLevel
-    enabled = _isLogEnabled(level)
-    return enabled
+    def isLoggerEnabled(self):
+        level = self._getLogConfig().LogLevel
+        enabled = self._isLogEnabled(level)
+        return enabled
 
-def getMessage(ctx, fileresource, resource, format=()):
-    msg = _getResource(ctx, fileresource).resolveString(resource)
-    if format:
-        msg = msg % format
-    return msg
+    def getMessage(self, resource, format=None):
+        if self._resolver is not None:
+            msg = self._resolver.resolveString(resource)
+            if format is not None:
+                msg = msg % format
+        else:
+            msg = 'Logger must be initialized with a string resource file'
+        return msg
 
-def getLoggerSetting(ctx):
-    enabled, index, handler = _getLoggerSetting(ctx)
-    state = _getState(handler)
-    return enabled, index, state
+    def getLoggerSetting(self):
+        enabled, index, handler = self._getLoggerSetting()
+        state = self._getState(handler)
+        return enabled, index, state
 
-def getLoggerUrl(ctx):
-    url = '$(userurl)/$(loggername).log'
-    settings = _getLogConfig(ctx).getByName('HandlerSettings')
-    if settings.hasByName('FileURL'):
-        url = settings.getByName('FileURL')
-    service = ctx.ServiceManager.createInstance('com.sun.star.util.PathSubstitution')
-    logger = _getLogName()
-    return service.substituteVariables(url.replace('$(loggername)', logger), True)
+    def getLoggerUrl(self):
+        url = '$(userurl)/$(loggername).log'
+        settings = self._getLogConfig().getByName('HandlerSettings')
+        if settings.hasByName('FileURL'):
+            url = settings.getByName('FileURL')
+        service = 'com.sun.star.util.PathSubstitution'
+        path = createService(self._ctx, service)
+        url = url.replace('$(loggername)', self._name)
+        return path.substituteVariables(url, True)
 
 # Public setter method
-def setDebugMode(ctx, mode):
-    if mode:
-        _setDebugModeOn(ctx)
-    else:
-        _setDebugModeOff(ctx)
-    _setDebugMode(mode)
+    def addLogHandler(self, handler):
+        self._getLogger().addLogHandler(handler)
 
-def logMessage(ctx, level, msg, cls=None, method=None):
-    logger = _getLogger(ctx)
-    if logger.isLoggable(level):
-        if cls is None or method is None:
-            logger.log(level, msg)
+    def removeLogHandler(self, handler):
+        self._getLogger().removeLogHandler(handler)
+
+    def setDebugMode(self, mode):
+        if mode:
+            self._setDebugModeOn()
         else:
-            logger.logp(level, cls, method, msg)
+            self._setDebugModeOff()
 
-def clearLogger():
-    global g_logger
-    g_logger = None
+    def logMessage(self, level, msg, clazz=None, method=None):
+        print("Logger.logMessage() %s - %s - %s - %s" % (level, msg, clazz, method))
+        logger = self._getLogger()
+        if logger.isLoggable(level):
+            if clazz is None or method is None:
+                logger.log(level, msg)
+            else:
+                logger.logp(level, clazz, method, msg)
 
-def setLoggerSetting(ctx, enabled, index, state):
-    handler = _getHandler(state)
-    _setLoggerSetting(ctx, enabled, index, handler)
+    def clearLogger(self):
+        if self._name in Logger._loggerpool:
+            del Logger._loggerpool[self._name]
+
+    def setLoggerSetting(self, enabled, index, state):
+        handler = self._getHandler(state)
+        self._setLoggerSetting(enabled, index, handler)
 
 # Private getter method
-def _getLogger(ctx):
-    if g_logger is None:
-        _setLogger(ctx)
-    return g_logger
+    def _getLogger(self):
+        if self._name not in Logger._loggerpool:
+            service = '/singletons/com.sun.star.logging.LoggerPool'
+            pool = self._ctx.getValueByName(service)
+            Logger._loggerpool[self._name] = pool.getNamedLogger(self._name)
+        return Logger._loggerpool[self._name]
 
-def _getResource(ctx, fileresource):
-    if fileresource not in g_resources:
-        resource = getStringResource(ctx, g_identifier, _getPathResource(), fileresource)
-        g_resources[fileresource] = resource
-    return g_resources[fileresource]
+    def _getStringResource(self, resource):
+        if resource is not None:
+            return getStringResource(self._ctx, g_identifier, g_resource, resource)
+        return None
 
-def _getLogName():
-    return '%s.Logger' % g_identifier
+    def _getLoggerSetting(self):
+        configuration = self._getLogConfig()
+        enabled, index = self._getLogIndex(configuration)
+        handler = configuration.DefaultHandler
+        return enabled, index, handler
 
-def _getPathResource():
-    return 'resource'
+    def _getLogConfig(self):
+        nodepath = '/org.openoffice.Office.Logging/Settings'
+        configuration = getConfiguration(self._ctx, nodepath, True)
+        if not configuration.hasByName(self._name):
+            configuration.insertByName(self._name, configuration.createInstance())
+            configuration.commitChanges()
+        nodepath += '/%s' % self._name
+        return getConfiguration(self._ctx, nodepath, True)
 
-def _getLoggerSetting(ctx):
-    configuration = _getLogConfig(ctx)
-    enabled, index = _getLogIndex(configuration)
-    handler = configuration.DefaultHandler
-    return enabled, index, handler
+    def _getLogIndex(self, configuration):
+        level = configuration.LogLevel
+        enabled = self._isLogEnabled(level)
+        if enabled:
+            index = self._getLogLevels().index(level)
+        else:
+            index = 7
+        return enabled, index
+    
+    def _getLogLevels(self):
+        levels = (SEVERE,
+                  WARNING,
+                  INFO,
+                  CONFIG,
+                  FINE,
+                  FINER,
+                  FINEST,
+                  ALL)
+        return levels
 
-def _getLogConfig(ctx):
-    logger = _getLogName()
-    nodepath = '/org.openoffice.Office.Logging/Settings'
-    configuration = getConfiguration(ctx, nodepath, True)
-    if not configuration.hasByName(logger):
-        configuration.insertByName(logger, configuration.createInstance())
-        configuration.commitChanges()
-    nodepath += '/%s' % logger
-    return getConfiguration(ctx, nodepath, True)
+    def _isLogEnabled(self, level):
+        return level != OFF
 
-def _getLogIndex(configuration):
-    index = 7
-    level = configuration.LogLevel
-    enabled = _isLogEnabled(level)
-    if enabled:
-        index = _getLogLevels().index(level)
-    return enabled, index
+    def _getHandler(self, state):
+        handlers = {True: 'ConsoleHandler', False: 'FileHandler'}
+        return 'com.sun.star.logging.%s' % handlers.get(state)
 
-def _getLogLevels():
-    levels = (SEVERE,
-              WARNING,
-              INFO,
-              CONFIG,
-              FINE,
-              FINER,
-              FINEST,
-              ALL)
-    return levels
-
-def _isLogEnabled(level):
-    return level != OFF
-
-def _getHandler(state):
-    handlers = {True: 'ConsoleHandler', False: 'FileHandler'}
-    return 'com.sun.star.logging.%s' % handlers.get(state)
-
-def _getState(handler):
-    states = {'com.sun.star.logging.ConsoleHandler' : 1,
-              'com.sun.star.logging.FileHandler': 2}
-    return states.get(handler)
-
-def _getLogSetting():
-    global g_settings
-    enabled, index, handler = g_settings['enabled'], g_settings['index'], g_settings['handler']
-    g_settings = None
-    return enabled, index, handler
-
-def _getDebugSetting():
-    return True, 7, 'com.sun.star.logging.FileHandler'
+    def _getState(self, handler):
+        states = {'com.sun.star.logging.ConsoleHandler': 1,
+                  'com.sun.star.logging.FileHandler': 2}
+        return states.get(handler)
 
 # Private setter method
-def _setLogger(ctx):
-    global g_logger
-    logger = _getLogName()
-    singleton = '/singletons/com.sun.star.logging.LoggerPool'
-    g_logger = ctx.getValueByName(singleton).getNamedLogger(logger)
+    def _setLoggerSetting(self, enabled, index, handler):
+        configuration = self._getLogConfig()
+        self._setLogIndex(configuration, enabled, index)
+        self._setLogHandler(configuration, handler, index)
+        if configuration.hasPendingChanges():
+            configuration.commitChanges()
+            self.clearLogger()
 
-def _setLoggerSetting(ctx, enabled, index, handler):
-    configuration = _getLogConfig(ctx)
-    _setLogIndex(configuration, enabled, index)
-    _setLogHandler(configuration, handler, index)
-    if configuration.hasPendingChanges():
-        configuration.commitChanges()
-        clearLogger()
+    def _setLogIndex(self, configuration, enabled, index):
+        level = self._getLogLevels()[index] if enabled else OFF
+        if configuration.LogLevel != level:
+            configuration.LogLevel = level
 
-def _setLogIndex(configuration, enabled, index):
-    level = _getLogLevels()[index] if enabled else OFF
-    if configuration.LogLevel != level:
-        configuration.LogLevel = level
+    def _setLogHandler(self, configuration, handler, index):
+        if configuration.DefaultHandler != handler:
+            configuration.DefaultHandler = handler
+        settings = configuration.getByName('HandlerSettings')
+        if settings.hasByName('Threshold'):
+            if settings.getByName('Threshold') != index:
+                settings.replaceByName('Threshold', index)
+        else:
+            settings.insertByName('Threshold', index)
 
-def _setLogHandler(configuration, handler, index):
-    if configuration.DefaultHandler != handler:
-        configuration.DefaultHandler = handler
-    settings = configuration.getByName('HandlerSettings')
-    if settings.hasByName('Threshold'):
-        if settings.getByName('Threshold') != index:
-            settings.replaceByName('Threshold', index)
-    else:
-        settings.insertByName('Threshold', index)
+    def _setDebugModeOn(self):
+        Logger._logsetting[self._name] = self._getLoggerSetting()
+        self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
 
-def _setDebugMode(mode):
-    global g_debug
-    g_debug = mode
-
-def _setDebugModeOn(ctx):
-    _setLogSetting(*_getLoggerSetting(ctx))
-    _setLoggerSetting(ctx, *_getDebugSetting())
-
-def _setDebugModeOff(ctx):
-    if g_settings is not None:
-        _setLoggerSetting(ctx, *_getLogSetting())
-
-def _setLogSetting(enabled, index, handler):
-    global g_settings
-    g_settings = {'enabled': enabled, 'index': index, 'handler': handler}
+    def _setDebugModeOff(self):
+        if self.isDebugMode():
+            settings = Logger._logsetting[self._name]
+            self._setLoggerSetting(*settings)
+            del Logger._logsetting[self._name]
