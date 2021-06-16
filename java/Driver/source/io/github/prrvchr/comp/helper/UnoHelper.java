@@ -16,7 +16,6 @@ import com.sun.star.sdbc.SQLWarning;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
 import com.sun.star.sdbc.XClob;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.UnoRuntime;
@@ -115,8 +114,7 @@ public class UnoHelper
 		for (int i = 0; i < len; i++)
 		{
 			PropertyValue info = infos[i];
-			System.out.println("UnoHelper.getProperties() 2 " + info.Name + " -" + (String)info.Value + "-");
-			String value = (String) info.Value;
+			String value = String.valueOf(info.Value);
 			// FIXME: JDBC doesn't seem to like <Properties> with empty values!!!
 			if (!value.isEmpty()) properties.setProperty(info.Name, value);
 		}

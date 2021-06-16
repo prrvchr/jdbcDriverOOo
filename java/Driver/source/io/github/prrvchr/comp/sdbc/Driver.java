@@ -148,7 +148,7 @@ implements XDriver
 			throw UnoHelper.getException(e, this);
 		}
 		System.out.println("Driver.connect() 2");
-		return new Connection(m_xContext, connection, info, url);
+		return getConnection(connection, url, info);
 	}
 
 	public boolean acceptsURL(String url)
@@ -171,6 +171,21 @@ implements XDriver
 	public int getMinorVersion()
 	{
 		return 0;
+	}
+
+
+	private XConnection getConnection(java.sql.Connection con, String url, PropertyValue[] info)
+	{
+		XConnection connection = null;
+		try
+		{
+			connection = new Connection(m_xContext, con, info, url);
+		}
+		catch(java.lang.Exception e)
+		{
+			System.out.println(e.getStackTrace());
+		}
+		return connection;
 	}
 
 

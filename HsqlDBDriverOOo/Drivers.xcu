@@ -30,10 +30,10 @@
   oor:package="org.openoffice.Office.DataAccess"
   oor:name="Drivers">
     <node oor:name="Installed">
-        <node oor:name="sdbc:hsqldb:" oor:op="replace">
-            <prop oor:name="ParentURLPattern">
+        <node oor:name="sdbc:hsqldb:*" oor:op="replace">
+<!--        <prop oor:name="ParentURLPattern">
                 <value>sdbc:hsqldb:*</value>
-            </prop>
+            </prop> -->
             <prop oor:name="Driver">
                 <value>io.github.prrvchr.HsqlDBDriverOOo.Driver</value>
             </prop>
@@ -42,7 +42,39 @@
                 <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
             <node oor:name="Properties">
-                <node oor:name="Forms" oor:op="replace">
+            <!-- "Properties" node is the _supported_ properties -->
+                <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="EscapeDateTime" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
+                <!-- Corresponds to UseKeywordAsBeforeAlias in Features - see connectivity/registry/README -->
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="DisplayVersionColumns" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                       <value>false</value>
+                    </prop>
+                </node>
+<!--            <node oor:name="Forms" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>io.github.prrvchr.HsqlDBDriverOOo.DefinitionContainer</value>
                     </prop>
@@ -56,30 +88,39 @@
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>io.github.prrvchr.HsqlDBDriverOOo.DefinitionContainer</value>
                     </prop>
-                </node>
-            </node>
+                </node> -->
+            </node> 
             <node oor:name="Features">
-                <node oor:name="EscapeDateTime" oor:op="replace">
+            <!-- "Features" node is the properties that are supposed to be exposed in the UI
+                  in: Base -> Edit -> DataBase -> Advenced settings -->
+                <node oor:name="UseDOSLineEnds" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="UseDOSLineEnds" oor:op="replace">
+                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="EscapeDateTime" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
+                        <value>true</value>
+<!--                    <value>false</value> -->
                     </prop>
                 </node>
                 <node oor:name="UseKeywordAsBeforeAlias" oor:op="replace">
+                <!-- Corresponds to GenerateASBeforeCorrelationName in Properties - see connectivity/registry/README -->
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
+                <node oor:name="DisplayVersionColumns" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -91,7 +132,7 @@
                         <value>UserPassword</value>
                     </prop>
                 </node>
-                <node oor:name="FileSystemBased" oor:op="replace">
+<!--                <node oor:name="FileSystemBased" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
@@ -100,13 +141,23 @@
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
-                </node>
+                </node> -->
                 <node oor:name="SupportsTableCreation" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="UseJava" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="SuppressVersionColumns" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>

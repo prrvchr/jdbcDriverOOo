@@ -50,10 +50,16 @@ class DefinitionContainer(unohelper.Base,
                           XServiceInfo):
 
     def __init__(self, ctx, *args):
-        print("DefinitionContainer.__init__() *************************************")
+        print("DefinitionContainer.__init__() 1")
         self._ctx = ctx
         self._listeners = []
-        self.initialize(args)
+        if args:
+            if not DefinitionContainer._init:
+                DefinitionContainer._init = True
+                print("DefinitionContainer.__init__() 2 *************************************")
+                self.initialize(args)
+
+    _init = False
 
 # XComponent
     def dispose(self):
@@ -74,9 +80,17 @@ class DefinitionContainer(unohelper.Base,
 
 # XInitialization
     def initialize(self, arguments):
-        print("DefinitionContainer.initialize() *************************************")
+        print("DefinitionContainer.initialize() 1")
         mri = createService(self._ctx, 'mytools.Mri')
-        mri.inspect(arguments)
+        for argument in arguments:
+            if argument.Name == 'DatabaseDocument':
+                print("DefinitionContainer.initialize() 2")
+                database = argument.Value
+                mri.inspect(database)
+            elif argument.Name == 'DataSource':
+                print("DefinitionContainer.initialize() 3")
+                datasource = argument.Value
+                mri.inspect(datasource)
 
 
 g_ImplementationHelper.addImplementation(DefinitionContainer,

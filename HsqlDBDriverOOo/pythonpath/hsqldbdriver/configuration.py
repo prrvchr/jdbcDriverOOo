@@ -30,3 +30,5 @@
 # General configuration
 g_extension = 'HsqlDBDriverOOo'
 g_identifier = 'io.github.prrvchr.%s' % g_extension
+# Resource strings files folder
+g_resource = 'resource'
