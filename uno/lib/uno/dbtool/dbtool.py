@@ -312,17 +312,23 @@ def getDataFromResult(result, provider=None):
         data[name] = value
     return data
 
+def getObjectFromResult(result, default=None, count=None):
+    obj = Object()
+    if count is None:
+        count = result.MetaData.ColumnCount +1
+    for i in range(1, count):
+        name = result.MetaData.getColumnLabel(i)
+        value = getValueFromResult(result, i, default)
+        if result.wasNull():
+            value = default
+        setattr(obj, name, value)
+    return obj
+
 def getObjectSequenceFromResult(result, default=None):
     sequence = []
     count = result.MetaData.ColumnCount +1
     while result.next():
-        obj = Object()
-        for i in range(1, count):
-            name = result.MetaData.getColumnLabel(i)
-            value = getValueFromResult(result, i, default)
-            if result.wasNull():
-                value = default
-            setattr(obj, name, value)
+        obj = getObjectFromResult(result, default, count)
         sequence.append(obj)
     return sequence
 
@@ -422,6 +428,8 @@ def getValueFromResult(result, index, default=None):
         value = result.getTime(index)
     elif dbtype == 'DATE':
         value = result.getDate(index)
+    elif dbtype == 'ARRAY':
+        value = result.getArray(index)
     else:
         value = default
     return value
