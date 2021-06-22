@@ -312,6 +312,18 @@ def getDataFromResult(result, provider=None):
         data[name] = value
     return data
 
+def getRowDict(result, default=None, count=None):
+    row = {}
+    if count is None:
+        count = result.MetaData.ColumnCount +1
+    for i in range(1, count):
+        name = result.MetaData.getColumnLabel(i)
+        value = getValueFromResult(result, i, default)
+        if result.wasNull():
+            value = default
+        row[name] = value
+    return row
+
 def getObjectFromResult(result, default=None, count=None):
     obj = Object()
     if count is None:

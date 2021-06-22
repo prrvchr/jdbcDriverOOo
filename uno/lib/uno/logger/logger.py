@@ -47,18 +47,33 @@ from ..configuration import g_identifier
 from ..configuration import g_resource
 
 
-class Logger(unohelper.Base):
-    def __init__(self, ctx, name='Logger', resource=None):
+class Pool(unohelper.Base):
+    def __init__(self, ctx):
         self._ctx = ctx
-        self._name = '%s.%s' % (g_identifier, name)
-        self._resolver = self._getStringResource(resource)
 
-    _loggerpool = {}
-    _logsetting = {}
+    def getLogger(self, name='Logger', resource=None):
+        if resource is None:
+            resource = name
+        name = '%s.%s' % (g_identifier, name)
+        if name not in Pool._loggers:
+            logger = Logger(self._ctx, name, resource)
+            Pool._loggers[name] = logger
+        return Pool._loggers[name]
+
+    _loggers = {}
+
+
+class Logger(unohelper.Base):
+    def __init__(self, ctx, name, resource):
+        self._ctx = ctx
+        self._logger = self._getLogger(name)
+        self._resolver = getStringResource(ctx, g_identifier, g_resource, resource)
+        self._settings = None
+        self._listeners = []
 
 # Public getter method
     def isDebugMode(self):
-        return self._name in Logger._logsetting
+        return self._settings is not None
 
     def isLoggerEnabled(self):
         level = self._getLogConfig().LogLevel
@@ -86,15 +101,22 @@ class Logger(unohelper.Base):
             url = settings.getByName('FileURL')
         service = 'com.sun.star.util.PathSubstitution'
         path = createService(self._ctx, service)
-        url = url.replace('$(loggername)', self._name)
+        url = url.replace('$(loggername)', self._logger.Name)
         return path.substituteVariables(url, True)
 
 # Public setter method
     def addLogHandler(self, handler):
-        self._getLogger().addLogHandler(handler)
+        self._logger.addLogHandler(handler)
 
     def removeLogHandler(self, handler):
-        self._getLogger().removeLogHandler(handler)
+        self._logger.removeLogHandler(handler)
+
+    def addListener(self, listener):
+        self._listeners.append(listener)
+
+    def removeListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
     def setDebugMode(self, mode):
         if mode:
@@ -104,33 +126,33 @@ class Logger(unohelper.Base):
 
     def logMessage(self, level, msg, clazz=None, method=None):
         print("Logger.logMessage() %s - %s - %s - %s" % (level, msg, clazz, method))
-        logger = self._getLogger()
-        if logger.isLoggable(level):
+        if self._logger.isLoggable(level):
             if clazz is None or method is None:
-                logger.log(level, msg)
+                self._logger.log(level, msg)
             else:
-                logger.logp(level, clazz, method, msg)
+                self._logger.logp(level, clazz, method, msg)
+            self._refreshLog()
 
-    def clearLogger(self):
-        if self._name in Logger._loggerpool:
-            del Logger._loggerpool[self._name]
+    def clearLogger(self, msg=''):
+        if self._logger is not None:
+            name = self._logger.Name
+            self._logger = None
+            self._logger = self._getLogger(name)
+            self.logMessage(INFO, msg)
 
     def setLoggerSetting(self, enabled, index, state):
         handler = self._getHandler(state)
         self._setLoggerSetting(enabled, index, handler)
 
 # Private getter method
-    def _getLogger(self):
-        if self._name not in Logger._loggerpool:
-            service = '/singletons/com.sun.star.logging.LoggerPool'
-            pool = self._ctx.getValueByName(service)
-            Logger._loggerpool[self._name] = pool.getNamedLogger(self._name)
-        return Logger._loggerpool[self._name]
-
-    def _getStringResource(self, resource):
-        if resource is not None:
-            return getStringResource(self._ctx, g_identifier, g_resource, resource)
-        return None
+    def _getLogger(self, name):
+        print("Logger._getLogger() 1 *************************************************")
+        service = '/singletons/com.sun.star.logging.LoggerPool'
+        logger = self._ctx.getValueByName(service).getNamedLogger(name)
+        print("Logger._getLogger() 2: %s" % logger)
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(logger)
+        return logger
 
     def _getLoggerSetting(self):
         configuration = self._getLogConfig()
@@ -139,12 +161,13 @@ class Logger(unohelper.Base):
         return enabled, index, handler
 
     def _getLogConfig(self):
+        name = self._logger.Name
         nodepath = '/org.openoffice.Office.Logging/Settings'
         configuration = getConfiguration(self._ctx, nodepath, True)
-        if not configuration.hasByName(self._name):
-            configuration.insertByName(self._name, configuration.createInstance())
+        if not configuration.hasByName(name):
+            configuration.insertByName(name, configuration.createInstance())
             configuration.commitChanges()
-        nodepath += '/%s' % self._name
+        nodepath += '/%s' % name
         return getConfiguration(self._ctx, nodepath, True)
 
     def _getLogIndex(self, configuration):
@@ -204,11 +227,14 @@ class Logger(unohelper.Base):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        Logger._logsetting[self._name] = self._getLoggerSetting()
+        self._settings = self._getLoggerSetting()
         self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
 
     def _setDebugModeOff(self):
         if self.isDebugMode():
-            settings = Logger._logsetting[self._name]
-            self._setLoggerSetting(*settings)
-            del Logger._logsetting[self._name]
+            self._setLoggerSetting(*self._settings)
+            self._settings = None
+
+    def _refreshLog(self):
+        for listener in self._listeners:
+            listener.refreshLog()

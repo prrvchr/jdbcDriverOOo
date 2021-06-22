@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .logger import Pool
 from .logger import Logger
 from .handler import LogHandler
 

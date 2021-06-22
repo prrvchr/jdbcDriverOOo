@@ -49,6 +49,7 @@ from .dbtool import getKeyMapKeyMapFromResult
 from .dbtool import getKeyMapSequenceFromResult
 from .dbtool import getObjectFromResult
 from .dbtool import getObjectSequenceFromResult
+from .dbtool import getRowDict
 from .dbtool import getSequenceFromResult
 from .dbtool import getSqlException
 from .dbtool import getValueFromResult
