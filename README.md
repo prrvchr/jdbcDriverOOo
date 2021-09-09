@@ -22,7 +22,7 @@ Because it is together that we can make Free Software smarter.
 ## Requirement:
 
 [HsqlDB](http://hsqldb.org/) is a database written in Java.  
-The use of HsqlDB requires the installation and configuration within LibreOffice / OpenOffice of a **JRE version 1.8 minimum** (ie: Java version 8)  
+The use of HsqlDB requires the installation and configuration within LibreOffice / OpenOffice of a **JRE 11 or later**.  
 I recommend [AdoptOpenJDK](https://adoptopenjdk.net/) as your Java installation source.
 
 If you are using **LibreOffice on Linux**, then you are subject to [bug 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
@@ -123,7 +123,9 @@ The only possible workaround for this problem is to put the driver's Java archiv
 
 In order to take advantage of the latest features offered by HsqlDB, it was necessary to write a new driver.
 
-This new driver is just a wrapper in Python around the UNO services provided by the faulty LibreOffice / OpenOffice JDBC driver: it loads when calling the `sdbc:hsqldb:*` protocol but uses the `jdbc:hsqldb:*` protocol internally to connect.
+Until version 0.0.3, this new driver is just a wrapper in Python around the UNO services provided by the defective LibreOffice / OpenOffice JDBC driver.
+Since version 0.0.4, it has been completely rewritten in Java under Eclipse, because who better than Java can provide access to JDBC in the UNO API...
+It loads when calling the `sdbc: hsqldb: *` protocol but uses the `jdbc: hsqldb: *` protocol internally to connect. 
 
 It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:
 
@@ -131,7 +133,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 
-For now, only user management (read only) is available.
+For now, only the use of the SQL Array type in the queries is available.
 
 ### What has been done for version 0.0.1:
 
@@ -169,23 +171,21 @@ For now, only user management (read only) is available.
 
 ### What has been done for version 0.0.4:
 
-- Modifying the [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/HsqlDBDriverOOo/Driver.py) in order to return an XConnection interface providing a DataSource service with its `URL` property having the `sbdc` protocol necessary for proper functioning.
+- Rewrite of [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/comp/sdbc/Driver.java) in Java version 11 OpenJDK amd64 under Eclipse 4.11.0 with the plugin: LibreOffice Extension/Component Development - Java version 4.0.1.
 
-- Modifying the [Statement](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/statement.py) wrapper in order to provide the properties and methods present in the `Statement`, `PreparedStatement` et `CallableStatement` services of JDBC (thanks to hanya for [MRI](https://github.com/hanya/MRI) which was of great help to me...)
+- Writing the `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` services of JDBC (thanks to hanya for [MRI](https://github.com/hanya/MRI) which was of great help to me...)
 
-- Writing the [ResultSet](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/resultset.py) wrapper so that its `getStatement` method returns the modified version of the [Statement](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/statement.py) service.
+  - [com.sun.star.sdb.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/comp/sdb)
 
-- Modifying the [Connection](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/uno/lib/uno/sdbc/connection.py) wrapper, in order:
-    - To make it possible to reassign the DataSource service by its `setParent` method.
-    - To make possible the use of the: `com.sun.star.sdb.RowSet` service, see the use of the `self._patched` property as a workaround.
+  - [com.sun.star.sdbc.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/comp/sdbc)
+
+  - [com.sun.star.sdbcx.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/comp/sdbcx)
 
 - Many other fix...
 
 ### What remains to be done for version 0.0.4:
 
 - Managing rights and users in Base in read and write mode.
-
-- The use of the SQL Array type in the queries.
 
 - Add new languages for internationalization...
 
