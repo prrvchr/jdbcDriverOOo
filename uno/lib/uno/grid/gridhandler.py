@@ -29,15 +29,67 @@
 
 import unohelper
 
+from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt.grid import XGridSelectionListener
 from com.sun.star.sdbc import XRowSetListener
 
+from collections import OrderedDict
 import traceback
 
 
-class GridHandler(unohelper.Base,
-                  XRowSetListener):
-    def __init__(self, model):
-        self._model = model
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
+    def __init__(self, ctx, manager):
+        self._ctx = ctx
+        self._manager = manager
+
+# XContainerWindowEventHandler
+    def callHandlerMethod(self, window, event, method):
+        try:
+            handled = False
+            if method == 'showControls':
+                state = event.Source.Model.State
+                self._manager.showControls(state)
+                handled = True
+            elif method == 'ChangeColumn':
+                control = event.Source
+                index = control.getSelectedItemPos()
+                if index != -1:
+                    reset = True
+                    for i in range(control.Model.ItemCount):
+                        image = control.Model.getItemImage(i)
+                        if i != index and self._manager.isSelected(image):
+                            reset = False
+                            break
+                    identifier = control.Model.getItemData(index)
+                    image = control.Model.getItemImage(index)
+                    selected = self._manager.isUnSelected(image)
+                    self._manager.setColumn(identifier, selected, reset, index)
+                handled = True
+            elif method == 'ChangeOrder':
+                control = event.Source
+                index = control.getSelectedItemPos()
+                if index != -1:
+                    identifier = control.Model.getItemData(index)
+                    image = control.Model.getItemImage(index)
+                    add = self._manager.isUnSelected(image)
+                    self._manager.setOrder(identifier, add, index)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('showControls',
+                'ChangeColumn',
+                'ChangeOrder')
+
+
+class RowSetListener(unohelper.Base,
+                     XRowSetListener):
+    def __init__(self, manager):
+        self._manager = manager
 
     # XRowSetListener
     def disposing(self, event):
@@ -49,8 +101,29 @@ class GridHandler(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             rowset = event.Source
-            self._model.setRowSetData(rowset)
+            self._manager.setRowSetData(rowset)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
+
+
+class GridListener(unohelper.Base,
+                   XGridSelectionListener):
+    def __init__(self, manager, grid=1):
+        self._manager = manager
+        self._grid = grid
+
+    # XGridSelectionListener
+    def selectionChanged(self, event):
+        try:
+            control = event.Source
+            selected = control.hasSelectedRows()
+            index = control.getSelectedRows()[0] if selected else -1
+            self._manager.changeGridSelection(selected, index, self._grid)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def disposing(self, event):
+        pass
 

@@ -30,6 +30,7 @@
 from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import executeDispatch
+from .unotool import executeFrameDispatch
 from .unotool import executeShell
 from .unotool import generateUuid
 from .unotool import getConfiguration
@@ -56,6 +57,9 @@ from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 from .unotool import getStringResource
+from .unotool import getTempFile
+from .unotool import getTypeDetection
+from .unotool import getUriFactory
 from .unotool import getUrl
 from .unotool import getUrlPresentation
 from .unotool import getUrlTransformer

@@ -30,8 +30,6 @@
 import uno
 import unohelper
 
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
 from com.sun.star.ui.dialogs.WizardButton import NEXT
 from com.sun.star.ui.dialogs.WizardButton import PREVIOUS
 from com.sun.star.ui.dialogs.WizardButton import FINISH
@@ -69,8 +67,8 @@ class WizardView(unohelper.Base):
     def execute(self):
         return self._dialog.execute()
 
-    def endDialog(self):
-        self._dialog.endDialog(OK)
+    def endDialog(self, result):
+        self._dialog.endDialog(result)
 
     def dispose(self):
         self._dialog.dispose()

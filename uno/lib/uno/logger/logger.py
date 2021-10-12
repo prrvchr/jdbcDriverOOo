@@ -51,16 +51,15 @@ class Pool(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
 
-    def getLogger(self, name='Logger', resource=None):
-        if resource is None:
-            resource = name
-        name = '%s.%s' % (g_identifier, name)
-        if name not in Pool._loggers:
-            logger = Logger(self._ctx, name, resource)
-            Pool._loggers[name] = logger
-        return Pool._loggers[name]
-
     _loggers = {}
+
+    def getLogger(self, name='Logger', resource=None):
+        log = '%s.%s' % (g_identifier, name)
+        if log not in Pool._loggers:
+            if resource is None:
+                resource = name
+            Pool._loggers[log] = Logger(self._ctx, log, resource)
+        return Pool._loggers[log]
 
 
 class Logger(unohelper.Base):
@@ -111,27 +110,22 @@ class Logger(unohelper.Base):
     def removeLogHandler(self, handler):
         self._logger.removeLogHandler(handler)
 
-    def addListener(self, listener):
-        self._listeners.append(listener)
-
-    def removeListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
-
     def setDebugMode(self, mode):
         if mode:
             self._setDebugModeOn()
         else:
             self._setDebugModeOff()
 
-    def logMessage(self, level, msg, clazz=None, method=None):
-        print("Logger.logMessage() %s - %s - %s - %s" % (level, msg, clazz, method))
+    def logResource(self, level, resource, format=None, clazz=None, method=None):
         if self._logger.isLoggable(level):
-            if clazz is None or method is None:
-                self._logger.log(level, msg)
-            else:
-                self._logger.logp(level, clazz, method, msg)
-            self._refreshLog()
+            msg = self.getMessage(resource, format)
+            self._logMessage(level, msg, clazz, method)
+            print("Logger.logResource() %s - %s - %s - %s" % (level, msg, clazz, method))
+
+    def logMessage(self, level, msg, clazz=None, method=None):
+        if self._logger.isLoggable(level):
+            self._logMessage(level, msg, clazz, method)
+            print("Logger.logMessage() %s - %s - %s - %s" % (level, msg, clazz, method))
 
     def clearLogger(self, msg=''):
         if self._logger is not None:
@@ -227,13 +221,21 @@ class Logger(unohelper.Base):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        self._settings = self._getLoggerSetting()
-        self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
+        if not self.isDebugMode():
+            self._settings = self._getLoggerSetting()
+            self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
 
     def _setDebugModeOff(self):
         if self.isDebugMode():
             self._setLoggerSetting(*self._settings)
             self._settings = None
+
+    def _logMessage(self, level, msg, clazz, method):
+        if clazz is None or method is None:
+            self._logger.log(level, msg)
+        else:
+            self._logger.logp(level, clazz, method, msg)
+        self._refreshLog()
 
     def _refreshLog(self):
         for listener in self._listeners:

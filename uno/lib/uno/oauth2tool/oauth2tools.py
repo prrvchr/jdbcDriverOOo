@@ -27,66 +27,19 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from com.sun.star.logging.LogLevel import ALL
-
-from com.sun.star.logging import XLogHandler
-
 from ..unotool import createService
 
+from .oauth2config import g_oauth2
 
-class LogHandler(unohelper.Base,
-                 XLogHandler):
-    def __init__(self, ctx, callback, level=ALL):
-        self._encoding = 'UTF-8'
-        service = 'com.sun.star.logging.PlainTextFormatter'
-        self._formatter = createService(ctx, service)
-        self._level = level
-        self._listeners = []
-        self._callback = callback
 
-# XLogHandler
-    @property
-    def Encoding(self):
-        return self._encoding
-    @Encoding.setter
-    def Encoding(self, value):
-        self._encoding = value
+def getRequest(ctx, scheme, name):
+    request = createService(ctx, g_oauth2)
+    if request is not None:
+        request.initializeSession(scheme, name)
+    return request
 
-    @property
-    def Formatter(self):
-        return self._formatter
-    @Formatter.setter
-    def Formatter(self, value):
-        self._formatter = value
-
-    @property
-    def Level(self):
-        return self._level
-    @Level.setter
-    def Level(self, value):
-        self._level = value
-
-    def flush(self):
-        pass
-
-    def publish(self, record):
-        # TODO: Need to do a callback with the record
-        self._callback()
-        return True
-
-# XComponent <- XLogHandler
-    def dispose(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in self._listeners:
-            listener.disposing(event)
-
-    def addEventListener(self, listener):
-        self._listeners.append(listener)
-
-    def removeEventListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
+def getOAuth2(ctx, url, name):
+    oauth2 = createService(ctx, g_oauth2)
+    if oauth2 is not None:
+        oauth2.initializeSession(url, name)
+    return oauth2

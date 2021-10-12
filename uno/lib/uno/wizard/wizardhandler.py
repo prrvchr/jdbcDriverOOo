@@ -55,6 +55,9 @@ class DialogHandler(unohelper.Base,
             elif method == 'Finish':
                 self._manager.doFinish()
                 handled = True
+            elif method == 'Cancel':
+                self._manager.doCancel()
+                handled = True
             return handled
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
@@ -64,7 +67,8 @@ class DialogHandler(unohelper.Base,
         return ('Help',
                 'Previous',
                 'Next',
-                'Finish')
+                'Finish',
+                'Cancel')
 
 
 class ItemHandler(unohelper.Base,

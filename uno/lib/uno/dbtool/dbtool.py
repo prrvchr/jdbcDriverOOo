@@ -32,6 +32,8 @@ import uno
 from com.sun.star.sdbc import SQLException
 from com.sun.star.sdbc import SQLWarning
 
+from com.sun.star.sdb.CommandType import TABLE
+
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -85,6 +87,35 @@ def getDataSource(ctx, url):
     datasource = dbcontext.getByName(location)
     return datasource
 
+def getTablesInfos(connection):
+    tables = connection.getTables()
+    similar = _isSimilar(connection, tables)
+    return similar, tables.getElementNames()
+
+def isSimilar(connection):
+    return _isSimilar(connection, connection.getTables())
+
+def getTableColumns(connection, table):
+    # FIXME Needed for gContactOOo. We can't use:
+    # FIXME table = connection.getTables().getByName(table)
+    # FIXME colums = table.getColumns().getElementNames()
+    # FIXME It does not work with any schema other than PUBLIC in the database!!!
+    # FIXME It returns an empty list of columns...
+    composer = connection.getComposer(TABLE, table)
+    return composer.getColumns().getElementNames()
+
+def _isSimilar(connection, tables):
+    similar = True
+    count = tables.getCount()
+    if count > 1:
+        table = tables.getByIndex(0).Name
+        columns = getTableColumns(connection, table)
+        for index in range(1, count):
+            table = tables.getByIndex(index).Name
+            if columns != getTableColumns(connection, table):
+                similar = False
+                break
+    return similar
 
 def getDataBaseConnection(ctx, url, info):
     service = 'com.sun.star.sdbc.DriverManager'
@@ -415,7 +446,7 @@ def getRowResult(result, index=(0,), separator=' '):
             sequence.append(separator.join(values))
     return tuple(sequence)
 
-def getValueFromResult(result, index, default=None):
+def getValueFromResult(result, index=1, default=None):
     # TODO: 'TINYINT' is buggy: don't use it
     dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
@@ -440,7 +471,7 @@ def getValueFromResult(result, index, default=None):
         value = result.getTime(index)
     elif dbtype == 'DATE':
         value = result.getDate(index)
-    elif dbtype == 'ARRAY':
+    elif dbtype.endswith('ARRAY'):
         value = result.getArray(index)
     else:
         value = default

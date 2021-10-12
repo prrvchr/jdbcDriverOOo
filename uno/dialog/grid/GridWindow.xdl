@@ -1,7 +1,5 @@
-#!
-# -*- coding: utf_8 -*-
-
-"""
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,68 +23,21 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
-
-import uno
-import unohelper
-
-from com.sun.star.logging.LogLevel import ALL
-
-from com.sun.star.logging import XLogHandler
-
-from ..unotool import createService
-
-
-class LogHandler(unohelper.Base,
-                 XLogHandler):
-    def __init__(self, ctx, callback, level=ALL):
-        self._encoding = 'UTF-8'
-        service = 'com.sun.star.logging.PlainTextFormatter'
-        self._formatter = createService(ctx, service)
-        self._level = level
-        self._listeners = []
-        self._callback = callback
-
-# XLogHandler
-    @property
-    def Encoding(self):
-        return self._encoding
-    @Encoding.setter
-    def Encoding(self, value):
-        self._encoding = value
-
-    @property
-    def Formatter(self):
-        return self._formatter
-    @Formatter.setter
-    def Formatter(self, value):
-        self._formatter = value
-
-    @property
-    def Level(self):
-        return self._level
-    @Level.setter
-    def Level(self, value):
-        self._level = value
-
-    def flush(self):
-        pass
-
-    def publish(self, record):
-        # TODO: Need to do a callback with the record
-        self._callback()
-        return True
-
-# XComponent <- XLogHandler
-    def dispose(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in self._listeners:
-            listener.disposing(event)
-
-    def addEventListener(self, listener):
-        self._listeners.append(listener)
-
-    def removeEventListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="GridWindow" dlg:left="0" dlg:top="0" dlg:width="275" dlg:height="180" dlg:help-text="&amp;GridWindow.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;GridWindow.Title" dlg:withtitlebar="false">
+  <dlg:bulletinboard>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="0" dlg:left="0" dlg:top="0" dlg:width="8" dlg:height="10" dlg:help-text="&amp;GridWindow.CommandButton1.HelpText" dlg:value="&amp;GridWindow.CommandButton1.Label" dlg:toggled="1">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:showControls" script:language="UNO"/>
+    </dlg:button>
+    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:page="2" dlg:left="15" dlg:top="0" dlg:width="60" dlg:height="14" dlg:help-text="&amp;GridWindow.Label1.HelpText" dlg:value="&amp;GridWindow.Label1.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:page="2" dlg:left="85" dlg:top="0" dlg:width="50" dlg:height="14" dlg:help-text="&amp;GridWindow.ListBox1.HelpText" dlg:value="&amp;GridWindow.ListBox1.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeColumn" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:text dlg:id="Label2" dlg:tab-index="3" dlg:page="2" dlg:left="145" dlg:top="0" dlg:width="35" dlg:height="14" dlg:help-text="&amp;GridWindow.Label2.HelpText" dlg:value="&amp;GridWindow.Label2.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="4" dlg:page="2" dlg:left="185" dlg:top="0" dlg:width="50" dlg:height="14" dlg:help-text="&amp;GridWindow.ListBox2.HelpText" dlg:value="&amp;GridWindow.ListBox2.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ChangeOrder" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="5" dlg:page="2" dlg:left="240" dlg:top="3" dlg:width="35" dlg:height="8" dlg:help-text="&amp;GridWindow.CheckBox1.HelpText" dlg:value="&amp;GridWindow.CheckBox1.Label" dlg:valign="center" dlg:checked="false"/>
+  </dlg:bulletinboard>
+</dlg:window>

@@ -27,66 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from com.sun.star.logging.LogLevel import ALL
-
-from com.sun.star.logging import XLogHandler
-
-from ..unotool import createService
-
-
-class LogHandler(unohelper.Base,
-                 XLogHandler):
-    def __init__(self, ctx, callback, level=ALL):
-        self._encoding = 'UTF-8'
-        service = 'com.sun.star.logging.PlainTextFormatter'
-        self._formatter = createService(ctx, service)
-        self._level = level
-        self._listeners = []
-        self._callback = callback
-
-# XLogHandler
-    @property
-    def Encoding(self):
-        return self._encoding
-    @Encoding.setter
-    def Encoding(self, value):
-        self._encoding = value
-
-    @property
-    def Formatter(self):
-        return self._formatter
-    @Formatter.setter
-    def Formatter(self, value):
-        self._formatter = value
-
-    @property
-    def Level(self):
-        return self._level
-    @Level.setter
-    def Level(self, value):
-        self._level = value
-
-    def flush(self):
-        pass
-
-    def publish(self, record):
-        # TODO: Need to do a callback with the record
-        self._callback()
-        return True
-
-# XComponent <- XLogHandler
-    def dispose(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in self._listeners:
-            listener.disposing(event)
-
-    def addEventListener(self, listener):
-        self._listeners.append(listener)
-
-    def removeEventListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
+# OAuth2 configuration
+g_identifier = 'com.gmail.prrvchr.extensions.OAuth2OOo'
+g_oauth2 = '%s.OAuth2Service' % g_identifier

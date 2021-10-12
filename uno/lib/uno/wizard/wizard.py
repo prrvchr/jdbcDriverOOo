@@ -39,6 +39,9 @@ from com.sun.star.util import InvalidStateException
 
 from com.sun.star.container import NoSuchElementException
 
+from com.sun.star.ui.dialogs.ExecutableDialogResults import CANCEL
+from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
 from com.sun.star.ui.dialogs.WizardTravelType import FORWARD
 from com.sun.star.ui.dialogs.WizardTravelType import BACKWARD
 from com.sun.star.ui.dialogs.WizardTravelType import FINISH
@@ -188,7 +191,10 @@ class Wizard(unohelper.Base,
             reason = self._getCommitReason()
             if self._model.doFinish(reason):
                 if self._controller.confirmFinish():
-                    self._view.endDialog()
+                    self._view.endDialog(OK)
+
+    def doCancel(self):
+        self._view.endDialog(CANCEL)
 
 # Wizard private getter methods
     def _isComplete(self):

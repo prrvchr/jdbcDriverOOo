@@ -64,6 +64,15 @@ def getSimpleFile(ctx):
 def getFilePicker(ctx):
     return createService(ctx, 'com.sun.star.ui.dialogs.FilePicker')
 
+def getUriFactory(ctx):
+    return createService(ctx, 'com.sun.star.uri.UriReferenceFactory')
+
+def getTempFile(ctx):
+    return createService(ctx, 'com.sun.star.io.TempFile')
+
+def getTypeDetection(ctx):
+    return createService(ctx, 'com.sun.star.document.TypeDetection')
+
 def getPathSettings(ctx):
     return createService(ctx, 'com.sun.star.util.PathSettings')
 
@@ -165,12 +174,21 @@ def getResourceLocation(ctx, identifier, path=None):
         location += '/%s' % path
     return location
 
-def getConfiguration(ctx, nodepath, update=False):
+def getConfiguration(ctx, path, update=False, language=None):
     service = 'com.sun.star.configuration.ConfigurationProvider'
     provider = createService(ctx, service)
-    service = 'com.sun.star.configuration.ConfigurationUpdateAccess' if update else \
-              'com.sun.star.configuration.ConfigurationAccess'
-    arguments = (uno.createUnoStruct('com.sun.star.beans.NamedValue', 'nodepath', nodepath), )
+    service = 'com.sun.star.configuration.Configuration'
+    service += 'UpdateAccess' if update else 'Access'
+    nodepath = uno.createUnoStruct('com.sun.star.beans.NamedValue')
+    nodepath.Name = 'nodepath'
+    nodepath.Value = path
+    if language is None:
+        arguments = (nodepath, )
+    else:
+        locale = uno.createUnoStruct('com.sun.star.beans.NamedValue')
+        locale.Name = 'Locale'
+        locale.Value = language
+        arguments = (nodepath, locale)
     return provider.createInstanceWithArguments(service, arguments)
 
 def getCurrentLocale(ctx):
@@ -255,17 +273,20 @@ def executeShell(ctx, url, option=''):
     shell = createService(ctx, 'com.sun.star.system.SystemShellExecute')
     shell.execute(url, option, 0)
 
-def executeDispatch(ctx, url, arguments=(), listener=None):
+def executeFrameDispatch(ctx, frame, url, arguments=(), listener=None):
     url = getUrl(ctx, url)
-    desktop = getDesktop(ctx)
-    dispatcher = desktop.getCurrentFrame().queryDispatch(url, '', 0)
+    dispatcher = frame.queryDispatch(url, '', 0)
     if dispatcher is not None:
         if listener is not None:
             dispatcher.dispatchWithNotification(url, arguments, listener)
-            print("unotool.executeDispatch() dispatchWithNotification")
+            print("unotool.executeFrameDispatch() dispatchWithNotification")
         else:
             dispatcher.dispatch(url, arguments)
-            print("unotool.executeDispatch() dispatch")
+            print("unotool.executeFrameDispatch() dispatch")
+
+def executeDispatch(ctx, url, arguments=(), listener=None):
+    frame = getDesktop(ctx).getCurrentFrame()
+    executeFrameDispatch(ctx, frame, url, arguments, listener)
 
 def createMessageBox(peer, message, title, box='message', buttons=2):
     boxtypes = {'message': 'MESSAGEBOX',
