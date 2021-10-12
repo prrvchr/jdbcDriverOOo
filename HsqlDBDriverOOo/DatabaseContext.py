@@ -36,7 +36,7 @@ from com.sun.star.lang import XUnoTunnel
 
 from com.sun.star.sdb import XDatabaseContext
 
-from hsqldbdriver import DataSource
+#from hsqldbdriver import DataSource
 
 from hsqldbdriver import createService
 

@@ -42,7 +42,7 @@ from com.sun.star.sdbcx import XCreateCatalog
 from com.sun.star.sdbcx import XDataDefinitionSupplier
 from com.sun.star.sdbcx import XDropCatalog
 
-from hsqldbdriver import Connection
+#from hsqldbdriver import Connection
 
 from hsqldbdriver import createService
 from hsqldbdriver import getUrlTransformer

@@ -59,6 +59,3 @@ from .logger import getLoggerUrl
 from .logger import getMessage
 from .logger import logMessage
 from .logger import setLoggerSetting
-
-from .sdbc import Connection
-from .sdbc import DataSource
