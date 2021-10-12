@@ -47,12 +47,6 @@ from .unotool import getUrl
 from .unotool import getUrlTransformer
 from .unotool import parseUrl
 
-from .dbtool import getConnectionInfo
-from .dbtool import getDataSourceConnection
-from .dbtool import getDriverPropertyInfo
-from .dbtool import getDataSourceClassPath
-from .dbtool import getSqlException
-
 from .logger import clearLogger
 from .logger import getLoggerSetting
 from .logger import getLoggerUrl

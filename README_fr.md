@@ -48,14 +48,14 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 
 Dans LibreOffice / OpenOffice aller à: Fichier -> Nouveau -> Base de données...:
 
-![HsqlDBDriverOOo screenshot 1](HsqlDBDriverOOo-1.png)
+![HsqlDBDriverOOo screenshot 1](img/HsqlDBDriverOOo-1.png)
 
 A l'étape: Sélectionner une base de données:
 - selectionner: Connecter une base de données existante
 - choisir: Pilote HsqlDB
 - cliquer sur le bouton: Suivant
 
-![HsqlDBDriverOOo screenshot 2](HsqlDBDriverOOo-2.png)
+![HsqlDBDriverOOo screenshot 2](img/HsqlDBDriverOOo-2.png)
 
 A l'étape: Paramètres de connexion:
 
@@ -72,16 +72,16 @@ A l'étape: Paramètres de connexion:
 
 - cliquer sur le bouton: Suivant
 
-![HsqlDBDriverOOo screenshot 3](HsqlDBDriverOOo-3.png)
+![HsqlDBDriverOOo screenshot 3](img/HsqlDBDriverOOo-3.png)
 
 A l'étape: Paramétrer l'authentification de l'utilisateur:
 - cliquer sur le bouton: Tester la connexion
 
-![HsqlDBDriverOOo screenshot 4](HsqlDBDriverOOo-4.png)
+![HsqlDBDriverOOo screenshot 4](img/HsqlDBDriverOOo-4.png)
 
 Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
-![HsqlDBDriverOOo screenshot 5](HsqlDBDriverOOo-5.png)
+![HsqlDBDriverOOo screenshot 5](img/HsqlDBDriverOOo-5.png)
 
 Maintenant à vous d'en profiter...
 
