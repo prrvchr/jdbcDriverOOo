@@ -115,7 +115,7 @@ implements XConnection
 			return new DatabaseMetaData(m_xContext, this, metadata, m_info, m_url);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -131,7 +131,7 @@ implements XConnection
 			}
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -144,7 +144,7 @@ implements XConnection
 			m_Connection.commit();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -156,7 +156,7 @@ implements XConnection
 			return m_Connection.getAutoCommit();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -168,7 +168,7 @@ implements XConnection
 			return m_Connection.getCatalog();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -180,7 +180,7 @@ implements XConnection
 			return m_Connection.getTransactionIsolation();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -192,7 +192,7 @@ implements XConnection
 			return m_Connection.isClosed();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -204,7 +204,7 @@ implements XConnection
 			return m_Connection.isReadOnly();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -216,7 +216,7 @@ implements XConnection
 			return m_Connection.nativeSQL(sql);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -228,7 +228,7 @@ implements XConnection
 			m_Connection.rollback();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -240,7 +240,7 @@ implements XConnection
 			m_Connection.setAutoCommit(commit);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -252,7 +252,7 @@ implements XConnection
 			m_Connection.setCatalog(catalog);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -264,7 +264,7 @@ implements XConnection
 			m_Connection.setReadOnly(readonly);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -276,7 +276,7 @@ implements XConnection
 			m_Connection.setTransactionIsolation(isolation);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -305,7 +305,7 @@ implements XConnection
 			return new Statement(m_xContext, this, statement);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -321,7 +321,7 @@ implements XConnection
 			return new CallableStatement(m_xContext, this, statement);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -337,7 +337,7 @@ implements XConnection
 			return new PreparedStatement(m_xContext, this, statement);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 

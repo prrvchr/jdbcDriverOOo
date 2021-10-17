@@ -131,7 +131,7 @@ implements XDriver
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		Properties properties = UnoHelper.getConnectionProperties(info);
 		try
@@ -145,7 +145,7 @@ implements XDriver
 			System.out.println(username);
 		} catch(java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		System.out.println("Driver.connect() 2");
 		return getConnection(connection, url, info);

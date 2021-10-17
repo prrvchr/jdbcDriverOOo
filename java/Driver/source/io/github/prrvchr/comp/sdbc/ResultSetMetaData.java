@@ -54,7 +54,7 @@ implements XResultSetMetaData
 			return m_Metadata.getCatalogName(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -66,7 +66,7 @@ implements XResultSetMetaData
 			return m_Metadata.getColumnCount();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -78,7 +78,7 @@ implements XResultSetMetaData
 			return m_Metadata.getColumnDisplaySize(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -90,7 +90,7 @@ implements XResultSetMetaData
 			return m_Metadata.getColumnLabel(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -102,7 +102,7 @@ implements XResultSetMetaData
 			return m_Metadata.getColumnName(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -121,7 +121,7 @@ implements XResultSetMetaData
 			return m_Metadata.getColumnType(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -133,7 +133,7 @@ implements XResultSetMetaData
 			return m_Metadata.getColumnTypeName(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -145,7 +145,7 @@ implements XResultSetMetaData
 			return m_Metadata.getPrecision(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -157,7 +157,7 @@ implements XResultSetMetaData
 			return m_Metadata.getScale(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -169,7 +169,7 @@ implements XResultSetMetaData
 			return m_Metadata.getSchemaName(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -181,7 +181,7 @@ implements XResultSetMetaData
 			return m_Metadata.getTableName(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -193,7 +193,7 @@ implements XResultSetMetaData
 			return m_Metadata.isAutoIncrement(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -205,7 +205,7 @@ implements XResultSetMetaData
 			return m_Metadata.isCaseSensitive(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -217,7 +217,7 @@ implements XResultSetMetaData
 			return m_Metadata.isCurrency(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -229,7 +229,7 @@ implements XResultSetMetaData
 			return m_Metadata.isDefinitelyWritable(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -241,7 +241,7 @@ implements XResultSetMetaData
 			return m_Metadata.isNullable(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -253,7 +253,7 @@ implements XResultSetMetaData
 			return m_Metadata.isReadOnly(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -265,7 +265,7 @@ implements XResultSetMetaData
 			return m_Metadata.isSearchable(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -277,7 +277,7 @@ implements XResultSetMetaData
 			return m_Metadata.isSigned(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -289,7 +289,7 @@ implements XResultSetMetaData
 			return m_Metadata.isWritable(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 

@@ -130,7 +130,7 @@ implements XCloseable,
 			return m_ResultSet.getCursorName();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -141,7 +141,7 @@ implements XCloseable,
 			return m_ResultSet.getFetchDirection();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -152,7 +152,7 @@ implements XCloseable,
 			m_ResultSet.setFetchDirection(direction);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -164,7 +164,7 @@ implements XCloseable,
 			return m_ResultSet.getFetchSize();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -175,7 +175,7 @@ implements XCloseable,
 			m_ResultSet.setFetchSize(size);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -187,7 +187,7 @@ implements XCloseable,
 			return m_ResultSet.getConcurrency();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -199,7 +199,7 @@ implements XCloseable,
 			return m_ResultSet.getType();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -213,7 +213,7 @@ implements XCloseable,
 			m_ResultSet.close();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -227,7 +227,7 @@ implements XCloseable,
 			return m_ResultSet.findColumn(name);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -241,7 +241,7 @@ implements XCloseable,
 			return m_ResultSet.absolute(row);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -253,7 +253,7 @@ implements XCloseable,
 			m_ResultSet.afterLast();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -265,7 +265,7 @@ implements XCloseable,
 			m_ResultSet.beforeFirst();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 
 	}
@@ -278,7 +278,7 @@ implements XCloseable,
 			return m_ResultSet.first();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -290,7 +290,7 @@ implements XCloseable,
 			return m_ResultSet.getRow();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -308,7 +308,7 @@ implements XCloseable,
 			return m_ResultSet.isAfterLast();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -320,7 +320,7 @@ implements XCloseable,
 			return m_ResultSet.isBeforeFirst();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -332,7 +332,7 @@ implements XCloseable,
 			return m_ResultSet.isFirst();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -344,7 +344,7 @@ implements XCloseable,
 			return m_ResultSet.isLast();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -356,7 +356,7 @@ implements XCloseable,
 			return m_ResultSet.last();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -368,7 +368,7 @@ implements XCloseable,
 			return m_ResultSet.next();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -380,7 +380,7 @@ implements XCloseable,
 			return m_ResultSet.previous();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -392,7 +392,7 @@ implements XCloseable,
 			m_ResultSet.refreshRow();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -404,7 +404,7 @@ implements XCloseable,
 			return m_ResultSet.relative(row);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -416,7 +416,7 @@ implements XCloseable,
 			return m_ResultSet.rowDeleted();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -428,7 +428,7 @@ implements XCloseable,
 			return m_ResultSet.rowInserted();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -440,7 +440,7 @@ implements XCloseable,
 			return m_ResultSet.rowUpdated();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -455,7 +455,7 @@ implements XCloseable,
 			return new ResultSetMetaData(metadata);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -471,7 +471,7 @@ implements XCloseable,
 			if (!m_ResultSet.wasNull()) value = new Array(array);
 			return value;
 		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		} 
 	}
 
@@ -485,7 +485,7 @@ implements XCloseable,
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -505,7 +505,7 @@ implements XCloseable,
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -519,7 +519,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -533,7 +533,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -548,7 +548,7 @@ implements XCloseable,
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -562,7 +562,7 @@ implements XCloseable,
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -582,7 +582,7 @@ implements XCloseable,
 		}
 		catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -597,7 +597,7 @@ implements XCloseable,
 			return date;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -611,7 +611,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -625,7 +625,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -639,7 +639,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -653,7 +653,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -665,7 +665,7 @@ implements XCloseable,
 			return m_ResultSet.getObject(index);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -686,7 +686,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -700,7 +700,7 @@ implements XCloseable,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -715,7 +715,7 @@ implements XCloseable,
 			return time;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -730,7 +730,7 @@ implements XCloseable,
 			return datetime;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -742,7 +742,7 @@ implements XCloseable,
 			return m_ResultSet.wasNull();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 

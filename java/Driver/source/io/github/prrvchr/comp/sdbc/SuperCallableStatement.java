@@ -79,7 +79,7 @@ implements XOutParameters,
 			m_Statement.registerOutParameter(index, type, scale);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -91,7 +91,7 @@ implements XOutParameters,
 			m_Statement.registerOutParameter(index, type, name);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -108,7 +108,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -130,7 +130,7 @@ implements XOutParameters,
 			return blob;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -144,7 +144,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -158,7 +158,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -172,7 +172,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -194,7 +194,7 @@ implements XOutParameters,
 			return clob;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -209,7 +209,7 @@ implements XOutParameters,
 			return date;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -223,7 +223,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -237,7 +237,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -251,7 +251,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -265,7 +265,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -293,7 +293,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -307,7 +307,7 @@ implements XOutParameters,
 			return value;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -322,7 +322,7 @@ implements XOutParameters,
 			return time;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -337,7 +337,7 @@ implements XOutParameters,
 			return datetime;
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -349,7 +349,7 @@ implements XOutParameters,
 			return m_Statement.wasNull();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 

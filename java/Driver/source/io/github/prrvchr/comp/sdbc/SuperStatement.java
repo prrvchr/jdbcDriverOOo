@@ -147,7 +147,7 @@ implements XCancellable,
 			m_Statement.setCursorName(m_CursorName);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -158,7 +158,7 @@ implements XCancellable,
 			return m_Statement.getQueryTimeout();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 	public void setQueryTimeout(int timeout) throws SQLException
@@ -168,7 +168,7 @@ implements XCancellable,
 			m_Statement.setQueryTimeout(timeout);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -179,7 +179,7 @@ implements XCancellable,
 			return m_Statement.getMaxFieldSize();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -190,7 +190,7 @@ implements XCancellable,
 			m_Statement.setMaxFieldSize(size);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -201,7 +201,7 @@ implements XCancellable,
 			return m_Statement.getMaxRows();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -212,7 +212,7 @@ implements XCancellable,
 			m_Statement.setMaxRows(row);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -223,7 +223,7 @@ implements XCancellable,
 			return m_Statement.getFetchDirection();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -234,7 +234,7 @@ implements XCancellable,
 			m_Statement.setFetchDirection(direction);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -246,7 +246,7 @@ implements XCancellable,
 			return m_Statement.getFetchSize();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -257,7 +257,7 @@ implements XCancellable,
 			m_Statement.setFetchSize(size);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -269,7 +269,7 @@ implements XCancellable,
 			return m_Statement.getResultSetConcurrency();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -285,7 +285,7 @@ implements XCancellable,
 			return m_Statement.getResultSetType();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 		
 	}
@@ -317,7 +317,7 @@ implements XCancellable,
 			m_Statement.close();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -331,7 +331,7 @@ implements XCancellable,
 			return m_Statement.getMoreResults();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -345,7 +345,7 @@ implements XCancellable,
 			return new ResultSet(m_xContext, component, resultset);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -357,7 +357,7 @@ implements XCancellable,
 			return m_Statement.getUpdateCount();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 

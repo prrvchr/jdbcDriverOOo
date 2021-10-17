@@ -94,7 +94,7 @@ implements XBatchExecution,
 			m_Statement.setEscapeProcessing(m_EscapeProcessing);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -107,7 +107,7 @@ implements XBatchExecution,
 			m_Statement.addBatch(sql);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -118,7 +118,7 @@ implements XBatchExecution,
 			m_Statement.clearBatch();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -129,7 +129,7 @@ implements XBatchExecution,
 			return m_Statement.executeBatch();
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -143,7 +143,7 @@ implements XBatchExecution,
 			return m_Statement.execute(sql);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -157,7 +157,7 @@ implements XBatchExecution,
 			return new ResultSet(m_xContext, component, resultset);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
@@ -169,7 +169,7 @@ implements XBatchExecution,
 			return m_Statement.executeUpdate(sql);
 		} catch (java.sql.SQLException e)
 		{
-			throw UnoHelper.getException(e, this);
+			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 

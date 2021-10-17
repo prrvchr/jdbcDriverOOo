@@ -16,6 +16,7 @@ import com.sun.star.sdbc.SQLWarning;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
 import com.sun.star.sdbc.XClob;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.UnoRuntime;
@@ -151,12 +152,6 @@ public class UnoHelper
 		return property;
 	}
 
-
-	public static SQLException getException(java.sql.SQLException e, XInterface component)
-	{
-		return getSQLException(e, component);
-	}
-
 	public static SQLException getSQLException(java.sql.SQLException e, XInterface component)
 	{
 		SQLException exception = null;
@@ -172,27 +167,28 @@ public class UnoHelper
 		return exception;
 	}
 
-
-	public static Object getWarning(java.sql.SQLWarning w, XInterface component)
-	{
-		return getSQLWarning(w, component);
-	}
-
 	public static Object getSQLWarning(java.sql.SQLWarning w, XInterface component)
 	{
-		SQLWarning warning = null;
+		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
+		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
+		// FIXME: returning <Any.VOID> seem to be the solution...
+		Object warning = Any.VOID;
 		if (w != null)
 		{
-			String message = w.getMessage();
-			warning = new SQLWarning(message);
-			warning.Context = component;
-			warning.SQLState = w.getSQLState();
-			warning.ErrorCode = w.getErrorCode();
-			warning.NextException = getSQLWarning(w.getNextWarning(), component);
+			warning = _getSQLWarning(w, component);
 		}
 		return warning;
 	}
 
+	private static SQLWarning _getSQLWarning(java.sql.SQLWarning w, XInterface component)
+	{
+		SQLWarning warning = new SQLWarning(w.getMessage());
+		warning.Context = component;
+		warning.SQLState = w.getSQLState();
+		warning.ErrorCode = w.getErrorCode();
+		warning.NextException = getSQLWarning(w.getNextWarning(), component);
+		return warning;
+	}
 
 	public static String getObjectString(Object object)
 	{
