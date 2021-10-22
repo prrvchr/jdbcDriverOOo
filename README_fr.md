@@ -1,3 +1,5 @@
+# ![HsqlDBDriverOOo logo](img/HsqlDBDriverOOo.png) HsqlDBDriverOOo
+
 **This [document](https://prrvchr.github.io/HsqlDBDriverOOo/) in English.**
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo/registration/TermsOfUse_fr)

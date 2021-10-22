@@ -53,8 +53,8 @@
     <name lang="fr-FR">HsqlDBDriverOOo</name>
   </display-name>
   <icon>
-    <default xlink:href="image/HsqlDBDriver.png"/>
-    <high-contrast xlink:href="image/HsqlDBDriver.png"/>
+    <default xlink:href="HsqlDBDriverOOo/HsqlDBDriverOOo.png"/>
+    <high-contrast xlink:href="HsqlDBDriverOOo/HsqlDBDriverOOo.png"/>
   </icon>
   <extension-description>
     <src lang="en-US" xlink:href="description/desc_en.txt"/>
