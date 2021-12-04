@@ -471,6 +471,8 @@ def getValueFromResult(result, index=1, default=None):
         value = result.getTime(index)
     elif dbtype == 'DATE':
         value = result.getDate(index)
+    elif dbtype == 'BINARY':
+        value = result.getBytes(index).value
     elif dbtype.endswith('ARRAY'):
         value = result.getArray(index)
     else:

@@ -27,16 +27,73 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .logmanager import LogManager
-from .logger import Pool
-from .logger import Logger
-from .handler import LogHandler
+import unohelper
 
-from .log import clearLogger
-from .log import getLoggerUrl
-from .log import getLoggerSetting
-from .log import getMessage
-from .log import isDebugMode
-from .log import logMessage
-from .log import setDebugMode
-from .log import setLoggerSetting
+from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt import XDialogEventHandler
+
+import traceback
+
+
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XContainerWindowEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ChangeLogger':
+                logger = event.Source.getSelectedItem()
+                self._manager.changeLogger(logger)
+                handled = True
+            elif method == 'ToggleLogger':
+                enabled = event.Source.State == 1
+                self._manager.toggleLogger(enabled)
+                handled = True
+            elif method == 'EnableViewer':
+                self._manager.toggleViewer(True)
+                handled = True
+            elif method == 'DisableViewer':
+                self._manager.toggleViewer(False)
+                handled = True
+            elif method == 'ViewLog':
+                self._manager.viewLog()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('ChangeLogger',
+                'ToggleLogger',
+                'EnableViewer',
+                'DisableViewer',
+                'ViewLog')
+
+
+class DialogHandler(unohelper.Base,
+                    XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ClearLog':
+                self._manager.clearLog()
+                handled = True
+            elif method == 'LogInfo':
+                self._manager.logInfo()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('ClearLog',
+                'LogInfo')

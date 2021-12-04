@@ -41,6 +41,7 @@ from com.sun.star.logging.LogLevel import OFF
 
 from ..unotool import createService
 from ..unotool import getConfiguration
+from ..unotool import getFileSequence
 from ..unotool import getStringResource
 
 from ..configuration import g_identifier
@@ -103,6 +104,12 @@ class Logger(unohelper.Base):
         url = url.replace('$(loggername)', self._logger.Name)
         return path.substituteVariables(url, True)
 
+    def getLoggerText(self):
+        url = self.getLoggerUrl()
+        length, sequence = getFileSequence(self._ctx, url)
+        text = sequence.value.decode('utf-8')
+        return text
+
 # Public setter method
     def addLogHandler(self, handler):
         self._logger.addLogHandler(handler)
@@ -127,16 +134,24 @@ class Logger(unohelper.Base):
             self._logMessage(level, msg, clazz, method)
             print("Logger.logMessage() %s - %s - %s - %s" % (level, msg, clazz, method))
 
-    def clearLogger(self, msg=''):
+    def clearLogger(self, msg='', clazz=None, method=None):
         if self._logger is not None:
             name = self._logger.Name
             self._logger = None
             self._logger = self._getLogger(name)
-            self.logMessage(INFO, msg)
+            self.logMessage(INFO, msg, clazz, method)
 
     def setLoggerSetting(self, enabled, index, state):
         handler = self._getHandler(state)
         self._setLoggerSetting(enabled, index, handler)
+
+    def addListener(self, listener):
+        self._listeners.append(listener)
+
+    def removeListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
 
 # Private getter method
     def _getLogger(self, name):
