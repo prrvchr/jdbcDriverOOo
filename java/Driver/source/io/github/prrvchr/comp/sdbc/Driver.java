@@ -84,8 +84,10 @@ implements XDriver
 	{
 		return m_name;
 	}
+
 	@Override
-	public String[] _getServiceNames() {
+	public String[] _getServiceNames()
+	{
 		return m_services;
 	}
 
