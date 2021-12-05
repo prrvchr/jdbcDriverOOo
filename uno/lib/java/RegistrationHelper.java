@@ -55,7 +55,7 @@ import com.sun.star.registry.XRegistryKey;
  * @author Cedric Bosdonnat aka. cedricbosdo
  *
  */
-public class RegistrationHandler
+public class RegistrationHelper
 {
 
 	/**
@@ -69,11 +69,11 @@ public class RegistrationHandler
 	*
 	* @return the factory which can create the implementation.
 	*/
-	public static XSingleComponentFactory __getComponentFactory(String sImplementationName)
+	public static XSingleComponentFactory __getComponentFactory(InputStream in, String sImplementationName)
 	{
 		XSingleComponentFactory xFactory = null;
 		@SuppressWarnings("rawtypes")
-		Class[] classes = findServicesImplementationClasses();
+		Class[] classes = findServicesImplementationClasses(in);
 		int i = 0;
 		while (i < classes.length && xFactory == null)
 		{
@@ -112,10 +112,10 @@ public class RegistrationHandler
 	* @return <code>true</code> if the informations have been successfully written
 	* to the registry key, <code>false</code> otherwise.
 	*/
-	public static boolean __writeRegistryServiceInfo(XRegistryKey xRegistryKey )
+	public static boolean __writeRegistryServiceInfo(InputStream in, XRegistryKey xRegistryKey)
 	{
 		@SuppressWarnings("rawtypes")
-		Class[] classes = findServicesImplementationClasses();
+		Class[] classes = findServicesImplementationClasses(in);
 		boolean success = true;
 		int i = 0;
 		while (i < classes.length && success)
@@ -143,10 +143,9 @@ public class RegistrationHandler
 	 * @return all the UNO implementation classes. 
 	 */
 	@SuppressWarnings("rawtypes")
-	private static Class[] findServicesImplementationClasses()
+	private static Class[] findServicesImplementationClasses(InputStream in)
 	{
 		ArrayList<Class> classes = new ArrayList<Class>();
-		InputStream in = RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
 		LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
 		try
 		{
