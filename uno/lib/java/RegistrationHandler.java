@@ -35,7 +35,7 @@
  *
  *
  ************************************************************************/
-package io.github.prrvchr.comp.sdbc;
+package io.github.prrvchr.comp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +69,7 @@ public class RegistrationHandler
 	*
 	* @return the factory which can create the implementation.
 	*/
-	public static XSingleComponentFactory __getComponentFactory(String sImplementationName )
+	public static XSingleComponentFactory __getComponentFactory(String sImplementationName)
 	{
 		XSingleComponentFactory xFactory = null;
 		@SuppressWarnings("rawtypes")
