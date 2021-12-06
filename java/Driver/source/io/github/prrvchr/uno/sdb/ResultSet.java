@@ -23,62 +23,65 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
+package io.github.prrvchr.uno.sdb;
 
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.uno.sdbcx.BaseResultSet;
+import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public final class ResultSet
+extends BaseResultSet<ResultSet>
+implements XColumnsSupplier
 {
-	private final java.sql.Connection m_Connection;
+	private static final String m_name = ResultSet.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
+                                                "com.sun.star.sdbc.ResultSet", 
+                                                "com.sun.star.sdbcx.ResultSet"};
+	private final java.sql.ResultSet m_ResultSet;
+
 
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public ResultSet(XComponentContext ctx,
+                     XInterface statement,
+                     java.sql.ResultSet resultset)
 	{
-		m_Connection = connection;
+		super(ctx, statement, resultset);
+		m_ResultSet = resultset;
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
+	// com.sun.star.sdbcx.XColumnsSupplier:
 	@Override
-	public XNameAccess getUsers()
+	public XNameAccess getColumns()
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
 		try
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
+			return ColumnsSupplier.getColumns(metadata);
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
+		catch (java.sql.SQLException e)
 		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
+			// pass
+		}
 		return null;
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String _getImplementationName()
+	{
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
 	}
 
 

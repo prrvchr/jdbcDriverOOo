@@ -23,61 +23,95 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
+package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XResultSet;
 
-
-public class UsersSupplierHelper
-implements XUsersSupplier
+public class Array
+extends WeakBase
+implements XArray
 {
-	private final java.sql.Connection m_Connection;
+	private final java.sql.Array m_Array;
 
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public Array(java.sql.Array array)
 	{
-		m_Connection = connection;
+		m_Array = array;
 	}
 
-
-	// com.sun.star.sdbcx.XUsersSupplier:
 	@Override
-	public XNameAccess getUsers()
+	public Object[] getArray(XNameAccess arg0)
+	throws SQLException
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
 		try
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			return (Object[]) m_Array.getArray();
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
+	throws SQLException
+	{
 		try
 		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
+			return (Object[]) m_Array.getArray(index, count);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public int getBaseType()
+	throws SQLException
+	{
+		try
+		{
+			return m_Array.getBaseType();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public String getBaseTypeName()
+	throws SQLException
+	{
+		try
+		{
+			return m_Array.getBaseTypeName();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public XResultSet getResultSet(XNameAccess arg0)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
+	throws SQLException
+	{
+		// TODO Auto-generated method stub
 		return null;
 	}
 

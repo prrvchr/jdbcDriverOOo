@@ -23,62 +23,81 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Map;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.BaseStatement;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public final class Statement
+extends BaseStatement<Statement>
 {
-	private final java.sql.Connection m_Connection;
+	private static String m_name = Statement.class.getName();
+	private static String[] m_services = {"com.sun.star.sdbc.Statement",
+                                          "com.sun.star.sdbcx.Statement"};
+	private java.sql.Statement m_Statement;
+	private boolean m_UseBookmarks = true;
 
-	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	private static Map<String, Property> _getPropertySet()
 	{
-		m_Connection = connection;
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
+	// The constructor method:
+	public Statement(XComponentContext context,
+                     XConnection connection,
+                     java.sql.Statement statement)
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
-		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
-		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+		super(context, connection, statement, _getPropertySet());
+		m_Statement = statement;
+	}
+
+
+	public boolean getUseBookmarks()
+	{
+		return m_UseBookmarks;
+	}
+	public void setUseBookmarks(boolean value)
+	{
+		m_UseBookmarks = value;
+	}
+
+
+	// com.sun.star.lang.XServiceInfo:
+	@Override
+	public String _getImplementationName()
+	{
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper()
+	{
+		return m_Statement;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
 	}
 
 

@@ -23,62 +23,68 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.HashMap;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+final class WarningsSupplier
 {
-	private final java.sql.Connection m_Connection;
 
-	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	static void clearWarnings(java.sql.Wrapper wrapper, XInterface component)
+	throws SQLException
 	{
-		m_Connection = connection;
+		try
+		{
+			if (wrapper.isWrapperFor(Connection.class))
+			{
+				wrapper.unwrap(Connection.class).clearWarnings();
+			}
+			else if(wrapper.isWrapperFor(ResultSet.class))
+			{
+				wrapper.unwrap(ResultSet.class).clearWarnings();
+			}
+			else if(wrapper.isWrapperFor(Statement.class))
+			{
+				wrapper.unwrap(Statement.class).clearWarnings();
+			}
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, component);
+		}
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
+	static Object getWarnings(java.sql.Wrapper wrapper, XInterface component)
+	throws SQLException
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+		java.sql.SQLWarning warning = null;
 		try
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
-		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
+			if (wrapper.isWrapperFor(Connection.class))
 			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
+				warning = wrapper.unwrap(Connection.class).getWarnings();
 			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+			else if(wrapper.isWrapperFor(ResultSet.class))
+			{
+				warning = wrapper.unwrap(ResultSet.class).getWarnings();
+			}
+			else if(wrapper.isWrapperFor(Statement.class))
+			{
+				warning = wrapper.unwrap(Statement.class).getWarnings();
+			}
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, component);
+		}
+		return UnoHelper.getSQLWarning(warning, component);
 	}
 
 

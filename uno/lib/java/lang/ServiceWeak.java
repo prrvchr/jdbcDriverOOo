@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.lang;
+package io.github.prrvchr.uno.lang;
 
 import com.sun.star.lib.uno.helper.WeakBase;
 

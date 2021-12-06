@@ -23,62 +23,32 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public final class ColumnsSupplier
 {
-	private final java.sql.Connection m_Connection;
 
-	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public static XNameAccess getColumns(java.sql.ResultSetMetaData metadata)
+	throws java.sql.SQLException
 	{
-		m_Connection = connection;
-	}
-
-
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
-	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
+		List<String> index = new ArrayList<String>();
+		Map<String, Columns> map = new HashMap<String, Columns>();
+		for (int i = 1; i <= metadata.getColumnCount(); i++)
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			String name = metadata.getColumnName(i);
+			index.add(name);
+			Columns column = new Columns(i, metadata);
+			map.put(name, column);
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+		return new Container<Columns>(index, map);
 	}
 
 

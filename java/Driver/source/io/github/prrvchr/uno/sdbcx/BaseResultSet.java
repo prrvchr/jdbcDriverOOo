@@ -23,62 +23,120 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Map;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XRowLocate;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.SuperResultSet;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public abstract class BaseResultSet<T>
+extends SuperResultSet<T>
+implements XRowLocate
 {
-	private final java.sql.Connection m_Connection;
+	private final java.sql.ResultSet m_ResultSet;
+	private boolean m_IsBookmarkable = true;
 
-	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	private static Map<String, Property> _getPropertySet()
 	{
-		m_Connection = connection;
+		short readonly = PropertyAttribute.READONLY;
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("IsBookmarkable", "boolean", readonly);
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
+	// The constructor method:
+	public BaseResultSet(XComponentContext ctx,
+                         XInterface statement,
+                         java.sql.ResultSet resultset)
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
-		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
-		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
+		super(ctx, statement, resultset, _getPropertySet());
+		m_ResultSet = resultset;
+	}
+
+
+	public boolean getIsBookmarkable()
+	{
+		System.out.println("ResultSet.getIsBookmarkable()");
+		return m_IsBookmarkable;
+	}
+
+
+	// com.sun.star.sdbcx.XRowLocate:
+	@Override
+	public int compareBookmarks(Object bookmark1, Object bookmark2)
+	throws SQLException
+	{
+		System.out.println("ResultSet.compareBookmarks()");
+		return 0;
+	}
+
+
+	@Override
+	public Object getBookmark()
+	throws SQLException
+	{
+		System.out.println("ResultSet.getBookmark()");
 		return null;
+	}
+
+
+	@Override
+	public boolean hasOrderedBookmarks()
+	throws SQLException
+	{
+		System.out.println("ResultSet.hasOrderedBookmarks()");
+		return false;
+	}
+
+
+	@Override
+	public int hashBookmark(Object arg0)
+	throws SQLException
+	{
+		System.out.println("ResultSet.hashBookmark()");
+		return 0;
+	}
+
+
+	@Override
+	public boolean moveRelativeToBookmark(Object arg0, int arg1)
+	throws SQLException
+	{
+		System.out.println("ResultSet.moveRelativeToBookmark()");
+		return false;
+	}
+
+
+	@Override
+	public boolean moveToBookmark(Object arg0)
+	throws SQLException
+	{
+		System.out.println("ResultSet.moveToBookmark()");
+		return false;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper(){
+		return m_ResultSet;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
 	}
 
 

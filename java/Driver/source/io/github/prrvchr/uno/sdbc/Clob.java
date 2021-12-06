@@ -23,63 +23,106 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbc;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XClob;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+
+import org.apache.commons.io.input.ReaderInputStream;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public class Clob
+extends WeakBase
+implements XClob
 {
-	private final java.sql.Connection m_Connection;
+	private java.sql.Statement m_Statement;
+	private java.sql.Clob m_Clob;
 
+	
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
-	{
-		m_Connection = connection;
-	}
+	public Clob(java.sql.Statement statement,
+            java.sql.Clob clob)
+{
+		m_Statement = statement;
+	m_Clob = clob;
+}
 
-
-	// com.sun.star.sdbcx.XUsersSupplier:
+	
+	// com.sun.star.sdbc.XClob:
 	@Override
-	public XNameAccess getUsers()
-	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+	public XInputStream getCharacterStream() throws SQLException {
 		try
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			java.io.Reader reader = m_Clob.getCharacterStream();
+			Charset cs = Charset.forName("UTF-8");
+			InputStream input = new ReaderInputStream(reader, cs);
+			return new InputStreamToXInputStreamAdapter(input);
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public String getSubString(long position, int lenght) throws SQLException {
 		try
 		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+			return m_Clob.getSubString(position, lenght);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
+
+	@Override
+	public long length() throws SQLException {
+		try
+		{
+			return m_Clob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long position(String str, int start) throws SQLException {
+		try
+		{
+			return m_Clob.position(str, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	@Override
+	public long positionOfClob(XClob clob, long start) throws SQLException {
+		try
+		{
+			java.sql.Clob c = UnoHelper.getSQLClob(m_Statement, clob);
+			return m_Clob.position(c, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+
+
 
 
 }

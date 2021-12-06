@@ -23,62 +23,101 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbc;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
+import java.io.InputStream;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XBlob;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public class Blob
+extends WeakBase
+implements XBlob
 {
-	private final java.sql.Connection m_Connection;
+	private java.sql.Statement m_Statement;
+	private java.sql.Blob m_Blob;
 
+	
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public Blob(java.sql.Statement statement,
+                java.sql.Blob blob)
 	{
-		m_Connection = connection;
+		m_Statement = statement;
+		m_Blob = blob;
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
+	// com.sun.star.sdbc.XBlob:
 	@Override
-	public XNameAccess getUsers()
-	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+	public XInputStream getBinaryStream() throws SQLException {
 		try
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			InputStream input = m_Blob.getBinaryStream();
+			return new InputStreamToXInputStreamAdapter(input);
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	@Override
+	public byte[] getBytes(long position, int length) throws SQLException {
 		try
 		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+			return m_Blob.getBytes(position, length);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	@Override
+	public long length() throws SQLException {
+		try
+		{
+			return m_Blob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	@Override
+	public long position(byte[] pattern, long start) throws SQLException {
+		try
+		{
+			return m_Blob.position(pattern, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	@Override
+	public long positionOfBlob(XBlob blob, long start) throws SQLException {
+		try
+		{
+			java.sql.Blob b = UnoHelper.getSQLBlob(m_Statement, blob);
+			return m_Blob.position(b, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 

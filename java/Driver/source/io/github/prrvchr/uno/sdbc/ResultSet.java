@@ -23,62 +23,57 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbc;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
-
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public final class ResultSet
+extends SuperResultSet<ResultSet>
 {
-	private final java.sql.Connection m_Connection;
+	private static final String m_name = ResultSet.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
+	private java.sql.ResultSet m_ResultSet;
+
 
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public ResultSet(XComponentContext ctx,
+                     java.sql.ResultSet resultset)
 	{
-		m_Connection = connection;
+		super(ctx, resultset);
+		m_ResultSet = resultset;
+	}
+	public ResultSet(XComponentContext ctx,
+                     XInterface statement,
+                     java.sql.ResultSet resultset)
+	{
+		super(ctx, statement, resultset);
+		m_ResultSet = resultset;
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
+	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public XNameAccess getUsers()
+	public String _getImplementationName()
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
-		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
-		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames() {
+		return m_services;
+	}
+
+
+	// com.sun.star.sdbc.XWarningsSupplier:
+	@Override
+	public java.sql.Wrapper _getWrapper(){
+		return m_ResultSet;
+	}
+	@Override
+	public XInterface _getInterface()
+	{
+		return this;
 	}
 
 

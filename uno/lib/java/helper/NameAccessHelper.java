@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.uno.helper;
 
 import java.util.Map;
 
