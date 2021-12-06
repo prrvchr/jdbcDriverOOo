@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.helper;
+package io.github.prrvchr.ooo.helper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

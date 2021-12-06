@@ -23,72 +23,65 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdb;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.XComponentContext;
+
+import io.github.prrvchr.ooo.sdbcx.BaseCallableStatement;
+import io.github.prrvchr.ooo.sdbcx.ColumnsSupplier;
 
 
-public class DriverHelper implements Driver
+public class CallableStatement
+extends BaseCallableStatement<CallableStatement>
+implements XColumnsSupplier
 {
-	private Driver m_driver;
+	private static final String m_name = CallableStatement.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
+                                                "com.sun.star.sdbc.CallableStatement",
+                                                "com.sun.star.sdbcx.CallableStatement"};
+	private final java.sql.CallableStatement m_Statement;
 
+	
 	// The constructor method:
-	public DriverHelper(Driver driver)
+	public CallableStatement(XComponentContext context,
+                             XConnection connection,
+                             java.sql.CallableStatement statement)
 	{
-		m_driver = driver;
+		super(context, connection, statement);
+		m_Statement = statement;
 	}
 
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
-	{
-		return m_driver.acceptsURL(url);
-	}
 
+	// com.sun.star.sdbcx.XColumnsSupplier:
 	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
+	public XNameAccess getColumns()
 	{
-		return m_driver.connect(url, properties);
-	}
-
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
-	}
-
-	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
-	}
-
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
+		try
+		{
+			java.sql.ResultSetMetaData metadata = m_Statement.getMetaData();
+			return ColumnsSupplier.getColumns(metadata);
+		}
+		catch (java.sql.SQLException e)
+		{
+			// pass
+		}
 		return null;
 	}
 
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
 
+	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public boolean jdbcCompliant()
+	public String _getImplementationName()
 	{
-		return m_driver.jdbcCompliant();
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
 	}
 
 

@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.lang;
+package io.github.prrvchr.ooo.lang;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

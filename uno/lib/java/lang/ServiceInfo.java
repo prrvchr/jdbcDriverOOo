@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.comp.lang;
+package io.github.prrvchr.ooo.lang;
 
 
 public final class ServiceInfo

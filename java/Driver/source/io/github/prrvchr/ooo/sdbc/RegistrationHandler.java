@@ -23,72 +23,32 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbc;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.io.InputStream;
+
+import com.sun.star.lang.XSingleComponentFactory;
+import com.sun.star.registry.XRegistryKey;
+
+import io.github.prrvchr.ooo.RegistrationHelper;
 
 
-public class DriverHelper implements Driver
+public class RegistrationHandler
 {
-	private Driver m_driver;
 
-	// The constructor method:
-	public DriverHelper(Driver driver)
+	public static XSingleComponentFactory __getComponentFactory(String name)
 	{
-		m_driver = driver;
+		return RegistrationHelper.__getComponentFactory(getInputStream(), name);
 	}
 
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
+	public static boolean __writeRegistryServiceInfo(XRegistryKey key)
 	{
-		return m_driver.acceptsURL(url);
+		return RegistrationHelper.__writeRegistryServiceInfo(getInputStream(), key);
 	}
 
-	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
+	private static InputStream getInputStream()
 	{
-		return m_driver.connect(url, properties);
-	}
-
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
-	}
-
-	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
-	}
-
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
-	}
-
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		return RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
 	}
 
 

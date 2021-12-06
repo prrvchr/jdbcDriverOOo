@@ -23,72 +23,47 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbc;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.ooo.lang.ServiceProperty;
 
 
-public class DriverHelper implements Driver
+public abstract class WarningsSupplierProperty
+extends ServiceProperty
+implements com.sun.star.sdbc.XWarningsSupplier
 {
-	private Driver m_driver;
+	public abstract java.sql.Wrapper _getWrapper();
+	public abstract XInterface _getInterface();
 
 	// The constructor method:
-	public DriverHelper(Driver driver)
+	public WarningsSupplierProperty(Map<String, Property> properties)
 	{
-		m_driver = driver;
+		super(properties);
 	}
 
-	// java.sql.Driver:
+
+	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
+	public void clearWarnings() throws SQLException
 	{
-		return m_driver.acceptsURL(url);
+		java.sql.Wrapper wrapper = _getWrapper();
+		XInterface component =  _getInterface();
+		WarningsSupplier.clearWarnings(wrapper, component);
 	}
 
-	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.connect(url, properties);
-	}
 
 	@Override
-	public int getMajorVersion()
+	public Object getWarnings() throws SQLException
 	{
-		return m_driver.getMajorVersion();
-	}
-
-	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
-	}
-
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
-	}
-
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		java.sql.Wrapper wrapper = _getWrapper();
+		XInterface component =  _getInterface();
+		return WarningsSupplier.getWarnings(wrapper, component);
 	}
 
 

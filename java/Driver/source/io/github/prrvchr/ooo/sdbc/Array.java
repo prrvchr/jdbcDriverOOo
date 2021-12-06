@@ -23,72 +23,96 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbc;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XResultSet;
 
-
-public class DriverHelper implements Driver
+public class Array
+extends WeakBase
+implements XArray
 {
-	private Driver m_driver;
+	private final java.sql.Array m_Array;
 
 	// The constructor method:
-	public DriverHelper(Driver driver)
+	public Array(java.sql.Array array)
 	{
-		m_driver = driver;
+		m_Array = array;
 	}
 
-	// java.sql.Driver:
 	@Override
-	public boolean acceptsURL(String url)
+	public Object[] getArray(XNameAccess arg0)
 	throws SQLException
 	{
-		return m_driver.acceptsURL(url);
+		try
+		{
+			return (Object[]) m_Array.getArray();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public Connection connect(String url, Properties properties)
+	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
 	throws SQLException
 	{
-		return m_driver.connect(url, properties);
+		try
+		{
+			return (Object[]) m_Array.getArray(index, count);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public int getMajorVersion()
+	public int getBaseType()
+	throws SQLException
 	{
-		return m_driver.getMajorVersion();
+		try
+		{
+			return m_Array.getBaseType();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public int getMinorVersion()
+	public String getBaseTypeName()
+	throws SQLException
 	{
-		return m_driver.getMinorVersion();
+		try
+		{
+			return m_Array.getBaseTypeName();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
+	public XResultSet getResultSet(XNameAccess arg0)
+	throws SQLException
 	{
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
+	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
 	throws SQLException
 	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

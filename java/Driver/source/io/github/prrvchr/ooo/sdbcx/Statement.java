@@ -23,72 +23,81 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbcx;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.ooo.helper.UnoHelper;
+import io.github.prrvchr.ooo.sdbc.BaseStatement;
 
 
-public class DriverHelper implements Driver
+public final class Statement
+extends BaseStatement<Statement>
 {
-	private Driver m_driver;
+	private static String m_name = Statement.class.getName();
+	private static String[] m_services = {"com.sun.star.sdbc.Statement",
+                                          "com.sun.star.sdbcx.Statement"};
+	private java.sql.Statement m_Statement;
+	private boolean m_UseBookmarks = true;
+
+	private static Map<String, Property> _getPropertySet()
+	{
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
+	}
+
 
 	// The constructor method:
-	public DriverHelper(Driver driver)
+	public Statement(XComponentContext context,
+                     XConnection connection,
+                     java.sql.Statement statement)
 	{
-		m_driver = driver;
+		super(context, connection, statement, _getPropertySet());
+		m_Statement = statement;
 	}
 
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
+
+	public boolean getUseBookmarks()
 	{
-		return m_driver.acceptsURL(url);
+		return m_UseBookmarks;
+	}
+	public void setUseBookmarks(boolean value)
+	{
+		m_UseBookmarks = value;
 	}
 
+
+	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
+	public String _getImplementationName()
 	{
-		return m_driver.connect(url, properties);
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
 	}
 
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
-	}
 
+	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public int getMinorVersion()
+	public java.sql.Wrapper _getWrapper()
 	{
-		return m_driver.getMinorVersion();
+		return m_Statement;
 	}
-
 	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
+	public XInterface _getInterface()
 	{
-		return null;
-	}
-
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		return this;
 	}
 
 

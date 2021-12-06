@@ -23,72 +23,68 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbc;
 
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
+
+import io.github.prrvchr.ooo.helper.UnoHelper;
 
 
-public class DriverHelper implements Driver
+final class WarningsSupplier
 {
-	private Driver m_driver;
 
-	// The constructor method:
-	public DriverHelper(Driver driver)
-	{
-		m_driver = driver;
-	}
-
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
+	static void clearWarnings(java.sql.Wrapper wrapper, XInterface component)
 	throws SQLException
 	{
-		return m_driver.acceptsURL(url);
+		try
+		{
+			if (wrapper.isWrapperFor(Connection.class))
+			{
+				wrapper.unwrap(Connection.class).clearWarnings();
+			}
+			else if(wrapper.isWrapperFor(ResultSet.class))
+			{
+				wrapper.unwrap(ResultSet.class).clearWarnings();
+			}
+			else if(wrapper.isWrapperFor(Statement.class))
+			{
+				wrapper.unwrap(Statement.class).clearWarnings();
+			}
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, component);
+		}
 	}
 
-	@Override
-	public Connection connect(String url, Properties properties)
+
+	static Object getWarnings(java.sql.Wrapper wrapper, XInterface component)
 	throws SQLException
 	{
-		return m_driver.connect(url, properties);
-	}
-
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
-	}
-
-	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
-	}
-
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
-	}
-
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		java.sql.SQLWarning warning = null;
+		try
+		{
+			if (wrapper.isWrapperFor(Connection.class))
+			{
+				warning = wrapper.unwrap(Connection.class).getWarnings();
+			}
+			else if(wrapper.isWrapperFor(ResultSet.class))
+			{
+				warning = wrapper.unwrap(ResultSet.class).getWarnings();
+			}
+			else if(wrapper.isWrapperFor(Statement.class))
+			{
+				warning = wrapper.unwrap(Statement.class).getWarnings();
+			}
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, component);
+		}
+		return UnoHelper.getSQLWarning(warning, component);
 	}
 
 

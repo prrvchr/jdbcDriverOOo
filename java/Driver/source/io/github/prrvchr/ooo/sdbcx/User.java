@@ -23,72 +23,91 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbcx;
 
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XUser;
+
+import io.github.prrvchr.ooo.helper.UnoHelper;
+import io.github.prrvchr.ooo.lang.ServiceProperty;
 
 
-public class DriverHelper implements Driver
+public class User
+extends ServiceProperty
+implements XUser
 {
-	private Driver m_driver;
+	private static final String m_name = User.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+	@SuppressWarnings("unused")
+	private final java.sql.Connection m_Connection;
+	@SuppressWarnings("unused")
+	private Map<String, String> m_users;
+
 
 	// The constructor method:
-	public DriverHelper(Driver driver)
+	public User(Connection connection)
 	{
-		m_driver = driver;
+		super(_getPropertySet());
+		m_Connection = connection;
 	}
 
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
+	
+	private static Map<String, Property> _getPropertySet()
 	{
-		return m_driver.acceptsURL(url);
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("Name", "string");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
 	}
 
+	// com.sun.star.sdbcx.XAuthorizable <- XUser:
 	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.connect(url, properties);
-	}
-
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
+	public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
+	public int getPrivileges(String arg0, int arg1) throws SQLException {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
+	public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
+	public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	// XServiceInfo:
+	@Override
+	public String _getImplementationName() {
+		return m_name;
 	}
 
 	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+	public String[] _getServiceNames() {
+		return m_services;
+	}
+
+
+	// com.sun.star.sdbcx.XUser:
+	@Override
+	public void changePassword(String arg0, String arg1) throws SQLException {
+		// TODO Auto-generated method stub
+		
 	}
 
 

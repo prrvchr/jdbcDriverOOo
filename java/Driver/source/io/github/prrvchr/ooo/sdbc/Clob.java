@@ -23,73 +23,106 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbc;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+
+import com.sun.star.io.XInputStream;
+import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XClob;
+
+import io.github.prrvchr.ooo.helper.UnoHelper;
+
+import org.apache.commons.io.input.ReaderInputStream;
 
 
-public class DriverHelper implements Driver
+public class Clob
+extends WeakBase
+implements XClob
 {
-	private Driver m_driver;
+	private java.sql.Statement m_Statement;
+	private java.sql.Clob m_Clob;
 
+	
 	// The constructor method:
-	public DriverHelper(Driver driver)
-	{
-		m_driver = driver;
-	}
+	public Clob(java.sql.Statement statement,
+            java.sql.Clob clob)
+{
+		m_Statement = statement;
+	m_Clob = clob;
+}
 
-	// java.sql.Driver:
+	
+	// com.sun.star.sdbc.XClob:
 	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
-	{
-		return m_driver.acceptsURL(url);
-	}
-
-	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.connect(url, properties);
-	}
-
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
+	public XInputStream getCharacterStream() throws SQLException {
+		try
+		{
+			java.io.Reader reader = m_Clob.getCharacterStream();
+			Charset cs = Charset.forName("UTF-8");
+			InputStream input = new ReaderInputStream(reader, cs);
+			return new InputStreamToXInputStreamAdapter(input);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
+	public String getSubString(long position, int lenght) throws SQLException {
+		try
+		{
+			return m_Clob.getSubString(position, lenght);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
+	public long length() throws SQLException {
+		try
+		{
+			return m_Clob.length();
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
+	public long position(String str, int start) throws SQLException {
+		try
+		{
+			return m_Clob.position(str, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+	public long positionOfClob(XClob clob, long start) throws SQLException {
+		try
+		{
+			java.sql.Clob c = UnoHelper.getSQLClob(m_Statement, clob);
+			return m_Clob.position(c, start);
+		}
+		catch (java.sql.SQLException e)
+		{
+			throw new SQLException(e.getMessage());
+		}
 	}
+
+
+
 
 
 }

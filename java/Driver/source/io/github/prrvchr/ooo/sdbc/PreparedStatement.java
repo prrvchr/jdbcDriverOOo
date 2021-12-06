@@ -23,72 +23,53 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbc;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 
 
-public class DriverHelper implements Driver
+public class PreparedStatement
+extends SuperPreparedStatement<PreparedStatement>
 {
-	private Driver m_driver;
+	private static final String m_name = PreparedStatement.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
+	private java.sql.PreparedStatement m_Statement;
+
 
 	// The constructor method:
-	public DriverHelper(Driver driver)
+	public PreparedStatement(XComponentContext context,
+                             XConnection connection,
+                             java.sql.PreparedStatement statement)
 	{
-		m_driver = driver;
+		super(context, connection, statement);
+		m_Statement = statement;
 	}
 
-	// java.sql.Driver:
+
+	// com.sun.star.lang.XServiceInfo:
 	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
+	public String _getImplementationName()
 	{
-		return m_driver.acceptsURL(url);
+		return m_name;
+	}
+	@Override
+	public String[] _getServiceNames()
+	{
+		return m_services;
 	}
 
-	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.connect(url, properties);
-	}
 
+	// com.sun.star.sdbc.XWarningsSupplier:
 	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
+	public java.sql.Wrapper _getWrapper(){
+		return m_Statement;
 	}
-
 	@Override
-	public int getMinorVersion()
+	public XInterface _getInterface()
 	{
-		return m_driver.getMinorVersion();
-	}
-
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
-	}
-
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		return this;
 	}
 
 

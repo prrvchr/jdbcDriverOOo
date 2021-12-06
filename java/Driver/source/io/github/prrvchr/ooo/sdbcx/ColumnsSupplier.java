@@ -23,72 +23,32 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.ooo.helper;
+package io.github.prrvchr.ooo.sdbcx;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.Properties;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.sun.star.container.XNameAccess;
 
 
-public class DriverHelper implements Driver
+public final class ColumnsSupplier
 {
-	private Driver m_driver;
 
-	// The constructor method:
-	public DriverHelper(Driver driver)
+	public static XNameAccess getColumns(java.sql.ResultSetMetaData metadata)
+	throws java.sql.SQLException
 	{
-		m_driver = driver;
-	}
-
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
-	{
-		return m_driver.acceptsURL(url);
-	}
-
-	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.connect(url, properties);
-	}
-
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
-	}
-
-	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
-	}
-
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
-	}
-
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
-
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
+		List<String> index = new ArrayList<String>();
+		Map<String, Columns> map = new HashMap<String, Columns>();
+		for (int i = 1; i <= metadata.getColumnCount(); i++)
+		{
+			String name = metadata.getColumnName(i);
+			index.add(name);
+			Columns column = new Columns(i, metadata);
+			map.put(name, column);
+		}
+		return new Container<Columns>(index, map);
 	}
 
 

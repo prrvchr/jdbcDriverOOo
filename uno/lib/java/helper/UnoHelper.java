@@ -1,4 +1,4 @@
-package io.github.prrvchr.comp.helper;
+package io.github.prrvchr.ooo.helper;
 
 import java.lang.Exception;
 import java.net.MalformedURLException;
