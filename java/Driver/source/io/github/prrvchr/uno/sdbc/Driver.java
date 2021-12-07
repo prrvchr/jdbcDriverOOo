@@ -61,7 +61,7 @@ implements XDriver
 	private static final String m_protocolName = "sdbc:hsqldb:";
 	private static final String m_registredProtocolName = "sdbc:";
 	private static final String m_connectProtocolName = "jdbc:";
-	private static final String m_driverFolder = "lib";
+	private static final String m_driverFolder = "libs";
 	private static final String m_driverArchive = "hsqldb.jar";
 	private static final String m_driverClassName = "org.hsqldb.jdbcDriver";
 	private static URL m_driverUrl;
