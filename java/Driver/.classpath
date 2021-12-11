@@ -8,7 +8,7 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="build"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="con" path="org.libreoffice.ide.eclipse.java.OOO_CONTAINER/LibreOffice 7.1"/>
 	<classpathentry kind="lib" path="libs/commons-io-2.9.0.jar"/>
+	<classpathentry kind="con" path="org.libreoffice.ide.eclipse.java.OOO_CONTAINER/LibreOffice 7.1"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
