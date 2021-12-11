@@ -35,7 +35,7 @@
  *
  *
  ************************************************************************/
-package io.github.prrvchr.comp;
+package io.github.prrvchr.uno;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,6 +69,7 @@ public class RegistrationHelper
 	*
 	* @return the factory which can create the implementation.
 	*/
+
 	public static XSingleComponentFactory __getComponentFactory(InputStream in, String sImplementationName)
 	{
 		XSingleComponentFactory xFactory = null;
@@ -89,7 +90,8 @@ public class RegistrationHelper
 					Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
 					Object o = getFactoryMethod.invoke(null, sImplementationName);
 					xFactory = (XSingleComponentFactory)o;
-				} catch (Exception e)
+				}
+				catch (Exception e)
 				{
 					// Nothing to do: skip
 					System.err.println("Error happened");
@@ -100,6 +102,7 @@ public class RegistrationHelper
 		}
 		return xFactory;
 	}
+
 	/**
 	* Writes the services implementation informations to the UNO registry.
 	*
@@ -112,6 +115,7 @@ public class RegistrationHelper
 	* @return <code>true</code> if the informations have been successfully written
 	* to the registry key, <code>false</code> otherwise.
 	*/
+
 	public static boolean __writeRegistryServiceInfo(InputStream in, XRegistryKey xRegistryKey)
 	{
 		@SuppressWarnings("rawtypes")
@@ -139,9 +143,11 @@ public class RegistrationHelper
 		}
 		return success;
 	}
+
 	/**
 	 * @return all the UNO implementation classes. 
 	 */
+
 	@SuppressWarnings("rawtypes")
 	private static Class[] findServicesImplementationClasses(InputStream in)
 	{
@@ -168,24 +174,30 @@ public class RegistrationHelper
 						{
 							classes.add(clazz);
 						}
-					} catch (Exception e)
+					}
+					catch (Exception e)
 					{
 						e.printStackTrace();
 					}
 				}
 				line = reader.readLine();
 			}
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
-		} finally
+		}
+		finally
 		{
 			try
 			{
 				reader.close();
 				in.close();
-			} catch (Exception e) {};
+			}
+			catch (Exception e) {};
 		}
 		return classes.toArray(new Class[classes.size()]);
 	}
+
+
 }

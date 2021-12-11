@@ -37,3 +37,4 @@ g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
 g_version = '2.5.1'
 g_role = 'FrontOffice'
 g_dba = 'AD'
+g_superuser = ('https://', 'localhost', '/', 'admin')
