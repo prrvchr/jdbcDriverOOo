@@ -204,8 +204,8 @@ implements XOutParameters,
 		try
 		{
 			java.sql.Date value = m_Statement.getDate(index);
-			Date date = new Date();
-			if (!m_Statement.wasNull()) date = UnoHelper.getUnoDate(date, value);
+			Date date = null;
+			if (!m_Statement.wasNull()) date = UnoHelper.getUnoDate(value);
 			return date;
 		} catch (java.sql.SQLException e)
 		{
@@ -317,8 +317,8 @@ implements XOutParameters,
 		try
 		{
 			java.sql.Time value = m_Statement.getTime(index);
-			Time time = new Time();
-			if (!m_Statement.wasNull()) time = UnoHelper.getUnoTime(time, value);
+			Time time = null;
+			if (!m_Statement.wasNull()) time = UnoHelper.getUnoTime(value);
 			return time;
 		} catch (java.sql.SQLException e)
 		{
@@ -332,8 +332,8 @@ implements XOutParameters,
 		try
 		{
 			java.sql.Timestamp value = m_Statement.getTimestamp(index);
-			DateTime datetime = new DateTime();
-			if (!m_Statement.wasNull()) datetime = UnoHelper.getUnoDateTime(datetime, value);
+			DateTime datetime = null;
+			if (!m_Statement.wasNull()) datetime = UnoHelper.getUnoDateTime(value);
 			return datetime;
 		} catch (java.sql.SQLException e)
 		{

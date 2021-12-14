@@ -3,6 +3,9 @@ package io.github.prrvchr.uno.helper;
 import java.lang.Exception;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -49,6 +52,7 @@ public class UnoHelper
 		return location + "/" + path + "/";
 	}
 
+
 	public static String getPackageLocation(XComponentContext context, String identifier)
 	{
 		String location = "";
@@ -63,6 +67,7 @@ public class UnoHelper
 		return location;
 	}
 
+
 	public static URL getDriverURL(String location, String jar)
 	{
 		URL url = null;
@@ -73,8 +78,8 @@ public class UnoHelper
 		catch (Exception e) { e.printStackTrace(); }
 		return url;
 	}
-	
-	
+
+
 	public static URL getDriverURL(String location, String path, String jar)
 	throws MalformedURLException
 	{
@@ -96,6 +101,7 @@ public class UnoHelper
 		return infos.toArray(new DriverPropertyInfo[len]);
 	}
 
+
 	public static DriverPropertyInfo getDriverInfo(String name, String value)
 	{
 		DriverPropertyInfo info = new DriverPropertyInfo();
@@ -105,6 +111,7 @@ public class UnoHelper
 		info.Choices = new String[0];
 		return info;
 	}
+
 
 	public static Properties getConnectionProperties(PropertyValue[] infos)
 	{
@@ -135,11 +142,13 @@ public class UnoHelper
 		return getProperty(name,  type, attributes);
 	}
 
+
 	public static Property getProperty(String name, String type, short attributes)
 	{
 		int handle = -1;
 		return getProperty(name,  handle, type, attributes);
 	}
+
 
 	public static Property getProperty(String name, int handle, String type, short attributes)
 	{
@@ -150,6 +159,7 @@ public class UnoHelper
 		property.Attributes = attributes;
 		return property;
 	}
+
 
 	public static SQLException getSQLException(java.sql.SQLException e, XInterface component)
 	{
@@ -166,6 +176,7 @@ public class UnoHelper
 		return exception;
 	}
 
+
 	public static Object getSQLWarning(java.sql.SQLWarning w, XInterface component)
 	{
 		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
@@ -180,6 +191,7 @@ public class UnoHelper
 		return warning;
 	}
 
+
 	private static SQLWarning _getSQLWarning(java.sql.SQLWarning w, XInterface component)
 	{
 		SQLWarning warning = new SQLWarning(w.getMessage());
@@ -189,6 +201,7 @@ public class UnoHelper
 		warning.NextException = getSQLWarning(w.getNextWarning(), component);
 		return warning;
 	}
+
 
 	public static String getObjectString(Object object)
 	{
@@ -201,90 +214,64 @@ public class UnoHelper
 	}
 
 
-	@SuppressWarnings("deprecation")
-	public static Date getUnoDate(Date value, java.sql.Date date)
+	public static Date getUnoDate(java.sql.Date date)
 	{
-		value.Year = (short) date.getYear();
-		value.Month = (short) date.getMonth();
-		value.Day = (short) date.getDay();
+		LocalDate localdate = date.toLocalDate();
+		Date value = new Date();
+		value.Year = (short) localdate.getYear();
+		value.Month = (short) localdate.getMonthValue();
+		value.Day = (short) localdate.getDayOfMonth();
 		return value;
 	}
 
 
-	@SuppressWarnings("deprecation")
 	public static java.sql.Date getJavaDate(Date date)
 	{
-		int year = date.Year;
-		int month = date.Month;
-		int day = date.Day;
-		java.sql.Date value = new java.sql.Date(year, month, day);
-		return value;
+		LocalDate localdate = LocalDate.of(date.Year, date.Month, date.Day);
+		return java.sql.Date.valueOf(localdate);
 	}
 
 
-	@SuppressWarnings("deprecation")
-	public static Time getUnoTime(Time value, java.sql.Time time)
+	public static Time getUnoTime(java.sql.Time time)
 	{
-		value.Hours = (short) time.getHours();
-		value.Minutes = (short) time.getMinutes();
-		value.Seconds = (short) time.getSeconds();
-		//value.NanoSeconds = 0;
+		LocalTime localtime = time.toLocalTime();
+		Time value = new Time();
+		value.Hours = (short) localtime.getHour();
+		value.Minutes = (short) localtime.getMinute();
+		value.Seconds = (short) localtime.getSecond();
+		value.NanoSeconds = localtime.getNano();
 		//value.HundredthSeconds = 0;
 		return value;
 	}
 
 
-	@SuppressWarnings("deprecation")
 	public static java.sql.Time getJavaTime(Time time)
 	{
-		int hours = time.Hours;
-		int minutes = time.Minutes;
-		int seconds = time.Seconds;
-		java.sql.Time value = new java.sql.Time(hours, minutes, seconds);
-		return value;
+		LocalTime localtime = LocalTime.of(time.Hours, time.Minutes, time.Seconds, time.NanoSeconds);
+		return java.sql.Time.valueOf(localtime);
 	}
 
 
-	@SuppressWarnings("deprecation")
-	public static DateTime getUnoDateTime(DateTime value, java.sql.Timestamp timestamp)
+	public static DateTime getUnoDateTime(java.sql.Timestamp timestamp)
 	{
-		value.Day = (short) timestamp.getDay();
-		value.Month = (short) timestamp.getMonth();
-		value.Year = (short) timestamp.getYear();
-		value.Hours = (short) timestamp.getHours();
-		value.Minutes = (short) timestamp.getMinutes();
-		value.Seconds = (short) timestamp.getSeconds();
-		//value.NanoSeconds = 0;
+		LocalDateTime localdatetime = timestamp.toLocalDateTime();
+		DateTime value = new DateTime();
+		value.Year = (short) localdatetime.getYear();
+		value.Month = (short) localdatetime.getMonthValue();
+		value.Day = (short) localdatetime.getDayOfMonth();
+		value.Hours = (short) localdatetime.getHour();
+		value.Minutes = (short) localdatetime.getMinute();
+		value.Seconds =  (short) localdatetime.getSecond();
+		value.NanoSeconds = localdatetime.getNano();
 		//value.HundredthSeconds = 0;
 		return value;
 	}
 
-	@SuppressWarnings("deprecation")
-	public static DateTime getUnoDateTime(java.sql.Timestamp timestamp)
-	{
-		DateTime value = new DateTime();
-		value.Day = (short) timestamp.getDay();
-		value.Month = (short) timestamp.getMonth();
-		value.Year = (short) timestamp.getYear();
-		value.Hours = (short) timestamp.getHours();
-		value.Minutes = (short) timestamp.getMinutes();
-		value.Seconds =  (short) timestamp.getSeconds();
-		value.NanoSeconds = timestamp.getNanos();
-		return value;
-	}
-	
-	
-	@SuppressWarnings("deprecation")
+
 	public static java.sql.Timestamp getJavaDateTime(DateTime timestamp)
 	{
-		int year = timestamp.Year;
-		int month = timestamp.Month;
-		int day = timestamp.Day;
-		int hours = timestamp.Hours;
-		int minutes = timestamp.Minutes;
-		int seconds = timestamp.Seconds;
-		java.sql.Timestamp value = new java.sql.Timestamp(year, month, day, hours, minutes, seconds, 0);
-		return value;
+		LocalDateTime localdatetime = LocalDateTime.of(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hours, timestamp.Minutes, timestamp.Seconds, timestamp.NanoSeconds);
+		return java.sql.Timestamp.valueOf(localdatetime);
 	}
 
 
@@ -381,6 +368,7 @@ public class UnoHelper
 		return c;
 	}
 
+
 	public static java.sql.Blob getSQLBlob(java.sql.Statement statement, XBlob blob)
 	throws java.sql.SQLException, SQLException
 	{
@@ -393,6 +381,6 @@ public class UnoHelper
 		System.out.println("UnoHelper.getJavaBlob() 3");
 		return b;
 	}
-	
+
 
 }

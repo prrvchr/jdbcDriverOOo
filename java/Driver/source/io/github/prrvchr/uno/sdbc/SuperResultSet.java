@@ -591,8 +591,8 @@ implements XCloseable,
 		try
 		{
 			java.sql.Date value = m_ResultSet.getDate(index);
-			Date date = new Date();
-			if (!m_ResultSet.wasNull()) date = UnoHelper.getUnoDate(date, value);
+			Date date = null;
+			if (!m_ResultSet.wasNull()) date = UnoHelper.getUnoDate(value);
 			return date;
 		} catch (java.sql.SQLException e)
 		{
@@ -709,8 +709,8 @@ implements XCloseable,
 		try
 		{
 			java.sql.Time value = m_ResultSet.getTime(index);
-			Time time = new Time();
-			if (!m_ResultSet.wasNull()) time = UnoHelper.getUnoTime(time, value);
+			Time time = null;
+			if (!m_ResultSet.wasNull()) time = UnoHelper.getUnoTime(value);
 			return time;
 		} catch (java.sql.SQLException e)
 		{
@@ -724,8 +724,8 @@ implements XCloseable,
 		try
 		{
 			java.sql.Timestamp value = m_ResultSet.getTimestamp(index);
-			DateTime datetime = new DateTime();
-			if (!m_ResultSet.wasNull()) datetime = UnoHelper.getUnoDateTime(datetime, value);
+			DateTime datetime = null;
+			if (!m_ResultSet.wasNull()) datetime = UnoHelper.getUnoDateTime(value);
 			return datetime;
 		} catch (java.sql.SQLException e)
 		{
