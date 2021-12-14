@@ -139,14 +139,14 @@ public class UnoHelper
 	public static Property getProperty(String name, String type)
 	{
 		short attributes = 0;
-		return getProperty(name,  type, attributes);
+		return getProperty(name, type, attributes);
 	}
 
 
 	public static Property getProperty(String name, String type, short attributes)
 	{
 		int handle = -1;
-		return getProperty(name,  handle, type, attributes);
+		return getProperty(name, handle, type, attributes);
 	}
 
 
@@ -182,8 +182,8 @@ public class UnoHelper
 		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
 		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
 		// FIXME: returning <Any.VOID> seem to be the solution...
-		//Object warning = Any.VOID;
-		Object warning = new Any(new Type("com.sun.star.uno.SQLWarning"), null);
+		// Object warning = new Any(new Type("com.sun.star.uno.SQLWarning"), null);
+		Object warning = Any.VOID;
 		if (w != null)
 		{
 			warning = _getSQLWarning(w, component);
@@ -261,7 +261,7 @@ public class UnoHelper
 		value.Day = (short) localdatetime.getDayOfMonth();
 		value.Hours = (short) localdatetime.getHour();
 		value.Minutes = (short) localdatetime.getMinute();
-		value.Seconds =  (short) localdatetime.getSecond();
+		value.Seconds = (short) localdatetime.getSecond();
 		value.NanoSeconds = localdatetime.getNano();
 		//value.HundredthSeconds = 0;
 		return value;
@@ -373,7 +373,7 @@ public class UnoHelper
 	throws java.sql.SQLException, SQLException
 	{
 		System.out.println("UnoHelper.getJavaBlob() 1");
-		int len =  (int) blob.length();
+		int len = (int) blob.length();
 		byte[] value = blob.getBytes(1, len);
 		System.out.println("UnoHelper.getJavaBlob() 2");
 		java.sql.Blob b = statement.getConnection().createBlob();
