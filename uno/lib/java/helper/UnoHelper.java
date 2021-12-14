@@ -106,7 +106,6 @@ public class UnoHelper
 		return info;
 	}
 
-
 	public static Properties getConnectionProperties(PropertyValue[] infos)
 	{
 		System.out.println("UnoHelper.getProperties() 1 ");
@@ -172,7 +171,8 @@ public class UnoHelper
 		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
 		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
 		// FIXME: returning <Any.VOID> seem to be the solution...
-		Object warning = Any.VOID;
+		//Object warning = Any.VOID;
+		Object warning = new Any(new Type("com.sun.star.uno.SQLWarning"), null);
 		if (w != null)
 		{
 			warning = _getSQLWarning(w, component);
@@ -259,7 +259,21 @@ public class UnoHelper
 		return value;
 	}
 
-
+	@SuppressWarnings("deprecation")
+	public static DateTime getUnoDateTime(java.sql.Timestamp timestamp)
+	{
+		DateTime value = new DateTime();
+		value.Day = (short) timestamp.getDay();
+		value.Month = (short) timestamp.getMonth();
+		value.Year = (short) timestamp.getYear();
+		value.Hours = (short) timestamp.getHours();
+		value.Minutes = (short) timestamp.getMinutes();
+		value.Seconds =  (short) timestamp.getSeconds();
+		value.NanoSeconds = timestamp.getNanos();
+		return value;
+	}
+	
+	
 	@SuppressWarnings("deprecation")
 	public static java.sql.Timestamp getJavaDateTime(DateTime timestamp)
 	{
