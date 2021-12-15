@@ -270,10 +270,17 @@ implements XOutParameters,
 	}
 
 	@Override
-	public Object getObject(int arg0, XNameAccess arg1) throws SQLException
+	public Object getObject(int index, XNameAccess map) throws SQLException
 	{
-		// TODO: Implement me!!!
-		return null;
+		try
+		{
+			Object value = m_Statement.getObject(index);
+			if (m_Statement.wasNull()) value = null;
+			return value;
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 	@Override

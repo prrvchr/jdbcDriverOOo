@@ -295,19 +295,37 @@ implements XParameters,
 	@Override
 	public void setObject(int index, Object value) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			m_Statement.setObject(index, value);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 	@Override
 	public void setObjectNull(int index, int type, String name) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			m_Statement.setNull(index, type);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 	@Override
 	public void setObjectWithInfo(int index, Object value, int type, int scale) throws SQLException
 	{
-		// TODO: Implement me!!!
+		try
+		{
+			m_Statement.setObject(index, value, type, scale);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 	@Override

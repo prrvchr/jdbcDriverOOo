@@ -661,7 +661,9 @@ implements XCloseable,
 	{
 		try
 		{
-			return m_ResultSet.getObject(index);
+			Object value = m_ResultSet.getObject(index);
+			if (m_ResultSet.wasNull()) value = null;
+			return value;
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
