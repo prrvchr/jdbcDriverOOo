@@ -45,7 +45,6 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.uno.helper.DriverHelper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceComponent;
-import io.github.prrvchr.uno.sdbc.Connection;
 
 
 public final class Driver

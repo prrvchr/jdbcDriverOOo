@@ -35,7 +35,6 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.CallableStatement;
 import io.github.prrvchr.uno.sdb.PreparedStatement;

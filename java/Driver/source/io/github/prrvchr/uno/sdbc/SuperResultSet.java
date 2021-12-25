@@ -52,8 +52,6 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.Array;
-import io.github.prrvchr.uno.sdbc.Clob;
 
 public abstract class SuperResultSet<T>
 extends WarningsSupplierProperty
