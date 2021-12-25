@@ -447,14 +447,15 @@ def getRowResult(result, index=(0,), separator=' '):
     return tuple(sequence)
 
 def getValueFromResult(result, index=1, default=None):
-    # TODO: 'TINYINT' is buggy: don't use it
     dbtype = result.MetaData.getColumnTypeName(index)
     if dbtype == 'VARCHAR':
+        value = result.getString(index)
+    elif dbtype == 'CHARACTER':
         value = result.getString(index)
     elif dbtype == 'BOOLEAN':
         value = result.getBoolean(index)
     elif dbtype == 'TINYINT':
-        value = result.getShort(index)
+        value = result.getByte(index)
     elif dbtype == 'SMALLINT':
         value = result.getShort(index)
     elif dbtype == 'INTEGER':
@@ -465,7 +466,7 @@ def getValueFromResult(result, index=1, default=None):
         value = result.getFloat(index)
     elif dbtype == 'DOUBLE':
         value = result.getDouble(index)
-    elif dbtype == 'TIMESTAMP':
+    elif dbtype.startswith('TIMESTAMP'):
         value = result.getTimestamp(index)
     elif dbtype == 'TIME':
         value = result.getTime(index)
@@ -481,12 +482,13 @@ def getValueFromResult(result, index=1, default=None):
 
 def createStaticTable(ctx, statement, tables, readonly=False):
     for table in tables:
-        query = getSqlQuery(ctx, 'createTable' + table)
+        query = getSqlQuery(ctx, 'createTable' + table, table)
         statement.executeUpdate(query)
-    for table in tables:
-        statement.executeUpdate(getSqlQuery(ctx, 'setTableSource', table))
+        query = getSqlQuery(ctx, 'setTableSource', table)
+        statement.executeUpdate(query)
         if readonly:
-            statement.executeUpdate(getSqlQuery(ctx, 'setTableReadOnly', table))
+            query = getSqlQuery(ctx, 'setTableReadOnly', table)
+            statement.executeUpdate(query)
 
 def executeSqlQueries(statement, queries):
     for query in queries:
