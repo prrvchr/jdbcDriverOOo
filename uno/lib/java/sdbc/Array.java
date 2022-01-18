@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.sql.JDBCType;
+import java.util.Arrays;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
@@ -35,68 +38,49 @@ public class Array
 extends WeakBase
 implements XArray
 {
-	private final java.sql.Array m_Array;
+	private final Object[] m_Array;
+	private final JDBCType m_Type;
 
 	// The constructor method:
 	public Array(java.sql.Array array)
+	throws java.sql.SQLException
+	{
+		m_Array = (Object[]) array.getArray();
+		m_Type = JDBCType.valueOf(array.getBaseType());
+	}
+	public Array(Object[] array,
+				 int type)
 	{
 		m_Array = array;
+		m_Type = JDBCType.valueOf(type);
 	}
 
 	@Override
 	public Object[] getArray(XNameAccess arg0)
 	throws SQLException
 	{
-		try
-		{
-			return (Object[]) m_Array.getArray();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+		return m_Array;
 	}
 
 	@Override
 	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
 	throws SQLException
 	{
-		try
-		{
-			return (Object[]) m_Array.getArray(index, count);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+		return Arrays.copyOfRange(m_Array, index, index + count);
 	}
 
 	@Override
 	public int getBaseType()
 	throws SQLException
 	{
-		try
-		{
-			return m_Array.getBaseType();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+		return m_Type.getVendorTypeNumber();
 	}
 
 	@Override
 	public String getBaseTypeName()
 	throws SQLException
 	{
-		try
-		{
-			return m_Array.getBaseTypeName();
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+		return m_Type.getName();
 	}
 
 	@Override

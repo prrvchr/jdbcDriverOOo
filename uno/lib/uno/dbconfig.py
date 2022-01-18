@@ -38,3 +38,5 @@ g_version = '2.5.1'
 g_role = 'FrontOffice'
 g_dba = 'AD'
 g_superuser = ('https://', 'localhost', '/', 'admin')
+g_schema = '%i'
+g_user = '%i'
