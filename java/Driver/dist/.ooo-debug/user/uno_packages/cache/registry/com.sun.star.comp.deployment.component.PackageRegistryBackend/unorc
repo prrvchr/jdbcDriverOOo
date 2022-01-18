@@ -1,4 +1,4 @@
 ORIGIN=$UNO_USER_PACKAGES_CACHE/registry/com.sun.star.comp.deployment.component.PackageRegistryBackend
-UNO_JAVA_CLASSPATH=$UNO_USER_PACKAGES_CACHE/uno_packages/lu33337lyjm1e.tmp_/Driver.oxt/Driver.jar
-UNO_TYPES=?$UNO_USER_PACKAGES_CACHE/uno_packages/lu33337lyjm1e.tmp_/Driver.oxt/types.rdb
+UNO_JAVA_CLASSPATH=$UNO_USER_PACKAGES_CACHE/uno_packages/lu40387m1rc1t.tmp_/Driver.oxt/Driver.jar
+UNO_TYPES=?$UNO_USER_PACKAGES_CACHE/uno_packages/lu40387m1rc1t.tmp_/Driver.oxt/types.rdb
 UNO_SERVICES=?$ORIGIN/common.rdb ${$ORIGIN/${_OS}_${_ARCH}rc:UNO_SERVICES}
