@@ -30,6 +30,7 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.sdbc.DataType;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceProperty;
@@ -91,13 +92,13 @@ extends ServiceProperty
 	public long getType()
 	throws java.sql.SQLException
 	{
-		return m_Metadata.getColumnType(m_index);
+		return UnoHelper.getConstantValue(DataType.class, getTypeName());
 	}
 
 	public String getTypeName()
 	throws java.sql.SQLException
 	{
-		return m_Metadata.getColumnTypeName(m_index);
+		return UnoHelper.mapSQLDataType(m_Metadata.getColumnType(m_index), m_Metadata.getColumnTypeName(m_index));
 	}
 	
 

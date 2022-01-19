@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSetMetaData;
 
@@ -118,7 +119,7 @@ implements XResultSetMetaData
 	{
 		try
 		{
-			return m_Metadata.getColumnType(index);
+			return UnoHelper.getConstantValue(DataType.class, getColumnTypeName(index));
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -130,7 +131,7 @@ implements XResultSetMetaData
 	{
 		try
 		{
-			return m_Metadata.getColumnTypeName(index);
+			return UnoHelper.mapSQLDataType(m_Metadata.getColumnType(index), m_Metadata.getColumnTypeName(index));
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);

@@ -274,8 +274,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			Object value = m_Statement.getObject(index);
-			if (m_Statement.wasNull()) value = null;
+			System.out.println("SuperCallableStatement.getObject() : '" + index + "' - '" + map + "'");
+			Object value = null;
+			if (!m_Statement.wasNull()) value = m_Statement.getObject(index);
 			return value;
 		} catch (java.sql.SQLException e)
 		{

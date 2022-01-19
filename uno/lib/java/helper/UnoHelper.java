@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 
 import com.sun.star.beans.Property;
@@ -160,7 +161,12 @@ public class UnoHelper
 		return property;
 	}
 
-
+	public static java.sql.SQLException getSQLException(Exception e)
+	{
+		return new java.sql.SQLException(e.getMessage(), e);
+	}
+	
+	
 	public static SQLException getSQLException(java.sql.SQLException e, XInterface component)
 	{
 		SQLException exception = null;
@@ -380,6 +386,37 @@ public class UnoHelper
 		b.setBytes(1, value);
 		System.out.println("UnoHelper.getJavaBlob() 3");
 		return b;
+	}
+
+
+	public static Integer getConstantValue(Class<?> clazz, String name)
+	throws java.sql.SQLException
+	{
+		try {
+			return (int) clazz.getDeclaredField(name).get(null);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			e.printStackTrace();
+			throw getSQLException(e);
+		}
+	}
+
+
+	public static String mapSQLDataType(int key, String name)
+	{
+		Map<Integer, String> maps = Map.ofEntries(Map.entry(2003, "ARRAY"),
+												  Map.entry(70, "OTHER"),
+												  Map.entry(2000, "OBJECT"),
+												  Map.entry(-16, "LONGVARCHAR"),
+												  Map.entry(-15, "CHAR"),
+												  Map.entry(2011, "CLOB"),
+												  Map.entry(0, "SQLNULL"),
+												  Map.entry(-9, "VARCHAR"),
+												  Map.entry(2012, "REF"),
+												  Map.entry(-8, "INTEGER"),
+												  Map.entry(2009, "OTHER"),
+												  Map.entry(2013, "VARCHAR"),
+												  Map.entry(2014, "VARCHAR"));
+		return (maps.containsKey(key)) ? maps.get(key) : name;
 	}
 
 

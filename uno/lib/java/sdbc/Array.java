@@ -25,34 +25,41 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.sql.JDBCType;
 import java.util.Arrays;
 
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XResultSet;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 public class Array
 extends WeakBase
 implements XArray
 {
-	private final Object[] m_Array;
-	private final JDBCType m_Type;
+	private Object[] m_Array = null;
+	private String m_Type = null;
 
 	// The constructor method:
 	public Array(java.sql.Array array)
-	throws java.sql.SQLException
+	throws SQLException
 	{
-		m_Array = (Object[]) array.getArray();
-		m_Type = JDBCType.valueOf(array.getBaseType());
+		try {
+			m_Array = (Object[]) array.getArray();
+			m_Type = UnoHelper.mapSQLDataType(array.getBaseType(), array.getBaseTypeName());
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		}
+		
 	}
 	public Array(Object[] array,
-				 int type)
+				 String type)
 	{
 		m_Array = array;
-		m_Type = JDBCType.valueOf(type);
+		m_Type = type;
 	}
 
 	@Override
@@ -73,14 +80,18 @@ implements XArray
 	public int getBaseType()
 	throws SQLException
 	{
-		return m_Type.getVendorTypeNumber();
+		try {
+			return UnoHelper.getConstantValue(DataType.class, m_Type);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		}
 	}
 
 	@Override
 	public String getBaseTypeName()
 	throws SQLException
 	{
-		return m_Type.getName();
+		return m_Type;
 	}
 
 	@Override
