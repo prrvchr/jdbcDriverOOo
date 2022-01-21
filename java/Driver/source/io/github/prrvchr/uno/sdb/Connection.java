@@ -44,9 +44,9 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UsersSupplierHelper;
+import io.github.prrvchr.uno.sdbc.BaseConnection;
 
-
-public final class Connection extends io.github.prrvchr.uno.sdbc.Connection
+public final class Connection extends BaseConnection
 implements XChild,
            XCommandPreparation,
            XGroupsSupplier,

@@ -25,13 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.sdbc.XConnection;
+import java.sql.SQLException;
+
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 
 public class PreparedStatement
-extends SuperPreparedStatement<PreparedStatement>
+extends SuperPreparedStatement
 {
 	private static final String m_name = PreparedStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
@@ -40,10 +41,11 @@ extends SuperPreparedStatement<PreparedStatement>
 
 	// The constructor method:
 	public PreparedStatement(XComponentContext context,
-                             XConnection connection,
-                             java.sql.PreparedStatement statement)
+							 BaseConnection connection,
+							 java.sql.PreparedStatement statement)
+	throws SQLException
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, PreparedStatement.class.getSimpleName());
 		m_Statement = statement;
 	}
 

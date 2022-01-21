@@ -34,7 +34,6 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
 import com.sun.star.sdbc.XClob;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XOutParameters;
 import com.sun.star.sdbc.XRef;
 import com.sun.star.sdbc.XRow;
@@ -46,27 +45,30 @@ import com.sun.star.util.Time;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class SuperCallableStatement<T>
-extends SuperPreparedStatement<T>
+public abstract class SuperCallableStatement
+extends SuperPreparedStatement
 implements XOutParameters,
            XRow
 {
-	private final java.sql.CallableStatement m_Statement;
+	private java.sql.CallableStatement m_Statement;
+
 
 	// The constructor method:
 	public SuperCallableStatement(XComponentContext context,
-                                  XConnection connection,
-                                  java.sql.CallableStatement statement)
+								  BaseConnection connection,
+								  java.sql.CallableStatement statement,
+								  String name)
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, name);
 		m_Statement = statement;
 	}
 	public SuperCallableStatement(XComponentContext context,
-                                  XConnection connection,
-                                  java.sql.CallableStatement statement,
-                                  Map<String, Property> properties)
+								  BaseConnection connection,
+								  java.sql.CallableStatement statement,
+								  String name,
+								  Map<String, Property> properties)
 	{
-		super(context, connection, statement, properties);
+		super(context, connection, statement, name, properties);
 		m_Statement = statement;
 	}
 

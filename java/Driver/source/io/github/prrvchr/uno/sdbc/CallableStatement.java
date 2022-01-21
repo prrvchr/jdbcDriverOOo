@@ -25,25 +25,27 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.sdbc.XConnection;
+import java.sql.SQLException;
+
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 
 public final class CallableStatement
-extends SuperCallableStatement<CallableStatement>
+extends SuperCallableStatement
 {
 	private static final String m_name = CallableStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
-	private java.sql.CallableStatement m_Statement;
-	
+	private final java.sql.CallableStatement m_Statement;
+
 
 	// The constructor method:
 	public CallableStatement(XComponentContext context,
-                             XConnection connection,
-                             java.sql.CallableStatement statement)
+							 BaseConnection connection,
+							 java.sql.CallableStatement statement)
+	throws SQLException
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, CallableStatement.class.getSimpleName());
 		m_Statement = statement;
 	}
 

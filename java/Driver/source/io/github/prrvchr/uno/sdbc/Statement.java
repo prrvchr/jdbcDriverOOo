@@ -25,13 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.sdbc.XConnection;
+import java.sql.SQLException;
+
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 
 public final class Statement
-extends BaseStatement<Statement>
+extends BaseStatement
 {
 	private static String m_name = Statement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Statement"};
@@ -40,10 +41,11 @@ extends BaseStatement<Statement>
 
 	// The constructor method:
 	public Statement(XComponentContext context,
-                     XConnection connection,
-                     java.sql.Statement statement)
+					 BaseConnection connection,
+					 java.sql.Statement statement)
+	throws SQLException
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, m_name);
 		m_Statement = statement;
 	}
 
@@ -70,5 +72,6 @@ extends BaseStatement<Statement>
 	{
 		return this;
 	}
+
 
 }

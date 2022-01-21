@@ -41,13 +41,14 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.ResultSet;
 
 
-public abstract class BaseStatement<T>
-extends SuperStatement<T>
+public abstract class BaseStatement
+extends SuperStatement
 implements XBatchExecution,
            XStatement
 {
-	private final java.sql.Statement m_Statement;
-	private boolean m_EscapeProcessing = true;
+	private XConnection m_xConnection;
+	private java.sql.Statement m_Statement;
+	public boolean m_EscapeProcessing = true;
 
 	private static Map<String, Property> _getPropertySet()
 	{
@@ -66,19 +67,21 @@ implements XBatchExecution,
 
 	// The constructor method:
 	public BaseStatement(XComponentContext context,
-                         XConnection connection,
-                         java.sql.Statement statement)
+                         BaseConnection connection,
+                         java.sql.Statement statement,
+                         String name)
 	{
-		super(context, connection, statement, _getPropertySet());
-		m_Statement = statement;
+		super(context, connection, statement, name, _getPropertySet());
+		m_xConnection = connection;
 	}
 	public BaseStatement(XComponentContext context,
-                         XConnection connection,
+                         BaseConnection connection,
                          java.sql.Statement statement,
+                         String name,
                          Map<String, Property> properties)
 	{
-		super(context, connection, statement, _getPropertySet(properties));
-		m_Statement = statement;
+		super(context, connection, statement, name, _getPropertySet(properties));
+		m_xConnection = connection;
 	}
 
 
@@ -88,14 +91,7 @@ implements XBatchExecution,
 	}
 	public void setEscapeProcessing(boolean value) throws SQLException
 	{
-		try
-		{
-			m_EscapeProcessing = value;
-			m_Statement.setEscapeProcessing(m_EscapeProcessing);
-		} catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, this);
-		}
+		m_EscapeProcessing = value;
 	}
 
 

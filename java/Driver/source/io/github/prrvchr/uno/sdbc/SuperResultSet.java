@@ -53,7 +53,7 @@ import com.sun.star.util.Time;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 
-public abstract class SuperResultSet<T>
+public abstract class SuperResultSet
 extends WarningsSupplierProperty
 implements XCloseable,
            XColumnLocate,

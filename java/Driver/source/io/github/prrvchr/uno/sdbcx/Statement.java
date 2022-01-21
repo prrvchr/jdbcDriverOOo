@@ -25,20 +25,21 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.BaseConnection;
 import io.github.prrvchr.uno.sdbc.BaseStatement;
 
 
 public final class Statement
-extends BaseStatement<Statement>
+extends BaseStatement
 {
 	private static String m_name = Statement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Statement",
@@ -57,10 +58,11 @@ extends BaseStatement<Statement>
 
 	// The constructor method:
 	public Statement(XComponentContext context,
-                     XConnection connection,
-                     java.sql.Statement statement)
+					 BaseConnection connection,
+					 java.sql.Statement statement)
+	throws SQLException
 	{
-		super(context, connection, statement, _getPropertySet());
+		super(context, connection, statement, Statement.class.getSimpleName(), _getPropertySet());
 		m_Statement = statement;
 	}
 

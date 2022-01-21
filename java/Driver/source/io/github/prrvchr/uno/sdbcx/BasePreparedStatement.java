@@ -29,16 +29,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.BaseConnection;
 import io.github.prrvchr.uno.sdbc.SuperPreparedStatement;
 
 
-public abstract class BasePreparedStatement<T>
-extends SuperPreparedStatement<T>
+public abstract class BasePreparedStatement
+extends SuperPreparedStatement
 {
 	private java.sql.PreparedStatement m_Statement;
 	private boolean m_UseBookmarks = true;
@@ -54,10 +54,11 @@ extends SuperPreparedStatement<T>
 
 	// The constructor method:
 	public BasePreparedStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.PreparedStatement statement)
+								 BaseConnection connection,
+								 java.sql.PreparedStatement statement,
+								 String name)
 	{
-		super(context, connection, statement, _getPropertySet());
+		super(context, connection, statement, name, _getPropertySet());
 		m_Statement = statement;
 	}
 

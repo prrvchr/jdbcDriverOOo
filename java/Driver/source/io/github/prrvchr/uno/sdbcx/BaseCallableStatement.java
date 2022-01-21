@@ -29,19 +29,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.BaseConnection;
 import io.github.prrvchr.uno.sdbc.SuperCallableStatement;
 
 
-public abstract class BaseCallableStatement<T>
-extends SuperCallableStatement<T>
+public abstract class BaseCallableStatement
+extends SuperCallableStatement
 {
 	private java.sql.CallableStatement m_Statement;
 	private boolean m_UseBookmarks = true;
+
 
 	private static Map<String, Property> _getPropertySet()
 	{
@@ -54,10 +55,11 @@ extends SuperCallableStatement<T>
 
 	// The constructor method:
 	public BaseCallableStatement(XComponentContext context,
-                                 XConnection connection,
-                                 java.sql.CallableStatement statement)
+								 BaseConnection connection,
+								 java.sql.CallableStatement statement,
+								 String name)
 	{
-		super(context, connection, statement, _getPropertySet());
+		super(context, connection, statement, name, _getPropertySet());
 		m_Statement = statement;
 	}
 

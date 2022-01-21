@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.RowId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +40,8 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.SuperResultSet;
 
 
-public abstract class BaseResultSet<T>
-extends SuperResultSet<T>
+public abstract class BaseResultSet
+extends SuperResultSet
 implements XRowLocate
 {
 	private final java.sql.ResultSet m_ResultSet;
@@ -78,6 +79,9 @@ implements XRowLocate
 	public int compareBookmarks(Object bookmark1, Object bookmark2)
 	throws SQLException
 	{
+		java.sql.RowId id1 = (java.sql.RowId) bookmark1;
+		java.sql.RowId id2 = (java.sql.RowId) bookmark2;
+		
 		System.out.println("ResultSet.compareBookmarks()");
 		return 0;
 	}
@@ -87,8 +91,17 @@ implements XRowLocate
 	public Object getBookmark()
 	throws SQLException
 	{
+		java.sql.RowId bookmark = null;
+		try {
+			int i = m_ResultSet.getMetaData().getColumnCount();
+			bookmark = m_ResultSet.getRowId(i);
+		} catch (java.sql.SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		System.out.println("ResultSet.getBookmark()");
-		return null;
+		return bookmark;
 	}
 
 

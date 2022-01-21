@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
 public final class ResultSet
-extends BaseResultSet<ResultSet>
+extends BaseResultSet
 implements XColumnsSupplier
 {
 	private static final String m_name = ResultSet.class.getName();

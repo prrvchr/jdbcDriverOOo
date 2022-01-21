@@ -54,48 +54,35 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.ResultSet;
 
 
-public abstract class SuperPreparedStatement<T>
-extends SuperStatement<T>
+public abstract class SuperPreparedStatement
+extends SuperStatement
 implements XParameters,
            XPreparedBatchExecution,
            XPreparedStatement,
            XResultSetMetaDataSupplier
 {
-	public final java.sql.PreparedStatement m_Statement;
+	private XConnection m_xConnection;
+	private java.sql.PreparedStatement m_Statement;
 
 
 	// The constructor method:
 	public SuperPreparedStatement(XComponentContext context,
-                                  XConnection connection,
-                                  java.sql.PreparedStatement statement)
+								  BaseConnection connection,
+								  java.sql.PreparedStatement statement,
+								  String name)
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, name);
+		m_xConnection = connection;
 		m_Statement = statement;
 	}
 
 	public SuperPreparedStatement(XComponentContext context,
-                                  XConnection connection,
-                                  java.sql.PreparedStatement statement,
-                                  Map<String, Property> properties)
+								  BaseConnection connection,
+								  java.sql.PreparedStatement statement,
+								  String name,
+								  Map<String, Property> properties)
 	{
-		super(context, connection, statement, properties);
-		m_Statement = statement;
-	}
-
-	public SuperPreparedStatement(XComponentContext context,
-                                  XConnection connection,
-                                  java.sql.CallableStatement statement)
-	{
-		super(context, connection, statement);
-		m_Statement = statement;
-	}
-
-	public SuperPreparedStatement(XComponentContext context,
-                                  XConnection connection,
-                                  java.sql.CallableStatement statement,
-                                  Map<String, Property> properties)
-	{
-		super(context, connection, statement, properties);
+		super(context, connection, statement, name, properties);
 		m_Statement = statement;
 	}
 
@@ -351,6 +338,7 @@ implements XParameters,
 	{
 		try
 		{
+			System.out.println("SuperPreparedStatement.setString() 1: " + index + " - " + value + " - " + m_Statement);
 			m_Statement.setString(index, value);
 		} catch (java.sql.SQLException e)
 		{
@@ -461,6 +449,7 @@ implements XParameters,
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
+
 
 	@Override
 	public XConnection getConnection() throws SQLException

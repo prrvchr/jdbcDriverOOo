@@ -30,7 +30,7 @@ import com.sun.star.uno.XInterface;
 
 
 public final class ResultSet
-extends SuperResultSet<ResultSet>
+extends SuperResultSet
 {
 	private static final String m_name = ResultSet.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};

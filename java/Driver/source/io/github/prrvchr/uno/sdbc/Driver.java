@@ -125,10 +125,8 @@ implements XDriver
 		}
 		catch(InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e)
 		{
-			String msg = e.getMessage();
-			SQLException exception = new SQLException(msg);
-			System.out.print(msg);
-			throw exception;
+			System.out.print(e.getMessage());
+			throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -149,7 +147,7 @@ implements XDriver
 			throw UnoHelper.getSQLException(e, this);
 		}
 		System.out.println("Driver.connect() 2");
-		return getConnection(connection, url, info);
+		return _getConnection(connection, url, info);
 	}
 
 	public boolean acceptsURL(String url)
@@ -175,7 +173,7 @@ implements XDriver
 	}
 
 
-	private XConnection getConnection(java.sql.Connection con, String url, PropertyValue[] info)
+	private XConnection _getConnection(java.sql.Connection con, String url, PropertyValue[] info)
 	{
 		XConnection connection = null;
 		try

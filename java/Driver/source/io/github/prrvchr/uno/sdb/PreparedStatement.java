@@ -25,31 +25,35 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.sql.SQLException;
+
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.uno.sdbc.BaseConnection;
 import io.github.prrvchr.uno.sdbcx.BasePreparedStatement;
 import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
 public final class PreparedStatement
-extends BasePreparedStatement<PreparedStatement>
+extends BasePreparedStatement
 implements XColumnsSupplier
 {
 	private static String m_name = PreparedStatement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdb.PreparedStatement",
                                           "com.sun.star.sdbc.PreparedStatement",
                                           "com.sun.star.sdbcx.PreparedStatement"};
-	private final java.sql.PreparedStatement m_Statement;
+	private java.sql.PreparedStatement m_Statement;
+
 
 	// The constructor method:
 	public PreparedStatement(XComponentContext context,
-                             XConnection connection,
-                             java.sql.PreparedStatement statement)
+							 BaseConnection connection,
+							 java.sql.PreparedStatement statement)
+	throws SQLException
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, PreparedStatement.class.getSimpleName());
 		m_Statement = statement;
 	}
 

@@ -25,32 +25,35 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.sql.SQLException;
+
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.uno.sdbc.BaseConnection;
 import io.github.prrvchr.uno.sdbcx.BaseCallableStatement;
 import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
 public class CallableStatement
-extends BaseCallableStatement<CallableStatement>
+extends BaseCallableStatement
 implements XColumnsSupplier
 {
 	private static final String m_name = CallableStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
                                                 "com.sun.star.sdbc.CallableStatement",
                                                 "com.sun.star.sdbcx.CallableStatement"};
-	private final java.sql.CallableStatement m_Statement;
+	private java.sql.CallableStatement m_Statement;
 
-	
+
 	// The constructor method:
 	public CallableStatement(XComponentContext context,
-                             XConnection connection,
-                             java.sql.CallableStatement statement)
+							 BaseConnection connection,
+							 java.sql.CallableStatement statement)
+	throws SQLException
 	{
-		super(context, connection, statement);
+		super(context, connection, statement, CallableStatement.class.getSimpleName());
 		m_Statement = statement;
 	}
 
