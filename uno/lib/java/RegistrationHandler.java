@@ -1,40 +1,28 @@
-/*************************************************************************
- *
- * The Contents of this file are made available subject to the terms of
- * either of the GNU Lesser General Public License Version 2.1
- *
- * Sun Microsystems Inc., October, 2000
- *
- *
- * GNU Lesser General Public License Version 2.1
- * =============================================
- * Copyright 2000 by Sun Microsystems, Inc.
- * 901 San Antonio Road, Palo Alto, CA 94303, USA
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License version 2.1, as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
- * The Initial Developer of the Original Code is: Sun Microsystems, Inc..
- *
- * Copyright: 2002 by Sun Microsystems, Inc.
- *
- * All Rights Reserved.
- *
- * Contributor(s): Cedric Bosdonnat
- *
- *
- ************************************************************************/
+/*
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+*/
 package io.github.prrvchr.hsqldbdriver;
 
 import java.io.IOException;
@@ -55,7 +43,8 @@ import com.sun.star.registry.XRegistryKey;
  * @author Cedric Bosdonnat aka. cedricbosdo
  *
  */
-public class RegistrationHelper
+
+public class RegistrationHandler
 {
 
 	/**
@@ -70,17 +59,18 @@ public class RegistrationHelper
 	* @return the factory which can create the implementation.
 	*/
 
-	public static XSingleComponentFactory __getComponentFactory(InputStream in, String sImplementationName)
+	public static XSingleComponentFactory __getComponentFactory(String name)
 	{
 		XSingleComponentFactory xFactory = null;
+		InputStream in = _getInputStream();
 		@SuppressWarnings("rawtypes")
-		Class[] classes = findServicesImplementationClasses(in);
+		Class[] classes = _findServicesImplementationClasses(in);
 		int i = 0;
 		while (i < classes.length && xFactory == null)
 		{
 			@SuppressWarnings("rawtypes")
 			Class clazz = classes[i];
-			if (sImplementationName.equals(clazz.getCanonicalName()))
+			if (name.equals(clazz.getCanonicalName()))
 			{
 				try
 				{
@@ -88,7 +78,7 @@ public class RegistrationHelper
 					Class[] getTypes = new Class[]{String.class};
 					@SuppressWarnings("unchecked")
 					Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
-					Object o = getFactoryMethod.invoke(null, sImplementationName);
+					Object o = getFactoryMethod.invoke(null, name);
 					xFactory = (XSingleComponentFactory)o;
 				}
 				catch (Exception e)
@@ -116,10 +106,11 @@ public class RegistrationHelper
 	* to the registry key, <code>false</code> otherwise.
 	*/
 
-	public static boolean __writeRegistryServiceInfo(InputStream in, XRegistryKey xRegistryKey)
+	public static boolean __writeRegistryServiceInfo(XRegistryKey key)
 	{
+		InputStream in = _getInputStream();
 		@SuppressWarnings("rawtypes")
-		Class[] classes = findServicesImplementationClasses(in);
+		Class[] classes = _findServicesImplementationClasses(in);
 		boolean success = true;
 		int i = 0;
 		while (i < classes.length && success)
@@ -132,7 +123,7 @@ public class RegistrationHelper
 				Class[] writeTypes = new Class[]{XRegistryKey.class};
 				@SuppressWarnings("unchecked")
 				Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
-				Object o = getFactoryMethod.invoke(null, xRegistryKey);
+				Object o = getFactoryMethod.invoke(null, key);
 				success = success && ((Boolean)o).booleanValue();
 			} catch (Exception e)
 			{
@@ -144,12 +135,17 @@ public class RegistrationHelper
 		return success;
 	}
 
+	private static InputStream _getInputStream()
+	{
+		return RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
+	}
+
 	/**
 	 * @return all the UNO implementation classes. 
 	 */
 
 	@SuppressWarnings("rawtypes")
-	private static Class[] findServicesImplementationClasses(InputStream in)
+	private static Class[] _findServicesImplementationClasses(InputStream in)
 	{
 		ArrayList<Class> classes = new ArrayList<Class>();
 		LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
