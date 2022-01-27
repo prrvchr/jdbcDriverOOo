@@ -200,7 +200,7 @@ class OptionsDialog(unohelper.Base,
 
     def _getDriverVersion(self):
         try:
-            service = '%s.Driver' % g_identifier
+            service = '%s.sdbc.Driver' % g_identifier
             driver = createService(self._ctx, service)
             url = 'sdbc:hsqldb:mem:///dbversion'
             connection = driver.connect(url, ())

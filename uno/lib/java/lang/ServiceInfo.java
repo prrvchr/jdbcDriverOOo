@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.lang;
+package io.github.prrvchr.hsqldbdriver.lang;
 
 
 public final class ServiceInfo
@@ -43,8 +43,7 @@ public final class ServiceInfo
 	public static boolean supportsService(String[] services, String service)
 	{
 		boolean support = false;
-		int len = services.length;
-		for (int i = 0; i < len; i++)
+		for (int i = 0; i < services.length; i++)
 		{
 			if (service.equals(services[i]))
 			{

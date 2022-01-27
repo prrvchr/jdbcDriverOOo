@@ -35,7 +35,7 @@
  *
  *
  ************************************************************************/
-package io.github.prrvchr.uno;
+package io.github.prrvchr.hsqldbdriver;
 
 import java.io.IOException;
 import java.io.InputStream;

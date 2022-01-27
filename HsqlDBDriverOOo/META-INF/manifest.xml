@@ -29,6 +29,7 @@
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-typelibrary;type=RDB" manifest:full-path="types.rdb"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.basic-library" manifest:full-path="HsqlDBDriverOOo/"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Java" manifest:full-path="Driver.jar"/>
+    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="DefinitionContainer.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.configuration-data" manifest:full-path="Drivers.xcu"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="OptionsDialog.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.configuration-data" manifest:full-path="OptionsDialog.xcu"/>

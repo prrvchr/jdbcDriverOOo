@@ -23,39 +23,47 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.lang;
+package io.github.prrvchr.hsqldbdriver.lang;
 
 import com.sun.star.lib.uno.helper.ComponentBase;
+
+import com.sun.star.lang.XServiceInfo;
 
 
 public abstract class ServiceComponent
 extends ComponentBase
-implements com.sun.star.lang.XServiceInfo
+implements XServiceInfo
 {
-	public abstract String _getImplementationName();
-	public abstract String[] _getServiceNames();
+	private final String m_name;
+	private final String[] m_services;
+
+
+	// The constructor method:
+	public ServiceComponent(String name,
+							String[] services)
+	{
+		m_name = name;
+		m_services = services;
+	}
 
 
 	// com.sun.star.lang.XServiceInfo:
 	@Override
 	public String getImplementationName()
 	{
-		String name = _getImplementationName();
-		return ServiceInfo.getImplementationName(name);
+		return ServiceInfo.getImplementationName(m_name);
 	}
 
 	@Override
 	public String[] getSupportedServiceNames()
 	{
-		String[] services = _getServiceNames();
-		return ServiceInfo.getSupportedServiceNames(services);
+		return ServiceInfo.getSupportedServiceNames(m_services);
 	}
 
 	@Override
 	public boolean supportsService(String service)
 	{
-		String[] services = _getServiceNames();
-		return ServiceInfo.supportsService(services, service);
+		return ServiceInfo.supportsService(m_services, service);
 	}
 
 

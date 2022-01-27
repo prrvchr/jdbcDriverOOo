@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.hsqldbdriver.sdbc;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -34,7 +34,7 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XClob;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.hsqldbdriver.helper.UnoHelper;
 
 import org.apache.commons.io.input.ReaderInputStream;
 

@@ -1,11 +1,11 @@
 #UNO project configuration file
 #Tue Jan 18 18:20:26 CET 2022
-project.prefix=io.github.prrvchr.uno
+project.prefix=io.github.prrvchr
 project.language=Java
 project.ooo=LibreOffice 7.2
 project.idl=/idl
-regclassname=io.github.prrvchr.uno.sdbc.RegistrationHandler
-project.implementation=sdbc
+regclassname=io.github.prrvchr.hsqldbdriver.RegistrationHandler
+project.implementation=hsqldbdriver
 project.build=build
 project.sdk=7.2.5.2
 project.srcdir=/source
