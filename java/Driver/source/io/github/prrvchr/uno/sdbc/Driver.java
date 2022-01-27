@@ -23,62 +23,44 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbc;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
-
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.lang.XSingleComponentFactory;
+import com.sun.star.lib.uno.helper.Factory;
+import com.sun.star.registry.XRegistryKey;
+import com.sun.star.uno.Exception;
+import com.sun.star.uno.XComponentContext;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public final class Driver
+extends BaseDriver
 {
-	private final java.sql.Connection m_Connection;
+	private static final String m_name = Driver.class.getName();
+	private static final String[] m_services = {"io.github.prrvchr.HsqlDBDriverOOo.sdbc.Driver",
+												"com.sun.star.sdbc.Driver"};
 
-	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public Driver(XComponentContext ctx)
+	throws Exception
 	{
-		m_Connection = connection;
+		super(ctx, m_name, m_services);
+		System.out.println("Driver.Driver() 1");
 	}
 
 
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
+	// UNO Service Registration:
+	public static XSingleComponentFactory __getComponentFactory(String name)
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
+		XSingleComponentFactory factory = null;
+		if (name.equals(m_name))
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			factory = Factory.createComponentFactory(Driver.class, m_services);
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+		return factory;
+	}
+
+	public static boolean __writeRegistryServiceInfo(XRegistryKey key)
+	{
+		return Factory.writeRegistryServiceInfo(m_name, m_services, key);
 	}
 
 

@@ -23,91 +23,139 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.uno.sdbcx;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XEnumeration;
+import com.sun.star.container.XEnumerationAccess;
+import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.IndexOutOfBoundsException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.sdbc.DataType;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XArray;
-import com.sun.star.sdbc.XResultSet;
+import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.lang.ServiceWeak;
 
-public class Array
-extends WeakBase
-implements XArray
+
+public class Container<T extends ContainerElement>
+extends ServiceWeak
+implements XEnumerationAccess,
+		   XIndexAccess,
+		   XNameAccess
+
 {
-	private Object[] m_Array = null;
-	private String m_Type = null;
+	private static final String m_name = Container.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+	private final List<T> m_Elements;
+	private final List<String> m_Names;
+	private final String m_type;
 
 	// The constructor method:
-	public Array(java.sql.Array array)
-	throws SQLException
+	public Container()
 	{
-		try {
-			m_Array = (Object[]) array.getArray();
-			m_Type = UnoHelper.mapSQLDataType(array.getBaseType(), array.getBaseTypeName());
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
+		this(new ArrayList<T>(), new ArrayList<String>());
+	}
+	public Container(List<T> elements,
+					 List<String> names)
+	{
+		this(elements, names, "com.sun.star.beans.XPropertySet");
+	}
+	public Container(List<T> elements,
+					 List<String> names,
+					 String type)
+	{
+		super(m_name, m_services);
+		m_Elements = elements;
+		m_Names = names;
+		m_type = type;
+	}
+
+
+	// com.sun.star.container.XElementAccess:
+	@Override
+	public Type getElementType()
+	{
+		return new Type(m_type);
+	}
+
+	@Override
+	public boolean hasElements()
+	{
+		return !m_Elements.isEmpty();
+	}
+
+
+	// com.sun.star.container.XIndexAccess:
+	@Override
+	public Object getByIndex(int index)
+	throws IndexOutOfBoundsException, WrappedTargetException
+	{
+		return m_Elements.get(index);
+	}
+
+	@Override
+	public int getCount()
+	{
+		return m_Elements.size();
+	}
+
+
+	// com.sun.star.container.XNameAccess:
+	@Override
+	public Object getByName(String name)
+	throws NoSuchElementException, WrappedTargetException
+	{
+		if (!hasByName(name)) throw new NoSuchElementException();
+		return m_Elements.get(m_Names.indexOf(name));
+	}
+
+	@Override
+	public String[] getElementNames()
+	{
+		return m_Names.toArray(new String[m_Names.size()]);
+	}
+
+	@Override
+	public boolean hasByName(String name)
+	{
+		return m_Names.contains(name);
+	}
+
+
+	// com.sun.star.container.XEnumerationAccess:
+	@Override
+	public XEnumeration createEnumeration()
+	{
+		return new Enumeration(m_Elements.iterator());
+	}
+
+	private class Enumeration
+	extends WeakBase
+	implements XEnumeration
+	{
+		private final java.util.Iterator<T> m_Iterator;
+
+		public Enumeration(java.util.Iterator<T> iterator)
+		{
+			m_Iterator = iterator;
 		}
-		
-	}
-	public Array(Object[] array,
-				 String type)
-	{
-		m_Array = array;
-		m_Type = type;
-	}
 
-	@Override
-	public Object[] getArray(XNameAccess arg0)
-	throws SQLException
-	{
-		return m_Array;
-	}
-
-	@Override
-	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
-	throws SQLException
-	{
-		return Arrays.copyOfRange(m_Array, index, index + count);
-	}
-
-	@Override
-	public int getBaseType()
-	throws SQLException
-	{
-		try {
-			return UnoHelper.getConstantValue(DataType.class, m_Type);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
+		@Override
+		public boolean hasMoreElements()
+		{
+			return m_Iterator.hasNext();
 		}
-	}
 
-	@Override
-	public String getBaseTypeName()
-	throws SQLException
-	{
-		return m_Type;
-	}
-
-	@Override
-	public XResultSet getResultSet(XNameAccess arg0)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
+		@Override
+		public Object nextElement()
+		throws NoSuchElementException, WrappedTargetException
+		{
+			return m_Iterator.next();
+		}
 	}
 
 

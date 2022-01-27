@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.hsqldbdriver.lang;
+package io.github.prrvchr.uno.lang;
 
 
 public final class ServiceInfo

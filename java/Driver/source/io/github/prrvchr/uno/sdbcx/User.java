@@ -23,62 +23,79 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Map;
 
-import com.sun.star.container.XNameAccess;
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.lang.ServiceProperty;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public class User
+extends ServiceProperty
+implements XUser
 {
+	private static final String m_name = User.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+	@SuppressWarnings("unused")
 	private final java.sql.Connection m_Connection;
+	@SuppressWarnings("unused")
+	private Map<String, String> m_users;
+
 
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public User(Connection connection)
 	{
+		super(m_name, m_services, _getPropertySet());
 		m_Connection = connection;
 	}
 
-
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
+	
+	private static Map<String, Property> _getPropertySet()
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
-		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
-		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("Name", "string");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
+	}
+
+	// com.sun.star.sdbcx.XAuthorizable <- XUser:
+	@Override
+	public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getPrivileges(String arg0, int arg1) throws SQLException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	// com.sun.star.sdbcx.XUser:
+	@Override
+	public void changePassword(String arg0, String arg1) throws SQLException {
+		// TODO Auto-generated method stub
+		
 	}
 
 

@@ -23,61 +23,53 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdb;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
+import java.sql.SQLException;
 
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.XComponentContext;
+
+import io.github.prrvchr.uno.sdbc.BaseConnection;
+import io.github.prrvchr.uno.sdbcx.BasePreparedStatement;
+import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public final class PreparedStatement
+extends BasePreparedStatement
+implements XColumnsSupplier
 {
-	private final java.sql.Connection m_Connection;
+	private static String m_name = PreparedStatement.class.getName();
+	private static String[] m_services = {"com.sun.star.sdb.PreparedStatement",
+										  "com.sun.star.sdbc.PreparedStatement",
+										  "com.sun.star.sdbcx.PreparedStatement"};
+	private java.sql.PreparedStatement m_Statement;
+
 
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public PreparedStatement(XComponentContext context,
+							 BaseConnection connection,
+							 java.sql.PreparedStatement statement)
+	throws SQLException
 	{
-		m_Connection = connection;
+		super(context,  m_name, m_services, connection, statement, PreparedStatement.class.getSimpleName());
+		m_Statement = statement;
 	}
 
-
-	// com.sun.star.sdbcx.XUsersSupplier:
+	// com.sun.star.sdbcx.XColumnsSupplier:
 	@Override
-	public XNameAccess getUsers()
+	public XNameAccess getColumns()
 	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
 		try
 		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
+			java.sql.ResultSetMetaData metadata = m_Statement.getMetaData();
+			return ColumnsSupplier.getColumns(metadata);
 		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
+		catch (java.sql.SQLException e)
 		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
+			// pass
+		}
 		return null;
 	}
 

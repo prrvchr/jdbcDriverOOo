@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.hsqldbdriver.lang;
+package io.github.prrvchr.uno.lang;
 
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.lang.XServiceInfo;

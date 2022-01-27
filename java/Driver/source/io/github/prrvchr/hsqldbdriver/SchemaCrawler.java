@@ -30,9 +30,8 @@ import java.util.List;
 
 import com.sun.star.container.XNameAccess;
 
-import io.github.prrvchr.hsqldbdriver.sdbcx.Container;
-import io.github.prrvchr.hsqldbdriver.sdbcx.Table;
-
+import io.github.prrvchr.uno.sdbcx.Container;
+import io.github.prrvchr.uno.sdbcx.Table;
 import schemacrawler.schema.Catalog;
 import schemacrawler.schemacrawler.LoadOptions;
 import schemacrawler.schemacrawler.LoadOptionsBuilder;

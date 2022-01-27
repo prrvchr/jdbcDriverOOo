@@ -25,99 +25,163 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.sun.star.io.XInputStream;
-import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
-import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.beans.Property;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XBlob;
+import com.sun.star.sdbc.XBatchExecution;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.sdbc.XResultSet;
+import com.sun.star.sdbc.XStatement;
+import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdb.ResultSet;
 
 
-public class Blob
-extends WeakBase
-implements XBlob
+public abstract class BaseStatement
+extends SuperStatement
+implements XBatchExecution,
+		   XStatement
 {
+	private XConnection m_xConnection;
 	private java.sql.Statement m_Statement;
-	private java.sql.Blob m_Blob;
+	public boolean m_EscapeProcessing = true;
 
-	
-	// The constructor method:
-	public Blob(java.sql.Statement statement,
-                java.sql.Blob blob)
+	private static Map<String, Property> _getPropertySet()
 	{
+		Map<String, Property> map = new HashMap<String, Property>();
+		Property p1 = UnoHelper.getProperty("EscapeProcessing", "boolean");
+		map.put(UnoHelper.getPropertyName(p1), p1);
+		return map;
+	}
+	private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
+	{
+		Map<String, Property> map = _getPropertySet();
+		map.putAll(properties);
+		return map;
+	}
+
+
+	// The constructor method:
+	public BaseStatement(XComponentContext context,
+						 String name,
+						 String[] services,
+						 BaseConnection connection,
+						 java.sql.Statement statement,
+						 String type)
+	{
+		super(context, name, services, connection, statement, type, _getPropertySet());
+		m_xConnection = connection;
 		m_Statement = statement;
-		m_Blob = blob;
+	}
+	public BaseStatement(XComponentContext context,
+						 String name,
+						 String[] services,
+						 BaseConnection connection,
+						 java.sql.Statement statement,
+						 String type,
+						 Map<String, Property> properties)
+	{
+		super(context, name, services, connection, statement, type, _getPropertySet(properties));
+		m_xConnection = connection;
+		m_Statement = statement;
 	}
 
 
-	// com.sun.star.sdbc.XBlob:
+	public boolean getEscapeProcessing()
+	{
+		return m_EscapeProcessing;
+	}
+	public void setEscapeProcessing(boolean value) throws SQLException
+	{
+		m_EscapeProcessing = value;
+		try {
+			m_Statement.setEscapeProcessing(value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+
+	// com.sun.star.sdbc.XBatchExecution
 	@Override
-	public XInputStream getBinaryStream() throws SQLException {
+	public void addBatch(String sql) throws SQLException {
 		try
 		{
-			InputStream input = m_Blob.getBinaryStream();
-			return new InputStreamToXInputStreamAdapter(input);
+			m_Statement.addBatch(sql);
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
 		}
-		catch (java.sql.SQLException e)
+	}
+
+	@Override
+	public void clearBatch() throws SQLException {
+		try
+		{
+			m_Statement.clearBatch();
+		} catch (java.sql.SQLException e)
+		{
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+	@Override
+	public int[] executeBatch() throws SQLException {
+		try
+		{
+			return m_Statement.executeBatch();
+		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
 
+	// com.sun.star.sdbc.XStatement:
 	@Override
-	public byte[] getBytes(long position, int length) throws SQLException {
+	public boolean execute(String sql) throws SQLException
+	{
 		try
 		{
-			return m_Blob.getBytes(position, length);
-		}
-		catch (java.sql.SQLException e)
+			return m_Statement.execute(sql);
+		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
-
 	@Override
-	public long length() throws SQLException {
+	public XResultSet executeQuery(String sql) throws SQLException
+	{
 		try
 		{
-			return m_Blob.length();
-		}
-		catch (java.sql.SQLException e)
+			java.sql.ResultSet resultset = m_Statement.executeQuery(sql);
+			return new ResultSet(m_xContext, this, resultset);
+		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
-
 	@Override
-	public long position(byte[] pattern, long start) throws SQLException {
+	public int executeUpdate(String sql) throws SQLException
+	{
 		try
 		{
-			return m_Blob.position(pattern, start);
-		}
-		catch (java.sql.SQLException e)
+			return m_Statement.executeUpdate(sql);
+		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
-
 	@Override
-	public long positionOfBlob(XBlob blob, long start) throws SQLException {
-		try
-		{
-			java.sql.Blob b = UnoHelper.getSQLBlob(m_Statement, blob);
-			return m_Blob.position(b, start);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, this);
-		}
+	public XConnection getConnection() throws SQLException
+	{
+		return m_xConnection;
 	}
 
 

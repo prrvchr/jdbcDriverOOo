@@ -23,62 +23,27 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.uno.sdbc;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
+import java.sql.SQLException;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbcx.XUser;
-import com.sun.star.sdbcx.XUsersSupplier;
+import com.sun.star.uno.XComponentContext;
 
 
-public class UsersSupplierHelper
-implements XUsersSupplier
+public class PreparedStatement
+extends SuperPreparedStatement
 {
-	private final java.sql.Connection m_Connection;
+	private static final String m_name = PreparedStatement.class.getName();
+	private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
+
 
 	// The constructor method:
-	public UsersSupplierHelper(Connection connection)
+	public PreparedStatement(XComponentContext context,
+							 BaseConnection connection,
+							 java.sql.PreparedStatement statement)
+	throws SQLException
 	{
-		m_Connection = connection;
-	}
-
-
-	// com.sun.star.sdbcx.XUsersSupplier:
-	@Override
-	public XNameAccess getUsers()
-	{
-		ResultSet result = null;
-		String query = "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
-		try
-		{
-			Statement statement = m_Connection.createStatement();
-			result = statement.executeQuery(query);
-		}
-		catch (java.sql.SQLException e) {e.getStackTrace();}
-		if (result == null) return null;
-		@SuppressWarnings("unused")
-		String type = "com.sun.star.sdbc.XUser";
-		@SuppressWarnings("unused")
-		HashMap<String, XUser> elements = new HashMap<>();
-		try
-		{
-			int i = 1;
-			int count = result.getMetaData().getColumnCount();
-			while (result.next())
-			{
-				for (int j = 1; j <= count; j++)
-				{
-					String value = UnoHelper.getResultSetValue(result, j);
-					System.out.println("UsersSupplier.getUsers() " + i + " - " + value);
-				}
-				i++;
-			}
-		} catch (java.sql.SQLException e) {e.printStackTrace();}
-		return null;
+		super(context, m_name, m_services, connection, statement, PreparedStatement.class.getSimpleName());
 	}
 
 
