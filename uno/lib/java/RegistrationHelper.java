@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.hsqldbdriver;
+package io.github.prrvchr.uno;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,8 +43,7 @@ import com.sun.star.registry.XRegistryKey;
  * @author Cedric Bosdonnat aka. cedricbosdo
  *
  */
-
-public class RegistrationHandler
+public class RegistrationHelper
 {
 
 	/**
@@ -59,18 +58,17 @@ public class RegistrationHandler
 	* @return the factory which can create the implementation.
 	*/
 
-	public static XSingleComponentFactory __getComponentFactory(String name)
+	public static XSingleComponentFactory __getComponentFactory(InputStream in, String sImplementationName)
 	{
 		XSingleComponentFactory xFactory = null;
-		InputStream in = _getInputStream();
 		@SuppressWarnings("rawtypes")
-		Class[] classes = _findServicesImplementationClasses(in);
+		Class[] classes = findServicesImplementationClasses(in);
 		int i = 0;
 		while (i < classes.length && xFactory == null)
 		{
 			@SuppressWarnings("rawtypes")
 			Class clazz = classes[i];
-			if (name.equals(clazz.getCanonicalName()))
+			if (sImplementationName.equals(clazz.getCanonicalName()))
 			{
 				try
 				{
@@ -78,7 +76,7 @@ public class RegistrationHandler
 					Class[] getTypes = new Class[]{String.class};
 					@SuppressWarnings("unchecked")
 					Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
-					Object o = getFactoryMethod.invoke(null, name);
+					Object o = getFactoryMethod.invoke(null, sImplementationName);
 					xFactory = (XSingleComponentFactory)o;
 				}
 				catch (Exception e)
@@ -106,11 +104,10 @@ public class RegistrationHandler
 	* to the registry key, <code>false</code> otherwise.
 	*/
 
-	public static boolean __writeRegistryServiceInfo(XRegistryKey key)
+	public static boolean __writeRegistryServiceInfo(InputStream in, XRegistryKey xRegistryKey)
 	{
-		InputStream in = _getInputStream();
 		@SuppressWarnings("rawtypes")
-		Class[] classes = _findServicesImplementationClasses(in);
+		Class[] classes = findServicesImplementationClasses(in);
 		boolean success = true;
 		int i = 0;
 		while (i < classes.length && success)
@@ -123,7 +120,7 @@ public class RegistrationHandler
 				Class[] writeTypes = new Class[]{XRegistryKey.class};
 				@SuppressWarnings("unchecked")
 				Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
-				Object o = getFactoryMethod.invoke(null, key);
+				Object o = getFactoryMethod.invoke(null, xRegistryKey);
 				success = success && ((Boolean)o).booleanValue();
 			} catch (Exception e)
 			{
@@ -135,17 +132,12 @@ public class RegistrationHandler
 		return success;
 	}
 
-	private static InputStream _getInputStream()
-	{
-		return RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
-	}
-
 	/**
 	 * @return all the UNO implementation classes. 
 	 */
 
 	@SuppressWarnings("rawtypes")
-	private static Class[] _findServicesImplementationClasses(InputStream in)
+	private static Class[] findServicesImplementationClasses(InputStream in)
 	{
 		ArrayList<Class> classes = new ArrayList<Class>();
 		LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
