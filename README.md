@@ -24,7 +24,7 @@ Because it is together that we can make Free Software smarter.
 ## Requirement:
 
 [HsqlDB](http://hsqldb.org/) is a database written in Java.  
-The use of HsqlDB requires the installation and configuration within LibreOffice / OpenOffice of a **JRE version 11 or later**.  
+Its use requires the [installation and configuration](https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/en) in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium](https://adoptium.net/releases.html?variant=openjdk11) as your Java installation source.
 
 If you are using **LibreOffice on Linux**, then you are subject to [bug 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
