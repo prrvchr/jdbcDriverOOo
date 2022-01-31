@@ -183,6 +183,8 @@ For now, only the use of the SQL Array type in the queries is available.
 
   - [com.sun.star.sdbcx.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
 
+- Fixed creating a table in Base with a primary key column that auto-increments.
+
 - Many other fix...
 
 ### What remains to be done for version 0.0.4:

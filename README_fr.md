@@ -183,6 +183,8 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
   - [com.sun.star.sdbcx.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
 
+- Correction de la création d'une table dans Base avec une colonne de clé primaire qui s'incrémente automatiquement.
+
 - Beaucoup d'autres correctifs...
 
 ### Que reste-t-il à faire pour la version 0.0.4:
