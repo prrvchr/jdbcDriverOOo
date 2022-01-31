@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdb;
 import java.sql.SQLException;
 
 import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
@@ -72,6 +73,14 @@ implements XColumnsSupplier
 			// pass
 		}
 		return null;
+	}
+
+
+	protected XResultSet _getResultSet(XComponentContext ctx,
+									   java.sql.ResultSet resultset)
+	throws java.sql.SQLException
+	{
+		return new ResultSet(ctx, this, resultset);
 	}
 
 

@@ -35,12 +35,9 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.CallableStatement;
-import io.github.prrvchr.uno.sdb.PreparedStatement;
-import io.github.prrvchr.uno.sdbcx.Statement;
 
 
-public class BaseConnection
+public abstract class BaseConnection
 extends WarningsSupplierComponent<java.sql.Connection>
 implements XConnection
 {
@@ -295,19 +292,7 @@ implements XConnection
 		try {
 			//System.out.println("BaseConnection.createStatement() : ResultSetType: " + m_StatementResultSetType + " - ResultSetConcurrency: " + m_StatementResultSetConcurrency);
 			java.sql.Statement statement = m_Connection.createStatement(m_StatementResultSetType, m_StatementResultSetConcurrency);
-			return new Statement(m_xContext, this, statement);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
-	}
-
-	@Override
-	public XPreparedStatement prepareCall(String sql) throws SQLException
-	{
-		try {
-			//System.out.println("BaseConnection.prepareCall() : ResultSetType: " + m_CallableResultSetType + " - ResultSetConcurrency: " + m_CallableResultSetConcurrency);
-			java.sql.CallableStatement statement = m_Connection.prepareCall(sql, m_CallableResultSetType, m_CallableResultSetConcurrency);
-			return new CallableStatement(m_xContext, this, statement);
+			return _getStatement(m_xContext, statement);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
 		}
@@ -319,11 +304,35 @@ implements XConnection
 		try {
 			//System.out.println("BaseConnection.prepareStatement() : ResultSetType: " + m_PreparedResultSetType + " - ResultSetConcurrency: " + m_PreparedResultSetConcurrency);
 			java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, m_PreparedResultSetType, m_PreparedResultSetConcurrency);
-			return new PreparedStatement(m_xContext, this, statement);
+			return _getPreparedStatement(m_xContext, statement);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
+
+	@Override
+	public XPreparedStatement prepareCall(String sql) throws SQLException
+	{
+		try {
+			//System.out.println("BaseConnection.prepareCall() : ResultSetType: " + m_CallableResultSetType + " - ResultSetConcurrency: " + m_CallableResultSetConcurrency);
+			java.sql.CallableStatement statement = m_Connection.prepareCall(sql, m_CallableResultSetType, m_CallableResultSetConcurrency);
+			return _getCallableStatement(m_xContext, statement);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		}
+	}
+
+	abstract protected XStatement _getStatement(XComponentContext ctx,
+												java.sql.Statement statement)
+	throws java.sql.SQLException;
+
+	abstract protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
+																java.sql.PreparedStatement statement)
+	throws java.sql.SQLException;
+
+	abstract protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
+																java.sql.CallableStatement statement)
+	throws java.sql.SQLException;
 
 
 }

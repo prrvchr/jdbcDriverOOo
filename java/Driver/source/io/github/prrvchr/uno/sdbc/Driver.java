@@ -25,9 +25,11 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.registry.XRegistryKey;
+import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
@@ -44,6 +46,15 @@ extends BaseDriver
 	{
 		super(ctx, m_name, m_services);
 		System.out.println("Driver.Driver() 1");
+	}
+
+
+	protected XConnection _getConnection(XComponentContext ctx,
+										 java.sql.Connection connection,
+										 String url,
+										 PropertyValue[] info)
+	{
+		return new Connection(ctx, connection, info, url);
 	}
 
 

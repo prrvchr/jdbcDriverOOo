@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -73,6 +74,14 @@ extends BaseStatement
 	{
 		System.out.println("Statement.setUseBookmarks() : " + value);
 		m_UseBookmarks = value;
+	}
+
+
+	protected XResultSet _getResultSet(XComponentContext ctx,
+									   java.sql.ResultSet resultset)
+	throws java.sql.SQLException
+	{
+		return new ResultSet(ctx, this, resultset);
 	}
 
 

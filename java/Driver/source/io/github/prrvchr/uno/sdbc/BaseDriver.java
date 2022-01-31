@@ -32,7 +32,6 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.beans.XIntrospection;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
@@ -43,7 +42,6 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.uno.helper.DriverHelper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceComponent;
-import io.github.prrvchr.uno.sdb.Connection;
 
 
 public abstract class BaseDriver
@@ -83,7 +81,7 @@ implements XDriver
 		System.out.println("Driver.connect() 1");
 		java.sql.Connection connection = _getConnection(url, info);
 		System.out.println("Driver.connect() 2 **************************************************************");
-		return _getConnection(connection, url, info);
+		return _getConnection(m_xContext, connection, url, info);
 	}
 
 	public boolean acceptsURL(String url)
@@ -150,21 +148,10 @@ implements XDriver
 		return connection;
 	}
 
-	private XConnection _getConnection(java.sql.Connection con, String url, PropertyValue[] info)
-	{
-		XConnection connection = null;
-		try
-		{
-			connection = new Connection(m_xContext, con, info, url);
-			XIntrospection mri = (XIntrospection) UnoHelper.createService(m_xContext, "mytools.Mri");
-			mri.inspect(connection);
-		}
-		catch(java.lang.Exception e)
-		{
-			e.getStackTrace();
-		}
-		return connection;
-	}
+	abstract protected XConnection _getConnection(XComponentContext ctx,
+												  java.sql.Connection connection,
+												  String url,
+												  PropertyValue[] info);
 
 
 }

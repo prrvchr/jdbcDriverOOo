@@ -37,7 +37,6 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.ResultSet;
 
 
 public abstract class BaseStatement
@@ -146,6 +145,7 @@ implements XBatchExecution,
 	{
 		try
 		{
+			System.out.println("BaseStatement.execute() 1 Query: " + sql);
 			return m_Statement.execute(sql);
 		} catch (java.sql.SQLException e)
 		{
@@ -158,8 +158,9 @@ implements XBatchExecution,
 	{
 		try
 		{
+			System.out.println("BaseStatement.executeQuery() 1 Query: " + sql);
 			java.sql.ResultSet resultset = m_Statement.executeQuery(sql);
-			return new ResultSet(m_xContext, this, resultset);
+			return _getResultSet(m_xContext, resultset);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -171,6 +172,7 @@ implements XBatchExecution,
 	{
 		try
 		{
+			System.out.println("BaseStatement.executeUpdate() 1 Query: " + sql);
 			return m_Statement.executeUpdate(sql);
 		} catch (java.sql.SQLException e)
 		{
@@ -183,6 +185,11 @@ implements XBatchExecution,
 	{
 		return m_xConnection;
 	}
+
+
+	abstract protected XResultSet _getResultSet(XComponentContext ctx,
+												java.sql.ResultSet resultset)
+	throws java.sql.SQLException;
 
 
 }

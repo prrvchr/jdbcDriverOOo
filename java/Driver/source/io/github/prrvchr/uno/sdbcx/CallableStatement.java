@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.SQLException;
 
+import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.BaseConnection;
@@ -47,6 +48,14 @@ extends BaseCallableStatement
 	throws SQLException
 	{
 		super(context, m_name, m_services,  connection, statement, CallableStatement.class.getSimpleName());
+	}
+
+
+	protected XResultSet _getResultSet(XComponentContext ctx,
+									   java.sql.ResultSet resultset)
+	throws java.sql.SQLException
+	{
+		return new ResultSet(ctx, this, resultset);
 	}
 
 

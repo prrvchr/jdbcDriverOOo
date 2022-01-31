@@ -39,6 +39,7 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.BaseDriver;
+import io.github.prrvchr.uno.sdb.Connection;
 
 
 public final class Driver
@@ -55,6 +56,15 @@ implements XDataDefinitionSupplier
 	{
 		super(ctx, m_name, m_services);
 		System.out.println("Driver.Driver() 1");
+	}
+
+
+	protected XConnection _getConnection(XComponentContext ctx,
+									  java.sql.Connection connection,
+									  String url,
+									  PropertyValue[] info)
+	{
+		return new Connection(ctx, connection, info, url);
 	}
 
 

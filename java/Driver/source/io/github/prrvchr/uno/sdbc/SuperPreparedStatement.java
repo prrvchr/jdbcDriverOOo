@@ -50,7 +50,6 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.ResultSet;
 
 
 public abstract class SuperPreparedStatement
@@ -432,7 +431,7 @@ implements XParameters,
 		try
 		{
 			java.sql.ResultSet resultset = m_Statement.executeQuery();
-			return new ResultSet(m_xContext, this, resultset);
+			return _getResultSet(m_xContext, resultset);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -472,6 +471,11 @@ implements XParameters,
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
+
+
+	abstract protected XResultSet _getResultSet(XComponentContext ctx,
+												java.sql.ResultSet resultset)
+	throws java.sql.SQLException;
 
 
 }

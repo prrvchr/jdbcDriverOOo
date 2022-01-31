@@ -40,6 +40,7 @@ import com.sun.star.sdb.XSQLQueryComposer;
 import com.sun.star.sdb.XSQLQueryComposerFactory;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
+import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
@@ -49,6 +50,7 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UsersSupplierHelper;
 import io.github.prrvchr.uno.sdbc.BaseConnection;
+import io.github.prrvchr.uno.sdbcx.Statement;
 import io.github.prrvchr.uno.sdbcx.Container;
 import io.github.prrvchr.uno.sdbcx.Table;
 
@@ -235,6 +237,28 @@ implements XChild,
 		// TODO: Implement me!!!
 		System.out.println("Connection.getViews() *************************");
 		return null;
+	}
+
+
+	protected XStatement _getStatement(XComponentContext ctx,
+									   java.sql.Statement statement)
+	throws java.sql.SQLException
+	{
+		return new Statement(ctx, this, statement);
+	}
+
+	protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
+													   java.sql.PreparedStatement statement)
+	throws java.sql.SQLException
+	{
+		return new PreparedStatement(ctx, this, statement);
+	}
+
+	protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
+													   java.sql.CallableStatement statement)
+	throws java.sql.SQLException
+	{
+		return new CallableStatement(ctx, this, statement);
 	}
 
 

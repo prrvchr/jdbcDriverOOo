@@ -25,7 +25,10 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.sdbc.XPreparedStatement;
+import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 
@@ -42,6 +45,28 @@ public class Connection extends BaseConnection
 	{
 		super(ctx, m_name, m_services, connection, info, url);
 		System.out.println("sdbc.Connection() 1");
+	}
+
+
+	protected XStatement _getStatement(XComponentContext ctx,
+									   java.sql.Statement statement)
+	throws java.sql.SQLException
+	{
+		return new Statement(ctx, this, statement);
+	}
+
+	protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
+													   java.sql.PreparedStatement statement)
+	throws java.sql.SQLException
+	{
+		return new PreparedStatement(ctx, this, statement);
+	}
+
+	protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
+													   java.sql.CallableStatement statement)
+	throws java.sql.SQLException
+	{
+		return new CallableStatement(ctx, this, statement);
 	}
 
 
