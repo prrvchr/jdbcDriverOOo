@@ -501,11 +501,7 @@ implements XCloseable,
 		{
 			XBlob value = null;
 			java.sql.Blob blob = m_ResultSet.getBlob(index);
-			if (!m_ResultSet.wasNull())
-			{
-				java.sql.Statement statement = m_ResultSet.getStatement();
-				value = new Blob(statement, blob);
-			}
+			if (!m_ResultSet.wasNull()) value = new Blob(m_ResultSet.getStatement(), blob);
 			return value;
 		}
 		catch (java.sql.SQLException e)
@@ -519,8 +515,8 @@ implements XCloseable,
 	{
 		try
 		{
-			boolean value = m_ResultSet.getBoolean(index);
-			if (m_ResultSet.wasNull()) value = false;
+			Boolean value = m_ResultSet.getBoolean(index);
+			if (m_ResultSet.wasNull()) value = null;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -533,8 +529,8 @@ implements XCloseable,
 	{
 		try
 		{
-			byte value = m_ResultSet.getByte(index);
-			if (m_ResultSet.wasNull()) value = 0;
+			Byte value = m_ResultSet.getByte(index);
+			if (m_ResultSet.wasNull()) value = null;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -578,11 +574,7 @@ implements XCloseable,
 		{
 			XClob value = null;
 			java.sql.Clob clob = m_ResultSet.getClob(index);
-			if (!m_ResultSet.wasNull())
-			{
-				java.sql.Statement statement = m_ResultSet.getStatement();
-				value = new Clob(statement, clob);
-			}
+			if (!m_ResultSet.wasNull()) value = new Clob(m_ResultSet.getStatement(), clob);
 			return value;
 		}
 		catch (java.sql.SQLException e)
@@ -596,8 +588,8 @@ implements XCloseable,
 	{
 		try
 		{
-			java.sql.Date value = m_ResultSet.getDate(index);
 			Date date = null;
+			java.sql.Date value = m_ResultSet.getDate(index);
 			if (!m_ResultSet.wasNull()) date = UnoHelper.getUnoDate(value);
 			return date;
 		} catch (java.sql.SQLException e)
@@ -611,8 +603,8 @@ implements XCloseable,
 	{
 		try
 		{
-			double value = m_ResultSet.getDouble(index);
-			if (m_ResultSet.wasNull()) value = 0;
+			Double value = m_ResultSet.getDouble(index);
+			if (m_ResultSet.wasNull()) value = null;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -625,8 +617,8 @@ implements XCloseable,
 	{
 		try
 		{
-			float value = m_ResultSet.getFloat(index);
-			if (m_ResultSet.wasNull()) value = 0;
+			Float value = m_ResultSet.getFloat(index);
+			if (m_ResultSet.wasNull()) value = null;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -639,8 +631,12 @@ implements XCloseable,
 	{
 		try
 		{
-			int value = m_ResultSet.getInt(index);
-			if (m_ResultSet.wasNull()) value = 0;
+			Integer value = m_ResultSet.getInt(index);
+			if (m_ResultSet.wasNull())
+			{
+				// FIXME: If we return null as the UNO API suggests, Base can no longer open the tables...
+				value = 0;
+			}
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -653,8 +649,8 @@ implements XCloseable,
 	{
 		try
 		{
-			long value = m_ResultSet.getLong(index);
-			if (m_ResultSet.wasNull()) value = 0;
+			Long value = m_ResultSet.getLong(index);
+			if (m_ResultSet.wasNull()) value = null;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -679,7 +675,7 @@ implements XCloseable,
 	@Override
 	public XRef getRef(int index) throws SQLException
 	{
-		// TODO: Implement me!!!
+		// TODO: Implement me
 		return null;
 	}
 
@@ -688,8 +684,8 @@ implements XCloseable,
 	{
 		try
 		{
-			short value = m_ResultSet.getShort(index);
-			if (m_ResultSet.wasNull()) value = 0;
+			Short value = m_ResultSet.getShort(index);
+			if (m_ResultSet.wasNull()) value = null;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -703,7 +699,11 @@ implements XCloseable,
 		try
 		{
 			String value = m_ResultSet.getString(index);
-			if (m_ResultSet.wasNull()) value = "";
+			if (m_ResultSet.wasNull())
+			{
+				// FIXME: If we return null as the UNO API suggests, Base can no longer open the tables...
+				value = "";
+			}
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -716,8 +716,8 @@ implements XCloseable,
 	{
 		try
 		{
-			java.sql.Time value = m_ResultSet.getTime(index);
 			Time time = null;
+			java.sql.Time value = m_ResultSet.getTime(index);
 			if (!m_ResultSet.wasNull()) time = UnoHelper.getUnoTime(value);
 			return time;
 		} catch (java.sql.SQLException e)
@@ -731,8 +731,8 @@ implements XCloseable,
 	{
 		try
 		{
-			java.sql.Timestamp value = m_ResultSet.getTimestamp(index);
 			DateTime datetime = null;
+			java.sql.Timestamp value = m_ResultSet.getTimestamp(index);
 			if (!m_ResultSet.wasNull()) datetime = UnoHelper.getUnoDateTime(value);
 			return datetime;
 		} catch (java.sql.SQLException e)

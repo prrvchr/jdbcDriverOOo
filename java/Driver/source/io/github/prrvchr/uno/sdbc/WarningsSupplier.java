@@ -30,6 +30,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.SQLWarning;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -84,7 +86,32 @@ final class WarningsSupplier
 		{
 			throw UnoHelper.getSQLException(e, component);
 		}
-		return UnoHelper.getSQLWarning(warning, component);
+		return _getWarnings(warning, component);
+	}
+
+
+	private static Object _getWarnings(java.sql.SQLWarning w, XInterface component)
+	{
+		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
+		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
+		// FIXME: If we return null as the UNO API suggests, Base show a Warning message dialog when connecting to the database...
+		// FIXME: returning <Any.VOID> seem to be the solution to avoid this Warning message dialog...
+		Object warning = Any.VOID;
+		if (w != null)
+		{
+			warning = _getWarning(w, component);
+		}
+		return warning;
+	}
+
+	private static SQLWarning _getWarning(java.sql.SQLWarning w, XInterface component)
+	{
+		SQLWarning warning = new SQLWarning(w.getMessage());
+		warning.Context = component;
+		warning.SQLState = w.getSQLState();
+		warning.ErrorCode = w.getErrorCode();
+		warning.NextException = _getWarnings(w.getNextWarning(), component);
+		return warning;
 	}
 
 
