@@ -515,9 +515,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Boolean value = m_ResultSet.getBoolean(index);
-			if (m_ResultSet.wasNull()) value = null;
-			return value;
+			return m_ResultSet.getBoolean(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -529,9 +527,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Byte value = m_ResultSet.getByte(index);
-			if (m_ResultSet.wasNull()) value = null;
-			return value;
+			return m_ResultSet.getByte(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -603,9 +599,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Double value = m_ResultSet.getDouble(index);
-			if (m_ResultSet.wasNull()) value = null;
-			return value;
+			return m_ResultSet.getDouble(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -617,9 +611,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Float value = m_ResultSet.getFloat(index);
-			if (m_ResultSet.wasNull()) value = null;
-			return value;
+			return m_ResultSet.getFloat(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -649,9 +641,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Long value = m_ResultSet.getLong(index);
-			if (m_ResultSet.wasNull()) value = null;
-			return value;
+			return m_ResultSet.getLong(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -684,9 +674,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Short value = m_ResultSet.getShort(index);
-			if (m_ResultSet.wasNull()) value = null;
-			return value;
+			return m_ResultSet.getShort(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
