@@ -45,32 +45,28 @@ implements XCancellable,
 		   XCloseable,
 		   XMultipleResults
 {
-	private static String m_Class;
 	public final XComponentContext m_xContext;
-	public final BaseConnection m_Connection;
-	private java.sql.Statement m_Statement;
-	public String m_CursorName = "";
+	private String m_CursorName = "";
+	private int m_FetchDirection;
+	private int m_FetchSize;
+	private int m_MaxFieldSize = 0;
+	private int m_MaxRows = 0;
+	private int m_QueryTimeout = 0;
+	private int m_ResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
+	private int m_ResultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
 
 
 	private static Map<String, Property> _getPropertySet()
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("CursorName", "string");
-		map.put(UnoHelper.getPropertyName(p1), p1);
-		Property p2 = UnoHelper.getProperty("FetchDirection", "long");
-		map.put(UnoHelper.getPropertyName(p2), p2);
-		Property p3 = UnoHelper.getProperty("FetchSize", "long");
-		map.put(UnoHelper.getPropertyName(p3), p3);
-		Property p4 = UnoHelper.getProperty("MaxFieldSize", "long");
-		map.put(UnoHelper.getPropertyName(p4), p4);		
-		Property p5 = UnoHelper.getProperty("MaxRows", "long");
-		map.put(UnoHelper.getPropertyName(p5), p5);		
-		Property p6 = UnoHelper.getProperty("QueryTimeout", "long");
-		map.put(UnoHelper.getPropertyName(p6), p6);
-		Property p7 = UnoHelper.getProperty("ResultSetConcurrency", "long");
-		map.put(UnoHelper.getPropertyName(p7), p7);
-		Property p8 = UnoHelper.getProperty("ResultSetType", "long");
-		map.put(UnoHelper.getPropertyName(p8), p8);
+		map.put("CursorName", UnoHelper.getProperty("CursorName", "string"));
+		map.put("FetchDirection", UnoHelper.getProperty("FetchDirection", "long"));
+		map.put("FetchSize", UnoHelper.getProperty("FetchSize", "long"));
+		map.put("MaxFieldSize", UnoHelper.getProperty("MaxFieldSize", "long"));
+		map.put("MaxRows", UnoHelper.getProperty("MaxRows", "long"));		
+		map.put("QueryTimeout", UnoHelper.getProperty("QueryTimeout", "long"));
+		map.put("ResultSetConcurrency", UnoHelper.getProperty("ResultSetConcurrency", "long"));
+		map.put("ResultSetType", UnoHelper.getProperty("ResultSetType", "long"));
 		return map;
 	}
 	private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
@@ -85,164 +81,85 @@ implements XCancellable,
 	public SuperStatement(XComponentContext context,
 						  String name,
 						  String[] services,
-						  BaseConnection connection,
-						  java.sql.Statement statement,
-						  String type,
 						  Map<String, Property> properties)
 	{
-		super(name, services, statement, _getPropertySet(properties));
+		super(name, services, _getPropertySet(properties));
 		m_xContext = context;
-		m_Connection = connection;
-		m_Statement = statement;
-		m_Class = type;
 	}
 	public SuperStatement(XComponentContext context,
 						  String name,
-						  String[] services,
-						  BaseConnection connection,
-						  java.sql.Statement statement,
-						  String type)
+						  String[] services)
 	{
-		super(name, services, statement, _getPropertySet());
+		super(name, services, _getPropertySet());
 		m_xContext = context;
-		m_Connection = connection;
-		m_Statement = statement;
-		m_Class = type;
 	}
 
-
-	public String getCursorName() throws SQLException
+	public void setCursorName(String cursor)
+	{
+		m_CursorName = cursor;
+	}
+	public String getCursorName()
 	{
 		return m_CursorName;
 	}
-	public void setCursorName(String name) throws SQLException
+	public void setFetchDirection(int value)
 	{
-		try {
-			m_CursorName = name;
-			m_Statement.setCursorName(m_CursorName);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		m_FetchDirection = value;
 	}
-
-	public int getQueryTimeout() throws SQLException
+	public int getFetchDirection()
 	{
-		try {
-			return m_Statement.getQueryTimeout();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		return m_FetchDirection;
 	}
-	public void setQueryTimeout(int timeout) throws SQLException
+	public void setFetchSize(int value)
 	{
-		try {
-			m_Statement.setQueryTimeout(timeout);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		m_FetchSize = value;
 	}
-
-	public int getMaxFieldSize() throws SQLException
+	public int getFetchSize()
 	{
-		try {
-			return m_Statement.getMaxFieldSize();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		return m_FetchSize;
 	}
-	public void setMaxFieldSize(int size) throws SQLException
+	public void setMaxFieldSize(int value)
 	{
-		try {
-			m_Statement.setMaxFieldSize(size);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		m_MaxFieldSize = value;
 	}
-
-	public int getMaxRows() throws SQLException
+	public int getMaxFieldSize()
 	{
-		try {
-			return m_Statement.getMaxRows();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		return m_MaxFieldSize;
 	}
-	public void setMaxRows(int row) throws SQLException
+	public void setMaxRows(int value)
 	{
-		try {
-			m_Statement.setMaxRows(row);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		m_MaxRows = value;
 	}
-
-	public int getFetchDirection() throws SQLException
+	public int getMaxRows()
 	{
-		try {
-			return m_Statement.getFetchDirection();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		return m_MaxRows;
 	}
-	public void setFetchDirection(int direction) throws SQLException
+	public void setQueryTimeout(int value)
 	{
-		try {
-			m_Statement.setFetchDirection(direction);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		m_QueryTimeout = value;
 	}
-
-	public int getFetchSize() throws SQLException
+	public int getQueryTimeout()
 	{
-		try {
-			return m_Statement.getFetchSize();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		return m_QueryTimeout;
 	}
-
-	public void setFetchSize(int size) throws SQLException
-	{
-		try {
-			m_Statement.setFetchSize(size);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
-	}
-
-	public int getResultSetConcurrency() throws SQLException
-	{
-		try {
-			//System.out.println("SuperStatement.getResultSetConcurrency() Class:" + m_Class + " - Value: " + m_Statement.getResultSetConcurrency());
-			return m_Statement.getResultSetConcurrency();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
-	}
-
 	public void setResultSetConcurrency(int value)
 	{
-		//System.out.println("SuperStatement.setResultSetConcurrency() Class: " + m_Class + " - Value: " + value);
-		m_Connection.setResultSetConcurrency(m_Class, value);
+		m_ResultSetConcurrency = value;
 	}
-
-	public int getResultSetType() throws SQLException
+	public int getResultSetConcurrency()
 	{
-		try {
-			//System.out.println("SuperStatement.getResultSetType() Class: " + m_Class + " - Value: " + m_Statement.getResultSetType());
-			return m_Statement.getResultSetType();
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
+		return m_ResultSetConcurrency;
 	}
-
 	public void setResultSetType(int value)
 	{
-		//System.out.println("SuperStatement.setResultSetType() Class: " + m_Class + " - Value: " + value);
-		m_Connection.setResultSetType(m_Class, value);
+		System.out.println("SuperStatement.setResultSetType(): " + value);
+		m_ResultSetType = value;
 	}
-
+	public int getResultSetType()
+	{
+		System.out.println("SuperStatement.getResultSetType(): " + m_ResultSetType);
+		return m_ResultSetType;
+	}
 
 	// com.sun.star.util.XCancellable:
 	@Override
@@ -250,7 +167,7 @@ implements XCancellable,
 	{
 		try
 		{
-			m_Statement.cancel();
+			this._getStatement().cancel();
 		} catch (java.sql.SQLException e)
 		{
 			// pass
@@ -263,7 +180,7 @@ implements XCancellable,
 	{
 		try
 		{
-			m_Statement.close();
+			this._getStatement().close();
 		} catch (java.sql.SQLException e)
 		{
 			// pass
@@ -277,7 +194,7 @@ implements XCancellable,
 	{
 		try
 		{
-			return m_Statement.getMoreResults();
+			return this._getStatement().getMoreResults();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -289,7 +206,7 @@ implements XCancellable,
 	{
 		try
 		{
-			java.sql.ResultSet resultset = m_Statement.getResultSet();
+			java.sql.ResultSet resultset = this._getStatement().getResultSet();
 			return new ResultSet(m_xContext, this, resultset);
 		} catch (java.sql.SQLException e)
 		{
@@ -302,12 +219,15 @@ implements XCancellable,
 	{
 		try
 		{
-			return m_Statement.getUpdateCount();
+			return this._getStatement().getUpdateCount();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
+
+
+	protected abstract java.sql.Statement _getStatement();
 
 
 }

@@ -39,15 +39,21 @@ extends BasePreparedStatement
 	private static String m_name = PreparedStatement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.PreparedStatement",
 										  "com.sun.star.sdbcx.PreparedStatement"};
+	private java.sql.Connection m_Connection;
+	private java.sql.PreparedStatement m_Statement = null;
+	private String m_Sql;
 
-
+	
 	// The constructor method:
 	public PreparedStatement(XComponentContext context,
-							 BaseConnection connection,
-							 java.sql.PreparedStatement statement)
+							 BaseConnection xConnection,
+							 java.sql.Connection connection,
+							 String sql)
 	throws SQLException
 	{
-		super(context, m_name, m_services, connection, statement, PreparedStatement.class.getSimpleName());
+		super(context, m_name, m_services, xConnection);
+		m_Connection = connection;
+		m_Sql = sql;
 	}
 
 
@@ -56,6 +62,27 @@ extends BasePreparedStatement
 	throws java.sql.SQLException
 	{
 		return new ResultSet(ctx, this, resultset);
+	}
+
+
+	protected java.sql.PreparedStatement _getStatement()
+	{
+		if (m_Statement == null)
+		{
+			try {
+				m_Statement = m_Connection.prepareStatement(m_Sql, getResultSetType(), getResultSetConcurrency());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return m_Statement;
+	}
+
+
+	protected java.sql.PreparedStatement _getWrapper()
+	{
+		return m_Statement;
 	}
 
 

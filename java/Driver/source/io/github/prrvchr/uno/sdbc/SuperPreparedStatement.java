@@ -60,32 +60,26 @@ implements XParameters,
 		   XResultSetMetaDataSupplier
 {
 	private XConnection m_xConnection;
-	private java.sql.PreparedStatement m_Statement;
 
 
 	// The constructor method:
 	public SuperPreparedStatement(XComponentContext context,
 								  String name,
 								  String[] services,
-								  BaseConnection connection,
-								  java.sql.PreparedStatement statement,
-								  String type)
+								  BaseConnection xConnection)
 	{
-		super(context, name, services, connection, statement, type);
-		m_xConnection = connection;
-		m_Statement = statement;
+		super(context, name, services);
+		m_xConnection = xConnection;
 	}
 
 	public SuperPreparedStatement(XComponentContext context,
 								  String name,
 								  String[] services,
-								  BaseConnection connection,
-								  java.sql.PreparedStatement statement,
-								  String type,
+								  BaseConnection xConnection,
 								  Map<String, Property> properties)
 	{
-		super(context, name, services, connection, statement, type, properties);
-		m_Statement = statement;
+		super(context, name, services, properties);
+		m_xConnection = xConnection;
 	}
 
 
@@ -95,7 +89,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.clearParameters();
+			this._getStatement().clearParameters();
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -108,8 +102,9 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.Array array =  UnoHelper.getSQLArray(m_Statement, value);
-			m_Statement.setArray(index, array);
+			java.sql.PreparedStatement statement = this._getStatement();
+			java.sql.Array array =  UnoHelper.getSQLArray(statement, value);
+			statement.setArray(index, array);
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -123,7 +118,7 @@ implements XParameters,
 		try
 		{
 			InputStream input = new XInputStreamToInputStreamAdapter(value);
-			m_Statement.setBinaryStream(index, input, lenght);
+			this._getStatement().setBinaryStream(index, input, lenght);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -135,8 +130,9 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.Blob blob = UnoHelper.getSQLBlob(m_Statement, value);
-			m_Statement.setBlob(index, blob);
+			java.sql.PreparedStatement statement = this._getStatement();
+			java.sql.Blob blob = UnoHelper.getSQLBlob(statement, value);
+			statement.setBlob(index, blob);
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -149,7 +145,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setBoolean(index, value);
+			this._getStatement().setBoolean(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -161,7 +157,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setByte(index, value);
+			this._getStatement().setByte(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -173,7 +169,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setBytes(index, value);
+			this._getStatement().setBytes(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -187,7 +183,7 @@ implements XParameters,
 		{
 			InputStream input = new XInputStreamToInputStreamAdapter(value);
 			Reader reader = new java.io.InputStreamReader(input);
-			m_Statement.setCharacterStream(index, reader, lenght);
+			this._getStatement().setCharacterStream(index, reader, lenght);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -199,8 +195,9 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.Clob clob = UnoHelper.getSQLClob(m_Statement, value);
-			m_Statement.setClob(index, clob);
+			java.sql.PreparedStatement statement = this._getStatement();
+			java.sql.Clob clob = UnoHelper.getSQLClob(statement, value);
+			statement.setClob(index, clob);
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -214,7 +211,7 @@ implements XParameters,
 		try
 		{
 			java.sql.Date date = UnoHelper.getJavaDate(value);
-			m_Statement.setDate(index, date);
+			this._getStatement().setDate(index, date);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -226,7 +223,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setDouble(index, value);
+			this._getStatement().setDouble(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -238,7 +235,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setFloat(index, value);
+			this._getStatement().setFloat(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -250,7 +247,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setInt(index, value);
+			this._getStatement().setInt(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -262,7 +259,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setLong(index, value);
+			this._getStatement().setLong(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -274,7 +271,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setNull(index, type);
+			this._getStatement().setNull(index, type);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -286,7 +283,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setObject(index, value);
+			this._getStatement().setObject(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -298,7 +295,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setNull(index, type);
+			this._getStatement().setNull(index, type);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -310,7 +307,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setObject(index, value, type, scale);
+			this._getStatement().setObject(index, value, type, scale);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -328,7 +325,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setShort(index, value);
+			this._getStatement().setShort(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -340,7 +337,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.setString(index, value);
+			this._getStatement().setString(index, value);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -353,7 +350,7 @@ implements XParameters,
 		try
 		{
 			java.sql.Time time = UnoHelper.getJavaTime(value);
-			m_Statement.setTime(index, time);
+			this._getStatement().setTime(index, time);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -366,7 +363,7 @@ implements XParameters,
 		try
 		{
 			java.sql.Timestamp timestamp = UnoHelper.getJavaDateTime(value);
-			m_Statement.setTimestamp(index, timestamp);
+			this._getStatement().setTimestamp(index, timestamp);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -380,7 +377,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.addBatch();
+			this._getStatement().addBatch();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -392,7 +389,7 @@ implements XParameters,
 	{
 		try
 		{
-			m_Statement.clearBatch();
+			this._getStatement().clearBatch();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -404,7 +401,7 @@ implements XParameters,
 	{
 		try
 		{
-			return m_Statement.executeBatch();
+			return this._getStatement().executeBatch();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -418,7 +415,7 @@ implements XParameters,
 	{
 		try
 		{
-			return m_Statement.execute();
+			return this._getStatement().execute();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -430,7 +427,7 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.ResultSet resultset = m_Statement.executeQuery();
+			java.sql.ResultSet resultset = this._getStatement().executeQuery();
 			return _getResultSet(m_xContext, resultset);
 		} catch (java.sql.SQLException e)
 		{
@@ -443,7 +440,7 @@ implements XParameters,
 	{
 		try
 		{
-			return m_Statement.executeUpdate();
+			return this._getStatement().executeUpdate();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -464,7 +461,7 @@ implements XParameters,
 	{
 		try
 		{
-			java.sql.ResultSetMetaData metadata = m_Statement.getMetaData();
+			java.sql.ResultSetMetaData metadata = this._getStatement().getMetaData();
 			return new ResultSetMetaData(metadata);
 		} catch (java.sql.SQLException e)
 		{
@@ -476,6 +473,9 @@ implements XParameters,
 	abstract protected XResultSet _getResultSet(XComponentContext ctx,
 												java.sql.ResultSet resultset)
 	throws java.sql.SQLException;
+
+
+	abstract protected java.sql.PreparedStatement _getStatement();
 
 
 }

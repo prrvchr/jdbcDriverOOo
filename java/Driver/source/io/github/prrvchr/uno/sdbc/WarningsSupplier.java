@@ -45,17 +45,20 @@ final class WarningsSupplier
 	{
 		try
 		{
-			if (wrapper.isWrapperFor(Connection.class))
+			if (wrapper != null)
 			{
-				wrapper.unwrap(Connection.class).clearWarnings();
-			}
-			else if(wrapper.isWrapperFor(ResultSet.class))
-			{
-				wrapper.unwrap(ResultSet.class).clearWarnings();
-			}
-			else if(wrapper.isWrapperFor(Statement.class))
-			{
-				wrapper.unwrap(Statement.class).clearWarnings();
+				if (wrapper.isWrapperFor(Connection.class))
+				{
+					wrapper.unwrap(Connection.class).clearWarnings();
+				}
+				else if(wrapper.isWrapperFor(ResultSet.class))
+				{
+					wrapper.unwrap(ResultSet.class).clearWarnings();
+				}
+				else if(wrapper.isWrapperFor(Statement.class))
+				{
+					wrapper.unwrap(Statement.class).clearWarnings();
+				}
 			}
 		} catch (java.sql.SQLException e)
 		{
@@ -70,17 +73,20 @@ final class WarningsSupplier
 		java.sql.SQLWarning warning = null;
 		try
 		{
-			if (wrapper.isWrapperFor(Connection.class))
+			if (wrapper != null)
 			{
-				warning = wrapper.unwrap(Connection.class).getWarnings();
-			}
-			else if(wrapper.isWrapperFor(ResultSet.class))
-			{
-				warning = wrapper.unwrap(ResultSet.class).getWarnings();
-			}
-			else if(wrapper.isWrapperFor(Statement.class))
-			{
-				warning = wrapper.unwrap(Statement.class).getWarnings();
+				if (wrapper.isWrapperFor(Connection.class))
+				{
+					warning = wrapper.unwrap(Connection.class).getWarnings();
+				}
+				else if(wrapper.isWrapperFor(ResultSet.class))
+				{
+					warning = wrapper.unwrap(ResultSet.class).getWarnings();
+				}
+				else if(wrapper.isWrapperFor(Statement.class))
+				{
+					warning = wrapper.unwrap(Statement.class).getWarnings();
+				}
 			}
 		} catch (java.sql.SQLException e)
 		{
@@ -97,6 +103,7 @@ final class WarningsSupplier
 		// FIXME: If we return null as the UNO API suggests, Base show a Warning message dialog when connecting to the database...
 		// FIXME: returning <Any.VOID> seem to be the solution to avoid this Warning message dialog...
 		Object warning = Any.VOID;
+		//Object warning = new Any(new Type(void.class), null);
 		if (w != null)
 		{
 			warning = _getWarning(w, component);

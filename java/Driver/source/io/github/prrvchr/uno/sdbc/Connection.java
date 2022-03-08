@@ -36,6 +36,7 @@ public class Connection extends BaseConnection
 {
 	private static String m_name = Connection.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Connection"};
+	private final java.sql.Connection m_Connection;
 
 	// The constructor method:
 	public Connection(XComponentContext ctx,
@@ -44,29 +45,38 @@ public class Connection extends BaseConnection
 					  String url)
 	{
 		super(ctx, m_name, m_services, connection, info, url);
+		m_Connection = connection;
 		System.out.println("sdbc.Connection() 1");
 	}
 
 
 	protected XStatement _getStatement(XComponentContext ctx,
-									   java.sql.Statement statement)
+									   java.sql.Connection connection)
 	throws java.sql.SQLException
 	{
-		return new Statement(ctx, this, statement);
+		return new Statement(ctx, this, connection);
 	}
 
 	protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
-													   java.sql.PreparedStatement statement)
+													   java.sql.Connection connection,
+													   String sql)
 	throws java.sql.SQLException
 	{
-		return new PreparedStatement(ctx, this, statement);
+		return new PreparedStatement(ctx, this, connection, sql);
 	}
 
 	protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
-													   java.sql.CallableStatement statement)
+													   java.sql.Connection connection,
+													   String sql)
 	throws java.sql.SQLException
 	{
-		return new CallableStatement(ctx, this, statement);
+		return new CallableStatement(ctx, this, connection, sql);
+	}
+
+
+	protected java.sql.Connection _getWrapper()
+	{
+		return m_Connection;
 	}
 
 

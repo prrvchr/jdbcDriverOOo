@@ -34,15 +34,13 @@ public abstract class WarningsSupplierComponent<T extends java.sql.Wrapper>
 extends ServiceComponent
 implements com.sun.star.sdbc.XWarningsSupplier
 {
-	private final T m_Wrapper;
+
 
 	// The constructor method:
 	public WarningsSupplierComponent(String name,
-									 String[] services,
-									 T wrapper)
+									 String[] services)
 	{
 		super(name , services);
-		m_Wrapper = wrapper;
 	}
 
 
@@ -50,15 +48,20 @@ implements com.sun.star.sdbc.XWarningsSupplier
 	@Override
 	public void clearWarnings() throws SQLException
 	{
-		WarningsSupplier.clearWarnings(m_Wrapper, this);
+		T wrapper = _getWrapper();
+		WarningsSupplier.clearWarnings(wrapper, this);
 	}
 
 
 	@Override
 	public Object getWarnings() throws SQLException
 	{
-		return WarningsSupplier.getWarnings(m_Wrapper, this);
+		T wrapper = _getWrapper();
+		return WarningsSupplier.getWarnings(wrapper, this);
 	}
+
+
+	abstract protected T _getWrapper();
 
 
 }

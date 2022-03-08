@@ -44,16 +44,16 @@ implements XDataDescriptorFactory
 {
 	private static final String m_name = Column.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
-	private final int m_Type;
-	private final String m_TypeName;
-	private final long m_Precision;
-	private final long m_Scale;
-	private final long m_IsNullable;
-	private final boolean m_IsAutoIncrement;
-	private boolean m_IsCurrency = false;
-	private final boolean m_IsRowVersion = false;
-	private String m_Description = "";
-	private String m_DefaultValue = "";
+	public final int m_Type;
+	public final String m_TypeName;
+	public final long m_Precision;
+	public final long m_Scale;
+	public final long m_IsNullable;
+	public final boolean m_IsAutoIncrement;
+	public boolean m_IsCurrency = false;
+	public final boolean m_IsRowVersion = false;
+	public String m_Description = "";
+	public String m_DefaultValue = "";
 
 
 	// The constructor method:
@@ -104,28 +104,17 @@ implements XDataDescriptorFactory
 	{
 		short readonly = PropertyAttribute.READONLY;
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("Name", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p1), p1);
-		Property p2 = UnoHelper.getProperty("Type", "long", readonly);
-		map.put(UnoHelper.getPropertyName(p2), p2);
-		Property p3 = UnoHelper.getProperty("TypeName", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p3), p3);
-		Property p4 = UnoHelper.getProperty("Precision", "long", readonly);
-		map.put(UnoHelper.getPropertyName(p4), p4);
-		Property p5 = UnoHelper.getProperty("Scale", "long", readonly);
-		map.put(UnoHelper.getPropertyName(p5), p5);
-		Property p6 = UnoHelper.getProperty("IsNullable", "long", readonly);
-		map.put(UnoHelper.getPropertyName(p6), p6);
-		Property p7 = UnoHelper.getProperty("IsAutoIncrement", "boolean", readonly);
-		map.put(UnoHelper.getPropertyName(p7), p7);
-		Property p8 = UnoHelper.getProperty("IsCurrency", "boolean", readonly);
-		map.put(UnoHelper.getPropertyName(p8), p8);
-		Property p9 = UnoHelper.getProperty("IsRowVersion", "boolean", readonly);
-		map.put(UnoHelper.getPropertyName(p9), p9);
-		Property p10 = UnoHelper.getProperty("Description", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p10), p10);
-		Property p11 = UnoHelper.getProperty("DefaultValue", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p11), p11);
+		map.put("Name", UnoHelper.getProperty("Name", "string", readonly));
+		map.put("Type", UnoHelper.getProperty("Type", "long", readonly));
+		map.put("TypeName", UnoHelper.getProperty("TypeName", "string", readonly));
+		map.put("Precision", UnoHelper.getProperty("Precision", "long", readonly));
+		map.put("Scale", UnoHelper.getProperty("Scale", "long", readonly));
+		map.put("IsNullable", UnoHelper.getProperty("IsNullable", "long", readonly));
+		map.put("IsAutoIncrement", UnoHelper.getProperty("IsAutoIncrement", "boolean", readonly));
+		map.put("IsCurrency", UnoHelper.getProperty("IsCurrency", "boolean", readonly));
+		map.put("IsRowVersion", UnoHelper.getProperty("IsRowVersion", "boolean", readonly));
+		map.put("Description", UnoHelper.getProperty("Description", "string", readonly));
+		map.put("DefaultValue", UnoHelper.getProperty("DefaultValue", "string", readonly));
 		return map;
 	}
 

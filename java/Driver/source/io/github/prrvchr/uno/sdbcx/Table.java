@@ -109,16 +109,11 @@ implements XColumnsSupplier
 	{
 		short readonly = PropertyAttribute.READONLY;
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("Name", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p1), p1);
-		Property p2 = UnoHelper.getProperty("CatalogName", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p2), p2);
-		Property p3 = UnoHelper.getProperty("SchemaName", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p3), p3);
-		Property p4 = UnoHelper.getProperty("Description", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p4), p4);
-		Property p5 = UnoHelper.getProperty("Type", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p5), p5);
+		map.put("Name", UnoHelper.getProperty("Name", "string", readonly));
+		map.put("CatalogName", UnoHelper.getProperty("CatalogName", "string", readonly));
+		map.put("SchemaName", UnoHelper.getProperty("SchemaName", "string", readonly));
+		map.put("Description", UnoHelper.getProperty("Description", "string", readonly));
+		map.put("Type", UnoHelper.getProperty("Type", "string", readonly));
 		return map;
 	}
 

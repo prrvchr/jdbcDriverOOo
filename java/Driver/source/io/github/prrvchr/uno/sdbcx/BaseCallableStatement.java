@@ -39,14 +39,13 @@ import io.github.prrvchr.uno.sdbc.SuperCallableStatement;
 public abstract class BaseCallableStatement
 extends SuperCallableStatement
 {
-	private boolean m_UseBookmarks = false;
+	public boolean m_UseBookmarks = false;
 
 
 	private static Map<String, Property> _getPropertySet()
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
-		map.put(UnoHelper.getPropertyName(p1), p1);
+		map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
 		return map;
 	}
 
@@ -55,23 +54,9 @@ extends SuperCallableStatement
 	public BaseCallableStatement(XComponentContext context,
 								 String name,
 								 String[] services,
-								 BaseConnection connection,
-								 java.sql.CallableStatement statement,
-								 String type)
+								 BaseConnection xConnection)
 	{
-		super(context, name, services, connection, statement, type, _getPropertySet());
-	}
-
-
-	public boolean getUseBookmarks()
-	{
-		System.out.println("BaseCallableStatement.getUseBookmarks() : " + m_UseBookmarks);
-		return m_UseBookmarks;
-	}
-	public void setUseBookmarks(boolean value)
-	{
-		System.out.println("BaseCallableStatement.setUseBookmarks() : " + value);
-		m_UseBookmarks = value;
+		super(context, name, services, xConnection, _getPropertySet());
 	}
 
 

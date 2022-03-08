@@ -37,16 +37,13 @@ public abstract class WarningsSupplierProperty<T extends java.sql.Wrapper>
 extends ServiceProperty
 implements com.sun.star.sdbc.XWarningsSupplier
 {
-	private final T m_Wrapper;
 
 	// The constructor method:
 	public WarningsSupplierProperty(String name,
 									String[] services,
-									T wrapper,
 									Map<String, Property> properties)
 	{
 		super(name, services, properties);
-		m_Wrapper = wrapper;
 	}
 
 
@@ -54,15 +51,20 @@ implements com.sun.star.sdbc.XWarningsSupplier
 	@Override
 	public void clearWarnings() throws SQLException
 	{
-		WarningsSupplier.clearWarnings(m_Wrapper, this);
+		T wrapper = _getWrapper();
+		WarningsSupplier.clearWarnings(wrapper, this);
 	}
 
 
 	@Override
 	public Object getWarnings() throws SQLException
 	{
-		return WarningsSupplier.getWarnings(m_Wrapper, this);
+		T wrapper = _getWrapper();
+		return WarningsSupplier.getWarnings(wrapper, this);
 	}
+
+
+	abstract protected T _getWrapper();
 
 
 }

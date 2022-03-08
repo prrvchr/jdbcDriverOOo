@@ -46,14 +46,13 @@ implements XRowLocate
 {
 	private final java.sql.ResultSet m_ResultSet;
 	private int m_row = 0;
-	private boolean m_IsBookmarkable = false;
+	public boolean m_IsBookmarkable = false;
 
 	private static Map<String, Property> _getPropertySet()
 	{
 		short readonly = PropertyAttribute.READONLY;
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("IsBookmarkable", "boolean", readonly);
-		map.put(UnoHelper.getPropertyName(p1), p1);
+		map.put("IsBookmarkable", UnoHelper.getProperty("IsBookmarkable", "boolean", readonly));
 		return map;
 	}
 
@@ -75,10 +74,8 @@ implements XRowLocate
 
 	}
 
-
 	public boolean getIsBookmarkable()
 	{
-		System.out.println("ResultSet.getIsBookmarkable() : " + m_IsBookmarkable);
 		return m_IsBookmarkable;
 	}
 

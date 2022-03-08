@@ -37,7 +37,9 @@ implements XRowLocate
 	private static final String m_name = ResultSet.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet", 
 												"com.sun.star.sdbcx.ResultSet"};
+	private final java.sql.ResultSet m_ResultSet;
 
+	
 	// The constructor method:
 	public ResultSet(XComponentContext ctx,
 					 XInterface statement,
@@ -45,6 +47,13 @@ implements XRowLocate
 	throws java.sql.SQLException
 	{
 		super(ctx, m_name, m_services, statement, resultset);
+		m_ResultSet = resultset;
+	}
+
+
+	protected java.sql.ResultSet _getWrapper()
+	{
+		return m_ResultSet;
 	}
 
 

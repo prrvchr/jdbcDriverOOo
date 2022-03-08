@@ -74,4 +74,9 @@ implements XColumnsSupplier
 	}
 
 
+	protected java.sql.ResultSet _getWrapper()
+	{
+		return m_ResultSet;
+	}
+
 }

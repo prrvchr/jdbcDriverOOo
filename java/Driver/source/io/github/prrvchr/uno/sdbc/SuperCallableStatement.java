@@ -50,30 +50,22 @@ extends SuperPreparedStatement
 implements XOutParameters,
            XRow
 {
-	private java.sql.CallableStatement m_Statement;
-
 
 	// The constructor method:
 	public SuperCallableStatement(XComponentContext context,
 								  String name,
 								  String[] services,
-								  BaseConnection connection,
-								  java.sql.CallableStatement statement,
-								  String type)
+								  BaseConnection xConnection)
 	{
-		super(context, name, services, connection, statement, type);
-		m_Statement = statement;
+		super(context, name, services, xConnection);
 	}
 	public SuperCallableStatement(XComponentContext context,
 								  String name,
 								  String[] services,
-								  BaseConnection connection,
-								  java.sql.CallableStatement statement,
-								  String type,
+								  BaseConnection xConnection,
 								  Map<String, Property> properties)
 	{
-		super(context, name, services, connection, statement, type, properties);
-		m_Statement = statement;
+		super(context, name, services, xConnection, properties);
 	}
 
 	// com.sun.star.sdbc.XOutParameters:
@@ -82,7 +74,7 @@ implements XOutParameters,
 	{
 		try
 		{
-			m_Statement.registerOutParameter(index, type, scale);
+			this._getStatement().registerOutParameter(index, type, scale);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -94,7 +86,7 @@ implements XOutParameters,
 	{
 		try
 		{
-			m_Statement.registerOutParameter(index, type, name);
+			this._getStatement().registerOutParameter(index, type, name);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -109,8 +101,9 @@ implements XOutParameters,
 		try
 		{
 			XArray value = null;
-			java.sql.Array array = m_Statement.getArray(index);
-			if (!m_Statement.wasNull()) value = new Array(array);
+			java.sql.CallableStatement statement = this._getStatement();
+			java.sql.Array array = statement.getArray(index);
+			if (!statement.wasNull()) value = new Array(array);
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -131,8 +124,9 @@ implements XOutParameters,
 		try
 		{
 			XBlob blob = null;
-			java.sql.Blob value = m_Statement.getBlob(index);
-			if (!m_Statement.wasNull()) blob = new Blob(m_Statement, value);
+			java.sql.CallableStatement statement = this._getStatement();
+			java.sql.Blob value = statement.getBlob(index);
+			if (!statement.wasNull()) blob = new Blob(statement, value);
 			return blob;
 		} catch (java.sql.SQLException e)
 		{
@@ -145,8 +139,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			boolean value = m_Statement.getBoolean(index);
-			if (m_Statement.wasNull()) value = false;
+			java.sql.CallableStatement statement = this._getStatement();
+			boolean value = statement.getBoolean(index);
+			if (statement.wasNull()) value = false;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -159,8 +154,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			byte value = m_Statement.getByte(index);
-			if (m_Statement.wasNull()) value = 0;
+			java.sql.CallableStatement statement = this._getStatement();
+			byte value = statement.getByte(index);
+			if (statement.wasNull()) value = 0;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -173,8 +169,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			byte[] value = m_Statement.getBytes(index);
-			if (m_Statement.wasNull()) value = new byte[0];
+			java.sql.CallableStatement statement = this._getStatement();
+			byte[] value = statement.getBytes(index);
+			if (statement.wasNull()) value = new byte[0];
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -195,8 +192,9 @@ implements XOutParameters,
 		try
 		{
 			XClob clob = null;
-			java.sql.Clob value = m_Statement.getClob(index);
-			if (!m_Statement.wasNull()) clob = new Clob(m_Statement, value);
+			java.sql.CallableStatement statement = this._getStatement();
+			java.sql.Clob value = statement.getClob(index);
+			if (!statement.wasNull()) clob = new Clob(statement, value);
 			return clob;
 		} catch (java.sql.SQLException e)
 		{
@@ -209,9 +207,10 @@ implements XOutParameters,
 	{
 		try
 		{
-			java.sql.Date value = m_Statement.getDate(index);
+			java.sql.CallableStatement statement = this._getStatement();
+			java.sql.Date value = statement.getDate(index);
 			Date date = null;
-			if (!m_Statement.wasNull()) date = UnoHelper.getUnoDate(value);
+			if (!statement.wasNull()) date = UnoHelper.getUnoDate(value);
 			return date;
 		} catch (java.sql.SQLException e)
 		{
@@ -224,8 +223,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			double value = m_Statement.getDouble(index);
-			if (m_Statement.wasNull()) value = 0;
+			java.sql.CallableStatement statement = this._getStatement();
+			double value = statement.getDouble(index);
+			if (statement.wasNull()) value = 0;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -238,8 +238,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			float value = m_Statement.getFloat(index);
-			if (m_Statement.wasNull()) value = 0;
+			java.sql.CallableStatement statement = this._getStatement();
+			float value = statement.getFloat(index);
+			if (statement.wasNull()) value = 0;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -252,8 +253,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			int value = m_Statement.getInt(index);
-			if (m_Statement.wasNull()) value = 0;
+			java.sql.CallableStatement statement = this._getStatement();
+			int value = statement.getInt(index);
+			if (statement.wasNull()) value = 0;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -266,8 +268,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			long value = m_Statement.getLong(index);
-			if (m_Statement.wasNull()) value = 0;
+			java.sql.CallableStatement statement = this._getStatement();
+			long value = statement.getLong(index);
+			if (statement.wasNull()) value = 0;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -281,8 +284,9 @@ implements XOutParameters,
 		try
 		{
 			System.out.println("SuperCallableStatement.getObject() : '" + index + "' - '" + map + "'");
-			Object value = null;
-			if (!m_Statement.wasNull()) value = m_Statement.getObject(index);
+			java.sql.CallableStatement statement = this._getStatement();
+			Object value =  statement.getObject(index);
+			//if (!statement.wasNull()) value = statement.getObject(index);
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -302,8 +306,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			short value = m_Statement.getShort(index);
-			if (m_Statement.wasNull()) value = 0;
+			java.sql.CallableStatement statement = this._getStatement();
+			short value = statement.getShort(index);
+			if (statement.wasNull()) value = 0;
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -316,8 +321,9 @@ implements XOutParameters,
 	{
 		try
 		{
-			String value = m_Statement.getString(index);
-			if (m_Statement.wasNull()) value = "";
+			java.sql.CallableStatement statement = this._getStatement();
+			String value = statement.getString(index);
+			if (statement.wasNull()) value = "";
 			return value;
 		} catch (java.sql.SQLException e)
 		{
@@ -330,9 +336,10 @@ implements XOutParameters,
 	{
 		try
 		{
-			java.sql.Time value = m_Statement.getTime(index);
+			java.sql.CallableStatement statement = this._getStatement();
+			java.sql.Time value = statement.getTime(index);
 			Time time = null;
-			if (!m_Statement.wasNull()) time = UnoHelper.getUnoTime(value);
+			if (!statement.wasNull()) time = UnoHelper.getUnoTime(value);
 			return time;
 		} catch (java.sql.SQLException e)
 		{
@@ -345,9 +352,10 @@ implements XOutParameters,
 	{
 		try
 		{
-			java.sql.Timestamp value = m_Statement.getTimestamp(index);
+			java.sql.CallableStatement statement = this._getStatement();
+			java.sql.Timestamp value = statement.getTimestamp(index);
 			DateTime datetime = null;
-			if (!m_Statement.wasNull()) datetime = UnoHelper.getUnoDateTime(value);
+			if (!statement.wasNull()) datetime = UnoHelper.getUnoDateTime(value);
 			return datetime;
 		} catch (java.sql.SQLException e)
 		{
@@ -360,12 +368,15 @@ implements XOutParameters,
 	{
 		try
 		{
-			return m_Statement.wasNull();
+			return this._getStatement().wasNull();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
+
+
+	abstract protected java.sql.CallableStatement _getStatement();
 
 
 }

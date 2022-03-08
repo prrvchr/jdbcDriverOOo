@@ -36,15 +36,21 @@ extends SuperCallableStatement
 {
 	private static final String m_name = CallableStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
+	private java.sql.Connection m_Connection;
+	private java.sql.CallableStatement m_Statement = null;
+	private String m_Sql;
 
 
 	// The constructor method:
 	public CallableStatement(XComponentContext context,
-							 BaseConnection connection,
-							 java.sql.CallableStatement statement)
+							 BaseConnection xConnection,
+							 java.sql.Connection connection,
+							 String sql)
 	throws SQLException
 	{
-		super(context, m_name, m_services, connection, statement, CallableStatement.class.getSimpleName());
+		super(context, m_name, m_services, xConnection);
+		m_Connection = connection;
+		m_Sql= sql;
 	}
 
 
@@ -56,4 +62,23 @@ extends SuperCallableStatement
 	}
 
 
+	protected java.sql.CallableStatement _getStatement()
+	{
+		if (m_Statement == null)
+		{
+			try {
+				m_Statement = m_Connection.prepareCall(m_Sql, getResultSetType(), getResultSetConcurrency());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return m_Statement;
+	}
+
+
+	protected java.sql.CallableStatement _getWrapper()
+	{
+		return m_Statement;
+	}
 }

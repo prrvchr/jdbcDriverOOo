@@ -44,36 +44,26 @@ extends BaseStatement
 	private static String m_name = Statement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Statement",
 										  "com.sun.star.sdbcx.Statement"};
-	private boolean m_UseBookmarks = false;
+	private java.sql.Connection m_Connection;
+	private java.sql.Statement m_Statement = null;
+	public boolean m_UseBookmarks = false;
 
 	private static Map<String, Property> _getPropertySet()
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("UseBookmarks", "boolean");
-		map.put(UnoHelper.getPropertyName(p1), p1);
+		map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
 		return map;
 	}
 
 
 	// The constructor method:
 	public Statement(XComponentContext context,
-					 BaseConnection connection,
-					 java.sql.Statement statement)
+					 BaseConnection xConnection,
+					 java.sql.Connection connection)
 	throws SQLException
 	{
-		super(context, m_name, m_services, connection, statement, Statement.class.getSimpleName(), _getPropertySet());
-	}
-
-
-	public boolean getUseBookmarks()
-	{
-		System.out.println("Statement.getUseBookmarks() : " + m_UseBookmarks);
-		return m_UseBookmarks;
-	}
-	public void setUseBookmarks(boolean value)
-	{
-		System.out.println("Statement.setUseBookmarks() : " + value);
-		m_UseBookmarks = value;
+		super(context, m_name, m_services, xConnection, _getPropertySet());
+		m_Connection = connection;
 	}
 
 
@@ -82,6 +72,27 @@ extends BaseStatement
 	throws java.sql.SQLException
 	{
 		return new ResultSet(ctx, this, resultset);
+	}
+
+
+	protected java.sql.Statement _getStatement()
+	{
+		if (m_Statement == null)
+		{
+			try {
+				m_Statement = m_Connection.createStatement(getResultSetType(), getResultSetConcurrency());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return m_Statement;
+	}
+
+
+	protected java.sql.Statement _getWrapper()
+	{
+		return m_Statement;
 	}
 
 

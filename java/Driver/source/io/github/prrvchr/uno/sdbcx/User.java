@@ -60,8 +60,7 @@ implements XUser
 	private static Map<String, Property> _getPropertySet()
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("Name", "string");
-		map.put(UnoHelper.getPropertyName(p1), p1);
+		map.put("Name", UnoHelper.getProperty("Name", "string"));
 		return map;
 	}
 

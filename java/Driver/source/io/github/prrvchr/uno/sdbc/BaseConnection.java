@@ -46,40 +46,6 @@ implements XConnection
 	private final PropertyValue[] m_info;
 	private final String m_url;
 
-	public static int m_StatementResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
-	public static int m_StatementResultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
-	public static int m_PreparedResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
-	public static int m_PreparedResultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
-	public static int m_CallableResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
-	public static int m_CallableResultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
-	public void setResultSetConcurrency(String type, int value)
-	{
-		switch (type) {
-		case "Statement":
-			m_StatementResultSetConcurrency = value;
-			break;
-		case "PreparedStatement":
-			m_PreparedResultSetConcurrency = value;
-			break;
-		case "CallableStatement":
-			m_CallableResultSetConcurrency = value;
-			break;
-		}
-	}
-	public void setResultSetType(String type, int value)
-	{
-		switch (type) {
-		case "Statement":
-			m_StatementResultSetType = value;
-			break;
-		case "PreparedStatement":
-			m_PreparedResultSetType = value;
-			break;
-		case "CallableStatement":
-			m_CallableResultSetType = value;
-			break;
-		}
-	}
 	// The constructor method:
 	public BaseConnection(XComponentContext ctx,
 						  String name,
@@ -88,7 +54,7 @@ implements XConnection
 						  PropertyValue[] info,
 						  String url)
 	{
-		super(name , services, connection);
+		super(name , services);
 		System.out.println("Connection.Connection() 1");
 		m_xContext = ctx;
 		m_Connection = connection;
@@ -291,8 +257,8 @@ implements XConnection
 	{
 		try {
 			//System.out.println("BaseConnection.createStatement() : ResultSetType: " + m_StatementResultSetType + " - ResultSetConcurrency: " + m_StatementResultSetConcurrency);
-			java.sql.Statement statement = m_Connection.createStatement(m_StatementResultSetType, m_StatementResultSetConcurrency);
-			return _getStatement(m_xContext, statement);
+			//java.sql.Statement statement = m_Connection.createStatement(m_StatementResultSetType, m_StatementResultSetConcurrency);
+			return _getStatement(m_xContext, m_Connection);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
 		}
@@ -303,8 +269,8 @@ implements XConnection
 	{
 		try {
 			//System.out.println("BaseConnection.prepareStatement() : ResultSetType: " + m_PreparedResultSetType + " - ResultSetConcurrency: " + m_PreparedResultSetConcurrency);
-			java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, m_PreparedResultSetType, m_PreparedResultSetConcurrency);
-			return _getPreparedStatement(m_xContext, statement);
+			//java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, m_PreparedResultSetType, m_PreparedResultSetConcurrency);
+			return _getPreparedStatement(m_xContext, m_Connection, sql);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
 		}
@@ -315,23 +281,25 @@ implements XConnection
 	{
 		try {
 			//System.out.println("BaseConnection.prepareCall() : ResultSetType: " + m_CallableResultSetType + " - ResultSetConcurrency: " + m_CallableResultSetConcurrency);
-			java.sql.CallableStatement statement = m_Connection.prepareCall(sql, m_CallableResultSetType, m_CallableResultSetConcurrency);
-			return _getCallableStatement(m_xContext, statement);
+			//java.sql.CallableStatement statement = m_Connection.prepareCall(sql, m_CallableResultSetType, m_CallableResultSetConcurrency);
+			return _getCallableStatement(m_xContext, m_Connection, sql);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
 
 	abstract protected XStatement _getStatement(XComponentContext ctx,
-												java.sql.Statement statement)
+												java.sql.Connection connection)
 	throws java.sql.SQLException;
 
 	abstract protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
-																java.sql.PreparedStatement statement)
+																java.sql.Connection connection,
+																String sql)
 	throws java.sql.SQLException;
 
 	abstract protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
-																java.sql.CallableStatement statement)
+																java.sql.Connection connection,
+																String sql)
 	throws java.sql.SQLException;
 
 

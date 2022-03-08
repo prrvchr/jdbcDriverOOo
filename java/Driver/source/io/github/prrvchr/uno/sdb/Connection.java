@@ -66,19 +66,19 @@ implements XChild,
 		   XUsersSupplier,
 		   XViewsSupplier
 {
-	@SuppressWarnings("unused")
-	private final XComponentContext m_xContext;
-	private final java.sql.Connection m_Connection;
-	
-	@SuppressWarnings("unused")
-	private final PropertyValue[] m_info;
-	
-	@SuppressWarnings("unused")
-	private final String m_url;
+
 	private static final String m_name = Connection.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdb.Connection",
 												"com.sun.star.sdbc.Connection",
 												"com.sun.star.sdbcx.DatabaseDefinition"};
+	@SuppressWarnings("unused")
+	private final XComponentContext m_xContext;
+	private final java.sql.Connection m_Connection;
+	@SuppressWarnings("unused")
+	private final String m_url;
+	@SuppressWarnings("unused")
+	private final PropertyValue[] m_info;
+	
 
 
 	// The constructor method:
@@ -241,25 +241,32 @@ implements XChild,
 
 
 	protected XStatement _getStatement(XComponentContext ctx,
-									   java.sql.Statement statement)
+									   java.sql.Connection connection)
 	throws java.sql.SQLException
 	{
-		return new Statement(ctx, this, statement);
+		return new Statement(ctx, this, connection);
 	}
 
 	protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
-													   java.sql.PreparedStatement statement)
+													   java.sql.Connection connection,
+													   String sql)
 	throws java.sql.SQLException
 	{
-		return new PreparedStatement(ctx, this, statement);
+		return new PreparedStatement(ctx, this, connection, sql);
 	}
 
 	protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
-													   java.sql.CallableStatement statement)
+													   java.sql.Connection connection,
+													   String sql)
 	throws java.sql.SQLException
 	{
-		return new CallableStatement(ctx, this, statement);
+		return new CallableStatement(ctx, this, connection, sql);
 	}
 
+
+	protected java.sql.Connection _getWrapper()
+	{
+		return m_Connection;
+	}
 
 }

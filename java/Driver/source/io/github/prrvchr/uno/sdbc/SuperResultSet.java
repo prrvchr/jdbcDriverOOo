@@ -70,16 +70,11 @@ implements XCloseable,
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
 		short readonly = PropertyAttribute.READONLY;
-		Property p1 = UnoHelper.getProperty("CursorName", "string", readonly);
-		map.put(UnoHelper.getPropertyName(p1), p1);
-		Property p2 = UnoHelper.getProperty("FetchDirection", "long");
-		map.put(UnoHelper.getPropertyName(p2), p2);
-		Property p3 = UnoHelper.getProperty("FetchSize", "long");
-		map.put(UnoHelper.getPropertyName(p3), p3);
-		Property p4 = UnoHelper.getProperty("ResultSetConcurrency", "long", readonly);
-		map.put(UnoHelper.getPropertyName(p4), p4);
-		Property p5 = UnoHelper.getProperty("ResultSetType", "long", readonly);
-		map.put(UnoHelper.getPropertyName(p5), p5);
+		map.put("CursorName", UnoHelper.getProperty("CursorName", "string", readonly));
+		map.put("FetchDirection", UnoHelper.getProperty("FetchDirection", "long"));
+		map.put("FetchSize", UnoHelper.getProperty("FetchSize", "long"));
+		map.put("ResultSetConcurrency", UnoHelper.getProperty("ResultSetConcurrency", "long", readonly));
+		map.put("ResultSetType", UnoHelper.getProperty("ResultSetType", "long", readonly));
 		return map;
 	}
 	private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
@@ -96,7 +91,7 @@ implements XCloseable,
 						  String[] services,
 						  java.sql.ResultSet resultset)
 	{
-		super(name, services, resultset, _getPropertySet());
+		super(name, services, _getPropertySet());
 		m_xContext = ctx;
 		m_xStatement = null;
 		m_ResultSet = resultset;
@@ -107,7 +102,7 @@ implements XCloseable,
 						  XInterface statement,
 						  java.sql.ResultSet resultset)
 	{
-		super(name, services, resultset, _getPropertySet());
+		super(name, services, _getPropertySet());
 		m_xContext = ctx;
 		m_xStatement = statement;
 		m_ResultSet = resultset;
@@ -119,7 +114,7 @@ implements XCloseable,
 						  java.sql.ResultSet resultset,
 						  Map<String, Property> properties)
 	{
-		super(name, services, resultset, _getPropertySet(properties));
+		super(name, services, _getPropertySet(properties));
 		m_xContext = ctx;
 		m_xStatement = statement;
 		m_ResultSet = resultset;

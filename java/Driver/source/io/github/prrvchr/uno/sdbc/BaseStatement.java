@@ -45,14 +45,12 @@ implements XBatchExecution,
 		   XStatement
 {
 	private XConnection m_xConnection;
-	private java.sql.Statement m_Statement;
-	public boolean m_EscapeProcessing = true;
+	private boolean m_EscapeProcessing = true;
 
 	private static Map<String, Property> _getPropertySet()
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
-		Property p1 = UnoHelper.getProperty("EscapeProcessing", "boolean");
-		map.put(UnoHelper.getPropertyName(p1), p1);
+		map.put("EscapeProcessing", UnoHelper.getProperty("EscapeProcessing", "boolean"));
 		return map;
 	}
 	private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
@@ -67,49 +65,37 @@ implements XBatchExecution,
 	public BaseStatement(XComponentContext context,
 						 String name,
 						 String[] services,
-						 BaseConnection connection,
-						 java.sql.Statement statement,
-						 String type)
+						 BaseConnection xConnection)
 	{
-		super(context, name, services, connection, statement, type, _getPropertySet());
-		m_xConnection = connection;
-		m_Statement = statement;
+		super(context, name, services, _getPropertySet());
+		m_xConnection = xConnection;
 	}
 	public BaseStatement(XComponentContext context,
 						 String name,
 						 String[] services,
-						 BaseConnection connection,
-						 java.sql.Statement statement,
-						 String type,
+						 BaseConnection xConnection,
 						 Map<String, Property> properties)
 	{
-		super(context, name, services, connection, statement, type, _getPropertySet(properties));
-		m_xConnection = connection;
-		m_Statement = statement;
+		super(context, name, services, _getPropertySet(properties));
+		m_xConnection = xConnection;
 	}
 
 
+	public void setEscapeProcessing(boolean value)
+	{
+		m_EscapeProcessing = value;
+	}
 	public boolean getEscapeProcessing()
 	{
 		return m_EscapeProcessing;
 	}
-	public void setEscapeProcessing(boolean value) throws SQLException
-	{
-		m_EscapeProcessing = value;
-		try {
-			m_Statement.setEscapeProcessing(value);
-		} catch (java.sql.SQLException e) {
-			throw UnoHelper.getSQLException(e, this);
-		}
-	}
-
 
 	// com.sun.star.sdbc.XBatchExecution
 	@Override
 	public void addBatch(String sql) throws SQLException {
 		try
 		{
-			m_Statement.addBatch(sql);
+			this._getStatement().addBatch(sql);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -120,7 +106,7 @@ implements XBatchExecution,
 	public void clearBatch() throws SQLException {
 		try
 		{
-			m_Statement.clearBatch();
+			this._getStatement().clearBatch();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -131,7 +117,7 @@ implements XBatchExecution,
 	public int[] executeBatch() throws SQLException {
 		try
 		{
-			return m_Statement.executeBatch();
+			return this._getStatement().executeBatch();
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -146,7 +132,7 @@ implements XBatchExecution,
 		try
 		{
 			System.out.println("BaseStatement.execute() 1 Query: " + sql);
-			return m_Statement.execute(sql);
+			return this._getStatement().execute(sql);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -159,7 +145,7 @@ implements XBatchExecution,
 		try
 		{
 			System.out.println("BaseStatement.executeQuery() 1 Query: " + sql);
-			java.sql.ResultSet resultset = m_Statement.executeQuery(sql);
+			java.sql.ResultSet resultset = this._getStatement().executeQuery(sql);
 			return _getResultSet(m_xContext, resultset);
 		} catch (java.sql.SQLException e)
 		{
@@ -173,7 +159,7 @@ implements XBatchExecution,
 		try
 		{
 			System.out.println("BaseStatement.executeUpdate() 1 Query: " + sql);
-			return m_Statement.executeUpdate(sql);
+			return this._getStatement().executeUpdate(sql);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -187,7 +173,7 @@ implements XBatchExecution,
 	}
 
 
-	abstract protected XResultSet _getResultSet(XComponentContext ctx,
+	protected abstract XResultSet _getResultSet(XComponentContext ctx,
 												java.sql.ResultSet resultset)
 	throws java.sql.SQLException;
 
