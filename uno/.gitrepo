@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/prrvchr/uno.git
 	branch = main
-	commit = 02cacc87721c115f888750d11403207fbf3a9726
-	parent = ae76ff2b185e47129a14c7d150eb0b29c7448495
+	commit = ec5663e6b43e8ee170940ab95976b2e4b76860d4
+	parent = 035e9b743c3db595e5e4e66de7ce05ff70e35142
 	method = merge
 	cmdver = 0.4.3
