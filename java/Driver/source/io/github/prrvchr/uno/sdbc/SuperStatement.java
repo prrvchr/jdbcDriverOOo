@@ -152,12 +152,10 @@ implements XCancellable,
 	}
 	public void setResultSetType(int value)
 	{
-		System.out.println("SuperStatement.setResultSetType(): " + value);
 		m_ResultSetType = value;
 	}
 	public int getResultSetType()
 	{
-		System.out.println("SuperStatement.getResultSetType(): " + m_ResultSetType);
 		return m_ResultSetType;
 	}
 
