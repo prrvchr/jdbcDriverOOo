@@ -152,7 +152,7 @@ extends com.sun.star.lib.uno.helper.PropertySet
 	throws WrappedTargetException
 	{
 		Method method = null;
-		String setter = "set" + getPropertyId(property);
+		String setter = "set" + (String) getPropertyId(property);
 		try 
 		{
 			method = this.getClass().getMethod(setter, property.Type.getZClass());
@@ -183,7 +183,7 @@ extends com.sun.star.lib.uno.helper.PropertySet
 	public Object getPropertyValue(Property property)
 	{
 		Method method = null;
-		String getter = "get" + getPropertyId(property);
+		String getter = "get" + (String) getPropertyId(property);
 		try
 		{
 			method = this.getClass().getMethod(getter);
