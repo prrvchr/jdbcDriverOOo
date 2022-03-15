@@ -47,8 +47,8 @@ implements XCancellable,
 {
 	public final XComponentContext m_xContext;
 	private String m_CursorName = "";
-	private int m_FetchDirection;
-	private int m_FetchSize;
+	private int m_FetchDirection = java.sql.ResultSet.FETCH_FORWARD;
+	private int m_FetchSize = 0;
 	private int m_MaxFieldSize = 0;
 	private int m_MaxRows = 0;
 	private int m_QueryTimeout = 0;
@@ -96,62 +96,207 @@ implements XCancellable,
 
 	public void setCursorName(String cursor)
 	{
-		m_CursorName = cursor;
+		if (_getWrapper() == null)
+		{
+			m_CursorName = cursor;
+		}
+		else
+		{
+			try {
+				_getWrapper().setCursorName(cursor);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public String getCursorName()
 	{
 		return m_CursorName;
 	}
+
 	public void setFetchDirection(int value)
 	{
-		m_FetchDirection = value;
+		if (_getWrapper() == null)
+		{
+			m_FetchDirection = value;
+		}
+		else
+		{
+			try {
+				_getWrapper().setFetchDirection(value);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public int getFetchDirection()
 	{
-		return m_FetchDirection;
+		if (_getWrapper() == null)
+		{
+			return m_FetchDirection;
+		}
+		else
+		{
+			try {
+				return _getWrapper().getFetchDirection();
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return m_FetchDirection;
+			}
+		}
 	}
+
 	public void setFetchSize(int value)
 	{
-		m_FetchSize = value;
+		if (_getWrapper() == null)
+		{
+			m_FetchSize = value;
+		}
+		else
+		{
+			try {
+				_getWrapper().setFetchSize(value);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public int getFetchSize()
 	{
-		return m_FetchSize;
+		if (_getWrapper() == null)
+		{
+			return m_FetchSize;
+		}
+		else
+		{
+			try {
+				return _getWrapper().getFetchSize();
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return m_FetchSize;
+			}
+		}
 	}
+
 	public void setMaxFieldSize(int value)
 	{
-		m_MaxFieldSize = value;
+		if (_getWrapper() == null)
+		{
+			m_MaxFieldSize = value;
+		}
+		else
+		{
+			try {
+				_getWrapper().setMaxFieldSize(value);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
 	public int getMaxFieldSize()
 	{
-		return m_MaxFieldSize;
+		if (_getWrapper() == null)
+		{
+			return m_MaxFieldSize;
+		}
+		else
+		{
+			try {
+				return _getWrapper().getMaxFieldSize();
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return m_MaxFieldSize;
+			}
+		}
 	}
 	public void setMaxRows(int value)
 	{
-		m_MaxRows = value;
+		if (_getWrapper() == null)
+		{
+			m_MaxRows = value;
+		}
+		else
+		{
+			try {
+				_getWrapper().setMaxRows(value);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public int getMaxRows()
 	{
-		return m_MaxRows;
+		if (_getWrapper() == null)
+		{
+			return m_MaxRows;
+		}
+		else
+		{
+			try {
+				return _getWrapper().getMaxRows();
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return m_MaxRows;
+			}
+		}
 	}
 	public void setQueryTimeout(int value)
 	{
-		m_QueryTimeout = value;
+		if (_getWrapper() == null)
+		{
+			m_QueryTimeout = value;
+		}
+		else
+		{
+			try {
+				_getWrapper().setQueryTimeout(value);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public int getQueryTimeout()
 	{
-		return m_QueryTimeout;
+		if (_getWrapper() == null)
+		{
+			return m_QueryTimeout;
+		}
+		else
+		{
+			try {
+				return _getWrapper().getQueryTimeout();
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return m_QueryTimeout;
+			}
+		}
 	}
+
 	public void setResultSetConcurrency(int value)
 	{
+		System.out.println("SuperStatement.setResultSetConcurrency() Value: " + value);
 		m_ResultSetConcurrency = value;
 	}
 	public int getResultSetConcurrency()
 	{
 		return m_ResultSetConcurrency;
 	}
+
 	public void setResultSetType(int value)
 	{
+		System.out.println("SuperStatement.setResultSetType() Value: " + value);
 		m_ResultSetType = value;
 	}
 	public int getResultSetType()
@@ -226,6 +371,19 @@ implements XCancellable,
 
 
 	protected abstract java.sql.Statement _getStatement();
+
+
+	protected void _setStatement(java.sql.Statement statement)
+	throws java.sql.SQLException
+	{
+		if (m_CursorName != "")
+			statement.setCursorName(m_CursorName);
+		statement.setFetchDirection(m_FetchDirection);
+		statement.setFetchSize(m_FetchSize);
+		statement.setMaxFieldSize(m_MaxFieldSize);
+		statement.setMaxRows(m_MaxRows);
+		statement.setQueryTimeout(m_QueryTimeout);
+	}
 
 
 }

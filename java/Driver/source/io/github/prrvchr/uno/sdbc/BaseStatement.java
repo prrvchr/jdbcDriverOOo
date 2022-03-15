@@ -83,10 +83,23 @@ implements XBatchExecution,
 
 	public void setEscapeProcessing(boolean value)
 	{
-		m_EscapeProcessing = value;
+		if (_getWrapper() == null)
+		{
+			m_EscapeProcessing = value;
+		}
+		else
+		{
+			try {
+				_getWrapper().setEscapeProcessing(value);
+			} catch (java.sql.SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	public boolean getEscapeProcessing()
 	{
+
 		return m_EscapeProcessing;
 	}
 
@@ -135,6 +148,7 @@ implements XBatchExecution,
 			return this._getStatement().execute(sql);
 		} catch (java.sql.SQLException e)
 		{
+			e.printStackTrace();
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
@@ -149,6 +163,7 @@ implements XBatchExecution,
 			return _getResultSet(m_xContext, resultset);
 		} catch (java.sql.SQLException e)
 		{
+			e.printStackTrace();
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
@@ -159,9 +174,13 @@ implements XBatchExecution,
 		try
 		{
 			System.out.println("BaseStatement.executeUpdate() 1 Query: " + sql);
-			return this._getStatement().executeUpdate(sql);
+			java.sql.Statement statement = this._getStatement();
+			if (statement == null)
+				System.out.println("BaseStatement.executeUpdate() 2 *********************************** Query: " + sql);
+			return statement.executeUpdate(sql);
 		} catch (java.sql.SQLException e)
 		{
+			e.printStackTrace();
 			throw UnoHelper.getSQLException(e, this);
 		}
 	}
@@ -176,6 +195,15 @@ implements XBatchExecution,
 	protected abstract XResultSet _getResultSet(XComponentContext ctx,
 												java.sql.ResultSet resultset)
 	throws java.sql.SQLException;
+
+
+	protected void _setStatement(java.sql.Statement statement)
+	throws java.sql.SQLException
+	{
+		super._setStatement(statement);
+		//statement.setEscapeProcessing(m_EscapeProcessing);
+	}
+
 
 
 }

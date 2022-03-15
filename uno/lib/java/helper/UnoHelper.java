@@ -2,8 +2,6 @@ package io.github.prrvchr.uno.helper;
 
 import java.lang.Exception;
 import java.lang.IllegalAccessException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
@@ -17,14 +15,12 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.lang.IllegalArgumentException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
 import com.sun.star.sdbc.XClob;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.UnoRuntime;
@@ -382,163 +378,6 @@ public class UnoHelper
 												  Map.entry(2013, "VARCHAR"),
 												  Map.entry(2014, "VARCHAR"));
 		return (maps.containsKey(key)) ? maps.get(key) : name;
-	}
-
-
-	// com.sun.star.lib.uno.helper.PropertySet:
-	public static boolean convertPropertyValue(Property property,
-											   Object[] newValue,
-											   Object[] oldValue,
-											   Object value,
-											   Object object,
-											   Object id)
-	throws IllegalArgumentException,
-		   WrappedTargetException
-	{
-		oldValue[0] = getPropertyValue(property, object, id);
-		Class<?> clazz = property.Type.getZClass();
-		boolean voidvalue = false;
-		boolean anyvalue = value instanceof Any;
-		if (anyvalue)
-			voidvalue = ((Any) value).getObject() == null;
-		else
-			voidvalue = value == null;
-		if (voidvalue && clazz.isPrimitive())
-			throw new IllegalArgumentException("The implementation does not support the MAYBEVOID attribute for this property");
-		Object converted = null;
-		if (clazz.equals(Any.class))
-		{
-			if (anyvalue)
-				converted = value;
-			else
-			{
-				if (value instanceof XInterface)
-				{
-					XInterface xInt = UnoRuntime.queryInterface(XInterface.class, value);
-					if (xInt != null)
-						converted = new Any(new Type(XInterface.class), xInt);
-				}
-				else if (value == null)
-				{
-					if (oldValue[0] == null)
-						converted = new Any(new Type(), null);
-					else
-						converted = new Any(((Any)oldValue[0]).getType(), null);
-				}
-				else
-					converted = new Any(new Type(value.getClass()), value);
-			}
-		}
-		else
-			converted = convert(clazz, value);
-		newValue[0] = converted;
-		return true;
-	}
-
-
-	private static Object convert(Class<?> clazz, Object object)
-	throws IllegalArgumentException
-	{
-		Object value = null;
-		if (object == null || (object instanceof Any && ((Any) object).getObject() == null))
-			value = null;
-		else if (clazz.equals(Object.class))
-		{
-			if (object instanceof Any)
-				object = ((Any) object).getObject();
-			value = object;
-		}
-		else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class))
-			value = Boolean.valueOf(AnyConverter.toBoolean(object));
-		else if (clazz.equals(char.class) || clazz.equals(Character.class))
-			value = Character.valueOf(AnyConverter.toChar(object));
-		else if (clazz.equals(byte.class) || clazz.equals(Byte.class))
-			value = Byte.valueOf(AnyConverter.toByte(object));
-		else if (clazz.equals(short.class) || clazz.equals(Short.class))
-			value = Short.valueOf(AnyConverter.toShort(object));
-		else if (clazz.equals(int.class) || clazz.equals(Integer.class))
-			value = Integer.valueOf(AnyConverter.toInt(object));
-		else if (clazz.equals(long.class) || clazz.equals(Long.class))
-			value = Long.valueOf(AnyConverter.toLong(object));
-		else if (clazz.equals(float.class) || clazz.equals(Float.class))
-			value = Float.valueOf(AnyConverter.toFloat(object));
-		else if (clazz.equals(double.class) || clazz.equals(Double.class))
-			value = Double.valueOf(AnyConverter.toDouble(object));
-		else if (clazz.equals(String.class))
-			value = AnyConverter.toString(object);
-		else if (clazz.isArray())
-			value = AnyConverter.toArray(object);
-		else if (clazz.equals(Type.class))
-			value = AnyConverter.toType(object);
-		else if (XInterface.class.isAssignableFrom(clazz))
-			value = AnyConverter.toObject(new Type(clazz), object);
-		else if (com.sun.star.uno.Enum.class.isAssignableFrom(clazz))
-			value = AnyConverter.toObject(new Type(clazz), object);
-		else
-			throw new IllegalArgumentException("Could not convert the argument");
-		return value;
-	}
-
-
-	public static void setPropertyValueNoBroadcast(Property property,
-												   Object value,
-												   Object object,
-												   Object id)
-	throws WrappedTargetException
-	{
-		Method method = null;
-		String setter = "set" + id;
-		try 
-		{
-			method = object.getClass().getMethod(setter, property.Type.getZClass());
-		}
-		catch (SecurityException | NoSuchMethodException e)
-		{
-			String msg = e.getMessage();
-			throw new WrappedTargetException(msg);
-		}
-		try
-		{
-			if (method != null)
-				method.invoke(object, value);
-		}
-		catch (java.lang.IllegalArgumentException e)
-		{
-			String msg = e.getMessage();
-			throw new IllegalArgumentException(msg);
-		}
-		catch (IllegalAccessException | InvocationTargetException e)
-		{
-			String msg = e.getMessage();
-			throw new WrappedTargetException(msg);
-		}
-	}
-
-
-	public static Object getPropertyValue(Property property,
-										  Object object,
-										  Object id)
-	{
-		Method method = null;
-		String getter = "get" + id;
-		try
-		{
-			method = object.getClass().getMethod(getter);
-		}
-		catch (NoSuchMethodException | SecurityException e)
-		{
-			e.printStackTrace();
-		}
-		Object value = null;
-		try
-		{
-			value = method.invoke(object);
-		}
-		catch (IllegalAccessException | InvocationTargetException e)
-		{
-			e.printStackTrace();
-		}
-		return value;
 	}
 
 

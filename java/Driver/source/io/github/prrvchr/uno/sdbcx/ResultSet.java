@@ -25,14 +25,12 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.sdbcx.XRowLocate;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 
 public final class ResultSet
 extends BaseResultSet
-implements XRowLocate
 {
 	private static final String m_name = ResultSet.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet", 
@@ -48,6 +46,7 @@ implements XRowLocate
 	{
 		super(ctx, m_name, m_services, statement, resultset);
 		m_ResultSet = resultset;
+		System.out.println("sdbcx.ResultSet() 1");
 	}
 
 

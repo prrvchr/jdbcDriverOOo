@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbc;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
+import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XBlob;
@@ -44,7 +46,9 @@ import com.sun.star.sdbc.XRef;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XResultSetMetaData;
 import com.sun.star.sdbc.XResultSetMetaDataSupplier;
+import com.sun.star.sdbc.XResultSetUpdate;
 import com.sun.star.sdbc.XRow;
+import com.sun.star.sdbc.XRowUpdate;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 import com.sun.star.util.Date;
@@ -59,7 +63,9 @@ implements XCloseable,
 		   XColumnLocate,
 		   XResultSet,
 		   XResultSetMetaDataSupplier,
-		   XRow
+		   XResultSetUpdate,
+		   XRow,
+		   XRowUpdate
 {
 	@SuppressWarnings("unused")
 	private final XComponentContext m_xContext;
@@ -182,7 +188,7 @@ implements XCloseable,
 	{
 		try
 		{
-			//System.out.println("SuperResultSet.getResultSetConcurrency() Value: " + m_ResultSet.getConcurrency());
+			System.out.println("SuperResultSet.getResultSetConcurrency() Value: " + m_ResultSet.getConcurrency());
 			return m_ResultSet.getConcurrency();
 		} catch (java.sql.SQLException e)
 		{
@@ -195,7 +201,7 @@ implements XCloseable,
 	{
 		try
 		{
-			//System.out.println("SuperResultSet.getResultSetType() Value: " + m_ResultSet.getType());
+			System.out.println("SuperResultSet.getResultSetType() Value: " + m_ResultSet.getType());
 			return m_ResultSet.getType();
 		} catch (java.sql.SQLException e)
 		{
@@ -460,6 +466,74 @@ implements XCloseable,
 	}
 
 
+	// com.sun.star.sdbc.XResultSetUpdate:
+	@Override
+	public void insertRow() throws SQLException
+	{
+		try
+		{
+			m_ResultSet.insertRow();
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateRow() throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateRow();
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void deleteRow() throws SQLException
+	{
+		try
+		{
+			m_ResultSet.deleteRow();
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void cancelRowUpdates() throws SQLException
+	{
+		try
+		{
+			m_ResultSet.cancelRowUpdates();
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void moveToInsertRow() throws SQLException
+	{
+		try
+		{
+			m_ResultSet.moveToInsertRow();
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void moveToCurrentRow() throws SQLException
+	{
+		try
+		{
+			m_ResultSet.moveToCurrentRow();
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+
 	// com.sun.star.sdbc.XRow:
 	@Override
 	public XArray getArray(int index) throws SQLException
@@ -618,13 +692,7 @@ implements XCloseable,
 	{
 		try
 		{
-			Integer value = m_ResultSet.getInt(index);
-			if (m_ResultSet.wasNull())
-			{
-				// FIXME: If we return null as the UNO API suggests, Base can no longer open the tables...
-				value = 0;
-			}
-			return value;
+			return m_ResultSet.getInt(index);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -734,6 +802,199 @@ implements XCloseable,
 		{
 			throw UnoHelper.getSQLException(e, this);
 		}
+	}
+
+
+	// com.sun.star.sdbc.XRowUpdate:
+	@Override
+	public void updateNull(int index) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateNull(index);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateBoolean(int index, boolean value)
+	throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateBoolean(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateByte(int index, byte value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateByte(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateShort(int index, short value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateShort(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateInt(int index, int value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateInt(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateLong(int index, long value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateLong(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateFloat(int index, float value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateFloat(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateDouble(int index, double value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateDouble(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateString(int index, String value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateString(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateBytes(int index, byte[] value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateBytes(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateDate(int index, Date value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateDate(index, UnoHelper.getJavaDate(value));
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateTime(int index, Time value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateTime(index, UnoHelper.getJavaTime(value));
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateTimestamp(int index, DateTime value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateTimestamp(index, UnoHelper.getJavaDateTime(value));
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateBinaryStream(int index, XInputStream value, int lenght) throws SQLException
+	{
+		try
+		{
+			InputStream input = new XInputStreamToInputStreamAdapter(value);
+			m_ResultSet.updateBinaryStream(index, input, lenght);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateCharacterStream(int index, XInputStream value, int lenght) throws SQLException
+	{
+		try
+		{
+			InputStream input = new XInputStreamToInputStreamAdapter(value);
+			Reader reader = new java.io.InputStreamReader(input);
+			m_ResultSet.updateCharacterStream(index, reader, lenght);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateObject(int index, Object value) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateObject(index, value);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
+	}
+
+	@Override
+	public void updateNumericObject(int index, Object value, int scale) throws SQLException
+	{
+		try
+		{
+			m_ResultSet.updateObject(index, value, scale);
+		} catch (java.sql.SQLException e) {
+			throw UnoHelper.getSQLException(e, this);
+		} 
 	}
 
 

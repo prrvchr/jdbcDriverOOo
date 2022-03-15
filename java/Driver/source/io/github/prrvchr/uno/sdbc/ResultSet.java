@@ -43,6 +43,7 @@ extends SuperResultSet
 	{
 		super(ctx, m_name, m_services, resultset);
 		m_ResultSet = resultset;
+		System.out.println("sdbc.ResultSet() 1");
 	}
 	public ResultSet(XComponentContext ctx,
 					 XInterface statement,
@@ -50,6 +51,7 @@ extends SuperResultSet
 	{
 		super(ctx, m_name, m_services, statement, resultset);
 		m_ResultSet = resultset;
+		System.out.println("sdbc.ResultSet() 1");
 	}
 
 

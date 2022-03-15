@@ -54,6 +54,7 @@ extends BasePreparedStatement
 		super(context, m_name, m_services, xConnection);
 		m_Connection = connection;
 		m_Sql = sql;
+		System.out.println("sdbcx.PreparedStatement() 1");
 	}
 
 
@@ -71,6 +72,7 @@ extends BasePreparedStatement
 		{
 			try {
 				m_Statement = m_Connection.prepareStatement(m_Sql, getResultSetType(), getResultSetConcurrency());
+				_setStatement(m_Statement);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

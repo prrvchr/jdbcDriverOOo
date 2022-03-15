@@ -256,8 +256,6 @@ implements XConnection
 	public XStatement createStatement() throws SQLException
 	{
 		try {
-			//System.out.println("BaseConnection.createStatement() : ResultSetType: " + m_StatementResultSetType + " - ResultSetConcurrency: " + m_StatementResultSetConcurrency);
-			//java.sql.Statement statement = m_Connection.createStatement(m_StatementResultSetType, m_StatementResultSetConcurrency);
 			return _getStatement(m_xContext, m_Connection);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
@@ -268,8 +266,6 @@ implements XConnection
 	public XPreparedStatement prepareStatement(String sql) throws SQLException
 	{
 		try {
-			//System.out.println("BaseConnection.prepareStatement() : ResultSetType: " + m_PreparedResultSetType + " - ResultSetConcurrency: " + m_PreparedResultSetConcurrency);
-			//java.sql.PreparedStatement statement = m_Connection.prepareStatement(sql, m_PreparedResultSetType, m_PreparedResultSetConcurrency);
 			return _getPreparedStatement(m_xContext, m_Connection, sql);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);
@@ -280,8 +276,6 @@ implements XConnection
 	public XPreparedStatement prepareCall(String sql) throws SQLException
 	{
 		try {
-			//System.out.println("BaseConnection.prepareCall() : ResultSetType: " + m_CallableResultSetType + " - ResultSetConcurrency: " + m_CallableResultSetConcurrency);
-			//java.sql.CallableStatement statement = m_Connection.prepareCall(sql, m_CallableResultSetType, m_CallableResultSetConcurrency);
 			return _getCallableStatement(m_xContext, m_Connection, sql);
 		} catch (java.sql.SQLException e) {
 			throw UnoHelper.getSQLException(e, this);

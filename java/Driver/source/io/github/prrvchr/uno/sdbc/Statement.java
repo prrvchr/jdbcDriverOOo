@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.sql.SQLException;
-
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
@@ -43,10 +41,11 @@ extends BaseStatement
 	public Statement(XComponentContext context,
 					 BaseConnection xConnection,
 					 java.sql.Connection connection)
-	throws SQLException
+	throws java.sql.SQLException
 	{
 		super(context, m_name, m_services, xConnection);
 		m_Connection = connection;
+		System.out.println("sdbc.Statement() 1");
 	}
 
 
@@ -64,7 +63,8 @@ extends BaseStatement
 		{
 			try {
 				m_Statement = m_Connection.createStatement(getResultSetType(), getResultSetConcurrency());
-			} catch (SQLException e) {
+				_setStatement(m_Statement);
+			} catch (java.sql.SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

@@ -53,6 +53,7 @@ implements XColumnsSupplier
 	{
 		super(ctx, m_name, m_services, statement, resultset);
 		m_ResultSet = resultset;
+		System.out.println("sdb.ResultSet() 1");
 	}
 
 

@@ -92,6 +92,7 @@ implements XChild,
 		m_Connection = connection;
 		m_info = info;
 		m_url = url;
+		System.out.println("sdb.Connection() 1");
 	}
 
 

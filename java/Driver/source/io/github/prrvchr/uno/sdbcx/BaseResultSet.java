@@ -25,13 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CompareBookmark;
+import com.sun.star.sdbcx.XDeleteRows;
 import com.sun.star.sdbcx.XRowLocate;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
@@ -42,7 +45,8 @@ import io.github.prrvchr.uno.sdbc.SuperResultSet;
 
 public abstract class BaseResultSet
 extends SuperResultSet
-implements XRowLocate
+implements XRowLocate,
+		   XDeleteRows
 {
 	private final java.sql.ResultSet m_ResultSet;
 	private int m_row = 0;
@@ -169,6 +173,19 @@ implements XRowLocate
 		return state;
 	}
 	
-
+	// com.sun.star.sdbcx.XDeleteRows:
+	@Override
+	public int[] deleteRows(Object[] bookmarks)
+	throws SQLException
+	{
+		List<Integer> rows = new ArrayList<Integer>();
+		for (Object bookmark: bookmarks)
+		{
+			moveToBookmark(bookmark);
+			deleteRow();
+			rows.add(1);
+		}
+		return rows.stream().mapToInt(Integer::intValue).toArray();
+	}
 
 }

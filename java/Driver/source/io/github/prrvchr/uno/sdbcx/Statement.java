@@ -64,6 +64,7 @@ extends BaseStatement
 	{
 		super(context, m_name, m_services, xConnection, _getPropertySet());
 		m_Connection = connection;
+		System.out.println("sdbcx.Statement() 1");
 	}
 
 
@@ -81,6 +82,7 @@ extends BaseStatement
 		{
 			try {
 				m_Statement = m_Connection.createStatement(getResultSetType(), getResultSetConcurrency());
+				_setStatement(m_Statement);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

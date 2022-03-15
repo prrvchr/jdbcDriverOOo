@@ -43,9 +43,10 @@ final class WarningsSupplier
 	static void clearWarnings(java.sql.Wrapper wrapper, XInterface component)
 	throws SQLException
 	{
-		try
+		System.out.println("WarningsSupplier.clearWarnings() 1");
+		if (wrapper != null)
 		{
-			if (wrapper != null)
+			try
 			{
 				if (wrapper.isWrapperFor(Connection.class))
 				{
@@ -60,50 +61,57 @@ final class WarningsSupplier
 					wrapper.unwrap(Statement.class).clearWarnings();
 				}
 			}
-		} catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, component);
+			catch (java.sql.SQLException e)
+			{
+				throw UnoHelper.getSQLException(e, component);
+			}
 		}
+		System.out.println("WarningsSupplier.clearWarnings() 2");
 	}
 
 
 	static Object getWarnings(java.sql.Wrapper wrapper, XInterface component)
 	throws SQLException
 	{
-		java.sql.SQLWarning warning = null;
-		try
-		{
-			if (wrapper != null)
-			{
-				if (wrapper.isWrapperFor(Connection.class))
-				{
-					warning = wrapper.unwrap(Connection.class).getWarnings();
-				}
-				else if(wrapper.isWrapperFor(ResultSet.class))
-				{
-					warning = wrapper.unwrap(ResultSet.class).getWarnings();
-				}
-				else if(wrapper.isWrapperFor(Statement.class))
-				{
-					warning = wrapper.unwrap(Statement.class).getWarnings();
-				}
-			}
-		} catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, component);
-		}
-		return _getWarnings(warning, component);
-	}
-
-
-	private static Object _getWarnings(java.sql.SQLWarning w, XInterface component)
-	{
+		System.out.println("WarningsSupplier.getWarnings() 1");
 		// FIXME: XWarningsSupplier:getWarnings() returns <void> until a new warning is reported for the object.
 		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
 		// FIXME: If we return null as the UNO API suggests, Base show a Warning message dialog when connecting to the database...
 		// FIXME: returning <Any.VOID> seem to be the solution to avoid this Warning message dialog...
-		Object warning = Any.VOID;
 		//Object warning = new Any(new Type(void.class), null);
+		Object warning = Any.VOID;
+		if (wrapper != null)
+		{
+			java.sql.SQLWarning w = null;
+			try
+			{
+
+				if (wrapper.isWrapperFor(Connection.class))
+				{
+					w = wrapper.unwrap(Connection.class).getWarnings();
+				}
+				else if(wrapper.isWrapperFor(ResultSet.class))
+				{
+					w = wrapper.unwrap(ResultSet.class).getWarnings();
+				}
+				else if(wrapper.isWrapperFor(Statement.class))
+				{
+					w = wrapper.unwrap(Statement.class).getWarnings();
+				}
+
+			} catch (java.sql.SQLException e)
+			{
+				throw UnoHelper.getSQLException(e, component);
+			}
+			warning = _getWarnings(w, component, warning);
+		}
+		System.out.println("WarningsSupplier.getWarnings() 2");
+		return warning;
+	}
+
+
+	private static Object _getWarnings(java.sql.SQLWarning w, XInterface component, Object warning)
+	{
 		if (w != null)
 		{
 			warning = _getWarning(w, component);
@@ -117,7 +125,7 @@ final class WarningsSupplier
 		warning.Context = component;
 		warning.SQLState = w.getSQLState();
 		warning.ErrorCode = w.getErrorCode();
-		warning.NextException = _getWarnings(w.getNextWarning(), component);
+		warning.NextException = _getWarnings(w.getNextWarning(), component, null);
 		return warning;
 	}
 

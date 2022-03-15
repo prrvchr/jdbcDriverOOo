@@ -55,7 +55,7 @@ implements XDataDefinitionSupplier
 	throws Exception
 	{
 		super(ctx, m_name, m_services);
-		System.out.println("Driver.Driver() 1");
+		System.out.println("sdbcx.Driver() 1");
 	}
 
 

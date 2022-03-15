@@ -1,5 +1,5 @@
 #UNO project configuration file
-#Tue Jan 18 18:20:26 CET 2022
+#Mon Mar 14 13:07:36 CET 2022
 project.prefix=io.github.prrvchr
 project.language=Java
 project.ooo=LibreOffice 7.2
@@ -7,6 +7,6 @@ project.idl=/idl
 regclassname=io.github.prrvchr.hsqldbdriver.RegistrationHandler
 project.implementation=hsqldbdriver
 project.build=build
-project.sdk=7.2.5.2
+project.sdk=7.2.3.2
 project.srcdir=/source
 javaversion=java5

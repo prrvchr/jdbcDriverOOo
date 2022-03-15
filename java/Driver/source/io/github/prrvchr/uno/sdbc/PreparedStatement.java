@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.sql.SQLException;
-
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
@@ -46,11 +44,12 @@ extends SuperPreparedStatement
 							 BaseConnection xConnection,
 							 java.sql.Connection connection,
 							 String sql)
-	throws SQLException
+	throws java.sql.SQLException
 	{
 		super(context, m_name, m_services, xConnection);
 		m_Connection = connection;
 		m_Sql = sql;
+		System.out.println("sdbc.PreparedStatement() 1");
 	}
 
 
@@ -68,7 +67,8 @@ extends SuperPreparedStatement
 		{
 			try {
 				m_Statement = m_Connection.prepareStatement(m_Sql, getResultSetType(), getResultSetConcurrency());
-			} catch (SQLException e) {
+				_setStatement(m_Statement);
+			} catch (java.sql.SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
