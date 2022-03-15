@@ -23,6 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
+
 package io.github.prrvchr.uno.beans;
 
 import java.lang.reflect.InvocationTargetException;
