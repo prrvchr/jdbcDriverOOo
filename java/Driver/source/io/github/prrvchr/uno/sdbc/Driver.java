@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.sql.DriverManager;
+import java.util.Properties;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
@@ -35,12 +38,13 @@ import com.sun.star.uno.XComponentContext;
 
 
 public final class Driver
-extends BaseDriver
+extends DriverBase
 {
 	private static final String m_name = Driver.class.getName();
 	private static final String[] m_services = {"io.github.prrvchr.HsqlDBDriverOOo.sdbc.Driver",
 												"com.sun.star.sdbc.Driver"};
 
+	// The constructor method:
 	public Driver(XComponentContext ctx)
 	throws Exception
 	{
@@ -48,13 +52,19 @@ extends BaseDriver
 		System.out.println("sdbc.Driver() 1");
 	}
 
+	protected java.sql.Connection _getConnection(String url,
+												 Properties properties)
+		throws java.sql.SQLException
+	{
+		return new ConnectionWrapper(DriverManager.getConnection(url, properties));
+	}
 
 	protected XConnection _getConnection(XComponentContext ctx,
 										 java.sql.Connection connection,
 										 String url,
 										 PropertyValue[] info)
 	{
-		return new Connection(ctx, connection, info, url);
+		return new Connection(ctx, connection, url, info);
 	}
 
 

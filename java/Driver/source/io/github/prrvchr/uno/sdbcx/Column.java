@@ -32,7 +32,6 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.ColumnValue;
-import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -44,41 +43,86 @@ implements XDataDescriptorFactory
 {
 	private static final String m_name = Column.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
-	public final int m_Type;
-	public final String m_TypeName;
-	public final long m_Precision;
-	public final long m_Scale;
-	public final long m_IsNullable;
-	public final boolean m_IsAutoIncrement;
-	public boolean m_IsCurrency = false;
-	public final boolean m_IsRowVersion = false;
-	public String m_Description = "";
-	public String m_DefaultValue = "";
+	private final int m_Type;
+	private final String m_TypeName;
+	private final long m_Precision;
+	private final long m_Scale;
+	private final long m_IsNullable;
+	private final boolean m_IsAutoIncrement;
+	@SuppressWarnings("unused")
+	private boolean m_IsCurrency = false;
+	@SuppressWarnings("unused")
+	private final boolean m_IsRowVersion = false;
+	@SuppressWarnings("unused")
+	private String m_Description = "";
+	@SuppressWarnings("unused")
+	private String m_DefaultValue = "";
 
+	@SuppressWarnings("unused")
+	private String m_AutoIncrementCreation = "";
+	@SuppressWarnings("unused")
+	private String m_CatalogName = "";
+	@SuppressWarnings("unused")
+	private String m_SchemaName = "";
+	@SuppressWarnings("unused")
+	private String m_TableName = "";
+	private static Map<String, Property> _getPropertySet()
+	{
+		short readonly = PropertyAttribute.READONLY;
+		Map<String, Property> map = new HashMap<String, Property>();
+		map.put("Type", UnoHelper.getProperty("Type", "long", readonly));
+		map.put("TypeName", UnoHelper.getProperty("TypeName", "string", readonly));
+		map.put("m_Precision", UnoHelper.getProperty("Precision", "long", readonly));
+		map.put("m_Scale", UnoHelper.getProperty("Scale", "long", readonly));
+		map.put("m_IsNullable", UnoHelper.getProperty("IsNullable", "long", readonly));
+		map.put("m_IsAutoIncrement", UnoHelper.getProperty("IsAutoIncrement", "boolean", readonly));
+		map.put("m_IsCurrency", UnoHelper.getProperty("IsCurrency", "boolean", readonly));
+		map.put("m_IsRowVersion", UnoHelper.getProperty("IsRowVersion", "boolean", readonly));
+		map.put("m_Description", UnoHelper.getProperty("Description", "string", readonly));
+		map.put("m_DefaultValue", UnoHelper.getProperty("DefaultValue", "string", readonly));
+		return map;
+	}
+	private static Map<String, Property> _getPropertySet(Map<String, Property> map)
+	{
+		short readonly = PropertyAttribute.READONLY;
+		map.put("m_AutoIncrementCreation", UnoHelper.getProperty("AutoIncrementCreation", "string", readonly));
+		map.put("m_CatalogName", UnoHelper.getProperty("CatalogName", "string", readonly));
+		map.put("m_SchemaName", UnoHelper.getProperty("SchemaName", "string", readonly));
+		map.put("m_TableName", UnoHelper.getProperty("TableName", "string", readonly));
+		return map;
+	}
 
 	// The constructor method:
-	public Column(java.sql.ResultSet result)
+	public Column(java.sql.ResultSet result,
+				  String catalog,
+				  String schema,
+				  String table,
+				  String name)
 	throws java.sql.SQLException
 	{
-		super(m_name, m_services, result.getString(4), _getPropertySet());
-		m_Type = result.getInt(5);
-		m_TypeName = result.getString(6);
+		super(m_name, m_services, _getPropertySet(_getPropertySet()), name);
+		m_Type = UnoHelper.mapSQLDataType(result.getInt(5));
+		m_TypeName = UnoHelper.mapSQLDataTypeName(result.getString(6), m_Type);
 		m_Precision = result.getInt(9);
 		m_Scale = result.getInt(10);
 		m_IsNullable = result.getInt(11);
 		m_IsAutoIncrement = ("YES".equals(result.getString(23))) ? true : false;
+		m_CatalogName = catalog;
+		m_SchemaName = schema;
+		m_TableName = table;
 		String isgenerated = result.getString(24);
-		System.out.println("Column.Column() Name: " + getName() + " - TypeName: " + getTypeName() + " - Type: " + getType());
-		System.out.println("Column.Column() Name: " + getName() + " - Precision: " + m_Precision + " - Scale: " + m_Scale + " - IsNullable: " + m_IsNullable + " - IsAutoIncrement: " + m_IsAutoIncrement + " - IsGenerated: " + isgenerated);
+		System.out.println("Column.Column() Name: " + m_Name + " - TypeName: " + _getTypeName() + " - Type: " + _getType());
+		System.out.println("Column.Column() Name: " + m_Name + " - Precision: " + m_Precision + " - Scale: " + m_Scale + " - IsNullable: " + m_IsNullable + " - IsAutoIncrement: " + m_IsAutoIncrement + " - IsGenerated: " + isgenerated);
 	}
 
 	public Column(java.sql.ResultSetMetaData metadata,
-				  int index)
+				  int index,
+				  String name)
 	throws java.sql.SQLException
 	{
-		super(m_name, m_services, metadata.getColumnName(index), _getPropertySet());
-		m_Type = metadata.getColumnType(index);
-		m_TypeName = metadata.getColumnTypeName(index);
+		super(m_name, m_services, _getPropertySet(), name);
+		m_Type = UnoHelper.mapSQLDataType(metadata.getColumnType(index));
+		m_TypeName = UnoHelper.mapSQLDataTypeName(metadata.getColumnTypeName(index), m_Type);
 		m_Precision = metadata.getPrecision(index);
 		m_Scale = metadata.getScale(index);
 		m_IsNullable = metadata.isNullable(index);
@@ -86,99 +130,58 @@ implements XDataDescriptorFactory
 		m_IsCurrency = metadata.isCurrency(index);
 	}
 
-	public Column(schemacrawler.schema.Column column)
+	public Column(schemacrawler.schema.Column column,
+				  String catalog,
+				  String schema,
+				  String table,
+				  String name)
 	{
-		super(m_name, m_services, column.getName(), _getPropertySet());
-		m_Type = column.getColumnDataType().getJavaSqlType().getVendorTypeNumber();
-		m_TypeName = column.getColumnDataType().getJavaSqlType().getName();
+		super(m_name, m_services, _getPropertySet(_getPropertySet()), name);
+		m_Type = UnoHelper.mapSQLDataType(column.getColumnDataType().getJavaSqlType().getVendorTypeNumber());
+		m_TypeName = UnoHelper.mapSQLDataTypeName(column.getColumnDataType().getName(), m_Type);
 		m_Precision = column.getColumnDataType().getPrecision();
 		m_Scale = column.getColumnDataType().getMaximumScale();
 		m_IsNullable = (column.isNullable()) ? ColumnValue.NULLABLE : ColumnValue.NO_NULLS;
 		m_IsAutoIncrement = column.isAutoIncremented();
 		m_Description = column.getRemarks();
 		m_DefaultValue = column.getDefaultValue();
+		m_CatalogName = catalog;
+		m_SchemaName = schema;
+		m_TableName = table;
 	}
 
-
-	private static Map<String, Property> _getPropertySet()
-	{
-		short readonly = PropertyAttribute.READONLY;
-		Map<String, Property> map = new HashMap<String, Property>();
-		map.put("Name", UnoHelper.getProperty("Name", "string", readonly));
-		map.put("Type", UnoHelper.getProperty("Type", "long", readonly));
-		map.put("TypeName", UnoHelper.getProperty("TypeName", "string", readonly));
-		map.put("Precision", UnoHelper.getProperty("Precision", "long", readonly));
-		map.put("Scale", UnoHelper.getProperty("Scale", "long", readonly));
-		map.put("IsNullable", UnoHelper.getProperty("IsNullable", "long", readonly));
-		map.put("IsAutoIncrement", UnoHelper.getProperty("IsAutoIncrement", "boolean", readonly));
-		map.put("IsCurrency", UnoHelper.getProperty("IsCurrency", "boolean", readonly));
-		map.put("IsRowVersion", UnoHelper.getProperty("IsRowVersion", "boolean", readonly));
-		map.put("Description", UnoHelper.getProperty("Description", "string", readonly));
-		map.put("DefaultValue", UnoHelper.getProperty("DefaultValue", "string", readonly));
-		return map;
-	}
+	public Column(schemacrawler.schema.ResultsColumn column,
+				  String name)
+{
+	super(m_name, m_services, _getPropertySet(), name);
+	m_Type = UnoHelper.mapSQLDataType(column.getColumnDataType().getJavaSqlType().getVendorTypeNumber());
+	m_TypeName = UnoHelper.mapSQLDataTypeName(column.getColumnDataType().getName(), m_Type);
+	m_Precision = column.getColumnDataType().getPrecision();
+	m_Scale = column.getColumnDataType().getMaximumScale();
+	m_IsNullable = (column.isNullable()) ? ColumnValue.NULLABLE : ColumnValue.NO_NULLS;
+	m_IsAutoIncrement = column.isAutoIncrement();
+	m_Description = column.getRemarks();
+	m_DefaultValue = ((schemacrawler.schema.Column) column).getDefaultValue();
+}
 
 
-	public long getType()
+
+
+	protected long _getType()
 	throws java.sql.SQLException
 	{
-		return UnoHelper.getConstantValue(DataType.class, getTypeName());
+		System.out.println("Column.getType() Type: " + m_Type);
+		return m_Type;
+		//return UnoHelper.getConstantValue(DataType.class, _getTypeName());
 	}
 
-	public String getTypeName()
+	protected String _getTypeName()
 	throws java.sql.SQLException
 	{
-		System.out.println("Column.getTypeName() Name: " + getName() + " - TypeName: '" + m_TypeName + "' - Type: '" + m_Type + "'");
-		return UnoHelper.mapSQLDataType(m_Type, m_TypeName);
+		System.out.println("Column.getTypeName() TypeName: " + m_TypeName);
+		return m_TypeName;
 	}
 
-	public long getPrecision()
-	throws java.sql.SQLException
-	{
-		return m_Precision;
-	}
-
-	public long getScale()
-	throws java.sql.SQLException
-	{
-		return m_Scale;
-	}
-
-	public long getIsNullable()
-	throws java.sql.SQLException
-	{
-		return m_IsNullable;
-	}
-
-	public boolean getIsAutoIncrement()
-	throws java.sql.SQLException
-	{
-		return m_IsAutoIncrement;
-	}
-
-	public boolean getIsCurrency()
-	throws java.sql.SQLException
-	{
-		return m_IsCurrency;
-	}
-
-	public boolean getIsRowVersion()
-	throws java.sql.SQLException
-	{
-		return m_IsRowVersion;
-	}
-
-	public String getDescription()
-	throws java.sql.SQLException
-	{
-		return m_Description;
-	}
-
-	public String getDefaultValue()
-	throws java.sql.SQLException
-	{
-		return m_DefaultValue;
-	}
 
 	@Override
 	public XPropertySet createDataDescriptor() {

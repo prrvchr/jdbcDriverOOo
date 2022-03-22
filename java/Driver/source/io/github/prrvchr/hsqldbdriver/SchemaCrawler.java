@@ -27,18 +27,22 @@ package io.github.prrvchr.hsqldbdriver;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.sun.star.container.XNameAccess;
+import java.util.logging.Level;
 
 import io.github.prrvchr.uno.sdbcx.Container;
 import io.github.prrvchr.uno.sdbcx.Table;
+import schemacrawler.inclusionrule.IncludeAll;
 import schemacrawler.schema.Catalog;
-import schemacrawler.schemacrawler.LoadOptions;
+import schemacrawler.schemacrawler.LimitOptionsBuilder;
 import schemacrawler.schemacrawler.LoadOptionsBuilder;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
 import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
+import schemacrawler.schemacrawler.SchemaRetrievalOptions;
 import schemacrawler.tools.utility.SchemaCrawlerUtility;
+import us.fatehi.utility.LoggingConfig;
+
+import com.sun.star.container.XNameAccess;
 
 
 public final class SchemaCrawler
@@ -52,50 +56,40 @@ public final class SchemaCrawler
 			List<String> names = new ArrayList<String>();
 			List<Table> tables = new ArrayList<Table>();
 			System.out.println("SchemaCrawler.getTables() 2");
-
-			//final LimitOptionsBuilder limit = LimitOptionsBuilder.builder();
-			//SchemaInfoLevel level = SchemaInfoLevelBuilder.builder()
-			//	.setRetrieveUserDefinedColumnDataTypes(false)
-			//	.toOptions();
-			LoadOptions load = LoadOptionsBuilder.builder()
-				.withSchemaInfoLevel(SchemaInfoLevelBuilder.minimum())
-				.toOptions();
-
-			//DatabaseServerType type = new DatabaseServerType("hsqldb", "HyperSQL DataBase");
-			//final LimitOptions limit = LimitOptionsBuilder.builder().toOptions();
-			//final LoadOptions load = LoadOptionsBuilder.builder().toOptions();
-			System.out.println("SchemaCrawler.getTables() 3");
+			new LoggingConfig(Level.CONFIG);
+			final LimitOptionsBuilder limit = LimitOptionsBuilder.builder()
+				.includeSchemas(new IncludeAll())
+				.includeTables(new IncludeAll());
+			final LoadOptionsBuilder load = LoadOptionsBuilder.builder()
+				.withSchemaInfoLevel(SchemaInfoLevelBuilder.standard());
 			final SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions()
-				.withLoadOptions(load);
-
-			System.out.println("SchemaCrawler.getTables() 4");
-			//InformationSchemaViews info = InformationSchemaViewsBuilder.builder().fromResourceFolder("/hsqldb.information_schema").toOptions();
-			//SchemaRetrievalOptions retrieval = SchemaRetrievalOptionsBuilder.builder()
-			//	.fromConnnection(connection)
-			//	.withInformationSchemaViews(info)
-			//	.withDatabaseServerType(new DatabaseServerType("hsqldb", "HyperSQL DataBase"))
-			//	.toOptions();
-
-			final Catalog catalog;
-			//SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection);
-			System.out.println("SchemaCrawler.getTables() 5: " + connection);
-
-			catalog = SchemaCrawlerUtility.getCatalog(connection, options);
-			//catalog = SchemaCrawlerUtility.getCatalog(connection, retrieval, options, new Config());
-			System.out.println("SchemaCrawler.getTables() 6");
+				.withLimitOptions(limit.toOptions())
+				.withLoadOptions(load.toOptions());
+			System.out.println("SchemaCrawler.getTables() 4");		
+			final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection);
+			schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(connection, retrieval, options);
+			final Catalog catalog = crawler.crawl();
+			System.out.println("SchemaCrawler.getTables() 7: " + catalog);
+			String name = null;
 			for (final schemacrawler.schema.Table t : catalog.getTables())
 			{
-				System.out.println("SchemaCrawler.getTables() 7");
-				Table table = new Table(t);
+				System.out.println("SchemaCrawler.getTables() 8");
+				name = t.getName();
+				Table table = new Table(t, name);
 				tables.add(table);
-				names.add(table.getName());
-				System.out.println("SchemaCrawler.getTables() 8: " + table.getName());
+				names.add(name);
+				System.out.println("SchemaCrawler.getTables() 9: " + name);
 			}
-			connection.close();
-			System.out.println("SchemaCrawler.getTables() 9");
+			System.out.println("SchemaCrawler.getTables() 10");
 			return new Container<Table>(tables, names);
 		} catch (java.lang.Exception e) {
-			e.getStackTrace();
+			System.out.println("SchemaCrawler.getTables() 11 ********************************* ERROR: " + e);
+			for (StackTraceElement trace : e.getStackTrace())
+			{
+				System.out.println(trace);
+			}
+			System.out.println("SchemaCrawler.getTables() 12");
+
 		}
 		return null;
 	}

@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DriverManager;
+//import java.util.Map;
+import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
@@ -38,12 +41,17 @@ import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.sdbc.BaseDriver;
+import io.github.prrvchr.uno.sdbc.ConnectionWrapper;
+import io.github.prrvchr.uno.sdbc.DriverBase;
 import io.github.prrvchr.uno.sdb.Connection;
+
+//import schemacrawler.tools.databaseconnector.DatabaseConnectionSource;
+//import schemacrawler.tools.databaseconnector.SingleUseUserCredentials;
+//import us.fatehi.utility.PropertiesUtility;
 
 
 public final class Driver
-extends BaseDriver
+extends DriverBase
 implements XDataDefinitionSupplier
 {
 	private static final String m_name = Driver.class.getName();
@@ -51,6 +59,7 @@ implements XDataDefinitionSupplier
 												"com.sun.star.sdbcx.Driver",
 												"com.sun.star.sdbc.Driver"};
 
+	// The constructor method:
 	public Driver(XComponentContext ctx)
 	throws Exception
 	{
@@ -58,13 +67,25 @@ implements XDataDefinitionSupplier
 		System.out.println("sdbcx.Driver() 1");
 	}
 
+	protected java.sql.Connection _getConnection(String url,
+												 Properties properties)
+		throws java.sql.SQLException
+	{
+		//Map<String, String> map = PropertiesUtility.propertiesMap(properties);
+		//DatabaseConnectionSource datasource = new DatabaseConnectionSource(url, map);
+		//String user = properties.getProperty("user");
+		//String password = properties.getProperty("password");
+		//datasource.setUserCredentials(new SingleUseUserCredentials(user, password));
+		//return new ConnectionWrapper(datasource.get());
+		return new ConnectionWrapper(DriverManager.getConnection(url, properties));
+	}
 
 	protected XConnection _getConnection(XComponentContext ctx,
-									  java.sql.Connection connection,
-									  String url,
-									  PropertyValue[] info)
+										 java.sql.Connection connection,
+										 String url,
+										 PropertyValue[] info)
 	{
-		return new Connection(ctx, connection, info, url);
+		return new Connection(ctx, connection, url, info);
 	}
 
 

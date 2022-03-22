@@ -30,52 +30,27 @@ import com.sun.star.uno.XComponentContext;
 
 
 public final class Statement
-extends BaseStatement
+extends StatementBase
 {
 	private static String m_name = Statement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Statement"};
-	private java.sql.Connection m_Connection;
-	private java.sql.Statement m_Statement = null;
+
 
 	// The constructor method:
 	public Statement(XComponentContext context,
-					 BaseConnection xConnection,
+					 ConnectionBase xConnection,
 					 java.sql.Connection connection)
 	throws java.sql.SQLException
 	{
-		super(context, m_name, m_services, xConnection);
-		m_Connection = connection;
+		super(context, m_name, m_services, xConnection, connection);
 		System.out.println("sdbc.Statement() 1");
 	}
-
 
 	protected XResultSet _getResultSet(XComponentContext ctx,
 									   java.sql.ResultSet resultset)
 	throws java.sql.SQLException
 	{
 		return new ResultSet(ctx, this, resultset);
-	}
-
-
-	protected java.sql.Statement _getStatement()
-	{
-		if (m_Statement == null)
-		{
-			try {
-				m_Statement = m_Connection.createStatement(getResultSetType(), getResultSetConcurrency());
-				_setStatement(m_Statement);
-			} catch (java.sql.SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return m_Statement;
-	}
-
-
-	protected java.sql.Statement _getWrapper()
-	{
-		return m_Statement;
 	}
 
 

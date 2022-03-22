@@ -48,16 +48,14 @@ implements com.sun.star.sdbc.XWarningsSupplier
 	@Override
 	public void clearWarnings() throws SQLException
 	{
-		T wrapper = _getWrapper();
-		WarningsSupplier.clearWarnings(wrapper, this);
+		WarningsSupplier.clearWarnings(_getWrapper(), this);
 	}
 
 
 	@Override
 	public Object getWarnings() throws SQLException
 	{
-		T wrapper = _getWrapper();
-		return WarningsSupplier.getWarnings(wrapper, this);
+		return WarningsSupplier.getWarnings(_getWrapper(), this);
 	}
 
 

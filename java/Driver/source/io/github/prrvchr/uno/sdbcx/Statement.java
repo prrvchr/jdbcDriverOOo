@@ -34,20 +34,18 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.BaseConnection;
-import io.github.prrvchr.uno.sdbc.BaseStatement;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public final class Statement
-extends BaseStatement
+	extends StatementBase
 {
+	
 	private static String m_name = Statement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.Statement",
 										  "com.sun.star.sdbcx.Statement"};
-	private java.sql.Connection m_Connection;
-	private java.sql.Statement m_Statement = null;
 	public boolean m_UseBookmarks = false;
-
 	private static Map<String, Property> _getPropertySet()
 	{
 		Map<String, Property> map = new HashMap<String, Property>();
@@ -55,46 +53,21 @@ extends BaseStatement
 		return map;
 	}
 
-
 	// The constructor method:
 	public Statement(XComponentContext context,
-					 BaseConnection xConnection,
+					 ConnectionBase xConnection,
 					 java.sql.Connection connection)
 	throws SQLException
 	{
-		super(context, m_name, m_services, xConnection, _getPropertySet());
-		m_Connection = connection;
+		super(context, m_name, m_services, xConnection, connection, _getPropertySet());
 		System.out.println("sdbcx.Statement() 1");
 	}
-
 
 	protected XResultSet _getResultSet(XComponentContext ctx,
 									   java.sql.ResultSet resultset)
 	throws java.sql.SQLException
 	{
 		return new ResultSet(ctx, this, resultset);
-	}
-
-
-	protected java.sql.Statement _getStatement()
-	{
-		if (m_Statement == null)
-		{
-			try {
-				m_Statement = m_Connection.createStatement(getResultSetType(), getResultSetConcurrency());
-				_setStatement(m_Statement);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return m_Statement;
-	}
-
-
-	protected java.sql.Statement _getWrapper()
-	{
-		return m_Statement;
 	}
 
 

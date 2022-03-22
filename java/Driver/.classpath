@@ -9,8 +9,8 @@
 	<classpathentry kind="lib" path="build"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="libs/commons-io-2.9.0.jar"/>
-	<classpathentry kind="lib" path="libs/schemacrawler-16.14.4.jar"/>
-	<classpathentry kind="lib" path="libs/schemacrawler-hsqldb-16.14.4.jar"/>
 	<classpathentry kind="con" path="org.libreoffice.ide.eclipse.java.OOO_CONTAINER/LibreOffice 7.2"/>
+	<classpathentry kind="lib" path="libs/schemacrawler-16.16.11.jar"/>
+	<classpathentry kind="lib" path="libs/schemacrawler-hsqldb-16.16.11.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

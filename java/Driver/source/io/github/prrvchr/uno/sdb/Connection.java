@@ -48,50 +48,42 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.hsqldbdriver.SchemaCrawler;
 import io.github.prrvchr.uno.helper.UsersSupplierHelper;
-import io.github.prrvchr.uno.sdbc.BaseConnection;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+//import io.github.prrvchr.uno.sdbcx.CallableStatement;
 import io.github.prrvchr.uno.sdbcx.Statement;
 import io.github.prrvchr.uno.sdbcx.Container;
+//import io.github.prrvchr.uno.sdbcx.PreparedStatement;
 import io.github.prrvchr.uno.sdbcx.Table;
 
 
-public final class Connection extends BaseConnection
-implements XChild,
-		   XCommandPreparation,
-		   XGroupsSupplier,
-		   XMultiServiceFactory,
-		   XQueriesSupplier,
-		   XSQLQueryComposerFactory,
-		   XTablesSupplier,
-		   XUsersSupplier,
-		   XViewsSupplier
+public final class Connection
+	extends ConnectionBase
+	implements XChild,
+			   XCommandPreparation,
+			   XGroupsSupplier,
+			   XMultiServiceFactory,
+			   XQueriesSupplier,
+			   XSQLQueryComposerFactory,
+			   XTablesSupplier,
+			   XUsersSupplier,
+			   XViewsSupplier
 {
 
 	private static final String m_name = Connection.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdb.Connection",
 												"com.sun.star.sdbc.Connection",
 												"com.sun.star.sdbcx.DatabaseDefinition"};
-	@SuppressWarnings("unused")
-	private final XComponentContext m_xContext;
-	private final java.sql.Connection m_Connection;
-	@SuppressWarnings("unused")
-	private final String m_url;
-	@SuppressWarnings("unused")
-	private final PropertyValue[] m_info;
-	
-
+	private static final boolean m_SchemaCrawler = true;
 
 	// The constructor method:
 	public Connection(XComponentContext ctx,
 					  java.sql.Connection connection,
-					  PropertyValue[] info,
-					  String url)
+					  String url,
+					  PropertyValue[] info)
 	{
 		super(ctx, m_name, m_services, connection, info, url);
-		m_xContext = ctx;
-		m_Connection = connection;
-		m_info = info;
-		m_url = url;
 		System.out.println("sdb.Connection() 1");
 	}
 
@@ -188,17 +180,25 @@ implements XChild,
 	public XNameAccess getTables()
 	{
 		XNameAccess tables = null;
-		//try {
-		//	tables = SchemaCrawler.getTables(m_Connection);
-		//} catch (java.sql.SQLException e) {
-		//	e.printStackTrace();
-		//}
-		tables = _getTables();
+		if (m_SchemaCrawler)
+		{
+			try
+			{
+				System.out.println("sdb.Connection.getTables() 1");
+				tables = SchemaCrawler.getTables(m_Connection);
+				System.out.println("sdb.Connection.getTables() 2");
+			} catch (java.sql.SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		else
+			tables = _getTables();
 		return tables;
 	}
 
 	public XNameAccess _getTables()
 	{
+		String name = null;
 		List<String> names = new ArrayList<String>();
 		List<Table> tables = new ArrayList<Table>();
 		try {
@@ -207,9 +207,10 @@ implements XChild,
 			java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
 			while (result.next())
 			{
-				Table table = new Table(metadata, result);
+				name = result.getString(3);
+				Table table = new Table(metadata, result, name);
 				tables.add(table);
-				names.add(table.getName());
+				names.add(name);
 			}
 			result.close();
 		} catch (java.sql.SQLException e) {
@@ -253,6 +254,7 @@ implements XChild,
 													   String sql)
 	throws java.sql.SQLException
 	{
+		System.out.println("sdb.Connection._getPreparedStatement() 1: '" + sql + "'");
 		return new PreparedStatement(ctx, this, connection, sql);
 	}
 
@@ -261,13 +263,9 @@ implements XChild,
 													   String sql)
 	throws java.sql.SQLException
 	{
+		System.out.println("sdb.Connection._getCallableStatement() 1: '" + sql + "'");
 		return new CallableStatement(ctx, this, connection, sql);
 	}
 
-
-	protected java.sql.Connection _getWrapper()
-	{
-		return m_Connection;
-	}
 
 }

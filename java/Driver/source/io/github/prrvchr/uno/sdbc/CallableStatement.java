@@ -30,25 +30,19 @@ import com.sun.star.uno.XComponentContext;
 
 
 public final class CallableStatement
-extends SuperCallableStatement
+extends CallableStatementBase
 {
 	private static final String m_name = CallableStatement.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
-	private java.sql.Connection m_Connection;
-	private java.sql.CallableStatement m_Statement = null;
-	private String m_Sql;
-
 
 	// The constructor method:
 	public CallableStatement(XComponentContext context,
-							 BaseConnection xConnection,
+							 ConnectionBase xConnection,
 							 java.sql.Connection connection,
 							 String sql)
 	throws java.sql.SQLException
 	{
-		super(context, m_name, m_services, xConnection);
-		m_Connection = connection;
-		m_Sql= sql;
+		super(context, m_name, m_services, xConnection, connection, sql);
 		System.out.println("sdbc.CallableStatement() 1");
 	}
 
@@ -61,24 +55,4 @@ extends SuperCallableStatement
 	}
 
 
-	protected java.sql.CallableStatement _getStatement()
-	{
-		if (m_Statement == null)
-		{
-			try {
-				m_Statement = m_Connection.prepareCall(m_Sql, getResultSetType(), getResultSetConcurrency());
-				_setStatement(m_Statement);
-			} catch (java.sql.SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return m_Statement;
-	}
-
-
-	protected java.sql.CallableStatement _getWrapper()
-	{
-		return m_Statement;
-	}
 }

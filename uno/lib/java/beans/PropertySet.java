@@ -26,13 +26,15 @@
 
 package io.github.prrvchr.uno.beans;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sun.star.beans.Property;
-import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
@@ -44,6 +46,11 @@ import com.sun.star.uno.XInterface;
 public abstract class PropertySet
 extends com.sun.star.lib.uno.helper.PropertySet
 {
+
+	private static String m_FieldPrefix = "m_";
+	private static String m_GetterPrefix = "_get";
+	private static String m_SetterPrefix = "_set";
+
 	public PropertySet(Map<String, Property> properties)
 	{
 		super();
@@ -72,7 +79,7 @@ extends com.sun.star.lib.uno.helper.PropertySet
 		else
 			voidvalue = value == null;
 		if (voidvalue && clazz.isPrimitive())
-			throw new IllegalArgumentException("The implementation does not support the MAYBEVOID attribute for this property");
+			throw new com.sun.star.lang.IllegalArgumentException("The implementation does not support the MAYBEVOID attribute for this property");
 		Object converted = null;
 		if (clazz.equals(Any.class))
 		{
@@ -104,7 +111,7 @@ extends com.sun.star.lib.uno.helper.PropertySet
 	}
 
 	private static Object convert(Class<?> clazz, Object object)
-	throws IllegalArgumentException
+	throws com.sun.star.lang.IllegalArgumentException
 	{
 		Object value = null;
 		if (object == null || (object instanceof Any && ((Any) object).getObject() == null))
@@ -142,7 +149,7 @@ extends com.sun.star.lib.uno.helper.PropertySet
 		else if (com.sun.star.uno.Enum.class.isAssignableFrom(clazz))
 			value = AnyConverter.toObject(new Type(clazz), object);
 		else
-			throw new IllegalArgumentException("Could not convert the argument");
+			throw new com.sun.star.lang.IllegalArgumentException("Could not convert the argument");
 		return value;
 	}
 
@@ -152,29 +159,61 @@ extends com.sun.star.lib.uno.helper.PropertySet
 											Object value)
 	throws WrappedTargetException
 	{
+		String id = (String) getPropertyId(property);
+		if (id != null)
+		{
+			if (id.startsWith(m_FieldPrefix))
+				_setField(property, value, id);
+			else
+				_setMethod(property, value, id);
+		}
+	}
+
+	public void _setField(Property property,
+						  Object value,
+						  String id)
+	throws WrappedTargetException
+	{
+		try
+		{	
+			Field field = _getField(this.getClass(), id);
+			if (field != null)
+			{
+				field.setAccessible(true);
+				field.set(this, value);
+			}
+			else
+				System.out.println("beans.PropertySet._setField() 1 ********************************** " + id);
+		}
+		catch(java.lang.IllegalAccessException e)
+		{
+			System.out.println("beans.PropertySet._setField() 2 ********************************** " + id);
+			throw new WrappedTargetException(e, "PropertySet.setPropertyValueNoBroadcast", this, e);
+		}
+	}
+	
+		
+	public void _setMethod(Property property,
+						   Object value,
+						   String id)
+	throws WrappedTargetException
+	{
 		Method method = null;
-		String setter = "set" + (String) getPropertyId(property);
+		String setter = m_SetterPrefix + id;
 		try 
 		{
-			method = this.getClass().getMethod(setter, property.Type.getZClass());
-		}
-		catch (SecurityException | NoSuchMethodException e)
-		{
-			String msg = e.getMessage();
-			throw new WrappedTargetException(msg);
-		}
-		try
-		{
+			method = _getSetter(this.getClass(), setter, property.Type.getZClass());
 			if (method != null)
+			{
+				method.setAccessible(true);
 				method.invoke(this, value);
+			}
+			else
+				System.out.println("beans.PropertySet._setMethod() 1 ********************************** " + setter);
 		}
-		catch (java.lang.IllegalArgumentException e)
+		catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
 		{
-			String msg = e.getMessage();
-			throw new IllegalArgumentException(msg);
-		}
-		catch (IllegalAccessException | InvocationTargetException e)
-		{
+			System.out.println("beans.PropertySet._setMethod() 2 ********************************** " + setter);
 			String msg = e.getMessage();
 			throw new WrappedTargetException(msg);
 		}
@@ -183,27 +222,142 @@ extends com.sun.star.lib.uno.helper.PropertySet
 	@Override
 	public Object getPropertyValue(Property property)
 	{
-		Method method = null;
-		String getter = "get" + (String) getPropertyId(property);
-		try
+		Object value = null;
+		String id = (String) getPropertyId(property);
+		if (id != null)
 		{
-			method = this.getClass().getMethod(getter);
+			if (id.startsWith(m_FieldPrefix))
+				value = _getField(property, id);
+			else
+				value = _getMethod(property, id);
 		}
-		catch (NoSuchMethodException | SecurityException e)
-		{
-			e.printStackTrace();
-		}
+		return value;
+	}
+
+	public Object _getField(Property property,
+							String id)
+	{
 		Object value = null;
 		try
 		{
-			value = method.invoke(this);
+			Field field = _getField(this.getClass(), id);
+			if (field != null)
+			{
+				field.setAccessible(true);
+				value = field.get(this);
+			}
+			else
+				System.out.println("beans.PropertySet._getField() 1 ********************************** " + id);
 		}
-		catch (IllegalAccessException | InvocationTargetException e)
+		catch(java.lang.IllegalAccessException e)
 		{
+			System.out.println("beans.PropertySet._getField() 2 ********************************** " + id);
 			e.printStackTrace();
 		}
 		return value;
 	}
 
+	public Object _getMethod(Property property,
+							 String id)
+		{
+		Object value = null;
+		Method method = null;
+		String getter = m_GetterPrefix + id;
+		try
+		{
+			method = _getGetter(this.getClass(), getter);
+			if (method != null)
+			{
+				method.setAccessible(true);
+				value = method.invoke(this);
+			}
+			else
+				System.out.println("beans.PropertySet._getMethod() 1 ********************************** " + getter);
+		}
+		catch (SecurityException | IllegalAccessException | InvocationTargetException e)
+		{
+			System.out.println("beans.PropertySet._getMethod() 2 ********************************** " + getter);
+			e.printStackTrace();
+		}
+		return value;
+	}
 
+	private static Field _getField(Class<?> clazz, String name)
+	{
+		Field field = null;
+		while (clazz != null && field == null) {
+			try {
+				field = clazz.getDeclaredField(name);
+			}
+			catch (NoSuchFieldException e) {
+				clazz = clazz.getSuperclass();
+			}
+		}
+		return field;
+	}
+
+	private static Method _getGetter(Class<?> clazz, String name)
+	{
+		Method method = null;
+		while (clazz != null && method == null) {
+			try {
+				method = clazz.getDeclaredMethod(name);
+			}
+			catch (NoSuchMethodException e) {
+				clazz = clazz.getSuperclass();
+			}
+		}
+		return method;
+	}
+
+	private static Method _getSetter(Class<?> clazz, String name, Class<?> type)
+	{
+		Method method = null;
+		while (clazz != null && method == null) {
+			try {
+				method = clazz.getDeclaredMethod(name, type);
+			}
+			catch (NoSuchMethodException e) {
+				clazz = clazz.getSuperclass();
+			}
+		}
+		return method;
+	}
+
+	@Override
+	public synchronized com.sun.star.beans.XPropertySetInfo getPropertySetInfo()
+	{
+		if (propertySetInfo == null)
+			propertySetInfo = new PropertySetInfo(this.getClass().getName());
+		return propertySetInfo;
+	}
+
+
+	private class PropertySetInfo implements XPropertySetInfo
+	{
+		private final String m_class;
+		public PropertySetInfo(String clazz)
+		{
+			m_class = clazz;
+		}
+		public com.sun.star.beans.Property[] getProperties()
+		{
+			System.out.println("beans.PropertySet.getProperties() 1 ");
+			return PropertySet.this.getProperties();
+		}
+
+		public com.sun.star.beans.Property getPropertyByName(String name) throws UnknownPropertyException
+		{
+			System.out.println("beans.PropertySet.getPropertyByName() 1 : Class: " + m_class + " Name: " + name);
+			return getProperty(name);
+		}
+
+		public boolean hasPropertyByName(String name)
+		{
+			System.out.println("beans.PropertySet.hasPropertyByName() 1 : Class: " + m_class + " Name: " + name);
+			return getProperty(name) != null;
+		}
+	}
+
+	
 }

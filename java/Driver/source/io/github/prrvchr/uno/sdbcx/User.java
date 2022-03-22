@@ -38,16 +38,22 @@ import io.github.prrvchr.uno.lang.ServiceProperty;
 
 
 public class User
-extends ServiceProperty
-implements XUser
+	extends ServiceProperty
+	implements XUser
 {
+
 	private static final String m_name = User.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbcx.User"};
 	@SuppressWarnings("unused")
 	private final java.sql.Connection m_Connection;
 	@SuppressWarnings("unused")
 	private Map<String, String> m_users;
-
+	private static Map<String, Property> _getPropertySet()
+	{
+		Map<String, Property> map = new HashMap<String, Property>();
+		map.put("Name", UnoHelper.getProperty("Name", "string"));
+		return map;
+	}
 
 	// The constructor method:
 	public User(Connection connection)
@@ -56,13 +62,6 @@ implements XUser
 		m_Connection = connection;
 	}
 
-	
-	private static Map<String, Property> _getPropertySet()
-	{
-		Map<String, Property> map = new HashMap<String, Property>();
-		map.put("Name", UnoHelper.getProperty("Name", "string"));
-		return map;
-	}
 
 	// com.sun.star.sdbcx.XAuthorizable <- XUser:
 	@Override

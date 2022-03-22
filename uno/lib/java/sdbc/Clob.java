@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import com.sun.star.io.XInputStream;
@@ -34,37 +33,31 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XClob;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
-
 import org.apache.commons.io.input.ReaderInputStream;
 
 
 public class Clob
-extends WeakBase
-implements XClob
+	extends WeakBase
+	implements XClob
 {
-	private java.sql.Statement m_Statement;
+
 	private java.sql.Clob m_Clob;
 
-	
 	// The constructor method:
-	public Clob(java.sql.Statement statement,
-            java.sql.Clob clob)
-{
-		m_Statement = statement;
-	m_Clob = clob;
-}
+	public Clob(java.sql.Clob clob)
+	{
+		m_Clob = clob;
+	}
 
 	
 	// com.sun.star.sdbc.XClob:
 	@Override
-	public XInputStream getCharacterStream() throws SQLException {
+	public XInputStream getCharacterStream()
+		throws SQLException
+	{
 		try
 		{
-			java.io.Reader reader = m_Clob.getCharacterStream();
-			Charset cs = Charset.forName("UTF-8");
-			InputStream input = new ReaderInputStream(reader, cs);
-			return new InputStreamToXInputStreamAdapter(input);
+			return new InputStreamToXInputStreamAdapter(new ReaderInputStream(m_Clob.getCharacterStream(), Charset.forName("UTF-8")));
 		}
 		catch (java.sql.SQLException e)
 		{
@@ -73,7 +66,9 @@ implements XClob
 	}
 
 	@Override
-	public String getSubString(long position, int lenght) throws SQLException {
+	public String getSubString(long position, int lenght)
+		throws SQLException
+	{
 		try
 		{
 			return m_Clob.getSubString(position, lenght);
@@ -85,7 +80,9 @@ implements XClob
 	}
 
 	@Override
-	public long length() throws SQLException {
+	public long length()
+		throws SQLException
+	{
 		try
 		{
 			return m_Clob.length();
@@ -97,7 +94,9 @@ implements XClob
 	}
 
 	@Override
-	public long position(String str, int start) throws SQLException {
+	public long position(String str, int start)
+		throws SQLException
+	{
 		try
 		{
 			return m_Clob.position(str, start);
@@ -109,20 +108,13 @@ implements XClob
 	}
 
 	@Override
-	public long positionOfClob(XClob clob, long start) throws SQLException {
-		try
-		{
-			java.sql.Clob c = UnoHelper.getSQLClob(m_Statement, clob);
-			return m_Clob.position(c, start);
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw new SQLException(e.getMessage());
-		}
+	public long positionOfClob(XClob clob, long start)
+		throws SQLException
+	{
+		long position = 0;
+		int lenght = (int) clob.length();
+		return position(getSubString(position, lenght), (int) start);
 	}
-
-
-
 
 
 }

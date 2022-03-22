@@ -2,7 +2,6 @@ package io.github.prrvchr.uno.helper;
 
 import java.lang.Exception;
 import java.lang.IllegalAccessException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -69,23 +68,24 @@ public class UnoHelper
 	}
 
 
-	public static URL getDriverURL(String location, String jar)
+	public static URL getDriverURL(String location)
 	{
 		URL url = null;
 		try
 		{
-			url = new URL("jar:" + location + jar + "!/");
+			url = new URL("jar:" + location + "!/");
 		}
 		catch (Exception e) { e.printStackTrace(); }
 		return url;
 	}
-
+	public static URL getDriverURL(String location, String jar)
+	{
+		return getDriverURL(location + jar);
+	}
 
 	public static URL getDriverURL(String location, String path, String jar)
-	throws MalformedURLException
 	{
-		URL url = new URL("jar:" + location + "/" + path + "/" + jar + "!/");
-		return url;
+		return getDriverURL(location + "/" + path + "/" + jar);
 	}
 
 
@@ -114,7 +114,7 @@ public class UnoHelper
 	}
 
 
-	public static Properties getConnectionProperties(PropertyValue[] infos)
+	public static Properties getJavaProperties(PropertyValue[] infos)
 	{
 		System.out.println("UnoHelper.getProperties() 1 ");
 		Properties properties = new Properties();
@@ -131,6 +131,23 @@ public class UnoHelper
 	}
 
 
+	public static Properties getMapProperties(PropertyValue[] infos)
+	{
+		System.out.println("UnoHelper.getProperties() 1 ");
+		Properties properties = new Properties();
+		int len = infos.length;
+		for (int i = 0; i < len; i++)
+		{
+			PropertyValue info = infos[i];
+			String value = String.valueOf(info.Value);
+			// FIXME: JDBC doesn't seem to like <Properties> with empty values!!!
+			if (!value.isEmpty()) properties.setProperty(info.Name, value);
+		}
+		System.out.println("UnoHelper.getProperties() 2 " + properties);
+		return properties;
+	}
+
+	
 	public static Property getProperty(String name, String type)
 	{
 		short attributes = 0;
@@ -166,8 +183,7 @@ public class UnoHelper
 		SQLException exception = null;
 		if (e != null)
 		{
-			String message = e.getMessage();
-			exception = new SQLException(message);
+			exception = new SQLException(e.getMessage());
 			exception.Context = component;
 			exception.SQLState = e.getSQLState();
 			exception.ErrorCode = e.getErrorCode();
@@ -179,10 +195,11 @@ public class UnoHelper
 
 	public static String getObjectString(Object object)
 	{
-		String value = "";
+		String value = null;
 		if (AnyConverter.isString(object))
 		{
 			value = AnyConverter.toString(object);
+			System.out.println("UnoHelper.getObjectString() 1");
 		}
 		return value;
 	}
@@ -190,11 +207,14 @@ public class UnoHelper
 
 	public static Date getUnoDate(java.sql.Date date)
 	{
-		LocalDate localdate = date.toLocalDate();
 		Date value = new Date();
-		value.Year = (short) localdate.getYear();
-		value.Month = (short) localdate.getMonthValue();
-		value.Day = (short) localdate.getDayOfMonth();
+		if (date != null)
+		{
+			LocalDate localdate = date.toLocalDate();
+			value.Year = (short) localdate.getYear();
+			value.Month = (short) localdate.getMonthValue();
+			value.Day = (short) localdate.getDayOfMonth();
+		}
 		return value;
 	}
 
@@ -208,13 +228,16 @@ public class UnoHelper
 
 	public static Time getUnoTime(java.sql.Time time)
 	{
-		LocalTime localtime = time.toLocalTime();
 		Time value = new Time();
-		value.Hours = (short) localtime.getHour();
-		value.Minutes = (short) localtime.getMinute();
-		value.Seconds = (short) localtime.getSecond();
-		value.NanoSeconds = localtime.getNano();
-		//value.HundredthSeconds = 0;
+		if (time != null)
+		{
+			LocalTime localtime = time.toLocalTime();
+			value.Hours = (short) localtime.getHour();
+			value.Minutes = (short) localtime.getMinute();
+			value.Seconds = (short) localtime.getSecond();
+			value.NanoSeconds = localtime.getNano();
+			//value.HundredthSeconds = 0;
+		}
 		return value;
 	}
 
@@ -228,16 +251,19 @@ public class UnoHelper
 
 	public static DateTime getUnoDateTime(java.sql.Timestamp timestamp)
 	{
-		LocalDateTime localdatetime = timestamp.toLocalDateTime();
 		DateTime value = new DateTime();
-		value.Year = (short) localdatetime.getYear();
-		value.Month = (short) localdatetime.getMonthValue();
-		value.Day = (short) localdatetime.getDayOfMonth();
-		value.Hours = (short) localdatetime.getHour();
-		value.Minutes = (short) localdatetime.getMinute();
-		value.Seconds = (short) localdatetime.getSecond();
-		value.NanoSeconds = localdatetime.getNano();
-		//value.HundredthSeconds = 0;
+		if (timestamp != null)
+		{
+			LocalDateTime localdatetime = timestamp.toLocalDateTime();
+			value.Year = (short) localdatetime.getYear();
+			value.Month = (short) localdatetime.getMonthValue();
+			value.Day = (short) localdatetime.getDayOfMonth();
+			value.Hours = (short) localdatetime.getHour();
+			value.Minutes = (short) localdatetime.getMinute();
+			value.Seconds = (short) localdatetime.getSecond();
+			value.NanoSeconds = localdatetime.getNano();
+			//value.HundredthSeconds = 0;
+		}
 		return value;
 	}
 
@@ -362,22 +388,74 @@ public class UnoHelper
 	}
 
 
-	public static String mapSQLDataType(int key, String name)
+	public static int mapSQLDataType(int type)
 	{
-		Map<Integer, String> maps = Map.ofEntries(Map.entry(2003, "ARRAY"),
-												  Map.entry(70, "OTHER"),
-												  Map.entry(2000, "OBJECT"),
-												  Map.entry(-16, "LONGVARCHAR"),
-												  Map.entry(-15, "CHAR"),
-												  Map.entry(2011, "CLOB"),
+		Map<Integer, Integer> maps = Map.ofEntries(Map.entry(-16, -1),
+												   Map.entry(-15, 1),
+												   Map.entry(-9, 12),
+												   Map.entry(-8, 4),
+												   Map.entry(70, 1111),
+												   Map.entry(2009, 1111),
+												   Map.entry(2011, 2005),
+												   Map.entry(2012, 2006),
+												   Map.entry(2013, 12),
+												   Map.entry(2014, 12));
+
+		if (maps.containsKey(type))
+		{
+			System.out.println("UnoHelper.mapSQLDataType() Type: " + type);
+			type = maps.get(type);
+		}
+		return type;
+	}
+
+	public static String mapSQLDataTypeName(String name, int type)
+	{
+		//String name = null;
+		//Map<Integer, String> maps = _getUnoSQLDataType();
+		//if (!maps.containsValue(name))
+		//	if (maps.containsKey(type))
+		//	{
+		//		//name = maps.get(type);
+		//		System.out.println("UnoHelper.mapSQLDataTypeName() 1 ************************* Name: " + name + " Type: " + type);
+		//	}
+		//	else
+		//		System.out.println("UnoHelper.mapSQLDataTypeName() 2 ************************* Name: " + name + " Type: " + type);
+		return name;
+	}
+
+	public static Map<Integer, String> _getUnoSQLDataType()
+	{
+		Map<Integer, String> maps = Map.ofEntries(Map.entry(-7, "BIT"),
+												  Map.entry(-6, "TINYINT"),
+												  Map.entry(-5, "BIGINT"),
+												  Map.entry(-4, "LONGVARBINARY"),
+												  Map.entry(-3, "VARBINARY"),
+												  Map.entry(-2, "BINARY"),
+												  Map.entry(-1, "LONGVARCHAR"),
 												  Map.entry(0, "SQLNULL"),
-												  Map.entry(-9, "VARCHAR"),
-												  Map.entry(2012, "REF"),
-												  Map.entry(-8, "INTEGER"),
-												  Map.entry(2009, "OTHER"),
-												  Map.entry(2013, "VARCHAR"),
-												  Map.entry(2014, "VARCHAR"));
-		return (maps.containsKey(key)) ? maps.get(key) : name;
+												  Map.entry(1, "CHAR"),
+												  Map.entry(2, "NUMERIC"),
+												  Map.entry(3, "DECIMAL"),
+												  Map.entry(4, "INTEGER"),
+												  Map.entry(5, "SMALLINT"),
+												  Map.entry(6, "FLOAT"),
+												  Map.entry(7, "REAL"),
+												  Map.entry(8, "DOUBLE"),
+												  Map.entry(12, "VARCHAR"),
+												  Map.entry(16, "BOOLEAN"),
+												  Map.entry(91, "DATE"),
+												  Map.entry(92, "TIME"),
+												  Map.entry(93, "TIMESTAMP"),
+												  Map.entry(1111, "OTHER"),
+												  Map.entry(2000, "OBJECT"),
+												  Map.entry(2001, "DISTINCT"),
+												  Map.entry(2002, "STRUCT"),
+												  Map.entry(2003, "ARRAY"),
+												  Map.entry(2004, "BLOB"),
+												  Map.entry(2005, "CLOB"),
+												  Map.entry(2006, "REF"));
+		return maps;
 	}
 
 

@@ -29,20 +29,18 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 
-public final class ResultSet
-extends SuperResultSet
+public class ResultSet
+extends ResultSetBase
 {
 	private static final String m_name = ResultSet.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
-	private java.sql.ResultSet m_ResultSet;
-	
+
 
 	// The constructor method:
 	public ResultSet(XComponentContext ctx,
 					 java.sql.ResultSet resultset)
 	{
 		super(ctx, m_name, m_services, resultset);
-		m_ResultSet = resultset;
 		System.out.println("sdbc.ResultSet() 1");
 	}
 	public ResultSet(XComponentContext ctx,
@@ -50,14 +48,7 @@ extends SuperResultSet
 					 java.sql.ResultSet resultset)
 	{
 		super(ctx, m_name, m_services, statement, resultset);
-		m_ResultSet = resultset;
 		System.out.println("sdbc.ResultSet() 1");
-	}
-
-
-	protected java.sql.ResultSet _getWrapper()
-	{
-		return m_ResultSet;
 	}
 
 

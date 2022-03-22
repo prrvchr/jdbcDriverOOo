@@ -30,31 +30,26 @@ import java.sql.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.sdbc.BaseConnection;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
 
 
 public final class PreparedStatement
-extends BasePreparedStatement
+extends PreparedStatementSuper
 {
 	private static String m_name = PreparedStatement.class.getName();
 	private static String[] m_services = {"com.sun.star.sdbc.PreparedStatement",
 										  "com.sun.star.sdbcx.PreparedStatement"};
-	private java.sql.Connection m_Connection;
-	private java.sql.PreparedStatement m_Statement = null;
-	private String m_Sql;
 
-	
 	// The constructor method:
 	public PreparedStatement(XComponentContext context,
-							 BaseConnection xConnection,
+							 ConnectionBase xConnection,
 							 java.sql.Connection connection,
 							 String sql)
 	throws SQLException
 	{
-		super(context, m_name, m_services, xConnection);
-		m_Connection = connection;
-		m_Sql = sql;
-		System.out.println("sdbcx.PreparedStatement() 1");
+		super(context, m_name, m_services, xConnection, connection, sql);
+		System.out.println("sdbcx.PreparedStatement() 1: '" + sql + "'");
 	}
 
 
@@ -63,28 +58,6 @@ extends BasePreparedStatement
 	throws java.sql.SQLException
 	{
 		return new ResultSet(ctx, this, resultset);
-	}
-
-
-	protected java.sql.PreparedStatement _getStatement()
-	{
-		if (m_Statement == null)
-		{
-			try {
-				m_Statement = m_Connection.prepareStatement(m_Sql, getResultSetType(), getResultSetConcurrency());
-				_setStatement(m_Statement);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return m_Statement;
-	}
-
-
-	protected java.sql.PreparedStatement _getWrapper()
-	{
-		return m_Statement;
 	}
 
 

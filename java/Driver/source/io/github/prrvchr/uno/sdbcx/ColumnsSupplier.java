@@ -30,6 +30,9 @@ import java.util.List;
 
 import com.sun.star.container.XNameAccess;
 
+import schemacrawler.crawl.ResultsCrawler;
+import schemacrawler.schema.ResultsColumn;
+
 
 public final class ColumnsSupplier
 {
@@ -37,13 +40,32 @@ public final class ColumnsSupplier
 	public static XNameAccess getColumns(java.sql.ResultSetMetaData metadata)
 	throws java.sql.SQLException
 	{
+		String name = null;
 		List<String> names = new ArrayList<String>();
 		List<Column> columns = new ArrayList<Column>();
 		for (int i = 1; i <= metadata.getColumnCount(); i++)
 		{
-			Column column = new Column(metadata, i);
+			name = metadata.getColumnName(i);
+			Column column = new Column(metadata, i, name);
 			columns.add(column);
-			names.add(column.getName());
+			names.add(name);
+		}
+		return new Container<Column>(columns, names);
+	}
+
+	public static XNameAccess getColumns(java.sql.ResultSet resultset)
+	throws java.sql.SQLException
+	{
+		String name = null;
+		List<String> names = new ArrayList<String>();
+		List<Column> columns = new ArrayList<Column>();
+		ResultsCrawler crawler = new ResultsCrawler(resultset);
+		for (ResultsColumn result : crawler.crawl())
+		{
+			name = result.getName();
+			Column column = new Column(result, name);
+			columns.add(column);
+			names.add(name);
 		}
 		return new Container<Column>(columns, names);
 	}

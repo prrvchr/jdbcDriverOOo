@@ -219,7 +219,7 @@ implements XDatabaseMetaData2
 		{
 			String c = UnoHelper.getObjectString(catalog);
 			java.sql.ResultSet resultset = m_Metadata.getColumns(c, arg1, arg2, arg3);
-			return new ResultSet(m_xContext, resultset);
+			return new ResultSetTypeMap(m_xContext, resultset, 5, 6);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);
@@ -825,8 +825,9 @@ implements XDatabaseMetaData2
 	{
 		try
 		{
+			System.out.println("sdbc.DatabaseMetaData.getTypeInfo() 1");
 			java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
-			return new ResultSet(m_xContext, resultset);
+			return new ResultSetTypeMap(m_xContext, resultset, 2, 1);
 		} catch (java.sql.SQLException e)
 		{
 			throw UnoHelper.getSQLException(e, this);

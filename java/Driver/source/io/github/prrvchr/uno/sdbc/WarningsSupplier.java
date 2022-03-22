@@ -32,6 +32,7 @@ import java.sql.Statement;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.SQLWarning;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.Type;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -48,17 +49,17 @@ final class WarningsSupplier
 		{
 			try
 			{
-				if (wrapper.isWrapperFor(Connection.class))
-				{
-					wrapper.unwrap(Connection.class).clearWarnings();
-				}
-				else if(wrapper.isWrapperFor(ResultSet.class))
+				if (wrapper.isWrapperFor(ResultSet.class))
 				{
 					wrapper.unwrap(ResultSet.class).clearWarnings();
 				}
-				else if(wrapper.isWrapperFor(Statement.class))
+				else if (wrapper.isWrapperFor(Statement.class))
 				{
 					wrapper.unwrap(Statement.class).clearWarnings();
+				}
+				else if (wrapper.isWrapperFor(Connection.class))
+				{
+					wrapper.unwrap(Connection.class).clearWarnings();
 				}
 			}
 			catch (java.sql.SQLException e)
@@ -78,34 +79,31 @@ final class WarningsSupplier
 		// FIXME: https://www.openoffice.org/api/docs/common/ref/com/sun/sun/star/sdbc/XWarningsSupplier.html
 		// FIXME: If we return null as the UNO API suggests, Base show a Warning message dialog when connecting to the database...
 		// FIXME: returning <Any.VOID> seem to be the solution to avoid this Warning message dialog...
-		//Object warning = new Any(new Type(void.class), null);
-		Object warning = Any.VOID;
+		Object warning = new Any(new Type(), null);
 		if (wrapper != null)
 		{
 			java.sql.SQLWarning w = null;
 			try
 			{
-
-				if (wrapper.isWrapperFor(Connection.class))
-				{
-					w = wrapper.unwrap(Connection.class).getWarnings();
-				}
-				else if(wrapper.isWrapperFor(ResultSet.class))
+				if (wrapper.isWrapperFor(ResultSet.class))
 				{
 					w = wrapper.unwrap(ResultSet.class).getWarnings();
 				}
-				else if(wrapper.isWrapperFor(Statement.class))
+				else if (wrapper.isWrapperFor(Statement.class))
 				{
 					w = wrapper.unwrap(Statement.class).getWarnings();
 				}
-
+				else if (wrapper.isWrapperFor(Connection.class))
+				{
+					w = wrapper.unwrap(Connection.class).getWarnings();
+				}
 			} catch (java.sql.SQLException e)
 			{
 				throw UnoHelper.getSQLException(e, component);
 			}
 			warning = _getWarnings(w, component, warning);
 		}
-		System.out.println("WarningsSupplier.getWarnings() 2");
+		System.out.println("WarningsSupplier.getWarnings() 2 " + warning);
 		return warning;
 	}
 

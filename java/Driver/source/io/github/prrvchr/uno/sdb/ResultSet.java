@@ -30,19 +30,18 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.uno.sdbcx.BaseResultSet;
+import io.github.prrvchr.uno.sdbc.ResultSetSuper;
 import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
 public final class ResultSet
-extends BaseResultSet
+extends ResultSetSuper
 implements XColumnsSupplier
 {
 	private static final String m_name = ResultSet.class.getName();
 	private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
 												"com.sun.star.sdbc.ResultSet", 
 												"com.sun.star.sdbcx.ResultSet"};
-	private final java.sql.ResultSet m_ResultSet;
 
 
 	// The constructor method:
@@ -52,7 +51,6 @@ implements XColumnsSupplier
 	throws java.sql.SQLException
 	{
 		super(ctx, m_name, m_services, statement, resultset);
-		m_ResultSet = resultset;
 		System.out.println("sdb.ResultSet() 1");
 	}
 
@@ -74,10 +72,5 @@ implements XColumnsSupplier
 		return columns;
 	}
 
-
-	protected java.sql.ResultSet _getWrapper()
-	{
-		return m_ResultSet;
-	}
 
 }

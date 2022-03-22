@@ -25,32 +25,43 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyAttribute;
 
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceProperty;
 
 
 abstract class ContainerElement
-extends ServiceProperty
+	extends ServiceProperty
 {
-	private final String m_element;
 
-	// The constructor method:
-	public ContainerElement(String name,
-							String[] services,
-							String element,
-							Map<String, Property> properties)
+	protected final String m_Name;
+	private static Map<String, Property> _getPropertySet()
 	{
-		super(name, services, properties);
-		m_element = element;
+		short readonly = PropertyAttribute.READONLY;
+		Map<String, Property> map = new HashMap<String, Property>();
+		map.put("m_Name", UnoHelper.getProperty("Name", "string", readonly));
+		return map;
+	}
+	private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
+	{
+		Map<String, Property> map = _getPropertySet();
+		map.putAll(properties);
+		return map;
 	}
 
-
-	public String getName()
+	// The constructor method:
+	public ContainerElement(String service,
+							String[] services,
+							Map<String, Property> properties,
+							String name)
 	{
-		return m_element;
+		super(service, services, _getPropertySet(properties));
+		m_Name = name;
 	}
 
 
