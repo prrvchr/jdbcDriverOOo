@@ -1,6 +1,6 @@
 # ![jdbcDriverOOo logo](https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.png) jdbcDriverOOo - Conditions d'utilisation
 
-Concernant l'installation, la configuration et l'utilisation, veuillez consulter la [documentation](https://prrvchr.github.io/jdbcDriverOOo/README_fr).
+Concernant l'installation, la configuration et l'utilisation, veuillez consulter la [documentation][1].
 
 ## Introduction:
 
@@ -14,6 +14,10 @@ jdbcDriverOOo est distribué dans l'espoir qu'il sera utile, mais **SANS AUCUNE 
 
 jdbcDriverOOo est un logiciel gratuit; Vous pouvez le redistribuer et/ou le modifier selon les termes (à votre choix):
 
-- La Licence Publique Mozilla, version 2.0. Si une copie du LPM n'était pas distribué avec ce fichier, vous pouvez l'obtenir à [l'adresse](http://mozilla.org/MPL/2.0/).
+- La [Licence Publique Mozilla version 2.0][2].
 
-- La GNU Lesser General Public License publiée par La Free Software Foundation, soit la version 3 de la Licence, soit (selon votre choix) toute version ultérieure. Si une copie de la LGPL n'était pas distribué avec ce fichier, [voir](http://www.gnu.org/licenses/).
+- La GNU [Lesser General Public License][3] publiée par La Free Software Foundation, soit la version 3 de la Licence, soit (selon votre choix) toute version ultérieure.
+
+[1]: https://prrvchr.github.io/jdbcDriverOOo/
+[2]: http://mozilla.org/MPL/2.0/
+[3]: http://www.gnu.org/licenses/lgpl-3.0.html
