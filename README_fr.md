@@ -1,22 +1,22 @@
-# ![HsqlDBDriverOOo logo](img/HsqlDBDriverOOo.png) HsqlDBDriverOOo
+# ![jdbcDriverOOo logo](img/jdbcDriverOOo.png) jdbcDriverOOo
 
-**This [document](https://prrvchr.github.io/HsqlDBDriverOOo/) in English.**
+**This [document](https://prrvchr.github.io/jdbcDriverOOo/) in English.**
 
-**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/HsqlDBDriverOOo/HsqlDBDriverOOo/registration/TermsOfUse_fr)
+**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo/registration/TermsOfUse_fr)
 
-# version [0.0.4](https://prrvchr.github.io/HsqlDBDriverOOo/README_fr#historique)
+# version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo/README_fr#historique)
 
 ## Introduction:
 
-**HsqlDBDriverOOo** fait partie d'une [Suite](https://prrvchr.github.io/README_fr) d'extensions [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) et/ou [OpenOffice](https://www.openoffice.org/fr/Telecharger/) permettant de vous offrir des services inovants dans ces suites bureautique.  
+**jdbcDriverOOo** fait partie d'une [Suite](https://prrvchr.github.io/README_fr) d'extensions [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) et/ou [OpenOffice](https://www.openoffice.org/fr/Telecharger/) permettant de vous offrir des services inovants dans ces suites bureautique.  
 
 Cette extension vous permet d'utiliser le pilote HsqlDB de votre choix, avec toutes ses fonctionnalités, directement dans Base.  
 Elle prend en charge tous les protocoles gérés nativement par HsqlDB, à savoir: hsql://, hsqls://, http://, https://, mem://, file:// et res://.
 
 Etant un logiciel libre je vous encourage:
-- A dupliquer son [code source](https://github.com/prrvchr/HsqlDBDriverOOo/).
+- A dupliquer son [code source](https://github.com/prrvchr/jdbcDriverOOo/).
 - A apporter des modifications, des corrections, des améliorations.
-- D'ouvrir un [dysfonctionnement](https://github.com/prrvchr/HsqlDBDriverOOo/issues/new) si nécessaire.
+- D'ouvrir un [dysfonctionnement](https://github.com/prrvchr/jdbcDriverOOo/issues/new) si nécessaire.
 
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
@@ -40,7 +40,7 @@ OpenOffice et LibreOffice sous Windows ne sont pas soumis à ce dysfonctionnemen
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![HsqlDBDriverOOo logo](img/HsqlDBDriverOOo.png) **[HsqlDBDriverOOo.oxt](https://github.com/prrvchr/HsqlDBDriverOOo/raw/master/HsqlDBDriverOOo.oxt)** version 0.0.4.
+- Installer l'extension ![jdbcDriverOOo logo](img/jdbcDriverOOo.png) **[jdbcDriverOOo.oxt](https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt)** version 0.0.4.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -50,14 +50,14 @@ Redémarrez LibreOffice / OpenOffice après l'installation.
 
 Dans LibreOffice / OpenOffice aller à: Fichier -> Nouveau -> Base de données...:
 
-![HsqlDBDriverOOo screenshot 1](img/HsqlDBDriverOOo-1.png)
+![jdbcDriverOOo screenshot 1](img/jdbcDriverOOo-1.png)
 
 A l'étape: Sélectionner une base de données:
 - selectionner: Connecter une base de données existante
 - choisir: Pilote HsqlDB
 - cliquer sur le bouton: Suivant
 
-![HsqlDBDriverOOo screenshot 2](img/HsqlDBDriverOOo-2.png)
+![jdbcDriverOOo screenshot 2](img/jdbcDriverOOo-2.png)
 
 A l'étape: Paramètres de connexion:
 
@@ -74,16 +74,16 @@ A l'étape: Paramètres de connexion:
 
 - cliquer sur le bouton: Suivant
 
-![HsqlDBDriverOOo screenshot 3](img/HsqlDBDriverOOo-3.png)
+![jdbcDriverOOo screenshot 3](img/jdbcDriverOOo-3.png)
 
 A l'étape: Paramétrer l'authentification de l'utilisateur:
 - cliquer sur le bouton: Tester la connexion
 
-![HsqlDBDriverOOo screenshot 4](img/HsqlDBDriverOOo-4.png)
+![jdbcDriverOOo screenshot 4](img/jdbcDriverOOo-4.png)
 
 Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
-![HsqlDBDriverOOo screenshot 5](img/HsqlDBDriverOOo-5.png)
+![jdbcDriverOOo screenshot 5](img/jdbcDriverOOo-5.png)
 
 Maintenant à vous d'en profiter...
 
@@ -110,7 +110,7 @@ Maintenant votre base de données est à jour.
 * LibreOffice 6.4.4.2 - Windows 7 SP1
 
 Je vous encourage en cas de problème :-(  
-de créer un [dysfonctionnement](https://github.com/prrvchr/HsqlDBDriverOOo/issues/new)  
+de créer un [dysfonctionnement](https://github.com/prrvchr/jdbcDriverOOo/issues/new)  
 J'essaierai de le résoudre ;-)
 
 ## Historique:
@@ -173,15 +173,15 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
 ### Ce qui a été fait pour la version 0.0.4:
 
-- Réécriture de [Driver](https://github.com/prrvchr/HsqlDBDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) en Java version 11 OpenJDK amd64 sous Eclipse 4.11.0 avec le plugin: LibreOffice Extension/Component Development - Java version 4.0.1.
+- Réécriture de [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) en Java version 11 OpenJDK amd64 sous Eclipse 4.11.0 avec le plugin: LibreOffice Extension/Component Development - Java version 4.0.1.
 
 - Ecriture des services `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` de JDBC (merci à hanya pour [MRI](https://github.com/hanya/MRI) qui m'a été d'une aide précieuse...)
 
-  - [com.sun.star.sdb.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdb)
+  - [com.sun.star.sdb.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdb)
 
-  - [com.sun.star.sdbc.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbc)
+  - [com.sun.star.sdbc.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbc)
 
-  - [com.sun.star.sdbcx.*](https://github.com/prrvchr/HsqlDBDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
+  - [com.sun.star.sdbcx.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
 
 - Correction de la création d'une table dans Base avec une colonne de clé primaire qui s'incrémente automatiquement.
 

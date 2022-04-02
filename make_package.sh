@@ -32,9 +32,9 @@ cd $SCRIPTPATH
 
 unzip -o -d ./java/Driver/dist/ ./java/Driver/dist/Driver.oxt
 
-cd ./HsqlDBDriverOOo/
-zip -0 HsqlDBDriverOOo.zip mimetype
-zip -r HsqlDBDriverOOo.zip *
+cd ./jdbcDriverOOo/
+zip -0 jdbcDriverOOo.zip mimetype
+zip -r jdbcDriverOOo.zip *
 cd ..
 
-mv ./HsqlDBDriverOOo/HsqlDBDriverOOo.zip ./HsqlDBDriverOOo.oxt
+mv ./jdbcDriverOOo/jdbcDriverOOo.zip ./jdbcDriverOOo.oxt

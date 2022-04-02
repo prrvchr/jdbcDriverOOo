@@ -1,1 +1,0 @@
-Le dernier pilote HsqlDB enfin disponible dans LibreOffice / OpenOffice
