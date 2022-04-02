@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.lang.ServiceComponent;
 
@@ -35,31 +36,37 @@ extends ServiceComponent
 implements com.sun.star.sdbc.XWarningsSupplier
 {
 
+    private static boolean m_warnings = true;
 
-	// The constructor method:
-	public WarningsSupplierComponent(String name,
-									 String[] services)
-	{
-		super(name , services);
-	}
-
-
-	// com.sun.star.sdbc.XWarningsSupplier:
-	@Override
-	public void clearWarnings() throws SQLException
-	{
-		WarningsSupplier.clearWarnings(_getWrapper(), this);
-	}
+    // The constructor method:
+    public WarningsSupplierComponent(String name,
+                                     String[] services,
+                                     boolean warnings)
+    {
+        super(name , services);
+        m_warnings = warnings;
+    }
 
 
-	@Override
-	public Object getWarnings() throws SQLException
-	{
-		return WarningsSupplier.getWarnings(_getWrapper(), this);
-	}
+    // com.sun.star.sdbc.XWarningsSupplier:
+    @Override
+    public void clearWarnings() throws SQLException
+    {
+        if (m_warnings)
+            WarningsSupplier.clearWarnings(_getWrapper(), this);
+    }
 
 
-	abstract protected T _getWrapper();
+    @Override
+    public Object getWarnings() throws SQLException
+    {
+        if (m_warnings)
+            return WarningsSupplier.getWarnings(_getWrapper(), this);
+         return Any.VOID;
+    }
+
+
+    abstract protected T _getWrapper();
 
 
 }

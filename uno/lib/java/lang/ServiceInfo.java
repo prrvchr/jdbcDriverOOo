@@ -37,21 +37,17 @@ public final class ServiceInfo
 
 	public static String[] getSupportedServiceNames(String[] services)
 	{
-		return services;
+		return services.clone();
 	}
 
 	public static boolean supportsService(String[] services, String service)
 	{
-		boolean support = false;
 		for (int i = 0; i < services.length; i++)
 		{
 			if (service.equals(services[i]))
-			{
-				support = true;
-				break;
-			}
+				return true;
 		}
-		return support;
+		return false;
 	}
 
 

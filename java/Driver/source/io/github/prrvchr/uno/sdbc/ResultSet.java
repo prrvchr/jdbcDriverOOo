@@ -28,28 +28,32 @@ package io.github.prrvchr.uno.sdbc;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+
 
 public class ResultSet
 extends ResultSetBase
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
+    private static final String m_name = ResultSet.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
 
 
-	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-					 java.sql.ResultSet resultset)
-	{
-		super(ctx, m_name, m_services, resultset);
-		System.out.println("sdbc.ResultSet() 1");
-	}
-	public ResultSet(XComponentContext ctx,
-					 XInterface statement,
-					 java.sql.ResultSet resultset)
-	{
-		super(ctx, m_name, m_services, statement, resultset);
-		System.out.println("sdbc.ResultSet() 1");
-	}
+    // The constructor method:
+    public ResultSet(XComponentContext ctx,
+                     DriverProvider provider,
+                     java.sql.ResultSet resultset)
+    {
+        super(ctx, m_name, m_services, provider, resultset);
+        System.out.println("sdbc.ResultSet() 1");
+    }
+    public ResultSet(XComponentContext ctx,
+                     DriverProvider provider,
+                     XInterface statement,
+                     java.sql.ResultSet resultset)
+    {
+        super(ctx, m_name, m_services, provider, statement, resultset);
+        System.out.println("sdbc.ResultSet() 1");
+    }
 
 
 }

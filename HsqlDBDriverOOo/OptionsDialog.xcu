@@ -32,9 +32,6 @@
   oor:name="OptionsDialog">
     <node oor:name="Nodes">
         <node oor:name="io.github.prrvchr.BaseDriver" oor:op="fuse">
-            <prop oor:name="Id">
-                <value>io.github.prrvchr.BaseDriver</value>
-            </prop>
             <prop oor:name="Label">
                 <value xml:lang="en-US">Base drivers</value>
                 <value xml:lang="fr-FR">Pilotes Base</value>

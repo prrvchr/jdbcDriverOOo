@@ -183,8 +183,8 @@ public class ConnectionWrapper
 		System.out.println("ConnectionWrapper.getTypeMap() 1");
 		Map<String, Class<?>> map = m_Connection.getTypeMap();
 		System.out.println("ConnectionWrapper.getTypeMap() 2: " + map);
-		map = TypeMap.getDefaultTypeMap();
-		System.out.println("ConnectionWrapper.getTypeMap() 3: " + map);
+		//map = TypeMap.getDefaultTypeMap();
+		//System.out.println("ConnectionWrapper.getTypeMap() 3: " + map);
 		return map;
 	}
 

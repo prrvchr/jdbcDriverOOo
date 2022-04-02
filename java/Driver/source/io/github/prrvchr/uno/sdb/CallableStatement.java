@@ -33,6 +33,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
@@ -41,46 +42,47 @@ public class CallableStatement
 extends CallableStatementSuper
 implements XColumnsSupplier
 {
-	private static final String m_name = CallableStatement.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
-												"com.sun.star.sdbc.CallableStatement",
-												"com.sun.star.sdbcx.CallableStatement"};
+    private static final String m_name = CallableStatement.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
+                                                "com.sun.star.sdbc.CallableStatement",
+                                                "com.sun.star.sdbcx.CallableStatement"};
 
-	// The constructor method:
-	public CallableStatement(XComponentContext context,
-							 ConnectionBase xConnection,
-							 java.sql.Connection connection,
-							 String sql)
-	throws SQLException
-	{
-		super(context, m_name, m_services, xConnection, connection, sql);
-		System.out.println("sdb.CallableStatement() 1");
-	}
-
-
-	protected XResultSet _getResultSet(XComponentContext ctx,
-									   java.sql.ResultSet resultset)
-	throws java.sql.SQLException
-	{
-		return new ResultSet(ctx, this, resultset);
-	}
+    // The constructor method:
+    public CallableStatement(XComponentContext context,
+                             DriverProvider provider,
+                             ConnectionBase xConnection,
+                             java.sql.Connection connection,
+                             String sql)
+    throws SQLException
+    {
+        super(context, m_name, m_services, provider, xConnection, connection, sql);
+        System.out.println("sdb.CallableStatement() 1");
+    }
 
 
-	// com.sun.star.sdbcx.XColumnsSupplier:
-	@Override
-	public XNameAccess getColumns()
-	{
-		try
-		{
-			java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-			return ColumnsSupplier.getColumns(metadata);
-		}
-		catch (java.sql.SQLException e)
-		{
-			// pass
-		}
-		return null;
-	}
+    protected XResultSet _getResultSet(XComponentContext ctx,
+                                       java.sql.ResultSet resultset)
+    throws java.sql.SQLException
+    {
+        return new ResultSet(ctx, m_provider, this, resultset);
+    }
+
+
+    // com.sun.star.sdbcx.XColumnsSupplier:
+    @Override
+    public XNameAccess getColumns()
+    {
+        try
+        {
+            java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
+            return ColumnsSupplier.getColumns(metadata);
+        }
+        catch (java.sql.SQLException e)
+        {
+            // pass
+        }
+        return null;
+    }
 
 
 }

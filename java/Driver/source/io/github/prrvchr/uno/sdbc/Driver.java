@@ -36,53 +36,57 @@ import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+
 
 public final class Driver
 extends DriverBase
 {
-	private static final String m_name = Driver.class.getName();
-	private static final String[] m_services = {"io.github.prrvchr.HsqlDBDriverOOo.sdbc.Driver",
-												"com.sun.star.sdbc.Driver"};
+    private static final String m_name = Driver.class.getName();
+    private static final String[] m_services = {"io.github.prrvchr.HsqlDBDriverOOo.sdbc.Driver",
+                                                "com.sun.star.sdbc.Driver"};
 
-	// The constructor method:
-	public Driver(XComponentContext ctx)
-	throws Exception
-	{
-		super(ctx, m_name, m_services);
-		System.out.println("sdbc.Driver() 1");
-	}
+    // The constructor method:
+    public Driver(XComponentContext ctx)
+    throws Exception
+    {
+        super(ctx, m_name, m_services);
+        System.out.println("sdbc.Driver() 1");
+    }
 
-	protected java.sql.Connection _getConnection(String url,
-												 Properties properties)
-		throws java.sql.SQLException
-	{
-		return new ConnectionWrapper(DriverManager.getConnection(url, properties));
-	}
+    protected java.sql.Connection _getConnection(String url,
+                                                 Properties properties)
+        throws java.sql.SQLException
+    {
+        return DriverManager.getConnection(url, properties);
+    }
 
-	protected XConnection _getConnection(XComponentContext ctx,
-										 java.sql.Connection connection,
-										 String url,
-										 PropertyValue[] info)
-	{
-		return new Connection(ctx, connection, url, info);
-	}
+    protected XConnection _getConnection(XComponentContext ctx,
+                                         DriverProvider provider,
+                                         java.sql.Connection connection,
+                                         String url,
+                                         PropertyValue[] info)
+        throws java.sql.SQLException
+    {
+        return new Connection(ctx, provider, connection, url, info);
+    }
 
 
-	// UNO Service Registration:
-	public static XSingleComponentFactory __getComponentFactory(String name)
-	{
-		XSingleComponentFactory factory = null;
-		if (name.equals(m_name))
-		{
-			factory = Factory.createComponentFactory(Driver.class, m_services);
-		}
-		return factory;
-	}
+    // UNO Service Registration:
+    public static XSingleComponentFactory __getComponentFactory(String name)
+    {
+        XSingleComponentFactory factory = null;
+        if (name.equals(m_name))
+        {
+            factory = Factory.createComponentFactory(Driver.class, m_services);
+        }
+        return factory;
+    }
 
-	public static boolean __writeRegistryServiceInfo(XRegistryKey key)
-	{
-		return Factory.writeRegistryServiceInfo(m_name, m_services, key);
-	}
+    public static boolean __writeRegistryServiceInfo(XRegistryKey key)
+    {
+        return Factory.writeRegistryServiceInfo(m_name, m_services, key);
+    }
 
 
 }

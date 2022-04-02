@@ -30,47 +30,50 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.ResultSetSuper;
 import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
+import schemacrawler.crawl.ResultsCrawler;
 
 
 public final class ResultSet
 extends ResultSetSuper
 implements XColumnsSupplier
 {
-	private static final String m_name = ResultSet.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
-												"com.sun.star.sdbc.ResultSet", 
-												"com.sun.star.sdbcx.ResultSet"};
+    private static final String m_name = ResultSet.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
+                                                "com.sun.star.sdbc.ResultSet", 
+                                                "com.sun.star.sdbcx.ResultSet"};
 
 
-	// The constructor method:
-	public ResultSet(XComponentContext ctx,
-					 XInterface statement,
-					 java.sql.ResultSet resultset)
-	throws java.sql.SQLException
-	{
-		super(ctx, m_name, m_services, statement, resultset);
-		System.out.println("sdb.ResultSet() 1");
-	}
+    // The constructor method:
+    public ResultSet(XComponentContext ctx,
+                     DriverProvider provider,
+                     XInterface statement,
+                     java.sql.ResultSet resultset)
+    throws java.sql.SQLException
+    {
+        super(ctx, m_name, m_services, provider, statement, resultset);
+        System.out.println("sdb.ResultSet() 1");
+    }
 
 
-	// com.sun.star.sdbcx.XColumnsSupplier:
-	@Override
-	public XNameAccess getColumns()
-	{
-		XNameAccess columns = null;
-		try
-		{
-			java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
-			columns = ColumnsSupplier.getColumns(metadata);
-		}
-		catch (java.sql.SQLException e)
-		{
-			//throw UnoHelper.getSQLException(e, this);
-		}
-		return columns;
-	}
+    // com.sun.star.sdbcx.XColumnsSupplier:
+    @Override
+    public XNameAccess getColumns()
+    {
+        XNameAccess columns = null;
+        try
+        {
+            ResultsCrawler result = new ResultsCrawler(m_ResultSet);
+            columns = ColumnsSupplier.getColumns(result);
+        }
+        catch (java.sql.SQLException e)
+        {
+            //throw UnoHelper.getSQLException(e, this);
+        }
+        return columns;
+    }
 
 
 }

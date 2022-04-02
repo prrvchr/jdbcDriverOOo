@@ -29,6 +29,7 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.lang.ServiceProperty;
 
@@ -38,33 +39,38 @@ extends ServiceProperty
 implements com.sun.star.sdbc.XWarningsSupplier
 {
 
-	// The constructor method:
-	public WarningsSupplierProperty(String name,
-									String[] services,
-									Map<String, Property> properties)
-	{
-		super(name, services, properties);
-	}
+    private static boolean m_warnings = true;
+
+    // The constructor method:
+    public WarningsSupplierProperty(String name,
+                                    String[] services,
+                                    boolean warnings,
+                                    Map<String, Property> properties)
+    {
+        super(name, services, properties);
+        m_warnings = warnings;
+    }
 
 
-	// com.sun.star.sdbc.XWarningsSupplier:
-	@Override
-	public void clearWarnings() throws SQLException
-	{
-		T wrapper = _getWrapper();
-		WarningsSupplier.clearWarnings(wrapper, this);
-	}
+    // com.sun.star.sdbc.XWarningsSupplier:
+    @Override
+    public void clearWarnings() throws SQLException
+    {
+        if (m_warnings)
+            WarningsSupplier.clearWarnings(_getWrapper(), this);
+    }
 
 
-	@Override
-	public Object getWarnings() throws SQLException
-	{
-		T wrapper = _getWrapper();
-		return WarningsSupplier.getWarnings(wrapper, this);
-	}
+    @Override
+    public Object getWarnings() throws SQLException
+    {
+        if (m_warnings)
+            return WarningsSupplier.getWarnings(_getWrapper(), this);
+         return Any.VOID;
+    }
 
 
-	abstract protected T _getWrapper();
+    abstract protected T _getWrapper();
 
 
 }

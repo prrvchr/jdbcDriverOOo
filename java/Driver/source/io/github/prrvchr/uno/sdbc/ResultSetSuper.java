@@ -39,6 +39,7 @@ import com.sun.star.sdbcx.XRowLocate;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -61,11 +62,12 @@ implements XRowLocate,
 	public ResultSetSuper(XComponentContext ctx,
 						 String name,
 						 String[] services,
+						 DriverProvider provider,
 						 XInterface statement,
 						 java.sql.ResultSet resultset)
 	throws java.sql.SQLException
 	{
-		super(ctx, name, services, statement, resultset, _getPropertySet());
+		super(ctx, name, services, provider, statement, resultset, _getPropertySet());
 		m_row = m_ResultSet.getMetaData().getColumnCount();
 		if (m_row > 0)
 		{

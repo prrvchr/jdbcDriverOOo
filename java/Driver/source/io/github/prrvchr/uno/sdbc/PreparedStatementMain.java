@@ -48,6 +48,7 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -65,24 +66,26 @@ implements XParameters,
 	public PreparedStatementMain(XComponentContext context,
 								  String name,
 								  String[] services,
+								  DriverProvider provider,
 								  ConnectionBase xConnection)
 	{
-		super(context, name, services);
+		super(context, name, services, provider);
 		m_xConnection = xConnection;
 	}
 
 	public PreparedStatementMain(XComponentContext context,
 								  String name,
 								  String[] services,
+								  DriverProvider provider,
 								  ConnectionBase xConnection,
 								  Map<String, Property> properties)
 	{
-		super(context, name, services, properties);
+		super(context, name, services, provider, properties);
 		m_xConnection = xConnection;
 	}
 
 
-	abstract protected java.sql.PreparedStatement _getStatement();
+	abstract protected java.sql.PreparedStatement _getStatement() throws java.sql.SQLException;
 
 	
 	// com.sun.star.sdbc.XParameters:

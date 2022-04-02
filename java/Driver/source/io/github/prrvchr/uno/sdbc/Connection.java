@@ -26,53 +26,62 @@
 package io.github.prrvchr.uno.sdbc;
 
 
+import java.sql.SQLException;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+
 
 public class Connection
-	extends ConnectionBase
+    extends ConnectionBase
 {
-	private static String m_name = Connection.class.getName();
-	private static String[] m_services = {"com.sun.star.sdbc.Connection"};
+    private static String m_name = Connection.class.getName();
+    private static String[] m_services = {"com.sun.star.sdbc.Connection"};
 
-	// The constructor method:
-	public Connection(XComponentContext ctx,
-					  java.sql.Connection connection,
-					  String url,
-					  PropertyValue[] info)
-	{
-		super(ctx, m_name, m_services, connection, info, url);
-		System.out.println("sdbc.Connection() 1");
-	}
+    // The constructor method:
+    public Connection(XComponentContext ctx,
+                      DriverProvider provider,
+                      java.sql.Connection connection,
+                      String url,
+                      PropertyValue[] info)
+        throws SQLException
+    {
+        super(ctx, m_name, m_services, provider, connection, info, url);
+        System.out.println("sdbc.Connection() 1");
+    }
 
 
-	protected XStatement _getStatement(XComponentContext ctx,
-									   java.sql.Connection connection)
-	throws java.sql.SQLException
-	{
-		return new Statement(ctx, this, connection);
-	}
+    protected XStatement _getStatement(XComponentContext ctx,
+                                       DriverProvider provider,
+                                       java.sql.Connection connection)
+    throws java.sql.SQLException
+    {
+        return new Statement(ctx, provider, this, connection);
+    }
 
-	protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
-													   java.sql.Connection connection,
-													   String sql)
-	throws java.sql.SQLException
-	{
-		System.out.println("sdbc.Connection._getPreparedStatement() 1: '" + sql + "'");
-		return new PreparedStatement(ctx, this, connection, sql);
-	}
+    protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
+                                                       DriverProvider provider,
+                                                       java.sql.Connection connection,
+                                                       String sql)
+    throws java.sql.SQLException
+    {
+        System.out.println("sdbc.Connection._getPreparedStatement() 1: '" + sql + "'");
+        return new PreparedStatement(ctx, provider, this, connection, sql);
+    }
 
-	protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
-													   java.sql.Connection connection,
-													   String sql)
-	throws java.sql.SQLException
-	{
-		System.out.println("sdbc.Connection._getCallableStatement() 1: '" + sql + "'");
-		return new CallableStatement(ctx, this, connection, sql);
-	}
+    protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
+                                                       DriverProvider provider,
+                                                       java.sql.Connection connection,
+                                                       String sql)
+    throws java.sql.SQLException
+    {
+        System.out.println("sdbc.Connection._getCallableStatement() 1: '" + sql + "'");
+        return new CallableStatement(ctx, provider, this, connection, sql);
+    }
 
 
 }

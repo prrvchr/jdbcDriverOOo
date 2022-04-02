@@ -28,30 +28,33 @@ package io.github.prrvchr.uno.sdbc;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+
 
 public final class Statement
 extends StatementBase
 {
-	private static String m_name = Statement.class.getName();
-	private static String[] m_services = {"com.sun.star.sdbc.Statement"};
+    private static String m_name = Statement.class.getName();
+    private static String[] m_services = {"com.sun.star.sdbc.Statement"};
 
 
-	// The constructor method:
-	public Statement(XComponentContext context,
-					 ConnectionBase xConnection,
-					 java.sql.Connection connection)
-	throws java.sql.SQLException
-	{
-		super(context, m_name, m_services, xConnection, connection);
-		System.out.println("sdbc.Statement() 1");
-	}
+    // The constructor method:
+    public Statement(XComponentContext context,
+                     DriverProvider provider,
+                     ConnectionBase xConnection,
+                     java.sql.Connection connection)
+    throws java.sql.SQLException
+    {
+        super(context, m_name, m_services, provider, xConnection, connection);
+        System.out.println("sdbc.Statement() 1");
+    }
 
-	protected XResultSet _getResultSet(XComponentContext ctx,
-									   java.sql.ResultSet resultset)
-	throws java.sql.SQLException
-	{
-		return new ResultSet(ctx, this, resultset);
-	}
+    protected XResultSet _getResultSet(XComponentContext ctx,
+                                       java.sql.ResultSet resultset)
+    throws java.sql.SQLException
+    {
+        return m_provider.getResultSet(ctx, this, resultset);
+    }
 
 
 }
