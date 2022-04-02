@@ -1,6 +1,6 @@
 # ![jdbcDriverOOo logo][1] jdbcDriverOOo - Conditions d'utilisation
 
-Concernant l'installation, la configuration et l'utilisation, veuillez consulter la [documentation][2].
+Concernant l'installation, la configuration et l'utilisation, veuillez consulter la **[documentation][2]**.
 
 ## Introduction:
 
