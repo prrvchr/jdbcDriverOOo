@@ -10,8 +10,11 @@
 
 **jdbcDriverOOo** fait partie d'une [Suite](https://prrvchr.github.io/README_fr) d'extensions [LibreOffice](https://fr.libreoffice.org/download/telecharger-libreoffice/) et/ou [OpenOffice](https://www.openoffice.org/fr/Telecharger/) permettant de vous offrir des services inovants dans ces suites bureautique.  
 
-Cette extension vous permet d'utiliser le pilote HsqlDB de votre choix, avec toutes ses fonctionnalités, directement dans Base.  
-Elle prend en charge tous les protocoles gérés nativement par HsqlDB, à savoir: hsql://, hsqls://, http://, https://, mem://, file:// et res://.
+Cette extension vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
+Elle embarque les pilotes pour les base de données suivantes:
+- HyperSQL ou [HsqlDB](http://hsqldb.org/). Elle prend en charge tous les protocoles gérés nativement par HsqlDB, à savoir: hsql://, hsqls://, http://, https://, mem://, file:// et res://.
+- [H2 Database Engine](https://www.h2database.com/html/main.html).
+- [Apache Derby](https://db.apache.org/derby/).
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/jdbcDriverOOo/).
@@ -23,11 +26,11 @@ Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 
 ## Prérequis:
 
-[HsqlDB](http://hsqldb.org/) est une base de données écrite en Java.  
+jdbcDriverOOo est un pilote JDBC écrit en Java.  
 Son utilisation nécessite [l'installation et la configuration](https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr) dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
 Je vous recommande [Adoptium](https://adoptium.net/releases.html?variant=openjdk11) comme source d'installation de Java.
 
-Si vous utilisez **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
+Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
 Pour contourner le problème, veuillez désinstaller les paquets:
 - libreoffice-sdbc-hsqldb
 - libhsqldb1.8.0-java
@@ -45,6 +48,8 @@ Si nécessaire, renommez-le avant de l'installer.
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
 ## Utilisation:
+
+Ce mode d'utilisation utilise une base de données HsqlDB.
 
 ### Comment créer une nouvelle base de données:
 
@@ -87,23 +92,18 @@ Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
 Maintenant à vous d'en profiter...
 
-### Comment mettre à jour le pilote HsqlDB:
+### Comment mettre à jour le pilote JDBC:
 
-Si vous souhaitez mettre à jour le pilote HsqlDB (hsqldb.jar) vers une version plus récente, procédez comme suit:
+Il est possible de mettre à jour le pilote JDBC (hsqldb.jar, h2.jar, derbytools.jar) vers une version plus récente.  
+ procédez comme suit:
 - 1 - Faite une copie (sauvegarde) du dossier contenant votre base de données.
-- 2 - Lancer LibreOffice / OpenOffice et changez la version du pilote HsqlDB dans: Outils -> Options -> Pilotes Base -> Pilote HsqlDB, par une version plus récente (Si nécessaire, vous devez renommer le fichier jar en hsqldb.jar pour qu'il soit pris en compte).
-- 3 - Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar).
+- 2 - Lancer LibreOffice / OpenOffice et changez la version du pilote JDBC dans: Outils -> Options -> Pilotes Base -> Pilote JDBC, par une version plus récente.
+- 3 - Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar, h2.jar, derbytools.jar).
 - 4 - Dans Base, aprés avoir ouvert votre base de données, allez à: Outils -> SQL et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
 
 Maintenant votre base de données est à jour.
 
 ## A été testé avec:
-
-* OpenOffice 4.1.8 - Ubuntu 20.04 - LxQt 0.14.1
-
-* OpenOffice 4.1.8 - Windows 7 SP1
-
-* OpenOffice 4.1.8 - MacOS.High Sierra
 
 * LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1
 
@@ -120,14 +120,17 @@ J'essaierai de le résoudre ;-)
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [bug 132195](https://bugs.documentfoundation.org/show_bug.cgi?id=132195).
 
-Le seul contournement possible face à ce problème est de mettre l'archive Java du pilote (hsqldb.jar) dans le ClassPath de Java, mais pose le problème que si la version du pilote est autre que la version 1.8, alors Base ne peut plus ouvrir les fichiers odb: la fonctionnalité de base de données integrée HsqlDB est perdue. Cela revient à dire que l'on ne peut pas utiliser de pilote HsqlDB autre que la version 1.8, qui a maintenant plus de 10 ans...
-
-Afin de profiter des dernières fonctionnalités offertes par HsqlDB, il était nécessaire d'écrire un nouveau pilote.
+Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
 Jusqu'à la version 0.0.3, ce nouveau pilote n'est qu'une surcouche ou emballage (wrapper) en Python autour des services UNO fournis par le pilote LibreOffice / OpenOffice JDBC défectueux.  
 Depuis la version 0.0.4, il a été complètement réécrit en Java sous Eclipse, car qui mieux que Java peut donner accès à JDBC dans l'API UNO...  
-Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors de l'appel du protocole `sdbc:hsqldb:*` mais utilise le protocole `jdbc:hsqldb:*` en interne pour se connecter.
+Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors de l'appel des protocoles suivants:
+- `sdbc:hsqldb:*`
+- `sdbc:h2:*`
+- `sdbc:derby:*`
+mais utilise le protocole `jdbc:*` en interne pour se connecter.
 
 Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice / OpenOffice ne fournit pas, à savoir:
 
@@ -183,13 +186,15 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
   - [com.sun.star.sdbcx.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
 
-- Correction de la création d'une table dans Base avec une colonne de clé primaire qui s'incrémente automatiquement.
+- Intégration dans jdbcDriverOOo des pilotes JDBC H2 et Derby en plus de HsqlDB. Implémentation de Services Java afin de corriger d'éventuels défauts, ou incompatibilité avec l'API UNO, des pilotes JDBC embarqués. 
+
+- Renommage du dépot et de l'extension HsqlDBDriverOOo en jdbcDriverOOo.
+
+- Prise en charge dans Base des clés primaires auto incrémentées pour HsqlDB et Derby. H2 ne supporte pas encore.
 
 - Beaucoup d'autres correctifs...
 
 ### Que reste-t-il à faire pour la version 0.0.4:
-
-- **Trouvez ce qui manque au pilote pour rendre les tables modifiables dans Base...**
 
 - La gestion des droits et des utilisateurs dans Base en lecture et écriture...
 

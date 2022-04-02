@@ -10,8 +10,11 @@
 
 **jdbcDriverOOo** is part of a [Suite](https://prrvchr.github.io/) of [LibreOffice](https://www.libreoffice.org/download/download/) and/or [OpenOffice](https://www.openoffice.org/download/index.html) extensions allowing to offer you innovative services in these office suites.  
 
-This extension allows you to use the HsqlDB driver of your choice, with all its features, directly in Base.  
-It supports all protocols natively managed by HsqlDB, namely: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
+This extension allows you to use the JDBC driver of your choice directly in Base.  
+It embeds the drivers for the following databases:
+- HyperSQL ou [HsqlDB](http://hsqldb.org/). It supports all protocols natively managed by HsqlDB, namely: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
+- [H2 Database Engine](https://www.h2database.com/html/main.html).
+- [Apache Derby](https://db.apache.org/derby/).
 
 Being free software I encourage you:
 - To duplicate its [source code](https://github.com/prrvchr/jdbcDriverOOo/).
@@ -23,11 +26,11 @@ Because it is together that we can make Free Software smarter.
 
 ## Requirement:
 
-[HsqlDB](http://hsqldb.org/) is a database written in Java.  
+jdbcDriverOOo is a JDBC driver written in Java.  
 Its use requires the [installation and configuration](https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10) in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium](https://adoptium.net/releases.html?variant=openjdk11) as your Java installation source.
 
-If you are using **LibreOffice on Linux**, then you are subject to [bug 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
+If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug 139538](https://bugs.documentfoundation.org/show_bug.cgi?id=139538).  
 To work around the problem, please uninstall the packages:
 - libreoffice-sdbc-hsqldb
 - libhsqldb1.8.0-java
@@ -45,6 +48,8 @@ If necessary, rename it before installing it.
 Restart LibreOffice / OpenOffice after installation.
 
 ## Use:
+
+This mode of use uses an HsqlDB database.
 
 ### How to create a new database:
 
@@ -89,7 +94,8 @@ Have fun...
 
 ### How to update the HsqlDB driver:
 
-If you want to update the HsqlDB driver (hsqldb.jar) to a newer version, follow these steps:
+It is possible to update the JDBC driver (hsqldb.jar, h2.jar, derbytools.jar) to a newer version.  
+If you use HsqlDB as database, follow these steps:
 - 1 - Make a copy (backup) of the folder containing your database.
 - 2 - Start LibreOffice / OpenOffice and change the version of the HsqlDB driver in: Tools -> Options -> Base drivers -> HsqlDB driver, by a more recent version (If necessary, you must rename the jar file to hsqldb.jar so that it is taken into account).
 - 3 - Restart LibreOffice / OpenOffice after changing the driver (hsqldb.jar).
@@ -98,12 +104,6 @@ If you want to update the HsqlDB driver (hsqldb.jar) to a newer version, follow 
 Now your database is up to date.
 
 ## Has been tested with:
-
-* OpenOffice 4.1.8 - Ubuntu 20.04 - LxQt 0.14.1
-
-* OpenOffice 4.1.8 - Windows 7 SP1
-
-* OpenOffice 4.1.8 - MacOS.High Sierra
 
 * LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1
 
@@ -120,14 +120,17 @@ I will try to solve it ;-)
 This driver was written to work around certain problems inherent in the UNO implementation of the JDBC driver built into LibreOffice / OpenOffice, namely: 
 
 - The inability to provide the path to the Java driver archive (hsqldb.jar) when loading the JDBC driver.
+- Not being able to use prepared SQL statements (PreparedStatement) see [bug 132195](https://bugs.documentfoundation.org/show_bug.cgi?id=132195).
 
-The only possible workaround for this problem is to put the driver's Java archive (hsqldb.jar) in the Java ClassPath, but the problem is that if the driver version is other than version 1.8, then Base can no longer open odb files: HsqlDB embedded database functionality is lost. This amounts to saying that you cannot use an HsqlDB driver other than version 1.8, which is now over 10 years old...
-
-In order to take advantage of the latest features offered by HsqlDB, it was necessary to write a new driver.
+In order to take advantage of the latest features offered by databases and among others HsqlDB, it was necessary to write a new driver.
 
 Until version 0.0.3, this new driver is just a wrapper in Python around the UNO services provided by the defective LibreOffice / OpenOffice JDBC driver.  
 Since version 0.0.4, it has been completely rewritten in Java under Eclipse, because who better than Java can provide access to JDBC in the UNO API...  
-In order not to prevent the native JDBC driver from working, it loads when calling the `sdbc:hsqldb:*` protocol but uses the `jdbc:hsqldb:*` protocol internally to connect.
+In order not to prevent the native JDBC driver from working, it loads when calling the following protocols:
+- `sdbc:hsqldb:*`
+- `sdbc:h2:*`
+- `sdbc:derby:*`
+but uses the `jdbc:*` protocol internally to connect.
 
 It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:
 
@@ -183,13 +186,15 @@ For now, only the use of the SQL Array type in the queries is available.
 
   - [com.sun.star.sdbcx.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
 
-- Fixed creating a table in Base with a primary key column that auto-increments.
+- Integration in jdbcDriverOOo of H2 and Derby JDBC drivers in addition to HsqlDB. Implementation of Java Services in order to correct possible defects, or incompatibility with the UNO API, of embedded JDBC drivers.
+
+- Renamed the HsqlDBDriverOOo repository and extension to jdbcDriverOOo.
+
+- Support in Base for auto-incrementing primary keys for HsqlDB and Derby. H2 does not support yet.
 
 - Many other fix...
 
 ### What remains to be done for version 0.0.4:
-
-- **Find what the driver is missing to make tables editable in Base...**
 
 - Managing rights and users in Base in read and write mode.
 

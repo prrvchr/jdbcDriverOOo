@@ -47,7 +47,6 @@ public abstract class StatementBase
 {
 
     private XConnection m_xConnection;
-    @SuppressWarnings("unused")
     private java.sql.Connection m_Connection;
     private java.sql.Statement m_Statement = null;
     private boolean m_EscapeProcessing = true;
@@ -106,7 +105,6 @@ public abstract class StatementBase
     }
     protected boolean _getEscapeProcessing()
     {
-
         return m_EscapeProcessing;
     }
 
