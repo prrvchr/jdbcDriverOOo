@@ -45,8 +45,8 @@
                         <value>io.github.prrvchr.BaseDriver.jdbcDriverOOo</value>
                     </prop>
                     <prop oor:name="Label">
-                        <value xml:lang="en-US">HsqlDB Driver</value>
-                        <value xml:lang="fr-FR">Pilote HsqlDB</value>
+                        <value xml:lang="en-US">JDBC Driver</value>
+                        <value xml:lang="fr-FR">Pilote JDBC</value>
                     </prop>
                     <prop oor:name="OptionsPage">
                         <value>%origin%/jdbcDriverOOo/OptionsDialog.xdl</value>

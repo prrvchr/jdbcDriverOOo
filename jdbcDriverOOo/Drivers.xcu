@@ -32,9 +32,6 @@
 <!--  View: https://github.com/LibreOffice/core/tree/master/connectivity/registry#readme -->
     <node oor:name="Installed">
         <node oor:name="sdbc:hsqldb:*" oor:op="replace">
-<!--        <prop oor:name="ParentURLPattern">
-                <value>sdbc:hsqldb:*</value>
-            </prop> -->
             <prop oor:name="Driver">
                 <value>io.github.prrvchr.jdbcDriverOOo.sdbc.Driver</value>
             </prop>
