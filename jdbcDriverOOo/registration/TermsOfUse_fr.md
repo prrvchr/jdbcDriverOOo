@@ -18,7 +18,7 @@ jdbcDriverOOo est un logiciel gratuit; Vous pouvez le redistribuer et/ou le modi
 
 - La GNU [Lesser General Public License][4] publiée par La Free Software Foundation, soit la version 3 de la Licence, soit (selon votre choix) toute version ultérieure.
 
-[1]: https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.png
-[2]: https://prrvchr.github.io/jdbcDriverOOo/ (jdbcDriverOOo documentation)
-[3]: http://mozilla.org/MPL/2.0/ (MPL 2.0)
-[4]: http://www.gnu.org/licenses/lgpl-3.0.html (LGPL 3.0)
+[1]: <https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.png>
+[2]: <https://prrvchr.github.io/jdbcDriverOOo/> (jdbcDriverOOo documentation)
+[3]: <http://mozilla.org/MPL/2.0/> (MPL 2.0)
+[4]: <http://www.gnu.org/licenses/lgpl-3.0.html> (LGPL 3.0)
