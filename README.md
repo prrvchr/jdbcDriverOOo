@@ -12,9 +12,10 @@
 
 This extension allows you to use the JDBC driver of your choice directly in Base.  
 It embeds the drivers for the following databases:
-- HyperSQL ou [HsqlDB](http://hsqldb.org/). It supports all protocols natively managed by HsqlDB, namely: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
-- [H2 Database Engine](https://www.h2database.com/html/main.html).
-- [Apache Derby](https://db.apache.org/derby/).
+- [HyperSQL or HsqlDB](http://hsqldb.org/) version 2.51.
+    The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
+- [H2 Database Engine](https://www.h2database.com/html/main.html) version 2.1.210.
+- [Apache Derby](https://db.apache.org/derby/) version 1.15.2.0.
 
 Being free software I encourage you:
 - To duplicate its [source code](https://github.com/prrvchr/jdbcDriverOOo/).
