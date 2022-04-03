@@ -61,20 +61,16 @@ public class RegistrationHelper
     public static XSingleComponentFactory __getComponentFactory(InputStream in, String sImplementationName)
     {
         XSingleComponentFactory xFactory = null;
-        @SuppressWarnings("rawtypes")
-        Class[] classes = findServicesImplementationClasses(in);
+        Class<?>[] classes = findServicesImplementationClasses(in);
         int i = 0;
         while (i < classes.length && xFactory == null)
         {
-            @SuppressWarnings("rawtypes")
-            Class clazz = classes[i];
+            Class<?> clazz = classes[i];
             if (sImplementationName.equals(clazz.getCanonicalName()))
             {
                 try
                 {
-                    @SuppressWarnings("rawtypes")
-                    Class[] getTypes = new Class[]{String.class};
-                    @SuppressWarnings("unchecked")
+                    Class<?>[] getTypes = new Class[]{String.class};
                     Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
                     Object o = getFactoryMethod.invoke(null, sImplementationName);
                     xFactory = (XSingleComponentFactory)o;
@@ -106,19 +102,15 @@ public class RegistrationHelper
 
     public static boolean __writeRegistryServiceInfo(InputStream in, XRegistryKey xRegistryKey)
     {
-        @SuppressWarnings("rawtypes")
-        Class[] classes = findServicesImplementationClasses(in);
+        Class<?>[] classes = findServicesImplementationClasses(in);
         boolean success = true;
         int i = 0;
         while (i < classes.length && success)
         {
-            @SuppressWarnings("rawtypes")
-            Class clazz = classes[i];
+            Class<?> clazz = classes[i];
             try
             {
-                @SuppressWarnings("rawtypes")
-                Class[] writeTypes = new Class[]{XRegistryKey.class};
-                @SuppressWarnings("unchecked")
+                Class<?>[] writeTypes = new Class[]{XRegistryKey.class};
                 Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
                 Object o = getFactoryMethod.invoke(null, xRegistryKey);
                 success = success && ((Boolean)o).booleanValue();
@@ -136,10 +128,9 @@ public class RegistrationHelper
      * @return all the UNO implementation classes. 
      */
 
-    @SuppressWarnings("rawtypes")
-    private static Class[] findServicesImplementationClasses(InputStream in)
+    private static Class<?>[] findServicesImplementationClasses(InputStream in)
     {
-        ArrayList<Class> classes = new ArrayList<Class>();
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
         try
         {
@@ -151,12 +142,10 @@ public class RegistrationHelper
                     line = line.trim();
                     try
                     {
-                        Class clazz = Class.forName(line);
-                        Class[] writeTypes = new Class[]{XRegistryKey.class};
-                        Class[] getTypes = new Class[]{String.class};
-                        @SuppressWarnings("unchecked")
+                        Class<?> clazz = Class.forName(line);
+                        Class<?>[] writeTypes = new Class[]{XRegistryKey.class};
+                        Class<?>[] getTypes = new Class[]{String.class};
                         Method writeRegMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
-                        @SuppressWarnings("unchecked")
                         Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
                         if (writeRegMethod != null && getFactoryMethod != null)
                         {
