@@ -38,63 +38,63 @@ import io.github.prrvchr.uno.lang.ServiceProperty;
 
 
 public class User
-	extends ServiceProperty
-	implements XUser
+    extends ServiceProperty
+    implements XUser
 {
 
-	private static final String m_name = User.class.getName();
-	private static final String[] m_services = {"com.sun.star.sdbcx.User"};
-	@SuppressWarnings("unused")
-	private final java.sql.Connection m_Connection;
-	@SuppressWarnings("unused")
-	private Map<String, String> m_users;
-	private static Map<String, Property> _getPropertySet()
-	{
-		Map<String, Property> map = new HashMap<String, Property>();
-		map.put("Name", UnoHelper.getProperty("Name", "string"));
-		return map;
-	}
+    private static final String m_name = User.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+    @SuppressWarnings("unused")
+    private final java.sql.Connection m_Connection;
+    @SuppressWarnings("unused")
+    private Map<String, String> m_users;
+    private static Map<String, Property> _getPropertySet()
+    {
+        Map<String, Property> map = new HashMap<String, Property>();
+        map.put("Name", UnoHelper.getProperty("Name", "string"));
+        return map;
+    }
 
-	// The constructor method:
-	public User(Connection connection)
-	{
-		super(m_name, m_services, _getPropertySet());
-		m_Connection = connection;
-	}
-
-
-	// com.sun.star.sdbcx.XAuthorizable <- XUser:
-	@Override
-	public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getPrivileges(String arg0, int arg1) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
+    // The constructor method:
+    public User(Connection connection)
+    {
+        super(m_name, m_services, _getPropertySet());
+        m_Connection = connection;
+    }
 
 
-	// com.sun.star.sdbcx.XUser:
-	@Override
-	public void changePassword(String arg0, String arg1) throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
+    // com.sun.star.sdbcx.XAuthorizable <- XUser:
+    @Override
+    public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public int getPrivileges(String arg0, int arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    // com.sun.star.sdbcx.XUser:
+    @Override
+    public void changePassword(String arg0, String arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        
+    }
 
 
 }

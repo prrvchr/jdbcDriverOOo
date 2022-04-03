@@ -40,85 +40,85 @@ public class Array
 extends WeakBase
 implements XArray
 {
-	private Object[] m_Array = new Object[0];
-	private int m_Type = 0;
-	private String m_TypeName;
+    private Object[] m_Array = new Object[0];
+    private int m_Type = 0;
+    private String m_TypeName;
 
-	// The constructor method:
-	public Array(java.sql.Array array)
-	throws SQLException
-	{
-		try
-		{
-			m_Array = (Object[]) array.getArray();
-			m_Type = UnoHelper.mapSQLDataType(array.getBaseType());
-			m_TypeName = UnoHelper.mapSQLDataTypeName(array.getBaseTypeName(), m_Type);
-		} 
-		catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, this);
-		}
-	}
-	public Array(Object[] array,
-				 String typename)
-		throws SQLException
-	{
-		try
-		{
-			m_Array = array;
-			m_Type = UnoHelper.getConstantValue(DataType.class, typename);
-			m_TypeName = typename;
-		}
-		catch (java.sql.SQLException e)
-		{
-			throw UnoHelper.getSQLException(e, this);
-		}
-	}
+    // The constructor method:
+    public Array(java.sql.Array array)
+    throws SQLException
+    {
+        try
+        {
+            m_Array = (Object[]) array.getArray();
+            m_Type = UnoHelper.mapSQLDataType(array.getBaseType());
+            m_TypeName = UnoHelper.mapSQLDataTypeName(array.getBaseTypeName(), m_Type);
+        } 
+        catch (java.sql.SQLException e)
+        {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+    public Array(Object[] array,
+                 String typename)
+        throws SQLException
+    {
+        try
+        {
+            m_Array = array;
+            m_Type = UnoHelper.getConstantValue(DataType.class, typename);
+            m_TypeName = typename;
+        }
+        catch (java.sql.SQLException e)
+        {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
 
 
-	@Override
-	public Object[] getArray(XNameAccess arg0)
-	throws SQLException
-	{
-		return m_Array;
-	}
+    @Override
+    public Object[] getArray(XNameAccess arg0)
+    throws SQLException
+    {
+        return m_Array;
+    }
 
-	@Override
-	public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
-	throws SQLException
-	{
-		return Arrays.copyOfRange(m_Array, index, index + count);
-	}
+    @Override
+    public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
+    throws SQLException
+    {
+        return Arrays.copyOfRange(m_Array, index, index + count);
+    }
 
-	@Override
-	public int getBaseType()
-	throws SQLException
-	{
-		return m_Type;
-	}
+    @Override
+    public int getBaseType()
+    throws SQLException
+    {
+        return m_Type;
+    }
 
-	@Override
-	public String getBaseTypeName()
-	throws SQLException
-	{
-		return m_TypeName;
-	}
+    @Override
+    public String getBaseTypeName()
+    throws SQLException
+    {
+        return m_TypeName;
+    }
 
-	@Override
-	public XResultSet getResultSet(XNameAccess arg0)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public XResultSet getResultSet(XNameAccess arg0)
+    throws SQLException
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
-	throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
+    throws SQLException
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
 }

@@ -15,7 +15,7 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB](http://hsqldb.org/) version 2.51.
     Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://.
 - [H2 Database Engine](https://www.h2database.com/html/main.html) version 2.1.210.
-- [Apache Derby](https://db.apache.org/derby/) version 1.15.2.0.
+- [Apache Derby](https://db.apache.org/derby/) version 10.15.2.0.
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source](https://github.com/prrvchr/jdbcDriverOOo/).
@@ -131,6 +131,7 @@ Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors 
 - `sdbc:hsqldb:*`
 - `sdbc:h2:*`
 - `sdbc:derby:*`
+
 mais utilise le protocole `jdbc:*` en interne pour se connecter.
 
 Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice / OpenOffice ne fournit pas, à savoir:

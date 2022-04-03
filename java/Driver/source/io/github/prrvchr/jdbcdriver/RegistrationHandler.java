@@ -36,20 +36,20 @@ import io.github.prrvchr.uno.RegistrationHelper;
 public class RegistrationHandler
 {
 
-	public static XSingleComponentFactory __getComponentFactory(String name)
-	{
-		return RegistrationHelper.__getComponentFactory(_getInputStream(), name);
-	}
+    public static XSingleComponentFactory __getComponentFactory(String name)
+    {
+        return RegistrationHelper.__getComponentFactory(_getInputStream(), name);
+    }
 
-	public static boolean __writeRegistryServiceInfo(XRegistryKey key)
-	{
-		return RegistrationHelper.__writeRegistryServiceInfo(_getInputStream(), key);
-	}
+    public static boolean __writeRegistryServiceInfo(XRegistryKey key)
+    {
+        return RegistrationHelper.__writeRegistryServiceInfo(_getInputStream(), key);
+    }
 
-	private static InputStream _getInputStream()
-	{
-		return RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
-	}
+    private static InputStream _getInputStream()
+    {
+        return RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
+    }
 
 
 }

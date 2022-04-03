@@ -26,11 +26,9 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.DriverManager;
-//import java.util.Map;
 import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.registry.XRegistryKey;
@@ -39,6 +37,7 @@ import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbcx.XDataDefinitionSupplier;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.uno.Exception;
+import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.ConnectionWrapper;
@@ -46,19 +45,13 @@ import io.github.prrvchr.uno.sdbc.DriverBase;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdb.Connection;
 
-//import schemacrawler.tools.databaseconnector.DatabaseConnectionSource;
-//import schemacrawler.tools.databaseconnector.SingleUseUserCredentials;
-//import us.fatehi.utility.PropertiesUtility;
-import schemacrawler.server.hsqldb.HyperSQLDatabaseConnector;
 
-@SuppressWarnings("unused")
 public final class Driver
 extends DriverBase
 implements XDataDefinitionSupplier
 {
     private static final String m_name = Driver.class.getName();
-    private static final String[] m_services = {"io.github.prrvchr.HsqlDBDriverOOo.sdbcx.Driver",
-                                                "com.sun.star.sdbcx.Driver",
+    private static final String[] m_services = {"com.sun.star.sdbcx.Driver",
                                                 "com.sun.star.sdbc.Driver"};
 
     // The constructor method:
@@ -116,9 +109,7 @@ implements XDataDefinitionSupplier
     throws SQLException
     {
         System.out.println("Driver.getDataDefinitionByConnection() 1");
-        XNameAccess tables = ((XTablesSupplier) connection).getTables();
-        System.out.println("Driver.getDataDefinitionByConnection() 2");
-        return new TablesSupplier(tables);
+        return (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
     }
 
     @Override

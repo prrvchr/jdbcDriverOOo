@@ -39,25 +39,25 @@ public abstract class CallableStatementSuper
 extends CallableStatementBase
 {
 
-	protected boolean m_UseBookmarks = false;
-	private static Map<String, Property> _getPropertySet()
-	{
-		Map<String, Property> map = new HashMap<String, Property>();
-		map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
-		return map;
-	}
+    protected boolean m_UseBookmarks = false;
+    private static Map<String, Property> _getPropertySet()
+    {
+        Map<String, Property> map = new HashMap<String, Property>();
+        map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
+        return map;
+    }
 
-	// The constructor method:
-	public CallableStatementSuper(XComponentContext context,
-								 String name,
-								 String[] services,
-								 DriverProvider provider,
-								 ConnectionBase xConnection,
-								 java.sql.Connection connection,
-								 String sql)
-	{
-		super(context, name, services, provider, xConnection, connection, sql, _getPropertySet());
-	}
+    // The constructor method:
+    public CallableStatementSuper(XComponentContext context,
+                                 String name,
+                                 String[] services,
+                                 DriverProvider provider,
+                                 ConnectionBase xConnection,
+                                 java.sql.Connection connection,
+                                 String sql)
+    {
+        super(context, name, services, provider, xConnection, connection, sql, _getPropertySet());
+    }
 
 
 }

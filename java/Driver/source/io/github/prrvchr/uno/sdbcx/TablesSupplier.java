@@ -33,21 +33,21 @@ public final class TablesSupplier
 implements XTablesSupplier
 {
 
-	private final XNameAccess m_xTables;
-	
-	// The constructor method:
-	public TablesSupplier(XNameAccess tables)
-	{
-		m_xTables = tables;
-	}
+    private final XNameAccess m_xTables;
+    
+    // The constructor method:
+    public TablesSupplier(XNameAccess tables)
+    {
+        m_xTables = tables;
+    }
 
 
-	// com.sun.star.sdbc.XTablesSupplier:
-	@Override
-	public XNameAccess getTables()
-	{
-		return m_xTables;
-	}
+    // com.sun.star.sdbc.XTablesSupplier:
+    @Override
+    public XNameAccess getTables()
+    {
+        return m_xTables;
+    }
 
 
 }

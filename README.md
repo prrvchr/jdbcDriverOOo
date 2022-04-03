@@ -15,7 +15,7 @@ It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB](http://hsqldb.org/) version 2.51.
     The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
 - [H2 Database Engine](https://www.h2database.com/html/main.html) version 2.1.210.
-- [Apache Derby](https://db.apache.org/derby/) version 1.15.2.0.
+- [Apache Derby](https://db.apache.org/derby/) version 10.15.2.0.
 
 Being free software I encourage you:
 - To duplicate its [source code](https://github.com/prrvchr/jdbcDriverOOo/).
@@ -131,6 +131,7 @@ In order not to prevent the native JDBC driver from working, it loads when calli
 - `sdbc:hsqldb:*`
 - `sdbc:h2:*`
 - `sdbc:derby:*`
+
 but uses the `jdbc:*` protocol internally to connect.
 
 It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:

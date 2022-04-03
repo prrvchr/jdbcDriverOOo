@@ -36,60 +36,60 @@ import java.util.logging.Logger;
 
 public class DriverWrapper implements Driver
 {
-	private Driver m_driver;
+    private Driver m_driver;
 
-	// The constructor method:
-	public DriverWrapper(Driver driver)
-	{
-		m_driver = driver;
-	}
+    // The constructor method:
+    public DriverWrapper(Driver driver)
+    {
+        m_driver = driver;
+    }
 
-	// java.sql.Driver:
-	@Override
-	public boolean acceptsURL(String url)
-	throws SQLException
-	{
-		return m_driver.acceptsURL(url);
-	}
+    // java.sql.Driver:
+    @Override
+    public boolean acceptsURL(String url)
+    throws SQLException
+    {
+        return m_driver.acceptsURL(url);
+    }
 
-	@Override
-	public Connection connect(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.connect(url, properties);
-	}
+    @Override
+    public Connection connect(String url, Properties properties)
+    throws SQLException
+    {
+        return m_driver.connect(url, properties);
+    }
 
-	@Override
-	public int getMajorVersion()
-	{
-		return m_driver.getMajorVersion();
-	}
+    @Override
+    public int getMajorVersion()
+    {
+        return m_driver.getMajorVersion();
+    }
 
-	@Override
-	public int getMinorVersion()
-	{
-		return m_driver.getMinorVersion();
-	}
+    @Override
+    public int getMinorVersion()
+    {
+        return m_driver.getMinorVersion();
+    }
 
-	@Override
-	public Logger getParentLogger()
-	throws SQLFeatureNotSupportedException
-	{
-		return null;
-	}
+    @Override
+    public Logger getParentLogger()
+    throws SQLFeatureNotSupportedException
+    {
+        return null;
+    }
 
-	@Override
-	public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
-	throws SQLException
-	{
-		return m_driver.getPropertyInfo(url, properties);
-	}
+    @Override
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties properties)
+    throws SQLException
+    {
+        return m_driver.getPropertyInfo(url, properties);
+    }
 
-	@Override
-	public boolean jdbcCompliant()
-	{
-		return m_driver.jdbcCompliant();
-	}
+    @Override
+    public boolean jdbcCompliant()
+    {
+        return m_driver.jdbcCompliant();
+    }
 
 
 }

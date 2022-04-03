@@ -33,17 +33,17 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class Ref
-	extends WeakBase
-	implements XRef
+    extends WeakBase
+    implements XRef
 {
 
-	private java.sql.Ref m_Ref;
+    private java.sql.Ref m_Ref;
 
-	// The constructor method:
-	public Ref(java.sql.Ref ref)
-	{
-		m_Ref = ref;
-	}
+    // The constructor method:
+    public Ref(java.sql.Ref ref)
+    {
+        m_Ref = ref;
+    }
 
     @Override
     public String getBaseTypeName() throws SQLException {
