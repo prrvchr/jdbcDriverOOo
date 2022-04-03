@@ -29,26 +29,26 @@ package io.github.prrvchr.uno.lang;
 public final class ServiceInfo
 {
 
-	// com.sun.star.lang.XServiceInfo:
-	public static String getImplementationName(String name)
-	{
-		return name;
-	}
+    // com.sun.star.lang.XServiceInfo:
+    public static String getImplementationName(String name)
+    {
+        return name;
+    }
 
-	public static String[] getSupportedServiceNames(String[] services)
-	{
-		return services.clone();
-	}
+    public static String[] getSupportedServiceNames(String[] services)
+    {
+        return services.clone();
+    }
 
-	public static boolean supportsService(String[] services, String service)
-	{
-		for (int i = 0; i < services.length; i++)
-		{
-			if (service.equals(services[i]))
-				return true;
-		}
-		return false;
-	}
+    public static boolean supportsService(String[] services, String service)
+    {
+        for (int i = 0; i < services.length; i++)
+        {
+            if (service.equals(services[i]))
+                return true;
+        }
+        return false;
+    }
 
 
 }
