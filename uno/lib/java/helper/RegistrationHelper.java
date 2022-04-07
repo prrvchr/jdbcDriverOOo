@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.helper;
+package io.github.prrvchr.uno.helper;
 
 import java.io.IOException;
 import java.io.InputStream;

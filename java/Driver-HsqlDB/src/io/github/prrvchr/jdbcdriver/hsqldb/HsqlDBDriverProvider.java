@@ -29,11 +29,11 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.sdbc.ConnectionBase;
-import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.jdbcdriver.sdbc.ResultSet;
-import io.github.prrvchr.jdbcdriver.sdbc.ResultSetBase;
-import io.github.prrvchr.jdbcdriver.sdbc.StatementMain;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.sdbc.ResultSet;
+import io.github.prrvchr.uno.sdbc.ResultSetBase;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 
 public final class HsqlDBDriverProvider
     implements DriverProvider

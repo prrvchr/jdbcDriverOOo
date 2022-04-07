@@ -39,12 +39,12 @@ import com.sun.star.sdbc.XResultSetMetaData;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.UnoHelper;
-import io.github.prrvchr.jdbcdriver.sdbc.CustomColumn;
-import io.github.prrvchr.jdbcdriver.sdbc.CustomResultSet;
-import io.github.prrvchr.jdbcdriver.sdbc.CustomResultSetMetaData;
-import io.github.prrvchr.jdbcdriver.sdbc.CustomRowSet;
-import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.CustomColumn;
+import io.github.prrvchr.uno.sdbc.CustomResultSet;
+import io.github.prrvchr.uno.sdbc.CustomResultSetMetaData;
+import io.github.prrvchr.uno.sdbc.CustomRowSet;
+import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
 public final class SmallSQLDatabaseMetaData

@@ -23,14 +23,14 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.lang;
+package io.github.prrvchr.uno.lang;
 
 import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.lang.XServiceInfo;
 
-import io.github.prrvchr.jdbcdriver.beans.PropertySet;
+import io.github.prrvchr.uno.beans.PropertySet;
 
 
 public abstract class ServiceProperty

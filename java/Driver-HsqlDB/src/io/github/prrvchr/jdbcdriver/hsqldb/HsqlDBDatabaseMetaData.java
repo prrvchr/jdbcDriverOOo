@@ -34,9 +34,9 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.UnoHelper;
-import io.github.prrvchr.jdbcdriver.sdbc.CustomRowSet;
-import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.CustomRowSet;
+import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
 public final class HsqlDBDatabaseMetaData

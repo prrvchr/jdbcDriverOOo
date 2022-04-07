@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.sdbc;
+package io.github.prrvchr.uno.sdbc;
 
 import java.nio.charset.Charset;
 

@@ -1,4 +1,4 @@
-package io.github.prrvchr.jdbcdriver.helper;
+package io.github.prrvchr.uno.helper;
 
 import java.lang.Exception;
 import java.lang.IllegalAccessException;
