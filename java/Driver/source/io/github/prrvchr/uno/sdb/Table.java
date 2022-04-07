@@ -34,8 +34,8 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.jdbcdriver.sdbcx.TableBase;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
 public final class Table

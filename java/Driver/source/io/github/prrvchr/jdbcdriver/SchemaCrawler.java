@@ -43,8 +43,8 @@ import us.fatehi.utility.LoggingConfig;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.uno.TypeClass;
 
-import io.github.prrvchr.uno.sdbcx.Container;
-import io.github.prrvchr.uno.sdbcx.Table;
+import io.github.prrvchr.jdbcdriver.sdbcx.Container;
+import io.github.prrvchr.jdbcdriver.sdbcx.Table;
 
 
 public final class SchemaCrawler

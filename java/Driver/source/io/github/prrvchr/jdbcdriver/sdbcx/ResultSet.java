@@ -23,65 +23,33 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.jdbcdriver.sdbcx;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 
-import com.sun.star.container.XNameAccess;
-import com.sun.star.uno.TypeClass;
-
-import schemacrawler.crawl.ResultsCrawler;
-import schemacrawler.schema.ResultsColumn;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.sdbc.ResultSetSuper;
 
 
-public final class ColumnsSupplier
+public final class ResultSet
+extends ResultSetSuper
 {
+    private static final String m_name = ResultSet.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet", 
+                                                "com.sun.star.sdbcx.ResultSet"};
 
-    public static XNameAccess getColumns(java.sql.ResultSetMetaData metadata)
-        throws java.sql.SQLException
+
+    // The constructor method:
+    public ResultSet(XComponentContext ctx,
+                     DriverProvider provider,
+                     XInterface statement,
+                     java.sql.ResultSet resultset)
+    throws java.sql.SQLException
     {
-        String name = null;
-        List<String> names = new ArrayList<String>();
-        List<Column> columns = new ArrayList<Column>();
-        for (int i = 1; i <= metadata.getColumnCount(); i++)
-        {
-            name = metadata.getColumnName(i);
-            names.add(name);
-            columns.add(new Column(metadata, i, name));
-        }
-        return new Container<Column>(columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        super(ctx, m_name, m_services, provider, statement, resultset);
+        System.out.println("sdbcx.ResultSet() 1");
     }
 
-    public static XNameAccess getColumns(java.sql.ResultSet resultset)
-        throws java.sql.SQLException
-    {
-        String name = null;
-        List<String> names = new ArrayList<String>();
-        List<Column> columns = new ArrayList<Column>();
-        ResultsCrawler crawler = new ResultsCrawler(resultset);
-        for (ResultsColumn column : crawler.crawl())
-        {
-            name = column.getName();
-            names.add(name);
-            columns.add(new Column(column, name));
-        }
-        return new Container<Column>(columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
-    }
-
-    public static XNameAccess getColumns(ResultsCrawler result)
-        throws java.sql.SQLException
-    {
-        String name = null;
-        List<String> names = new ArrayList<String>();
-        List<Column> columns = new ArrayList<Column>();
-        for (ResultsColumn column : result.crawl())
-        {
-            name = column.getName();
-            names.add(name);
-            columns.add(new Column(column, name));
-        }
-        return new Container<Column>(columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
-    }
 
 }

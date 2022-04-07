@@ -33,9 +33,9 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.sdbcx.ColumnsSupplier;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
-import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 
 
 public final class PreparedStatement

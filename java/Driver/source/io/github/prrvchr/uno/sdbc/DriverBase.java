@@ -70,8 +70,8 @@ public abstract class DriverBase
     private static final String m_driverClassPath = "JavaDriverClassPath";
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
-    private static List<String> m_subProtocols = null;
-    private static boolean m_registered;
+    private List<String> m_subProtocols = null;
+    private boolean m_registered;
 
     // The constructor method:
     public DriverBase(XComponentContext context,
@@ -81,11 +81,9 @@ public abstract class DriverBase
     {
         super(name, services);
         m_xContext = context;
-        if (m_subProtocols == null) {
-            Object config = UnoHelper.getConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
-            m_registered = _isDriverRegistred(config, services);
-            m_subProtocols = _getRegistredSubProtocol(config);
-        }
+        Object config = UnoHelper.getConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
+        m_registered = _isDriverRegistred(config, services);
+        m_subProtocols = _getRegistredSubProtocol(config);
         System.out.println("sdbc.DriverBase() 1");
     }
 

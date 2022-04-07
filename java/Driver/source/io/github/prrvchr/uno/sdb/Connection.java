@@ -51,12 +51,12 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.SchemaCrawler;
+import io.github.prrvchr.jdbcdriver.sdbcx.Container;
+import io.github.prrvchr.jdbcdriver.sdbcx.Statement;
+import io.github.prrvchr.jdbcdriver.sdbcx.Table;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.UsersSupplierHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbcx.Container;
-import io.github.prrvchr.uno.sdbcx.Statement;
-import io.github.prrvchr.uno.sdbcx.Table;
 
 
 public final class Connection
