@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.sdbcx;
+package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.List;

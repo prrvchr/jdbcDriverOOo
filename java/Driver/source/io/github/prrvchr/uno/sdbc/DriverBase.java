@@ -70,20 +70,20 @@ public abstract class DriverBase
     private static final String m_driverClassPath = "JavaDriverClassPath";
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
-    private List<String> m_subProtocols = null;
-    private boolean m_registered;
+    private List<String> m_subProtocols = new ArrayList<String>();
 
     // The constructor method:
-    public DriverBase(XComponentContext context,
-                                String name, 
-                                String[] services)
+    public DriverBase(final XComponentContext context,
+                      final String name, 
+                      final String[] services)
         throws Exception
     {
         super(name, services);
         m_xContext = context;
-        Object config = UnoHelper.getConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
-        m_registered = _isDriverRegistred(config, services);
-        m_subProtocols = _getRegistredSubProtocol(config);
+        final Object config = UnoHelper.getConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
+        if (_isDriverRegistred(config, services)) {
+            m_subProtocols = _getRegistredSubProtocol(config);
+        }
         System.out.println("sdbc.DriverBase() 1");
     }
 
@@ -341,8 +341,8 @@ public abstract class DriverBase
     throws SQLException
     {
         // FIXME: To be able to load 2 different drivers (sdbc and sdbcx) that accept the same URLs,
-        // FIXME: We have to check if it is the driver that is currently registered (ie: m_registered)
-        return m_registered && url.startsWith(m_registredProtocol) && m_subProtocols.contains(_getSubProtocol(url));
+        // FIXME: We have to check if it is the driver that is currently registered (ie: m_subProtocols not empty)
+        return url.startsWith(m_registredProtocol) && m_subProtocols.contains(_getSubProtocol(url));
     }
 
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] info)

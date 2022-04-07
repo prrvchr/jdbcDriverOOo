@@ -23,32 +23,53 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.sdbcx;
+package io.github.prrvchr.uno.sdbcx;
+
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.sun.star.beans.Property;
+import com.sun.star.sdbc.XResultSet;
+import com.sun.star.uno.XComponentContext;
+
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
-public final class Table
-    extends TableBase
+public final class Statement
+    extends StatementBase
 {
-
-    private static final String m_name = Table.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
+    
+    private static String m_name = Statement.class.getName();
+    private static String[] m_services = {"com.sun.star.sdbc.Statement",
+                                          "com.sun.star.sdbcx.Statement"};
+    public boolean m_UseBookmarks = false;
+    private static Map<String, Property> _getPropertySet()
+    {
+        Map<String, Property> map = new LinkedHashMap<String, Property>();
+        map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
+        return map;
+    }
 
     // The constructor method:
-    public Table(java.sql.DatabaseMetaData metadata,
-                 java.sql.ResultSet result,
-                 String name,
-                 boolean privileges)
+    public Statement(XComponentContext context,
+                     DriverProvider provider,
+                     ConnectionBase xConnection,
+                     java.sql.Connection connection)
+    throws SQLException
+    {
+        super(context, m_name, m_services, provider, xConnection, connection, _getPropertySet());
+        System.out.println("sdbcx.Statement() 1");
+    }
+
+    protected XResultSet _getResultSet(XComponentContext ctx,
+                                       java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        super(m_name, m_services, metadata, result, name);
-        System.out.println("sdbcx.Table.Table() : 1" );
-    }
-    public Table(schemacrawler.schema.Table table,
-                 String catalog,
-                 String name)
-    {
-        super(m_name, m_services, table, catalog, name);
-        System.out.println("sdbcx.Table.Table() : 1" );
+        return new ResultSet(ctx, m_provider, this, resultset);
     }
 
 

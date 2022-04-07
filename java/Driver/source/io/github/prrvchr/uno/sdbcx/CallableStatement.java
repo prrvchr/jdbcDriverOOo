@@ -24,7 +24,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.sdbcx;
+package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.SQLException;
 

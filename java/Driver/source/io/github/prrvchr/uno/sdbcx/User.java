@@ -23,53 +23,77 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.sdbcx;
+package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.SQLException;
+import java.sql.Connection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
-import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.XComponentContext;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XUser;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.StatementBase;
+import io.github.prrvchr.uno.lang.ServiceProperty;
 
 
-public final class Statement
-    extends StatementBase
+public class User
+    extends ServiceProperty
+    implements XUser
 {
-    
-    private static String m_name = Statement.class.getName();
-    private static String[] m_services = {"com.sun.star.sdbc.Statement",
-                                          "com.sun.star.sdbcx.Statement"};
-    public boolean m_UseBookmarks = false;
+
+    private static final String m_name = User.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+    @SuppressWarnings("unused")
+    private final java.sql.Connection m_Connection;
+    @SuppressWarnings("unused")
+    private Map<String, String> m_users;
     private static Map<String, Property> _getPropertySet()
     {
         Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
+        map.put("Name", UnoHelper.getProperty("Name", "string"));
         return map;
     }
 
     // The constructor method:
-    public Statement(XComponentContext context,
-                     DriverProvider provider,
-                     ConnectionBase xConnection,
-                     java.sql.Connection connection)
-    throws SQLException
+    public User(Connection connection)
     {
-        super(context, m_name, m_services, provider, xConnection, connection, _getPropertySet());
-        System.out.println("sdbcx.Statement() 1");
+        super(m_name, m_services, _getPropertySet());
+        m_Connection = connection;
     }
 
-    protected XResultSet _getResultSet(XComponentContext ctx,
-                                       java.sql.ResultSet resultset)
-    throws java.sql.SQLException
-    {
-        return new ResultSet(ctx, m_provider, this, resultset);
+
+    // com.sun.star.sdbcx.XAuthorizable <- XUser:
+    @Override
+    public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public int getPrivileges(String arg0, int arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    // com.sun.star.sdbcx.XUser:
+    @Override
+    public void changePassword(String arg0, String arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        
     }
 
 

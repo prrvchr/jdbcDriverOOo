@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.sdbcx;
+package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.XTablesSupplier;

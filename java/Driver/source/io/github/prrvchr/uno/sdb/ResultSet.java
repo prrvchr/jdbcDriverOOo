@@ -31,8 +31,8 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.sdbcx.ColumnsSupplier;
 import io.github.prrvchr.uno.sdbc.ResultSetSuper;
+import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
 import schemacrawler.crawl.ResultsCrawler;
 
 
