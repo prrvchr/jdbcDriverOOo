@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.jdbcdriver.sdbc;
 
 import java.util.Arrays;
 
@@ -34,7 +34,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.helper.UnoHelper;
 
 public class Array
 extends WeakBase

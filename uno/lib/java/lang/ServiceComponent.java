@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.lang;
+package io.github.prrvchr.jdbcdriver.lang;
 
 import com.sun.star.lib.uno.helper.ComponentBase;
 

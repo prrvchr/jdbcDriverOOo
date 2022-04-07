@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.lang;
+package io.github.prrvchr.jdbcdriver.lang;
 
 
 public final class ServiceInfo

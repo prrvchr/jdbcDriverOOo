@@ -29,18 +29,18 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResultSet;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.jdbcdriver.sdbc.ConnectionBase;
+import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.jdbcdriver.sdbc.ResultSet;
+import io.github.prrvchr.jdbcdriver.sdbc.ResultSetBase;
+import io.github.prrvchr.jdbcdriver.sdbc.StatementMain;
 
 public final class H2DriverProvider
-implements DriverProvider
+    implements DriverProvider
 {
 
-    private static String m_protocol = "sdbc:h2";
-    private static boolean m_warnings = true;
+    private static final String m_protocol = "sdbc:h2";
+    private static final boolean m_warnings = true;
 
     // The constructor method:
     public H2DriverProvider()
@@ -49,37 +49,37 @@ implements DriverProvider
     }
 
     @Override
-    public boolean acceptsURL(String url)
+    public final boolean acceptsURL(final String url)
     {
         return url.startsWith(m_protocol);
     }
 
     @Override
-    public boolean supportWarningsSupplier() {
+    public final boolean supportWarningsSupplier() {
         return m_warnings;
     }
 
     @Override
-    public DatabaseMetaDataBase getDatabaseMetaData(XComponentContext context,
-                                                    ConnectionBase connection,
-                                                    java.sql.DatabaseMetaData metadata,
-                                                    PropertyValue[] info,
-                                                    String url)
+    public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
+                                                          final ConnectionBase connection,
+                                                          final java.sql.DatabaseMetaData metadata,
+                                                          final PropertyValue[] info,
+                                                          final String url)
     {
         return new H2DatabaseMetaData(context, this, connection, metadata, info, url);
     }
 
     @Override
-    public ResultSetBase getResultSet(XComponentContext context,
-                                      java.sql.ResultSet resultset)
+    public final ResultSetBase getResultSet(final XComponentContext context,
+                                            final java.sql.ResultSet resultset)
     {
         return new ResultSet(context, this, resultset);
     }
 
     @Override
-    public ResultSetBase getResultSet(XComponentContext context,
-                                      StatementMain statement,
-                                      java.sql.ResultSet resultset)
+    public final ResultSetBase getResultSet(final XComponentContext context,
+                                            final StatementMain statement,
+                                            final java.sql.ResultSet resultset)
     {
         return new ResultSet(context, this, statement, resultset);
     }

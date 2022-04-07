@@ -34,8 +34,8 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.jdbcdriver.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
 
 
 public final class H2DatabaseMetaData
@@ -55,12 +55,12 @@ public final class H2DatabaseMetaData
                                                                    Map.entry(2014, 12));
 
     // The constructor method:
-    public H2DatabaseMetaData(XComponentContext ctx,
-                              DriverProvider provider,
-                              XConnection connection,
-                              java.sql.DatabaseMetaData metadata,
-                              PropertyValue[] info,
-                              String url)
+    public H2DatabaseMetaData(final XComponentContext ctx,
+                              final DriverProvider provider,
+                              final XConnection connection,
+                              final java.sql.DatabaseMetaData metadata,
+                              final PropertyValue[] info,
+                              final String url)
     {
         super(ctx, provider, connection, metadata, info, url);
         System.out.println("h2.DatabaseMetaData() 1");
@@ -68,7 +68,8 @@ public final class H2DatabaseMetaData
 
 
     @Override
-    public XResultSet getTypeInfo() throws SQLException
+    public final XResultSet getTypeInfo()
+        throws SQLException
     {
         try
         {
@@ -91,7 +92,8 @@ public final class H2DatabaseMetaData
     }
 
     @Override
-    public XResultSet getTableTypes() throws SQLException
+    public final XResultSet getTableTypes()
+        throws SQLException
     {
         try
         {
@@ -114,7 +116,11 @@ public final class H2DatabaseMetaData
     }
 
     @Override
-    public XResultSet getTables(Object catalog, String schema, String table, String[] types) throws SQLException
+    public final XResultSet getTables(final Object catalog,
+                                      final String schema,
+                                      final String table,
+                                      final String[] types)
+        throws SQLException
     {
         try
         {
@@ -132,7 +138,11 @@ public final class H2DatabaseMetaData
     }
 
     @Override
-    public XResultSet getColumns(Object catalog, String schema, String table, String column) throws SQLException
+    public final XResultSet getColumns(final Object catalog,
+                                       final String schema,
+                                       final String table,
+                                       final String column)
+        throws SQLException
     {
         try
         {
@@ -155,24 +165,24 @@ public final class H2DatabaseMetaData
     }
 
 
-    protected short _mapDatabaseDataType(short type)
+    protected final short _mapDatabaseDataType(final short type)
     {
         return (short)_mapDatabaseDataType((int) type);
     }
-    protected int _mapDatabaseDataType(int type)
+    protected final int _mapDatabaseDataType(final int type)
     {
         if (m_dataType.containsKey(type))
         {
             System.out.println("h2.DatabaseMetaData._mapDatabaseDataType() Type: " + type);
-            type = m_dataType.get(type);
+            return m_dataType.get(type);
         }
         return type;
     }
 
-    protected String _mapDatabaseTableTypes(String type)
+    protected final String _mapDatabaseTableTypes(final String type)
     {
         if (m_tableType.containsKey(type))
-            type = m_tableType.get(type);
+            return m_tableType.get(type);
         return type;
     }
 

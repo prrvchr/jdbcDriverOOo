@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.jdbcdriver.sdbc;
 
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
@@ -31,7 +31,7 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XBlob;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.helper.UnoHelper;
 
 
 public class Blob

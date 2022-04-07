@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import io.github.prrvchr.uno.sdbcx.Container;
-import io.github.prrvchr.uno.sdb.Table;
 import schemacrawler.inclusionrule.IncludeAll;
 import schemacrawler.schema.Catalog;
 import schemacrawler.schemacrawler.LimitOptionsBuilder;
@@ -44,6 +42,9 @@ import us.fatehi.utility.LoggingConfig;
 
 import com.sun.star.container.XNameAccess;
 import com.sun.star.uno.TypeClass;
+
+import io.github.prrvchr.jdbcdriver.sdbcx.Container;
+import io.github.prrvchr.jdbcdriver.sdbcx.Table;
 
 
 public final class SchemaCrawler

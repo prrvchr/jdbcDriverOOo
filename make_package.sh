@@ -30,7 +30,7 @@ cd $SCRIPTPATH
 
 #./rdb/make_rdb.sh
 
-unzip -o -d ./java/Driver/dist/ ./java/Driver/dist/Driver.oxt
+# unzip -o -d ./java/Driver/dist/ ./java/Driver/dist/Driver.oxt
 
 cd ./jdbcDriverOOo/
 zip -0 jdbcDriverOOo.zip mimetype

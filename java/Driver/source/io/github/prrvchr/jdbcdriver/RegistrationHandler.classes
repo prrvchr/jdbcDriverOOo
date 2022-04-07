@@ -1,1 +1,3 @@
-io.github.prrvchr.uno.sdbc.Driver
+io.github.prrvchr.jdbcdriver.sdbc.Driver
+io.github.prrvchr.jdbcdriver.sdbcx.Driver
+

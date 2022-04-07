@@ -30,7 +30,7 @@ import java.io.InputStream;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;
 
-import io.github.prrvchr.uno.RegistrationHelper;
+import io.github.prrvchr.jdbcdriver.helper.RegistrationHelper;
 
 
 public class RegistrationHandler

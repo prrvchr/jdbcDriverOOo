@@ -28,12 +28,12 @@ package io.github.prrvchr.jdbcdriver;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResultSet;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.jdbcdriver.sdbc.ConnectionBase;
+import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaData;
+import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.jdbcdriver.sdbc.ResultSet;
+import io.github.prrvchr.jdbcdriver.sdbc.ResultSetBase;
+import io.github.prrvchr.jdbcdriver.sdbc.StatementMain;
 
 public final class DefaultDriverProvider
     implements DriverProvider
@@ -46,22 +46,23 @@ public final class DefaultDriverProvider
     }
 
     @Override
-    public boolean acceptsURL(String url)
+    public final boolean acceptsURL(final String url)
     {
         return true;
     }
 
     @Override
-    public boolean supportWarningsSupplier() {
+    public final boolean supportWarningsSupplier()
+    {
         return true;
     }
 
     @Override
-    public DatabaseMetaDataBase getDatabaseMetaData(XComponentContext context,
-                                                    ConnectionBase connection,
-                                                    java.sql.DatabaseMetaData metadata,
-                                                    PropertyValue[] info,
-                                                    String url)
+    public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
+                                                          final ConnectionBase connection,
+                                                          final java.sql.DatabaseMetaData metadata,
+                                                          final PropertyValue[] info,
+                                                          final String url)
     {
         return new DatabaseMetaData(context, this, connection, metadata, info, url);
     }

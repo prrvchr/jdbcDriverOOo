@@ -39,15 +39,15 @@ import com.sun.star.sdbc.XResultSetMetaData;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.CustomColumn;
-import io.github.prrvchr.uno.sdbc.CustomResultSet;
-import io.github.prrvchr.uno.sdbc.CustomResultSetMetaData;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.CustomRowSet;
+import io.github.prrvchr.jdbcdriver.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.sdbc.CustomColumn;
+import io.github.prrvchr.jdbcdriver.sdbc.CustomResultSet;
+import io.github.prrvchr.jdbcdriver.sdbc.CustomResultSetMetaData;
+import io.github.prrvchr.jdbcdriver.sdbc.CustomRowSet;
+import io.github.prrvchr.jdbcdriver.sdbc.DatabaseMetaDataBase;
 
 
-public class SmallSQLDatabaseMetaData
+public final class SmallSQLDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
@@ -63,12 +63,12 @@ public class SmallSQLDatabaseMetaData
                                                                    Map.entry(2014, 12));
 
     // The constructor method:
-    public SmallSQLDatabaseMetaData(XComponentContext ctx,
-                                    DriverProvider provider,
-                                    XConnection connection,
-                                    java.sql.DatabaseMetaData metadata,
-                                    PropertyValue[] info,
-                                    String url)
+    public SmallSQLDatabaseMetaData(final XComponentContext ctx,
+                                    final DriverProvider provider,
+                                    final XConnection connection,
+                                    final java.sql.DatabaseMetaData metadata,
+                                    final PropertyValue[] info,
+                                    final String url)
     {
         super(ctx, provider, connection, metadata, info, url);
         System.out.println("smallsql.SmallSQLDatabaseProvider() 1");
@@ -76,7 +76,8 @@ public class SmallSQLDatabaseMetaData
 
 
     @Override
-    public XResultSet getTypeInfo() throws SQLException
+    public final XResultSet getTypeInfo()
+        throws SQLException
     {
         try
         {
@@ -99,7 +100,8 @@ public class SmallSQLDatabaseMetaData
     }
 
     @Override
-    public XResultSet getTableTypes() throws SQLException
+    public final XResultSet getTableTypes()
+        throws SQLException
     {
         try
         {
@@ -122,7 +124,11 @@ public class SmallSQLDatabaseMetaData
     }
 
     @Override
-    public XResultSet getTables(Object catalog, String schema, String table, String[] types) throws SQLException
+    public final XResultSet getTables(final Object catalog,
+                                      final String schema,
+                                      final String table,
+                                      final String[] types)
+        throws SQLException
     {
         try
         {
@@ -140,20 +146,24 @@ public class SmallSQLDatabaseMetaData
     }
 
     @Override
-    protected CustomRowSet[] _getTablesRowSet(java.sql.ResultSet result)
-            throws java.sql.SQLException
-        {
-            CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(_getCatalogName(result.getString(1)));
-            row[1] = new CustomRowSet(result.getString(2));
-            row[2] = new CustomRowSet(result.getString(3));
-            row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-            row[4] = new CustomRowSet(result.getString(5));
-            return row;
-        }
+    protected final CustomRowSet[] _getTablesRowSet(final java.sql.ResultSet result)
+        throws java.sql.SQLException
+    {
+        CustomRowSet[] row = new CustomRowSet[5];
+        row[0] = new CustomRowSet(_getCatalogName(result.getString(1)));
+        row[1] = new CustomRowSet(result.getString(2));
+        row[2] = new CustomRowSet(result.getString(3));
+        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
+        row[4] = new CustomRowSet(result.getString(5));
+        return row;
+    }
 
     @Override
-    public XResultSet getColumns(Object catalog, String schema, String table, String column) throws SQLException
+    public final XResultSet getColumns(final Object catalog,
+                                       final  String schema,
+                                       final String table,
+                                       final String column)
+        throws SQLException
     {
         try
         {
@@ -176,7 +186,8 @@ public class SmallSQLDatabaseMetaData
     }
 
     @Override
-    public XResultSet getCatalogs() throws SQLException
+    public final XResultSet getCatalogs()
+        throws SQLException
     {
         try
         {
@@ -193,41 +204,43 @@ public class SmallSQLDatabaseMetaData
     }
 
     @Override
-    public boolean supportsAlterTableWithAddColumn() throws SQLException
+    public final boolean supportsAlterTableWithAddColumn()
+        throws SQLException
     {
         System.out.println("smallsql.SmallSQLDatabaseMetaData.supportsAlterTableWithAddColumn()");
         return false;
     }
 
     @Override
-    public boolean supportsAlterTableWithDropColumn() throws SQLException
+    public final boolean supportsAlterTableWithDropColumn()
+        throws SQLException
     {
         System.out.println("smallsql.SmallSQLDatabaseMetaData.supportsAlterTableWithDropColumn()");
         return false;
     }
 
 
-    protected short _mapDatabaseDataType(short type)
+    protected final short _mapDatabaseDataType(final short type)
     {
         return (short)_mapDatabaseDataType((int) type);
     }
-    protected int _mapDatabaseDataType(int type)
+    protected final int _mapDatabaseDataType(final int type)
     {
         if (m_dataType.containsKey(type))
         {
             System.out.println("smallsql.SmallSQLDatabaseProvider._mapDatabaseDataType() Type: " + type);
-            type = m_dataType.get(type);
+            return m_dataType.get(type);
         }
         return type;
     }
 
-    protected String _mapDatabaseTableTypes(String type)
+    protected final String _mapDatabaseTableTypes(final String type)
     {
         return type;
     }
 
     // XDatabaseMetaData.getCatalogs:
-    protected XResultSet _getCatalogs()
+    protected final XResultSet _getCatalogs()
         throws java.sql.SQLException
     {
         ArrayList<CustomRowSet[]> rows = new ArrayList<>();
@@ -236,17 +249,17 @@ public class SmallSQLDatabaseMetaData
         return new CustomResultSet(_getCatalogsMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getCatalogsRowSet()
-            throws java.sql.SQLException
-        {
-            CustomRowSet[] row = new CustomRowSet[1];
-            String catalog = _getCatalogName();
-            System.out.println("smallsql.SmallSQLDatabaseMetaDataBase._getCatalogsRowSet() 1 : " + catalog);
-            row[0] = new CustomRowSet(catalog);
-            return row;
-        }
+    protected final CustomRowSet[] _getCatalogsRowSet()
+        throws java.sql.SQLException
+    {
+        CustomRowSet[] row = new CustomRowSet[1];
+        String catalog = _getCatalogName(m_Metadata.getConnection().getCatalog());
+        System.out.println("smallsql.SmallSQLDatabaseMetaDataBase._getCatalogsRowSet() 1 : " + catalog);
+        row[0] = new CustomRowSet(catalog);
+        return row;
+    }
 
-    protected XResultSetMetaData _getCatalogsMetadata()
+    protected final XResultSetMetaData _getCatalogsMetadata()
     {
         CustomColumn[] columns = new CustomColumn[1];
         columns[0] = new CustomColumn();
@@ -259,13 +272,7 @@ public class SmallSQLDatabaseMetaData
         return new CustomResultSetMetaData(columns);
     }
 
-    private String _getCatalogName()
-        throws java.sql.SQLException
-    {
-        return _getCatalogName(m_Metadata.getConnection().getCatalog());
-    }
-
-    private String _getCatalogName(String path)
+    private final String _getCatalogName(final String path)
     {
         return Paths.get(path).getFileName().toString();
     }

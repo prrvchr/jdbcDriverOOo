@@ -33,15 +33,14 @@
     <node oor:name="Installed">
         <node oor:name="sdbc:hsqldb:*" oor:op="replace">
             <prop oor:name="Driver">
-                <value>io.github.prrvchr.jdbcDriverOOo.sdbc.Driver</value>
+                <value>io.github.prrvchr.jdbcdriver.sdbc.Driver</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">HsqlDB Driver</value>
                 <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
-
+<!-- "Properties" node is the _supported_ properties -->
             <node oor:name="Properties">
-            <!-- "Properties" node is the _supported_ properties -->
                 <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -62,8 +61,8 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
                 <!-- Corresponds to UseKeywordAsBeforeAlias in Features - see connectivity/registry/README -->
+                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -113,13 +112,11 @@
                         <value>org.hsqldb.jdbcDriver</value>
                     </prop>
                 </node>
-
 <!--            <node oor:name="EnableSQL92Check" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
                 </node>
-
                 <node oor:name="UseSchemaInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -130,8 +127,6 @@
                         <value>false</value>
                     </prop>
                 </node>
-
-
                 <node oor:name="AppendTableAliasName" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -162,7 +157,6 @@
                         <value>true</value>
                     </prop>
                 </node>
-
                 <node oor:name="Forms" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>io.github.prrvchr.jdbcDriverOOo.DefinitionContainer</value>
@@ -178,11 +172,9 @@
                         <value>io.github.prrvchr.jdbcDriverOOo.DefinitionContainer</value>
                     </prop>
                 </node> -->
-            </node> 
-
+            </node>
+<!-- "Features" node is the properties that are supposed to be exposed in the UI in: Base -> Edit -> DataBase -> Advenced settings -->
             <node oor:name="Features">
-            <!-- "Features" node is the properties that are supposed to be exposed in the UI
-                  in: Base -> Edit -> DataBase -> Advenced settings -->
                 <node oor:name="UseDOSLineEnds" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -203,8 +195,8 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <!-- Corresponds to GenerateASBeforeCorrelationName in Properties - see connectivity/registry/README -->
                 <node oor:name="UseKeywordAsBeforeAlias" oor:op="replace">
-<!-- Corresponds to GenerateASBeforeCorrelationName in Properties - see connectivity/registry/README -->
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -239,7 +231,6 @@
                         <value>true</value>
                     </prop>
                 </node>
-
 <!--            <node oor:name="UseSchemaInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -250,9 +241,6 @@
                         <value>true</value>
                     </prop>
                 </node>
-
-
-
                 <node oor:name="BooleanComparisonMode" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -273,7 +261,6 @@
                         <value>true</value>
                     </prop>
                 </node>
-
                 <node oor:name="UseIndexDirectionKeyword" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -289,16 +276,13 @@
                         <value>true</value>
                     </prop>
                 </node>
-
                 <node oor:name="UseBracketedOuterJoinSyntax" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node> -->
-
-
-
             </node>
+
             <node oor:name="MetaData">
                 <node oor:name="UseJava" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
@@ -322,7 +306,6 @@
                 </node>
             </node>
         </node>
-
 
         <node oor:name="sdbc:h2:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -334,66 +317,6 @@
             </prop>
 
             <node oor:name="Properties">
-                <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>GENERATED BY DEFAULT AS IDENTITY</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>CALL IDENTITY()</value>
-                    </prop>
-                </node>
-                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/h2.jar</value>
@@ -405,92 +328,7 @@
                     </prop>
                 </node>
             </node>
-
-
-            <node oor:name="Features">
-                <node oor:name="UseDOSLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseKeywordAsBeforeAlias" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
-
-            <node oor:name="MetaData">
-                <node oor:name="UseJava" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="Authentication" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>UserPassword</value>
-                    </prop>
-                </node>
-                <node oor:name="SupportsTableCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
         </node>
-
-
-
 
         <node oor:name="sdbc:smallsql:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -500,68 +338,7 @@
                 <value xml:lang="en-US">SmallSQL Driver</value>
                 <value xml:lang="fr-FR">Pilote SmallSQL</value>
             </prop>
-
             <node oor:name="Properties">
-                <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>GENERATED BY DEFAULT AS IDENTITY</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>CALL IDENTITY()</value>
-                    </prop>
-                </node>
-                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/smallsql.jar</value>
@@ -573,90 +350,7 @@
                     </prop>
                 </node>
             </node>
-
-            <node oor:name="Features">
-                <node oor:name="UseDOSLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseKeywordAsBeforeAlias" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
-
-            <node oor:name="MetaData">
-                <node oor:name="UseJava" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="Authentication" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>UserPassword</value>
-                    </prop>
-                </node>
-                <node oor:name="SupportsTableCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
         </node>
-
-
 
         <node oor:name="sdbc:derby:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -666,68 +360,7 @@
                 <value xml:lang="en-US">Derby Driver</value>
                 <value xml:lang="fr-FR">Pilote Derby</value>
             </prop>
-
             <node oor:name="Properties">
-                <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>GENERATED BY DEFAULT AS IDENTITY</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>CALL IDENTITY()</value>
-                    </prop>
-                </node>
-                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/derbytools.jar</value>
@@ -739,254 +372,7 @@
                     </prop>
                 </node>
             </node>
-
-            <node oor:name="Features">
-                <node oor:name="UseDOSLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseKeywordAsBeforeAlias" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
-
-            <node oor:name="MetaData">
-                <node oor:name="UseJava" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="Authentication" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>UserPassword</value>
-                    </prop>
-                </node>
-                <node oor:name="SupportsTableCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
         </node>
-
-
-        <node oor:name="sdbc:firebirdsql:*" oor:op="replace">
-            <prop oor:name="ParentURLPattern">
-                <value>sdbc:hsqldb:*</value>
-            </prop>
-            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-                <value xml:lang="en-US">Firebird Driver</value>
-                <value xml:lang="fr-FR">Pilote Firebird</value>
-            </prop>
-
-            <node oor:name="Properties">
-                <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>GENERATED BY DEFAULT AS IDENTITY</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>CALL IDENTITY()</value>
-                    </prop>
-                </node>
-                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="JavaDriverClassPath" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/jaybird-4.0.5.java11.jar</value>
-                    </prop>
-                </node>
-                <node oor:name="JavaDriverClass" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>org.firebirdsql.jdbc.FBDriver</value>
-                    </prop>
-                </node>
-            </node>
-
-            <node oor:name="Features">
-                <node oor:name="UseDOSLineEnds" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="FormsCheckRequiredFields" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="EscapeDateTime" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AddIndexAppendix" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseKeywordAsBeforeAlias" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="GeneratedValues" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoRetrievingStatement" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RespectDriverResultSetType" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="PrimaryKeySupport" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
-
-            <node oor:name="MetaData">
-                <node oor:name="UseJava" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="Authentication" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>UserPassword</value>
-                    </prop>
-                </node>
-                <node oor:name="SupportsTableCreation" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
-        </node>
-
 
     </node>
 </oor:component-data>

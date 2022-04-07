@@ -29,7 +29,7 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
+import io.github.prrvchr.jdbcdriver.sdbc.ResultSetBase;
 
 
 public class SmallSQLResultSet

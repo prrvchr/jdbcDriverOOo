@@ -24,7 +24,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
 
-package io.github.prrvchr.uno.beans;
+package io.github.prrvchr.jdbcdriver.beans;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
