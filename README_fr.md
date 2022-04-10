@@ -128,9 +128,11 @@ Afin de profiter des dernières fonctionnalités offertes par les bases de donn�
 Jusqu'à la version 0.0.3, ce nouveau pilote n'est qu'une surcouche ou emballage (wrapper) en Python autour des services UNO fournis par le pilote LibreOffice / OpenOffice JDBC défectueux.  
 Depuis la version 0.0.4, il a été complètement réécrit en Java sous Eclipse, car qui mieux que Java peut donner accès à JDBC dans l'API UNO...  
 Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors de l'appel des protocoles suivants:
-- `sdbc:hsqldb:*`
-- `sdbc:h2:*`
-- `sdbc:derby:*`
+
+- `xdbc:*`
+- `xdbc:h2:*`
+- `xdbc:derby:*`
+- `xdbc:hsqldb:*`
 
 mais utilise le protocole `jdbc:*` en interne pour se connecter.
 
@@ -190,9 +192,13 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
 - Intégration dans jdbcDriverOOo des pilotes JDBC H2 et Derby en plus de HsqlDB. Implémentation de Services Java afin de corriger d'éventuels défauts, ou incompatibilité avec l'API UNO, des pilotes JDBC embarqués. 
 
-- Renommage du dépot et de l'extension HsqlDBDriverOOo en jdbcDriverOOo.
+- Renommage du dépot et de l'extension **HsqlDBDriverOOo** en **jdbcDriverOOo**.
 
 - Prise en charge dans Base des clés primaires auto incrémentées pour HsqlDB et Derby. H2 ne supporte pas encore.
+
+- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs et des droits dans Base. Son utilisation peut être demandée dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**. Il n'est pas encore fonctionnel.
+
+- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options](https://github.com/prrvchr/jdbcDriverOOo/tree/master/jdbcDriverOOo/pythonpath/jdbcdriver/options), accessible par: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, afin de permettre l'ajout d'eventuel archive Java de pilote JDBC.
 
 - Beaucoup d'autres correctifs...
 

@@ -128,9 +128,11 @@ In order to take advantage of the latest features offered by databases and among
 Until version 0.0.3, this new driver is just a wrapper in Python around the UNO services provided by the defective LibreOffice / OpenOffice JDBC driver.  
 Since version 0.0.4, it has been completely rewritten in Java under Eclipse, because who better than Java can provide access to JDBC in the UNO API...  
 In order not to prevent the native JDBC driver from working, it loads when calling the following protocols:
-- `sdbc:hsqldb:*`
-- `sdbc:h2:*`
-- `sdbc:derby:*`
+
+- `xdbc:*`
+- `xdbc:h2:*`
+- `xdbc:derby:*`
+- `xdbc:hsqldb:*`
 
 but uses the `jdbc:*` protocol internally to connect.
 
@@ -190,9 +192,13 @@ For now, only the use of the SQL Array type in the queries is available.
 
 - Integration in jdbcDriverOOo of H2 and Derby JDBC drivers in addition to HsqlDB. Implementation of Java Services in order to correct possible defects, or incompatibility with the UNO API, of embedded JDBC drivers.
 
-- Renamed the HsqlDBDriverOOo repository and extension to jdbcDriverOOo.
+- Renamed the **HsqlDBDriverOOo** repository and extension to **jdbcDriverOOo**.
 
 - Support in Base for auto-incrementing primary keys for HsqlDB and Derby. H2 does not support yet.
+
+- Write of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the management of users and rights in Base. Its use can be requested in **Tools -> Options -> Base drivers -> JDBC Driver**. It is not yet functional.
+
+- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/tree/master/jdbcDriverOOo/pythonpath/jdbcdriver/options) dialog accessible by: **Tools -> Options -> Base drivers -> JDBC Driver**, in order to allow the addition of any Java archive of JDBC driver.
 
 - Many other fix...
 
