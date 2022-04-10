@@ -53,6 +53,7 @@ class OptionsHandler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
+            enabled = self._manager.isHandlerEnabled()
             if method == 'external_event':
                 if event == 'initialize':
                     self._manager.initialize(window)
@@ -63,14 +64,37 @@ class OptionsHandler(unohelper.Base,
                 elif event == 'back':
                     self._manager.reloadSetting()
                     handled = True
-            elif method == 'Upload':
-                self._manager.upload()
-                handled = True
             elif method == 'Base':
                 self._manager.setLevel(0)
                 handled = True
             elif method == 'Enhanced':
                 self._manager.setLevel(1)
+                handled = True
+            elif method == 'Set':
+                if enabled:
+                    driver = event.Source.getSelectedItem()
+                    self._manager.setDriver(driver)
+                handled = True
+            elif method == 'New':
+                self._manager.newDriver()
+                handled = True
+            elif method == 'Remove':
+                self._manager.removeDriver()
+                handled = True
+            elif method == 'Save':
+                self._manager.saveDriver()
+                handled = True
+            elif method == 'Cancel':
+                self._manager.cancelDriver()
+                handled = True
+            elif method == 'Check':
+                self._manager.checkDriver()
+                handled = True
+            elif method == 'Update':
+                self._manager.updateArchive()
+                handled = True
+            elif method == 'Search':
+                self._manager.searchArchive()
                 handled = True
             return handled
         except Exception as e:
@@ -79,9 +103,16 @@ class OptionsHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('external_event',
-                'Upload',
                 'Base',
-                'Enhanced')
+                'Enhanced',
+                'Set',
+                'New',
+                'Remove',
+                'Save',
+                'Cancel',
+                'Check',
+                'Update',
+                'Search')
 
     # XServiceInfo
     def supportsService(self, service):
@@ -92,6 +123,7 @@ class OptionsHandler(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(OptionsHandler,                             # UNO object class
+g_ImplementationHelper.addImplementation(OptionsHandler,                            # UNO object class
                                          g_ImplementationName,                      # Implementation name
                                         (g_ImplementationName,))                    # List of implemented services
+

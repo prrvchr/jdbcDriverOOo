@@ -29,22 +29,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.DriverManager;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.ServiceLoader;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
-import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDriver;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -63,14 +59,12 @@ public abstract class DriverBase
     //private final URL m_url;
     private final XComponentContext m_xContext;
     private static final String m_connectProtocol = "jdbc:";
-    private static final String m_registredProtocol = "sdbc:";
-    private static final String m_suffixeProtocol = ":*";
-    private static final String m_rootDriver = "hsqldb";
-    private static final String m_rootConfig = m_registredProtocol + m_rootDriver + m_suffixeProtocol;
+    private static final String m_registredProtocol = "xdbc:";
+    private static final String m_rootDriver = m_registredProtocol + "*";
     private static final String m_driverClassPath = "JavaDriverClassPath";
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
-    private List<String> m_subProtocols = new ArrayList<String>();
+    private final boolean m_registered;
 
     // The constructor method:
     public DriverBase(final XComponentContext context,
@@ -81,9 +75,7 @@ public abstract class DriverBase
         super(name, services);
         m_xContext = context;
         final Object config = UnoHelper.getConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
-        if (_isDriverRegistred(config, services)) {
-            m_subProtocols = _getRegistredSubProtocol(config);
-        }
+        m_registered = _isDriverRegistred(config, services);
         System.out.println("sdbc.DriverBase() 1");
     }
 
@@ -108,58 +100,9 @@ public abstract class DriverBase
         String service = null;
         try {
             final XHierarchicalNameAccess drivers = (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
-            service = (String) drivers.getByHierarchicalName("Installed/" + m_rootConfig + "/Driver");
+            service = (String) drivers.getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
         } catch (java.lang.Exception e) {}
         return service;
-    }
-
-    private List<String> _getRegistredSubProtocol(final Object config)
-    {
-        List<String> protocols = new ArrayList<String>();
-        try {
-            final XNameAccess drivers = (XNameAccess) UnoRuntime.queryInterface(XNameAccess.class, config);
-            final XNameAccess installed = (XNameAccess) UnoRuntime.queryInterface(XNameAccess.class, drivers.getByName("Installed"));
-            String[] elements = installed.getElementNames();
-            for (int i = 0; i < elements.length; i++) {
-                String name = elements[i];
-                XNameAccess element = (XNameAccess) UnoRuntime.queryInterface(XNameAccess.class, installed.getByName(name));
-                if (m_rootConfig.equals(name)) {
-                    protocols.add(m_rootDriver);
-                }
-                else if (element.hasByName("ParentURLPattern") && m_rootConfig.equals(_getUrlPattern(element))) {
-                    protocols.add(_getProtocolName(name));
-                }
-            }
-        } catch (java.lang.Exception e) {
-            System.out.println("sdbc.DriverBase._getRegistredSubProtocol() ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-        }
-        return protocols;
-    }
-
-    private String _getUrlPattern(final XNameAccess element)
-        throws NoSuchElementException, WrappedTargetException
-    {
-        String pattern = null;
-        final Object object = element.getByName("ParentURLPattern");
-        if (AnyConverter.isString(object)) {
-            pattern = AnyConverter.toString(object);
-        }
-        return pattern;
-    }
-
-    private String _getProtocolName(String name)
-    {
-        if (name.startsWith(m_registredProtocol)) {
-            name = name.substring(m_registredProtocol.length(), name.length());
-        }
-        if (name.endsWith(m_suffixeProtocol)) {
-            name = name.substring(0, name.length() - m_suffixeProtocol.length());
-        }
-        return name;
     }
 
     // com.sun.star.sdbc.XDriver:
@@ -175,8 +118,9 @@ public abstract class DriverBase
         if (url.startsWith(m_registredProtocol))
             location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
         Properties properties = UnoHelper.getJavaProperties(info);
-        if (!_isDriverRegistered(location))
-            _registerDriver(properties);
+        if (!_isDriverRegistered(location)) {
+            _registerDriver(_getUrlProtocol(url), properties);
+        }
         XConnection connection = null;
         System.out.println("sdbc.DriverBase.connect() 2 ClassPath: ");
         try
@@ -193,6 +137,12 @@ public abstract class DriverBase
         return connection;
     }
 
+    private String _getUrlProtocol(final String url)
+    {
+        String protocol = String.join(":", Arrays.copyOfRange(url.split(":"), 0, 2));
+        return protocol + ":*";
+    }
+
     private boolean _isDriverRegistered(String url)
     {
         try
@@ -207,14 +157,17 @@ public abstract class DriverBase
         return false;
     }
 
-    private void _registerDriver(Properties properties)
+    private void _registerDriver(final String protocol,
+                                 final Properties properties)
         throws SQLException
     {
         try
         {
             System.out.println("sdbc.DriverBase._registerDriver() 3");
-            String name = _getDriverClass(properties, m_driverClass);
-            URL url = _getDriverClassPath(properties, m_driverClassPath);
+            final Object config = UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
+            final XHierarchicalNameAccess drivers = (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
+            final String name = _getDriverClass(drivers, protocol, properties);
+            final URL url = _getDriverClassPath(drivers, protocol, properties);
             System.out.println("sdbc.DriverBase._registerDriver() 4 url: " + url + " name: " + name);
             if (name != null && url != null)
             {
@@ -233,10 +186,33 @@ public abstract class DriverBase
         }
     }
 
-    private URL _getDriverClassPath(Properties properties, String property)
-        throws SQLException
+    private String _getDriverClass(final XHierarchicalNameAccess drivers,
+                                   final String protocol,
+                                   final Properties properties)
+        throws NoSuchElementException
     {
-        String url = properties.getProperty(property);
+        String clazz = properties.getProperty(m_driverClass);
+        if (clazz == null) {
+            final String property = "Installed/" + protocol + "/Properties/" + m_driverClass + "/Value";
+            if (drivers.hasByHierarchicalName(property)) {
+                clazz = (String) drivers.getByHierarchicalName(property);
+            }
+        }
+        return clazz;
+    }
+
+    private URL _getDriverClassPath(final XHierarchicalNameAccess drivers,
+                                    final String protocol,
+                                    final Properties properties)
+        throws SQLException, NoSuchElementException
+    {
+        String url = properties.getProperty(m_driverClassPath);
+        if (url == null) {
+            final String property = "Installed/" + protocol + "/Properties/" + m_driverClassPath + "/Value";
+            if (drivers.hasByHierarchicalName(property)) {
+                url = (String) drivers.getByHierarchicalName(property);
+            }
+        }
         if (url != null && !url.isEmpty())
         {
             return _getDriverClassPathUrl(expandDriverClassPath(url));
@@ -265,24 +241,6 @@ public abstract class DriverBase
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
         }
         return url;
-    }
-
-    private String _getDriverClass(Properties properties, String property)
-    {
-        return properties.getProperty(property);
-    }
-
-    private String _getSubProtocol(String url)
-    {
-        return _getUrlProtocol(url, 1);
-    }
-
-    private String _getUrlProtocol(String url, int index)
-    {
-        String[] protocols = url.split(":");
-        if (protocols.length > index)
-            return protocols[index];
-        return null;
     }
 
     private boolean _registerDriver(URL url, String name)
@@ -336,13 +294,12 @@ public abstract class DriverBase
         }
     }
 
-    
     public boolean acceptsURL(String url)
     throws SQLException
     {
         // FIXME: To be able to load 2 different drivers (sdbc and sdbcx) that accept the same URLs,
-        // FIXME: We have to check if it is the driver that is currently registered (ie: m_subProtocols not empty)
-        return url.startsWith(m_registredProtocol) && m_subProtocols.contains(_getSubProtocol(url));
+        // FIXME: We have to check if it is the driver that is currently registered (ie: m_registered is true)
+        return m_registered && url.startsWith(m_registredProtocol);
     }
 
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] info)

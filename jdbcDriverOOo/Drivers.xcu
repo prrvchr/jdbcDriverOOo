@@ -31,13 +31,13 @@
   oor:name="Drivers">
 <!--  View: https://github.com/LibreOffice/core/tree/master/connectivity/registry#readme -->
     <node oor:name="Installed">
-        <node oor:name="sdbc:hsqldb:*" oor:op="replace">
+        <node oor:name="xdbc:*" oor:op="replace">
             <prop oor:name="Driver">
-                <value>io.github.prrvchr.jdbcdriver.sdbc.Driver</value>
+                <value>io.github.prrvchr.jdbcDriverOOo.sdbc.Driver</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-                <value xml:lang="en-US">HsqlDB Driver</value>
-                <value xml:lang="fr-FR">Pilote HsqlDB</value>
+                <value xml:lang="en-US">JDBC Driver</value>
+                <value xml:lang="fr-FR">Pilote JDBC</value>
             </prop>
 <!-- "Properties" node is the _supported_ properties -->
             <node oor:name="Properties">
@@ -104,12 +104,17 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/hsqldb.jar</value>
+                        <value></value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>org.hsqldb.jdbcDriver</value>
+                        <value></value>
+                    </prop>
+                </node>
+                <node oor:name="InMemoryDataBase" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value></value>
                     </prop>
                 </node>
 <!--            <node oor:name="EnableSQL92Check" oor:op="replace">
@@ -307,15 +312,41 @@
             </node>
         </node>
 
-        <node oor:name="sdbc:h2:*" oor:op="replace">
+        <node oor:name="xdbc:hsqldb:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
-                <value>sdbc:hsqldb:*</value>
+                <value>xdbc:*</value>
+            </prop>
+            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+                <value xml:lang="en-US">HsqlDB Driver</value>
+                <value xml:lang="fr-FR">Pilote HsqlDB</value>
+            </prop>
+            <node oor:name="Properties">
+                <node oor:name="JavaDriverClassPath" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>%origin%/driver/hsqldb.jar</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClass" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>org.hsqldb.jdbcDriver</value>
+                    </prop>
+                </node>
+                <node oor:name="InMemoryDataBase" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>mem:///dbversion</value>
+                    </prop>
+                </node>
+            </node>
+        </node>
+
+        <node oor:name="xdbc:h2:*" oor:op="replace">
+            <prop oor:name="ParentURLPattern">
+                <value>xdbc:*</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">H2 Driver</value>
                 <value xml:lang="fr-FR">Pilote H2</value>
             </prop>
-
             <node oor:name="Properties">
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
@@ -327,12 +358,17 @@
                         <value>org.h2.Driver</value>
                     </prop>
                 </node>
+                <node oor:name="InMemoryDataBase" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>mem:dbversion</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
-        <node oor:name="sdbc:smallsql:*" oor:op="replace">
+        <node oor:name="xdbc:smallsql:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
-                <value>sdbc:hsqldb:*</value>
+                <value>xdbc:*</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">SmallSQL Driver</value>
@@ -352,9 +388,9 @@
             </node>
         </node>
 
-        <node oor:name="sdbc:derby:*" oor:op="replace">
+        <node oor:name="xdbc:derby:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
-                <value>sdbc:hsqldb:*</value>
+                <value>xdbc:*</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">Derby Driver</value>
@@ -369,6 +405,11 @@
                 <node oor:name="JavaDriverClass" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+                    </prop>
+                </node>
+                <node oor:name="InMemoryDataBase" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>memory:dbversion;create=true</value>
                     </prop>
                 </node>
             </node>

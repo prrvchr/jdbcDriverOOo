@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
@@ -64,36 +65,34 @@ public class UnoHelper
         return (XMultiServiceFactory) UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
     }
 
-    public static Object getConfiguration(XComponentContext context,
-                                          String path)
+    public static Object getConfiguration(final XComponentContext context,
+                                          final String path)
         throws com.sun.star.uno.Exception
     {
         return getConfiguration(context, path, false, null);
     }
 
-    public static Object getConfiguration(XComponentContext context,
-                                          String path,
-                                          boolean update)
+    public static Object getConfiguration(final XComponentContext context,
+                                          final String path,
+                                          final boolean update)
         throws com.sun.star.uno.Exception
     {
         return getConfiguration(context, path, update, null);
     }
 
-    public static Object getConfiguration(XComponentContext context,
-                                          String path,
-                                          boolean update,
-                                          String language)
+    public static Object getConfiguration(final XComponentContext context,
+                                          final String path,
+                                          final boolean update,
+                                          final String language)
         throws com.sun.star.uno.Exception
     {
-        String service = "com.sun.star.configuration.Configuration";
-        XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
-        service += (update) ? "UpdateAccess" : "Access";
-        ArrayList<NamedValue> arguments = new ArrayList<>();
-        arguments.add(new NamedValue("nodepath", path));
+        final String service = "com.sun.star.configuration.Configuration";
+        final XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
+        ArrayList<NamedValue> arguments = new ArrayList<>(Arrays.asList(new NamedValue("nodepath", path)));
         if (language != null) {
             arguments.add(new NamedValue("Locale", language));
         }
-        return provider.createInstanceWithArguments(service, arguments.toArray());
+        return provider.createInstanceWithArguments(service + (update ? "UpdateAccess" : "Access"), arguments.toArray());
     }
 
 

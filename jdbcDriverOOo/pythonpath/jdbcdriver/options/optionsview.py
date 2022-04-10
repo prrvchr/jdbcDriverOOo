@@ -33,8 +33,30 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, window):
+    def __init__(self, window, reboot):
         self._window = window
+        if reboot:
+            self._getReboot().Model.Step = 0
+        self._window.Model.Step = 1
+
+# OptionsView getter methods
+    def getSelectedProtocol(self):
+        return self._getProtocols().getSelectedItem()
+
+    def getArchive(self):
+        return self._getArchive().Text.strip()
+
+    def getNewSubProtocol(self):
+        return self._getNewSubProtocol().Text.strip().lower()
+
+    def getNewName(self):
+        return self._getNewName().Text.strip()
+
+    def getNewClass(self):
+        return self._getNewClass().Text.strip()
+
+    def getNewArchive(self):
+        return self._getNewArchive().Text.strip()
 
 # OptionsView setter methods
     def setLevel(self, level, updated):
@@ -46,12 +68,129 @@ class OptionsView(unohelper.Base):
         self._getLevel(1).Model.Enabled = False
         self._getLevel(2).Model.Enabled = False
 
+    def setProtocols(self, protocols, protocol):
+        control = self._getProtocols()
+        # XXX: Need to clear ListBox so that the Handle fires for the same selection
+        control.Model.StringItemList = ()
+        control.Model.StringItemList = protocols
+        self._enableProtocols(control, True, protocol)
+
+    def setSubProtocol(self, protocol):
+        self._getSubProtocol().Text = protocol
+
+    def setName(self, name):
+        self._getName().Text = name
+
+    def setClass(self, name):
+        self._getClass().Text = name
+
+    def setArchive(self, name):
+        self._getArchive().Text = name
+
     def setVersion(self, version):
         self._getVersion().Text = version
+
+    def enableButton(self, enabled):
+        self._getRemove().Model.Enabled = enabled
+        self._getUpdate().Model.Enabled = enabled
+
+    def enableAdd(self):
+        self._window.Model.Step = 2
+        self._getNew().Model.Enabled = False
+        self._getRemove().Model.Enabled = False
+        self._getUpdate().Model.Enabled = True
+        self._getNewSubProtocol().setFocus()
+
+    def disableAdd(self, enabled):
+        self._window.Model.Step = 1
+        self._getNew().Model.Enabled = True
+        self._getRemove().Model.Enabled = enabled
+        self._getUpdate().Model.Enabled = enabled
+
+    def clearAdd(self):
+        self._window.Model.Step = 1
+        self._getNew().Model.Enabled = True
+        self._getNewSubProtocol().Text = ''
+        self._getNewName().Text = ''
+        self._getNewClass().Text = ''
+        self._getNewArchive().Text = ''
+
+    def enableProtocols(self, enabled):
+        control = self._getProtocols()
+        self._enableProtocols(control, enabled)
+
+    def _enableProtocols(self, control, enabled, protocol=None):
+        if enabled:
+            if protocol is not None:
+                control.selectItem(protocol, True)
+            elif control.getItemCount() > 0:
+                control.selectItemPos(0, True)
+            control.Model.Enabled = enabled
+        else:
+            control.Model.Enabled = enabled
+            position = control.getSelectedItemPos()
+            if position != -1:
+                control.selectItemPos(position, False)
+
+    def enableSave(self, enabled):
+        self._getSave().Model.Enabled = enabled
+
+    def setNewArchive(self, archive):
+        self._getNewArchive().Text = archive
+
+    def setReboot(self):
+        # XXX: Need to change the window Step to see the reboot Label
+        step  = self._window.Model.Step
+        self._getReboot().Model.Step = 0
+        self._window.Model.Step = 3
+        self._window.Model.Step = step
 
 # OptionsView private control methods
     def _getLevel(self, index):
         return self._window.getControl('OptionButton%s' % index)
 
+    def _getProtocols(self):
+        return self._window.getControl('ListBox1')
+
     def _getVersion(self):
-        return self._window.getControl('Label2')
+        return self._window.getControl('Label5')
+
+    def _getReboot(self):
+        return self._window.getControl('Label10')
+
+    def _getSubProtocol(self):
+        return self._window.getControl('TextField1')
+
+    def _getName(self):
+        return self._window.getControl('TextField3')
+
+    def _getClass(self):
+        return self._window.getControl('TextField5')
+
+    def _getArchive(self):
+        return self._window.getControl('TextField7')
+
+    def _getNewSubProtocol(self):
+        return self._window.getControl('TextField2')
+
+    def _getNewName(self):
+        return self._window.getControl('TextField4')
+
+    def _getNewClass(self):
+        return self._window.getControl('TextField6')
+
+    def _getNewArchive(self):
+        return self._window.getControl('TextField8')
+
+    def _getNew(self):
+        return self._window.getControl('CommandButton1')
+
+    def _getRemove(self):
+        return self._window.getControl('CommandButton2')
+
+    def _getSave(self):
+        return self._window.getControl('CommandButton3')
+
+    def _getUpdate(self):
+        return self._window.getControl('CommandButton5')
+

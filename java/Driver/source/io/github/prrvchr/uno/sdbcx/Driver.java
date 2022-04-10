@@ -51,7 +51,7 @@ public final class Driver
     implements XDataDefinitionSupplier
 {
     private static final String m_name = Driver.class.getName();
-    private static final String[] m_services = {"io.github.prrvchr.jdbcdriver.sdbcx.Driver",
+    private static final String[] m_services = {"io.github.prrvchr.jdbcDriverOOo.sdbcx.Driver",
                                                 "com.sun.star.sdbcx.Driver",
                                                 "com.sun.star.sdbc.Driver"};
 

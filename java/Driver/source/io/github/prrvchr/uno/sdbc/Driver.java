@@ -43,7 +43,7 @@ public final class Driver
     extends DriverBase
 {
     private static final String m_name = Driver.class.getName();
-    private static final String[] m_services = {"io.github.prrvchr.jdbcdriver.sdbc.Driver",
+    private static final String[] m_services = {"io.github.prrvchr.jdbcDriverOOo.sdbc.Driver",
                                                 "com.sun.star.sdbc.Driver"};
 
     // The constructor method:
