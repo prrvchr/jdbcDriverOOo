@@ -129,12 +129,12 @@ class OptionsModel(unohelper.Base):
     def isNotRoot(self, protocol):
         return protocol != self._getRootProtocol()
 
-    def isNewDriverValide(self, subprotocol, name, clazz, archive):
-        return all((subprotocol != '',
-                    self._getProtocol(subprotocol) not in self._drivers,
-                    name != '',
-                    clazz != '',
-                    archive != ''))
+    def isDriverValide(self, sub, name, clazz, archive):
+        return (sub != '' and
+                name != '' and
+                clazz != '' and
+                archive != '' and
+                self._getProtocol(sub) not in self._drivers)
 
 # OptionsModel setter methods
     def setLevel(self, level):

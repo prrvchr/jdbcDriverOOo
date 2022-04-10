@@ -86,11 +86,14 @@ class OptionsManager(unohelper.Base):
     def saveSetting(self):
         self._logger.saveLoggerSetting()
         if self._model.saveSetting():
-            self._view.setReboot()
+            #self._view.setReboot(True)
             if self._model.isLevelUpdated():
                 self._view.disableLevel()
 
     def reloadSetting(self):
+        # XXX: We need to exit from Add new Driver mode if needed...
+        reboot = self._model.needReboot()
+        self._view.exitAdd(reboot)
         self._model.loadConfiguration()
         self._initView()
         self._logger.setLoggerSetting()
@@ -133,20 +136,24 @@ class OptionsManager(unohelper.Base):
         clazz = self._view.getNewClass()
         archive = self._view.getNewArchive()
         protocol = self._model.saveDriver(subprotocol, name, clazz, archive)
-        self._view.clearAdd()
+        reboot = self._model.needReboot()
+        self._view.clearAdd(reboot)
         self._initViewProtocol(protocol)
 
     def cancelDriver(self):
         self._view.enableProtocols(True)
         protocol = self._view.getSelectedProtocol()
-        self._view.disableAdd(self._model.isNotRoot(protocol))
+        root = self._model.isNotRoot(protocol)
+        reboot = self._model.needReboot()
+        self._view.disableAdd(root, reboot)
 
     def checkDriver(self):
         protocol = self._view.getNewSubProtocol()
         name = self._view.getNewName()
         clazz = self._view.getNewClass()
         archive = self._view.getNewArchive()
-        enabled = self._model.isNewDriverValide(protocol, name, clazz, archive)
+        enabled = self._model.isDriverValide(protocol, name, clazz, archive)
+        print("OptionsManager.checkDriver() '%s'" % enabled)
         self._view.enableSave(enabled)
 
 # OptionsManager private methods
@@ -184,6 +191,7 @@ class OptionsManager(unohelper.Base):
         self._view.enableButton(self._model.isNotRoot(protocol))
 
     def _addDriver(self):
-        self._view.enableAdd()
+        reboot = self._model.needReboot()
+        self._view.enableAdd(reboot)
         self.checkDriver()
 

@@ -35,9 +35,10 @@ import traceback
 class OptionsView(unohelper.Base):
     def __init__(self, window, reboot):
         self._window = window
-        if reboot:
-            self._getReboot().Model.Step = 0
         self._window.Model.Step = 1
+        # XXX: If we modify the Dialog.Model.Step, we need
+        # XXX: to restore the visibility of the control
+        self._getReboot().setVisible(reboot)
 
 # OptionsView getter methods
     def getSelectedProtocol(self):
@@ -94,22 +95,34 @@ class OptionsView(unohelper.Base):
         self._getRemove().Model.Enabled = enabled
         self._getUpdate().Model.Enabled = enabled
 
-    def enableAdd(self):
+    def enableAdd(self, reboot):
         self._window.Model.Step = 2
+        # XXX: If we modify the Dialog.Model.Step, we need
+        # XXX: to restore the visibility of the control
+        self._getReboot().setVisible(reboot)
         self._getNew().Model.Enabled = False
         self._getRemove().Model.Enabled = False
         self._getUpdate().Model.Enabled = True
         self._getNewSubProtocol().setFocus()
 
-    def disableAdd(self, enabled):
+    def disableAdd(self, enabled, reboot):
         self._window.Model.Step = 1
+        # XXX: If we modify the Dialog.Model.Step, we need
+        # XXX: to restore the visibility of the control
+        self._getReboot().setVisible(reboot)
         self._getNew().Model.Enabled = True
         self._getRemove().Model.Enabled = enabled
         self._getUpdate().Model.Enabled = enabled
 
-    def clearAdd(self):
+    def exitAdd(self, reboot):
         self._window.Model.Step = 1
+        # XXX: If we modify the Dialog.Model.Step, we need
+        # XXX: to restore the visibility of the control
+        self._getReboot().setVisible(reboot)
         self._getNew().Model.Enabled = True
+
+    def clearAdd(self, reboot):
+        self.exitAdd(reboot)
         self._getNewSubProtocol().Text = ''
         self._getNewName().Text = ''
         self._getNewClass().Text = ''
@@ -138,12 +151,8 @@ class OptionsView(unohelper.Base):
     def setNewArchive(self, archive):
         self._getNewArchive().Text = archive
 
-    def setReboot(self):
-        # XXX: Need to change the window Step to see the reboot Label
-        step  = self._window.Model.Step
-        self._getReboot().Model.Step = 0
-        self._window.Model.Step = 3
-        self._window.Model.Step = step
+    def setReboot(self, state):
+        self._getReboot().setVisible(state)
 
 # OptionsView private control methods
     def _getLevel(self, index):

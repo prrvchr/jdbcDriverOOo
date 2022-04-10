@@ -61,6 +61,6 @@
     <dlg:button dlg:page="2" dlg:id="CommandButton6" dlg:tab-index="27" dlg:disabled="false" dlg:left="215" dlg:top="200" dlg:width="35" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton6.HelpText" dlg:value="&amp;OptionsDialog.CommandButton6.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Search" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:page="3" dlg:style-id="0" dlg:id="Label10" dlg:tab-index="28" dlg:left="10" dlg:top="225" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label10.HelpText" dlg:value="&amp;OptionsDialog.Label10.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label10" dlg:tab-index="28" dlg:left="10" dlg:top="225" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label10.HelpText" dlg:value="&amp;OptionsDialog.Label10.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>
