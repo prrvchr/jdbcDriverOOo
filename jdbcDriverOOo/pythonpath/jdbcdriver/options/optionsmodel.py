@@ -80,7 +80,8 @@ class OptionsModel(unohelper.Base):
         root = self._getRootProtocol(False)
         self._driver = config.getByName(root)
         self._drivers = self._getDriverConfigurations(config, root)
-        self._setVersions(self._drivers.keys())
+        if not self.needReboot():
+            self._setVersions(self._drivers.keys())
 
     def _setVersions(self, *args):
         Thread(target=self._setDriverVersions, args=args).start()

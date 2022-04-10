@@ -98,7 +98,7 @@ Maintenant à vous d'en profiter...
 Il est possible de mettre à jour le pilote JDBC (hsqldb.jar, h2.jar, derbytools.jar) vers une version plus récente.  
 Si vous utilisez HsqlDB comme base de données, procédez comme suit:
 1. Faite une copie (sauvegarde) du dossier contenant votre base de données.
-2. Lancer LibreOffice / OpenOffice et changez la version du pilote JDBC dans: Outils -> Options -> Pilotes Base -> Pilote JDBC, par une version plus récente.
+2. Lancer LibreOffice / OpenOffice et changez la version du pilote JDBC dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, par une version plus récente.
 3. Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar, h2.jar, derbytools.jar).
 4. Dans Base, aprés avoir ouvert votre base de données, allez à: Outils -> SQL et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
 
