@@ -62,8 +62,10 @@ class OptionsModel(unohelper.Base):
         self._updated = False
         self._driver = None
         self._drivers = {}
+        self._version = 'Version: %s'
+        self._default = 'Version: N/A'
         self._versions = {}
-        self._levels = ['io.github.prrvchr.jdbcDriverOOo.sdbc.Driver', 'io.github.prrvchr.jdbcDriverOOo.sdbcx.Driver']
+        self._services = ('io.github.prrvchr.jdbcDriverOOo.sdbc.Driver', 'io.github.prrvchr.jdbcDriverOOo.sdbcx.Driver')
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
         self._lock = Condition()
@@ -88,7 +90,7 @@ class OptionsModel(unohelper.Base):
         return OptionsModel._reboot
 
     def getLevel(self):
-        level = self._levels.index(self._getDriverService()) +1
+        level = self._services.index(self._getDriverService()) +1
         updated = OptionsModel._level
         return level, updated
 
@@ -111,7 +113,7 @@ class OptionsModel(unohelper.Base):
         return self._drivers[protocol].getByHierarchicalName('Properties/JavaDriverClass/Value')
 
     def getDriverVersion(self, protocol):
-        version = 'Version: N/A'
+        version = self._default
         with self._lock:
             if protocol in self._versions:
                 version = self._versions[protocol]
@@ -139,7 +141,7 @@ class OptionsModel(unohelper.Base):
 # OptionsModel setter methods
     def setLevel(self, level):
         OptionsModel._level = False
-        self._driver.replaceByName('Driver', self._levels[level])
+        self._driver.replaceByName('Driver', self._services[level])
 
     def setUpdated(self):
         self._updated = True
@@ -228,14 +230,14 @@ class OptionsModel(unohelper.Base):
         return memdb
 
     def _getDriverVersion(self, protocol, memdb):
-        version = 'Version: N/A'
+        version = self._default
         try:
             service = self._getDriverService()
             driver = createService(self._ctx, service)
             subprotocol = self.getSubProtocol(protocol)
             url = '%s%s:%s' % (self._registeredProtocol, subprotocol, memdb)
             connection = driver.connect(url, ())
-            version = 'Version: %s' % connection.getMetaData().getDriverVersion()
+            version = self._version % connection.getMetaData().getDriverVersion()
             connection.close()
         except UnoException as e:
             msg = getMessage(self._ctx, g_message, 141, e.Message)
