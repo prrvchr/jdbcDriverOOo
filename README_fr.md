@@ -12,9 +12,9 @@
 
 Cette extension vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
 Elle embarque les pilotes pour les base de données suivantes:
-- [HyperSQL ou HsqlDB](http://hsqldb.org/) version 2.51.
+- [HyperSQL ou HsqlDB](http://hsqldb.org/) version 2.61.
     Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://.
-- [H2 Database Engine](https://www.h2database.com/html/main.html) version 2.1.210.
+- [H2 Database Engine](https://www.h2database.com/html/main.html) version 2.1.212.
 - [Apache Derby](https://db.apache.org/derby/) version 10.15.2.0.
 
 Etant un logiciel libre je vous encourage:
