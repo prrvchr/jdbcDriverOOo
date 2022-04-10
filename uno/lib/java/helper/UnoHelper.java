@@ -37,6 +37,7 @@ import com.sun.star.util.Time;
 
 public class UnoHelper
 {
+
     public static void disposeComponent(final XComponent component)
     {
         if (component != null) {
