@@ -333,7 +333,7 @@
                 </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>mem:///dbversion</value>
+                        <value>hsqldb:mem:dbversion</value>
                     </prop>
                 </node>
             </node>
@@ -360,7 +360,7 @@
                 </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>mem:dbversion</value>
+                        <value>h2:mem:dbversion</value>
                     </prop>
                 </node>
             </node>
@@ -383,6 +383,11 @@
                 <node oor:name="JavaDriverClass" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>smallsql.database.SSDriver</value>
+                    </prop>
+                </node>
+                <node oor:name="InMemoryDataBase" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>smallsql</value>
                     </prop>
                 </node>
             </node>
@@ -409,7 +414,7 @@
                 </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>memory:dbversion;create=true</value>
+                        <value>derby:memory:dbversion;create=true</value>
                     </prop>
                 </node>
             </node>

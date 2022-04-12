@@ -81,10 +81,7 @@ class OptionsModel(unohelper.Base):
         self._driver = config.getByName(root)
         self._drivers = self._getDriverConfigurations(config, root)
         if not self.needReboot():
-            self._setVersions(self._drivers.keys())
-
-    def _setVersions(self, *args):
-        Thread(target=self._setDriverVersions, args=args).start()
+            Thread(target=self._setDriverVersions).start()
 
 # OptionsModel getter methods
     def needReboot(self):
@@ -214,29 +211,20 @@ class OptionsModel(unohelper.Base):
         url = getUrl(self._ctx, path)
         return url.Name
 
-    def _setDriverVersions(self, drivers):
-        for driver in drivers:
-            memdb = self._getInMemoryDataBase(driver)
-            if memdb:
-                version = self._getDriverVersion(driver, memdb)
-                with self._lock:
-                    self._versions[driver] = version
-
-    def _getInMemoryDataBase(self, protocol):
-        memdb = None
-        driver = self._drivers[protocol]
+    def _setDriverVersions(self):
         property = 'Properties/InMemoryDataBase/Value'
-        if driver.hasByHierarchicalName(property):
-            memdb = driver.getByHierarchicalName(property)
-        return memdb
+        service = createService(self._ctx, self._getDriverService())
+        for protocol, driver in self._drivers.items():
+            if driver.hasByHierarchicalName(property):
+                url = driver.getByHierarchicalName(property)
+                version = self._getDriverVersion(service, url)
+                with self._lock:
+                    self._versions[protocol] = version
 
-    def _getDriverVersion(self, protocol, memdb):
+    def _getDriverVersion(self, driver, protocol):
         version = self._default
         try:
-            service = self._getDriverService()
-            driver = createService(self._ctx, service)
-            subprotocol = self.getSubProtocol(protocol)
-            url = '%s%s:%s' % (self._registeredProtocol, subprotocol, memdb)
+            url = '%s%s' % (self._registeredProtocol, protocol)
             connection = driver.connect(url, ())
             version = self._version % connection.getMetaData().getDriverVersion()
             connection.close()
