@@ -59,7 +59,6 @@ class OptionsModel(unohelper.Base):
 
     def __init__(self, ctx):
         self._ctx = ctx
-        self._updated = False
         self._driver = None
         self._drivers = {}
         self._version = 'Version: %s'
@@ -140,9 +139,6 @@ class OptionsModel(unohelper.Base):
     def setLevel(self, level):
         OptionsModel._level = False
         self._driver.replaceByName('Driver', self._services[level])
-
-    def setUpdated(self):
-        self._updated = True
 
     def removeProtocol(self, protocol):
         name = self._getProtocolName(protocol)

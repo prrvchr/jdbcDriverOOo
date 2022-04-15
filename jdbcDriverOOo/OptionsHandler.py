@@ -53,7 +53,6 @@ class OptionsHandler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            enabled = self._manager.isHandlerEnabled()
             if method == 'external_event':
                 if event == 'initialize':
                     self._manager.initialize(window)
@@ -71,7 +70,7 @@ class OptionsHandler(unohelper.Base,
                 self._manager.setLevel(1)
                 handled = True
             elif method == 'Set':
-                if enabled:
+                if self._manager.isHandlerEnabled():
                     driver = event.Source.getSelectedItem()
                     self._manager.setDriver(driver)
                 handled = True

@@ -153,7 +153,6 @@ class OptionsManager(unohelper.Base):
         clazz = self._view.getNewClass()
         archive = self._view.getNewArchive()
         enabled = self._model.isDriverValide(protocol, name, clazz, archive)
-        print("OptionsManager.checkDriver() '%s'" % enabled)
         self._view.enableSave(enabled)
 
 # OptionsManager private methods
