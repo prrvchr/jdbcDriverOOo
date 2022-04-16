@@ -4,7 +4,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo/registration/TermsOfUse_fr)
 
-# version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo/README_fr#historique)
+# version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-004)
 
 ## Introduction:
 
@@ -100,7 +100,7 @@ Si vous utilisez HsqlDB comme base de données, procédez comme suit:
 1. Faite une copie (sauvegarde) du dossier contenant votre base de données.
 2. Lancer LibreOffice / OpenOffice et changez la version du pilote JDBC dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, par une version plus récente.
 3. Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar, h2.jar, derbytools.jar).
-4. Dans Base, aprés avoir ouvert votre base de données, allez à: Outils -> SQL et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
+4. Dans Base, aprés avoir ouvert votre base de données, allez à: **Outils -> SQL** et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
 
 Maintenant votre base de données est à jour.
 

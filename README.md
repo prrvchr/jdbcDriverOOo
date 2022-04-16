@@ -4,7 +4,7 @@
 
 **The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo/registration/TermsOfUse_en)
 
-# version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo#historical)
+# version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-004)
 
 ## Introduction:
 
@@ -100,7 +100,7 @@ If you use HsqlDB as database, follow these steps:
 1. Make a copy (backup) of the folder containing your database.
 2. Start LibreOffice / OpenOffice and change the version of the HsqlDB driver in: **Tools -> Options -> Base drivers -> JDBC Driver**, by a more recent version.
 3. Restart LibreOffice / OpenOffice after changing the driver (hsqldb.jar).
-4. In Base, after opening your database, go to: Tools -> SQL and type the SQL command: `SHUTDOWN COMPACT` or `SHUTDOWN SCRIPT`.
+4. In Base, after opening your database, go to: **Tools -> SQL** and type the SQL command: `SHUTDOWN COMPACT` or `SHUTDOWN SCRIPT`.
 
 Now your database is up to date.
 
