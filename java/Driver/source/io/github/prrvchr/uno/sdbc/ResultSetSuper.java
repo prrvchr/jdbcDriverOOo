@@ -32,6 +32,7 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CompareBookmark;
 import com.sun.star.sdbcx.XDeleteRows;
@@ -64,10 +65,11 @@ implements XRowLocate,
                          String[] services,
                          DriverProvider provider,
                          XInterface statement,
-                         java.sql.ResultSet resultset)
+                         java.sql.ResultSet resultset,
+                         PropertyValue[] info)
     throws java.sql.SQLException
     {
-        super(ctx, name, services, provider, statement, resultset, _getPropertySet());
+        super(ctx, name, services, provider, statement, resultset, _getPropertySet(), info);
         m_row = m_ResultSet.getMetaData().getColumnCount();
         if (m_row > 0)
         {

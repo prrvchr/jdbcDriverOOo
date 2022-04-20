@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
@@ -44,10 +45,11 @@ extends ResultSetSuper
     public ResultSet(XComponentContext ctx,
                      DriverProvider provider,
                      XInterface statement,
-                     java.sql.ResultSet resultset)
+                     java.sql.ResultSet resultset,
+                     PropertyValue[] info)
     throws java.sql.SQLException
     {
-        super(ctx, m_name, m_services, provider, statement, resultset);
+        super(ctx, m_name, m_services, provider, statement, resultset, info);
         System.out.println("sdbcx.ResultSet() 1");
     }
 

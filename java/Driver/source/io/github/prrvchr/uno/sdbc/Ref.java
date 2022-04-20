@@ -42,11 +42,14 @@ public class Ref
     // The constructor method:
     public Ref(java.sql.Ref ref)
     {
+        super();
         m_Ref = ref;
     }
 
     @Override
-    public String getBaseTypeName() throws SQLException {
+    public String getBaseTypeName()
+        throws SQLException
+    {
         try
         {
             return m_Ref.getBaseTypeName();

@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
@@ -42,10 +43,11 @@ extends PreparedStatementBase
                              DriverProvider provider,
                              ConnectionBase xConnection,
                              java.sql.Connection connection,
-                             String sql)
+                             String sql,
+                             PropertyValue[] info)
     throws java.sql.SQLException
     {
-        super(context, m_name, m_services, provider, xConnection, connection, sql);
+        super(context, m_name, m_services, provider, xConnection, connection, sql, info);
         System.out.println("sdbc.PreparedStatement() 1: '" + sql + "'");
     }
 
@@ -54,7 +56,7 @@ extends PreparedStatementBase
                                        java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        return m_provider.getResultSet(ctx, this, resultset);
+        return m_provider.getResultSet(ctx, this, resultset, m_info);
     }
 
 

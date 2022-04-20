@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSetMetaData;
@@ -33,15 +34,20 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class ResultSetMetaData
-extends WeakBase
-implements XResultSetMetaData
+    extends WeakBase
+    implements XResultSetMetaData
 {
+
     private final java.sql.ResultSetMetaData m_Metadata;
-    
+    private final PropertyValue[] m_info;
+
     // The constructor method:
-    public ResultSetMetaData(java.sql.ResultSetMetaData metadata)
+    public ResultSetMetaData(java.sql.ResultSetMetaData metadata,
+                             PropertyValue[] info)
     {
+        super();
         m_Metadata = metadata;
+        m_info = info;
     }
 
 
@@ -243,12 +249,20 @@ implements XResultSetMetaData
     {
         try
         {
+            if (_isIgnoreCurrencyEnabled()) {
+                return false;
+            }
             System.out.println("sdbc.ResultSetMetaData.isCurrency() 1");
             return m_Metadata.isCurrency(index);
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    private final boolean _isIgnoreCurrencyEnabled()
+    {
+        return UnoHelper.getDefaultDriverInfo(m_info, "IgnoreCurrency", false);
     }
 
     @Override

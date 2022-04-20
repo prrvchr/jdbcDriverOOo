@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
@@ -41,17 +42,19 @@ extends ResultSetBase
     // The constructor method:
     public ResultSet(XComponentContext ctx,
                      DriverProvider provider,
-                     java.sql.ResultSet resultset)
+                     java.sql.ResultSet resultset,
+                     PropertyValue[] info)
     {
-        super(ctx, m_name, m_services, provider, resultset);
+        super(ctx, m_name, m_services, provider, resultset, info);
         System.out.println("sdbc.ResultSet() 1");
     }
     public ResultSet(XComponentContext ctx,
                      DriverProvider provider,
                      XInterface statement,
-                     java.sql.ResultSet resultset)
+                     java.sql.ResultSet resultset,
+                     PropertyValue[] info)
     {
-        super(ctx, m_name, m_services, provider, statement, resultset);
+        super(ctx, m_name, m_services, provider, statement, resultset, info);
         System.out.println("sdbc.ResultSet() 1");
     }
 

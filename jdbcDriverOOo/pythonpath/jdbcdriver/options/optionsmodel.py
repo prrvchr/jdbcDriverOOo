@@ -36,10 +36,12 @@ from com.sun.star.uno import Exception as UnoException
 
 from ..unotool import createService
 from ..unotool import getConfiguration
+from ..unotool import getPathSettings
 from ..unotool import getResourceLocation
 from ..unotool import getUrl
 
 from ..configuration import g_identifier
+
 from ..dbconfig import g_folder
 
 from ..logger import logMessage
@@ -59,6 +61,7 @@ class OptionsModel(unohelper.Base):
 
     def __init__(self, ctx):
         self._ctx = ctx
+        self._path = None
         self._driver = None
         self._drivers = {}
         self._version = 'Version: %s'
@@ -85,6 +88,16 @@ class OptionsModel(unohelper.Base):
 # OptionsModel getter methods
     def needReboot(self):
         return OptionsModel._reboot
+
+    def getPath(self):
+        if self._path is None:
+            self._path = getPathSettings(self._ctx).Work
+        print("OptionsModel.getPath() %s" % self._path)
+        return self._path
+
+    def getTarget(self, url):
+        location = '%s/%s' % (g_folder, url.Name)
+        return getResourceLocation(self._ctx, g_identifier, location)
 
     def getLevel(self):
         level = self._services.index(self._getDriverService()) +1
@@ -139,6 +152,10 @@ class OptionsModel(unohelper.Base):
     def setLevel(self, level):
         OptionsModel._level = False
         self._driver.replaceByName('Driver', self._services[level])
+
+    def setPath(self, url):
+        self._path = url.Protocol + url.Path
+        print("OptionsModel.setPath() %s" % self._path)
 
     def removeProtocol(self, protocol):
         name = self._getProtocolName(protocol)

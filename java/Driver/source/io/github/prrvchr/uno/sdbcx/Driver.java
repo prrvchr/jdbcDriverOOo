@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.DriverManager;
-import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
@@ -63,8 +62,9 @@ public final class Driver
         System.out.println("sdbcx.Driver() 1");
     }
 
-    protected java.sql.Connection _getConnection(String url,
-                                                 Properties properties)
+    protected java.sql.Connection _getConnection(DriverProvider provider,
+                                                 String url,
+                                                 PropertyValue[] info)
         throws java.sql.SQLException
     {
         //Map<String, String> map = PropertiesUtility.propertiesMap(properties);
@@ -73,7 +73,7 @@ public final class Driver
         //String password = properties.getProperty("password");
         //datasource.setUserCredentials(new SingleUseUserCredentials(user, password));
         //return new ConnectionWrapper(datasource.get());
-        return new ConnectionWrapper(DriverManager.getConnection(url, properties));
+        return new ConnectionWrapper(DriverManager.getConnection(url, _getConnectionProperties(provider, info)));
     }
 
     protected XConnection _getConnection(XComponentContext ctx,

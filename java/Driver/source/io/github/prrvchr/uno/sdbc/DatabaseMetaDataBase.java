@@ -1411,7 +1411,7 @@ implements XDatabaseMetaData2
             XResultSet result = null;
             if (resultset != null)
             {
-                result = m_provider.getResultSet(m_xContext, resultset);
+                result = m_provider.getResultSet(m_xContext, resultset, m_info);
                 // we have to check the result columns for the tables privileges #106324#
                 XResultSetMetaDataSupplier metaDataSupplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
                 XResultSetMetaData metadata = null;
@@ -3569,7 +3569,7 @@ implements XDatabaseMetaData2
         XResultSet result = null;
         try {
             if (resultset != null)
-                result = m_provider.getResultSet(m_xContext, resultset);
+                result = m_provider.getResultSet(m_xContext, resultset, m_info);
         }
         catch (java.lang.Exception e)
         {

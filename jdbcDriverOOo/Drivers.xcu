@@ -385,6 +385,11 @@
                         <value>smallsql.database.SSDriver</value>
                     </prop>
                 </node>
+                <node oor:name="IgnoreCurrency" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>smallsql</value>

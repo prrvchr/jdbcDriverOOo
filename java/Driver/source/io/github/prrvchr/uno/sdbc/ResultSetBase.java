@@ -32,6 +32,7 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
@@ -59,20 +60,21 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public abstract class ResultSetBase
-extends WarningsSupplierProperty<java.sql.ResultSet>
-implements XCloseable,
-           XColumnLocate,
-           XResultSet,
-           XResultSetMetaDataSupplier,
-           XResultSetUpdate,
-           XRow,
-           XRowUpdate
+    extends WarningsSupplierProperty<java.sql.ResultSet>
+    implements XCloseable,
+               XColumnLocate,
+               XResultSet,
+               XResultSetMetaDataSupplier,
+               XResultSetUpdate,
+               XRow,
+               XRowUpdate
 {
 
     @SuppressWarnings("unused")
     private final XComponentContext m_xContext;
     private final XInterface m_xStatement;
     protected final java.sql.ResultSet m_ResultSet;
+    private final PropertyValue[] m_info;
     private static Map<String, Property> _getPropertySet()
     {
         Map<String, Property> map = new LinkedHashMap<String, Property>();
@@ -93,40 +95,46 @@ implements XCloseable,
 
     // The constructor method:
     public ResultSetBase(XComponentContext ctx,
-                          String name,
-                          String[] services,
-                          DriverProvider provider,
-                          java.sql.ResultSet resultset)
+                         String name,
+                         String[] services,
+                         DriverProvider provider,
+                         java.sql.ResultSet resultset,
+                         PropertyValue[] info)
     {
         super(name, services, provider.supportWarningsSupplier(), _getPropertySet());
         m_xContext = ctx;
         m_xStatement = null;
         m_ResultSet = resultset;
+        m_info = info;
     }
     public ResultSetBase(XComponentContext ctx,
-                          String name,
-                          String[] services,
-                          DriverProvider provider,
-                          XInterface statement,
-                          java.sql.ResultSet resultset)
+                         String name,
+                         String[] services,
+                         DriverProvider provider,
+                         XInterface statement,
+                         java.sql.ResultSet resultset,
+                         PropertyValue[] info)
     {
         super(name, services, provider.supportWarningsSupplier(), _getPropertySet());
         m_xContext = ctx;
         m_xStatement = statement;
         m_ResultSet = resultset;
+        m_info = info;
     }
     public ResultSetBase(XComponentContext ctx,
-                          String name,
-                          String[] services,
-                          DriverProvider provider,
-                          XInterface statement,
-                          java.sql.ResultSet resultset,
-                          Map<String, Property> properties)
+                         String name,
+                         String[] services,
+                         DriverProvider provider,
+                         XInterface statement,
+                         java.sql.ResultSet resultset,
+                         Map<String, Property> properties,
+                         PropertyValue[] info)
     {
         super(name, services, provider.supportWarningsSupplier(), _getPropertySet(properties));
         m_xContext = ctx;
         m_xStatement = statement;
         m_ResultSet = resultset;
+        m_info = info;
     }
 
     protected java.sql.ResultSet _getWrapper()
@@ -465,7 +473,7 @@ implements XCloseable,
         try
         {
             java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
-            return (metadata != null) ? new ResultSetMetaData(metadata) : null;
+            return (metadata != null) ? new ResultSetMetaData(metadata, m_info) : null;
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);

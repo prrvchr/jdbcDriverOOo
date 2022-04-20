@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
@@ -53,35 +54,40 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class PreparedStatementMain
-extends StatementMain
-implements XParameters,
-           XPreparedBatchExecution,
-           XPreparedStatement,
-           XResultSetMetaDataSupplier
+    extends StatementMain
+    implements XParameters,
+               XPreparedBatchExecution,
+               XPreparedStatement,
+               XResultSetMetaDataSupplier
 {
-    private XConnection m_xConnection;
 
+    private XConnection m_xConnection;
+    protected final PropertyValue[] m_info;
 
     // The constructor method:
     public PreparedStatementMain(XComponentContext context,
-                                  String name,
-                                  String[] services,
-                                  DriverProvider provider,
-                                  ConnectionBase xConnection)
+                                 String name,
+                                 String[] services,
+                                 DriverProvider provider,
+                                 ConnectionBase xConnection,
+                                 PropertyValue[] info)
     {
         super(context, name, services, provider);
         m_xConnection = xConnection;
+        m_info = info;
     }
 
     public PreparedStatementMain(XComponentContext context,
-                                  String name,
-                                  String[] services,
-                                  DriverProvider provider,
-                                  ConnectionBase xConnection,
-                                  Map<String, Property> properties)
+                                 String name,
+                                 String[] services,
+                                 DriverProvider provider,
+                                 ConnectionBase xConnection,
+                                 Map<String, Property> properties,
+                                 PropertyValue[] info)
     {
         super(context, name, services, provider, properties);
         m_xConnection = xConnection;
+        m_info = info;
     }
 
 
@@ -108,7 +114,7 @@ implements XParameters,
         try
         {
             java.sql.PreparedStatement statement = _getStatement();
-            java.sql.Array array =  UnoHelper.getSQLArray(statement, value);
+            java.sql.Array array = statement.getConnection().createArrayOf(value.getBaseTypeName(), value.getArray(null));
             statement.setArray(index, array);
         }
         catch (java.sql.SQLException e)
@@ -136,7 +142,8 @@ implements XParameters,
         try
         {
             java.sql.PreparedStatement statement = _getStatement();
-            java.sql.Blob blob = UnoHelper.getSQLBlob(statement, value);
+            java.sql.Blob blob = statement.getConnection().createBlob();
+            blob.setBytes(1, value.getBytes(1, (int) value.length()));
             statement.setBlob(index, blob);
         }
         catch (java.sql.SQLException e)
@@ -199,7 +206,8 @@ implements XParameters,
         try
         {
             java.sql.PreparedStatement statement = _getStatement();
-            java.sql.Clob clob = UnoHelper.getSQLClob(statement, value);
+            java.sql.Clob clob = statement.getConnection().createClob();
+            clob.setString(1, value.toString());
             statement.setClob(index, clob);
         }
         catch (java.sql.SQLException e)
@@ -298,7 +306,7 @@ implements XParameters,
     {
         try
         {
-            _getStatement().setNull(index, type);
+            _getStatement().setObject(index, null);
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -464,11 +472,8 @@ implements XParameters,
     {
         try
         {
-            XResultSetMetaData metadata = null;
-            java.sql.ResultSetMetaData md = _getStatement().getMetaData();
-            if (md != null)
-                metadata = new ResultSetMetaData(md);
-            return metadata;
+            java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
+            return metadata != null ? new ResultSetMetaData(metadata, m_info) : null;
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);

@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbc;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.sdbc.SQLException;
@@ -63,9 +64,10 @@ implements XOutParameters,
                                   DriverProvider provider,
                                   ConnectionBase xConnection,
                                   java.sql.Connection connection,
-                                  String sql)
+                                  String sql,
+                                  PropertyValue[] info)
     {
-        super(context, name, services, provider, xConnection);
+        super(context, name, services, provider, xConnection, info);
         m_Connection = connection;
         m_Sql= sql;
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");
@@ -77,9 +79,10 @@ implements XOutParameters,
                                   ConnectionBase xConnection,
                                   java.sql.Connection connection,
                                   String sql,
-                                  Map<String, Property> properties)
+                                  Map<String, Property> properties,
+                                  PropertyValue[] info)
     {
-        super(context, name, services, provider, xConnection, properties);
+        super(context, name, services, provider, xConnection, properties, info);
         m_Connection = connection;
         m_Sql= sql;
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");

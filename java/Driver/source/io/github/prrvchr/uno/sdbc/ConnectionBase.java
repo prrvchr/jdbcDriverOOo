@@ -58,19 +58,19 @@ public abstract class ConnectionBase
                           String[] services,
                           DriverProvider provider,
                           java.sql.Connection connection,
-                          PropertyValue[] info,
-                          String url)
+                          String url,
+                          PropertyValue[] info)
         throws java.sql.SQLException
     {
-        this(ctx, name, services, provider, connection, info, url, false);
+        this(ctx, name, services, provider, connection, url, info, false);
     }
     public ConnectionBase(XComponentContext ctx,
                           String name,
                           String[] services,
                           DriverProvider provider,
                           java.sql.Connection connection,
-                          PropertyValue[] info,
                           String url,
+                          PropertyValue[] info,
                           boolean crawler)
         throws java.sql.SQLException
     {
@@ -78,8 +78,8 @@ public abstract class ConnectionBase
         System.out.println("Connection.Connection() 1");
         m_xContext = ctx;
         m_Connection = connection;
-        m_info = info;
         m_url = url;
+        m_info = info;
         m_provider = provider;
         if (crawler)
         {
@@ -318,6 +318,7 @@ public abstract class ConnectionBase
             throw UnoHelper.getSQLException(e, this);
         }
     }
+
 
     protected java.sql.Connection _getWrapper()
     {

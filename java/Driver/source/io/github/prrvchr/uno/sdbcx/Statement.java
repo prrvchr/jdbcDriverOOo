@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
@@ -46,6 +47,7 @@ public final class Statement
     private static String m_name = Statement.class.getName();
     private static String[] m_services = {"com.sun.star.sdbc.Statement",
                                           "com.sun.star.sdbcx.Statement"};
+    private final PropertyValue[] m_info;
     public boolean m_UseBookmarks = false;
     private static Map<String, Property> _getPropertySet()
     {
@@ -58,10 +60,12 @@ public final class Statement
     public Statement(XComponentContext context,
                      DriverProvider provider,
                      ConnectionBase xConnection,
-                     java.sql.Connection connection)
+                     java.sql.Connection connection,
+                     PropertyValue[] info)
     throws SQLException
     {
         super(context, m_name, m_services, provider, xConnection, connection, _getPropertySet());
+        m_info = info;
         System.out.println("sdbcx.Statement() 1");
     }
 
@@ -69,7 +73,7 @@ public final class Statement
                                        java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        return new ResultSet(ctx, m_provider, this, resultset);
+        return new ResultSet(ctx, m_provider, this, resultset, m_info);
     }
 
 

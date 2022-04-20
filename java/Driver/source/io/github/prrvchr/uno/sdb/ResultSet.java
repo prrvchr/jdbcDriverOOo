@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
@@ -50,10 +51,11 @@ implements XColumnsSupplier
     public ResultSet(XComponentContext ctx,
                      DriverProvider provider,
                      XInterface statement,
-                     java.sql.ResultSet resultset)
+                     java.sql.ResultSet resultset,
+                     PropertyValue[] info)
     throws java.sql.SQLException
     {
-        super(ctx, m_name, m_services, provider, statement, resultset);
+        super(ctx, m_name, m_services, provider, statement, resultset, info);
         System.out.println("sdb.ResultSet() 1");
     }
 

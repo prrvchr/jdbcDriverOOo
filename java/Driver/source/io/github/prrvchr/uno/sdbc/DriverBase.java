@@ -41,6 +41,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDriver;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -117,16 +118,17 @@ public abstract class DriverBase
         String location = url;
         if (url.startsWith(m_registredProtocol))
             location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
-        Properties properties = UnoHelper.getJavaProperties(info);
         if (!_isDriverRegistered(location)) {
-            _registerDriver(_getUrlProtocol(url), properties);
+            _registerDriver(_getUrlProtocol(url), info);
         }
         XConnection connection = null;
+        //Properties properties = _getConnectionProperties(info);
         System.out.println("sdbc.DriverBase.connect() 2 ClassPath: ");
         try
         {
             System.out.println("sdbc.DriverBase.connect() 3");
-            connection = _getConnection(m_xContext, _getDriverProvider(url), _getConnection(location, properties), url, info);
+            DriverProvider provider = _getDriverProvider(url);
+            connection = _getConnection(m_xContext, provider, _getConnection(provider, location, info), url, info);
         } catch(java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -158,7 +160,7 @@ public abstract class DriverBase
     }
 
     private void _registerDriver(final String protocol,
-                                 final Properties properties)
+                                 final PropertyValue[] info)
         throws SQLException
     {
         try
@@ -166,8 +168,8 @@ public abstract class DriverBase
             System.out.println("sdbc.DriverBase._registerDriver() 3");
             final Object config = UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
             final XHierarchicalNameAccess drivers = (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
-            final String name = _getDriverClass(drivers, protocol, properties);
-            final URL url = _getDriverClassPath(drivers, protocol, properties);
+            final String name = _getDriverClass(drivers, protocol, info);
+            final URL url = _getDriverClassPath(drivers, protocol, info);
             System.out.println("sdbc.DriverBase._registerDriver() 4 url: " + url + " name: " + name);
             if (name != null && url != null)
             {
@@ -188,10 +190,10 @@ public abstract class DriverBase
 
     private String _getDriverClass(final XHierarchicalNameAccess drivers,
                                    final String protocol,
-                                   final Properties properties)
+                                   final PropertyValue[] info)
         throws NoSuchElementException
     {
-        String clazz = properties.getProperty(m_driverClass);
+        String clazz = UnoHelper.getDefaultDriverInfo(info, m_driverClass, null);
         if (clazz == null) {
             final String property = "Installed/" + protocol + "/Properties/" + m_driverClass + "/Value";
             if (drivers.hasByHierarchicalName(property)) {
@@ -203,10 +205,10 @@ public abstract class DriverBase
 
     private URL _getDriverClassPath(final XHierarchicalNameAccess drivers,
                                     final String protocol,
-                                    final Properties properties)
+                                    final PropertyValue[] info)
         throws SQLException, NoSuchElementException
     {
-        String url = properties.getProperty(m_driverClassPath);
+        String url = UnoHelper.getDefaultDriverInfo(info, m_driverClassPath, null);
         if (url == null) {
             final String property = "Installed/" + protocol + "/Properties/" + m_driverClassPath + "/Value";
             if (drivers.hasByHierarchicalName(property)) {
@@ -381,8 +383,9 @@ public abstract class DriverBase
         return new DefaultDriverProvider();
     }
 
-    abstract protected java.sql.Connection _getConnection(String url,
-                                                          Properties properties)
+    abstract protected java.sql.Connection _getConnection(DriverProvider provider,
+                                                          String url,
+                                                          PropertyValue[] info)
         throws java.sql.SQLException;
 
     abstract protected XConnection _getConnection(XComponentContext ctx,
@@ -391,6 +394,60 @@ public abstract class DriverBase
                                                   String url,
                                                   PropertyValue[] info)
         throws java.sql.SQLException;
+
+
+    protected Properties _getConnectionProperties(DriverProvider provider,
+                                                  PropertyValue[] info)
+        throws IllegalArgumentException
+    {
+        Properties properties = new Properties();
+        //String value;
+        for (PropertyValue property : info) {
+            if (!property.Name.equals("JavaDriverClass") &&
+                !property.Name.equals("JavaDriverClassPath") &&
+                !property.Name.equals("SystemProperties") &&
+                !property.Name.equals("CharSet") &&
+                !property.Name.equals("AppendTableAliasName") &&
+                !property.Name.equals("AddIndexAppendix") &&
+                !property.Name.equals("FormsCheckRequiredFields") &&
+                !property.Name.equals("GenerateASBeforeCorrelationName") &&
+                !property.Name.equals("EscapeDateTime") &&
+                !property.Name.equals("ParameterNameSubstitution") &&
+                !property.Name.equals("IsPasswordRequired") &&
+                !property.Name.equals("IsAutoRetrievingEnabled") &&
+                !property.Name.equals("AutoRetrievingStatement") &&
+                !property.Name.equals("UseCatalogInSelect") &&
+                !property.Name.equals("UseSchemaInSelect") &&
+                !property.Name.equals("AutoIncrementCreation") &&
+                !property.Name.equals("Extension") &&
+                !property.Name.equals("NoNameLengthLimit") &&
+                !property.Name.equals("EnableSQL92Check") &&
+                !property.Name.equals("EnableOuterJoinEscape") &&
+                !property.Name.equals("BooleanComparisonMode") &&
+                !property.Name.equals("IgnoreCurrency") &&
+                !property.Name.equals("TypeInfoSettings") &&
+                !property.Name.equals("IgnoreDriverPrivileges") &&
+                !property.Name.equals("ImplicitCatalogRestriction") &&
+                !property.Name.equals("ImplicitSchemaRestriction") &&
+                !property.Name.equals("SupportsTableCreation") &&
+                !property.Name.equals("UseJava") &&
+                !property.Name.equals("Authentication") &&
+                !property.Name.equals("PreferDosLikeLineEnds") &&
+                !property.Name.equals("PrimaryKeySupport") &&
+                !property.Name.equals("RespectDriverResultSetType") &&
+                !property.Name.equals("GeneratedValues"))
+            {
+                //value = (String) property.Value;
+                //value = AnyConverter.toString(property.Value);
+                // FIXME: JDBC doesn't seem to like <Properties> with empty values!!!
+                //if (!value.isEmpty() && !value.isBlank()) {
+                System.out.println("sdbc.DriverBase._getConnectionProperties() 1 : " + property.Name + " - " + property.Value);
+                properties.setProperty(property.Name, AnyConverter.toString(property.Value));
+                //}
+            }
+        }
+        return properties;
+    }
 
 
 }

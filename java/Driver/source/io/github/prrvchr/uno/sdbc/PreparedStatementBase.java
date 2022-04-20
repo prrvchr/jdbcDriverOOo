@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -49,9 +50,10 @@ public abstract class PreparedStatementBase
                                  DriverProvider provider,
                                  ConnectionBase xConnection,
                                  java.sql.Connection connection,
-                                 String sql)
+                                 String sql,
+                                 PropertyValue[] info)
     {
-        super(context, name, services, provider, xConnection);
+        super(context, name, services, provider, xConnection, info);
         m_Connection = connection;
         m_Sql = sql;
         System.out.println("sdbc.BasePreparedStatement() 1: '" + sql + "'");
@@ -63,9 +65,10 @@ public abstract class PreparedStatementBase
                                  ConnectionBase xConnection,
                                  java.sql.Connection connection,
                                  String sql,
-                                 Map<String, Property> properties)
+                                 Map<String, Property> properties,
+                                 PropertyValue[] info)
     {
-        super(context, name, services, provider, xConnection, properties);
+        super(context, name, services, provider, xConnection, properties, info);
         m_Connection = connection;
         m_Sql = sql;
     }

@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -54,9 +55,10 @@ extends CallableStatementBase
                                  DriverProvider provider,
                                  ConnectionBase xConnection,
                                  java.sql.Connection connection,
-                                 String sql)
+                                 String sql,
+                                 PropertyValue[] info)
     {
-        super(context, name, services, provider, xConnection, connection, sql, _getPropertySet());
+        super(context, name, services, provider, xConnection, connection, sql, _getPropertySet(), info);
     }
 
 

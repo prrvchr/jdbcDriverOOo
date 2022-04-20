@@ -69,17 +69,19 @@ public final class DefaultDriverProvider
 
     @Override
     public ResultSetBase getResultSet(XComponentContext context,
-                                      java.sql.ResultSet resultset)
+                                      java.sql.ResultSet resultset,
+                                      PropertyValue[] info)
     {
-        return new ResultSet(context, this, resultset);
+        return new ResultSet(context, this, resultset, info);
     }
 
     @Override
     public ResultSetBase getResultSet(XComponentContext context,
                                       StatementMain statement,
-                                      java.sql.ResultSet resultset)
+                                      java.sql.ResultSet resultset,
+                                      PropertyValue[] info)
     {
-        return new ResultSet(context, this, statement, resultset);
+        return new ResultSet(context, this, statement, resultset, info);
     }
 
 

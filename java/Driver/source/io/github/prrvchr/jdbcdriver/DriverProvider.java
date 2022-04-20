@@ -8,7 +8,8 @@ import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
-public interface DriverProvider {
+public interface DriverProvider
+{
 
     public boolean acceptsURL(String url);
 
@@ -21,11 +22,13 @@ public interface DriverProvider {
                                                     String url);
 
     public ResultSetBase getResultSet(XComponentContext context,
-                                      java.sql.ResultSet resultset);
+                                      java.sql.ResultSet resultset,
+                                      PropertyValue[] info);
 
     public ResultSetBase getResultSet(XComponentContext context,
                                       StatementMain statement,
-                                      java.sql.ResultSet resultset);
+                                      java.sql.ResultSet resultset,
+                                      PropertyValue[] info);
 
 
 }

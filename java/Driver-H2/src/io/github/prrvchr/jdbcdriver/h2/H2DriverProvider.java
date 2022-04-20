@@ -71,17 +71,19 @@ public final class H2DriverProvider
 
     @Override
     public final ResultSetBase getResultSet(final XComponentContext context,
-                                            final java.sql.ResultSet resultset)
+                                            final java.sql.ResultSet resultset,
+                                            final PropertyValue[] info)
     {
-        return new ResultSet(context, this, resultset);
+        return new ResultSet(context, this, resultset, info);
     }
 
     @Override
     public final ResultSetBase getResultSet(final XComponentContext context,
                                             final StatementMain statement,
-                                            final java.sql.ResultSet resultset)
+                                            final java.sql.ResultSet resultset,
+                                            final PropertyValue[] info)
     {
-        return new ResultSet(context, this, statement, resultset);
+        return new ResultSet(context, this, statement, resultset, info);
     }
 
 

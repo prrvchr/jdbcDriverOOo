@@ -50,7 +50,7 @@ public class Connection
                       PropertyValue[] info)
         throws SQLException
     {
-        super(ctx, m_name, m_services, provider, connection, info, url);
+        super(ctx, m_name, m_services, provider, connection, url, info);
         System.out.println("sdbc.Connection() 1");
     }
 
@@ -60,7 +60,7 @@ public class Connection
                                        java.sql.Connection connection)
     throws java.sql.SQLException
     {
-        return new Statement(ctx, provider, this, connection);
+        return new Statement(ctx, provider, this, connection, m_info);
     }
 
     protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
@@ -70,7 +70,7 @@ public class Connection
     throws java.sql.SQLException
     {
         System.out.println("sdbc.Connection._getPreparedStatement() 1: '" + sql + "'");
-        return new PreparedStatement(ctx, provider, this, connection, sql);
+        return new PreparedStatement(ctx, provider, this, connection, sql, m_info);
     }
 
     protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
@@ -80,7 +80,7 @@ public class Connection
     throws java.sql.SQLException
     {
         System.out.println("sdbc.Connection._getCallableStatement() 1: '" + sql + "'");
-        return new CallableStatement(ctx, provider, this, connection, sql);
+        return new CallableStatement(ctx, provider, this, connection, sql, m_info);
     }
 
 

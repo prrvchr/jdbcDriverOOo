@@ -37,20 +37,15 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 
-from ..unotool import getDesktop
 from ..unotool import getFilePicker
-from ..unotool import getPathSettings
-from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 from ..unotool import getUrl
 
 from ..logger import LogManager
 
-from ..dbconfig import g_folder
 from ..dbconfig import g_jar
 
 from ..configuration import g_extension
-from ..configuration import g_identifier
 
 import os
 import sys
@@ -168,16 +163,14 @@ class OptionsManager(unohelper.Base):
         self._view.setProtocols(self._model.getProtocols(), driver)
 
     def _updateArchive(self):
-        path = getPathSettings(self._ctx).Work
         fp = getFilePicker(self._ctx)
-        fp.setDisplayDirectory(path)
+        fp.setDisplayDirectory(self._model.getPath())
         fp.appendFilter(g_jar, g_jar)
         fp.setCurrentFilter(g_jar)
         if fp.execute() == OK:
             url = getUrl(self._ctx, fp.getFiles()[0])
-            location = '%s/%s' % (g_folder, url.Name)
-            target = getResourceLocation(self._ctx, g_identifier, location)
-            getSimpleFile(self._ctx).copy(url.Main, target)
+            getSimpleFile(self._ctx).copy(url.Main, self._model.getTarget(url))
+            self._model.setPath(url)
             return url.Name
         return None
 
