@@ -401,49 +401,11 @@ public abstract class DriverBase
         throws IllegalArgumentException
     {
         Properties properties = new Properties();
-        //String value;
         for (PropertyValue property : info) {
-            if (!property.Name.equals("JavaDriverClass") &&
-                !property.Name.equals("JavaDriverClassPath") &&
-                !property.Name.equals("SystemProperties") &&
-                !property.Name.equals("CharSet") &&
-                !property.Name.equals("AppendTableAliasName") &&
-                !property.Name.equals("AddIndexAppendix") &&
-                !property.Name.equals("FormsCheckRequiredFields") &&
-                !property.Name.equals("GenerateASBeforeCorrelationName") &&
-                !property.Name.equals("EscapeDateTime") &&
-                !property.Name.equals("ParameterNameSubstitution") &&
-                !property.Name.equals("IsPasswordRequired") &&
-                !property.Name.equals("IsAutoRetrievingEnabled") &&
-                !property.Name.equals("AutoRetrievingStatement") &&
-                !property.Name.equals("UseCatalogInSelect") &&
-                !property.Name.equals("UseSchemaInSelect") &&
-                !property.Name.equals("AutoIncrementCreation") &&
-                !property.Name.equals("Extension") &&
-                !property.Name.equals("NoNameLengthLimit") &&
-                !property.Name.equals("EnableSQL92Check") &&
-                !property.Name.equals("EnableOuterJoinEscape") &&
-                !property.Name.equals("BooleanComparisonMode") &&
-                !property.Name.equals("IgnoreCurrency") &&
-                !property.Name.equals("TypeInfoSettings") &&
-                !property.Name.equals("IgnoreDriverPrivileges") &&
-                !property.Name.equals("ImplicitCatalogRestriction") &&
-                !property.Name.equals("ImplicitSchemaRestriction") &&
-                !property.Name.equals("SupportsTableCreation") &&
-                !property.Name.equals("UseJava") &&
-                !property.Name.equals("Authentication") &&
-                !property.Name.equals("PreferDosLikeLineEnds") &&
-                !property.Name.equals("PrimaryKeySupport") &&
-                !property.Name.equals("RespectDriverResultSetType") &&
-                !property.Name.equals("GeneratedValues"))
+            if (provider.supportProperty(property.Name))
             {
-                //value = (String) property.Value;
-                //value = AnyConverter.toString(property.Value);
-                // FIXME: JDBC doesn't seem to like <Properties> with empty values!!!
-                //if (!value.isEmpty() && !value.isBlank()) {
                 System.out.println("sdbc.DriverBase._getConnectionProperties() 1 : " + property.Name + " - " + property.Value);
                 properties.setProperty(property.Name, AnyConverter.toString(property.Value));
-                //}
             }
         }
         return properties;

@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
+import java.util.List;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
@@ -41,6 +43,7 @@ public final class HsqlDBDriverProvider
 
     private static final String m_protocol = "sdbc:hsqldb";
     private static final boolean m_warnings = true;
+    private List<String> m_properties = List.of("user", "password");
 
     // The constructor method:
     public HsqlDBDriverProvider()
@@ -57,6 +60,12 @@ public final class HsqlDBDriverProvider
     @Override
     public final boolean supportWarningsSupplier() {
         return m_warnings;
+    }
+
+    @Override
+    public final boolean supportProperty(String property)
+    {
+        return m_properties.contains(property);
     }
 
     @Override

@@ -60,12 +60,12 @@ implements XDatabaseMetaData2
     private final PropertyValue[] m_info;
 
     // The constructor method:
-    public DatabaseMetaDataBase(XComponentContext ctx,
-                            DriverProvider provider,
-                            XConnection connection,
-                            java.sql.DatabaseMetaData metadata,
-                            PropertyValue[] info,
-                            String url)
+    public DatabaseMetaDataBase(final XComponentContext ctx,
+                                final DriverProvider provider,
+                                final XConnection connection,
+                                final java.sql.DatabaseMetaData metadata,
+                                final PropertyValue[] info,
+                                final String url)
     {
         m_xContext = ctx;
         m_provider = provider;

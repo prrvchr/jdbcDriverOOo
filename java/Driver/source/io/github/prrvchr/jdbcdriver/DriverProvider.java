@@ -15,6 +15,8 @@ public interface DriverProvider
 
     public boolean supportWarningsSupplier();
 
+    public boolean supportProperty(String property);
+
     public DatabaseMetaDataBase getDatabaseMetaData(XComponentContext context,
                                                     ConnectionBase connection,
                                                     java.sql.DatabaseMetaData metadata,

@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
+import java.util.List;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
@@ -39,6 +41,8 @@ public final class DefaultDriverProvider
     implements DriverProvider
 {
 
+    private List<String> m_properties = List.of("user", "password");
+
     // The constructor method:
     public DefaultDriverProvider()
     {
@@ -52,11 +56,16 @@ public final class DefaultDriverProvider
     }
 
     @Override
+    public final boolean supportProperty(String property)
+    {
+        return m_properties.contains(property);
+    }
+
+    @Override
     public final boolean supportWarningsSupplier()
     {
         return true;
     }
-
     @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
                                                           final ConnectionBase connection,
