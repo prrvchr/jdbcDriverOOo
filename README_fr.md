@@ -180,15 +180,15 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
 ### Ce qui a été fait pour la version 0.0.4:
 
-- Réécriture de [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) en Java version 11 OpenJDK amd64 sous Eclipse 4.11.0 avec le plugin: LibreOffice Extension/Component Development - Java version 4.0.1.
+- Réécriture de [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) en Java version 11 OpenJDK amd64 sous Eclipse 4.11.0 avec le plugin: LibreOffice Extension/Component Development - Java version 4.0.1.
 
 - Ecriture des services `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` de JDBC (merci à hanya pour [MRI](https://github.com/hanya/MRI) qui m'a été d'une aide précieuse...)
 
-  - [com.sun.star.sdb.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdb)
+  - [com.sun.star.sdb.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver/source/io/github/prrvchr/uno/sdb)
 
-  - [com.sun.star.sdbc.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbc)
+  - [com.sun.star.sdbc.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver/source/io/github/prrvchr/uno/sdbc)
 
-  - [com.sun.star.sdbcx.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/java/Driver/source/io/github/prrvchr/uno/sdbcx)
+  - [com.sun.star.sdbcx.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver/source/io/github/prrvchr/uno/sdbcx)
 
 - Intégration dans jdbcDriverOOo des pilotes JDBC H2 et Derby en plus de HsqlDB. Implémentation de Services Java afin de corriger d'éventuels défauts, ou incompatibilité avec l'API UNO, des pilotes JDBC embarqués. 
 
@@ -196,7 +196,7 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
 - Prise en charge dans Base des clés primaires auto incrémentées pour HsqlDB et Derby. H2 ne supporte pas encore.
 
-- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/java/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs et des droits dans Base. Son utilisation peut être demandée dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**. Il n'est pas terminé et n'est pas encore fonctionnel.
+- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs et des droits dans Base. Son utilisation peut être demandée dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**. Il n'est pas terminé et n'est pas encore fonctionnel.
 
 - Réécriture, en suivant le modèle MVC, de la fenêtre des [Options](https://github.com/prrvchr/jdbcDriverOOo/tree/master/jdbcDriverOOo/pythonpath/jdbcdriver/options), accessible par: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre la mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
 
