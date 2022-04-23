@@ -1,0 +1,16 @@
+#ifndef __io_github_prrvchr_jdbcdriverooo_sdbcx_Driver_idl__
+#define __io_github_prrvchr_jdbcdriverooo_sdbcx_Driver_idl__
+
+#include <com/sun/star/sdbcx/Driver.idl>
+
+module io { module github { module prrvchr { module jdbcDriverOOo { module sdbcx {
+
+    service Driver
+    {
+        service com::sun::star::sdbcx::Driver;
+    };
+
+}; }; }; }; };
+
+#endif
+

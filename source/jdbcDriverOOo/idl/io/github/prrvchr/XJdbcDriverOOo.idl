@@ -1,0 +1,11 @@
+#ifndef __io_github_prrvchr_xjdbcdriverooo_idl__
+#define __io_github_prrvchr_xjdbcdriverooo_idl__
+
+module io { module github { module prrvchr { 	
+
+	interface XJdbcDriverOOo {
+
+	};
+
+ }; }; };
+#endif
