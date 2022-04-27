@@ -262,7 +262,7 @@ public final class ResultSetMetaData
 
     private final boolean _isIgnoreCurrencyEnabled()
     {
-        return UnoHelper.getDefaultDriverInfo(m_info, "IgnoreCurrency", false);
+        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreCurrency", false);
     }
 
     @Override

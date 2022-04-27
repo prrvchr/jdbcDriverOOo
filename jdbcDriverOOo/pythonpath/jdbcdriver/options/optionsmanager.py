@@ -73,7 +73,7 @@ class OptionsManager(unohelper.Base):
         self._view = OptionsView(window, reboot)
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
-        loggers = ('Driver', )
+        loggers = ('Driver', 'hsqldb.db', 'h2database', 'derby')
         infos = {111: version, 112: path}
         self._logger = LogManager(self._ctx, window.Peer, g_extension, loggers, infos)
         self._initView()

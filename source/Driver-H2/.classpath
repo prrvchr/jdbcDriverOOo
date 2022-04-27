@@ -11,10 +11,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/Driver">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/Driver"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/UnoLogger"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

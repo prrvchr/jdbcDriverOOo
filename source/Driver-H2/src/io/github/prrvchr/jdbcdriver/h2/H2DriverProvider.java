@@ -25,12 +25,18 @@
 */
 package io.github.prrvchr.jdbcdriver.h2;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.logging.LogLevel;
+import com.sun.star.logging.XLogger;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.logging.UnoLoggerPool;
+//import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSet;
@@ -41,9 +47,10 @@ public final class H2DriverProvider
     implements DriverProvider
 {
 
-    private static final String m_protocol = "sdbc:h2";
+    private static final String m_subProtocol = "h2";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
+    private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
     // The constructor method:
     public H2DriverProvider()
@@ -54,7 +61,7 @@ public final class H2DriverProvider
     @Override
     public final boolean acceptsURL(final String url)
     {
-        return url.startsWith(m_protocol);
+        return url.startsWith(getProtocol(m_subProtocol));
     }
 
     @Override
@@ -63,9 +70,15 @@ public final class H2DriverProvider
     }
 
     @Override
-    public final boolean supportProperty(String property)
+    public java.sql.Connection getConnection(String url,
+                                             PropertyValue[] info)
+        throws SQLException
     {
-        return m_properties.contains(property);
+        final XLogger logger = UnoLoggerPool.getInstance().getNamedLogger("h2database");
+        if (logger.getLevel() != LogLevel.OFF) {
+            url += m_logger;
+        }
+        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
     @Override

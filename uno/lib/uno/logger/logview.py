@@ -79,8 +79,11 @@ class LogWindow(unohelper.Base):
     def _getLogger(self):
         return self._window.getControl('CheckBox1')
 
-    def _getLevelLabel(self):
+    def _getOutputLabel(self):
         return self._window.getControl('Label2')
+
+    def _getLevelLabel(self):
+        return self._window.getControl('Label3')
 
     def _getLevel(self):
         return self._window.getControl('ListBox2')
@@ -93,9 +96,6 @@ class LogWindow(unohelper.Base):
 
     def _getFileHandler(self):
         return self._window.getControl('OptionButton2')
-
-    def _getOutputLabel(self):
-        return self._window.getControl('Label3')
 
     def _getViewer(self):
         return self._window.getControl('CommandButton1')

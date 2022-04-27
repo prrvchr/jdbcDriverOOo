@@ -1475,7 +1475,7 @@ implements XDatabaseMetaData2
 
     private final boolean _isIgnoreDriverPrivilegesEnabled()
     {
-        return UnoHelper.getDefaultDriverInfo(m_info, "IgnoreDriverPrivileges", false);
+        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreDriverPrivileges", false);
     }
 
     @Override

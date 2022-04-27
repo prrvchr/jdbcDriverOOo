@@ -161,7 +161,7 @@ public class UnoHelper
         return info;
     }
 
-    public static String getDefaultDriverInfo(PropertyValue[] properties, String name, String value)
+    public static String getDefaultPropertyValue(PropertyValue[] properties, String name, String value)
         throws IllegalArgumentException
     {
         for (PropertyValue property : properties) {
@@ -171,7 +171,7 @@ public class UnoHelper
         return value;
     }
 
-    public static boolean getDefaultDriverInfo(PropertyValue[] properties, String name, boolean value)
+    public static boolean getDefaultPropertyValue(PropertyValue[] properties, String name, boolean value)
         throws IllegalArgumentException
     {
         for (PropertyValue property : properties) {

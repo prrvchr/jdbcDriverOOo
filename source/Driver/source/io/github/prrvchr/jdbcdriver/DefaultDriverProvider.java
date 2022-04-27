@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
@@ -52,13 +54,7 @@ public final class DefaultDriverProvider
     @Override
     public final boolean acceptsURL(final String url)
     {
-        return true;
-    }
-
-    @Override
-    public final boolean supportProperty(String property)
-    {
-        return m_properties.contains(property);
+        return url.startsWith(getProtocol());
     }
 
     @Override
@@ -66,6 +62,15 @@ public final class DefaultDriverProvider
     {
         return true;
     }
+
+    @Override
+    public java.sql.Connection getConnection(String url,
+                                             PropertyValue[] info)
+        throws SQLException
+    {
+        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+    }
+
     @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
                                                           final ConnectionBase connection,

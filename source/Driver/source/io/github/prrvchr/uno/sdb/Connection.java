@@ -208,7 +208,7 @@ public final class Connection
             java.sql.DatabaseMetaData metadata = m_Connection.getMetaData();
             String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
             java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
-            boolean privileges = UnoHelper.getDefaultDriverInfo(m_info, "IgnoreDriverPrivileges", false);
+            boolean privileges = UnoHelper.getDefaultPropertyValue(m_info, "IgnoreDriverPrivileges", false);
             while (result.next())
             {
                 name = result.getString(3);

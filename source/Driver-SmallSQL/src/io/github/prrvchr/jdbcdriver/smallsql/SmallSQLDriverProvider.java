@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver.smallsql;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
@@ -41,7 +43,7 @@ public final class SmallSQLDriverProvider
     implements DriverProvider
 {
 
-    private static final String m_protocol = "sdbc:smallsql";
+    private static final String m_subProtocol = "smallsql";
     private static final boolean m_warnings = false;
     private List<String> m_properties = List.of("user", "password");
 
@@ -54,7 +56,7 @@ public final class SmallSQLDriverProvider
     @Override
     public final boolean acceptsURL(final String url)
     {
-        return url.startsWith(m_protocol);
+        return url.startsWith(getProtocol(m_subProtocol));
     }
 
     @Override
@@ -63,9 +65,11 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public final boolean supportProperty(String property)
+    public java.sql.Connection getConnection(String url,
+                                             PropertyValue[] info)
+        throws SQLException
     {
-        return m_properties.contains(property);
+        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
     @Override

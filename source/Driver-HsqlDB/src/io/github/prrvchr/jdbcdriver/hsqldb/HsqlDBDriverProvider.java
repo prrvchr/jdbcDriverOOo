@@ -25,12 +25,21 @@
 */
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.logging.LogLevel;
+import com.sun.star.logging.XLogger;
 import com.sun.star.uno.XComponentContext;
 
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSet;
@@ -41,7 +50,7 @@ public final class HsqlDBDriverProvider
     implements DriverProvider
 {
 
-    private static final String m_protocol = "sdbc:hsqldb";
+    private static final String m_subProtocol = "hsqldb";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
 
@@ -54,7 +63,7 @@ public final class HsqlDBDriverProvider
     @Override
     public final boolean acceptsURL(final String url)
     {
-        return url.startsWith(m_protocol);
+        return url.startsWith(getProtocol(m_subProtocol));
     }
 
     @Override
@@ -63,9 +72,23 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public final boolean supportProperty(String property)
+    public java.sql.Connection getConnection(String url,
+                                             PropertyValue[] info)
+        throws SQLException
     {
-        return m_properties.contains(property);
+        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+    }
+
+    @Override
+    public void setSystemProperties()
+    {
+        final XLogger logger = UnoLoggerPool.getInstance().getNamedLogger("hsqldb.db");
+        if (logger.getLevel() != LogLevel.OFF) {
+            //System.setProperty("hsqldb.reconfig_logging", "false");
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
+            Logger.getLogger("").setLevel(Level.FINEST);
+        }
     }
 
     @Override

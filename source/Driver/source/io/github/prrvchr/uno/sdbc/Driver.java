@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.sql.DriverManager;
-
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
@@ -51,14 +49,6 @@ public final class Driver
     {
         super(ctx, m_name, m_services);
         System.out.println("sdbc.Driver() 1");
-    }
-
-    protected java.sql.Connection _getConnection(DriverProvider provider,
-                                                 String url,
-                                                 PropertyValue[] info)
-        throws java.sql.SQLException
-    {
-        return DriverManager.getConnection(url, _getConnectionProperties(provider, info));
     }
 
     protected XConnection _getConnection(XComponentContext ctx,

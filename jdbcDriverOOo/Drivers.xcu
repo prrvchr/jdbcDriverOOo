@@ -377,7 +377,7 @@
             <node oor:name="Properties">
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/smallsql.jar</value>
+                        <value>%origin%/driver/SmallSQL_java11.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
