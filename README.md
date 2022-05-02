@@ -192,7 +192,13 @@ For now, only the use of the SQL Array type in the queries is available.
 
   - [com.sun.star.sdbcx.*](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver/source/io/github/prrvchr/uno/sdbcx)
 
-- Integration in jdbcDriverOOo of H2 and Derby JDBC drivers in addition to HsqlDB. Implementation of Java Services in order to correct possible defects, or incompatibility with the UNO API, of embedded JDBC drivers.
+- Integration in jdbcDriverOOo of **H2** and **Derby** JDBC drivers in addition to **HsqlDB**. Implementation of Java Services:
+
+    - [Driver-HsqlDB.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-HsqlDB/source/io/github/prrvchr/jdbcdriver/hsqldb)
+    - [Driver-H2.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-H2/source/io/github/prrvchr/jdbcdriver/h2)
+    - [Driver-Derby.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-Derby/source/io/github/prrvchr/jdbcdriver/derby)
+
+In order to correct possible defects, or incompatibility with the UNO API, of embedded JDBC drivers.
 
 - Renamed the **HsqlDBDriverOOo** repository and extension to **jdbcDriverOOo**.
 
