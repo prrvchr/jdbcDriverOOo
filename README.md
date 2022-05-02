@@ -180,7 +180,9 @@ For now, only the use of the SQL Array type in the queries is available.
 
 ### What has been done for version 0.0.4:
 
-- Rewrite of [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) in Java version 11 OpenJDK amd64 under Eclipse 4.11.0 with the plugin: LibreOffice Extension/Component Development - Java version 4.0.1.
+- Rewrite of [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) in Java version 11 OpenJDK amd64 under Eclipse IDE for Java Developers version 4.23.0 with the plugin:
+    - LOEclipse or LibreOffice Eclipse plugin for extension development version 4.0.1.
+    - PyDev or Python IDE for Eclipse version 9.3.0.
 
 - Writing the `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` services of JDBC (thanks to hanya for [MRI](https://github.com/hanya/MRI) which was of great help to me...)
 
@@ -198,7 +200,11 @@ For now, only the use of the SQL Array type in the queries is available.
 
 - Write of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the management of users and rights in Base. Its use can be requested in **Tools -> Options -> Base drivers -> JDBC Driver**. It is not finished and is not yet functional.
 
-- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/pythonpath/jdbcdriver/options) dialog accessible by: **Tools -> Options -> Base drivers -> JDBC Driver**, to allow updating and/or adding Java archives of JDBC drivers.
+- Implemented a Java [service provider](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging) for the [SLF4J](https://www.slf4j.org/) API to be able to redirect driver logging from the underlying databases to the UNO API [com.sun.star.logging.*](https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html).
+
+- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/pythonpath/jdbcdriver/options) dialog accessible by: **Tools -> Options -> Base drivers -> JDBC Driver**, to allow:
+    - Updating and/or adding Java archives of JDBC drivers.
+    - Enabling driver logging of the underlying database.
 
 - Many other fix...
 
