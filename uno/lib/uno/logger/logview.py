@@ -32,7 +32,6 @@ import unohelper
 from ..unotool import getContainerWindow
 from ..unotool import getDialog
 
-
 class LogWindow(unohelper.Base):
     def __init__(self, ctx, handler, parent, extension):
         self._window = getContainerWindow(ctx, parent, handler, extension, 'LogWindow')
