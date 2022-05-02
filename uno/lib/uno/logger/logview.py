@@ -58,8 +58,7 @@ class LogWindow(unohelper.Base):
         control.selectItemPos(0, True)
 
     def setLogger(self, logger):
-        control = self._getLoggers()
-        control.selectItem(logger, True)
+        self._getLoggers().selectItem(logger, True)
 
     def updateLoggers(self, loggers):
         self._getLoggers().Model.StringItemList = loggers
