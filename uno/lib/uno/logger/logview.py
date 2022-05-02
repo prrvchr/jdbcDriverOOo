@@ -42,6 +42,9 @@ class LogWindow(unohelper.Base):
     def getParent(self):
         return self._window.Peer
 
+    def getLogger(self):
+        return self._getLoggers().getSelectedItem()
+
     def getLoggerSetting(self):
         enabled = bool(self._getLogger().State)
         level = self._getLevel().getSelectedItemPos()
@@ -53,6 +56,13 @@ class LogWindow(unohelper.Base):
         control = self._getLoggers()
         control.Model.StringItemList = loggers
         control.selectItemPos(0, True)
+
+    def setLogger(self, logger):
+        control = self._getLoggers()
+        control.selectItem(logger, True)
+
+    def updateLoggers(self, loggers):
+        self._getLoggers().Model.StringItemList = loggers
 
     def setLoggerSetting(self, enabled, level, handler):
         self._getHandler(handler).State = 1

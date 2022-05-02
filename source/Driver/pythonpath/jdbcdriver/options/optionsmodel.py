@@ -59,7 +59,7 @@ class OptionsModel(unohelper.Base):
     _level = None
     _reboot = False
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, update, loggers):
         self._ctx = ctx
         self._path = None
         self._driver = None
@@ -67,13 +67,18 @@ class OptionsModel(unohelper.Base):
         self._version = 'Version: %s'
         self._default = 'Version: N/A'
         self._versions = {}
+        self._loggers = ('h2', 'derby', 'hsqldb')
+        self._dbversions = {'h2': 'h2:mem:dbversion',
+                            'derby': 'derby:memory:dbversion;create=true',
+                            'hsqldb': 'hsqldb:mem:dbversion',
+                            'smallsql': 'smallsql'}
         self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver', 'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
         self._lock = Condition()
-        self.loadConfiguration()
+        self.loadConfiguration(update, loggers)
 
-    def loadConfiguration(self):
+    def loadConfiguration(self, *args):
         with self._lock:
             self._versions = {}
         path = 'org.openoffice.Office.DataAccess.Drivers'
@@ -83,12 +88,12 @@ class OptionsModel(unohelper.Base):
         self._driver = config.getByName(root)
         self._drivers = self._getDriverConfigurations(config, root)
         if not self.needReboot():
-            Thread(target=self._setDriverVersions).start()
+            Thread(target=self._setDriverVersions, args=args).start()
 
 # OptionsModel getter methods
     def getLoggerNames(self, *loggers):
         service = 'io.github.prrvchr.jdbcdriver.logging.DBLoggerPool'
-        return createService(self._ctx, service).getLoggerNames() + loggers
+        return  loggers + createService(self._ctx, service).getLoggerNames()
 
     def needReboot(self):
         return OptionsModel._reboot
@@ -187,9 +192,9 @@ class OptionsModel(unohelper.Base):
             return True
         return False
 
-    def saveDriver(self, subprotocol, name, clazz, archive, enabled, level):
+    def saveDriver(self, subprotocol, name, clazz, archive, level):
         protocol = self._getProtocol(subprotocol)
-        driver = self._saveDriver(subprotocol, name, clazz, archive, enabled, level)
+        driver = self._saveDriver(subprotocol, name, clazz, archive, level)
         self._drivers[protocol] = driver
         return protocol
 
@@ -197,7 +202,8 @@ class OptionsModel(unohelper.Base):
         self._updateArchive(self._drivers[protocol], archive)
 
     def setLogger(self, protocol, level):
-        self._setLogger(self._drivers[protocol], level)
+        property = 'Properties/DriverLoggerLevel/Value'
+        self._drivers[protocol].setHierarchicalPropertyValue(property, level)
 
 # OptionsModel private methods
     def _getRoot(self, jdbc=True):
@@ -239,7 +245,7 @@ class OptionsModel(unohelper.Base):
         url = getUrl(self._ctx, path)
         return url.Name
 
-    def _setDriverVersions(self):
+    def _setDriverVersions(self, update, loggers):
         property = 'Properties/InMemoryDataBase/Value'
         service = createService(self._ctx, self._getDriverService())
         for protocol, driver in self._drivers.items():
@@ -248,6 +254,7 @@ class OptionsModel(unohelper.Base):
                 version = self._getDriverVersion(service, url)
                 with self._lock:
                     self._versions[protocol] = version
+        update(self.getLoggerNames(loggers))
 
     def _getDriverVersion(self, driver, protocol):
         version = self._default
@@ -270,33 +277,41 @@ class OptionsModel(unohelper.Base):
         path = getResourceLocation(self._ctx, g_identifier, location)
         driver.setHierarchicalPropertyValue(property, path)
 
-    def _saveDriver(self, subprotocol, name, clazz, archive, enabled, level):
+    def _saveDriver(self, subprotocol, name, clazz, archive, level):
         config = self._configuration.getByName('Installed')
         protocol = self._getProtocol(subprotocol, False)
         if not config.hasByName(protocol):
             config.insertByName(protocol, config.createInstance())
         driver = config.getByName(protocol)
         root = self._getRootProtocol(False)
-        driver.setHierarchicalPropertyValue('ParentURLPattern', root)
-        driver.setHierarchicalPropertyValue('DriverTypeDisplayName', name)
-        properties = driver.getByName('Properties')
-        self._createDriverProperty(properties, 'JavaDriverClass')
-        self._createDriverProperty(properties, 'JavaDriverClassPath')
-        property = 'Properties/JavaDriverClass/Value'
-        driver.setHierarchicalPropertyValue(property, clazz)
-        self._updateArchive(driver, archive)
-        if enabled:
-            self._createDriverProperty(properties, 'DriverLoggerLevel')
-            self._setLogger(driver, level)
+        try:
+            driver.setHierarchicalPropertyValue('ParentURLPattern', root)
+            driver.setHierarchicalPropertyValue('DriverTypeDisplayName', name)
+            properties = driver.getByName('Properties')
+            self._createDriverProperty(properties, 'JavaDriverClass', clazz)
+            self._createDriverProperty(properties, 'JavaDriverClassPath')
+            self._updateArchive(driver, archive)
+            if self._supportLogger(subprotocol):
+                self._createDriverProperty(properties, 'DriverLoggerLevel', level)
+            if self._supportVersion(subprotocol):
+                self._createDriverProperty(properties, 'InMemoryDataBase', self._dbversions[subprotocol])
+        except Exception as e:
+            print("OptionsModel._saveDriver() ERROR")
+            print("OptionsModel._saveDriver() ERROR %s" % e)
         return driver
 
-    def _createDriverProperty(self, properties, name):
+    def _supportLogger(self, subprotocol):
+        return subprotocol in self._loggers
+
+    def _supportVersion(self, subprotocol):
+        return subprotocol in self._dbversions
+
+    def _createDriverProperty(self, properties, name, value=None):
         if not properties.hasByName(name):
             properties.insertByName(name, properties.createInstance())
         property = properties.getByName(name)
         if not property.hasByName('Value'):
             property.insertByName('Value', property.createInstance())
+        if value is not None:
+            property.replaceByName('Value', value)
 
-    def _setLogger(self, driver, level):
-        property = 'Properties/DriverLoggerLevel/Value'
-        driver.setHierarchicalPropertyValue(property, level)

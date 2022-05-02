@@ -55,10 +55,15 @@ import traceback
 class OptionsManager(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
-        self._model = OptionsModel(ctx)
+        self._model = OptionsModel(ctx, self.updateLoggers, 'Driver')
         self._view = None
         self._logger = None
         self._disabled = False
+        self._disposed = False
+
+    def __del__(self):
+        print("OptionsManager.__del__() %s" % self._disposed)
+        self._disposed = True
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -68,6 +73,10 @@ class OptionsManager(unohelper.Base):
         return True
 
 # OptionsManager setter methods
+    def updateLoggers(self, loggers):
+        if not self._disposed and self._logger is not None:
+            self._logger.updateLoggers(loggers)
+
     def initialize(self, window):
         reboot = self._model.needReboot()
         self._view = OptionsView(window, reboot)
@@ -89,7 +98,7 @@ class OptionsManager(unohelper.Base):
         # XXX: We need to exit from Add new Driver mode if needed...
         reboot = self._model.needReboot()
         self._view.exitAdd(reboot)
-        self._model.loadConfiguration()
+        self._model.loadConfiguration(self.updateLoggers, 'Driver')
         self._initView()
         self._logger.setLoggerSetting()
 
@@ -131,7 +140,7 @@ class OptionsManager(unohelper.Base):
         clazz = self._view.getNewClass()
         archive = self._view.getNewArchive()
         logger = self._view.getLogger()
-        protocol = self._model.saveDriver(subprotocol, name, clazz, archive, *logger)
+        protocol = self._model.saveDriver(subprotocol, name, clazz, archive, logger)
         reboot = self._model.needReboot()
         self._view.clearAdd(reboot)
         self._initViewProtocol(protocol)

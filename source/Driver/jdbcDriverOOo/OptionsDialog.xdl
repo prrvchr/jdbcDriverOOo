@@ -69,6 +69,8 @@
         <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox2.StringItemList.1"/>
         <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox2.StringItemList.2"/>
         <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox2.StringItemList.3"/>
+        <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox2.StringItemList.4"/>
+        <dlg:menuitem dlg:value="&amp;OptionsDialog.ListBox2.StringItemList.5"/>
       </dlg:menupopup>
     </dlg:menulist>
     <dlg:text dlg:style-id="0" dlg:id="Label11" dlg:tab-index="30" dlg:left="10" dlg:top="245" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label11.HelpText" dlg:value="&amp;OptionsDialog.Label11.Label" dlg:align="center" dlg:valign="center"/>

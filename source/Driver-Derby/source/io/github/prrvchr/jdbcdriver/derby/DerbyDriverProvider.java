@@ -91,9 +91,30 @@ public final class DerbyDriverProvider
     public void setSystemProperties(String level)
     {
         if (!level.equals("0")) {
-            final String bridge = "io.github.prrvchr.jdbcdriver.derby.DerbyLoggerBridge.bridge";
-            System.setProperty("derby.stream.error.method", bridge);
+            final String value = "io.github.prrvchr.jdbcdriver.derby.DerbyLoggerBridge.bridge";
+            System.setProperty("derby.stream.error.method", value);
+            System.setProperty("derby.stream.error.logSeverityLevel", _getSqlLog(level));
         }
+    }
+
+    private String _getSqlLog(final String level)
+    {
+        String sqllog = "0";
+        switch (level){
+            case "1":
+                sqllog = "50000";
+                break;
+            case "2":
+                sqllog = "40000";
+                break;
+            case "3":
+                sqllog = "30000";
+                break;
+            case "4":
+                sqllog = "20000";
+                break;
+        }
+        return sqllog;
     }
 
     @Override

@@ -60,10 +60,7 @@ class OptionsView(unohelper.Base):
         return self._getNewArchive().Text.strip()
 
     def getLogger(self):
-        control = self._getLevels()
-        enabled = control.Model.Enabled
-        level = control.getSelectedItem()
-        return enabled, level
+        return self._getLevels().getSelectedItem()
 
 # OptionsView setter methods
     def setLevel(self, level, updated):

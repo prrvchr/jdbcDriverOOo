@@ -89,11 +89,25 @@ public final class HsqlDBDriverProvider
     {
         String location = url;
         if (!level.equals("0")) {
-            location += ";hsqldb.sqllog=" + level;
+            location += ";hsqldb.sqllog=" + _getSqlLog(level);
         }
         return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));
     }
 
+    private String _getSqlLog(final String level)
+    {
+        String sqllog = "3";
+        switch (level){
+            case "1":
+                sqllog = "1";
+                break;
+            case "2":
+                sqllog = "2";
+                break;
+        }
+        return sqllog;
+    }
+    
     @Override
     public void setSystemProperties(String level)
         throws SQLException
