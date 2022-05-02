@@ -180,7 +180,7 @@ For now, only the use of the SQL Array type in the queries is available.
 
 ### What has been done for version 0.0.4:
 
-- Rewrite of [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) in Java version 11 OpenJDK amd64 under Eclipse IDE for Java Developers version 4.23.0 with the plugin:
+- Rewrite of [Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbc/Driver.java) in Java version 11 OpenJDK amd64 under Eclipse IDE for Java Developers version 4.23.0 with the plugins:
     - LOEclipse or LibreOffice Eclipse plugin for extension development version 4.0.1.
     - PyDev or Python IDE for Eclipse version 9.3.0.
 
