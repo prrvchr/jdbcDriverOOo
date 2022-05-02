@@ -11,7 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=Driver-Derby/src"/>
+        <javaElement handleIdentifier="=Driver-Derby/source"/>
         <folder path="/Driver-Derby/META-INF"/>
     </selectedElements>
 </jardesc>

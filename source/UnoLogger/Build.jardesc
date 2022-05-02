@@ -11,7 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=UnoLogger/source"/>
         <folder path="/UnoLogger/META-INF"/>
-        <javaElement handleIdentifier="=UnoLogger/src"/>
     </selectedElements>
 </jardesc>
