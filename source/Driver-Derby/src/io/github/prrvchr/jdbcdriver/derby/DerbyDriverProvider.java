@@ -30,12 +30,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.logging.LogLevel;
-import com.sun.star.logging.XLogger;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -69,18 +68,29 @@ public final class DerbyDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(String url,
-                                             PropertyValue[] info)
+    public String getLoggingLevel(XHierarchicalNameAccess driver)
+    {
+        String level = "0";
+        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        try {
+            level = (String) driver.getByHierarchicalName(property);
+        } catch (NoSuchElementException e) { }
+        return level;
+    }
+
+    @Override
+    public java.sql.Connection getConnection(final String level,
+                                             final String url,
+                                             final PropertyValue[] info)
         throws SQLException
     {
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
     @Override
-    public void setSystemProperties()
+    public void setSystemProperties(String level)
     {
-        final XLogger logger = UnoLoggerPool.getInstance().getNamedLogger("derby");
-        if (logger.getLevel() != LogLevel.OFF) {
+        if (!level.equals("0")) {
             final String bridge = "io.github.prrvchr.jdbcdriver.derby.DerbyLoggerBridge.bridge";
             System.setProperty("derby.stream.error.method", bridge);
         }

@@ -77,20 +77,25 @@ public abstract class DriverBase
         System.out.println("sdbc.DriverBase() 1");
         m_xContext = context;
         UnoLoggerPool.getInstance().setContext(context, m_identifier);
-        final Object config = UnoHelper.getConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
-        m_registered = _isDriverRegistred(config, services);
+        m_registered = _isDriverRegistred(services);
         System.out.println("sdbc.DriverBase() 2");
+    }
+    private XHierarchicalNameAccess _getDriverConfiguration()
+        throws Exception
+    {
+        final Object config = UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
+        return (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
     }
 
     public final XComponentContext getComponentContext() {
         return m_xContext;
     }
-    private boolean _isDriverRegistred(final Object config,
-                                       final String[] services)
+
+    private boolean _isDriverRegistred(final String[] services)
     {
         boolean registred = false;
         try {
-            final String driver = _getRegistredDriver(config);
+            final String driver = _getRegistredDriver();
             for (String service : services) {
                 if (service.equals(driver)) {
                     registred = true;
@@ -101,12 +106,11 @@ public abstract class DriverBase
         return registred;
     }
 
-    private String _getRegistredDriver(final Object config)
+    private String _getRegistredDriver()
     {
         String service = null;
         try {
-            final XHierarchicalNameAccess drivers = (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
-            service = (String) drivers.getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
+            service = (String) _getDriverConfiguration().getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
         } catch (java.lang.Exception e) {}
         return service;
     }
@@ -123,17 +127,23 @@ public abstract class DriverBase
         }
         DriverProvider provider = _getDriverProvider(url);
         String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
+        final XHierarchicalNameAccess driver;
+        try {
+            driver = _getDriverConfiguration();
+        } catch (Exception e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
+        String level = provider.getLoggingLevel(driver);
         if (!_isDriverRegistered(location)) {
-            provider.setSystemProperties();
-            _registerDriver(_getUrlProtocol(url), info);
+            provider.setSystemProperties(level);
+            _registerDriver(driver, _getUrlProtocol(url), info);
         }
         XConnection connection = null;
-        //Properties properties = _getConnectionProperties(info);
         System.out.println("sdbc.DriverBase.connect() 2");
         try
         {
             System.out.println("sdbc.DriverBase.connect() 3");
-            connection = _getConnection(m_xContext, provider, provider.getConnection(location, info), url, info);
+            connection = _getConnection(m_xContext, provider, provider.getConnection(level, location, info), url, info);
         } catch(java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -164,17 +174,16 @@ public abstract class DriverBase
         return false;
     }
 
-    private void _registerDriver(final String protocol,
+    private void _registerDriver(final XHierarchicalNameAccess driver,
+                                 final String protocol,
                                  final PropertyValue[] info)
         throws SQLException
     {
         try
         {
             System.out.println("sdbc.DriverBase._registerDriver() 3");
-            final Object config = UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
-            final XHierarchicalNameAccess drivers = (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
-            final String name = _getDriverClass(drivers, protocol, info);
-            final URL url = _getDriverClassPath(drivers, protocol, info);
+            final String name = _getDriverClass(driver, protocol, info);
+            final URL url = _getDriverClassPath(driver, protocol, info);
             System.out.println("sdbc.DriverBase._registerDriver() 4 url: " + url + " name: " + name);
             if (name != null && url != null)
             {
@@ -193,7 +202,7 @@ public abstract class DriverBase
         }
     }
 
-    private String _getDriverClass(final XHierarchicalNameAccess drivers,
+    private String _getDriverClass(final XHierarchicalNameAccess driver,
                                    final String protocol,
                                    final PropertyValue[] info)
         throws NoSuchElementException
@@ -201,14 +210,14 @@ public abstract class DriverBase
         String clazz = UnoHelper.getDefaultPropertyValue(info, m_driverClass, null);
         if (clazz == null) {
             final String property = "Installed/" + protocol + "/Properties/" + m_driverClass + "/Value";
-            if (drivers.hasByHierarchicalName(property)) {
-                clazz = (String) drivers.getByHierarchicalName(property);
+            if (driver.hasByHierarchicalName(property)) {
+                clazz = (String) driver.getByHierarchicalName(property);
             }
         }
         return clazz;
     }
 
-    private URL _getDriverClassPath(final XHierarchicalNameAccess drivers,
+    private URL _getDriverClassPath(final XHierarchicalNameAccess driver,
                                     final String protocol,
                                     final PropertyValue[] info)
         throws SQLException, NoSuchElementException
@@ -216,8 +225,8 @@ public abstract class DriverBase
         String url = UnoHelper.getDefaultPropertyValue(info, m_driverClassPath, null);
         if (url == null) {
             final String property = "Installed/" + protocol + "/Properties/" + m_driverClassPath + "/Value";
-            if (drivers.hasByHierarchicalName(property)) {
-                url = (String) drivers.getByHierarchicalName(property);
+            if (driver.hasByHierarchicalName(property)) {
+                url = (String) driver.getByHierarchicalName(property);
             }
         }
         if (url != null && !url.isEmpty())

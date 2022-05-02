@@ -38,9 +38,9 @@ public class UnoLoggerServiceProvider
 {
 
     public static String REQUESTED_API_VERSION = "1.8.99";
-    private ILoggerFactory loggerFactory;
-    private IMarkerFactory markerFactory;
-    private MDCAdapter mdcAdapter;
+    private ILoggerFactory m_logger;
+    private IMarkerFactory m_marker;
+    private MDCAdapter m_adapter;
 
     // The constructor method:
     public UnoLoggerServiceProvider()
@@ -50,24 +50,24 @@ public class UnoLoggerServiceProvider
 
     @Override
     public void initialize() {
-        loggerFactory = new UnoLoggerFactory();
-        markerFactory = new BasicMarkerFactory();
-        mdcAdapter = new BasicMDCAdapter();
+        m_logger = new UnoLoggerFactory();
+        m_marker = new BasicMarkerFactory();
+        m_adapter = new BasicMDCAdapter();
     }
 
     @Override
     public ILoggerFactory getLoggerFactory() {
-        return loggerFactory;
+        return m_logger;
     }
 
     @Override
     public IMarkerFactory getMarkerFactory() {
-        return markerFactory;
+        return m_marker;
     }
 
     @Override
     public MDCAdapter getMDCAdapter() {
-        return mdcAdapter;
+        return m_adapter;
     }
 
     @Override

@@ -26,20 +26,19 @@
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.logging.LogLevel;
-import com.sun.star.logging.XLogger;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XComponentContext;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSet;
@@ -72,22 +71,41 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(String url,
-                                             PropertyValue[] info)
-        throws SQLException
+    public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
-        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+        String level = "0";
+        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        try {
+            level = (String) driver.getByHierarchicalName(property);
+        } catch (NoSuchElementException e) { }
+        return level;
     }
 
     @Override
-    public void setSystemProperties()
+    public java.sql.Connection getConnection(final String level,
+                                             final String url,
+                                             final PropertyValue[] info)
+        throws java.sql.SQLException
     {
-        final XLogger logger = UnoLoggerPool.getInstance().getNamedLogger("hsqldb.db");
-        if (logger.getLevel() != LogLevel.OFF) {
-            //System.setProperty("hsqldb.reconfig_logging", "false");
+        String location = url;
+        if (!level.equals("0")) {
+            location += ";hsqldb.sqllog=" + level;
+        }
+        return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));
+    }
+
+    @Override
+    public void setSystemProperties(String level)
+        throws SQLException
+    {
+        System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 1");
+        if (!level.equals("0")) {
+            System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 2");
+            System.setProperty("hsqldb.reconfig_logging", "false");
             SLF4JBridgeHandler.removeHandlersForRootLogger();
             SLF4JBridgeHandler.install();
             Logger.getLogger("").setLevel(Level.FINEST);
+            System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 3");
         }
     }
 

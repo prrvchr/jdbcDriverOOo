@@ -1,0 +1,17 @@
+#ifndef __io_github_prrvchr_jdbcdriver_logging_XDBLoggerPool_idl__
+#define __io_github_prrvchr_jdbcdriver_logging_XDBLoggerPool_idl__
+
+#include <com/sun/star/uno/XInterface.idl>
+
+module io { module github { module prrvchr { module jdbcdriver { module logging {
+
+    interface XDBLoggerPool : com::sun::star::uno::XInterface {
+
+        sequence<string> getLoggerNames();
+
+    };
+
+}; }; }; }; };
+
+#endif
+

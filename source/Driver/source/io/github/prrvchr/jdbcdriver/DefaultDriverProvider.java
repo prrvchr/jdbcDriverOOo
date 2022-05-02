@@ -64,8 +64,9 @@ public final class DefaultDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(String url,
-                                             PropertyValue[] info)
+    public java.sql.Connection getConnection(final String level,
+                                             final String url,
+                                             final PropertyValue[] info)
         throws SQLException
     {
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
@@ -82,18 +83,18 @@ public final class DefaultDriverProvider
     }
 
     @Override
-    public ResultSetBase getResultSet(XComponentContext context,
-                                      java.sql.ResultSet resultset,
-                                      PropertyValue[] info)
+    public ResultSetBase getResultSet(final XComponentContext context,
+                                      final java.sql.ResultSet resultset,
+                                      final PropertyValue[] info)
     {
         return new ResultSet(context, this, resultset, info);
     }
 
     @Override
-    public ResultSetBase getResultSet(XComponentContext context,
-                                      StatementMain statement,
-                                      java.sql.ResultSet resultset,
-                                      PropertyValue[] info)
+    public ResultSetBase getResultSet(final XComponentContext context,
+                                      final StatementMain statement,
+                                      final java.sql.ResultSet resultset,
+                                      final PropertyValue[] info)
     {
         return new ResultSet(context, this, statement, resultset, info);
     }

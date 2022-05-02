@@ -30,13 +30,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.logging.LogLevel;
-import com.sun.star.logging.XLogger;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.logging.UnoLoggerPool;
-//import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSet;
@@ -70,15 +68,27 @@ public final class H2DriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(String url,
-                                             PropertyValue[] info)
+    public String getLoggingLevel(XHierarchicalNameAccess driver)
+    {
+        String level = "0";
+        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        try {
+            level = (String) driver.getByHierarchicalName(property);
+        } catch (NoSuchElementException e) { }
+        return level;
+    }
+
+    @Override
+    public java.sql.Connection getConnection(final String level,
+                                             final String url,
+                                             final PropertyValue[] info)
         throws SQLException
     {
-        final XLogger logger = UnoLoggerPool.getInstance().getNamedLogger("h2database");
-        if (logger.getLevel() != LogLevel.OFF) {
-            url += m_logger;
+        String location = url;
+        if (!level.equals("0")) {
+            location += m_logger;
         }
-        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+        return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));
     }
 
     @Override

@@ -30,6 +30,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -65,8 +67,20 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(String url,
-                                             PropertyValue[] info)
+    public String getLoggingLevel(XHierarchicalNameAccess driver)
+    {
+        String level = "0";
+        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        try {
+            level = (String) driver.getByHierarchicalName(property);
+        } catch (NoSuchElementException e) { }
+        return level;
+    }
+
+    @Override
+    public java.sql.Connection getConnection(final String level,
+                                             final String url,
+                                             final PropertyValue[] info)
         throws SQLException
     {
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));

@@ -2,7 +2,7 @@
 
 **Ce [document](https://prrvchr.github.io/jdbcDriverOOo/README_fr) en français.**
 
-**The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo/registration/TermsOfUse_en)
+**The use of this software subjects you to our** [**Terms Of Use**](https://prrvchr.github.io/jdbcDriverOOo/source/Driver/registration/TermsOfUse_en)
 
 # version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-004)
 
@@ -198,7 +198,7 @@ For now, only the use of the SQL Array type in the queries is available.
 
 - Write of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the management of users and rights in Base. Its use can be requested in **Tools -> Options -> Base drivers -> JDBC Driver**. It is not finished and is not yet functional.
 
-- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/tree/master/jdbcDriverOOo/pythonpath/jdbcdriver/options) dialog accessible by: **Tools -> Options -> Base drivers -> JDBC Driver**, to allow updating and/or adding Java archives of JDBC drivers.
+- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/pythonpath/jdbcdriver/options) dialog accessible by: **Tools -> Options -> Base drivers -> JDBC Driver**, to allow updating and/or adding Java archives of JDBC drivers.
 
 - Many other fix...
 

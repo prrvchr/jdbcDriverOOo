@@ -37,12 +37,12 @@ public class UnoLoggerFactory
 {
 
     private final String DEFAULT_LOGGER_NAME = "org.openoffice.logging.DefaultLogger";
-    ConcurrentMap<String, Logger> loggerMap;
+    ConcurrentMap<String, Logger> m_loggers;
 
     // The constructor method:
     public UnoLoggerFactory()
     {
-        loggerMap = new ConcurrentHashMap<>();
+        m_loggers = new ConcurrentHashMap<>();
         System.out.println("logging.UnoLoggerFactory() 1");
     }
 
@@ -53,12 +53,12 @@ public class UnoLoggerFactory
             name = DEFAULT_LOGGER_NAME;
         }
 
-        Logger logger = loggerMap.get(name);
+        Logger logger = m_loggers.get(name);
         if (logger != null)
             return logger;
         else {
             Logger newInstance = new UnoLoggerAdapter(UnoLoggerPool.getInstance().getNamedLogger(name));
-            Logger oldInstance = loggerMap.putIfAbsent(name, newInstance);
+            Logger oldInstance = m_loggers.putIfAbsent(name, newInstance);
             return oldInstance == null ? newInstance : oldInstance;
         }
 	}

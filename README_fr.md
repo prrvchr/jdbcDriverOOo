@@ -2,7 +2,7 @@
 
 **This [document](https://prrvchr.github.io/jdbcDriverOOo/) in English.**
 
-**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo/registration/TermsOfUse_fr)
+**L'utilisation de ce logiciel vous soumet à nos** [**Conditions d'utilisation**](https://prrvchr.github.io/jdbcDriverOOo/source/Driver/registration/TermsOfUse_fr)
 
 # version [0.0.4](https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-004)
 
@@ -198,7 +198,7 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
 
 - Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs et des droits dans Base. Son utilisation peut être demandée dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**. Il n'est pas terminé et n'est pas encore fonctionnel.
 
-- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options](https://github.com/prrvchr/jdbcDriverOOo/tree/master/jdbcDriverOOo/pythonpath/jdbcdriver/options), accessible par: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre la mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
+- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/Driver/pythonpath/jdbcdriver/options), accessible par: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre la mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
 
 - Beaucoup d'autres correctifs...
 

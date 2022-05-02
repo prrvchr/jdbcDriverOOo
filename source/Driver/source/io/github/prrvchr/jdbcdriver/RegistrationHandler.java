@@ -36,12 +36,12 @@ import io.github.prrvchr.uno.helper.RegistrationHelper;
 public class RegistrationHandler
 {
 
-    public static XSingleComponentFactory __getComponentFactory(String name)
+    public static XSingleComponentFactory __getComponentFactory(final String name)
     {
         return RegistrationHelper.__getComponentFactory(_getInputStream(), name);
     }
 
-    public static boolean __writeRegistryServiceInfo(XRegistryKey key)
+    public static boolean __writeRegistryServiceInfo(final XRegistryKey key)
     {
         return RegistrationHelper.__writeRegistryServiceInfo(_getInputStream(), key);
     }

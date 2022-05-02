@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.logging;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.sun.star.logging.XLogger;
 import com.sun.star.logging.XLoggerPool;
 import com.sun.star.uno.UnoRuntime;
@@ -37,6 +40,7 @@ public final class UnoLoggerPool
     private static UnoLoggerPool m_instance = new UnoLoggerPool();
     private XComponentContext m_xContext;
     private String m_rootlogger;
+    private Set<String> m_loggers = new HashSet<String>();
 
     // The constructor method:
     public UnoLoggerPool()
@@ -57,10 +61,17 @@ public final class UnoLoggerPool
         System.out.println("logging.UnoLoggerPool.setContext() 2: " + context);
     }
 
+    public String[] getLoggerNames()
+    {
+        return m_loggers.toArray(new String[m_loggers.size()]);
+    }
 
     public XLogger getNamedLogger(String name)
     {
         System.out.println("logging.UnoLoggerPool.getNamedLogger() 1: " + name);
+        if (!m_loggers.contains(name)) {
+            m_loggers.add(name);
+        }
         XLogger logger = _getLoggerPool().getNamedLogger(m_rootlogger + "." + name);
         System.out.println("logging.UnoLoggerPool.getNamedLogger() 2: " + logger.getName());
         return logger;
