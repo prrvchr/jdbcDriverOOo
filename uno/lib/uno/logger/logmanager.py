@@ -43,6 +43,7 @@ from ..unotool import getDialog
 
 import traceback
 
+
 class LogManager(unohelper.Base):
     def __init__(self, ctx, parent, extension, loggers, infos):
         self._ctx = ctx
