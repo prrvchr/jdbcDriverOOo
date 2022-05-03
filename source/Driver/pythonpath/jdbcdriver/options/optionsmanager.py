@@ -64,7 +64,6 @@ class OptionsManager(unohelper.Base):
         self._disabled = False
 
     def __del__(self):
-        print("OptionsManager.__del__()")
         with self._lock:
             self._disposed = True
 
