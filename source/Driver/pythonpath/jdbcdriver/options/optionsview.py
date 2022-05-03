@@ -60,7 +60,11 @@ class OptionsView(unohelper.Base):
         return self._getNewArchive().Text.strip()
 
     def getLogger(self):
-        return self._getLevels().getSelectedItem()
+        level = -1
+        control = self._getLevels()
+        if control.Model.Enabled:
+            level = control.getSelectedItemPos()
+        return level
 
 # OptionsView setter methods
     def setLevel(self, level, updated):
@@ -94,14 +98,25 @@ class OptionsView(unohelper.Base):
     def setVersion(self, version):
         self._getVersion().Text = version
 
-    def setLogger(self, enabled, level='0'):
+    def setLogger(self, level=None):
         control = self._getLevels()
-        control.Model.Enabled = enabled
+        enabled = level is not None
+        selected = enabled and level != -1
+        self._setLogger(enabled, selected)
+        self._enableLoggerLevel(control, selected)
         position = control.getSelectedItemPos()
-        if enabled:
-            control.selectItem(level, True)
+        if selected:
+            control.selectItemPos(level, True)
         elif position != -1:
             control.selectItemPos(position, False)
+
+    def enableLogger(self, enabled, state):
+        control = self._getLevels()
+        self._enableLoggerLevel(control, state)
+        if not state:
+            position = control.getSelectedItemPos()
+            if position != -1:
+                control.selectItemPos(position, False)
 
     def enableButton(self, enabled):
         self._getRemove().Model.Enabled = enabled
@@ -115,7 +130,7 @@ class OptionsView(unohelper.Base):
         self._getNew().Model.Enabled = False
         self._getRemove().Model.Enabled = False
         self._getUpdate().Model.Enabled = True
-        self.setLogger(False)
+        self.setLogger()
         self._getNewSubProtocol().setFocus()
 
     def disableAdd(self, enabled, reboot):
@@ -145,19 +160,6 @@ class OptionsView(unohelper.Base):
         control = self._getProtocols()
         self._enableProtocols(control, enabled)
 
-    def _enableProtocols(self, control, enabled, protocol=None):
-        if enabled:
-            if protocol is not None:
-                control.selectItem(protocol, True)
-            elif control.getItemCount() > 0:
-                control.selectItemPos(0, True)
-            control.Model.Enabled = enabled
-        else:
-            control.Model.Enabled = enabled
-            position = control.getSelectedItemPos()
-            if position != -1:
-                control.selectItemPos(position, False)
-
     def enableSave(self, enabled):
         self._getSave().Model.Enabled = enabled
 
@@ -166,6 +168,30 @@ class OptionsView(unohelper.Base):
 
     def setReboot(self, state):
         self._getReboot().setVisible(state)
+
+# OptionsView private methods
+    def _setLogger(self, enabled, selected):
+        control = self._getLogger()
+        control.Model.Enabled = enabled
+        control.State = int(selected)
+
+    def _enableLoggerLevel(self, control, enabled):
+        self._getLevelLabel().Model.Enabled = enabled
+        control.Model.Enabled = enabled
+
+    def _enableProtocols(self, control, enabled, protocol=None):
+        # XXX: We assume that the root protocol cannot be deleted
+        if enabled:
+            if protocol is not None:
+                control.selectItem(protocol, True)
+            else:
+                control.selectItemPos(0, True)
+            control.Model.Enabled = enabled
+        else:
+            control.Model.Enabled = enabled
+            position = control.getSelectedItemPos()
+            if position != -1:
+                control.selectItemPos(position, False)
 
 # OptionsView private control methods
     def _getLevel(self, index):
@@ -179,6 +205,12 @@ class OptionsView(unohelper.Base):
 
     def _getVersion(self):
         return self._window.getControl('Label5')
+
+    def _getLogger(self):
+        return self._window.getControl('CheckBox1')
+
+    def _getLevelLabel(self):
+        return self._window.getControl('Label10')
 
     def _getReboot(self):
         return self._window.getControl('Label11')

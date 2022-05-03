@@ -50,20 +50,23 @@ from ..configuration import g_extension
 import os
 import sys
 import traceback
+from threading import Condition
 
 
 class OptionsManager(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
-        self._model = OptionsModel(ctx, self.updateLoggers, 'Driver')
+        self._lock = Condition()
+        self._model = OptionsModel(ctx, self._lock, self.updateView, 'Driver')
         self._view = None
         self._logger = None
-        self._disabled = False
         self._disposed = False
+        self._disabled = False
 
     def __del__(self):
-        print("OptionsManager.__del__() %s" % self._disposed)
-        self._disposed = True
+        print("OptionsManager.__del__()")
+        with self._lock:
+            self._disposed = True
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -73,19 +76,23 @@ class OptionsManager(unohelper.Base):
         return True
 
 # OptionsManager setter methods
-    def updateLoggers(self, loggers):
+    def updateView(self, loggers, versions):
         if not self._disposed and self._logger is not None:
             self._logger.updateLoggers(loggers)
+            protocol = self._view.getSelectedProtocol()
+            if protocol in versions:
+                self._view.setVersion(versions[protocol])
 
     def initialize(self, window):
-        reboot = self._model.needReboot()
-        self._view = OptionsView(window, reboot)
-        version  = ' '.join(sys.version.split())
-        path = os.pathsep.join(sys.path)
-        loggers = self._model.getLoggerNames('Driver')
-        infos = {111: version, 112: path}
-        self._logger = LogManager(self._ctx, window.Peer, g_extension, loggers, infos)
-        self._initView()
+        with self._lock:
+            reboot = self._model.needReboot()
+            self._view = OptionsView(window, reboot)
+            version  = ' '.join(sys.version.split())
+            path = os.pathsep.join(sys.path)
+            loggers = self._model.getLoggerNames('Driver')
+            infos = {111: version, 112: path}
+            self._logger = LogManager(self._ctx, window.Peer, g_extension, loggers, infos)
+            self._initView()
 
     def saveSetting(self):
         self._logger.saveLoggerSetting()
@@ -98,7 +105,7 @@ class OptionsManager(unohelper.Base):
         # XXX: We need to exit from Add new Driver mode if needed...
         reboot = self._model.needReboot()
         self._view.exitAdd(reboot)
-        self._model.loadConfiguration(self.updateLoggers, 'Driver')
+        self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
         self._logger.setLoggerSetting()
 
@@ -161,9 +168,13 @@ class OptionsManager(unohelper.Base):
         self._view.enableSave(enabled)
 
     def setLogger(self, level):
-        if level:
-            protocol = self._view.getSelectedProtocol()
-            self._model.setLogger(protocol, level)
+        protocol = self._view.getSelectedProtocol()
+        self._model.setLogger(protocol, level)
+
+    def toggleLogger(self, enabled, state):
+         self._view.enableLogger(enabled, state)
+         if enabled and not state:
+             self.setLogger(-1)
 
 # OptionsManager private methods
     def _disableHandler(self):
@@ -195,7 +206,7 @@ class OptionsManager(unohelper.Base):
         self._view.setName(self._model.getDriverName(protocol))
         self._view.setClass(self._model.getDriverClass(protocol))
         self._view.setArchive(self._model.getDriverArchive(protocol))
-        self._view.setLogger(*self._model.getLogger(protocol))
+        self._view.setLogger(self._model.getLogger(protocol))
         self._view.enableButton(self._model.isNotRoot(protocol))
 
     def _addDriver(self):

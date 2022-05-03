@@ -28,6 +28,7 @@ package io.github.prrvchr.jdbcdriver.derby;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
@@ -49,6 +50,14 @@ public final class DerbyDriverProvider
     private static final String m_subProtocol = "derby";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
+    private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "50000"),
+                                                                  Map.entry("1", "40000"),
+                                                                  Map.entry("2", "40000"),
+                                                                  Map.entry("3", "30000"),
+                                                                  Map.entry("4", "30000"),
+                                                                  Map.entry("5", "20000"),
+                                                                  Map.entry("6", "20000"),
+                                                                  Map.entry("7", "0"));
 
     // The constructor method:
     public DerbyDriverProvider()
@@ -70,7 +79,7 @@ public final class DerbyDriverProvider
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
-        String level = "0";
+        String level = "-1";
         String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
         try {
             level = (String) driver.getByHierarchicalName(property);
@@ -90,31 +99,11 @@ public final class DerbyDriverProvider
     @Override
     public void setSystemProperties(String level)
     {
-        if (!level.equals("0")) {
+        if (!level.equals("-1")) {
             final String value = "io.github.prrvchr.jdbcdriver.derby.DerbyLoggerBridge.bridge";
             System.setProperty("derby.stream.error.method", value);
-            System.setProperty("derby.stream.error.logSeverityLevel", _getSqlLog(level));
+            System.setProperty("derby.stream.error.logSeverityLevel", m_sqllogger.get(level));
         }
-    }
-
-    private String _getSqlLog(final String level)
-    {
-        String sqllog = "0";
-        switch (level){
-            case "1":
-                sqllog = "50000";
-                break;
-            case "2":
-                sqllog = "40000";
-                break;
-            case "3":
-                sqllog = "30000";
-                break;
-            case "4":
-                sqllog = "20000";
-                break;
-        }
-        return sqllog;
     }
 
     @Override

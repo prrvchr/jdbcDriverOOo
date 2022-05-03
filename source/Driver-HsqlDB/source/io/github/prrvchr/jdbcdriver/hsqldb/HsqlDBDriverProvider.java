@@ -27,6 +27,7 @@ package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.sql.DriverManager;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,6 +53,14 @@ public final class HsqlDBDriverProvider
     private static final String m_subProtocol = "hsqldb";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
+    private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "1"),
+                                                                  Map.entry("1", "1"),
+                                                                  Map.entry("2", "1"),
+                                                                  Map.entry("3", "2"),
+                                                                  Map.entry("4", "2"),
+                                                                  Map.entry("5", "3"),
+                                                                  Map.entry("6", "3"),
+                                                                  Map.entry("7", "3"));
 
     // The constructor method:
     public HsqlDBDriverProvider()
@@ -73,7 +82,7 @@ public final class HsqlDBDriverProvider
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
-        String level = "0";
+        String level = "-1";
         String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
         try {
             level = (String) driver.getByHierarchicalName(property);
@@ -88,26 +97,12 @@ public final class HsqlDBDriverProvider
         throws java.sql.SQLException
     {
         String location = url;
-        if (!level.equals("0")) {
-            location += ";hsqldb.sqllog=" + _getSqlLog(level);
+        if (!level.equals("-1")) {
+            location += ";hsqldb.sqllog=" + m_sqllogger.get(level);
         }
         return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));
     }
 
-    private String _getSqlLog(final String level)
-    {
-        String sqllog = "3";
-        switch (level){
-            case "1":
-                sqllog = "1";
-                break;
-            case "2":
-                sqllog = "2";
-                break;
-        }
-        return sqllog;
-    }
-    
     @Override
     public void setSystemProperties(String level)
         throws SQLException

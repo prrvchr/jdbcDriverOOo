@@ -7,7 +7,7 @@
   <dlg:bulletinboard>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="6" dlg:top="3" dlg:width="244" dlg:height="14" dlg:help-text="&amp;LogWindow.FixedLine1.HelpText" dlg:value="&amp;LogWindow.FixedLine1.Label"/>
     <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="60" dlg:height="15" dlg:help-text="&amp;LogWindow.Label1.HelpText" dlg:value="&amp;LogWindow.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="80" dlg:top="20" dlg:width="60" dlg:height="15" dlg:help-text="&amp;LogWindow.ListBox1.HelpText" dlg:value="&amp;LogWindow.ListBox1.Text" dlg:spin="true">
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="80" dlg:top="20" dlg:width="90" dlg:height="15" dlg:help-text="&amp;LogWindow.ListBox1.HelpText" dlg:value="&amp;LogWindow.ListBox1.Text" dlg:spin="true">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangeLogger" script:language="UNO"/>
     </dlg:menulist>
     <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="3" dlg:left="180" dlg:top="20" dlg:width="70" dlg:height="15" dlg:help-text="&amp;LogWindow.CheckBox1.HelpText" dlg:value="&amp;LogWindow.CheckBox1.Label" dlg:valign="center" dlg:checked="false">

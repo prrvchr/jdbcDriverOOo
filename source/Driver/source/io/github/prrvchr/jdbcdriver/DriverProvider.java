@@ -58,7 +58,7 @@ public interface DriverProvider
     public boolean supportWarningsSupplier();
 
     default String getLoggingLevel(XHierarchicalNameAccess driver) {
-        return "0";
+        return "-1";
     };
 
     public java.sql.Connection getConnection(String level,

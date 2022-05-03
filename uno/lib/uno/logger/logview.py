@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
 from ..unotool import getContainerWindow
@@ -111,19 +112,26 @@ class LogWindow(unohelper.Base):
 
 
 class LogDialog(unohelper.Base):
-    def __init__(self, ctx, handler, parent, extension, url, text):
+    def __init__(self, ctx, handler, parent, extension, url, writable, text, length):
         self._dialog = getDialog(ctx, extension, 'LogDialog', handler, parent)
         self._dialog.Title = url
-        self.setLogger(text)
+        self._getButtonClear().Model.Enabled = writable
+        self.setLogger(text, length)
 
 # LogDialog getter methods
     def getDialog(self):
         return self._dialog
 
 # LogDialog setter methods
-    def setLogger(self, text):
-        self._getLogger().Text = text
+    def setLogger(self, text, length):
+        control = self._getLogger()
+        control.Text = text
+        selection = uno.createUnoStruct('com.sun.star.awt.Selection', length, length)
+        control.setSelection(selection)
 
 # LogDialog private control methods
     def _getLogger(self):
         return self._dialog.getControl('TextField1')
+
+    def _getButtonClear(self):
+        return self._dialog.getControl('CommandButton2')

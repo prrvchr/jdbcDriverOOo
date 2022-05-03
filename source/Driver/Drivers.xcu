@@ -338,7 +338,7 @@
                 </node>
                 <node oor:name="DriverLoggerLevel" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>0</value>
+                        <value>-1</value>
                     </prop>
                 </node>
             </node>
@@ -370,7 +370,7 @@
                 </node>
                 <node oor:name="DriverLoggerLevel" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>0</value>
+                        <value>-1</value>
                     </prop>
                 </node>
             </node>
@@ -434,7 +434,7 @@
                 </node>
                 <node oor:name="DriverLoggerLevel" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>0</value>
+                        <value>-1</value>
                     </prop>
                 </node>
             </node>

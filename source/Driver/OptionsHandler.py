@@ -96,9 +96,18 @@ class OptionsHandler(unohelper.Base,
             elif method == 'Search':
                 self._manager.searchArchive()
                 handled = True
+            elif method == 'ToggleLogger':
+                control = event.Source
+                enabled = control.Model.Enabled
+                state = control.State == 1
+                self._manager.toggleLogger(enabled, state)
+                handled = True
             elif method == 'SetLogger':
-                if self._manager.isHandlerEnabled():
-                    level = event.Source.getSelectedItem()
+                control = event.Source
+                enabled = control.Model.Enabled
+                # XXX: There is nothing to do if logging is not supported
+                if enabled:
+                    level = control.getSelectedItemPos()
                     self._manager.setLogger(level)
                 handled = True
             return handled
@@ -118,6 +127,7 @@ class OptionsHandler(unohelper.Base,
                 'Check',
                 'Update',
                 'Search',
+                'ToggleLogger',
                 'SetLogger')
 
     # XServiceInfo

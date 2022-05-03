@@ -70,7 +70,7 @@ public final class H2DriverProvider
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
-        String level = "0";
+        String level = "-1";
         String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
         try {
             level = (String) driver.getByHierarchicalName(property);
@@ -85,7 +85,7 @@ public final class H2DriverProvider
         throws SQLException
     {
         String location = url;
-        if (!level.equals("0")) {
+        if (!level.equals("-1")) {
             location += m_logger;
         }
         return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));

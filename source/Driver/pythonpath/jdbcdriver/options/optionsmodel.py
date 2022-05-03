@@ -49,7 +49,6 @@ from ..logger import getMessage
 g_message = 'OptionsDialog'
 
 from threading import Thread
-from threading import Condition
 from collections import OrderedDict
 import traceback
 
@@ -59,23 +58,24 @@ class OptionsModel(unohelper.Base):
     _level = None
     _reboot = False
 
-    def __init__(self, ctx, update, loggers):
+    def __init__(self, ctx, lock, update, loggers):
         self._ctx = ctx
+        self._lock = lock
         self._path = None
         self._driver = None
         self._drivers = {}
         self._version = 'Version: %s'
         self._default = 'Version: N/A'
         self._versions = {}
-        self._loggers = ('h2', 'derby', 'hsqldb')
-        self._dbversions = {'h2': 'h2:mem:dbversion',
-                            'derby': 'derby:memory:dbversion;create=true',
-                            'hsqldb': 'hsqldb:mem:dbversion',
-                            'smallsql': 'smallsql'}
-        self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver', 'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
+        self._dbloggers = ('h2', 'derby', 'hsqldb')
+        self._dbversions = {'h2': 'mem:dbversion',
+                            'derby': 'memory:dbversion;create=true',
+                            'hsqldb': 'mem:dbversion',
+                            'smallsql': None}
+        self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
+                          'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
-        self._lock = Condition()
         self.loadConfiguration(update, loggers)
 
     def loadConfiguration(self, *args):
@@ -91,9 +91,10 @@ class OptionsModel(unohelper.Base):
             Thread(target=self._setDriverVersions, args=args).start()
 
 # OptionsModel getter methods
-    def getLoggerNames(self, *loggers):
+    def getLoggerNames(self, *args):
         service = 'io.github.prrvchr.jdbcdriver.logging.DBLoggerPool'
-        return  loggers + createService(self._ctx, service).getLoggerNames()
+        loggers = args + createService(self._ctx, service).getLoggerNames()
+        return {name: name in args for name in loggers}
 
     def needReboot(self):
         return OptionsModel._reboot
@@ -132,12 +133,11 @@ class OptionsModel(unohelper.Base):
         return self._drivers[protocol].getByHierarchicalName('Properties/JavaDriverClass/Value')
 
     def getLogger(self, protocol):
-        level = '0'
+        level = None
         property ='Properties/DriverLoggerLevel/Value'
-        enabled = self._drivers[protocol].hasByHierarchicalName(property)
-        if enabled:
-            level = self._drivers[protocol].getByHierarchicalName(property)
-        return enabled, level
+        if self._drivers[protocol].hasByHierarchicalName(property):
+            level = int(self._drivers[protocol].getByHierarchicalName(property))
+        return level
 
     def getDriverVersion(self, protocol):
         version = self._default
@@ -203,9 +203,13 @@ class OptionsModel(unohelper.Base):
 
     def setLogger(self, protocol, level):
         property = 'Properties/DriverLoggerLevel/Value'
-        self._drivers[protocol].setHierarchicalPropertyValue(property, level)
+        self._drivers[protocol].setHierarchicalPropertyValue(property, self._getLevelValue(level))
 
 # OptionsModel private methods
+    def _getLevelValue(self, level):
+        print("OptionsModel._getLevelValue() %d" % level)
+        return '%d' % level
+
     def _getRoot(self, jdbc=True):
         return self._connectProtocol if jdbc else self._registeredProtocol
 
@@ -254,7 +258,8 @@ class OptionsModel(unohelper.Base):
                 version = self._getDriverVersion(service, url)
                 with self._lock:
                     self._versions[protocol] = version
-        update(self.getLoggerNames(loggers))
+        with self._lock:
+            update(self.getLoggerNames(loggers), self._versions)
 
     def _getDriverVersion(self, driver, protocol):
         version = self._default
@@ -292,19 +297,26 @@ class OptionsModel(unohelper.Base):
             self._createDriverProperty(properties, 'JavaDriverClassPath')
             self._updateArchive(driver, archive)
             if self._supportLogger(subprotocol):
-                self._createDriverProperty(properties, 'DriverLoggerLevel', level)
+                self._createDriverProperty(properties, 'DriverLoggerLevel', self._getLevelValue(level))
             if self._supportVersion(subprotocol):
-                self._createDriverProperty(properties, 'InMemoryDataBase', self._dbversions[subprotocol])
+                url = self._getUrlVersion(subprotocol)
+                self._createDriverProperty(properties, 'InMemoryDataBase', url)
         except Exception as e:
             print("OptionsModel._saveDriver() ERROR")
             print("OptionsModel._saveDriver() ERROR %s" % e)
         return driver
 
     def _supportLogger(self, subprotocol):
-        return subprotocol in self._loggers
+        return subprotocol in self._dbloggers
 
     def _supportVersion(self, subprotocol):
         return subprotocol in self._dbversions
+
+    def _getUrlVersion(self, subprotocol):
+        url = self._dbversions[subprotocol]
+        if url is not None:
+            subprotocol += ':%s' % url
+        return subprotocol
 
     def _createDriverProperty(self, properties, name, value=None):
         if not properties.hasByName(name):
