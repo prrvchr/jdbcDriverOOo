@@ -12,7 +12,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="/UnoLogger/lib/slf4j-api.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Driver"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/UnoLogger"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jdbcDriverOOo"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

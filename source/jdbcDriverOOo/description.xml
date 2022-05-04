@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <version value="0.0.4"/>
+  <identifier value="io.github.prrvchr.jdbcDriverOOo"/>
+  <platform value="all"/>
+  <dependencies>
+    <OpenOffice.org-minimal-version d:name="4.1" value="4.1"/>
+  </dependencies>
+  <update-information>
+    <src xlink:href="https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo.update.xml"/>
+  </update-information>
+  <publisher>
+    <name lang="en-US" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/">JDBC driver for LibreOffice / OpenOffice</name>
+    <name lang="fr-FR" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/README_fr">Le pilote JDBC pour LibreOffice / OpenOffice</name>
+  </publisher>
+  <registration>
+    <simple-license accept-by="admin" suppress-on-update="true">
+      <license-text lang="en-US" xlink:href="registration/TermsOfUse_en.md"/>
+      <license-text lang="fr-FR" xlink:href="registration/TermsOfUse_fr.md"/>
+    </simple-license>
+  </registration>
+  <release-notes>
+    <src lang="en-US" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/"/>
+    <src lang="fr-FR" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/README_fr"/>
+  </release-notes>
+  <display-name>
+    <name lang="en-US">jdbcDriverOOo</name>
+    <name lang="fr-FR">jdbcDriverOOo</name>
+  </display-name>
+  <icon>
+    <default xlink:href="jdbcDriverOOo/jdbcDriverOOo.png"/>
+    <high-contrast xlink:href="jdbcDriverOOo/jdbcDriverOOo.png"/>
+  </icon>
+  <extension-description>
+    <src lang="en-US" xlink:href="description/desc_en.txt"/>
+    <src lang="fr-FR" xlink:href="description/desc_fr.txt"/>
+  </extension-description>
+</description>

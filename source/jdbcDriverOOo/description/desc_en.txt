@@ -1,0 +1,1 @@
+The JDBC 4.0 driver finally available in LibreOffice / OpenOffice
