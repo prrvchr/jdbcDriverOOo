@@ -108,7 +108,7 @@ public final class HsqlDBDriverProvider
         throws SQLException
     {
         System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 1");
-        if (!level.equals("0")) {
+        if (!level.equals("-1")) {
             System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 2");
             System.setProperty("hsqldb.reconfig_logging", "false");
             SLF4JBridgeHandler.removeHandlersForRootLogger();

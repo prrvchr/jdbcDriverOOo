@@ -70,10 +70,12 @@ public interface DriverProvider
                                                PropertyValue[] info)
     {
         Properties properties = new Properties();
+        System.out.println("DriverProvider.getConnectionProperties() 1");
         for (PropertyValue property : info) {
+            System.out.println("DriverProvider.getConnectionProperties() 2");
             if (list.contains(property.Name))
             {
-                System.out.println("DriverProvider.getConnectionProperties() 1 : " + property.Name + " - " + property.Value);
+                System.out.println("DriverProvider.getConnectionProperties() 3 : " + property.Name + " - " + property.Value);
                 properties.setProperty(property.Name, AnyConverter.toString(property.Value));
             }
         }

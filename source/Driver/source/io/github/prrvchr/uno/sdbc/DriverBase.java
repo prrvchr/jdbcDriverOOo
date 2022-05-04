@@ -150,7 +150,7 @@ public abstract class DriverBase
         }
         System.out.println(url);
         System.out.println(location);
-        System.out.println("sdbc.DriverBase.connect() 4 **************************************************************");
+        System.out.println("sdbc.DriverBase.connect() 5 **************************************************************");
         return connection;
     }
 
@@ -179,23 +179,23 @@ public abstract class DriverBase
                                  final PropertyValue[] info)
         throws SQLException
     {
-        try
-        {
-            System.out.println("sdbc.DriverBase._registerDriver() 3");
-            final String name = _getDriverClass(driver, protocol, info);
-            final URL url = _getDriverClassPath(driver, protocol, info);
-            System.out.println("sdbc.DriverBase._registerDriver() 4 url: " + url + " name: " + name);
-            if (name != null && url != null)
-            {
-                if (!_registerDriver(url, name))
-                    _registerDriver(name);
+        try {
+            System.out.println("sdbc.DriverBase._registerDriver() 1");
+            final String clazz = _getDriverClass(driver, protocol, info);
+            final URL path = _getDriverClassPath(driver, protocol, info);
+            System.out.println("sdbc.DriverBase._registerDriver() 2 url: '" + path + "' name: '" + clazz + "'");
+            if (path != null && !clazz.isBlank()) {
+                System.out.println("sdbc.DriverBase._registerDriver() 3");
+                if (!_registerDriver(path, clazz)) {
+                    System.out.println("sdbc.DriverBase._registerDriver() 4");
+                    _registerDriver(clazz);
+                }
             }
             System.out.println("sdbc.DriverBase._registerDriver() 5");
         }
         catch (java.lang.Exception e) {
             System.out.println("sdbc.DriverBase._registerDriver() 6 ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
+            for (StackTraceElement trace : e.getStackTrace()) {
                 System.out.println(trace);
             }
             System.out.println("sdbc.DriverBase._registerDriver() 7");
@@ -207,10 +207,13 @@ public abstract class DriverBase
                                    final PropertyValue[] info)
         throws NoSuchElementException
     {
-        String clazz = UnoHelper.getDefaultPropertyValue(info, m_driverClass, null);
-        if (clazz == null) {
+        System.out.println("sdbc.DriverBase._getDriverClass() 1");
+        String clazz = UnoHelper.getDefaultPropertyValue(info, m_driverClass, "");
+        System.out.println("sdbc.DriverBase._getDriverClass() 2");
+        if (clazz.isBlank()) {
             final String property = "Installed/" + protocol + "/Properties/" + m_driverClass + "/Value";
             if (driver.hasByHierarchicalName(property)) {
+                System.out.println("sdbc.DriverBase._getDriverClass() 3");
                 clazz = (String) driver.getByHierarchicalName(property);
             }
         }
@@ -222,14 +225,14 @@ public abstract class DriverBase
                                     final PropertyValue[] info)
         throws SQLException, NoSuchElementException
     {
-        String url = UnoHelper.getDefaultPropertyValue(info, m_driverClassPath, null);
-        if (url == null) {
+        String url = UnoHelper.getDefaultPropertyValue(info, m_driverClassPath, "");
+        if (url.isBlank()) {
             final String property = "Installed/" + protocol + "/Properties/" + m_driverClassPath + "/Value";
             if (driver.hasByHierarchicalName(property)) {
                 url = (String) driver.getByHierarchicalName(property);
             }
         }
-        if (url != null && !url.isEmpty())
+        if (!url.isBlank())
         {
             return _getDriverClassPathUrl(expandDriverClassPath(url));
         }
