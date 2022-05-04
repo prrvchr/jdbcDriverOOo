@@ -133,6 +133,10 @@ class OptionsModel(unohelper.Base):
         return self._drivers[protocol].getByHierarchicalName('Properties/JavaDriverClass/Value')
 
     def getLogger(self, protocol):
+        # XXX: level can have the following values:
+        # XXX: None: Logging is not supported by the underlying database and will be disabled.
+        # XXX: -1: Correspond to the UNO Logger API LogLevel com.sun.star.logging.LogLevel.OFF
+        # XXX: 0 to 7: for all other LogLevel from com.sun.star.logging.LogLevel
         level = None
         property ='Properties/DriverLoggerLevel/Value'
         if self._drivers[protocol].hasByHierarchicalName(property):
