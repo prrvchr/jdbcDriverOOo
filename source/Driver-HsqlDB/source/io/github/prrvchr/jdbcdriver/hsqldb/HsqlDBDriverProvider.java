@@ -61,6 +61,14 @@ public final class HsqlDBDriverProvider
                                                                   Map.entry("5", "3"),
                                                                   Map.entry("6", "3"),
                                                                   Map.entry("7", "3"));
+    private final Map<String, Level> m_sqllevel = Map.ofEntries(Map.entry("0", Level.SEVERE),
+                                                                Map.entry("1", Level.WARNING),
+                                                                Map.entry("2", Level.INFO),
+                                                                Map.entry("3", Level.CONFIG),
+                                                                Map.entry("4", Level.FINE),
+                                                                Map.entry("5", Level.FINER),
+                                                                Map.entry("6", Level.FINEST),
+                                                                Map.entry("7", Level.ALL));
 
     // The constructor method:
     public HsqlDBDriverProvider()
@@ -113,7 +121,7 @@ public final class HsqlDBDriverProvider
             System.setProperty("hsqldb.reconfig_logging", "false");
             SLF4JBridgeHandler.removeHandlersForRootLogger();
             SLF4JBridgeHandler.install();
-            Logger.getLogger("").setLevel(Level.FINEST);
+            Logger.getLogger("").setLevel(m_sqllevel.get(level));
             System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 3");
         }
     }
