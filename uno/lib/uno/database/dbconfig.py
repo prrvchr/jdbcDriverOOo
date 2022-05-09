@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf_8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,33 +25,16 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_auth_XRestKeyMap_idl__
-#define __com_sun_star_auth_XRestKeyMap_idl__
-
-#include <com/sun/star/container/XStringKeyMap.idl>
-
-module com { module sun { module star { module auth {
-
-interface XRestKeyMap: com::sun::star::container::XStringKeyMap
-{
-
-    string getType([in] string Key);
-    sequence<string> getKeys();
-    void setValue([in] string Key,
-                  [in] any Value);
-    any getDefaultValue([in] string Key,
-                        [in] any Default);
-    void update([in] ::com::sun::star::auth::XRestKeyMap Keymap);
-    void fromJson([in] string JsonStr);
-    void fromJsonKey([in] string Key,
-                     [in] string JsonStr);
-    string toJson();
-    string toJsonKey([in] string Key);
-
-};
-
-}; }; }; };
-
-#endif
+# DataSource configuration
+g_protocol = 'jdbc:hsqldb:'
+g_path = 'hsqldb'
+g_jar = 'hsqldb.jar'
+g_class = 'org.hsqldb.jdbcDriver'
+g_options = ';default_schema=true;hsqldb.default_table_type=cached;get_column_name=false;ifexists=false'
+g_shutdown = ';shutdown=true'
+g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
+g_version = '2.5.1'
+g_role = 'FrontOffice'
+g_dba = 'AD'
