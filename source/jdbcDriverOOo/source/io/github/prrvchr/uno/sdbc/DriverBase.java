@@ -120,7 +120,7 @@ public abstract class DriverBase
                                PropertyValue[] info)
         throws SQLException
     {
-        System.out.println("sdbc.DriverBase.connect() 1");
+        System.out.println("sdbc.DriverBase.connect() 1 : " + this.getClass().getName());
         if (!acceptsURL(url)) {
             String message = "ERROR sdbc.Driver.connect() can't accepts URL: " + url;
             throw new SQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);

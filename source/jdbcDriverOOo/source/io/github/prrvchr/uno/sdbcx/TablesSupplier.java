@@ -30,7 +30,7 @@ import com.sun.star.sdbcx.XTablesSupplier;
 
 
 public final class TablesSupplier
-implements XTablesSupplier
+    implements XTablesSupplier
 {
 
     private final XNameAccess m_xTables;

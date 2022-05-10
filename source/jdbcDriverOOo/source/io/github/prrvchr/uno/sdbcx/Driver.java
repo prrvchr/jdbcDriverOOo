@@ -93,7 +93,15 @@ public final class Driver
     throws SQLException
     {
         System.out.println("Driver.getDataDefinitionByConnection() 1");
-        return (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
+        XTablesSupplier tables = null;
+        try {
+            System.out.println("Driver.getDataDefinitionByConnection() 2");
+            tables = (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
+        } catch (java.lang.Exception e) {
+            e.getStackTrace();
+        }
+        System.out.println("Driver.getDataDefinitionByConnection() 3");
+        return tables;
     }
 
     @Override

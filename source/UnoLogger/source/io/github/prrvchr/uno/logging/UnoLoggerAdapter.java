@@ -80,7 +80,8 @@ public final class UnoLoggerAdapter
     public void log(Marker marker, String caller, int level, String message, Object[] args, Throwable t) {
         level = toUnoLevel(level);
         if (m_xLogger.isLoggable(level)) {
-            m_xLogger.logp(level, caller, "", message);
+            StackTraceElement call = Thread.currentThread().getStackTrace()[2];
+            m_xLogger.logp(level, call.getClassName(), call.getMethodName(), message);
         }
     }
 

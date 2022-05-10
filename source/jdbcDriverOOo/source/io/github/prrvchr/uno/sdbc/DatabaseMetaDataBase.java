@@ -1400,62 +1400,65 @@ implements XDatabaseMetaData2
     {
         try
         {
-            System.out.println("sdbc.DatabaseMetaData.getTablePrivileges()");
-            if (_isIgnoreDriverPrivilegesEnabled())
-            {
-                System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 2 ***********************************");
-                return _getTablePrivileges(catalog, schema, table);
-            }
-            java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
-            System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 3 ColumnCount != 7 :" + resultset.getMetaData().getColumnCount());
             XResultSet result = null;
-            if (resultset != null)
-            {
-                result = m_provider.getResultSet(m_xContext, resultset, m_info);
-                // we have to check the result columns for the tables privileges #106324#
-                XResultSetMetaDataSupplier metaDataSupplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
-                XResultSetMetaData metadata = null;
-                if (metaDataSupplier != null) {
-                    metadata = metaDataSupplier.getMetaData();
-                }
-                if (metadata != null && metadata.getColumnCount() != 7)
-                {
-                    // here we know that the count of column doesn't match
-                    Map<Integer,Integer> columnMatching = new TreeMap<>();
-                    String[] privileges = new String[] {"TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME",
-                                                        "GRANTOR", "GRANTEE", "PRIVILEGE", "IS_GRANTABLE"};
-                    int count = metadata.getColumnCount();
-                    for (int i = 1; i <= count; i++) {
-                        String columnName = metadata.getColumnName(i);
-                        for (int j = 0; j < privileges.length; j++) {
-                            if (columnName.equals(privileges[j])) {
-                                columnMatching.put(i, j);
-                                break;
+            System.out.println("sdbc.DatabaseMetaData.getTablePrivileges()");
+            if (_isIgnoreDriverPrivilegesEnabled()) {
+                System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 2 ***********************************");
+                result = _getTablePrivileges(catalog, schema, table);
+            }
+            else {
+                java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
+                System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 3 ColumnCount != 7 :" + resultset.getMetaData().getColumnCount());
+                if (resultset != null) {
+                    result = m_provider.getResultSet(m_xContext, resultset, m_info);
+                    // we have to check the result columns for the tables privileges #106324#
+                    XResultSetMetaDataSupplier supplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
+                    XResultSetMetaData metadata = null;
+                    if (supplier != null) {
+                        metadata = supplier.getMetaData();
+                    }
+                    if (metadata != null && metadata.getColumnCount() != 7)
+                    {
+                        System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 4 ***********************************");
+                        // here we know that the count of column doesn't match
+                        Map<Integer,Integer> columns = new TreeMap<>();
+                        String[] privileges = new String[] {"TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME",
+                                                            "GRANTOR", "GRANTEE", "PRIVILEGE", "IS_GRANTABLE"};
+                        int count = metadata.getColumnCount();
+                        int length = privileges.length;
+                        for (int i = 1; i <= count; i++) {
+                            String columnName = metadata.getColumnName(i);
+                            for (int j = 0; j < length; j++) {
+                                if (columnName.equals(privileges[j])) {
+                                    columns.put(i, j);
+                                    break;
+                                }
                             }
                         }
-                    }
-                    // fill our own resultset
-                    ArrayList<CustomRowSet[]> rowsOut = new ArrayList<>();
-                    XRow row = UnoRuntime.queryInterface(XRow.class, result);
-                    while (result.next()) {
-                        CustomRowSet[] rowOut = new CustomRowSet[7];
-                        for (int i = 0; i < rowOut.length; i++) {
-                            rowOut[i] = new CustomRowSet("");
-                            rowOut[i].setNull();
-                        }
-                        for (Map.Entry<Integer,Integer> entry : columnMatching.entrySet()) {
-                            String value = row.getString(entry.getKey());
-                            if (row.wasNull()) {
-                                rowOut[entry.getValue()].setNull();
-                            } else {
-                                rowOut[entry.getValue()].setString(value);
+                        // fill our own resultset
+                        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+                        XRow row = UnoRuntime.queryInterface(XRow.class, result);
+                        while (result.next()) {
+                            CustomRowSet[] rowset = new CustomRowSet[7];
+                            for (int i = 0; i < rowset.length; i++) {
+                                rowset[i] = new CustomRowSet("");
+                                rowset[i].setNull();
                             }
+                            for (Map.Entry<Integer,Integer> column : columns.entrySet()) {
+                                String value = row.getString(column.getKey());
+                                if (row.wasNull()) {
+                                    rowset[column.getValue()].setNull();
+                                } else {
+                                    rowset[column.getValue()].setString(value);
+                                }
+                            }
+                            rows.add(rowset);
                         }
-                        rowsOut.add(rowOut);
+                        result = new CustomResultSet(_getTablesPrivilegesMetadata(), rows);
                     }
-                    result = new CustomResultSet(_getTablesPrivilegesMetadata(), rowsOut);
                 }
             }
+            System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 5 ***********************************");
             return result;
         }
         catch (java.sql.SQLException e)

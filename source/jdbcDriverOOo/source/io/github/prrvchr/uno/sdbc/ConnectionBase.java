@@ -33,6 +33,7 @@ import com.sun.star.sdbc.XDatabaseMetaData;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
+//import com.sun.star.lib.util.WeakMap;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.SchemaCrawler;

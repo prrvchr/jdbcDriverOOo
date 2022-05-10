@@ -107,7 +107,7 @@ public class Container<T extends NamedServiceProperty>
     // com.sun.star.container.XIndexAccess:
     @Override
     public Object getByIndex(int index)
-    throws IndexOutOfBoundsException, WrappedTargetException
+        throws IndexOutOfBoundsException, WrappedTargetException
     {
         return m_Elements.get(index);
     }
@@ -122,7 +122,7 @@ public class Container<T extends NamedServiceProperty>
     // com.sun.star.container.XNameAccess:
     @Override
     public Object getByName(String name)
-    throws NoSuchElementException, WrappedTargetException
+        throws NoSuchElementException, WrappedTargetException
     {
         if (!hasByName(name)) throw new NoSuchElementException();
         return m_Elements.get(m_Names.indexOf(name));
@@ -149,8 +149,8 @@ public class Container<T extends NamedServiceProperty>
     }
 
     private class Enumeration
-    extends WeakBase
-    implements XEnumeration
+        extends WeakBase
+        implements XEnumeration
     {
         private final java.util.Iterator<T> m_Iterator;
 
@@ -167,7 +167,7 @@ public class Container<T extends NamedServiceProperty>
 
         @Override
         public Object nextElement()
-        throws NoSuchElementException, WrappedTargetException
+            throws NoSuchElementException, WrappedTargetException
         {
             return m_Iterator.next();
         }

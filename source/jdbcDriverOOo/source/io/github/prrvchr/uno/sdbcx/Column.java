@@ -46,9 +46,9 @@ implements XDataDescriptorFactory
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
     private final int m_Type;
     private final String m_TypeName;
-    private final long m_Precision;
-    private final long m_Scale;
-    private final long m_IsNullable;
+    private final int m_Precision;
+    private final int m_Scale;
+    private final int m_IsNullable;
     private final boolean m_IsAutoIncrement;
     @SuppressWarnings("unused")
     private boolean m_IsCurrency = false;
@@ -140,7 +140,7 @@ implements XDataDescriptorFactory
         super(m_name, m_services, _getPropertySet(_getPropertySet()), name);
         m_Type = UnoHelper.mapSQLDataType(column.getColumnDataType().getJavaSqlType().getVendorTypeNumber());
         m_TypeName = UnoHelper.mapSQLDataTypeName(column.getColumnDataType().getName(), m_Type);
-        m_Precision = column.getColumnDataType().getPrecision();
+        m_Precision = (int) column.getColumnDataType().getPrecision();
         m_Scale = column.getColumnDataType().getMaximumScale();
         m_IsNullable = (column.isNullable()) ? ColumnValue.NULLABLE : ColumnValue.NO_NULLS;
         m_IsAutoIncrement = column.isAutoIncremented();
@@ -156,7 +156,7 @@ implements XDataDescriptorFactory
         super(m_name, m_services, _getPropertySet(), name);
         m_Type = UnoHelper.mapSQLDataType(column.getColumnDataType().getJavaSqlType().getVendorTypeNumber());
         m_TypeName = UnoHelper.mapSQLDataTypeName(column.getColumnDataType().getName(), m_Type);
-        m_Precision = column.getColumnDataType().getPrecision();
+        m_Precision = (int) column.getColumnDataType().getPrecision();
         m_Scale = column.getColumnDataType().getMaximumScale();
         m_IsNullable = (column.isNullable()) ? ColumnValue.NULLABLE : ColumnValue.NO_NULLS;
         m_IsAutoIncrement = column.isAutoIncrement();

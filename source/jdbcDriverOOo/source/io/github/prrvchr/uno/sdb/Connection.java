@@ -57,6 +57,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.Container;
 import io.github.prrvchr.uno.sdbcx.Statement;
 import io.github.prrvchr.uno.sdbcx.Table;
+import io.github.prrvchr.uno.sdbcx.View;
 
 
 public final class Connection
@@ -182,20 +183,23 @@ public final class Connection
     @Override
     public XNameAccess getTables()
     {
+        System.out.println("sdb.Connection.getTables() 1");
         XNameAccess tables = null;
         if (m_crawler)
         {
             try
             {
-                System.out.println("sdb.Connection.getTables() 1");
-                tables = SchemaCrawler.getTables(m_Connection);
                 System.out.println("sdb.Connection.getTables() 2");
+                tables = SchemaCrawler.getTables(m_Connection);
+                System.out.println("sdb.Connection.getTables() 3");
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();
             }
         }
         else
+            System.out.println("sdb.Connection.getTables() 4");
             tables = _getTables();
+            System.out.println("sdb.Connection.getTables() 5");
         return tables;
     }
 
@@ -241,10 +245,37 @@ public final class Connection
     public XNameAccess getViews()
     {
         // TODO: Implement me!!!
+        XNameAccess views = _getViews();
         System.out.println("Connection.getViews() *************************");
-        return null;
+        return views;
     }
 
+    public XNameAccess _getViews()
+    {
+        String catalog = null;
+        String schema = null;
+        String name = null;
+        List<String> names = new ArrayList<String>();
+        List<View> views = new ArrayList<View>();
+        try {
+            java.sql.DatabaseMetaData metadata = m_Connection.getMetaData();
+            String[] types = {"VIEW"};
+            java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
+            while (result.next())
+            {
+                catalog = result.getString(1);
+                schema = result.getString(2);
+                name = result.getString(3);
+                View view = new View(m_Connection, catalog, schema, name);
+                views.add(view);
+                names.add(name);
+            }
+            result.close();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return new Container<View>(views, names, "com.sun.star.sdbcx.View", TypeClass.SERVICE);
+    }
 
     protected XStatement _getStatement(XComponentContext ctx,
                                        DriverProvider provider,

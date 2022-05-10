@@ -38,7 +38,7 @@ public final class Table
                  java.sql.ResultSet result,
                  String name,
                  boolean privileges)
-    throws java.sql.SQLException
+        throws java.sql.SQLException
     {
         super(m_name, m_services, metadata, result, name);
         System.out.println("sdbcx.Table.Table() : 1" );
