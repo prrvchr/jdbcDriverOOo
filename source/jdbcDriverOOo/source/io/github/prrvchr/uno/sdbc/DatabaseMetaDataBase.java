@@ -4047,8 +4047,8 @@ implements XDatabaseMetaData2
             throws SQLException
     {
         ArrayList<CustomRowSet[]> rows = new ArrayList<>();
-        String[] privileges = {"SELECT", "INSERT", "DELETE", "UPDATE", "CREATE",
-                               "READ", "ALTER", "DROP", "REFERENCE"};
+        String[] privileges = {"SELECT", "INSERT", "UPDATE", "DELETE",
+                               "READ", "CREATE", "ALTER", "REFERENCE", "DROP"};
         XResultSet result = getTables(catalog, schema, table, new String[] {"VIEW", "TABLE", "%"});
         String username = getUserName();
         XRow row = UnoRuntime.queryInterface(XRow.class, result);

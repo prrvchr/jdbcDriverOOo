@@ -53,6 +53,41 @@ public interface DriverProvider
         return m_protocol + subprotocol;
     }
 
+    default String[] getTableTypes()
+    {
+        String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
+        return types;
+    }
+
+    default String getTableType(String type)
+    {
+        return type;
+    }
+
+    default String getViewQuery()
+    {
+        return "SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;";
+    }
+
+    default String getUserQuery()
+    {
+        return null;
+    }
+
+    default String getDropQuery(String element,
+                                String name)
+    {
+        return null;
+    }
+
+    default String getDropQuery(String element,
+                                String catalog,
+                                String schema,
+                                String name)
+    {
+        return null;
+    }
+
     public boolean acceptsURL(String url);
 
     public boolean supportWarningsSupplier();

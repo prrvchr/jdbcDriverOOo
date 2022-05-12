@@ -82,7 +82,8 @@ public final class SchemaCrawler
     }
 
 
-    public static XNameAccess getTables(java.sql.Connection connection)
+    public static XNameAccess getTables(java.sql.Connection connection,
+                                        DriverProvider provider)
     throws java.sql.SQLException
     {
         try {
@@ -109,12 +110,12 @@ public final class SchemaCrawler
             for (final schemacrawler.schema.Table t : catalog.getTables())
             {
                 name = t.getName();
-                Table table = new Table(t, connection.getCatalog(), name);
+                Table table = new Table(connection, provider, t, connection.getCatalog(), name);
                 tables.add(table);
                 names.add(name);
             }
             System.out.println("SchemaCrawler.getTables() 8");
-            return new Container<Table>(tables, names, "com.sun.star.sdb.Table", TypeClass.SERVICE);
+            return new Container<Table>(connection, provider, tables, names, "com.sun.star.sdb.Table", TypeClass.SERVICE);
         } catch (java.lang.Exception e) {
             System.out.println("SchemaCrawler.getTables() 9 ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())

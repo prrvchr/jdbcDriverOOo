@@ -77,7 +77,7 @@ implements XColumnsSupplier
         try
         {
             java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-            return ColumnsSupplier.getColumns(metadata);
+            return ColumnsSupplier.getColumns(m_Connection, m_provider, metadata);
         }
         catch (java.sql.SQLException e)
         {

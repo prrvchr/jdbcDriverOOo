@@ -394,14 +394,11 @@ public class UnoHelper
     throws java.sql.SQLException
     {
         int value = 0;
-        if (name != null && !name.isBlank())
-        {
-            try
-            {
+        if (name != null && !name.isBlank()) {
+            try {
                 value = (int) clazz.getDeclaredField(name).get(null);
             }
-            catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e)
-            {
+            catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
                 e.printStackTrace(System.out);
             }
         }
@@ -422,8 +419,7 @@ public class UnoHelper
                                                    Map.entry(2013, 12),
                                                    Map.entry(2014, 12));
 
-        if (maps.containsKey(type))
-        {
+        if (maps.containsKey(type)) {
             System.out.println("UnoHelper.mapSQLDataType() Type: " + type);
             type = maps.get(type);
         }

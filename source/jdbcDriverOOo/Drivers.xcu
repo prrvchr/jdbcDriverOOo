@@ -33,7 +33,7 @@
     <node oor:name="Installed">
         <node oor:name="xdbc:*" oor:op="replace">
             <prop oor:name="Driver">
-                <value>io.github.prrvchr.jdbcdriver.sdbc.Driver</value>
+                <value>io.github.prrvchr.jdbcdriver.sdbcx.Driver</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">JDBC Driver</value>
@@ -336,6 +336,11 @@
                         <value>hsqldb:mem:dbversion</value>
                     </prop>
                 </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="DriverLoggerLevel" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>-1</value>
@@ -366,6 +371,11 @@
                 <node oor:name="InMemoryDataBase" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>h2:mem:dbversion</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
                     </prop>
                 </node>
                 <node oor:name="DriverLoggerLevel" oor:op="replace">
@@ -405,6 +415,11 @@
                         <value>smallsql</value>
                     </prop>
                 </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -430,6 +445,11 @@
                 <node oor:name="InMemoryDataBase" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>derby:memory:dbversion;create=true</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
                     </prop>
                 </node>
                 <node oor:name="DriverLoggerLevel" oor:op="replace">

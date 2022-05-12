@@ -31,6 +31,7 @@ import java.util.List;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.uno.TypeClass;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import schemacrawler.crawl.ResultsCrawler;
 import schemacrawler.schema.ResultsColumn;
 
@@ -38,7 +39,9 @@ import schemacrawler.schema.ResultsColumn;
 public final class ColumnsSupplier
 {
 
-    public static XNameAccess getColumns(java.sql.ResultSetMetaData metadata)
+    public static XNameAccess getColumns(java.sql.Connection connection,
+                                         DriverProvider provider,
+                                         java.sql.ResultSetMetaData metadata)
         throws java.sql.SQLException
     {
         String name = null;
@@ -50,10 +53,12 @@ public final class ColumnsSupplier
             names.add(name);
             columns.add(new Column(metadata, i, name));
         }
-        return new Container<Column>(columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
     }
 
-    public static XNameAccess getColumns(java.sql.ResultSet resultset)
+    public static XNameAccess getColumns(java.sql.Connection connection,
+                                         DriverProvider provider,
+                                         java.sql.ResultSet resultset)
         throws java.sql.SQLException
     {
         String name = null;
@@ -66,10 +71,12 @@ public final class ColumnsSupplier
             names.add(name);
             columns.add(new Column(column, name));
         }
-        return new Container<Column>(columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
     }
 
-    public static XNameAccess getColumns(ResultsCrawler result)
+    public static XNameAccess getColumns(java.sql.Connection connection,
+                                         DriverProvider provider,
+                                         ResultsCrawler result)
         throws java.sql.SQLException
     {
         String name = null;
@@ -81,7 +88,7 @@ public final class ColumnsSupplier
             names.add(name);
             columns.add(new Column(column, name));
         }
-        return new Container<Column>(columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
     }
 
 }

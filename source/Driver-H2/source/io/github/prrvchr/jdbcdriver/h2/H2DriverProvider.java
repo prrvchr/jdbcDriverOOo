@@ -67,6 +67,47 @@ public final class H2DriverProvider
         return m_warnings;
     }
 
+    public String[] getTableTypes()
+    {
+        String[] types = {"BASE TABLE", "VIEW", "ALIAS", "SYNONYM"};
+        return types;
+    }
+
+    public String getTableType(String type)
+    {
+        if (type.equals("BASE TABLE")) {
+            type = "TABLE";
+        }
+        return type;
+    }
+
+    @Override
+    public String getUserQuery()
+    {
+        return "SELECT * FROM INFORMATION_SCHEMA.USERS";
+    }
+
+    @Override
+    public String getDropQuery(String element,
+                               String catalog,
+                               String schema,
+                               String name)
+    {
+        String query = null;
+        switch (element) {
+            case "Table":
+                String sql = "DROP TABLE \"%s\".\"%s\";";
+                query = String.format(sql, schema, name);
+                break;
+            case "Column":
+                break;
+            case "View":
+                break;
+            case "User":
+                break;
+        }
+        return query;
+    }
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {

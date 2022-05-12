@@ -34,18 +34,17 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.sdbcx.XAlterView;
 
-import io.github.prrvchr.uno.container.NamedServiceProperty;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class View
-extends NamedServiceProperty
-implements XAlterView
+    extends ContainerElement
+    implements XAlterView
 {
     private static final String m_name = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
-    private String m_CatalogName = "";
-    private String m_SchemaName = "";
+    private final String m_CatalogName;
+    private final String m_SchemaName;
     private final String m_Command;
     @SuppressWarnings("unused")
 	private final int m_CheckOption;
@@ -63,6 +62,7 @@ implements XAlterView
 
     // The constructor method:
     public View(java.sql.Connection  connection,
+                String query,
                 String catalog,
                 String schema,
                 String name)
@@ -71,19 +71,21 @@ implements XAlterView
         super(m_name, m_services, _getPropertySet(), name);
         m_CatalogName = catalog;
         m_SchemaName = schema;
-        m_Command = _getViewCommand(connection, name);
+        m_Command = _getViewCommand(connection, query, schema, name);
         m_CheckOption = CheckOption.NONE;
         System.out.println("View.View() Name: " + m_Name + " - Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Command: " + m_Command);
     }
 
     private String _getViewCommand(java.sql.Connection connection,
+                                   String query,
+                                   String schema,
                                    String view)
         throws java.sql.SQLException
     {
         String command = "";
-        String sql = "SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = ?;";
-        java.sql.PreparedStatement statement = connection.prepareStatement(sql);
-        statement.setString(1, view);
+        java.sql.PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, schema);
+        statement.setString(2, view);
         java.sql.ResultSet result = statement.executeQuery();
         if (result.next()) {
             command = result.getString(1);

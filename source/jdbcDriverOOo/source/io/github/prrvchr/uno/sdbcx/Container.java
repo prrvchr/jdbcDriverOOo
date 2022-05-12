@@ -38,53 +38,70 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XDrop;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 
-import io.github.prrvchr.uno.container.NamedServiceProperty;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceWeak;
 
 
-public class Container<T extends NamedServiceProperty>
+public class Container<T extends ContainerElement>
     extends ServiceWeak
     implements XContainer,
                XEnumerationAccess,
                XIndexAccess,
-               XNameAccess
+               XNameAccess,
+               XDrop
 
 {
 
     private static final String m_name = Container.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    private final java.sql.Connection m_Connection;
+    private final DriverProvider m_provider;
     private final List<T> m_Elements;
     private final List<String> m_Names;
     private final Type m_type;
 
     // The constructor method:
-    public Container()
+    public Container(java.sql.Connection connection,
+                     DriverProvider provider)
     {
-        this(new ArrayList<T>(), new ArrayList<String>());
+        this(connection, provider, new ArrayList<T>(), new ArrayList<String>());
     }
-    public Container(List<T> elements,
+    public Container(java.sql.Connection connection,
+                     DriverProvider provider,
+                     List<T> elements,
                      List<String> names)
     {
-        this(elements, names, "com.sun.star.uno.XInterface");
+        this(connection, provider, elements, names, "com.sun.star.uno.XInterface");
     }
-    public Container(List<T> elements,
+    public Container(java.sql.Connection connection,
+                     DriverProvider provider,
+                     List<T> elements,
                      List<String> names,
                      String typename)
     {
         super(m_name, m_services);
+        m_Connection = connection;
+        m_provider = provider;
         m_Elements = elements;
         m_Names = names;
         m_type = new Type(typename);
     }
-    public Container(List<T> elements,
+    public Container(java.sql.Connection connection,
+                     DriverProvider provider,
+                     List<T> elements,
                      List<String> names,
                      String typename,
                      TypeClass typeclass)
     {
         super(m_name, m_services);
+        m_Connection = connection;
+        m_provider = provider;
         m_Elements = elements;
         m_Names = names;
         m_type = new Type(typename, typeclass);
@@ -109,7 +126,10 @@ public class Container<T extends NamedServiceProperty>
     public Object getByIndex(int index)
         throws IndexOutOfBoundsException, WrappedTargetException
     {
-        return m_Elements.get(index);
+        if (index < getCount()) {
+            return m_Elements.get(index);
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     @Override
@@ -124,8 +144,10 @@ public class Container<T extends NamedServiceProperty>
     public Object getByName(String name)
         throws NoSuchElementException, WrappedTargetException
     {
-        if (!hasByName(name)) throw new NoSuchElementException();
-        return m_Elements.get(m_Names.indexOf(name));
+        if (hasByName(name)) {
+            return m_Elements.get(m_Names.indexOf(name));
+        }
+        throw new NoSuchElementException();
     }
 
     @Override
@@ -169,20 +191,65 @@ public class Container<T extends NamedServiceProperty>
         public Object nextElement()
             throws NoSuchElementException, WrappedTargetException
         {
-            return m_Iterator.next();
+            if (m_Iterator.hasNext()) {
+                return m_Iterator.next();
+            }
+            throw new NoSuchElementException();
         }
     }
 
     // com.sun.star.container.XContainer:
     @Override
-    public void addContainerListener(XContainerListener arg0) {
+    public void addContainerListener(XContainerListener listener) {
         // TODO Auto-generated method stub
     }
 
     @Override
-    public void removeContainerListener(XContainerListener arg0) {
+    public void removeContainerListener(XContainerListener listener) {
         // TODO Auto-generated method stub
     }
 
+    // com.sun.star.sdbcx.XDrop:
+    @Override
+    public void dropByIndex(int index)
+        throws SQLException, IndexOutOfBoundsException
+    {
+        System.out.println("sdbcx.Container.dropByIndex()");
+        if (index >= getCount()) {
+            throw new IndexOutOfBoundsException();
+        }
+        _dropElement(m_Elements.get(index), m_Names.get(index));
+    }
+
+    @Override
+    public void dropByName(String name)
+        throws SQLException, NoSuchElementException
+    {
+        System.out.println("sdbcx.Container.dropByName()");
+        if (!m_Names.contains(name)) {
+            throw new NoSuchElementException();
+        }
+        int index = m_Names.indexOf(name);
+        _dropElement(m_Elements.get(index), name);
+    }
+
+    private void _dropElement(T element,
+                              String name)
+        throws SQLException
+    {
+        System.out.println("sdbcx.Container._dropElement() 1 Element: " + element.getClass().getSimpleName());
+        String query = element.getDropQuery(m_provider);
+        System.out.println("sdbcx.Container._dropElement() 2 Query: " + query);
+        if (query != null) {
+            try {
+                java.sql.Statement statement = m_Connection.createStatement();
+                statement.execute(query);
+                statement.close();
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
+        }
+    }
 
 }

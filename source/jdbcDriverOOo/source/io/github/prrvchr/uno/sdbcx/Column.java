@@ -30,17 +30,13 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.ColumnValue;
-import com.sun.star.sdbcx.XDataDescriptorFactory;
 
-import io.github.prrvchr.uno.container.NamedServiceProperty;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class Column
-extends NamedServiceProperty
-implements XDataDescriptorFactory
+    extends ContainerElement
 {
     private static final String m_name = Column.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
@@ -162,12 +158,6 @@ implements XDataDescriptorFactory
         m_IsAutoIncrement = column.isAutoIncrement();
         m_Description = column.getRemarks();
         m_DefaultValue = ((schemacrawler.schema.Column) column).getDefaultValue();
-    }
-
-
-    @Override
-    public XPropertySet createDataDescriptor() {
-        return null;
     }
 
 

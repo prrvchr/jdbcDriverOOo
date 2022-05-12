@@ -53,7 +53,7 @@ extends PreparedStatementMain
 implements XOutParameters,
            XRow
 {
-    private java.sql.Connection m_Connection;
+    protected java.sql.Connection m_Connection;
     private java.sql.CallableStatement m_Statement = null;
     private String m_Sql;
     

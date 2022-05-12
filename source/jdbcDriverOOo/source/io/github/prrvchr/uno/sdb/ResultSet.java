@@ -38,8 +38,8 @@ import schemacrawler.crawl.ResultsCrawler;
 
 
 public final class ResultSet
-extends ResultSetSuper
-implements XColumnsSupplier
+    extends ResultSetSuper
+    implements XColumnsSupplier
 {
     private static final String m_name = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
@@ -68,7 +68,7 @@ implements XColumnsSupplier
         try
         {
             ResultsCrawler result = new ResultsCrawler(m_ResultSet);
-            columns = ColumnsSupplier.getColumns(result);
+            columns = ColumnsSupplier.getColumns(m_ResultSet.getStatement().getConnection(), m_provider, result);
         }
         catch (java.sql.SQLException e)
         {

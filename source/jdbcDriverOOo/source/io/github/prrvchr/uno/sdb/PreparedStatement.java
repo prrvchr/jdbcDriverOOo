@@ -79,7 +79,7 @@ implements XColumnsSupplier
         {
             System.out.println("sdb.PreparedStatement.getColumns() 1");
             java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-            return ColumnsSupplier.getColumns(metadata);
+            return ColumnsSupplier.getColumns(m_Connection, m_provider, metadata);
         }
         catch (java.sql.SQLException e)
         {

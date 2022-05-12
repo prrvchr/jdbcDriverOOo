@@ -39,7 +39,7 @@ public abstract class PreparedStatementBase
     extends PreparedStatementMain
 {
 
-    private java.sql.Connection m_Connection;
+    protected java.sql.Connection m_Connection;
     private java.sql.PreparedStatement m_Statement = null;
     private String m_Sql;
 

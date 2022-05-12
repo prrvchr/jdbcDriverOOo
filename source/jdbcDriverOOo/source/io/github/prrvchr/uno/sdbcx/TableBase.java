@@ -32,19 +32,31 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.IndexOutOfBoundsException;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XAlterTable;
+import com.sun.star.sdbcx.XIndexesSupplier;
+import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.uno.container.NamedServiceProperty;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class TableBase
-    extends NamedServiceProperty
-    implements XColumnsSupplier
+    extends ContainerElement
+    implements XColumnsSupplier,
+               XIndexesSupplier,
+               XKeysSupplier,
+               XAlterTable
 {
 
     private XNameAccess m_xColumns = null;
+    private XIndexAccess m_xKeys = null;
     protected final String m_CatalogName;
     protected final String m_SchemaName;
     @SuppressWarnings("unused")
@@ -70,38 +82,49 @@ public class TableBase
     // The constructor method:
     public TableBase(String service,
                      String[] services,
+                     DriverProvider provider,
                      java.sql.DatabaseMetaData metadata,
-                     java.sql.ResultSet result,
-                     String name)
+                     String catalog,
+                     String schema,
+                     String name,
+                     String type,
+                     String description)
     throws java.sql.SQLException
     {
         super(service, services, _getPropertySet(), name);
-        m_CatalogName = result.getString(1);
-        m_SchemaName = result.getString(2);
-        m_Type = result.getString(4);
-        m_Description = result.getString(5);
-        m_xColumns = _getTableColumns(metadata);
+        m_CatalogName = catalog;
+        m_SchemaName = schema;
+        m_Type = type;
+        m_Description = description;
+        m_xColumns = _getTableColumns(provider, metadata);
+        m_xKeys = _getTableKeys(provider, metadata, catalog, schema, name);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
     public TableBase(String service,
                      String[] services,
+                     DriverProvider provider,
                      java.sql.DatabaseMetaData metadata,
-                     java.sql.ResultSet result,
+                     String catalog,
+                     String schema,
                      String name,
+                     String type,
+                     String description,
                      Map<String, Property> properties)
         throws java.sql.SQLException
     {
         super(service, services, _getPropertySet(properties), name);
-        m_CatalogName = result.getString(1);
-        m_SchemaName = result.getString(2);
-        m_Type = result.getString(4);
-        m_Description = result.getString(5);
-        m_xColumns = _getTableColumns(metadata);
+        m_CatalogName = catalog;
+        m_SchemaName = schema;
+        m_Type = type;
+        m_Description = description;
+        m_xColumns = _getTableColumns(provider, metadata);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
 
     public TableBase(String service,
                      String[] services,
+                     java.sql.Connection connection,
+                     DriverProvider provider,
                      schemacrawler.schema.Table table,
                      String catalog,
                      String name)
@@ -111,11 +134,13 @@ public class TableBase
         m_SchemaName = table.getSchema().getName();
         m_Type = table.getTableType().getTableType();
         m_Description = table.getRemarks();
-        m_xColumns = _getTableColumns(table);
+        m_xColumns = _getTableColumns(connection, provider, table);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
     public TableBase(String service,
                      String[] services,
+                     java.sql.Connection connection,
+                     DriverProvider provider,
                      schemacrawler.schema.Table table,
                      String catalog,
                      String name,
@@ -126,12 +151,14 @@ public class TableBase
         m_SchemaName = table.getSchema().getName();
         m_Type = table.getTableType().getTableType();
         m_Description = table.getRemarks();
-        m_xColumns = _getTableColumns(table);
+        m_xColumns = _getTableColumns(connection, provider, table);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
 
 
-    private XNameAccess _getTableColumns(schemacrawler.schema.Table table)
+    private XNameAccess _getTableColumns(java.sql.Connection connection,
+                                         DriverProvider provider,
+                                         schemacrawler.schema.Table table)
     {
         String name = null;
         List<String> names = new ArrayList<String>();
@@ -144,17 +171,18 @@ public class TableBase
             names.add(name);
             System.out.println("sdbcx.TableBase._getTableColumns() ORDINAL: " + c.getOrdinalPosition());
         }
-        return new Container<Column>(columns, names);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.beans.XPropertySet");
     }
 
-    private XNameAccess _getTableColumns(java.sql.DatabaseMetaData metadata)
+    private XNameAccess _getTableColumns(DriverProvider provider,
+                                         java.sql.DatabaseMetaData metadata)
     throws java.sql.SQLException
     {
         String name = null;
         List<String> names = new ArrayList<String>();
         List<Column> columns = new ArrayList<Column>();
         java.sql.ResultSet result = metadata.getColumns(m_CatalogName, m_SchemaName, m_Name, "%");
-        while (result.next())
+        while (result != null && result.next())
         {
             name = result.getString(4);
             Column column = new Column(result, m_CatalogName, m_SchemaName, m_Name, name);
@@ -163,7 +191,7 @@ public class TableBase
             System.out.println("sdbcx.TableBase._getTableColumns() ORDINAL: " + result.getInt(17));
         }
         result.close();
-        return new Container<Column>(columns, names);
+        return new Container<Column>(metadata.getConnection(), provider, columns, names, "com.sun.star.beans.XPropertySet");
     }
 
 
@@ -172,6 +200,73 @@ public class TableBase
     public XNameAccess getColumns()
     {
         return m_xColumns;
+    }
+
+    // com.sun.star.sdbcx.XAlterTable:
+    @Override
+    public void alterColumnByIndex(int index, XPropertySet properties)
+        throws SQLException, IndexOutOfBoundsException
+    {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.TableBase.alterColumnByIndex()");
+    }
+
+    @Override
+    public void alterColumnByName(String name, XPropertySet properties)
+        throws SQLException, NoSuchElementException
+    {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.TableBase.alterColumnByName()");
+    }
+
+    @Override
+    public String getDropQuery(DriverProvider provider)
+    {
+        String type = this.getClass().getSimpleName();
+        return provider.getDropQuery(type, m_CatalogName, m_SchemaName, m_Name);
+    }
+
+    // com.sun.star.sdbcx.XKeysSupplier:
+    @Override
+    public XIndexAccess getKeys() {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.TableBase.getKeys() ***************************************************");
+        return m_xKeys;
+    }
+
+    private XIndexAccess _getTableKeys(DriverProvider provider,
+                                      java.sql.DatabaseMetaData metadata,
+                                      String catalog,
+                                      String schema,
+                                      String table)
+        throws java.sql.SQLException
+    {
+        List<Key> keys = new ArrayList<Key>();
+        java.sql.ResultSet result = metadata.getPrimaryKeys(null, schema, table);
+        while (result != null && result.next()) {
+            int count = result.getMetaData().getColumnCount();
+            for (int i =1; i <= count; i++) {
+                String name = result.getMetaData().getColumnName(i);
+                String dbtype = result.getMetaData().getColumnTypeName(i);
+                System.out.println("sdbcx.TableBase._getTableKeys() : Name: " + name + " - Type: " + dbtype);
+            }
+            String column = result.getString(4);
+            String name = result.getString(6);
+            System.out.println("sdbcx.TableBase._getTableKeys() : Name: " + name + " - Column: " + column);
+            Key key = new Key(provider, metadata, catalog, schema, table, column, name, 1, "", 0, 0);
+            keys.add(key);
+        }
+        result.close();
+        return new ContainerKey<Key>(keys, "com.sun.star.beans.XPropertySet");
+    }
+
+
+    // com.sun.star.sdbcx.XIndexesSupplier
+    @Override
+    public XNameAccess getIndexes() {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.TableBase.getIndexes() ***************************************************");
+        return null;
     }
 
 

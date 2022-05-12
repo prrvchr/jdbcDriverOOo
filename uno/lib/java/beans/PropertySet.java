@@ -45,7 +45,7 @@ import com.sun.star.uno.XInterface;
 
 
 public abstract class PropertySet
-extends com.sun.star.lib.uno.helper.PropertySet
+    extends com.sun.star.lib.uno.helper.PropertySet
 {
 
     private static String m_fieldPrefix = "m_";

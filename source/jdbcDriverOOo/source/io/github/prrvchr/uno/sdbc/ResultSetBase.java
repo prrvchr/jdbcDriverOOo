@@ -74,6 +74,7 @@ public abstract class ResultSetBase
     private final XComponentContext m_xContext;
     private final XInterface m_xStatement;
     protected final java.sql.ResultSet m_ResultSet;
+    protected final DriverProvider m_provider;
     private final PropertyValue[] m_info;
     private static Map<String, Property> _getPropertySet()
     {
@@ -105,6 +106,7 @@ public abstract class ResultSetBase
         m_xContext = ctx;
         m_xStatement = null;
         m_ResultSet = resultset;
+        m_provider = provider;
         m_info = info;
     }
     public ResultSetBase(XComponentContext ctx,
@@ -119,6 +121,7 @@ public abstract class ResultSetBase
         m_xContext = ctx;
         m_xStatement = statement;
         m_ResultSet = resultset;
+        m_provider = provider;
         m_info = info;
     }
     public ResultSetBase(XComponentContext ctx,
@@ -134,6 +137,7 @@ public abstract class ResultSetBase
         m_xContext = ctx;
         m_xStatement = statement;
         m_ResultSet = resultset;
+        m_provider = provider;
         m_info = info;
     }
 

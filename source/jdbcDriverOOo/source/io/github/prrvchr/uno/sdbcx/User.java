@@ -26,19 +26,14 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.Connection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.sun.star.beans.Property;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceProperty;
-
 
 public class User
-    extends ServiceProperty
+    extends ContainerElement
     implements XUser
 {
 
@@ -48,44 +43,13 @@ public class User
     private final java.sql.Connection m_Connection;
     @SuppressWarnings("unused")
     private Map<String, String> m_users;
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("Name", UnoHelper.getProperty("Name", "string"));
-        return map;
-    }
 
     // The constructor method:
-    public User(Connection connection)
+    public User(Connection connection,
+                String name)
     {
-        super(m_name, m_services, _getPropertySet());
+        super(m_name, m_services, name);
         m_Connection = connection;
-    }
-
-
-    // com.sun.star.sdbcx.XAuthorizable <- XUser:
-    @Override
-    public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public int getPrivileges(String arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
-        // TODO Auto-generated method stub
-        
     }
 
 
@@ -93,7 +57,35 @@ public class User
     @Override
     public void changePassword(String arg0, String arg1) throws SQLException {
         // TODO Auto-generated method stub
-        
+        System.out.println("sdbcx.User.changePassword()");
+    }
+
+
+    // com.sun.star.sdbcx.XAuthorizable <- XUser:
+    @Override
+    public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.User.getGrantablePrivileges()");
+        return 0;
+    }
+
+    @Override
+    public int getPrivileges(String arg0, int arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.User.getPrivileges()");
+        return 0;
+    }
+
+    @Override
+    public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.User.grantPrivileges()");
+    }
+
+    @Override
+    public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.User.revokePrivileges()");
     }
 
 

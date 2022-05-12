@@ -34,6 +34,7 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 
@@ -45,57 +46,62 @@ public final class Table
     private static final String m_name = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Table",
                                                 "com.sun.star.sdbcx.Table"};
-    private final long m_Privileges;
+    @SuppressWarnings("unused")
+	private final int m_Privileges;
     private static Map<String, Property> _getPropertySet()
     {
         short readonly = PropertyAttribute.READONLY;
         Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("Privileges", UnoHelper.getProperty("Privileges", "long", readonly));
+        map.put("m_Privileges", UnoHelper.getProperty("Privileges", "long", readonly));
         return map;
     }
 
     // The constructor method:
-    public Table(java.sql.DatabaseMetaData metadata,
-                 java.sql.ResultSet result,
-                 String name)
+    public Table(DriverProvider provider,
+                 java.sql.DatabaseMetaData metadata,
+                 String catalog,
+                 String schema,
+                 String name,
+                 String type,
+                 String description)
         throws java.sql.SQLException
     {
-        super(m_name, m_services, metadata, result, name, _getPropertySet());
+        super(m_name, m_services, provider, metadata, catalog, schema, name, type, description, _getPropertySet());
         m_Privileges = _getPrivileges(metadata);
         System.out.println("sdb.Table.Table() : 1" );
     }
-    public Table(schemacrawler.schema.Table table,
+    public Table(java.sql.Connection connection,
+                 DriverProvider provider,
+                 schemacrawler.schema.Table table,
                  String catalog,
                  String name)
         throws SQLException
     {
-        super(m_name, m_services, table, catalog, name, _getPropertySet());
+        super(m_name, m_services, connection, provider, table, catalog, name, _getPropertySet());
         m_Privileges = _getPrivileges(table);
         System.out.println("sdb.Table.Table() : 1" );
     }
 
-    @SuppressWarnings("unused")
-    private long _getPrivileges()
-    {
-        System.out.println("sdb.Table._getPrivileges() : 1 : " + m_Privileges);
-        return m_Privileges;
-    }
-
-    private long _getPrivileges(java.sql.DatabaseMetaData metadata)
+    private int _getPrivileges(java.sql.DatabaseMetaData metadata)
         throws SQLException
     {
-        long value = 100L;
-        System.out.println("sdb.Table._getPrivileges() : 1");
-        //java.sql.ResultSet result = metadata.getTablePrivileges(m_CatalogName, m_SchemaName, m_Name);
-        //if (result != null && result.next())
-        //    value = UnoHelper.getConstantValue(Privilege.class, result.getString(6));
-        System.out.println("sdb.Table._getPrivileges() : 2 " + value);
+        int value = 0;
+        System.out.println("sdb.Table._getPrivileges() : 1 Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Table: " + m_Name);
+        java.sql.ResultSet result = metadata.getTablePrivileges(m_CatalogName, m_SchemaName, m_Name);
+        while (result != null && result.next()) {
+            System.out.println("sdb.Table._getPrivileges() : 2 " + result.getString(6));
+            value += UnoHelper.getConstantValue(Privilege.class, result.getString(6));
+            System.out.println("sdb.Table._getPrivileges() : 3 " + value);
+        }
+        result.close();
+        value = 265;
+        System.out.println("sdb.Table._getPrivileges() : 4 " + value);
         return value;
     }
-    private static long _getPrivileges(schemacrawler.schema.Table table)
+    private static int _getPrivileges(schemacrawler.schema.Table table)
         throws SQLException
     {
-        long value = 100L;
+        int value = 265;
         System.out.println("sdb.Table._getPrivileges() : 1");
         Collection<schemacrawler.schema.Privilege<schemacrawler.schema.Table>> privileges = table.getPrivileges();
         System.out.println("sdb.Table._getPrivileges() : 2 : " + privileges.size());

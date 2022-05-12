@@ -51,12 +51,11 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.SchemaCrawler;
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.helper.UsersSupplierHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.Container;
 import io.github.prrvchr.uno.sdbcx.Statement;
 import io.github.prrvchr.uno.sdbcx.Table;
+import io.github.prrvchr.uno.sdbcx.User;
 import io.github.prrvchr.uno.sdbcx.View;
 
 
@@ -190,7 +189,7 @@ public final class Connection
             try
             {
                 System.out.println("sdb.Connection.getTables() 2");
-                tables = SchemaCrawler.getTables(m_Connection);
+                tables = SchemaCrawler.getTables(m_Connection, m_provider);
                 System.out.println("sdb.Connection.getTables() 3");
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();
@@ -205,18 +204,20 @@ public final class Connection
 
     public XNameAccess _getTables()
     {
-        String name = null;
         List<String> names = new ArrayList<String>();
         List<Table> tables = new ArrayList<Table>();
         try {
             java.sql.DatabaseMetaData metadata = m_Connection.getMetaData();
-            String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
+            String[] types = m_provider.getTableTypes();
             java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
-            boolean privileges = UnoHelper.getDefaultPropertyValue(m_info, "IgnoreDriverPrivileges", false);
-            while (result.next())
+            while (result != null && result.next())
             {
-                name = result.getString(3);
-                Table table = new Table(metadata, result, name, privileges);
+                String catalog = result.getString(1);
+                String schema = result.getString(2);
+                String name = result.getString(3);
+                String type = m_provider.getTableType(result.getString(4));
+                String description = result.getString(5);
+                Table table = new Table(m_provider, metadata, catalog, schema, name, type, description);
                 tables.add(table);
                 names.add(name);
             }
@@ -224,7 +225,7 @@ public final class Connection
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
         }
-        return new Container<Table>(tables, names, "com.sun.star.sdb.Table", TypeClass.SERVICE);
+        return new Container<Table>(m_Connection, m_provider, tables, names, "com.sun.star.beans.XPropertySet");
     }
 
 
@@ -232,11 +233,30 @@ public final class Connection
     @Override
     public XNameAccess getUsers()
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.getUsers() *************************");
-        UsersSupplierHelper supplier = new UsersSupplierHelper(m_Connection);
-        XNameAccess users = supplier.getUsers();
-        return users;
+        System.out.println("Connection.getUsers() 1");
+        List<User> users = new ArrayList<User>();
+        List<String> names = new ArrayList<String>();
+        String query = m_provider.getUserQuery();
+        if (query != null) {
+            try {
+                String name = null;
+                java.sql.Statement statement = m_Connection.createStatement();
+                java.sql.ResultSet result = statement.executeQuery(query);
+                while (result != null && result.next()) {
+                    name = result.getString(1);
+                    System.out.println("sdb.Connection.getUsers() 2 : " + name);
+                    User user = new User(m_Connection, name);
+                    users.add(user);
+                    names.add(name);
+                }
+                result.close();
+                statement.close();
+            }
+            catch (java.sql.SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return new Container<User>(m_Connection, m_provider, users, names, "com.sun.star.beans.XPropertySet");
     }
 
 
@@ -261,12 +281,13 @@ public final class Connection
             java.sql.DatabaseMetaData metadata = m_Connection.getMetaData();
             String[] types = {"VIEW"};
             java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
+            String query = m_provider.getViewQuery();
             while (result.next())
             {
                 catalog = result.getString(1);
                 schema = result.getString(2);
                 name = result.getString(3);
-                View view = new View(m_Connection, catalog, schema, name);
+                View view = new View(m_Connection, query, catalog, schema, name);
                 views.add(view);
                 names.add(name);
             }
@@ -274,7 +295,7 @@ public final class Connection
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
         }
-        return new Container<View>(views, names, "com.sun.star.sdbcx.View", TypeClass.SERVICE);
+        return new Container<View>(m_Connection, m_provider, views, names, "com.sun.star.sdbcx.View", TypeClass.SERVICE);
     }
 
     protected XStatement _getStatement(XComponentContext ctx,
