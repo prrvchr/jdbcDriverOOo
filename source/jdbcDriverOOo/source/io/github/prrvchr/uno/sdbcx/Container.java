@@ -28,6 +28,9 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ContainerEvent;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XContainer;
 import com.sun.star.container.XContainerListener;
@@ -39,9 +42,13 @@ import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XDrop;
+import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
+import com.sun.star.util.XRefreshListener;
+import com.sun.star.util.XRefreshable;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -54,7 +61,10 @@ public class Container<T extends ContainerElement>
                XEnumerationAccess,
                XIndexAccess,
                XNameAccess,
-               XDrop
+               XAppend,
+               XDrop,
+               XRefreshable,
+               XDataDescriptorFactory
 
 {
 
@@ -64,6 +74,7 @@ public class Container<T extends ContainerElement>
     private final DriverProvider m_provider;
     private final List<T> m_Elements;
     private final List<String> m_Names;
+    private final List<XContainerListener> m_Listeners = new ArrayList<XContainerListener>();
     private final Type m_type;
 
     // The constructor method:
@@ -202,11 +213,17 @@ public class Container<T extends ContainerElement>
     @Override
     public void addContainerListener(XContainerListener listener) {
         // TODO Auto-generated method stub
+        System.out.println("sdbcx.Container.addContainerListener() ****************************************");
+        m_Listeners.add(listener);
     }
 
     @Override
     public void removeContainerListener(XContainerListener listener) {
         // TODO Auto-generated method stub
+       System.out.println("sdbcx.Container.removeContainerListener() ****************************************");
+       if (m_Listeners.contains(listener)) {
+           m_Listeners.remove(listener);
+       }
     }
 
     // com.sun.star.sdbcx.XDrop:
@@ -249,7 +266,59 @@ public class Container<T extends ContainerElement>
             catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
             }
+            _elementRemoved(element);
         }
     }
+
+    private void _elementRemoved(T element)
+    {
+        ContainerEvent event = new ContainerEvent();
+        event.Source = this;
+        event.Accessor = this;
+        event.Element = element;
+        event.ReplacedElement = element;
+        for (XContainerListener listener : m_Listeners) {
+            listener.elementRemoved(event);
+        }
+    }
+
+    // com.sun.star.sdbcx.XAppend
+    @Override
+    public void appendByDescriptor(XPropertySet properties)
+        throws SQLException,
+        ElementExistException
+    {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.Container.appendByDescriptor() ****************************************");
+    }
+
+    // com.sun.star.util.XRefreshable
+    @Override
+    public void addRefreshListener(XRefreshListener listener)
+    {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.Container.addRefreshListener() ****************************************");
+    }
+    @Override
+    public void refresh()
+    {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.Container.refresh() ****************************************");
+    }
+    @Override
+    public void removeRefreshListener(XRefreshListener listener)
+    {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.Container.removeRefreshListener() ****************************************");
+    }
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor() {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.Container.createDataDescriptor() ****************************************");
+        return null;
+    }
+
 
 }

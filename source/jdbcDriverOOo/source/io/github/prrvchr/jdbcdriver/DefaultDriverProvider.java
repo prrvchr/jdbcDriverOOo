@@ -44,6 +44,8 @@ public final class DefaultDriverProvider
 {
 
     private List<String> m_properties = List.of("user", "password");
+    @SuppressWarnings("unused")
+    private boolean m_highLevel;
 
     // The constructor method:
     public DefaultDriverProvider()
@@ -64,11 +66,13 @@ public final class DefaultDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String level,
+    public java.sql.Connection getConnection(boolean highLevel,
+                                             final String level,
                                              final String url,
                                              final PropertyValue[] info)
         throws SQLException
     {
+        m_highLevel = highLevel;
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
@@ -79,7 +83,7 @@ public final class DefaultDriverProvider
                                                           final PropertyValue[] info,
                                                           final String url)
     {
-        return new DatabaseMetaData(context, this, connection, metadata, info, url);
+        return new DatabaseMetaData(context, this, connection, metadata, info, url, m_highLevel);
     }
 
     @Override

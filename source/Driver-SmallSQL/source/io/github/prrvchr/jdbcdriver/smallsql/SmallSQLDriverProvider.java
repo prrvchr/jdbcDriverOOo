@@ -46,6 +46,8 @@ public final class SmallSQLDriverProvider
     private static final String m_subProtocol = "smallsql";
     private static final boolean m_warnings = false;
     private List<String> m_properties = List.of("user", "password");
+    @SuppressWarnings("unused")
+    private boolean m_highLevel;
 
     // The constructor method:
     public SmallSQLDriverProvider()
@@ -65,11 +67,13 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String level,
+    public java.sql.Connection getConnection(boolean highLevel,
+                                             final String level,
                                              final String url,
                                              final PropertyValue[] info)
         throws SQLException
     {
+        m_highLevel = highLevel;
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
@@ -80,7 +84,7 @@ public final class SmallSQLDriverProvider
                                                           final PropertyValue[] info,
                                                           final String url)
     {
-        return new SmallSQLDatabaseMetaData(context, this, connection, metadata, info, url);
+        return new SmallSQLDatabaseMetaData(context, this, connection, metadata, info, url, m_highLevel);
     }
 
     @Override

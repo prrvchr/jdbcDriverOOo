@@ -51,6 +51,9 @@ public final class SmallSQLDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
+    @SuppressWarnings("unused")
+    private final boolean m_highLevel;
+
     private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
                                                                    Map.entry(-15, 1),
                                                                    Map.entry(-9, 12),
@@ -68,9 +71,11 @@ public final class SmallSQLDatabaseMetaData
                                     final XConnection connection,
                                     final java.sql.DatabaseMetaData metadata,
                                     final PropertyValue[] info,
-                                    final String url)
+                                    final String url,
+                                    boolean level)
     {
         super(ctx, provider, connection, metadata, info, url);
+        m_highLevel = level;
         System.out.println("smallsql.SmallSQLDatabaseProvider() 1");
     }
 
@@ -234,8 +239,14 @@ public final class SmallSQLDatabaseMetaData
         return type;
     }
 
+    @Override
     protected final String _mapDatabaseTableTypes(final String type)
     {
+        return type;
+    }
+    @Override
+    protected final String _mapDatabaseTableType(final String schema,
+                                                 final String type) {
         return type;
     }
 

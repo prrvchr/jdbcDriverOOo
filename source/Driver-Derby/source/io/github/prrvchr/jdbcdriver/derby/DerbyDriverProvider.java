@@ -37,7 +37,6 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSet;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
@@ -50,6 +49,8 @@ public final class DerbyDriverProvider
     private static final String m_subProtocol = "derby";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
+    @SuppressWarnings("unused")
+    private boolean m_highLevel;
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "50000"),
                                                                   Map.entry("1", "40000"),
                                                                   Map.entry("2", "40000"),
@@ -109,11 +110,13 @@ public final class DerbyDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String level,
+    public java.sql.Connection getConnection(boolean highLevel,
+                                             final String level,
                                              final String url,
                                              final PropertyValue[] info)
         throws SQLException
     {
+        m_highLevel = highLevel;
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
@@ -134,7 +137,7 @@ public final class DerbyDriverProvider
                                                           final PropertyValue[] info,
                                                           final String url)
     {
-        return new DatabaseMetaData(context, this, connection, metadata, info, url);
+        return new DerbyDatabaseMetaData(context, this, connection, metadata, info, url, m_highLevel);
     }
 
     @Override

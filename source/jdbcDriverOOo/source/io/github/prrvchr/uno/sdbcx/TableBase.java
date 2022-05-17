@@ -39,6 +39,7 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterTable;
+import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.sdbcx.XIndexesSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.sdbcx.XColumnsSupplier;
@@ -52,7 +53,8 @@ public class TableBase
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
-               XAlterTable
+               XAlterTable,
+               XDataDescriptorFactory
 {
 
     private XNameAccess m_xColumns = null;
@@ -95,10 +97,10 @@ public class TableBase
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Type = type;
-        m_Description = description;
+        m_Description = description != null ? description : "";
         m_xColumns = _getTableColumns(provider, metadata);
         m_xKeys = _getTableKeys(provider, metadata, catalog, schema, name);
-        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
+        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type + "\nDecription: " + m_Description);
     }
     public TableBase(String service,
                      String[] services,
@@ -266,6 +268,14 @@ public class TableBase
     public XNameAccess getIndexes() {
         // TODO Auto-generated method stub
         System.out.println("sdbcx.TableBase.getIndexes() ***************************************************");
+        return null;
+    }
+
+ // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor() {
+        // TODO Auto-generated method stub
+        System.out.println("sdbcx.TableBase.createDataDescriptor() ***************************************************");
         return null;
     }
 

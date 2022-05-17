@@ -3766,7 +3766,7 @@ implements XDatabaseMetaData2
         java.sql.ResultSet resultset = m_Metadata.getTableTypes();
         while (resultset.next())
         {
-            System.out.println("sdbc.DatabaseMetaDataBase._getTableTypes()");
+            System.out.println("sdbc.DatabaseMetaDataBase._getTableTypes() : " + resultset.getString(1));
             rows.add(_getTableTypesRowSet(resultset));
         }
         resultset.close();
@@ -3806,7 +3806,7 @@ implements XDatabaseMetaData2
         java.sql.ResultSet result = m_Metadata.getTables(catalog, schema, table, types);
         while (result.next())
         {
-            System.out.println("sdbc.DatabaseMetaDataBase._getTables() Table");
+            System.out.println("sdbc.DatabaseMetaDataBase._getTables() " + result.getString(1) + "." + result.getString(2) + "." + result.getString(3)  + " - Type: " + result.getString(4) +  "\nRemarks: " + result.getString(5));
             rows.add(_getTablesRowSet(result));
         }
         result.close();
@@ -3821,7 +3821,14 @@ implements XDatabaseMetaData2
             row[1] = new CustomRowSet(result.getString(2));
             row[2] = new CustomRowSet(result.getString(3));
             row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-            row[4] = new CustomRowSet(result.getString(5));
+            String description = result.getString(5);
+            if (description != null) {
+                row[4] = new CustomRowSet(description);
+            }
+            else {
+                row[4] = new CustomRowSet("");
+                row[4].setNull();
+            }
             return row;
         }
 
@@ -3859,7 +3866,7 @@ implements XDatabaseMetaData2
         columns[4] = new CustomColumn();
         columns[4].setColumnName("REMARKS");
         columns[4].setNullable(ColumnValue.NULLABLE);
-        columns[4].setColumnDisplaySize(0);
+        columns[4].setColumnDisplaySize(3);
         columns[4].setPrecision(0);
         columns[4].setScale(0);
         columns[4].setColumnType(DataType.VARCHAR);
@@ -4139,8 +4146,8 @@ implements XDatabaseMetaData2
 
     protected static String _getPattern(String value)
     {
-        if (value.equals("%"))
-            return null;
+        //if (value.equals("%"))
+        //    return null;
         return value;
     }
 
@@ -4154,8 +4161,9 @@ implements XDatabaseMetaData2
         }
         return values;
     }
-
     abstract protected String _mapDatabaseTableTypes(String type);
+    abstract protected String _mapDatabaseTableType(String schema,
+                                                     String type);
     abstract protected short _mapDatabaseDataType(short type);
 
 

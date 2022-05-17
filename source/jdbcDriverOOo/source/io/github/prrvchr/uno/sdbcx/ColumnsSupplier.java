@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.star.container.XNameAccess;
-import com.sun.star.uno.TypeClass;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import schemacrawler.crawl.ResultsCrawler;
@@ -53,7 +52,7 @@ public final class ColumnsSupplier
             names.add(name);
             columns.add(new Column(metadata, i, name));
         }
-        return new Container<Column>(connection, provider, columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.beans.XPropertySet");
     }
 
     public static XNameAccess getColumns(java.sql.Connection connection,
@@ -71,7 +70,7 @@ public final class ColumnsSupplier
             names.add(name);
             columns.add(new Column(column, name));
         }
-        return new Container<Column>(connection, provider, columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.beans.XPropertySet");
     }
 
     public static XNameAccess getColumns(java.sql.Connection connection,
@@ -88,7 +87,7 @@ public final class ColumnsSupplier
             names.add(name);
             columns.add(new Column(column, name));
         }
-        return new Container<Column>(connection, provider, columns, names, "com.sun.star.sdbcx.Column", TypeClass.SERVICE);
+        return new Container<Column>(connection, provider, columns, names, "com.sun.star.beans.XPropertySet");
     }
 
 }

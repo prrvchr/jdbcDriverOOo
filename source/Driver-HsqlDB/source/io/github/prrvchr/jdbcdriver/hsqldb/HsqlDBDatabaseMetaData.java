@@ -43,6 +43,8 @@ public final class HsqlDBDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
+    @SuppressWarnings("unused")
+    private final boolean m_highLevel;
     private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
                                                                    Map.entry(-15, 1),
                                                                    Map.entry(-9, 12),
@@ -60,10 +62,30 @@ public final class HsqlDBDatabaseMetaData
                                   final XConnection connection,
                                   final java.sql.DatabaseMetaData metadata,
                                   final PropertyValue[] info,
-                                  final String url)
+                                  final String url,
+                                  boolean level)
     {
         super(ctx, provider, connection, metadata, info, url);
+        m_highLevel = level;
         System.out.println("hsqldb.DatabaseMetaData() 1");
+    }
+
+    //@Override
+    public boolean supportsCatalogsInDataManipulation1() throws SQLException
+    {
+        System.out.println("hsqldb.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
+        boolean value = false;
+        System.out.println("hsqldb.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
+        return value;
+    }
+
+    //@Override
+    public boolean supportsSchemasInDataManipulation1() throws SQLException
+    {
+        System.out.println("hsqldb.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
+        boolean value = false;
+        System.out.println("hsqldb.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
+        return value;
     }
 
 
@@ -146,8 +168,15 @@ public final class HsqlDBDatabaseMetaData
             row[1] = new CustomRowSet(result.getString(2));
             row[2] = new CustomRowSet(result.getString(3));
             row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-            row[4] = new CustomRowSet(result.getString(5));
-            System.out.println("hsqldb.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
+            String description = result.getString(5);
+            if (description != null) {
+                row[4] = new CustomRowSet(description);
+            }
+            else {
+                row[4] = new CustomRowSet("");
+                row[4].setNull();
+            }
+            //System.out.println("hsqldb.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
             return row;
         }
 
@@ -193,9 +222,15 @@ public final class HsqlDBDatabaseMetaData
         return type;
     }
 
+    @Override
     protected final String _mapDatabaseTableTypes(final String type)
     {
         return type;
     }
-
+    @Override
+    protected final String _mapDatabaseTableType(final String schema,
+                                                 final String type)
+    {
+        return type;
+    }
 }

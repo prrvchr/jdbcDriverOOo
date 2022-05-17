@@ -63,13 +63,13 @@ public final class Connection
     extends ConnectionBase
     implements XChild,
                XCommandPreparation,
-               XGroupsSupplier,
-               XMultiServiceFactory,
                XQueriesSupplier,
                XSQLQueryComposerFactory,
+               XMultiServiceFactory,
                XTablesSupplier,
                XUsersSupplier,
-               XViewsSupplier
+               XViewsSupplier,
+               XGroupsSupplier
 {
 
     private static final String m_name = Connection.class.getName();

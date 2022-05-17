@@ -1,0 +1,107 @@
+/*
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+*/
+package io.github.prrvchr.jdbcdriver.derby;
+
+import com.sun.star.beans.PropertyValue;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XConnection;
+import com.sun.star.uno.XComponentContext;
+
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+
+
+public final class DerbyDatabaseMetaData
+    extends DatabaseMetaDataBase
+{
+
+    @SuppressWarnings("unused")
+    private final boolean m_highLevel;
+
+    // The constructor method:
+    public DerbyDatabaseMetaData(final XComponentContext ctx,
+                                  final DriverProvider provider,
+                                  final XConnection connection,
+                                  final java.sql.DatabaseMetaData metadata,
+                                  final PropertyValue[] info,
+                                  final String url,
+                                  boolean level)
+    {
+        super(ctx, provider, connection, metadata, info, url);
+        m_highLevel = level;
+        System.out.println("derby.DatabaseMetaData() 1");
+    }
+
+    //@Override
+    public boolean supportsCatalogsInDataManipulation1() throws SQLException
+    {
+        System.out.println("derby.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
+        boolean value = false;
+        System.out.println("derby.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
+        return value;
+    }
+
+    //@Override
+    public boolean supportsSchemasInDataManipulation() throws SQLException
+    {
+        System.out.println("derby.DatabaseMetaData.supportsSchemasInDataManipulation() 1 : " + m_highLevel);
+        boolean value = false;
+        try {
+            if (!m_highLevel) {
+                value = m_Metadata.supportsSchemasInDataManipulation();
+            }
+        }
+        catch (java.sql.SQLException e)
+        {
+            System.out.println("derby.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
+            throw UnoHelper.getSQLException(e, this);
+        }
+        System.out.println("derby.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
+        return value;
+    }
+
+    @Override
+    protected String _mapDatabaseTableTypes(String type)
+    {
+        return type;
+    }
+
+    @Override
+    protected String _mapDatabaseTableType(String schema,
+                                           String type)
+    {
+        return type;
+    }
+
+    @Override
+    protected short _mapDatabaseDataType(short type)
+    {
+        return type;
+    }
+
+
+}

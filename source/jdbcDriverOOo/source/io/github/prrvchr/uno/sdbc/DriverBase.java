@@ -65,6 +65,7 @@ public abstract class DriverBase
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     private static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
+    private final boolean m_highLevel;
     private final boolean m_registered;
 
     // The constructor method:
@@ -77,9 +78,20 @@ public abstract class DriverBase
         System.out.println("sdbc.DriverBase() 1");
         m_xContext = context;
         UnoLoggerPool.getInstance().setContext(context, m_identifier);
-        m_registered = _isDriverRegistred(services);
+        String driver =  _getRegistredDriver();
+        m_highLevel = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
+        m_registered = _isDriverRegistred(services, driver);
         System.out.println("sdbc.DriverBase() 2");
     }
+    private String _getRegistredDriver()
+    {
+        String service = null;
+        try {
+            service = (String) _getDriverConfiguration().getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
+        } catch (java.lang.Exception e) {}
+        return service;
+    }
+
     private XHierarchicalNameAccess _getDriverConfiguration()
         throws Exception
     {
@@ -91,11 +103,11 @@ public abstract class DriverBase
         return m_xContext;
     }
 
-    private boolean _isDriverRegistred(final String[] services)
+    private boolean _isDriverRegistred(final String[] services,
+                                       final String driver)
     {
         boolean registred = false;
         try {
-            final String driver = _getRegistredDriver();
             for (String service : services) {
                 if (service.equals(driver)) {
                     registred = true;
@@ -104,15 +116,6 @@ public abstract class DriverBase
             }
         } catch (java.lang.Exception e) {}
         return registred;
-    }
-
-    private String _getRegistredDriver()
-    {
-        String service = null;
-        try {
-            service = (String) _getDriverConfiguration().getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
-        } catch (java.lang.Exception e) {}
-        return service;
     }
 
     // com.sun.star.sdbc.XDriver:
@@ -143,7 +146,7 @@ public abstract class DriverBase
         try
         {
             System.out.println("sdbc.DriverBase.connect() 3");
-            connection = _getConnection(m_xContext, provider, provider.getConnection(level, location, info), url, info);
+            connection = _getConnection(m_xContext, provider, provider.getConnection(m_highLevel, level, location, info), url, info);
         } catch(java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);

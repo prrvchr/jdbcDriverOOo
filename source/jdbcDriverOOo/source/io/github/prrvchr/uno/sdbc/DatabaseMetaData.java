@@ -43,7 +43,8 @@ public final class DatabaseMetaData
                             final XConnection connection,
                             final java.sql.DatabaseMetaData metadata,
                             final PropertyValue[] info,
-                            final String url)
+                            final String url,
+                            boolean m_highLevel)
     {
         super(ctx, provider, connection, metadata, info, url);
         System.out.println("sdbc.DatabaseMetaData() 1");
@@ -58,6 +59,10 @@ public final class DatabaseMetaData
     protected final String _mapDatabaseTableTypes(final String type) {
         return type;
     }
-
+    @Override
+    protected final String _mapDatabaseTableType(final String schema,
+                                                 final String type) {
+        return type;
+    }
 
 }

@@ -58,7 +58,7 @@ class OptionsModel(unohelper.Base):
     _level = None
     _reboot = False
 
-    def __init__(self, ctx, lock, update, loggers):
+    def __init__(self, ctx, lock):
         self._ctx = ctx
         self._lock = lock
         self._path = None
@@ -76,7 +76,6 @@ class OptionsModel(unohelper.Base):
                           'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
-        self.loadConfiguration(update, loggers)
 
     def loadConfiguration(self, *args):
         with self._lock:
@@ -102,7 +101,6 @@ class OptionsModel(unohelper.Base):
     def getPath(self):
         if self._path is None:
             self._path = getPathSettings(self._ctx).Work
-        print("OptionsModel.getPath() %s" % self._path)
         return self._path
 
     def getTarget(self, url):
@@ -176,7 +174,6 @@ class OptionsModel(unohelper.Base):
 
     def setPath(self, url):
         self._path = url.Protocol + url.Path
-        print("OptionsModel.setPath() %s" % self._path)
 
     def removeProtocol(self, protocol):
         name = self._getProtocolName(protocol)
@@ -211,7 +208,6 @@ class OptionsModel(unohelper.Base):
 
 # OptionsModel private methods
     def _getLevelValue(self, level):
-        print("OptionsModel._getLevelValue() %d" % level)
         return '%d' % level
 
     def _getRoot(self, jdbc=True):
@@ -262,8 +258,7 @@ class OptionsModel(unohelper.Base):
                 version = self._getDriverVersion(service, url)
                 with self._lock:
                     self._versions[protocol] = version
-        with self._lock:
-            update(self.getLoggerNames(loggers), self._versions)
+        update(self.getLoggerNames(loggers), self._versions)
 
     def _getDriverVersion(self, driver, protocol):
         version = self._default

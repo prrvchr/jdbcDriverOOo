@@ -36,6 +36,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
+from .optionshandler import OptionsHandler
 
 from ..unotool import getFilePicker
 from ..unotool import getSimpleFile
@@ -57,13 +58,13 @@ class OptionsManager(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
         self._lock = Condition()
-        self._model = OptionsModel(ctx, self._lock, self.updateView, 'Driver')
         self._view = None
         self._logger = None
         self._disposed = False
         self._disabled = False
+        self._model = OptionsModel(ctx, self._lock)
 
-    def __del__(self):
+    def dispose(self):
         with self._lock:
             self._disposed = True
 
@@ -76,29 +77,36 @@ class OptionsManager(unohelper.Base):
 
 # OptionsManager setter methods
     def updateView(self, loggers, versions):
-        if not self._disposed and self._logger is not None:
+        with self._lock:
+            self.updateLogger(loggers)
+            self.updateVersion(versions)
+
+    def updateLogger(self, loggers):
+        if not self._disposed:
             self._logger.updateLoggers(loggers)
+
+    def updateVersion(self, versions):
+        if not self._disposed:
             protocol = self._view.getSelectedProtocol()
             if protocol in versions:
                 self._view.setVersion(versions[protocol])
 
     def initialize(self, window):
-        with self._lock:
-            reboot = self._model.needReboot()
-            self._view = OptionsView(window, reboot)
-            version  = ' '.join(sys.version.split())
-            path = os.pathsep.join(sys.path)
-            loggers = self._model.getLoggerNames('Driver')
-            infos = {111: version, 112: path}
-            self._logger = LogManager(self._ctx, window.Peer, g_extension, loggers, infos)
-            self._initView()
+        window.addEventListener(OptionsHandler(self))
+        reboot = self._model.needReboot()
+        self._view = OptionsView(window, reboot)
+        version  = ' '.join(sys.version.split())
+        path = os.pathsep.join(sys.path)
+        loggers = self._model.getLoggerNames('Driver')
+        infos = {111: version, 112: path}
+        self._logger = LogManager(self._ctx, window.Peer, g_extension, loggers, infos)
+        self._model.loadConfiguration(self.updateView, 'Driver')
+        self._initView()
 
     def saveSetting(self):
         self._logger.saveLoggerSetting()
-        if self._model.saveSetting():
-            #self._view.setReboot(True)
-            if self._model.isLevelUpdated():
-                self._view.disableLevel()
+        if self._model.saveSetting() and self._model.isLevelUpdated():
+            self._view.disableLevel()
 
     def reloadSetting(self):
         # XXX: We need to exit from Add new Driver mode if needed...

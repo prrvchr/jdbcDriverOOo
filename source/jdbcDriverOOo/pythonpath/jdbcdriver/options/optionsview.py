@@ -29,6 +29,7 @@
 
 import unohelper
 
+from ..unotool import createService
 import traceback
 
 

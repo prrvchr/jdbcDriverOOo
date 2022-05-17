@@ -96,7 +96,8 @@ public interface DriverProvider
         return "-1";
     };
 
-    public java.sql.Connection getConnection(String level,
+    public java.sql.Connection getConnection(boolean m_highLevel,
+                                             String level,
                                              String url,
                                              PropertyValue[] info)
         throws java.sql.SQLException;

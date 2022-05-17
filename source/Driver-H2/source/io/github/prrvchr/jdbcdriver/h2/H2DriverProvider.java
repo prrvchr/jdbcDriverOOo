@@ -48,6 +48,8 @@ public final class H2DriverProvider
     private static final String m_subProtocol = "h2";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
+    @SuppressWarnings("unused")
+    private boolean m_highLevel;
     private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
     // The constructor method:
@@ -120,11 +122,13 @@ public final class H2DriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String level,
+    public java.sql.Connection getConnection(boolean highLevel,
+                                             final String level,
                                              final String url,
                                              final PropertyValue[] info)
         throws SQLException
     {
+        m_highLevel = highLevel;
         String location = url;
         if (!level.equals("-1")) {
             location += m_logger;
@@ -139,7 +143,7 @@ public final class H2DriverProvider
                                                           final PropertyValue[] info,
                                                           final String url)
     {
-        return new H2DatabaseMetaData(context, this, connection, metadata, info, url);
+        return new H2DatabaseMetaData(context, this, connection, metadata, info, url, m_highLevel);
     }
 
     @Override

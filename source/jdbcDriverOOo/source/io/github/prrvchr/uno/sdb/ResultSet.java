@@ -72,6 +72,7 @@ public final class ResultSet
         }
         catch (java.sql.SQLException e)
         {
+            System.out.println("sdb.ResultSet.getColumns() ERROR *****************************************");
             //throw UnoHelper.getSQLException(e, this);
         }
         return columns;

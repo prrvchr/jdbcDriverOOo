@@ -35,6 +35,7 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.CustomRowSet;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
@@ -53,6 +54,8 @@ public final class H2DatabaseMetaData
                                                                    Map.entry(2012, 2006),
                                                                    Map.entry(2013, 12),
                                                                    Map.entry(2014, 12));
+    @SuppressWarnings("unused")
+    private final boolean m_highLevel;
 
     // The constructor method:
     public H2DatabaseMetaData(final XComponentContext ctx,
@@ -60,10 +63,40 @@ public final class H2DatabaseMetaData
                               final XConnection connection,
                               final java.sql.DatabaseMetaData metadata,
                               final PropertyValue[] info,
-                              final String url)
+                              final String url,
+                              boolean level)
     {
         super(ctx, provider, connection, metadata, info, url);
+        m_highLevel = level;
         System.out.println("h2.DatabaseMetaData() 1");
+    }
+
+    //@Override
+    public boolean supportsCatalogsInDataManipulation() throws SQLException
+    {
+        System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
+        boolean value = false;
+        System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
+        return value;
+    }
+
+    //@Override
+    public boolean supportsSchemasInDataManipulation() throws SQLException
+    {
+        System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
+        boolean value = false;
+        try {
+            if (!m_highLevel) {
+                value = m_Metadata.supportsSchemasInDataManipulation();
+            }
+        }
+        catch (java.sql.SQLException e)
+        {
+            System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
+            throw UnoHelper.getSQLException(e, this);
+        }
+        System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
+        return value;
     }
 
 
@@ -138,6 +171,21 @@ public final class H2DatabaseMetaData
     }
 
     @Override
+    protected final CustomRowSet[] _getTablesRowSet(final java.sql.ResultSet result)
+            throws java.sql.SQLException
+        {
+            CustomRowSet[] row = new CustomRowSet[5];
+            row[0] = new CustomRowSet(result.getString(1));
+            String schema = result.getString(2);
+            row[1] = new CustomRowSet(schema);
+            row[2] = new CustomRowSet(result.getString(3));
+            row[3] = new CustomRowSet(_mapDatabaseTableType(schema, result.getString(4)));
+            row[4] = new CustomRowSet("");
+            //System.out.println("h2.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
+            return row;
+        }
+
+    @Override
     public final XResultSet getColumns(final Object catalog,
                                        final String schema,
                                        final String table,
@@ -179,10 +227,22 @@ public final class H2DatabaseMetaData
         return type;
     }
 
+    @Override
     protected final String _mapDatabaseTableTypes(final String type)
     {
         if (m_tableType.containsKey(type))
+        {
+            System.out.println("h2.DatabaseMetaData._mapDatabaseTableTypes() Type: " + type);
             return m_tableType.get(type);
+        }
+        return type;
+    }
+    @Override
+    protected final String _mapDatabaseTableType(final String schema, String type)
+    {
+        if ("BASE TABLE".equals(type)) {
+            type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "TABLE";
+        }
         return type;
     }
 

@@ -53,6 +53,8 @@ public final class HsqlDBDriverProvider
     private static final String m_subProtocol = "hsqldb";
     private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
+    @SuppressWarnings("unused")
+    private boolean m_highLevel;
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "1"),
                                                                   Map.entry("1", "1"),
                                                                   Map.entry("2", "1"),
@@ -127,11 +129,13 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String level,
+    public java.sql.Connection getConnection(boolean highLevel,
+                                             final String level,
                                              final String url,
                                              final PropertyValue[] info)
         throws java.sql.SQLException
     {
+        m_highLevel = highLevel;
         String location = url;
         if (!level.equals("-1")) {
             location += ";hsqldb.sqllog=" + m_sqllogger.get(level);
@@ -161,7 +165,7 @@ public final class HsqlDBDriverProvider
                                                           final PropertyValue[] info,
                                                           final String url)
     {
-        return new HsqlDBDatabaseMetaData(context, this, connection, metadata, info, url);
+        return new HsqlDBDatabaseMetaData(context, this, connection, metadata, info, url, m_highLevel);
     }
 
     @Override
