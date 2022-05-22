@@ -63,10 +63,11 @@ public final class Driver
                                          DriverProvider provider,
                                          java.sql.Connection connection,
                                          String url,
-                                         PropertyValue[] info)
+                                         PropertyValue[] info,
+                                         boolean enhanced)
         throws java.sql.SQLException
     {
-        return new Connection(ctx, provider, connection, url, info);
+        return new Connection(ctx, provider, connection, url, info, enhanced);
     }
 
 

@@ -32,7 +32,6 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CompareBookmark;
 import com.sun.star.sdbcx.XDeleteRows;
@@ -40,7 +39,6 @@ import com.sun.star.sdbcx.XRowLocate;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -63,13 +61,12 @@ implements XRowLocate,
     public ResultSetSuper(XComponentContext ctx,
                          String name,
                          String[] services,
-                         DriverProvider provider,
+                         ConnectionBase connection,
                          XInterface statement,
-                         java.sql.ResultSet resultset,
-                         PropertyValue[] info)
+                         java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        super(ctx, name, services, provider, statement, resultset, _getPropertySet(), info);
+        super(ctx, name, services, connection, statement, resultset, _getPropertySet());
         m_row = m_ResultSet.getMetaData().getColumnCount();
         if (m_row > 0)
         {

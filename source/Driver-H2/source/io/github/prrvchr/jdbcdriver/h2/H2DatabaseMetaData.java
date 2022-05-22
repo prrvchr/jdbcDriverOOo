@@ -27,14 +27,12 @@ package io.github.prrvchr.jdbcdriver.h2;
 
 import java.util.Map;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.CustomRowSet;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -54,20 +52,13 @@ public final class H2DatabaseMetaData
                                                                    Map.entry(2012, 2006),
                                                                    Map.entry(2013, 12),
                                                                    Map.entry(2014, 12));
-    @SuppressWarnings("unused")
-    private final boolean m_highLevel;
 
     // The constructor method:
     public H2DatabaseMetaData(final XComponentContext ctx,
-                              final DriverProvider provider,
-                              final XConnection connection,
-                              final java.sql.DatabaseMetaData metadata,
-                              final PropertyValue[] info,
-                              final String url,
-                              boolean level)
+                              final ConnectionBase connection)
+        throws java.sql.SQLException
     {
-        super(ctx, provider, connection, metadata, info, url);
-        m_highLevel = level;
+        super(ctx, connection);
         System.out.println("h2.DatabaseMetaData() 1");
     }
 
@@ -86,7 +77,7 @@ public final class H2DatabaseMetaData
         System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
         boolean value = false;
         try {
-            if (!m_highLevel) {
+            if (!m_Connection.isEnhanced()) {
                 value = m_Metadata.supportsSchemasInDataManipulation();
             }
         }
@@ -242,6 +233,9 @@ public final class H2DatabaseMetaData
     {
         if ("BASE TABLE".equals(type)) {
             type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "TABLE";
+        }
+        else if ("VIEW".equals(type)) {
+            type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "VIEW";
         }
         return type;
     }

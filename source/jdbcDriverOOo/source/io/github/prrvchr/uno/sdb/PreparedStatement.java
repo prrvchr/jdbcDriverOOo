@@ -27,22 +27,21 @@ package io.github.prrvchr.uno.sdb;
 
 import java.sql.SQLException;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
-import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
+import io.github.prrvchr.uno.sdbcx.ColumnContainer;
 
 
 public final class PreparedStatement
-extends PreparedStatementSuper
-implements XColumnsSupplier
+    extends PreparedStatementSuper
+    implements XColumnsSupplier
 {
+
     private static String m_name = PreparedStatement.class.getName();
     private static String[] m_services = {"com.sun.star.sdb.PreparedStatement",
                                           "com.sun.star.sdbc.PreparedStatement",
@@ -50,14 +49,11 @@ implements XColumnsSupplier
 
     // The constructor method:
     public PreparedStatement(XComponentContext context,
-                             DriverProvider provider,
-                             ConnectionBase xConnection,
-                             java.sql.Connection connection,
-                             String sql,
-                             PropertyValue[] info)
+                             ConnectionBase connection,
+                             String sql)
     throws SQLException
     {
-        super(context,  m_name, m_services, provider, xConnection, connection, sql, info);
+        super(context,  m_name, m_services, connection, sql);
         System.out.println("sdb.PreparedStatement() 1: '" + sql + "'");
     }
 
@@ -67,7 +63,7 @@ implements XColumnsSupplier
     throws java.sql.SQLException
     {
         System.out.println("sdb.PreparedStatement._getResultSet() 1");
-        return new ResultSet(ctx, m_provider, this, resultset, m_info);
+        return new ResultSet(ctx, m_Connection, this, resultset);
     }
 
 
@@ -79,7 +75,7 @@ implements XColumnsSupplier
         {
             System.out.println("sdb.PreparedStatement.getColumns() 1");
             java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-            return ColumnsSupplier.getColumns(m_Connection, m_provider, metadata);
+            return new ColumnContainer(m_Connection, metadata);
         }
         catch (java.sql.SQLException e)
         {

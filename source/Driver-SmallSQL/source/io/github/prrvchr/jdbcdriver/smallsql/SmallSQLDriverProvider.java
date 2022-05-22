@@ -26,7 +26,6 @@
 package io.github.prrvchr.jdbcdriver.smallsql;
 
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
@@ -35,7 +34,7 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResultSet;
+import io.github.prrvchr.uno.sdb.ResultSet;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
@@ -46,8 +45,6 @@ public final class SmallSQLDriverProvider
     private static final String m_subProtocol = "smallsql";
     private static final boolean m_warnings = false;
     private List<String> m_properties = List.of("user", "password");
-    @SuppressWarnings("unused")
-    private boolean m_highLevel;
 
     // The constructor method:
     public SmallSQLDriverProvider()
@@ -67,41 +64,39 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(boolean highLevel,
-                                             final String level,
-                                             final String url,
-                                             final PropertyValue[] info)
-        throws SQLException
+    public java.sql.Connection getConnection(final String url,
+                                             final PropertyValue[] info,
+                                             final String level)
+        throws java.sql.SQLException
     {
-        m_highLevel = highLevel;
         return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
     @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
-                                                          final ConnectionBase connection,
-                                                          final java.sql.DatabaseMetaData metadata,
-                                                          final PropertyValue[] info,
-                                                          final String url)
+                                                          final ConnectionBase connection)
+        throws java.sql.SQLException
     {
-        return new SmallSQLDatabaseMetaData(context, this, connection, metadata, info, url, m_highLevel);
+        return new SmallSQLDatabaseMetaData(context, connection);
     }
 
     @Override
     public final ResultSetBase getResultSet(final XComponentContext context,
-                                            final java.sql.ResultSet resultset,
-                                            final PropertyValue[] info)
+                                            final ConnectionBase connection,
+                                            final java.sql.ResultSet resultset)
+        throws java.sql.SQLException
     {
-        return new ResultSet(context, this, resultset, info);
+        return new ResultSet(context, connection, resultset);
     }
 
     @Override
     public final ResultSetBase getResultSet(final XComponentContext context,
+                                            final ConnectionBase connection,
                                             final StatementMain statement,
-                                            final java.sql.ResultSet resultset,
-                                            final PropertyValue[] info)
+                                            final java.sql.ResultSet resultset)
+        throws java.sql.SQLException
     {
-        return new SmallSQLResultSet(context, this, statement, resultset, info);
+        return new ResultSet(context, connection, statement, resultset);
     }
 
 

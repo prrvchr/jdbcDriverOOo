@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 import schemacrawler.inclusionrule.IncludeAll;
@@ -41,10 +39,9 @@ import schemacrawler.tools.utility.SchemaCrawlerUtility;
 import us.fatehi.utility.LoggingConfig;
 
 import com.sun.star.container.XNameAccess;
-import com.sun.star.uno.TypeClass;
 
-import io.github.prrvchr.uno.sdbcx.Container;
-import io.github.prrvchr.uno.sdbcx.Table;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbcx.TableContainer;
 
 
 public final class SchemaCrawler
@@ -82,15 +79,12 @@ public final class SchemaCrawler
     }
 
 
-    public static XNameAccess getTables(java.sql.Connection connection,
-                                        DriverProvider provider)
+    public static XNameAccess getTables(DriverProvider provider,
+                                        ConnectionBase connection)
     throws java.sql.SQLException
     {
         try {
             System.out.println("SchemaCrawler.getTables() 1");
-            List<String> names = new ArrayList<String>();
-            List<Table> tables = new ArrayList<Table>();
-            System.out.println("SchemaCrawler.getTables() 2");
             new LoggingConfig(Level.CONFIG);
             final LimitOptionsBuilder limit = LimitOptionsBuilder.builder()
                 .includeSchemas(new IncludeAll())
@@ -100,29 +94,20 @@ public final class SchemaCrawler
             final SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions()
                 .withLimitOptions(limit.toOptions())
                 .withLoadOptions(load.toOptions());
-            System.out.println("SchemaCrawler.getTables() 4");        
-            final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection);
-            schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(connection, retrieval, options);
+            System.out.println("SchemaCrawler.getTables() 2");
+            final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection.getWrapper());
+            schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(connection.getWrapper(), retrieval, options);
             final Catalog catalog = crawler.crawl();
             //final Catalog catalog = getCatalog(connection, options);
-            System.out.println("SchemaCrawler.getTables() 7: " + catalog);
-            String name = null;
-            for (final schemacrawler.schema.Table t : catalog.getTables())
-            {
-                name = t.getName();
-                Table table = new Table(connection, provider, t, connection.getCatalog(), name);
-                tables.add(table);
-                names.add(name);
-            }
-            System.out.println("SchemaCrawler.getTables() 8");
-            return new Container<Table>(connection, provider, tables, names, "com.sun.star.sdb.Table", TypeClass.SERVICE);
+            System.out.println("SchemaCrawler.getTables() 3: " + catalog);
+            return new TableContainer(connection, catalog);
         } catch (java.lang.Exception e) {
-            System.out.println("SchemaCrawler.getTables() 9 ********************************* ERROR: " + e);
+            System.out.println("SchemaCrawler.getTables() 4 ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
             }
-            System.out.println("SchemaCrawler.getTables() 10");
+            System.out.println("SchemaCrawler.getTables() 5");
 
         }
         return null;

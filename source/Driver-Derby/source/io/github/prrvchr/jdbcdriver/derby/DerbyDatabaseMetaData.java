@@ -25,13 +25,11 @@
 */
 package io.github.prrvchr.jdbcdriver.derby;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
@@ -39,39 +37,41 @@ public final class DerbyDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
-    @SuppressWarnings("unused")
-    private final boolean m_highLevel;
-
     // The constructor method:
     public DerbyDatabaseMetaData(final XComponentContext ctx,
-                                  final DriverProvider provider,
-                                  final XConnection connection,
-                                  final java.sql.DatabaseMetaData metadata,
-                                  final PropertyValue[] info,
-                                  final String url,
-                                  boolean level)
+                                 final ConnectionBase connection)
+        throws java.sql.SQLException
     {
-        super(ctx, provider, connection, metadata, info, url);
-        m_highLevel = level;
+        super(ctx, connection);
         System.out.println("derby.DatabaseMetaData() 1");
     }
 
     //@Override
-    public boolean supportsCatalogsInDataManipulation1() throws SQLException
+    public boolean supportsCatalogsInDataManipulation() throws SQLException
     {
         System.out.println("derby.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
         boolean value = false;
+        try {
+            if (!m_Connection.isEnhanced()) {
+                value = m_Metadata.supportsSchemasInDataManipulation();
+            }
+        }
+        catch (java.sql.SQLException e)
+        {
+            System.out.println("derby.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
+            throw UnoHelper.getSQLException(e, this);
+        }
         System.out.println("derby.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
         return value;
     }
 
     //@Override
-    public boolean supportsSchemasInDataManipulation() throws SQLException
+    public boolean supportsSchemasInDataManipulation1() throws SQLException
     {
-        System.out.println("derby.DatabaseMetaData.supportsSchemasInDataManipulation() 1 : " + m_highLevel);
+        System.out.println("derby.DatabaseMetaData.supportsSchemasInDataManipulation() 1 : " + m_Connection.isEnhanced());
         boolean value = false;
         try {
-            if (!m_highLevel) {
+            if (!m_Connection.isEnhanced()) {
                 value = m_Metadata.supportsSchemasInDataManipulation();
             }
         }

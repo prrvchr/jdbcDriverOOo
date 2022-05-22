@@ -209,8 +209,8 @@ public final class ResultSetMetaData
     {
         try
         {
-            System.out.println("sdbc.ResultSetMetaData.getTableName() 1");
             String value = m_Metadata.getTableName(index);
+            System.out.println("sdbc.ResultSetMetaData.getTableName() 1 : " + value);
             return value != null ? value : "";
         } catch (java.sql.SQLException e)
         {
@@ -249,10 +249,10 @@ public final class ResultSetMetaData
     {
         try
         {
+            System.out.println("sdbc.ResultSetMetaData.isCurrency() 1");
             if (_isIgnoreCurrencyEnabled()) {
                 return false;
             }
-            System.out.println("sdbc.ResultSetMetaData.isCurrency() 1");
             return m_Metadata.isCurrency(index);
         } catch (java.sql.SQLException e)
         {

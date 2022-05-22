@@ -29,10 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -52,13 +50,10 @@ extends PreparedStatementBase
     public PreparedStatementSuper(XComponentContext context,
                                  String name,
                                  String[] services,
-                                 DriverProvider provider,
-                                 ConnectionBase xConnection,
-                                 java.sql.Connection connection,
-                                 String sql,
-                                 PropertyValue[] info)
+                                 ConnectionBase connection,
+                                 String sql)
     {
-        super(context, name, services, provider, xConnection, connection, sql, _getPropertySet(), info);
+        super(context, name, services, connection, sql, _getPropertySet());
         System.out.println("sdbcx.SuperPreparedStatement() 1: '" + sql + "'");
     }
 

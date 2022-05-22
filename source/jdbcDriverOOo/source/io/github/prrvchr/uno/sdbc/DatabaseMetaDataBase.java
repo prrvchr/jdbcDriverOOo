@@ -44,7 +44,6 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -53,26 +52,27 @@ extends WeakBase
 implements XDatabaseMetaData2
 {
     private final XComponentContext m_xContext;
-    private final DriverProvider m_provider;
-    protected final XConnection m_xConnection;
+    protected final ConnectionBase m_Connection;
     protected final java.sql.DatabaseMetaData m_Metadata;
-    private final String m_url;
-    private final PropertyValue[] m_info;
 
     // The constructor method:
     public DatabaseMetaDataBase(final XComponentContext ctx,
-                                final DriverProvider provider,
-                                final XConnection connection,
-                                final java.sql.DatabaseMetaData metadata,
-                                final PropertyValue[] info,
-                                final String url)
+                                final ConnectionBase connection)
+        throws java.sql.SQLException
     {
         m_xContext = ctx;
-        m_provider = provider;
-        m_xConnection = connection;
+        m_Connection = connection;
+        m_Metadata = connection.getWrapper().getMetaData();
+        System.out.println("sdbc.DatabaseMetaDataBase() 1");
+    }
+
+    public DatabaseMetaDataBase(final XComponentContext ctx,
+                                final ConnectionBase connection,
+                                final java.sql.DatabaseMetaData metadata)
+    {
+        m_xContext = ctx;
+        m_Connection = connection;
         m_Metadata = metadata;
-        m_info = info;
-        m_url = url;
         System.out.println("sdbc.DatabaseMetaDataBase() 1");
     }
 
@@ -81,13 +81,13 @@ implements XDatabaseMetaData2
     @Override
     public PropertyValue[] getConnectionInfo()
     {
-        return m_info;
+        return m_Connection.getInfo();
     }
     
     @Override
     public String getURL() throws SQLException
     {
-        return m_url;
+        return m_Connection.getUrl();
     }
     
     @Override
@@ -382,7 +382,7 @@ implements XDatabaseMetaData2
     @Override
     public XConnection getConnection() throws SQLException
     {
-        return m_xConnection;
+        return m_Connection;
     }
 
     @Override
@@ -1276,8 +1276,8 @@ implements XDatabaseMetaData2
     {
         try
         {
-            System.out.println("sdbc.DatabaseMetaData.getSchemaTerm()");
             String value = m_Metadata.getSchemaTerm();
+            System.out.println("sdbc.DatabaseMetaData.getSchemaTerm() : " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e)
@@ -1410,7 +1410,7 @@ implements XDatabaseMetaData2
                 java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
                 System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 3 ColumnCount != 7 :" + resultset.getMetaData().getColumnCount());
                 if (resultset != null) {
-                    result = m_provider.getResultSet(m_xContext, resultset, m_info);
+                    result = m_Connection.getProvider().getResultSet(m_xContext, m_Connection, resultset);
                     // we have to check the result columns for the tables privileges #106324#
                     XResultSetMetaDataSupplier supplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
                     XResultSetMetaData metadata = null;
@@ -1478,7 +1478,7 @@ implements XDatabaseMetaData2
 
     private final boolean _isIgnoreDriverPrivilegesEnabled()
     {
-        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreDriverPrivileges", false);
+        return UnoHelper.getDefaultPropertyValue(m_Connection.getInfo(), "IgnoreDriverPrivileges", false);
     }
 
     @Override
@@ -3572,7 +3572,7 @@ implements XDatabaseMetaData2
         XResultSet result = null;
         try {
             if (resultset != null)
-                result = m_provider.getResultSet(m_xContext, resultset, m_info);
+                result = m_Connection.getProvider().getResultSet(m_xContext, m_Connection, resultset);
         }
         catch (java.lang.Exception e)
         {

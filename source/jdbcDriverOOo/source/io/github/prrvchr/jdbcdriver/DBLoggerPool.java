@@ -25,19 +25,22 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
+import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.lang.ServiceWeak;
+import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.jdbcdriver.logging.XDBLoggerPool;
 
 
 public final class DBLoggerPool
-    extends ServiceWeak
-    implements XDBLoggerPool
+    extends WeakBase
+    implements XServiceInfo,
+               XDBLoggerPool
 {
 
     private static final String m_name = DBLoggerPool.class.getName();
@@ -48,7 +51,7 @@ public final class DBLoggerPool
     // The constructor method:
     public DBLoggerPool(XComponentContext context)
     {
-        super(m_name, m_services);
+        super();
         m_xContext = context;
         System.out.println("logging.DBLoggerPool() 1: ");
     }
@@ -56,6 +59,26 @@ public final class DBLoggerPool
     @Override
     public String[] getLoggerNames() {
         return UnoLoggerPool.getInstance().getLoggerNames();
+    }
+
+
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
     }
 
 

@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
@@ -49,7 +48,6 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -61,33 +59,22 @@ public abstract class PreparedStatementMain
                XResultSetMetaDataSupplier
 {
 
-    private XConnection m_xConnection;
-    protected final PropertyValue[] m_info;
-
     // The constructor method:
     public PreparedStatementMain(XComponentContext context,
                                  String name,
                                  String[] services,
-                                 DriverProvider provider,
-                                 ConnectionBase xConnection,
-                                 PropertyValue[] info)
+                                 ConnectionBase connection)
     {
-        super(context, name, services, provider);
-        m_xConnection = xConnection;
-        m_info = info;
+        super(context, name, services, connection);
     }
 
     public PreparedStatementMain(XComponentContext context,
                                  String name,
                                  String[] services,
-                                 DriverProvider provider,
-                                 ConnectionBase xConnection,
-                                 Map<String, Property> properties,
-                                 PropertyValue[] info)
+                                 ConnectionBase connection,
+                                 Map<String, Property> properties)
     {
-        super(context, name, services, provider, properties);
-        m_xConnection = xConnection;
-        m_info = info;
+        super(context, name, services, connection, properties);
     }
 
 
@@ -462,7 +449,7 @@ public abstract class PreparedStatementMain
     @Override
     public XConnection getConnection() throws SQLException
     {
-        return m_xConnection;
+        return m_Connection;
     }
 
 
@@ -473,7 +460,7 @@ public abstract class PreparedStatementMain
         try
         {
             java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-            return metadata != null ? new ResultSetMetaData(metadata, m_info) : null;
+            return metadata != null ? new ResultSetMetaData(metadata, m_Connection.getInfo()) : null;
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);

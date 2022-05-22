@@ -36,7 +36,6 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -46,8 +45,6 @@ public abstract class StatementBase
                XStatement
 {
 
-    private XConnection m_xConnection;
-    private java.sql.Connection m_Connection;
     private java.sql.Statement m_Statement = null;
     private boolean m_EscapeProcessing = true;
     private static Map<String, Property> _getPropertySet()
@@ -67,26 +64,18 @@ public abstract class StatementBase
     public StatementBase(XComponentContext context,
                          String name,
                          String[] services,
-                         DriverProvider provider,
-                         ConnectionBase xConnection,
-                         java.sql.Connection connection)
+                         ConnectionBase connection)
     {
-        super(context, name, services, provider, _getPropertySet());
-        m_xConnection = xConnection;
-        m_Connection = connection;
+        super(context, name, services, connection, _getPropertySet());
         
     }
     public StatementBase(XComponentContext context,
                          String name,
                          String[] services,
-                         DriverProvider provider,
-                         ConnectionBase xConnection,
-                         java.sql.Connection connection,
+                         ConnectionBase connection,
                          Map<String, Property> properties)
     {
-        super(context, name, services, provider, _getPropertySet(properties));
-        m_xConnection = xConnection;
-        m_Connection = connection;
+        super(context, name, services, connection, _getPropertySet(properties));
     }
 
 
@@ -114,7 +103,7 @@ public abstract class StatementBase
     {
         if (m_Statement == null)
         {
-            m_Statement = m_Connection.createStatement(m_ResultSetType, m_ResultSetConcurrency);
+            m_Statement = m_Connection.getWrapper().createStatement(m_ResultSetType, m_ResultSetConcurrency);
             _setStatement(m_Statement);
         }
         return m_Statement;
@@ -208,7 +197,7 @@ public abstract class StatementBase
     @Override
     public XConnection getConnection() throws SQLException
     {
-        return m_xConnection;
+        return m_Connection;
     }
 
 

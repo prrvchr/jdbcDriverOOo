@@ -32,9 +32,9 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
@@ -49,6 +49,7 @@ import com.sun.star.sdbc.XResultSetMetaDataSupplier;
 import com.sun.star.sdbc.XResultSetUpdate;
 import com.sun.star.sdbc.XRow;
 import com.sun.star.sdbc.XRowUpdate;
+import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
@@ -56,12 +57,15 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.lang.ServiceInfo;
 
 public abstract class ResultSetBase
-    extends WarningsSupplierProperty<java.sql.ResultSet>
-    implements XCloseable,
+    extends PropertySet
+    implements XServiceInfo,
+               XWarningsSupplier,
+               XCloseable,
                XColumnLocate,
                XResultSet,
                XResultSetMetaDataSupplier,
@@ -72,10 +76,11 @@ public abstract class ResultSetBase
 
     @SuppressWarnings("unused")
     private final XComponentContext m_xContext;
+    private final String m_name;
+    private final String[] m_services;
+    protected final ConnectionBase m_Connection;
     private final XInterface m_xStatement;
     protected final java.sql.ResultSet m_ResultSet;
-    protected final DriverProvider m_provider;
-    private final PropertyValue[] m_info;
     private static Map<String, Property> _getPropertySet()
     {
         Map<String, Property> map = new LinkedHashMap<String, Property>();
@@ -98,47 +103,47 @@ public abstract class ResultSetBase
     public ResultSetBase(XComponentContext ctx,
                          String name,
                          String[] services,
-                         DriverProvider provider,
-                         java.sql.ResultSet resultset,
-                         PropertyValue[] info)
+                         ConnectionBase connection,
+                         java.sql.ResultSet resultset)
     {
-        super(name, services, provider.supportWarningsSupplier(), _getPropertySet());
+        super(_getPropertySet());
         m_xContext = ctx;
+        m_name = name;
+        m_services = services;
+        m_Connection = connection;
         m_xStatement = null;
         m_ResultSet = resultset;
-        m_provider = provider;
-        m_info = info;
     }
     public ResultSetBase(XComponentContext ctx,
                          String name,
                          String[] services,
-                         DriverProvider provider,
+                         ConnectionBase connection,
                          XInterface statement,
-                         java.sql.ResultSet resultset,
-                         PropertyValue[] info)
+                         java.sql.ResultSet resultset)
     {
-        super(name, services, provider.supportWarningsSupplier(), _getPropertySet());
+        super(_getPropertySet());
         m_xContext = ctx;
+        m_name = name;
+        m_services = services;
+        m_Connection = connection;
         m_xStatement = statement;
         m_ResultSet = resultset;
-        m_provider = provider;
-        m_info = info;
     }
     public ResultSetBase(XComponentContext ctx,
                          String name,
                          String[] services,
-                         DriverProvider provider,
+                         ConnectionBase connection,
                          XInterface statement,
                          java.sql.ResultSet resultset,
-                         Map<String, Property> properties,
-                         PropertyValue[] info)
+                         Map<String, Property> properties)
     {
-        super(name, services, provider.supportWarningsSupplier(), _getPropertySet(properties));
+        super(_getPropertySet(properties));
         m_xContext = ctx;
+        m_name = name;
+        m_services = services;
+        m_Connection = connection;
         m_xStatement = statement;
         m_ResultSet = resultset;
-        m_provider = provider;
-        m_info = info;
     }
 
     protected java.sql.ResultSet _getWrapper()
@@ -150,7 +155,8 @@ public abstract class ResultSetBase
     {
         try
         {
-            return m_ResultSet.getCursorName();
+            String cursor = m_ResultSet.getCursorName();
+            return cursor != null ? cursor : "";
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -228,6 +234,45 @@ public abstract class ResultSetBase
         }
         
     }
+
+
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
+
+    // com.sun.star.sdbc.XWarningsSupplier:
+    @Override
+    public void clearWarnings() throws SQLException
+    {
+        if (m_Connection.getProvider().supportWarningsSupplier())
+            WarningsSupplier.clearWarnings(_getWrapper(), this);
+    }
+
+
+    @Override
+    public Object getWarnings() throws SQLException
+    {
+        if (m_Connection.getProvider().supportWarningsSupplier())
+            return WarningsSupplier.getWarnings(_getWrapper(), this);
+         return Any.VOID;
+    }
+
 
     // com.sun.star.sdbc.XCloseable
     @Override
@@ -477,7 +522,7 @@ public abstract class ResultSetBase
         try
         {
             java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
-            return (metadata != null) ? new ResultSetMetaData(metadata, m_info) : null;
+            return (metadata != null) ? new ResultSetMetaData(metadata, m_Connection.getInfo()) : null;
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);

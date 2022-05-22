@@ -27,14 +27,12 @@ package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.util.Map;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.CustomRowSet;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -43,8 +41,6 @@ public final class HsqlDBDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
-    @SuppressWarnings("unused")
-    private final boolean m_highLevel;
     private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
                                                                    Map.entry(-15, 1),
                                                                    Map.entry(-9, 12),
@@ -58,34 +54,20 @@ public final class HsqlDBDatabaseMetaData
 
     // The constructor method:
     public HsqlDBDatabaseMetaData(final XComponentContext ctx,
-                                  final DriverProvider provider,
-                                  final XConnection connection,
-                                  final java.sql.DatabaseMetaData metadata,
-                                  final PropertyValue[] info,
-                                  final String url,
-                                  boolean level)
+                                  final ConnectionBase connection)
+        throws java.sql.SQLException
     {
-        super(ctx, provider, connection, metadata, info, url);
-        m_highLevel = level;
+        super(ctx, connection);
         System.out.println("hsqldb.DatabaseMetaData() 1");
     }
 
     //@Override
-    public boolean supportsCatalogsInDataManipulation1() throws SQLException
+    public boolean supportsCatalogsInDataManipulation() throws SQLException
     {
-        System.out.println("hsqldb.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
-        boolean value = false;
-        System.out.println("hsqldb.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
-        return value;
-    }
-
-    //@Override
-    public boolean supportsSchemasInDataManipulation1() throws SQLException
-    {
-        System.out.println("hsqldb.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
-        boolean value = false;
-        System.out.println("hsqldb.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
-        return value;
+        // FIXME: If we want to be able to display the different schemas correctly
+        // FIXME: in Base, we need to disable the catalog in Data Manipulation.
+        // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL
+        return false;
     }
 
 

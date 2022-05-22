@@ -31,23 +31,30 @@ import java.util.Map;
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.XNamed;
+import com.sun.star.lang.XServiceInfo;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceProperty;
+import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public abstract class ContainerElement
-    extends ServiceProperty
-    implements XNamed
+    extends PropertySet
+    implements XServiceInfo,
+               XNamed
 {
 
+    private final String m_name;
+    private final String[] m_services;
+    protected final ConnectionBase m_Connection;
     protected String m_Name;
-    private final boolean m_ReadOnly;
     private static Map<String, Property> _getPropertySet(boolean readonly)
     {
+        short ro = readonly ? PropertyAttribute.READONLY : 0;
         Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_Name", UnoHelper.getProperty("Name", "string", readonly ? PropertyAttribute.READONLY : 0));
+        map.put("m_Name", UnoHelper.getProperty("Name", "string", ro));
         return map;
     }
     private static Map<String, Property> _getPropertySet(Map<String, Property> properties, boolean readonly)
@@ -59,30 +66,68 @@ public abstract class ContainerElement
 
     // The constructor method:
     public ContainerElement(String service,
-                                String[] services,
-                                String name)
+                            String[] services,
+                            ConnectionBase connection,
+                            Map<String, Property> properties)
     {
-        super(service, services, _getPropertySet(true));
-        m_Name = name;
-        m_ReadOnly = true;
+        super(_getPropertySet(properties, false));
+        m_name = service;
+        m_services = services;
+        m_Connection = connection;
     }
     public ContainerElement(String service,
-                                String[] services,
-                                Map<String, Property> properties,
-                                String name)
+                            String[] services,
+                            ConnectionBase connection,
+                            String name)
     {
-        this(service, services, properties, name, true);
+        super(_getPropertySet(true));
+        m_name = service;
+        m_services = services;
+        m_Connection = connection;
+        m_Name = name;
     }
     public ContainerElement(String service,
-                                String[] services,
-                                Map<String, Property> properties,
-                                String name,
-                                boolean readonly)
+                            String[] services,
+                            ConnectionBase connection,
+                            Map<String, Property> properties,
+                            String name)
     {
-        super(service, services, _getPropertySet(properties, readonly));
-        m_Name = name;
-        m_ReadOnly = readonly;
+        this(service, services, connection, properties, name, true);
     }
+    public ContainerElement(String service,
+                            String[] services,
+                            ConnectionBase connection,
+                            Map<String, Property> properties,
+                            String name,
+                            boolean readonly)
+    {
+        super(_getPropertySet(properties, readonly));
+        m_name = service;
+        m_services = services;
+        m_Connection = connection;
+        m_Name = name;
+    }
+
+
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
 
     // com.sun.star.container.XNamed:
     @Override
@@ -94,8 +139,7 @@ public abstract class ContainerElement
     @Override
     public void setName(String name)
     {
-        if (!m_ReadOnly)
-            m_Name = name;
+        m_Name = name;
     }
 
     public String getDropQuery(DriverProvider provider)

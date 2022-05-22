@@ -29,17 +29,15 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XResultSetMetaData;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.CustomColumn;
 import io.github.prrvchr.uno.sdbc.CustomResultSet;
 import io.github.prrvchr.uno.sdbc.CustomResultSetMetaData;
@@ -51,8 +49,6 @@ public final class SmallSQLDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
-    @SuppressWarnings("unused")
-    private final boolean m_highLevel;
 
     private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
                                                                    Map.entry(-15, 1),
@@ -67,15 +63,10 @@ public final class SmallSQLDatabaseMetaData
 
     // The constructor method:
     public SmallSQLDatabaseMetaData(final XComponentContext ctx,
-                                    final DriverProvider provider,
-                                    final XConnection connection,
-                                    final java.sql.DatabaseMetaData metadata,
-                                    final PropertyValue[] info,
-                                    final String url,
-                                    boolean level)
+                                    final ConnectionBase connection)
+        throws java.sql.SQLException
     {
-        super(ctx, provider, connection, metadata, info, url);
-        m_highLevel = level;
+        super(ctx, connection);
         System.out.println("smallsql.SmallSQLDatabaseProvider() 1");
     }
 

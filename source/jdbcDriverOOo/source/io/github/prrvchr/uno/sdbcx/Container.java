@@ -40,24 +40,25 @@ import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XDrop;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
-import com.sun.star.uno.TypeClass;
 import com.sun.star.util.XRefreshListener;
 import com.sun.star.util.XRefreshable;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceWeak;
+import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
-public class Container<T extends ContainerElement>
-    extends ServiceWeak
-    implements XContainer,
+public abstract class Container<T extends ContainerElement>
+    extends WeakBase
+    implements XServiceInfo,
+               XContainer,
                XEnumerationAccess,
                XIndexAccess,
                XNameAccess,
@@ -70,53 +71,45 @@ public class Container<T extends ContainerElement>
 
     private static final String m_name = Container.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
-    private final java.sql.Connection m_Connection;
-    private final DriverProvider m_provider;
-    private final List<T> m_Elements;
-    private final List<String> m_Names;
+    protected final ConnectionBase m_Connection;
+    protected final List<T> m_Elements = new ArrayList<T>();
+    protected final List<String> m_Names = new ArrayList<String>();
     private final List<XContainerListener> m_Listeners = new ArrayList<XContainerListener>();
     private final Type m_type;
 
     // The constructor method:
-    public Container(java.sql.Connection connection,
-                     DriverProvider provider)
+    public Container(ConnectionBase connection)
     {
-        this(connection, provider, new ArrayList<T>(), new ArrayList<String>());
+        this(connection, "com.sun.star.beans.XPropertySet");
     }
-    public Container(java.sql.Connection connection,
-                     DriverProvider provider,
-                     List<T> elements,
-                     List<String> names)
+    public Container(ConnectionBase connection,
+                     String type)
     {
-        this(connection, provider, elements, names, "com.sun.star.uno.XInterface");
-    }
-    public Container(java.sql.Connection connection,
-                     DriverProvider provider,
-                     List<T> elements,
-                     List<String> names,
-                     String typename)
-    {
-        super(m_name, m_services);
+        super();
         m_Connection = connection;
-        m_provider = provider;
-        m_Elements = elements;
-        m_Names = names;
-        m_type = new Type(typename);
+        m_type = new Type(type);
+        refresh();
     }
-    public Container(java.sql.Connection connection,
-                     DriverProvider provider,
-                     List<T> elements,
-                     List<String> names,
-                     String typename,
-                     TypeClass typeclass)
+
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
     {
-        super(m_name, m_services);
-        m_Connection = connection;
-        m_provider = provider;
-        m_Elements = elements;
-        m_Names = names;
-        m_type = new Type(typename, typeclass);
+        return ServiceInfo.getImplementationName(m_name);
     }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
 
     // com.sun.star.container.XElementAccess:
     @Override
@@ -255,11 +248,11 @@ public class Container<T extends ContainerElement>
         throws SQLException
     {
         System.out.println("sdbcx.Container._dropElement() 1 Element: " + element.getClass().getSimpleName());
-        String query = element.getDropQuery(m_provider);
+        String query = element.getDropQuery(m_Connection.getProvider());
         System.out.println("sdbcx.Container._dropElement() 2 Query: " + query);
         if (query != null) {
             try {
-                java.sql.Statement statement = m_Connection.createStatement();
+                java.sql.Statement statement = m_Connection.getWrapper().createStatement();
                 statement.execute(query);
                 statement.close();
             }
@@ -294,16 +287,12 @@ public class Container<T extends ContainerElement>
 
     // com.sun.star.util.XRefreshable
     @Override
+    public abstract void refresh();
+    @Override
     public void addRefreshListener(XRefreshListener listener)
     {
         // TODO Auto-generated method stub
         System.out.println("sdbcx.Container.addRefreshListener() ****************************************");
-    }
-    @Override
-    public void refresh()
-    {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Container.refresh() ****************************************");
     }
     @Override
     public void removeRefreshListener(XRefreshListener listener)
@@ -314,11 +303,7 @@ public class Container<T extends ContainerElement>
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor() {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Container.createDataDescriptor() ****************************************");
-        return null;
-    }
+    public abstract XPropertySet createDataDescriptor();
 
 
 }

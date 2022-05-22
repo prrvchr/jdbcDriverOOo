@@ -29,28 +29,36 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XCloseable;
 import com.sun.star.sdbc.XGeneratedResultSet;
 import com.sun.star.sdbc.XMultipleResults;
 import com.sun.star.sdbc.XResultSet;
+import com.sun.star.sdbc.XWarningsSupplier;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.lang.ServiceInfo;
 
 
 public abstract class StatementMain
-    extends WarningsSupplierProperty<java.sql.Statement>
-    implements XCancellable,
+    extends PropertySet
+    implements XServiceInfo,
+               XWarningsSupplier,
+               XCancellable,
                XCloseable,
                XGeneratedResultSet,
                XMultipleResults
 {
 
     protected final XComponentContext m_xContext;
-    protected final DriverProvider m_provider;
+    private final String m_name;
+    private final String[] m_services;
+    protected final ConnectionBase m_Connection;
     private String m_CursorName = "";
     private int m_FetchDirection = java.sql.ResultSet.FETCH_FORWARD;
     private int m_FetchSize = 0;
@@ -69,7 +77,7 @@ public abstract class StatementMain
         map.put("FetchDirection", UnoHelper.getProperty("FetchDirection", "long"));
         map.put("FetchSize", UnoHelper.getProperty("FetchSize", "long"));
         map.put("MaxFieldSize", UnoHelper.getProperty("MaxFieldSize", "long"));
-        map.put("MaxRows", UnoHelper.getProperty("MaxRows", "long"));        
+        map.put("MaxRows", UnoHelper.getProperty("MaxRows", "long"));
         map.put("QueryTimeout", UnoHelper.getProperty("QueryTimeout", "long"));
         map.put("ResultSetConcurrency", UnoHelper.getProperty("ResultSetConcurrency", "long"));
         map.put("ResultSetType", UnoHelper.getProperty("ResultSetType", "long"));
@@ -86,25 +94,69 @@ public abstract class StatementMain
     public StatementMain(XComponentContext context,
                           String name,
                           String[] services,
-                          DriverProvider provider,
+                          ConnectionBase connection,
                           Map<String, Property> properties)
     {
-        super(name, services, provider.supportWarningsSupplier(), _getPropertySet(properties));
+        super(_getPropertySet(properties));
         m_xContext = context;
-        m_provider = provider;
+        m_name = name;
+        m_services = services;
+        m_Connection = connection;
     }
     public StatementMain(XComponentContext context,
                           String name,
                           String[] services,
-                          DriverProvider provider)
+                          ConnectionBase connection)
     {
-        super(name, services, provider.supportWarningsSupplier(), _getPropertySet());
+        super(_getPropertySet());
         m_xContext = context;
-        m_provider = provider;
+        m_name = name;
+        m_services = services;
+        m_Connection = connection;
     }
 
 
-    abstract protected XResultSet _getResultSet(XComponentContext ctx,
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
+
+    // com.sun.star.sdbc.XWarningsSupplier:
+    @Override
+    public void clearWarnings() throws SQLException
+    {
+        if (m_Connection.getProvider().supportWarningsSupplier())
+            WarningsSupplier.clearWarnings(_getWrapper(), this);
+    }
+
+
+    @Override
+    public Object getWarnings() throws SQLException
+    {
+        if (m_Connection.getProvider().supportWarningsSupplier())
+            return WarningsSupplier.getWarnings(_getWrapper(), this);
+         return Any.VOID;
+    }
+
+
+    protected abstract java.sql.Statement _getWrapper();
+
+    protected abstract XResultSet _getResultSet(XComponentContext ctx,
                                                 java.sql.ResultSet resultset)
         throws java.sql.SQLException;
 

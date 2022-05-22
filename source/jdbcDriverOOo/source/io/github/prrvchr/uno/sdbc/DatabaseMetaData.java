@@ -25,12 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-
-import com.sun.star.beans.PropertyValue;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
-
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 
 
 public final class DatabaseMetaData
@@ -39,14 +34,17 @@ public final class DatabaseMetaData
 
     // The constructor method:
     public DatabaseMetaData(final XComponentContext ctx,
-                            final DriverProvider provider,
-                            final XConnection connection,
-                            final java.sql.DatabaseMetaData metadata,
-                            final PropertyValue[] info,
-                            final String url,
-                            boolean m_highLevel)
+                            final ConnectionBase connection)
+        throws java.sql.SQLException
     {
-        super(ctx, provider, connection, metadata, info, url);
+        super(ctx, connection);
+        System.out.println("sdbc.DatabaseMetaData() 1");
+    }
+	public DatabaseMetaData(final XComponentContext ctx,
+                            final ConnectionBase connection,
+                            final java.sql.DatabaseMetaData metadata)
+    {
+        super(ctx, connection, metadata);
         System.out.println("sdbc.DatabaseMetaData() 1");
     }
 

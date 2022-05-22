@@ -25,11 +25,10 @@
 */
 package io.github.prrvchr.jdbcdriver.smallsql;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
@@ -42,20 +41,18 @@ public class SmallSQLResultSet
 
     // The constructor method:
     public SmallSQLResultSet(final XComponentContext ctx,
-                             final DriverProvider provider,
-                             final java.sql.ResultSet resultset,
-                             final PropertyValue[] info)
+                             final ConnectionBase connection,
+                             final java.sql.ResultSet resultset)
     {
-        super(ctx, m_name, m_services, provider, resultset, info);
+        super(ctx, m_name, m_services, connection, resultset);
         System.out.println("smallsql.SmallSQLResultSet() 1");
     }
     public SmallSQLResultSet(final XComponentContext ctx,
-                             final DriverProvider provider,
+                             final ConnectionBase connection,
                              final XInterface statement,
-                             final java.sql.ResultSet resultset,
-                             final PropertyValue[] info)
+                             final java.sql.ResultSet resultset)
     {
-        super(ctx, m_name, m_services, provider, statement, resultset, info);
+        super(ctx, m_name, m_services, connection, statement, resultset);
         System.out.println("smallsql.SmallSQLResultSet() 1");
     }
 

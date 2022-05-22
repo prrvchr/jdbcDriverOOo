@@ -25,7 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
+import java.sql.SQLException;
+
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 public final class Table
     extends TableBase
@@ -35,8 +37,7 @@ public final class Table
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
 
     // The constructor method:
-    public Table(DriverProvider provider,
-                 java.sql.DatabaseMetaData metadata,
+    public Table(ConnectionBase connection,
                  String catalog,
                  String schema,
                  String name,
@@ -44,16 +45,14 @@ public final class Table
                  String description)
         throws java.sql.SQLException
     {
-        super(m_name, m_services, provider, metadata, catalog, schema, name, type, description);
+        super(m_name, m_services, connection, catalog, schema, name, type, description);
         System.out.println("sdbcx.Table.Table() : 1" );
     }
-    public Table(java.sql.Connection connection,
-                 DriverProvider provider,
-                 schemacrawler.schema.Table table,
-                 String catalog,
-                 String name)
+    public Table(ConnectionBase connection,
+                 schemacrawler.schema.Table table)
+        throws SQLException
     {
-        super(m_name, m_services, connection, provider, table, catalog, name);
+        super(m_name, m_services, connection, table);
         System.out.println("sdbcx.Table.Table() : 1" );
     }
 

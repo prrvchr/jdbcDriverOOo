@@ -35,6 +35,7 @@ import java.util.ServiceLoader;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
@@ -45,19 +46,24 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XMacroExpander;
 
+import com.sun.star.lib.uno.helper.ComponentBase;
+
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceComponent;
+import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.jdbcdriver.DefaultDriverProvider;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
 
 public abstract class DriverBase
-    extends ServiceComponent
-    implements XDriver
+    extends ComponentBase
+    implements XServiceInfo,
+               XDriver
 {
     //private final URL m_url;
     private final XComponentContext m_xContext;
+    private final String m_name;
+    private final String[] m_services;
     private static final String m_connectProtocol = "jdbc:";
     private static final String m_registredProtocol = "xdbc:";
     private static final String m_rootDriver = m_registredProtocol + "*";
@@ -65,7 +71,7 @@ public abstract class DriverBase
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     private static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
-    private final boolean m_highLevel;
+    private final boolean m_enhanced;
     private final boolean m_registered;
 
     // The constructor method:
@@ -74,12 +80,14 @@ public abstract class DriverBase
                       final String[] services)
         throws Exception
     {
-        super(name, services);
+        super();
         System.out.println("sdbc.DriverBase() 1");
         m_xContext = context;
+        m_name = name;
+        m_services = services;
         UnoLoggerPool.getInstance().setContext(context, m_identifier);
         String driver =  _getRegistredDriver();
-        m_highLevel = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
+        m_enhanced = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
         m_registered = _isDriverRegistred(services, driver);
         System.out.println("sdbc.DriverBase() 2");
     }
@@ -118,6 +126,27 @@ public abstract class DriverBase
         return registred;
     }
 
+
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
+
     // com.sun.star.sdbc.XDriver:
     public XConnection connect(String url,
                                PropertyValue[] info)
@@ -146,7 +175,7 @@ public abstract class DriverBase
         try
         {
             System.out.println("sdbc.DriverBase.connect() 3");
-            connection = _getConnection(m_xContext, provider, provider.getConnection(m_highLevel, level, location, info), url, info);
+            connection = _getConnection(m_xContext, provider, provider.getConnection(location, info, level), url, info, m_enhanced);
         } catch(java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -407,7 +436,8 @@ public abstract class DriverBase
                                                   DriverProvider provider,
                                                   java.sql.Connection connection,
                                                   String url,
-                                                  PropertyValue[] info)
+                                                  PropertyValue[] info,
+                                                  boolean enhanced)
         throws java.sql.SQLException;
 
 

@@ -27,30 +27,42 @@ package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDatabaseMetaData;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
+import com.sun.star.sdbc.XWarningsSupplier;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 //import com.sun.star.lib.util.WeakMap;
+
+import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.SchemaCrawler;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.lang.ServiceInfo;
 import schemacrawler.schema.Catalog;
 
 
 public abstract class ConnectionBase
-    extends WarningsSupplierComponent<java.sql.Connection>
-    implements XConnection
+    extends ComponentBase
+    implements XServiceInfo,
+               XWarningsSupplier,
+               XConnection
 {
 
-    private final XComponentContext m_xContext;
+    protected final XComponentContext m_xContext;
+    private final String m_name;
+    private final String[] m_services;
+    protected final DriverProvider m_provider;
     protected final java.sql.Connection m_Connection;
     protected final PropertyValue[] m_info;
     private final String m_url;
-    protected final DriverProvider m_provider;
+    private final boolean m_enhanced;
+    private boolean m_crawler;
     private Catalog m_catalog = null;
 
     // The constructor method:
@@ -60,10 +72,11 @@ public abstract class ConnectionBase
                           DriverProvider provider,
                           java.sql.Connection connection,
                           String url,
-                          PropertyValue[] info)
+                          PropertyValue[] info,
+                          boolean enhanced)
         throws java.sql.SQLException
     {
-        this(ctx, name, services, provider, connection, url, info, false);
+        this(ctx, name, services, provider, connection, url, info, enhanced, false);
     }
     public ConnectionBase(XComponentContext ctx,
                           String name,
@@ -72,16 +85,21 @@ public abstract class ConnectionBase
                           java.sql.Connection connection,
                           String url,
                           PropertyValue[] info,
+                          boolean enhanced,
                           boolean crawler)
         throws java.sql.SQLException
     {
-        super(name , services, provider.supportWarningsSupplier());
+        super();
         System.out.println("Connection.Connection() 1");
         m_xContext = ctx;
+        m_name = name;
+        m_services = services;
         m_Connection = connection;
         m_url = url;
         m_info = info;
+        m_enhanced = enhanced;
         m_provider = provider;
+        m_crawler = crawler;
         if (crawler)
         {
             m_catalog = SchemaCrawler.getCatalog(connection);
@@ -94,19 +112,56 @@ public abstract class ConnectionBase
     }
 
 
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
+
+    // com.sun.star.sdbc.XWarningsSupplier:
+    @Override
+    public void clearWarnings() throws SQLException
+    {
+        if (m_provider.supportWarningsSupplier())
+            WarningsSupplier.clearWarnings(getWrapper(), this);
+    }
+
+
+    @Override
+    public Object getWarnings() throws SQLException
+    {
+        if (m_provider.supportWarningsSupplier())
+            return WarningsSupplier.getWarnings(getWrapper(), this);
+         return Any.VOID;
+    }
+
+
     // com.sun.star.sdbc.XConnection:
     @Override
     public XDatabaseMetaData getMetaData() throws SQLException
     {
-        try
-        {
-            XDatabaseMetaData metadata = m_provider.getDatabaseMetaData(m_xContext, this, m_Connection.getMetaData(), m_info, m_url);
-            System.out.println("Connection.getMetaData() 1");
-            return metadata;
-        } catch (java.sql.SQLException e)
-        {
+        XDatabaseMetaData metadata = null;
+        try {
+            metadata = m_provider.getDatabaseMetaData(m_xContext, this);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        System.out.println("Connection.getMetaData() 1");
+        return metadata;
     }
 
     @Override
@@ -294,7 +349,7 @@ public abstract class ConnectionBase
     public XStatement createStatement() throws SQLException
     {
         try {
-            return _getStatement(m_xContext, m_provider, m_Connection);
+            return _getStatement();
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -304,7 +359,7 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareStatement(String sql) throws SQLException
     {
         try {
-            return _getPreparedStatement(m_xContext, m_provider, m_Connection, sql);
+            return _getPreparedStatement(sql);
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -314,33 +369,45 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareCall(String sql) throws SQLException
     {
         try {
-            return _getCallableStatement(m_xContext, m_provider, m_Connection, sql);
+            return _getCallableStatement(sql);
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
 
-    protected java.sql.Connection _getWrapper()
+    public java.sql.Connection getWrapper()
     {
         return m_Connection;
     }
-    
-    abstract protected XStatement _getStatement(XComponentContext ctx,
-                                                DriverProvider provider,
-                                                java.sql.Connection connection)
+    public DriverProvider getProvider()
+    {
+        return m_provider;
+    }
+    public String getUrl()
+    {
+        return m_url;
+    }
+    public PropertyValue[] getInfo()
+    {
+        return m_info;
+    }
+    public boolean isEnhanced()
+    {
+        return m_enhanced;
+    }
+    public boolean useSchemaCrawler()
+    {
+        return m_crawler;
+    }
+
+    abstract protected XStatement _getStatement()
         throws java.sql.SQLException;
 
-    abstract protected XPreparedStatement _getPreparedStatement(XComponentContext ctx,
-                                                                DriverProvider provider,
-                                                                java.sql.Connection connection,
-                                                                String sql)
+    abstract protected XPreparedStatement _getPreparedStatement(String sql)
         throws java.sql.SQLException;
 
-    abstract protected XPreparedStatement _getCallableStatement(XComponentContext ctx,
-                                                                DriverProvider provider,
-                                                                java.sql.Connection connection,
-                                                                String sql)
+    abstract protected XPreparedStatement _getCallableStatement(String sql)
         throws java.sql.SQLException;
 
 

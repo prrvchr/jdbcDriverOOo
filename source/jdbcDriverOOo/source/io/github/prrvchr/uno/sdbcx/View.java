@@ -35,6 +35,7 @@ import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.sdbcx.XAlterView;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class View
@@ -61,14 +62,14 @@ public class View
     }
 
     // The constructor method:
-    public View(java.sql.Connection  connection,
+    public View(ConnectionBase connection,
                 String query,
                 String catalog,
                 String schema,
                 String name)
     throws java.sql.SQLException
     {
-        super(m_name, m_services, _getPropertySet(), name);
+        super(m_name, m_services, connection, _getPropertySet(), name);
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Command = _getViewCommand(connection, query, schema, name);
@@ -76,14 +77,14 @@ public class View
         System.out.println("View.View() Name: " + m_Name + " - Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Command: " + m_Command);
     }
 
-    private String _getViewCommand(java.sql.Connection connection,
+    private String _getViewCommand(ConnectionBase connection,
                                    String query,
                                    String schema,
                                    String view)
         throws java.sql.SQLException
     {
         String command = "";
-        java.sql.PreparedStatement statement = connection.prepareStatement(query);
+        java.sql.PreparedStatement statement = connection.getWrapper().prepareStatement(query);
         statement.setString(1, schema);
         statement.setString(2, view);
         java.sql.ResultSet result = statement.executeQuery();

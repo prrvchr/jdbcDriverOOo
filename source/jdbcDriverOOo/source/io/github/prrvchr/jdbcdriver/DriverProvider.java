@@ -96,10 +96,9 @@ public interface DriverProvider
         return "-1";
     };
 
-    public java.sql.Connection getConnection(boolean m_highLevel,
-                                             String level,
-                                             String url,
-                                             PropertyValue[] info)
+    public java.sql.Connection getConnection(String url,
+                                             PropertyValue[] info,
+                                             String level)
         throws java.sql.SQLException;
 
     default Properties getConnectionProperties(List<String> list,
@@ -126,19 +125,20 @@ public interface DriverProvider
 
 
     public DatabaseMetaDataBase getDatabaseMetaData(XComponentContext context,
-                                                    ConnectionBase connection,
-                                                    java.sql.DatabaseMetaData metadata,
-                                                    PropertyValue[] info,
-                                                    String url);
+                                                    ConnectionBase connection)
+        throws java.sql.SQLException;
+
 
     public ResultSetBase getResultSet(XComponentContext context,
-                                      java.sql.ResultSet resultset,
-                                      PropertyValue[] info);
+                                      ConnectionBase connection, 
+                                      java.sql.ResultSet resultset)
+        throws java.sql.SQLException;
 
     public ResultSetBase getResultSet(XComponentContext context,
+                                      ConnectionBase connection, 
                                       StatementMain statement,
-                                      java.sql.ResultSet resultset,
-                                      PropertyValue[] info);
+                                      java.sql.ResultSet resultset)
+        throws java.sql.SQLException;
 
 
 }

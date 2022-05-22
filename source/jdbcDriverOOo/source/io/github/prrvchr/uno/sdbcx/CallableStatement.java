@@ -28,17 +28,15 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.SQLException;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class CallableStatement
-extends CallableStatementSuper
+    extends CallableStatementSuper
 {
     private static final String m_name = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement",
@@ -46,14 +44,11 @@ extends CallableStatementSuper
 
     // The constructor method:
     public CallableStatement(XComponentContext context,
-                             DriverProvider provider,
-                             ConnectionBase xConnection,
-                             java.sql.Connection connection,
-                             String sql,
-                             PropertyValue[] info)
+                             ConnectionBase connection,
+                             String sql)
     throws SQLException
     {
-        super(context, m_name, m_services, provider, xConnection, connection, sql, info);
+        super(context, m_name, m_services, connection, sql);
         System.out.println("sdbcx.CallableStatement() 1");
     }
 
@@ -62,7 +57,7 @@ extends CallableStatementSuper
                                        java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        return new ResultSet(ctx, m_provider, this, resultset, m_info);
+        return new ResultSet(ctx, m_Connection, this, resultset);
     }
 
 

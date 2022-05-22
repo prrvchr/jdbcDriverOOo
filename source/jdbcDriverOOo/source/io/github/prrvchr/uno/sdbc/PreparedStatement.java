@@ -25,29 +25,24 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-
 
 public class PreparedStatement
-extends PreparedStatementBase
+    extends PreparedStatementBase
 {
+
     private static final String m_name = PreparedStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
 
     // The constructor method:
     public PreparedStatement(XComponentContext context,
-                             DriverProvider provider,
-                             ConnectionBase xConnection,
-                             java.sql.Connection connection,
-                             String sql,
-                             PropertyValue[] info)
+                             ConnectionBase connection,
+                             String sql)
     throws java.sql.SQLException
     {
-        super(context, m_name, m_services, provider, xConnection, connection, sql, info);
+        super(context, m_name, m_services, connection, sql);
         System.out.println("sdbc.PreparedStatement() 1: '" + sql + "'");
     }
 
@@ -56,7 +51,7 @@ extends PreparedStatementBase
                                        java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        return m_provider.getResultSet(ctx, this, resultset, m_info);
+        return m_Connection.getProvider().getResultSet(ctx, m_Connection, this, resultset);
     }
 
 

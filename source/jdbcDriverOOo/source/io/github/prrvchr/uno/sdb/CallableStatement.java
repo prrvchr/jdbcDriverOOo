@@ -27,22 +27,21 @@ package io.github.prrvchr.uno.sdb;
 
 import java.sql.SQLException;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbcx.ColumnsSupplier;
+import io.github.prrvchr.uno.sdbcx.ColumnContainer;
 
 
 public class CallableStatement
-extends CallableStatementSuper
-implements XColumnsSupplier
+    extends CallableStatementSuper
+    implements XColumnsSupplier
 {
+
     private static final String m_name = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
                                                 "com.sun.star.sdbc.CallableStatement",
@@ -50,14 +49,11 @@ implements XColumnsSupplier
 
     // The constructor method:
     public CallableStatement(XComponentContext context,
-                             DriverProvider provider,
-                             ConnectionBase xConnection,
-                             java.sql.Connection connection,
-                             String sql,
-                             PropertyValue[] info)
+                             ConnectionBase connection,
+                             String sql)
     throws SQLException
     {
-        super(context, m_name, m_services, provider, xConnection, connection, sql, info);
+        super(context, m_name, m_services, connection, sql);
         System.out.println("sdb.CallableStatement() 1");
     }
 
@@ -66,7 +62,7 @@ implements XColumnsSupplier
                                        java.sql.ResultSet resultset)
     throws java.sql.SQLException
     {
-        return new ResultSet(ctx, m_provider, this, resultset, m_info);
+        return new ResultSet(ctx, m_Connection, this, resultset);
     }
 
 
@@ -77,7 +73,7 @@ implements XColumnsSupplier
         try
         {
             java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-            return ColumnsSupplier.getColumns(m_Connection, m_provider, metadata);
+            return new ColumnContainer(m_Connection, metadata);
         }
         catch (java.sql.SQLException e)
         {

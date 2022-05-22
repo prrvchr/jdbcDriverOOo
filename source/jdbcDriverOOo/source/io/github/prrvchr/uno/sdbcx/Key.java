@@ -26,24 +26,25 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceProperty;
+import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class Key
-    extends ServiceProperty
-    implements XColumnsSupplier
+    extends PropertySet
+    implements XServiceInfo,
+               XColumnsSupplier
 {
 
     private static final String m_name = Key.class.getName();
@@ -72,8 +73,7 @@ public class Key
     }
 
     // The constructor method:
-    public Key(DriverProvider provider,
-               java.sql.DatabaseMetaData metadata,
+    public Key(ConnectionBase connection,
                String catalog,
                String schema,
                String table,
@@ -85,14 +85,35 @@ public class Key
                int delete)
         throws SQLException
     {
-        super(m_name, m_services, _getPropertySet());
+        super(_getPropertySet());
         m_Name = name;
         m_Type = type;
         m_ReferencedTable = reference;
         m_UpdateRule = update;
         m_DeleteRule = delete;
-        m_xColumns = _getKeyColumns(provider, metadata, catalog, schema, table, column);
+        m_xColumns = new ColumnContainer(connection, catalog, schema, table, column);
     }
+
+
+    // com.sun.star.lang.XServiceInfo:
+    @Override
+    public String getImplementationName()
+    {
+        return ServiceInfo.getImplementationName(m_name);
+    }
+
+    @Override
+    public String[] getSupportedServiceNames()
+    {
+        return ServiceInfo.getSupportedServiceNames(m_services);
+    }
+
+    @Override
+    public boolean supportsService(String service)
+    {
+        return ServiceInfo.supportsService(m_services, service);
+    }
+
 
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
@@ -101,27 +122,5 @@ public class Key
         return m_xColumns;
     }
 
-    private XNameAccess _getKeyColumns(DriverProvider provider,
-                                       java.sql.DatabaseMetaData metadata,
-                                       String catalog,
-                                       String schema,
-                                       String table,
-                                       String column)
-        throws java.sql.SQLException
-    {
-        String name = null;
-        List<String> names = new ArrayList<String>();
-        List<Column> columns = new ArrayList<Column>();
-        java.sql.ResultSet result = metadata.getColumns(catalog, schema, table, column);
-        while (result != null && result.next())
-        {
-            name = result.getString(4);
-            columns.add(new Column(result, catalog, schema, table, name));
-            names.add(name);
-            System.out.println("sdbcx.TableBase._getTableColumns() ORDINAL: " + result.getInt(17));
-        }
-        result.close();
-        return new Container<Column>(metadata.getConnection(), provider, columns, names, "com.sun.star.beans.XPropertySet");
-    }
 
 }
