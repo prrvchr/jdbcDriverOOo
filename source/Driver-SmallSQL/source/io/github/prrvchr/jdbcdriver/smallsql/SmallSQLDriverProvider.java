@@ -26,12 +26,12 @@
 package io.github.prrvchr.jdbcdriver.smallsql;
 
 import java.sql.DriverManager;
-import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdb.ResultSet;
@@ -39,12 +39,12 @@ import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 public final class SmallSQLDriverProvider
+    extends DriverProviderMain
     implements DriverProvider
 {
 
     private static final String m_subProtocol = "smallsql";
     private static final boolean m_warnings = false;
-    private List<String> m_properties = List.of("user", "password");
 
     // The constructor method:
     public SmallSQLDriverProvider()

@@ -31,27 +31,25 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class Key
-    extends PropertySet
-    implements XServiceInfo,
-               XColumnsSupplier
+    extends Item
+    implements XColumnsSupplier
 {
 
     private static final String m_name = Key.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Key"};
     private XNameAccess m_xColumns = null;
-    @SuppressWarnings("unused")
-    private final String m_Name;
     @SuppressWarnings("unused")
     private final int m_Type;
     @SuppressWarnings("unused")
@@ -64,12 +62,26 @@ public class Key
     {
         short readonly = PropertyAttribute.READONLY;
         Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_Name", UnoHelper.getProperty("Name", "string", readonly));
         map.put("m_Type", UnoHelper.getProperty("Type", "long", readonly));
         map.put("m_ReferencedTable", UnoHelper.getProperty("ReferencedTable", "string", readonly));
         map.put("m_UpdateRule", UnoHelper.getProperty("UpdateRule", "long", readonly));
         map.put("m_DeleteRule", UnoHelper.getProperty("DeleteRule", "long", readonly));
         return map;
+    }
+
+    // The constructor method:
+    public Key(ConnectionBase connection,
+               XPropertySet descriptor,
+               String name)
+        throws SQLException, UnknownPropertyException, WrappedTargetException
+    {
+        super(m_name, m_services, connection, _getPropertySet(), name);
+        m_Type = (int) descriptor.getPropertyValue("Type");
+        m_ReferencedTable = (String) descriptor.getPropertyValue("ReferencedTable");
+        m_UpdateRule = (int) descriptor.getPropertyValue("UpdateRule");
+        m_DeleteRule = (int) descriptor.getPropertyValue("DeleteRule");
+        XColumnsSupplier columns = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+        m_xColumns = columns.getColumns();
     }
 
     // The constructor method:
@@ -85,33 +97,12 @@ public class Key
                int delete)
         throws SQLException
     {
-        super(_getPropertySet());
-        m_Name = name;
+        super(m_name, m_services, connection,_getPropertySet(), name);
         m_Type = type;
         m_ReferencedTable = reference;
         m_UpdateRule = update;
         m_DeleteRule = delete;
         m_xColumns = new ColumnContainer(connection, catalog, schema, table, column);
-    }
-
-
-    // com.sun.star.lang.XServiceInfo:
-    @Override
-    public String getImplementationName()
-    {
-        return ServiceInfo.getImplementationName(m_name);
-    }
-
-    @Override
-    public String[] getSupportedServiceNames()
-    {
-        return ServiceInfo.getSupportedServiceNames(m_services);
-    }
-
-    @Override
-    public boolean supportsService(String service)
-    {
-        return ServiceInfo.supportsService(m_services, service);
     }
 
 

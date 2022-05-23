@@ -51,7 +51,7 @@ import com.sun.star.lib.uno.helper.ComponentBase;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.jdbcdriver.DefaultDriverProvider;
+import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
 
@@ -429,7 +429,7 @@ public abstract class DriverBase
                 return provider;
             }
         }
-        return new DefaultDriverProvider();
+        return new DriverProviderDefault();
     }
 
     abstract protected XConnection _getConnection(XComponentContext ctx,

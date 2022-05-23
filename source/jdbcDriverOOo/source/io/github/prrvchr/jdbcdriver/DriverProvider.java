@@ -29,105 +29,96 @@ import java.util.List;
 import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XIndexAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.AnyConverter;
+import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
+import io.github.prrvchr.uno.sdbcx.Column;
 
 public interface DriverProvider
 {
 
-    static String m_protocol = "xdbc:";
+    public String getProtocol();
 
-    default String getProtocol()
-    {
-        return m_protocol;
-    }
-    default String getProtocol(String subprotocol)
-    {
-        return m_protocol + subprotocol;
-    }
+    public String getProtocol(String subprotocol);
 
-    default String[] getTableTypes()
-    {
-        String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
-        return types;
-    }
+    public String[] getTableTypes();
 
-    default String getTableType(String type)
-    {
-        return type;
-    }
+    public String getTableType(String type);
 
-    default String getViewQuery()
-    {
-        return "SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;";
-    }
+    public String getViewQuery();
 
-    default String getUserQuery()
-    {
-        return null;
-    }
+    public String getUserQuery();
 
-    default String getDropQuery(String element,
-                                String name)
-    {
-        return null;
-    }
+    public String getDropTableQuery(ConnectionBase connection,
+                                    String catalog,
+                                    String schema,
+                                    String table);
 
-    default String getDropQuery(String element,
-                                String catalog,
-                                String schema,
-                                String name)
-    {
-        return null;
-    }
+    public String getDropViewQuery(ConnectionBase connection,
+                                   String catalog,
+                                   String schema,
+                                   String view);
 
-    public boolean acceptsURL(String url);
+    public String getDropColumnQuery(ConnectionBase connection,
+                                     Column column);
+
+    public String getDropUserQuery(ConnectionBase connection,
+                                   String user);
+
+    public String getCreateTableQuery(ConnectionBase connection,
+                                      String catalog,
+                                      String schema,
+                                      String table,
+                                      String elements)
+        throws java.sql.SQLException;
+
+
+    public String getTableElementsQuery(ConnectionBase connection,
+                                              XNameAccess columns,
+                                              XIndexAccess keys)
+        throws java.sql.SQLException;
+
+    public String getColumnQuery(ConnectionBase connection,
+                                 XPropertySet column)
+        throws java.sql.SQLException;
+
+    public String getKeyQuery(ConnectionBase connection,
+                              XIndexAccess keys)
+        throws java.sql.SQLException;
+
+    public String getKeyColumnQuery(ConnectionBase connection,
+                                    XColumnsSupplier key)
+        throws java.sql.SQLException;
 
     public boolean supportWarningsSupplier();
 
-    default String getLoggingLevel(XHierarchicalNameAccess driver) {
-        return "-1";
-    };
+    public boolean acceptsURL(String url);
+
+    public String getLoggingLevel(XHierarchicalNameAccess driver);
 
     public java.sql.Connection getConnection(String url,
                                              PropertyValue[] info,
                                              String level)
         throws java.sql.SQLException;
 
-    default Properties getConnectionProperties(List<String> list,
-                                               PropertyValue[] info)
-    {
-        Properties properties = new Properties();
-        System.out.println("DriverProvider.getConnectionProperties() 1");
-        for (PropertyValue property : info) {
-            System.out.println("DriverProvider.getConnectionProperties() 2  Name: " + property.Name + " - Value: " + property.Value);
-            if (list.contains(property.Name))
-            {
-                System.out.println("DriverProvider.getConnectionProperties() 3 Name: " + property.Name + " - Value: " + property.Value);
-                properties.setProperty(property.Name, AnyConverter.toString(property.Value));
-            }
-        }
-        return properties;
-    }
+    public Properties getConnectionProperties(List<String> list,
+                                              PropertyValue[] info);
 
-    default void setSystemProperties(String level)
-        throws SQLException
-    {
-        // noop
-    }
-
+    public void setSystemProperties(String level)
+        throws SQLException;
 
     public DatabaseMetaDataBase getDatabaseMetaData(XComponentContext context,
                                                     ConnectionBase connection)
         throws java.sql.SQLException;
-
 
     public ResultSetBase getResultSet(XComponentContext context,
                                       ConnectionBase connection, 

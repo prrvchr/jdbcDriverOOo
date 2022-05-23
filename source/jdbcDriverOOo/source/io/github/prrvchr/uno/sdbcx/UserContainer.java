@@ -26,12 +26,14 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
+import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class UserContainer
-    extends Container<User>
+    extends ContainerSuper<User>
 {
 
     // The constructor method:
@@ -40,6 +42,13 @@ public class UserContainer
         super(connection);
         refresh();
     }
+
+    // com.sun.star.sdbcx.XDrop method of Container:
+    protected String _getDropQuery(User user)
+    {
+        return m_Connection.getProvider().getDropUserQuery(m_Connection, user.m_Name);
+    }
+
 
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -74,6 +83,16 @@ public class UserContainer
                 e.printStackTrace();
             }
         }
+    }
+
+
+    // com.sun.star.sdbcx.XAppend
+    @Override
+    public void appendByDescriptor(XPropertySet descriptor)
+        throws SQLException,
+               ElementExistException
+    {
+        System.out.println("sdbcx.UserContainer.appendByDescriptor() ****************************");
     }
 
 

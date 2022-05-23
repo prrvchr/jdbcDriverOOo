@@ -39,17 +39,16 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class View
-    extends ContainerElement
+    extends Item
     implements XAlterView
 {
     private static final String m_name = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
-    private final String m_CatalogName;
-    private final String m_SchemaName;
-    private final String m_Command;
+    protected String m_CatalogName;
+    protected String m_SchemaName = "";
+    private String m_Command = "";
     @SuppressWarnings("unused")
-	private final int m_CheckOption;
-
+    private int m_CheckOption;
     private static Map<String, Property> _getPropertySet()
     {
         short readonly = PropertyAttribute.READONLY;

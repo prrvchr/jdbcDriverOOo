@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -46,7 +45,7 @@ public final class Table
     private static final String m_name = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Table",
                                                 "com.sun.star.sdbcx.Table"};
-    private final int m_Privileges;
+    private int m_Privileges = 15;
     private static Map<String, Property> _getPropertySet()
     {
         short readonly = PropertyAttribute.READONLY;
@@ -70,7 +69,7 @@ public final class Table
     }
     public Table(ConnectionBase connection,
                  schemacrawler.schema.Table table)
-        throws SQLException
+        throws java.sql.SQLException
     {
         super(m_name, m_services, connection, table, _getPropertySet());
         m_Privileges = _getTablePrivileges(table);
@@ -83,7 +82,7 @@ public final class Table
     }
 
     private int _getTablePrivileges()
-        throws SQLException
+        throws java.sql.SQLException
     {
         int value = 0;
         System.out.println("sdb.Table._getTablePrivileges() : 1 Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Table: " + m_Name);
@@ -99,7 +98,7 @@ public final class Table
         return value;
     }
     private static int _getTablePrivileges(schemacrawler.schema.Table table)
-        throws SQLException
+        throws java.sql.SQLException
     {
         int value = 265;
         System.out.println("sdb.Table._getTablePrivileges() : 1");

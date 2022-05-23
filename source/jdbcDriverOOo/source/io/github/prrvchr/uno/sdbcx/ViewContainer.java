@@ -26,12 +26,14 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
+import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class ViewContainer
-    extends Container<View>
+    extends ContainerSuper<View>
 {
 
     // The constructor method:
@@ -40,6 +42,14 @@ public class ViewContainer
         super(connection);
         refresh();
     }
+
+
+    // com.sun.star.sdbcx.XDrop method of Container:
+    protected String _getDropQuery(View view)
+    {
+        return m_Connection.getProvider().getDropViewQuery(m_Connection, view.m_CatalogName, view.m_SchemaName, view.m_Name);
+    }
+
 
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -74,6 +84,16 @@ public class ViewContainer
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
         }
+    }
+
+
+    // com.sun.star.sdbcx.XAppend
+    @Override
+    public void appendByDescriptor(XPropertySet descriptor)
+        throws SQLException,
+               ElementExistException
+    {
+        System.out.println("sdbcx.ViewContainer.appendByDescriptor() ****************************");
     }
 
 

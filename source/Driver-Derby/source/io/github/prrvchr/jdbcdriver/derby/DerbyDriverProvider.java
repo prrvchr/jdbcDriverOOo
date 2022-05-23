@@ -27,7 +27,6 @@ package io.github.prrvchr.jdbcdriver.derby;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyValue;
@@ -36,6 +35,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdb.ResultSet;
@@ -43,14 +43,11 @@ import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 public final class DerbyDriverProvider
+    extends DriverProviderMain
     implements DriverProvider
 {
 
     private static final String m_subProtocol = "derby";
-    private static final boolean m_warnings = true;
-    private List<String> m_properties = List.of("user", "password");
-    @SuppressWarnings("unused")
-    private boolean m_highLevel;
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "50000"),
                                                                   Map.entry("1", "40000"),
                                                                   Map.entry("2", "40000"),
@@ -72,32 +69,6 @@ public final class DerbyDriverProvider
         return url.startsWith(getProtocol(m_subProtocol));
     }
 
-    @Override
-    public final boolean supportWarningsSupplier() {
-        return m_warnings;
-    }
-
-    @Override
-    public String getDropQuery(String element,
-                               String catalog,
-                               String schema,
-                               String name)
-    {
-        String query = null;
-        switch (element) {
-            case "Table":
-                String sql = "DROP TABLE \"%s\".\"%s\"";
-                query = String.format(sql, schema, name);
-                break;
-            case "Column":
-                break;
-            case "View":
-                break;
-            case "User":
-                break;
-        }
-        return query;
-    }
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {

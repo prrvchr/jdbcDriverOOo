@@ -179,21 +179,16 @@ public final class Connection
     {
         System.out.println("sdb.Connection.getTables() 1");
         XNameAccess tables = null;
-        if (m_crawler)
-        {
-            try
-            {
-                System.out.println("sdb.Connection.getTables() 2");
-                tables = SchemaCrawler.getTables(m_provider, this);
-                System.out.println("sdb.Connection.getTables() 3");
-            } catch (java.sql.SQLException e) {
-                e.printStackTrace();
-            }
+        try {
+            System.out.println("sdb.Connection.getTables() 2");
+            tables = m_crawler ? SchemaCrawler.getTables(m_provider, this) :
+                                 new TableContainer(this);
+            System.out.println("sdb.Connection.getTables() 3");
+         }
+        catch (java.sql.SQLException e) {
+            e.printStackTrace();
         }
-        else
-            System.out.println("sdb.Connection.getTables() 4");
-            tables = new TableContainer(this);
-            System.out.println("sdb.Connection.getTables() 5");
+        System.out.println("sdb.Connection.getTables() 4");
         return tables;
     }
 

@@ -34,6 +34,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdb.ResultSet;
@@ -41,14 +42,12 @@ import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 public final class H2DriverProvider
+    extends DriverProviderMain
     implements DriverProvider
 {
 
     private static final String m_subProtocol = "h2";
-    private static final boolean m_warnings = true;
     private List<String> m_properties = List.of("user", "password");
-    @SuppressWarnings("unused")
-    private boolean m_highLevel;
     private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
     // The constructor method:
@@ -61,11 +60,6 @@ public final class H2DriverProvider
     public final boolean acceptsURL(final String url)
     {
         return url.startsWith(getProtocol(m_subProtocol));
-    }
-
-    @Override
-    public final boolean supportWarningsSupplier() {
-        return m_warnings;
     }
 
     public String[] getTableTypes()
@@ -89,26 +83,15 @@ public final class H2DriverProvider
     }
 
     @Override
-    public String getDropQuery(String element,
-                               String catalog,
-                               String schema,
-                               String name)
+    public String getDropTableQuery(ConnectionBase connection,
+                                    String catalog,
+                                    String schema,
+                                    String table)
     {
-        String query = null;
-        switch (element) {
-            case "Table":
-                String sql = "DROP TABLE \"%s\".\"%s\";";
-                query = String.format(sql, schema, name);
-                break;
-            case "Column":
-                break;
-            case "View":
-                break;
-            case "User":
-                break;
-        }
-        return query;
+        String query = "DROP TABLE \"%s\".\"%s\";";
+        return String.format(query, schema, table);
     }
+
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {

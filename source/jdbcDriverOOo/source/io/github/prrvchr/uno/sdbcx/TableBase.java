@@ -42,13 +42,12 @@ import com.sun.star.sdbcx.XIndexesSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class TableBase
-    extends ContainerElement
+    extends Item
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
@@ -58,11 +57,11 @@ public class TableBase
 
     private XNameAccess m_xColumns = null;
     private XIndexAccess m_xKeys = null;
-    protected final String m_CatalogName;
-    protected final String m_SchemaName;
+    protected String m_CatalogName = "";
+    protected String m_SchemaName = "";
     @SuppressWarnings("unused")
-    private final String m_Description;
-    private final String m_Type;
+    private String m_Description = "";
+    private String m_Type = "";
     private static Map<String, Property> _getPropertySet()
     {
         short readonly = PropertyAttribute.READONLY;
@@ -97,7 +96,7 @@ public class TableBase
         m_Type = type;
         m_Description = description != null ? description : "";
         m_xColumns = new ColumnContainer(connection, catalog, schema, name);
-        m_xKeys = new KeyContainer<Key>(connection, catalog, schema, name);
+        m_xKeys = new KeyContainer(connection, this);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type + "\nDecription: " + m_Description);
     }
     public TableBase(String service,
@@ -117,7 +116,7 @@ public class TableBase
         m_Type = type;
         m_Description = description;
         m_xColumns = new ColumnContainer(connection, catalog, schema, name);
-        m_xKeys = new KeyContainer<Key>(connection, catalog, schema, name);
+        m_xKeys = new KeyContainer(connection, this);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
 
@@ -133,7 +132,7 @@ public class TableBase
         m_Type = table.getTableType().getTableType();
         m_Description = table.getRemarks();
         m_xColumns = new ColumnContainer(connection, table);
-        m_xKeys = new KeyContainer<Key>(connection, m_CatalogName, m_SchemaName, table.getName());
+        m_xKeys = new KeyContainer(connection, this);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
     public TableBase(String service,
@@ -149,7 +148,7 @@ public class TableBase
         m_Type = table.getTableType().getTableType();
         m_Description = table.getRemarks();
         m_xColumns = new ColumnContainer(connection, table);
-        m_xKeys = new KeyContainer<Key>(connection, m_CatalogName, m_SchemaName, table.getName());
+        m_xKeys = new KeyContainer(connection, this);
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
 
@@ -177,13 +176,6 @@ public class TableBase
     {
         // TODO Auto-generated method stub
         System.out.println("sdbcx.TableBase.alterColumnByName()");
-    }
-
-    @Override
-    public String getDropQuery(DriverProvider provider)
-    {
-        String type = this.getClass().getSimpleName();
-        return provider.getDropQuery(type, m_CatalogName, m_SchemaName, m_Name);
     }
 
 

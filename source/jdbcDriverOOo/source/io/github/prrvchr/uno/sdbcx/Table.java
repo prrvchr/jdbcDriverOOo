@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.SQLException;
-
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 public final class Table
@@ -50,7 +48,7 @@ public final class Table
     }
     public Table(ConnectionBase connection,
                  schemacrawler.schema.Table table)
-        throws SQLException
+        throws java.sql.SQLException
     {
         super(m_name, m_services, connection, table);
         System.out.println("sdbcx.Table.Table() : 1" );

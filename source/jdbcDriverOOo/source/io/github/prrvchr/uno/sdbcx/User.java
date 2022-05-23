@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.Map;
-
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
@@ -34,23 +32,18 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class User
-    extends ContainerElement
+    extends Item
     implements XUser
 {
 
     private static final String m_name = User.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.User"};
-    @SuppressWarnings("unused")
-    private final ConnectionBase m_Connection;
-    @SuppressWarnings("unused")
-    private Map<String, String> m_users;
 
     // The constructor method:
     public User(ConnectionBase connection,
                 String name)
     {
         super(m_name, m_services, connection, name);
-        m_Connection = connection;
     }
 
 

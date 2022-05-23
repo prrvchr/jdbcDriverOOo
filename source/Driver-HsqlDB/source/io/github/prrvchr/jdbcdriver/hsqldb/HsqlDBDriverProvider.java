@@ -26,7 +26,6 @@
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.sql.DriverManager;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +39,7 @@ import com.sun.star.uno.XComponentContext;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdb.ResultSet;
@@ -47,12 +47,11 @@ import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 public final class HsqlDBDriverProvider
+    extends DriverProviderMain
     implements DriverProvider
 {
 
     private static final String m_subProtocol = "hsqldb";
-    private static final boolean m_warnings = true;
-    private List<String> m_properties = List.of("user", "password");
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "1"),
                                                                   Map.entry("1", "1"),
                                                                   Map.entry("2", "1"),
@@ -83,36 +82,41 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public final boolean supportWarningsSupplier() {
-        return m_warnings;
-    }
-
-    @Override
     public String getUserQuery()
     {
         return "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
     }
 
     @Override
-    public String getDropQuery(String element,
-                               String catalog,
-                               String schema,
-                               String name)
+    public String getDropTableQuery(ConnectionBase connection,
+                                    String catalog,
+                                    String schema,
+                                    String table)
     {
-        String query = null;
-        switch (element) {
-            case "Table":
-                String sql = "DROP TABLE \"%s\".\"%s\" IF EXISTS;";
-                query = String.format(sql, schema, name);
-                break;
-            case "Column":
-                break;
-            case "View":
-                break;
-            case "User":
-                break;
-        }
-        return query;
+        String query = "DROP TABLE \"%s\".\"%s\" IF EXISTS;";
+        return String.format(query, schema, table);
+    }
+
+
+    @Override
+    public String getDropViewQuery(ConnectionBase connection,
+                                   String catalog,
+                                   String schema,
+                                   String view)
+    {
+        String query = "DROP VIEW \"%s\".\"%s\" IF EXISTS;";
+        return String.format(query, schema, view);
+    }
+
+    @Override
+    public String getCreateTableQuery(ConnectionBase connection,
+                                      String catalog,
+                                      String schema,
+                                      String table,
+                                      String columns)
+        throws java.sql.SQLException
+    {
+        return String.format("CREATE TABLE IF NOT EXISTS \"%s\".\"%s\" (%s);", schema, table, columns);
     }
 
     @Override

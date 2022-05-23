@@ -25,120 +25,89 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.sun.star.container.XIndexAccess;
-import com.sun.star.lang.IndexOutOfBoundsException;
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.uno.Type;
-import com.sun.star.util.XRefreshListener;
-import com.sun.star.util.XRefreshable;
+import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
-public class KeyContainer<T extends Key>
-    extends WeakBase
-    implements XIndexAccess,
-               XRefreshable
+public class KeyContainer
+    extends ContainerBase<Key>
 {
 
-    protected final ConnectionBase m_Connection;
-    private final List<Key> m_Elements = new ArrayList<Key>();
-    protected final String m_CatalogName;
-    protected final String m_SchemaName;
-    protected final String m_TableName;
-    private final Type m_type;
-
+    private final TableBase m_Table;
 
     // The constructor method:
-    public KeyContainer(ConnectionBase connection,
-                        String catalog,
-                        String schema,
-                        String table)
+    public KeyContainer(ConnectionBase connection)
     {
-        this(connection, catalog, schema, table, "com.sun.star.beans.XPropertySet");
+        super(connection);
+        m_Table = null;
     }
     public KeyContainer(ConnectionBase connection,
-                        String catalog,
-                        String schema,
-                        String table,
-                        String type)
+                        TableBase table)
     {
-        super();
-        m_Connection = connection;
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
-        m_TableName = table;
-        m_type = new Type(type);
+        super(connection);
+        m_Table = table;
         refresh();
-        System.out.println("sdbcx.KeyContainer() ************************************ : " + getCount());
-    }
-
-    // com.sun.star.container.XElementAccess:
-    @Override
-    public Type getElementType()
-    {
-        return m_type;
-    }
-
-    @Override
-    public boolean hasElements()
-    {
-        return !m_Elements.isEmpty();
     }
 
 
-    // com.sun.star.container.XIndexAccess:
-    @Override
-    public Object getByIndex(int index)
-        throws IndexOutOfBoundsException, WrappedTargetException
+    // com.sun.star.sdbcx.XDrop method of Container:
+    protected String _getDropQuery(Key key)
     {
-        if (index < getCount()) {
-            return m_Elements.get(index);
+        return null;
+    }
+
+
+    // com.sun.star.sdbcx.XAppend
+    @Override
+    public void appendByDescriptor(XPropertySet descriptor)
+        throws SQLException,
+               ElementExistException
+    {
+        System.out.println("sdbcx.KeyContainer.appendByDescriptor() 1 ***************************");
+        try {
+            Key key = new Key(m_Connection, descriptor, (String) descriptor.getPropertyValue("Name"));
+            m_Elements.add(key);
+            elementInserted(key);
+            System.out.println("sdbcx.KeyContainer.appendByDescriptor() 2");
+        } 
+        catch (java.sql.SQLException | UnknownPropertyException | WrappedTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        throw new IndexOutOfBoundsException();
-    }
-
-    @Override
-    public int getCount()
-    {
-        return m_Elements.size();
     }
 
 
     // com.sun.star.util.XRefreshable
     @Override
     public void refresh() {
-        try {
-            m_Elements.clear();
-            java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getPrimaryKeys(null, m_SchemaName, m_TableName);
-            while (result.next()) {
-                String column = result.getString(4);
-                String name = result.getString(6);
-                Key key = new Key(m_Connection, m_CatalogName, m_SchemaName, m_TableName, column, name, 1, "", 0, 0);
-                m_Elements.add(key);
+        if(m_Table != null) {
+            try {
+                m_Elements.clear();
+                java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getPrimaryKeys(null, m_Table.m_SchemaName, m_Table.m_Name);
+                while (result.next()) {
+                    String column = result.getString(4);
+                    String name = result.getString(6);
+                    Key key = new Key(m_Connection, m_Table.m_CatalogName, m_Table.m_SchemaName, m_Table.m_Name, column, name, 1, "", 0, 0);
+                    m_Elements.add(key);
+                }
+                result.close();
+            } catch (java.sql.SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
-            result.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
     }
+
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public void addRefreshListener(XRefreshListener listener)
-    {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.KeyContainer.addRefreshListener() ****************************************");
-    }
-    @Override
-    public void removeRefreshListener(XRefreshListener listener)
-    {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.KeyContainer.removeRefreshListener() ****************************************");
+    public XPropertySet createDataDescriptor() {
+        return new KeyDescriptor(m_Connection, m_Table);
     }
 
 
