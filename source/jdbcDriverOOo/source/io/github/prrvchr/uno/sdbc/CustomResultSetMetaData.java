@@ -54,17 +54,17 @@ public class CustomResultSetMetaData
     extends WeakBase
     implements XResultSetMetaData {
 
-    private CustomColumn[] columns;
+    private CustomColumn[] m_columns;
 
     public CustomResultSetMetaData(CustomColumn[] columns) {
-        this.columns = columns;
+        m_columns = columns;
     }
 
     private CustomColumn getColumn(int i) {
-        if (i < 1 || columns.length < i) {
+        if (i < 1 || m_columns.length < i) {
             return null;
         }
-        return columns[i-1];
+        return m_columns[i-1];
     }
 
     @Override
@@ -78,7 +78,7 @@ public class CustomResultSetMetaData
 
     @Override
     public int getColumnCount() throws SQLException {
-        return columns.length;
+        return m_columns.length;
     }
 
     @Override

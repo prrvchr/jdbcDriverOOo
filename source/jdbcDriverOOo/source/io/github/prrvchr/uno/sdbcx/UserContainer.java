@@ -29,17 +29,20 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class UserContainer
     extends ContainerSuper<User>
 {
 
+    private static final String m_name = UserContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+
     // The constructor method:
-    public UserContainer(ConnectionBase connection)
+    public UserContainer(Connection connection)
     {
-        super(connection);
+        super(m_name, m_services, connection);
         refresh();
     }
 
@@ -59,8 +62,6 @@ public class UserContainer
     }
 
 
-    // com.sun.star.util.XRefreshable
-    @Override
     public void refresh()
     {
         m_Names.clear();

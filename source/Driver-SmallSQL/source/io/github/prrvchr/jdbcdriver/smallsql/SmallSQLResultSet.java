@@ -25,7 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.smallsql;
 
-import com.sun.star.uno.XComponentContext;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -40,19 +40,19 @@ public class SmallSQLResultSet
 
 
     // The constructor method:
-    public SmallSQLResultSet(final XComponentContext ctx,
-                             final ConnectionBase connection,
+    public SmallSQLResultSet(final ConnectionBase connection,
                              final java.sql.ResultSet resultset)
+        throws SQLException
     {
-        super(ctx, m_name, m_services, connection, resultset);
+        super(m_name, m_services, connection, resultset, null);
         System.out.println("smallsql.SmallSQLResultSet() 1");
     }
-    public SmallSQLResultSet(final XComponentContext ctx,
-                             final ConnectionBase connection,
-                             final XInterface statement,
-                             final java.sql.ResultSet resultset)
+    public SmallSQLResultSet(final ConnectionBase connection,
+                             final java.sql.ResultSet resultset,
+                             final XInterface statement)
+        throws SQLException
     {
-        super(ctx, m_name, m_services, connection, statement, resultset);
+        super(m_name, m_services, connection, resultset, statement);
         System.out.println("smallsql.SmallSQLResultSet() 1");
     }
 

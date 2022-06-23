@@ -29,23 +29,28 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class ViewContainer
     extends ContainerSuper<View>
 {
 
+    private static final String m_name = ViewContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container",
+                                                "com.sun.star.sdbcx.Table"};
+
     // The constructor method:
-    public ViewContainer(ConnectionBase connection)
+    public ViewContainer(Connection connection)
     {
-        super(connection);
+        super(m_name, m_services, connection);
         refresh();
     }
 
 
     // com.sun.star.sdbcx.XDrop method of Container:
     protected String _getDropQuery(View view)
+        throws SQLException
     {
         return m_Connection.getProvider().getDropViewQuery(m_Connection, view.m_CatalogName, view.m_SchemaName, view.m_Name);
     }
@@ -60,8 +65,6 @@ public class ViewContainer
     }
 
 
-    // com.sun.star.util.XRefreshable
-    @Override
     public void refresh()
     {
         m_Names.clear();

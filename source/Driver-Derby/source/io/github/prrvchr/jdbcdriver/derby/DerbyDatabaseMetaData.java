@@ -26,7 +26,6 @@
 package io.github.prrvchr.jdbcdriver.derby;
 
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -38,21 +37,35 @@ public final class DerbyDatabaseMetaData
 {
 
     // The constructor method:
-    public DerbyDatabaseMetaData(final XComponentContext ctx,
-                                 final ConnectionBase connection)
+    public DerbyDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        super(ctx, connection);
-        System.out.println("derby.DatabaseMetaData() 1");
+        super(connection);
+        System.out.println("derby.DerbyDatabaseMetaData() 1");
+    }
+
+    @Override
+    public String getCatalogSeparator() throws SQLException
+    {
+        try {
+            System.out.println("derby.DerbyDatabaseMetaData.getCatalogSeparator() 1 ");
+            String value = m_Metadata.getCatalogSeparator();
+            System.out.println("derby.DerbyDatabaseMetaData.getCatalogSeparator() 2: '" + value + "'");
+            return ".";
+        }
+        catch (java.sql.SQLException e) {
+            System.out.println("derby.DerbyDatabaseMetaData.getCatalogSeparator() ERROR: " + e);
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     //@Override
-    public boolean supportsCatalogsInDataManipulation() throws SQLException
+    public boolean supportsCatalogsInDataManipulation1() throws SQLException
     {
         System.out.println("derby.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
         boolean value = false;
         try {
-            if (!m_Connection.isEnhanced()) {
+            if (m_Connection.isEnhanced()) {
                 value = m_Metadata.supportsSchemasInDataManipulation();
             }
         }
@@ -71,7 +84,7 @@ public final class DerbyDatabaseMetaData
         System.out.println("derby.DatabaseMetaData.supportsSchemasInDataManipulation() 1 : " + m_Connection.isEnhanced());
         boolean value = false;
         try {
-            if (!m_Connection.isEnhanced()) {
+            if (m_Connection.isEnhanced()) {
                 value = m_Metadata.supportsSchemasInDataManipulation();
             }
         }
@@ -98,7 +111,7 @@ public final class DerbyDatabaseMetaData
     }
 
     @Override
-    protected short _mapDatabaseDataType(short type)
+    protected int _mapDatabaseDataType(int type)
     {
         return type;
     }

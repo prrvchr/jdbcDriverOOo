@@ -25,8 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.XComponentContext;
 
 
 public final class CallableStatement
@@ -37,21 +37,22 @@ public final class CallableStatement
     private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
 
     // The constructor method:
-    public CallableStatement(XComponentContext context,
-                             ConnectionBase connection,
+    public CallableStatement(ConnectionBase connection,
                              String sql)
-    throws java.sql.SQLException
     {
-        super(context, m_name, m_services, connection, sql);
+        super(m_name, m_services, connection, sql);
         System.out.println("sdbc.CallableStatement() 1");
     }
 
 
-    protected XResultSet _getResultSet(XComponentContext ctx,
-                                       java.sql.ResultSet resultset)
-    throws java.sql.SQLException
+    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    throws SQLException
     {
-        return m_Connection.getProvider().getResultSet(ctx, m_Connection, this, resultset);
+        XResultSet resultset = null;
+        if (result != null) {
+            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this);
+        }
+        return resultset;
     }
 
 

@@ -95,12 +95,8 @@ public final class Driver
     {
         System.out.println("Driver.getDataDefinitionByConnection() 1");
         XTablesSupplier tables = null;
-        try {
-            System.out.println("Driver.getDataDefinitionByConnection() 2");
-            tables = (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
-        } catch (java.lang.Exception e) {
-            e.getStackTrace();
-        }
+        System.out.println("Driver.getDataDefinitionByConnection() 2");
+        tables = (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
         System.out.println("Driver.getDataDefinitionByConnection() 3");
         return tables;
     }
@@ -109,15 +105,12 @@ public final class Driver
     public XTablesSupplier getDataDefinitionByURL(String url, PropertyValue[] info)
     throws SQLException
     {
-        try {
-            System.out.println("Driver.getDataDefinitionByURL() 1");
-            XConnection connection = connect(url, info);
-            System.out.println("Driver.getDataDefinitionByURL() 2");
-            return getDataDefinitionByConnection(connection);
-        } catch (java.lang.Exception e) {
-            e.getStackTrace();
-        }
-        return null;
+        System.out.println("Driver.getDataDefinitionByURL() 1");
+        XTablesSupplier tables = null;
+        System.out.println("Driver.getDataDefinitionByURL() 2");
+        tables = getDataDefinitionByConnection(connect(url, info));
+        System.out.println("Driver.getDataDefinitionByURL() 3");
+        return tables;
     }
 
 

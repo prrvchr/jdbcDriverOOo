@@ -25,15 +25,12 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.sql.SQLException;
-
 import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.ColumnContainer;
 
 
@@ -45,24 +42,15 @@ public class CallableStatement
     private static final String m_name = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
                                                 "com.sun.star.sdbc.CallableStatement",
-                                                "com.sun.star.sdbcx.CallableStatement"};
+                                                "com.sun.star.sdb.PreparedStatement",
+                                                "com.sun.star.sdbc.PreparedStatement"};
 
     // The constructor method:
-    public CallableStatement(XComponentContext context,
-                             ConnectionBase connection,
+    public CallableStatement(Connection connection,
                              String sql)
-    throws SQLException
     {
-        super(context, m_name, m_services, connection, sql);
+        super(m_name, m_services, connection, sql);
         System.out.println("sdb.CallableStatement() 1");
-    }
-
-
-    protected XResultSet _getResultSet(XComponentContext ctx,
-                                       java.sql.ResultSet resultset)
-    throws java.sql.SQLException
-    {
-        return new ResultSet(ctx, m_Connection, this, resultset);
     }
 
 
@@ -72,14 +60,27 @@ public class CallableStatement
     {
         try
         {
-            java.sql.ResultSetMetaData metadata = _getStatement().getMetaData();
-            return new ColumnContainer(m_Connection, metadata);
+            System.out.println("sdb.CallableStatement.getColumns() ************************************");
+            java.sql.ResultSetMetaData metadata = _getPreparedStatement().getMetaData();
+            return new ColumnContainer<Column>((Connection) m_Connection, Column.class, metadata);
         }
         catch (java.sql.SQLException e)
         {
             // pass
         }
         return null;
+    }
+
+
+    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    throws SQLException
+    {
+        System.out.println("sdb.CallableStatement._getResultSet(): " + this.m_UseBookmarks);
+        XResultSet resultset = null;
+        if (result != null) {
+            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this, this.m_UseBookmarks);
+        }
+        return resultset;
     }
 
 

@@ -34,7 +34,6 @@ import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XResultSetMetaData;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -62,11 +61,10 @@ public final class SmallSQLDatabaseMetaData
                                                                    Map.entry(2014, 12));
 
     // The constructor method:
-    public SmallSQLDatabaseMetaData(final XComponentContext ctx,
-                                    final ConnectionBase connection)
+    public SmallSQLDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        super(ctx, connection);
+        super(connection);
         System.out.println("smallsql.SmallSQLDatabaseProvider() 1");
     }
 

@@ -25,15 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class KeyDescriptor
@@ -45,27 +46,87 @@ public class KeyDescriptor
     private static final String[] m_services = {"com.sun.star.sdbcx.KeyDescriptor",
                                                 "com.sun.star.sdbcx.Descriptor"};
     private XNameAccess m_xColumns = null;
-    protected int m_Type;
-    protected String m_ReferencedTable = "";
-    protected int m_UpdateRule;
-    protected int m_DeleteRule;
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_Type", UnoHelper.getProperty("Type", "long"));
-        map.put("m_ReferencedTable", UnoHelper.getProperty("ReferencedTable", "string"));
-        map.put("m_UpdateRule", UnoHelper.getProperty("UpdateRule", "long"));
-        map.put("m_DeleteRule", UnoHelper.getProperty("DeleteRule", "long"));
-        return map;
-    }
+    private int m_Type;
+    private String m_ReferencedTable = "";
+    private int m_UpdateRule;
+    private int m_DeleteRule;
+
 
     // The constructor method:
-    public KeyDescriptor(ConnectionBase connection,
-                         TableBase table)
+    public KeyDescriptor(Connection connection)
     {
-        super(m_name, m_services, connection, _getPropertySet());
-        m_xColumns = new ColumnContainer(connection, table);
+        super(m_name, m_services, connection);
+        m_xColumns = new KeyColumnContainer(connection);
+        registerProperties();
         System.out.println("sdbcx.KeyDescriptor() ***************************************************");
+    }
+    public KeyDescriptor(Connection connection,
+                         Key key)
+    {
+        super(m_name, m_services, connection);
+        m_Type = key.m_Type;
+        m_ReferencedTable = key.m_ReferencedTable;
+        m_UpdateRule = key.m_UpdateRule;
+        m_DeleteRule = key.m_DeleteRule;
+        m_xColumns = new KeyColumnContainer(connection, key.m_columns);
+        registerProperties();
+        System.out.println("sdbcx.KeyDescriptor() ***************************************************");
+    }
+
+
+    private void registerProperties() {
+        registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Type;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_Type = (int) value;
+                }
+            });
+        registerProperty(PropertyIds.REFERENCEDTABLE.name, PropertyIds.REFERENCEDTABLE.id, Type.STRING,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_ReferencedTable;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_ReferencedTable = (String) value;
+                }
+            });
+        registerProperty(PropertyIds.UPDATERULE.name, PropertyIds.UPDATERULE.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_UpdateRule;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_UpdateRule = (int) value;
+                }
+            });
+        registerProperty(PropertyIds.DELETERULE.name, PropertyIds.DELETERULE.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_DeleteRule;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_DeleteRule = (int) value;
+                }
+            });
     }
 
 

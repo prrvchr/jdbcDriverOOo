@@ -30,18 +30,17 @@ import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.XEnumerationAccess;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.XColumnsSupplier;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
-import io.github.prrvchr.uno.sdbcx.Column;
+import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 public interface DriverProvider
 {
@@ -58,45 +57,122 @@ public interface DriverProvider
 
     public String getUserQuery();
 
+    public String getTableIdentifier(ConnectionBase connection,
+                                     String catalog,
+                                     String schema,
+                                     String table,
+                                     String quote,
+                                     boolean mixed)
+        throws SQLException;
+
+    public String getColumnIdentifier(ConnectionBase connection,
+                                      String catalog,
+                                      String schema,
+                                      String table,
+                                      String column,
+                                      String quote,
+                                      boolean mixed)
+        throws SQLException;
+
+    public String getTableIdentifier(java.sql.DatabaseMetaData metadata,
+                                     String catalog,
+                                     String schema,
+                                     String table,
+                                     String quote,
+                                     boolean mixed)
+        throws java.sql.SQLException;
+
+
+    public String getColumnIdentifier(java.sql.DatabaseMetaData metadata,
+                                      String catalog,
+                                      String schema,
+                                      String table,
+                                      String column,
+                                      String quote,
+                                      boolean mixed)
+        throws java.sql.SQLException;
+
+    public String getQuotedIdentifier(String identifier,
+                                      String quote,
+                                      boolean mixed)
+        throws java.sql.SQLException;
+
     public String getDropTableQuery(ConnectionBase connection,
                                     String catalog,
                                     String schema,
-                                    String table);
+                                    String table)
+        throws SQLException;
 
     public String getDropViewQuery(ConnectionBase connection,
                                    String catalog,
                                    String schema,
-                                   String view);
+                                   String view)
+    throws SQLException;
 
     public String getDropColumnQuery(ConnectionBase connection,
-                                     Column column);
+                                     ColumnBase column);
 
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);
 
-    public String getCreateTableQuery(ConnectionBase connection,
-                                      String catalog,
-                                      String schema,
-                                      String table,
-                                      String elements)
-        throws java.sql.SQLException;
+    public String getAutoIncrementCreation();
+
+    public String[] getCreateTableQueries(ConnectionBase connection,
+                                          XPropertySet descriptor,
+                                          String catalog,
+                                          String schema,
+                                          String table)
+        throws SQLException;
 
 
-    public String getTableElementsQuery(ConnectionBase connection,
-                                              XNameAccess columns,
-                                              XIndexAccess keys)
-        throws java.sql.SQLException;
+    public String getCreateTableQuery(String identifier,
+                                      String elements);
 
-    public String getColumnQuery(ConnectionBase connection,
-                                 XPropertySet column)
-        throws java.sql.SQLException;
 
-    public String getKeyQuery(ConnectionBase connection,
-                              XIndexAccess keys)
-        throws java.sql.SQLException;
+    public String getTableCommentQuery(ConnectionBase connection,
+                                       String catalog,
+                                       String schema,
+                                       String table,
+                                       String description,
+                                       String quote,
+                                       boolean mixed)
+        throws SQLException;
 
-    public String getKeyColumnQuery(ConnectionBase connection,
-                                    XColumnsSupplier key)
+
+    public String getColumnCommentQuery(ConnectionBase connection,
+                                        String catalog,
+                                        String schema,
+                                        String table,
+                                        String column,
+                                        String description,
+                                        String quote,
+                                        boolean mixed)
+        throws SQLException;
+
+
+    public String[] getTableElementsQuery(ConnectionBase connection,
+                                          XNameAccess columns,
+                                          XIndexAccess keys,
+                                          String quote,
+                                          boolean mixed)
+        throws SQLException;
+
+    public String[] getColumnQuery(ConnectionBase connection,
+                                   XPropertySet column,
+                                   String quote,
+                                   boolean mixed)
+        throws SQLException;
+
+    public String[] getKeyQuery(ConnectionBase connection,
+                                XEnumerationAccess keys,
+                                String quote,
+                                boolean mixed)
+        throws SQLException;
+
+    public String[] getKeyColumnQuery(ConnectionBase connection,
+                                      XEnumerationAccess columns,
+                                      String quote,
+                                      boolean mixed)
         throws java.sql.SQLException;
 
     public boolean supportWarningsSupplier();
@@ -116,20 +192,23 @@ public interface DriverProvider
     public void setSystemProperties(String level)
         throws SQLException;
 
-    public DatabaseMetaDataBase getDatabaseMetaData(XComponentContext context,
-                                                    ConnectionBase connection)
+    public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
 
-    public ResultSetBase getResultSet(XComponentContext context,
-                                      ConnectionBase connection, 
+    public ResultSetBase getResultSet(ConnectionBase connection, 
                                       java.sql.ResultSet resultset)
-        throws java.sql.SQLException;
+        throws SQLException;
 
-    public ResultSetBase getResultSet(XComponentContext context,
-                                      ConnectionBase connection, 
+    public ResultSetBase getResultSet(ConnectionBase connection, 
+                                      java.sql.ResultSet resultset,
+                                      StatementMain statement)
+        throws SQLException;
+
+    public ResultSetBase getResultSet(ConnectionBase connection,
+                                      java.sql.ResultSet resultset,
                                       StatementMain statement,
-                                      java.sql.ResultSet resultset)
-        throws java.sql.SQLException;
+                                      boolean bookmark)
+        throws SQLException;
 
 
 }

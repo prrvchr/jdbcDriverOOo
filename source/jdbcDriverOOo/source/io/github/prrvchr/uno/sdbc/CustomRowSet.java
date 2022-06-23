@@ -66,9 +66,9 @@ import com.sun.star.util.Time;
 
 public class CustomRowSet{
 
-    private Object value;
-    private int typeKind;
-    private int flags;
+    private Object m_value;
+    private int m_type;
+    private int m_flags;
     private static final int FLAG_NULL = 0b1000;
     private static final int FLAG_BOUND = 0b0100;
     private static final int FLAG_MODIFIED = 0b0010;
@@ -77,8 +77,8 @@ public class CustomRowSet{
     // The constructor method:
     public CustomRowSet()
     {
-        flags = FLAG_NULL | FLAG_BOUND | FLAG_SIGNED;
-        typeKind = DataType.VARCHAR;
+        m_flags = FLAG_NULL | FLAG_BOUND | FLAG_SIGNED;
+        m_type = DataType.VARCHAR;
     }
     public CustomRowSet(boolean value) {
         this();
@@ -90,7 +90,7 @@ public class CustomRowSet{
             setDate(value);
         else {
             setNull();
-            typeKind = DataType.DATE;
+            m_type = DataType.DATE;
         }
     }
     public CustomRowSet(DateTime value) {
@@ -99,7 +99,7 @@ public class CustomRowSet{
             setDateTime(value);
         else {
             setNull();
-            typeKind = DataType.TIMESTAMP;
+            m_type = DataType.TIMESTAMP;
         }
     }
     public CustomRowSet(double value) {
@@ -136,7 +136,7 @@ public class CustomRowSet{
             setString(value);
         else {
             setNull();
-            typeKind = DataType.VARCHAR;
+            m_type = DataType.VARCHAR;
         }
 
     }
@@ -146,41 +146,41 @@ public class CustomRowSet{
             setTime(value);
         else {
             setNull();
-            typeKind = DataType.TIME;
+            m_type = DataType.TIME;
         }
     }
 
     public boolean isNull() {
-        return (flags & FLAG_NULL) != 0;
+        return (m_flags & FLAG_NULL) != 0;
     }
   
     public void setNull() {
         free();
-        flags |= FLAG_NULL;
+        m_flags |= FLAG_NULL;
     }
   
     public boolean isBound() {
-        return (flags & FLAG_BOUND) != 0;
+        return (m_flags & FLAG_BOUND) != 0;
     }
   
     public void setBound(boolean isBound) {
         if (isBound) {
-            flags |= FLAG_BOUND;
+            m_flags |= FLAG_BOUND;
         } else {
-            flags &= ~FLAG_BOUND;
+            m_flags &= ~FLAG_BOUND;
         }
     }
   
     public boolean isModified() {
-        return (flags & FLAG_MODIFIED) != 0;
+        return (m_flags & FLAG_MODIFIED) != 0;
     }
   
     public void setModified(boolean isModified) {
-        flags |= FLAG_MODIFIED;
+        m_flags |= FLAG_MODIFIED;
     }
   
     public boolean isSigned() {
-        return (flags & FLAG_SIGNED) != 0;
+        return (m_flags & FLAG_SIGNED) != 0;
     }
 
     public void setSigned() throws IOException, SQLException {
@@ -189,9 +189,9 @@ public class CustomRowSet{
 
     public void setSigned(boolean isSigned) {
         if (isSigned) {
-            flags |= FLAG_SIGNED;
+            m_flags |= FLAG_SIGNED;
         } else {
-            flags &= ~FLAG_SIGNED;
+            m_flags &= ~FLAG_SIGNED;
         }
     }
 
@@ -258,11 +258,11 @@ public class CustomRowSet{
     }
   
     public int getTypeKind() {
-        return typeKind;
+        return m_type;
     }
   
     public void setTypeKind(int type) throws SQLException {
-        if (!isNull() && !isStorageCompatible(type, typeKind)) {
+        if (!isNull() && !isStorageCompatible(type, m_type)) {
             switch (type) {
             case DataType.VARCHAR:
             case DataType.CHAR:
@@ -320,13 +320,13 @@ public class CustomRowSet{
                 //OSL_ENSURE(0,"RowSetValue:operator==(): UNSPUPPORTED TYPE!");
             }
         }
-        typeKind = type;
+        m_type = type;
     }
 
     private void free() {
         if (!isNull()) {
-            value = null;
-            flags |= FLAG_NULL;
+            m_value = null;
+            m_flags |= FLAG_NULL;
         }
     }
 
@@ -504,7 +504,7 @@ public class CustomRowSet{
     }
 
     public Object getAny() {
-        return value;
+        return m_value;
     }
 
     public boolean getBoolean() {
@@ -514,25 +514,25 @@ public class CustomRowSet{
             case DataType.CHAR:
             case DataType.VARCHAR:
             case DataType.LONGVARCHAR:
-                if (((String)value).equals("true")) {
+                if (((String)m_value).equals("true")) {
                     bRet = true;
-                } else if (((String)value).equals("false")) {
+                } else if (((String)m_value).equals("false")) {
                     bRet = false;
                 }
                 // fall through
             case DataType.DECIMAL:
             case DataType.NUMERIC:
-                bRet = CustomRowTypeConversion.safeParseInt((String)value) != 0;
+                bRet = CustomRowTypeConversion.safeParseInt((String)m_value) != 0;
                 break;
             case DataType.BIGINT:
-                bRet = (long)value != 0;
+                bRet = (long)m_value != 0;
                 break;
             case DataType.FLOAT:
-                bRet = (float)value != 0.0;
+                bRet = (float)m_value != 0.0;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                bRet = (double)value != 0.0;
+                bRet = (double)m_value != 0.0;
                 break;
             case DataType.DATE:
             case DataType.TIME:
@@ -543,20 +543,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                bRet = (boolean)value;
+                bRet = (boolean)m_value;
                 break;
             case DataType.TINYINT:
-                bRet = (byte)value != 0;
+                bRet = (byte)m_value != 0;
                 break;
             case DataType.SMALLINT:
-                bRet = (short)value != 0;
+                bRet = (short)m_value != 0;
                 break;
             case DataType.INTEGER:
-                bRet = (int)value != 0;
+                bRet = (int)m_value != 0;
                 break;
             default:
                 try {
-                    bRet = AnyConverter.toBoolean(value);
+                    bRet = AnyConverter.toBoolean(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -582,13 +582,13 @@ public class CustomRowSet{
                 aValue = CustomRowTypeConversion.toDate(getDouble());
                 break;
             case DataType.DATE:
-                Date date    = (Date)value;
+                Date date    = (Date)m_value;
                 aValue.Day   = date.Day;
                 aValue.Month = date.Month;
                 aValue.Year  = date.Year;
                 break;
             case DataType.TIMESTAMP:
-                DateTime dateTime = (DateTime)value;
+                DateTime dateTime = (DateTime)m_value;
                 aValue.Day        = dateTime.Day;
                 aValue.Month      = dateTime.Month;
                 aValue.Year       = dateTime.Year;
@@ -638,20 +638,20 @@ public class CustomRowSet{
                 aValue = CustomRowTypeConversion.toDateTime(getDouble());
                 break;
             case DataType.DATE:
-                Date date       = (Date)value;
+                Date date       = (Date)m_value;
                 aValue.Day      = date.Day;
                 aValue.Month    = date.Month;
                 aValue.Year     = date.Year;
                 break;
             case DataType.TIME:
-                Time time               = (Time)value;
+                Time time               = (Time)m_value;
                 aValue.NanoSeconds      = time.NanoSeconds;
                 aValue.Seconds          = time.Seconds;
                 aValue.Minutes          = time.Minutes;
                 aValue.Hours            = time.Hours;
                 break;
             case DataType.TIMESTAMP:
-                DateTime dateTime       = (DateTime)value;
+                DateTime dateTime       = (DateTime)m_value;
                 aValue.Year             = dateTime.Year;
                 aValue.Month            = dateTime.Month;
                 aValue.Day              = dateTime.Day;
@@ -662,7 +662,7 @@ public class CustomRowSet{
                 break;
             default:
                 try {
-                    DateTime any            = (DateTime) AnyConverter.toObject(DateTime.class, value);
+                    DateTime any            = (DateTime) AnyConverter.toObject(DateTime.class, m_value);
                     aValue.Year             = any.Year;
                     aValue.Month            = any.Month;
                     aValue.Day              = any.Day;
@@ -688,26 +688,26 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                nRet = CustomRowTypeConversion.safeParseDouble((String)value);
+                nRet = CustomRowTypeConversion.safeParseDouble((String)m_value);
                 break;
             case DataType.BIGINT:
-                nRet = isSigned() ? (long)value : CustomRowTypeConversion.unsignedLongToDouble((long)value);
+                nRet = isSigned() ? (long)m_value : CustomRowTypeConversion.unsignedLongToDouble((long)m_value);
                 break;
             case DataType.FLOAT:
-                nRet = (float)value;
+                nRet = (float)m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                nRet = (double)value;
+                nRet = (double)m_value;
                 break;
             case DataType.DATE:
-                nRet = CustomRowTypeConversion.toDouble((Date)value);
+                nRet = CustomRowTypeConversion.toDouble((Date)m_value);
                 break;
             case DataType.TIME:
-                nRet = CustomRowTypeConversion.toDouble((Time)value);
+                nRet = CustomRowTypeConversion.toDouble((Time)m_value);
                 break;
             case DataType.TIMESTAMP:
-                nRet = CustomRowTypeConversion.toDouble((DateTime)value);
+                nRet = CustomRowTypeConversion.toDouble((DateTime)m_value);
                 break;
             case DataType.BINARY:
             case DataType.VARBINARY:
@@ -718,20 +718,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                nRet = (boolean)value ? 1 : 0;
+                nRet = (boolean)m_value ? 1 : 0;
                 break;
             case DataType.TINYINT:
-                nRet = isSigned() ? (byte)value : 0xff & (byte)value;
+                nRet = isSigned() ? (byte)m_value : 0xff & (byte)m_value;
                 break;
             case DataType.SMALLINT:
-                nRet = isSigned() ? (short)value : 0xffff & (short)value;
+                nRet = isSigned() ? (short)m_value : 0xffff & (short)m_value;
                 break;
             case DataType.INTEGER:
-                nRet = isSigned() ? (int)value : 0xffffFFFFL & (int)value;
+                nRet = isSigned() ? (int)m_value : 0xffffFFFFL & (int)m_value;
                 break;
             default:
                 try {
-                    nRet = AnyConverter.toDouble(value);
+                    nRet = AnyConverter.toDouble(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -749,26 +749,26 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                nRet = CustomRowTypeConversion.safeParseFloat((String)value);
+                nRet = CustomRowTypeConversion.safeParseFloat((String)m_value);
                 break;
             case DataType.BIGINT:
-                nRet = isSigned() ? (long)value : CustomRowTypeConversion.unsignedLongToFloat((long)value);
+                nRet = isSigned() ? (long)m_value : CustomRowTypeConversion.unsignedLongToFloat((long)m_value);
                 break;
             case DataType.FLOAT:
-                nRet = (float)value;
+                nRet = (float)m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                nRet = (float)(double)value;
+                nRet = (float)(double)m_value;
                 break;
             case DataType.DATE:
-                nRet = (float)CustomRowTypeConversion.toDouble((Date)value);
+                nRet = (float)CustomRowTypeConversion.toDouble((Date)m_value);
                 break;
             case DataType.TIME:
-                nRet = (float)CustomRowTypeConversion.toDouble((Time)value);
+                nRet = (float)CustomRowTypeConversion.toDouble((Time)m_value);
                 break;
             case DataType.TIMESTAMP:
-                nRet = (float)CustomRowTypeConversion.toDouble((DateTime)value);
+                nRet = (float)CustomRowTypeConversion.toDouble((DateTime)m_value);
                 break;
             case DataType.BINARY:
             case DataType.VARBINARY:
@@ -779,20 +779,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                nRet = (boolean)value ? 1 : 0;
+                nRet = (boolean)m_value ? 1 : 0;
                 break;
             case DataType.TINYINT:
-                nRet = isSigned() ? (byte)value : 0xff & (byte)value;
+                nRet = isSigned() ? (byte)m_value : 0xff & (byte)m_value;
                 break;
             case DataType.SMALLINT:
-                nRet = isSigned() ? (short)value : 0xffff & (short)value;
+                nRet = isSigned() ? (short)m_value : 0xffff & (short)m_value;
                 break;
             case DataType.INTEGER:
-                nRet = isSigned() ? (int)value : 0xffffFFFFL & (int)value;
+                nRet = isSigned() ? (int)m_value : 0xffffFFFFL & (int)m_value;
                 break;
             default:
                 try {
-                    nRet = AnyConverter.toFloat(value);
+                    nRet = AnyConverter.toFloat(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -810,17 +810,17 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                nRet = (byte)CustomRowTypeConversion.safeParseInt((String)value);
+                nRet = (byte)CustomRowTypeConversion.safeParseInt((String)m_value);
                 break;
             case DataType.BIGINT:
-                nRet = (byte)(long)value;
+                nRet = (byte)(long)m_value;
                 break;
             case DataType.FLOAT:
-                nRet = (byte)(float)value;
+                nRet = (byte)(float)m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                nRet = (byte)(double)value;
+                nRet = (byte)(double)m_value;
                 break;
             case DataType.DATE:
             case DataType.TIME:
@@ -833,20 +833,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                nRet = (byte)((boolean)value ? 1 : 0);
+                nRet = (byte)((boolean)m_value ? 1 : 0);
                 break;
             case DataType.TINYINT:
-                nRet = (byte)value;
+                nRet = (byte)m_value;
                 break;
             case DataType.SMALLINT:
-                nRet = (byte)(short)value;
+                nRet = (byte)(short)m_value;
                 break;
             case DataType.INTEGER:
-                nRet = (byte)(int)value;
+                nRet = (byte)(int)m_value;
                 break;
             default:
                 try {
-                    nRet = AnyConverter.toByte(value);
+                    nRet = AnyConverter.toByte(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -864,17 +864,17 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                nRet = (short)CustomRowTypeConversion.safeParseInt((String)value);
+                nRet = (short)CustomRowTypeConversion.safeParseInt((String)m_value);
                 break;
             case DataType.BIGINT:
-                nRet = (short)(long)value;
+                nRet = (short)(long)m_value;
                 break;
             case DataType.FLOAT:
-                nRet = (short)(float)value;
+                nRet = (short)(float)m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                nRet = (short)(double)value;
+                nRet = (short)(double)m_value;
                 break;
             case DataType.DATE:
             case DataType.TIME:
@@ -887,20 +887,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                nRet = (short)((boolean)value ? 1 : 0);
+                nRet = (short)((boolean)m_value ? 1 : 0);
                 break;
             case DataType.TINYINT:
-                nRet = (short)(isSigned() ? (byte)value : 0xff & (byte)value);
+                nRet = (short)(isSigned() ? (byte)m_value : 0xff & (byte)m_value);
                 break;
             case DataType.SMALLINT:
-                nRet = (short)value;
+                nRet = (short)m_value;
                 break;
             case DataType.INTEGER:
-                nRet = (short)(int)value;
+                nRet = (short)(int)m_value;
                 break;
             default:
                 try {
-                    nRet = AnyConverter.toShort(value);
+                    nRet = AnyConverter.toShort(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -918,20 +918,20 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                nRet = CustomRowTypeConversion.safeParseInt((String)value);
+                nRet = CustomRowTypeConversion.safeParseInt((String)m_value);
                 break;
             case DataType.BIGINT:
-                nRet = (int)(long)value;
+                nRet = (int)(long)m_value;
                 break;
             case DataType.FLOAT:
-                nRet = (int)(float)value;
+                nRet = (int)(float)m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                nRet = (int)(double)value;
+                nRet = (int)(double)m_value;
                 break;
             case DataType.DATE:
-                nRet = CustomRowTypeConversion.toDays((Date)value);
+                nRet = CustomRowTypeConversion.toDays((Date)m_value);
                 break;
             case DataType.TIME:
             case DataType.TIMESTAMP:
@@ -943,20 +943,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                nRet = (boolean)value ? 1 : 0;
+                nRet = (boolean)m_value ? 1 : 0;
                 break;
             case DataType.TINYINT:
-                nRet = isSigned() ? (byte)value : 0xff & (byte)value;
+                nRet = isSigned() ? (byte)m_value : 0xff & (byte)m_value;
                 break;
             case DataType.SMALLINT:
-                nRet = isSigned() ? (short)value : 0xffff & (short)value;
+                nRet = isSigned() ? (short)m_value : 0xffff & (short)m_value;
                 break;
             case DataType.INTEGER:
-                nRet = (int)value;
+                nRet = (int)m_value;
                 break;
             default:
                 try {
-                    nRet = AnyConverter.toInt(value);
+                    nRet = AnyConverter.toInt(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -974,20 +974,20 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                nRet = CustomRowTypeConversion.safeParseLong((String)value);
+                nRet = CustomRowTypeConversion.safeParseLong((String)m_value);
                 break;
             case DataType.BIGINT:
-                nRet = (long)value;
+                nRet = (long)m_value;
                 break;
             case DataType.FLOAT:
-                nRet = (long)(float)value;
+                nRet = (long)(float)m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                nRet = (long)(double)value;
+                nRet = (long)(double)m_value;
                 break;
             case DataType.DATE:
-                nRet = CustomRowTypeConversion.toDays((Date)value);
+                nRet = CustomRowTypeConversion.toDays((Date)m_value);
                 break;
             case DataType.TIME:
             case DataType.TIMESTAMP:
@@ -999,20 +999,20 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                nRet = (boolean)value ? 1 : 0;
+                nRet = (boolean)m_value ? 1 : 0;
                 break;
             case DataType.TINYINT:
-                nRet = isSigned() ? (byte)value : 0xff & (byte)value;
+                nRet = isSigned() ? (byte)m_value : 0xff & (byte)m_value;
                 break;
             case DataType.SMALLINT:
-                nRet = isSigned() ? (short)value : 0xffff & (short)value;
+                nRet = isSigned() ? (short)m_value : 0xffff & (short)m_value;
                 break;
             case DataType.INTEGER:
-                nRet = isSigned() ? (int)value : 0xffffFFFFL & (int)value;
+                nRet = isSigned() ? (int)m_value : 0xffffFFFFL & (int)m_value;
                 break;
             default:
                 try {
-                    nRet = AnyConverter.toInt(value);
+                    nRet = AnyConverter.toInt(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -1029,12 +1029,12 @@ public class CustomRowSet{
             case DataType.CLOB:
             case DataType.BLOB:
                 XInputStream xStream = null;
-                if (value != null) {
-                    XBlob blob = UnoRuntime.queryInterface(XBlob.class, value);
+                if (m_value != null) {
+                    XBlob blob = UnoRuntime.queryInterface(XBlob.class, m_value);
                     if (blob != null) {
                         xStream = blob.getBinaryStream();
                     } else {
-                        XClob clob = UnoRuntime.queryInterface(XClob.class, value);
+                        XClob clob = UnoRuntime.queryInterface(XClob.class, m_value);
                         if (clob != null) {
                             xStream = clob.getCharacterStream();
                         }
@@ -1063,18 +1063,18 @@ public class CustomRowSet{
             case DataType.VARCHAR:
             case DataType.LONGVARCHAR:
                 try {
-                    aSeq = ((String)value).getBytes("UTF-16");
+                    aSeq = ((String)m_value).getBytes("UTF-16");
                 } catch (UnsupportedEncodingException unsupportedEncodingException) {
                 }
                 break;
             case DataType.BINARY:
             case DataType.VARBINARY:
             case DataType.LONGVARBINARY:
-                aSeq = ((byte[])value).clone();
+                aSeq = ((byte[])m_value).clone();
                 break;
             default:
                 try {
-                    aSeq = ((byte[])AnyConverter.toArray(value)).clone();
+                    aSeq = ((byte[])AnyConverter.toArray(m_value)).clone();
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 } catch (ClassCastException classCastException) {
                 }
@@ -1093,26 +1093,26 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                aRet = (String)value;
+                aRet = (String)m_value;
                 break;
             case DataType.BIGINT:
-                aRet = isSigned() ? Long.toString((long)value) : CustomRowTypeConversion.toUnsignedString((long)value);
+                aRet = isSigned() ? Long.toString((long)m_value) : CustomRowTypeConversion.toUnsignedString((long)m_value);
                 break;
             case DataType.FLOAT:
-                aRet = ((Float)value).toString();
+                aRet = ((Float)m_value).toString();
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                aRet = ((Double)value).toString();
+                aRet = ((Double)m_value).toString();
                 break;
             case DataType.DATE:
-                aRet = CustomRowTypeConversion.toDateString((Date)value);
+                aRet = CustomRowTypeConversion.toDateString((Date)m_value);
                 break;
             case DataType.TIME:
-                aRet = CustomRowTypeConversion.toTimeString((Time)value);
+                aRet = CustomRowTypeConversion.toTimeString((Time)m_value);
                 break;
             case DataType.TIMESTAMP:
-                aRet = CustomRowTypeConversion.toDateTimeString((DateTime)value);
+                aRet = CustomRowTypeConversion.toDateTimeString((DateTime)m_value);
                 break;
             case DataType.BINARY:
             case DataType.VARBINARY:
@@ -1128,21 +1128,21 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                aRet = ((Boolean)value).toString();
+                aRet = ((Boolean)m_value).toString();
                 break;
             case DataType.TINYINT:
-                aRet = isSigned() ? Integer.toString((byte)value) : CustomRowTypeConversion.toUnsignedString(0xff & (byte)value);
+                aRet = isSigned() ? Integer.toString((byte)m_value) : CustomRowTypeConversion.toUnsignedString(0xff & (byte)m_value);
                 break;
             case DataType.SMALLINT:
-                aRet = isSigned() ? Integer.toString((short)value) : CustomRowTypeConversion.toUnsignedString(0xffff & (short)value); 
+                aRet = isSigned() ? Integer.toString((short)m_value) : CustomRowTypeConversion.toUnsignedString(0xffff & (short)m_value); 
                 break;
             case DataType.INTEGER:
-                aRet = isSigned() ? Integer.toString((int)value) : CustomRowTypeConversion.toUnsignedString((int)value);
+                aRet = isSigned() ? Integer.toString((int)m_value) : CustomRowTypeConversion.toUnsignedString((int)m_value);
                 break;
             case DataType.CLOB:
-                if (AnyConverter.isObject(value)) {
+                if (AnyConverter.isObject(m_value)) {
                     try {
-                        XClob clob = (XClob) AnyConverter.toObject(XClob.class, value);
+                        XClob clob = (XClob) AnyConverter.toObject(XClob.class, m_value);
                         if (clob != null) {
                             aRet = clob.getSubString(1, (int)clob.length());
                         }
@@ -1153,7 +1153,7 @@ public class CustomRowSet{
                 break;
             default:
                 try {
-                    aRet = AnyConverter.toString(value);
+                    aRet = AnyConverter.toString(m_value);
                 } catch (com.sun.star.lang.IllegalArgumentException e) {
                 }
                 break;
@@ -1181,14 +1181,14 @@ public class CustomRowSet{
                     aValue = CustomRowTypeConversion.toTime(getDouble());
                     break;
                 case DataType.TIMESTAMP:
-                    DateTime pDateTime      = (DateTime)value;
+                    DateTime pDateTime      = (DateTime)m_value;
                     aValue.NanoSeconds      = pDateTime.NanoSeconds;
                     aValue.Seconds          = pDateTime.Seconds;
                     aValue.Minutes          = pDateTime.Minutes;
                     aValue.Hours            = pDateTime.Hours;
                     break;
                 case DataType.TIME:
-                    Time time               = (Time)value;
+                    Time time               = (Time)m_value;
                     aValue.Hours            = time.Hours;
                     aValue.Minutes          = time.Minutes;
                     aValue.Seconds          = time.Seconds;
@@ -1196,7 +1196,7 @@ public class CustomRowSet{
                     break;
                 default:
                     try {
-                        aValue = (Time) AnyConverter.toObject(Time.class, value);
+                        aValue = (Time) AnyConverter.toObject(Time.class, m_value);
                     } catch (com.sun.star.lang.IllegalArgumentException e) {
                     } catch (ClassCastException classCastException) {
                     }
@@ -1207,82 +1207,82 @@ public class CustomRowSet{
     }
 
     public void setAny(Object value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.OBJECT;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.OBJECT;
     }
 
     public void setBoolean(boolean value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.BIT;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.BIT;
     }
 
     public void setDate(Date date) {
-        flags &= ~FLAG_NULL;
-        this.value = new Date(date.Day, date.Month, date.Year);
-        typeKind = DataType.DATE;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = new Date(date.Day, date.Month, date.Year);
+        m_type = DataType.DATE;
     }
 
     public void setDateTime(DateTime value) {
-        flags &= ~FLAG_NULL;
-        this.value = new DateTime(value.NanoSeconds, value.Seconds, value.Minutes, value.Hours,
+        m_flags &= ~FLAG_NULL;
+        this.m_value = new DateTime(value.NanoSeconds, value.Seconds, value.Minutes, value.Hours,
                                   value.Day, value.Month, value.Year, false);
-        typeKind = DataType.TIMESTAMP;
+        m_type = DataType.TIMESTAMP;
     }
 
     public void setDouble(double value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.DOUBLE;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.DOUBLE;
     }
 
     public void setFloat(float value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.FLOAT;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.FLOAT;
     }
   
     public void setInt8(byte value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.TINYINT;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.TINYINT;
     }
   
     public void setInt16(short value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.SMALLINT;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.SMALLINT;
     }
   
     public void setInt32(int value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.INTEGER;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.INTEGER;
     }
 
     public void setLong(long value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.BIGINT;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.BIGINT;
     }
 
     public void setSequence(byte[] value) {
-        flags &= ~FLAG_NULL;
-        this.value = value.clone();
-        typeKind = DataType.LONGVARBINARY;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value.clone();
+        m_type = DataType.LONGVARBINARY;
     }
 
     public void setString(String value) {
-        flags &= ~FLAG_NULL;
-        this.value = value;
-        typeKind = DataType.VARCHAR;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = value;
+        m_type = DataType.VARCHAR;
     }
   
     public void setTime(Time value) {
-        flags &= ~FLAG_NULL;
-        this.value = new Time(value.NanoSeconds, value.Seconds, value.Minutes, value.Hours, false);
-        typeKind = DataType.TIME;
+        m_flags &= ~FLAG_NULL;
+        this.m_value = new Time(value.NanoSeconds, value.Seconds, value.Minutes, value.Hours, false);
+        m_type = DataType.TIME;
     }
 
     public Object makeAny() {
@@ -1294,20 +1294,20 @@ public class CustomRowSet{
             case DataType.DECIMAL:
             case DataType.NUMERIC:
             case DataType.LONGVARCHAR:
-                rValue = value;
+                rValue = m_value;
                 break;
             case DataType.BIGINT:
-                rValue = value;
+                rValue = m_value;
                 break;
             case DataType.FLOAT:
-                rValue = value;
+                rValue = m_value;
                 break;
             case DataType.DOUBLE:
             case DataType.REAL:
-                rValue = value;
+                rValue = m_value;
                 break;
             case DataType.DATE:
-                Date date = (Date)value;
+                Date date = (Date)m_value;
                 Date dateOut = new Date();
                 dateOut.Day = date.Day;
                 dateOut.Month = date.Month;
@@ -1315,7 +1315,7 @@ public class CustomRowSet{
                 rValue = dateOut;
                 break;
             case DataType.TIME:
-                Time time = (Time)value;
+                Time time = (Time)m_value;
                 Time timeOut = new Time();
                 timeOut.Hours = time.Hours;
                 timeOut.Minutes = time.Minutes;
@@ -1324,7 +1324,7 @@ public class CustomRowSet{
                 rValue = timeOut;
                 break;
             case DataType.TIMESTAMP:
-                DateTime dateTime = (DateTime)value;
+                DateTime dateTime = (DateTime)m_value;
                 DateTime dateTimeOut = new DateTime(dateTime.NanoSeconds, dateTime.Seconds, dateTime.Minutes, dateTime.Hours,
                                                     dateTime.Day, dateTime.Month, dateTime.Year, false);
                 rValue = dateTimeOut;
@@ -1332,7 +1332,7 @@ public class CustomRowSet{
             case DataType.BINARY:
             case DataType.VARBINARY:
             case DataType.LONGVARBINARY:
-                rValue = ((byte[])value).clone();
+                rValue = ((byte[])m_value).clone();
                 break;
             case DataType.BLOB:
             case DataType.CLOB:
@@ -1342,16 +1342,16 @@ public class CustomRowSet{
                 break;
             case DataType.BIT:
             case DataType.BOOLEAN:
-                rValue = (boolean)value;
+                rValue = (boolean)m_value;
                 break;
             case DataType.TINYINT:
-                rValue = (byte)value;
+                rValue = (byte)m_value;
                 break;
             case DataType.SMALLINT:
-                rValue = (short)value;
+                rValue = (short)m_value;
                 break;
             case DataType.INTEGER:
-                rValue = (int)value;
+                rValue = (int)m_value;
                 break;
             default:
                 rValue = getAny();

@@ -25,131 +25,160 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterTable;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.sdbcx.XIndexesSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
+import com.sun.star.uno.Type;
+import com.sun.star.uno.UnoRuntime;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
-public class TableBase
+public abstract class TableBase<T extends ColumnSuper>
     extends Item
     implements XColumnsSupplier,
-               XIndexesSupplier,
+                XIndexesSupplier,
                XKeysSupplier,
                XAlterTable,
                XDataDescriptorFactory
 {
 
-    private XNameAccess m_xColumns = null;
-    private XIndexAccess m_xKeys = null;
+    private ColumnContainer<T> m_columns = null;
+    protected KeyContainer m_keys = null;
+    protected IndexContainer m_indexes = null;
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
-    @SuppressWarnings("unused")
-    private String m_Description = "";
-    private String m_Type = "";
-    private static Map<String, Property> _getPropertySet()
-    {
-        short readonly = PropertyAttribute.READONLY;
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_CatalogName", UnoHelper.getProperty("CatalogName", "string", readonly));
-        map.put("m_SchemaName", UnoHelper.getProperty("SchemaName", "string", readonly));
-        map.put("m_Description", UnoHelper.getProperty("Description", "string", readonly));
-        map.put("m_Type", UnoHelper.getProperty("Type", "string", readonly));
-        return map;
-    }
-    private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
-    {
-        Map<String, Property> map = _getPropertySet();
-        map.putAll(properties);
-        return map;
-    }
+    protected String m_Description = "";
+    protected String m_Type = "";
 
     // The constructor method:
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.Table()
+    // XXX: - io.github.prrvchr.uno.sdb.Table()
     public TableBase(String service,
                      String[] services,
-                     ConnectionBase connection,
+                     Connection connection,
+                     Class<T> column,
+                     XPropertySet descriptor,
+                     String name)
+    throws java.sql.SQLException
+    {
+        super(service, services, connection, name);
+        try {
+            m_CatalogName = (String) descriptor.getPropertyValue("CatalogName");
+            m_SchemaName = (String) descriptor.getPropertyValue("SchemaName");
+            m_Type = (String) descriptor.getPropertyValue("Type");
+            m_Description = (String) descriptor.getPropertyValue("Description");
+            XColumnsSupplier columns = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+            m_columns = new ColumnContainer<T>(connection, column, columns.getColumns());
+            XKeysSupplier keys = (XKeysSupplier) UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
+            m_keys = new KeyContainer(connection, keys.getKeys(), this);
+            XIndexesSupplier indexes = (XIndexesSupplier) UnoRuntime.queryInterface(XIndexesSupplier.class, descriptor);
+            m_indexes = new IndexContainer(connection, indexes.getIndexes());
+            registerProperties();
+        }
+        catch (UnknownPropertyException | WrappedTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type + "\nDecription: " + m_Description);
+    }
+
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.Table()
+    // XXX: - io.github.prrvchr.uno.sdb.Table()
+    public TableBase(String service,
+                     String[] services,
+                     Connection connection,
+                     Class<T> column,
                      String catalog,
                      String schema,
                      String name,
                      String type,
                      String description)
-    throws java.sql.SQLException
+        throws java.sql.SQLException
     {
-        super(service, services, connection, _getPropertySet(), name);
+        super(service, services, connection, name);
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Type = type;
         m_Description = description != null ? description : "";
-        m_xColumns = new ColumnContainer(connection, catalog, schema, name);
-        m_xKeys = new KeyContainer(connection, this);
+        System.out.println("sdbcx.TableBase.TableBase() Columns:");
+        m_columns = new ColumnContainer<T>(connection, column, this);
+        System.out.println("sdbcx.TableBase.TableBase() Keys:");
+        m_keys = new KeyContainer(connection, this);
+        System.out.println("sdbcx.TableBase.TableBase() Indexes:");
+        m_indexes = new IndexContainer(connection, this);
+        registerProperties();
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type + "\nDecription: " + m_Description);
     }
-    public TableBase(String service,
-                     String[] services,
-                     ConnectionBase connection,
-                     String catalog,
-                     String schema,
-                     String name,
-                     String type,
-                     String description,
-                     Map<String, Property> properties)
-        throws java.sql.SQLException
-    {
-        super(service, services, connection, _getPropertySet(properties), name);
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
-        m_Type = type;
-        m_Description = description;
-        m_xColumns = new ColumnContainer(connection, catalog, schema, name);
-        m_xKeys = new KeyContainer(connection, this);
-        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
-    }
 
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.Table()
+    // XXX: - io.github.prrvchr.uno.sdb.Table()
     public TableBase(String service,
                      String[] services,
-                     ConnectionBase connection,
+                     Connection connection,
+                     Class<T> column,
                      schemacrawler.schema.Table table)
         throws java.sql.SQLException
     {
-        super(service, services, connection, _getPropertySet(), table.getName());
+        super(service, services, connection, table.getName());
         m_CatalogName = table.getSchema().getCatalogName();
         m_SchemaName = table.getSchema().getName();
         m_Type = table.getTableType().getTableType();
         m_Description = table.getRemarks();
-        m_xColumns = new ColumnContainer(connection, table);
-        m_xKeys = new KeyContainer(connection, this);
+        m_columns = new ColumnContainer<T>(connection, column, table);
+        m_keys = new KeyContainer(connection, table);
+        //m_indexes = new IndexContainer(connection, table, this);
+        registerProperties();
         System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
     }
-    public TableBase(String service,
-                     String[] services,
-                     ConnectionBase connection,
-                     schemacrawler.schema.Table table,
-                     Map<String, Property> properties)
-        throws java.sql.SQLException
-    {
-        super(service, services, connection, _getPropertySet(properties), table.getName());
-        m_CatalogName = table.getSchema().getCatalogName();;
-        m_SchemaName = table.getSchema().getName();
-        m_Type = table.getTableType().getTableType();
-        m_Description = table.getRemarks();
-        m_xColumns = new ColumnContainer(connection, table);
-        m_xKeys = new KeyContainer(connection, this);
-        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
+
+
+    private void registerProperties() {
+        short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_CatalogName;
+                }
+            }, null);
+        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_SchemaName;
+                }
+            }, null);
+        registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Description;
+                }
+            }, null);
+        registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Type;
+                }
+            }, null);
     }
 
 
@@ -157,7 +186,7 @@ public class TableBase
     @Override
     public XNameAccess getColumns()
     {
-        return m_xColumns;
+        return m_columns;
     }
 
 
@@ -183,8 +212,8 @@ public class TableBase
     @Override
     public XIndexAccess getKeys() {
         // TODO Auto-generated method stub
-        System.out.println("sdbcx.TableBase.getKeys() ***************************************************");
-        return m_xKeys;
+        System.out.println("sdbcx.TableBase.getKeys() ***************************************************: " + m_keys.getCount());
+        return m_keys;
     }
 
 
@@ -193,17 +222,16 @@ public class TableBase
     public XNameAccess getIndexes() {
         // TODO Auto-generated method stub
         System.out.println("sdbcx.TableBase.getIndexes() ***************************************************");
-        return null;
+        return m_indexes;
     }
 
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor() {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.TableBase.createDataDescriptor() ***************************************************");
-        return null;
-    }
+    public abstract XPropertySet createDataDescriptor();
+
+
+    public XPropertySet createDataDescriptor(Connection connection) {return null;};
 
 
 }

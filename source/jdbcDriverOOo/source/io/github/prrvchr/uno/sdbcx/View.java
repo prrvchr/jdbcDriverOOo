@@ -25,17 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.sdbcx.XAlterView;
+import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class View
@@ -47,36 +46,26 @@ public class View
     protected String m_CatalogName;
     protected String m_SchemaName = "";
     private String m_Command = "";
-    @SuppressWarnings("unused")
     private int m_CheckOption;
-    private static Map<String, Property> _getPropertySet()
-    {
-        short readonly = PropertyAttribute.READONLY;
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_CatalogName", UnoHelper.getProperty("CatalogName", "string", readonly));
-        map.put("m_SchemaName", UnoHelper.getProperty("SchemaName", "string", readonly));
-        map.put("m_Command", UnoHelper.getProperty("Command", "string", readonly));
-        map.put("m_CheckOption", UnoHelper.getProperty("CheckOption", "long", readonly));
-        return map;
-    }
 
     // The constructor method:
-    public View(ConnectionBase connection,
+    public View(Connection connection,
                 String query,
                 String catalog,
                 String schema,
                 String name)
     throws java.sql.SQLException
     {
-        super(m_name, m_services, connection, _getPropertySet(), name);
+        super(m_name, m_services, connection, name);
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Command = _getViewCommand(connection, query, schema, name);
         m_CheckOption = CheckOption.NONE;
+        registerProperties();
         System.out.println("View.View() Name: " + m_Name + " - Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Command: " + m_Command);
     }
 
-    private String _getViewCommand(ConnectionBase connection,
+    private String _getViewCommand(Connection connection,
                                    String query,
                                    String schema,
                                    String view)
@@ -90,9 +79,43 @@ public class View
         if (result.next()) {
             command = result.getString(1);
         }
+        result.close();
         statement.close();
         return command;
     }
+
+    private void registerProperties() {
+        short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_CatalogName;
+                }
+            }, null);
+        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_SchemaName;
+                }
+            }, null);
+        registerProperty(PropertyIds.COMMAND.name, PropertyIds.COMMAND.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Command;
+                }
+            }, null);
+        registerProperty(PropertyIds.CHECKOPTION.name, PropertyIds.CHECKOPTION.id, Type.LONG, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_CheckOption;
+                }
+            }, null);
+    }
+
 
     // com.sun.star.sdbcx.XAlterView
     @Override

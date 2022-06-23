@@ -25,17 +25,17 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
+//import com.sun.star.beans.PropertyVetoException;
+//import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XBatchExecution;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XStatement;
-import com.sun.star.uno.XComponentContext;
+//import com.sun.star.uno.Type;
 
+//import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+//import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -45,47 +45,43 @@ public abstract class StatementBase
                XStatement
 {
 
-    private java.sql.Statement m_Statement = null;
-    private boolean m_EscapeProcessing = true;
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("EscapeProcessing", UnoHelper.getProperty("EscapeProcessing", "boolean"));
-        return map;
-    }
-    private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
-    {
-        Map<String, Property> map = _getPropertySet();
-        map.putAll(properties);
-        return map;
-    }
+    //private boolean m_EscapeProcessing = true;
 
     // The constructor method:
-    public StatementBase(XComponentContext context,
-                         String name,
-                         String[] services,
-                         ConnectionBase connection)
+   public StatementBase(String name,
+                        String[] services,
+                        ConnectionBase connection)
     {
-        super(context, name, services, connection, _getPropertySet());
-        
+        super(name, services, connection);
+        //registerProperties();
     }
-    public StatementBase(XComponentContext context,
-                         String name,
-                         String[] services,
-                         ConnectionBase connection,
-                         Map<String, Property> properties)
-    {
-        super(context, name, services, connection, _getPropertySet(properties));
+
+    /*private void registerProperties() {
+        registerProperty(PropertyIds.ESCAPEPROCESSING.name, PropertyIds.ESCAPEPROCESSING.id, Type.BOOLEAN,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    System.out.println("sdbc.StatementBase._getEscapeProcessing(): " + m_EscapeProcessing);
+                    return _getEscapeProcessing();
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    System.out.println("sdbc.StatementBase._setEscapeProcessing(): " + (boolean) value);
+                    _setEscapeProcessing((boolean) value);
+                }
+            });
     }
 
 
     protected void _setEscapeProcessing(boolean value)
     {
         m_EscapeProcessing = value;
-        if (_getWrapper() != null)
+        if (m_Statement != null)
         {
             try {
-                _getWrapper().setEscapeProcessing(value);
+                m_Statement.setEscapeProcessing(value);
             } catch (java.sql.SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -95,32 +91,45 @@ public abstract class StatementBase
     protected boolean _getEscapeProcessing()
     {
         return m_EscapeProcessing;
+    }*/
+
+    @Override
+    protected void _createStatement()
+        throws SQLException {
+        checkDisposed();
+        if (m_Statement == null) {
+            try {
+                try {
+                    //m_Statement = m_Connection.getWrapper().createStatement(m_ResultSetType, m_ResultSetConcurrency);
+                    m_Statement = m_Connection.getWrapper().createStatement(m_ResultSetType, java.sql.ResultSet.CONCUR_READ_ONLY);
+                    //_setStatement();
+                } 
+                catch (NoSuchMethodError e) {
+                    m_Statement = m_Connection.getWrapper().createStatement();
+                    //_setStatement();
+                }
+            } 
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
+        }
     }
 
-
-    protected java.sql.Statement _getStatement()
+    protected void _setStatement()
         throws java.sql.SQLException
     {
-        if (m_Statement == null)
-        {
-            m_Statement = m_Connection.getWrapper().createStatement(m_ResultSetType, m_ResultSetConcurrency);
-            _setStatement(m_Statement);
-        }
-        return m_Statement;
+        super._setStatement();
+        //m_Statement.setEscapeProcessing(m_EscapeProcessing);
     }
 
-    protected java.sql.Statement _getWrapper()
-    {
-        return m_Statement;
-    }
 
-    
     // com.sun.star.sdbc.XBatchExecution
     @Override
     public void addBatch(String sql) throws SQLException {
         try
         {
-            _getStatement().addBatch(sql);
+            _createStatement();
+            m_Statement.addBatch(sql);
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -131,7 +140,8 @@ public abstract class StatementBase
     public void clearBatch() throws SQLException {
         try
         {
-            _getStatement().clearBatch();
+            _createStatement();
+            m_Statement.clearBatch();
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -142,7 +152,8 @@ public abstract class StatementBase
     public int[] executeBatch() throws SQLException {
         try
         {
-            return _getStatement().executeBatch();
+            _createStatement();
+            return m_Statement.executeBatch();
         } catch (java.sql.SQLException e)
         {
             throw UnoHelper.getSQLException(e, this);
@@ -157,7 +168,9 @@ public abstract class StatementBase
         try
         {
             System.out.println("BaseStatement.execute() 1 Query: " + sql);
-            return _getStatement().execute(sql, m_AutoGeneratedKeys);
+            _createStatement();
+            m_Sql = sql;
+            return m_Statement.execute(sql);
         } catch (java.sql.SQLException e)
         {
             e.printStackTrace();
@@ -171,8 +184,10 @@ public abstract class StatementBase
         try
         {
             System.out.println("BaseStatement.executeQuery() 1 Query: " + sql);
-            java.sql.ResultSet resultset = _getStatement().executeQuery(sql);
-            return _getResultSet(m_xContext, resultset);
+            _createStatement();
+            m_Sql = sql;
+            java.sql.ResultSet resultset = m_Statement.executeQuery(sql);
+            return _getResultSet(resultset);
         } catch (java.sql.SQLException e)
         {
             e.printStackTrace();
@@ -186,7 +201,9 @@ public abstract class StatementBase
         try
         {
             System.out.println("BaseStatement.executeUpdate() 1 Query: " + sql);
-            return _getStatement().executeUpdate(sql, m_AutoGeneratedKeys);
+            _createStatement();
+            m_Sql = sql;
+            return m_Statement.executeUpdate(sql, m_AutoGeneratedKeys);
         } catch (java.sql.SQLException e)
         {
             e.printStackTrace();
@@ -198,14 +215,6 @@ public abstract class StatementBase
     public XConnection getConnection() throws SQLException
     {
         return m_Connection;
-    }
-
-
-    protected void _setStatement(java.sql.Statement statement)
-    throws java.sql.SQLException
-    {
-        super._setStatement(statement);
-        statement.setEscapeProcessing(m_EscapeProcessing);
     }
 
 

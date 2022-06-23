@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-
 import java.sql.SQLException;
 
 import com.sun.star.beans.PropertyValue;
@@ -34,6 +33,9 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.sdbcx.CallableStatement;
+import io.github.prrvchr.uno.sdbcx.PreparedStatement;
+import io.github.prrvchr.uno.sdbcx.Statement;
 
 
 public class Connection
@@ -59,23 +61,27 @@ public class Connection
 
 
     protected XStatement _getStatement()
-    throws java.sql.SQLException
     {
-        return new Statement(m_xContext, this);
+        System.out.println("sdbc.Connection._getStatement() 1");
+        Statement statement = new Statement(this);
+        //m_statements.put(statement, statement);
+        return statement;
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
-    throws java.sql.SQLException
     {
         System.out.println("sdbc.Connection._getPreparedStatement() 1: '" + sql + "'");
-        return new PreparedStatement(m_xContext, this, sql);
+        PreparedStatement statement = new PreparedStatement(this, sql);
+        //m_statements.put(statement, statement);
+        return statement;
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
-    throws java.sql.SQLException
     {
         System.out.println("sdbc.Connection._getCallableStatement() 1: '" + sql + "'");
-        return new CallableStatement(m_xContext, this, sql);
+        CallableStatement statement = new CallableStatement(this, sql);
+        //m_statements.put(statement, statement);
+        return statement;
     }
 
 

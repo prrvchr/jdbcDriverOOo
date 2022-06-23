@@ -29,7 +29,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.DriverManager;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ServiceLoader;
 
 import com.sun.star.beans.PropertyValue;
@@ -362,47 +364,24 @@ public abstract class DriverBase
         }
         String[] nochoices = {};
         String[] boolchoices = {"false", "true"};
-        return new DriverPropertyInfo [] {
-                new DriverPropertyInfo(
-                        "JavaDriverClass", "The JDBC driver class name.",
-                        true, "", nochoices),
-                new DriverPropertyInfo(
-                        "JavaDriverClassPath", "The class path where to look for the JDBC driver.",
-                        true, "", nochoices),
-                new DriverPropertyInfo(
-                        "SystemProperties", "Additional properties to set at java.lang.System before loading the driver.",
-                        true, "", nochoices),
-                new DriverPropertyInfo(
-                        "ParameterNameSubstitution", "Change named parameters with '?'.",
-                        false, "false", boolchoices),
-                new DriverPropertyInfo(
-                        "IgnoreDriverPrivileges", "Ignore the privileges from the database driver.",
-                        false, "false", boolchoices),
-                new DriverPropertyInfo(
-                        "IsAutoRetrievingEnabled", "Retrieve generated values.",
-                        false, "false", boolchoices),
-                new DriverPropertyInfo(
-                        "AutoRetrievingStatement", "Auto-increment statement.",
-                        false, "", nochoices),
-                new DriverPropertyInfo(
-                        "GenerateASBeforeCorrelationName", "Generate AS before table correlation names.",
-                        false, "true", boolchoices),
-                new DriverPropertyInfo(
-                        "IgnoreCurrency", "Ignore the currency field from the ResultsetMetaData.",
-                        false, "false", boolchoices),
-                new DriverPropertyInfo(
-                        "EscapeDateTime", "Escape date time format.",
-                        false, "true", boolchoices),
-                new DriverPropertyInfo(
-                        "TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.",
-                        false, "", nochoices),
-                new DriverPropertyInfo(
-                        "ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.",
-                        false, "", nochoices),
-                new DriverPropertyInfo(
-                        "ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.",
-                        false, "", nochoices)
-        };
+        List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
+        properties.add(new DriverPropertyInfo("JavaDriverClass", "The JDBC driver class name.", true, "", nochoices));
+        properties.add(new DriverPropertyInfo("JavaDriverClassPath", "The class path where to look for the JDBC driver.", true, "", nochoices));
+        properties.add(new DriverPropertyInfo("SystemProperties", "Additional properties to set at java.lang.System before loading the driver.", true, "", nochoices));
+        properties.add(new DriverPropertyInfo("ParameterNameSubstitution", "Change named parameters with '?'.", false, "false", boolchoices));
+        properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled", "Retrieve generated values.", false, "false", boolchoices));
+        properties.add(new DriverPropertyInfo("AutoRetrievingStatement", "Auto-increment statement.", false, "", nochoices));
+        properties.add(new DriverPropertyInfo("GenerateASBeforeCorrelationName", "Generate AS before table correlation names.", false, "true", boolchoices));
+        properties.add(new DriverPropertyInfo("IgnoreCurrency", "Ignore the currency field from the ResultsetMetaData.", false, "false", boolchoices));
+        properties.add(new DriverPropertyInfo("EscapeDateTime", "Escape date time format.", false, "true", boolchoices));
+        properties.add(new DriverPropertyInfo("TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.", false, "", nochoices));
+        properties.add(new DriverPropertyInfo("ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.", false, "", nochoices));
+        properties.add(new DriverPropertyInfo("ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.", false, "", nochoices));
+        properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", false, "", nochoices));
+        if (!m_enhanced) {
+            properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices));
+        }
+        return properties.toArray(new DriverPropertyInfo[0]);
     }
 
     public int getMajorVersion()

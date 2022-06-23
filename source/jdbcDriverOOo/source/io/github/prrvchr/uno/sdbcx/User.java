@@ -25,10 +25,17 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.UnknownPropertyException;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
+import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class User
@@ -38,12 +45,14 @@ public class User
 
     private static final String m_name = User.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+    private final XNameAccess m_Tables;
 
     // The constructor method:
-    public User(ConnectionBase connection,
+    public User(Connection connection,
                 String name)
     {
         super(m_name, m_services, connection, name);
+        m_Tables = connection.getTables();
     }
 
 
@@ -57,29 +66,37 @@ public class User
 
     // com.sun.star.sdbcx.XAuthorizable <- XUser:
     @Override
-    public int getGrantablePrivileges(String arg0, int arg1) throws SQLException {
+    public int getGrantablePrivileges(String name, int type) throws SQLException {
         // TODO Auto-generated method stub
-        System.out.println("sdbcx.User.getGrantablePrivileges()");
-        return 0;
+        System.out.println("sdbcx.User.getGrantablePrivileges() Name: " + name + " - Type: " + type);
+        return 511;
     }
 
     @Override
-    public int getPrivileges(String arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.User.getPrivileges()");
-        return 0;
+    public int getPrivileges(String name, int type) throws SQLException {
+        int privilege = 0;
+        try {
+            System.out.println("sdbcx.User.getPrivileges() Name: " + name + " - Type: " + type);
+            XPropertySet table = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, m_Tables.getByName(name));
+            privilege = (int) table.getPropertyValue("Privileges");
+        }
+        catch (UnknownPropertyException | WrappedTargetException | NoSuchElementException e) {
+            UnoHelper.getSQLException(e);
+        }
+        System.out.println("sdbcx.User.getPrivileges() Privileges: " + privilege);
+        return privilege;
     }
 
     @Override
-    public void grantPrivileges(String arg0, int arg1, int arg2) throws SQLException {
+    public void grantPrivileges(String name, int type, int privilege) throws SQLException {
         // TODO Auto-generated method stub
-        System.out.println("sdbcx.User.grantPrivileges()");
+        System.out.println("sdbcx.User.grantPrivileges() Name: " + name + " - Type: " + type + " - Privilege: " + privilege);
     }
 
     @Override
-    public void revokePrivileges(String arg0, int arg1, int arg2) throws SQLException {
+    public void revokePrivileges(String name, int type, int privilege) throws SQLException {
         // TODO Auto-generated method stub
-        System.out.println("sdbcx.User.revokePrivileges()");
+        System.out.println("sdbcx.User.revokePrivileges() Name: " + name + " - Type: " + type + " - Privilege: " + privilege);
     }
 
 

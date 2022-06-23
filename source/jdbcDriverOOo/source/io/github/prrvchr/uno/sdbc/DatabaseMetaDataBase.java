@@ -42,7 +42,6 @@ import com.sun.star.sdbc.XResultSetMetaDataSupplier;
 import com.sun.star.sdbc.XRow;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -51,26 +50,21 @@ public abstract class DatabaseMetaDataBase
 extends WeakBase
 implements XDatabaseMetaData2
 {
-    private final XComponentContext m_xContext;
     protected final ConnectionBase m_Connection;
     protected final java.sql.DatabaseMetaData m_Metadata;
 
     // The constructor method:
-    public DatabaseMetaDataBase(final XComponentContext ctx,
-                                final ConnectionBase connection)
+    public DatabaseMetaDataBase(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        m_xContext = ctx;
         m_Connection = connection;
         m_Metadata = connection.getWrapper().getMetaData();
         System.out.println("sdbc.DatabaseMetaDataBase() 1");
     }
 
-    public DatabaseMetaDataBase(final XComponentContext ctx,
-                                final ConnectionBase connection,
+    public DatabaseMetaDataBase(final ConnectionBase connection,
                                 final java.sql.DatabaseMetaData metadata)
     {
-        m_xContext = ctx;
         m_Connection = connection;
         m_Metadata = metadata;
         System.out.println("sdbc.DatabaseMetaDataBase() 1");
@@ -229,13 +223,13 @@ implements XDatabaseMetaData2
     }
 
     @Override
-    public XResultSet getBestRowIdentifier(Object catalog, String schema, String table, int arg3, boolean arg4)
+    public XResultSet getBestRowIdentifier(Object catalog, String schema, String table, int scope, boolean nullable)
             throws SQLException
     {
         try
         {
             System.out.println("sdbc.DatabaseMetaData.getBestRowIdentifier()");
-            return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, arg3, arg4));
+            return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, scope, nullable));
         }
         catch (java.sql.SQLException e)
         {
@@ -332,12 +326,9 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getColumnPrivileges(Object catalog, String schema, String table, String column) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getColumnPrivileges()");
-            if (schema.equals("%"))
-                schema = null;
-            java.sql.ResultSet resultset = m_Metadata.getColumnPrivileges(_getPattern(catalog), schema, table, column);
+            java.sql.ResultSet resultset = m_Metadata.getColumnPrivileges(_getPattern(catalog), _getPattern(schema), table, column);
             return _getResultSet(resultset);
         }
         catch (java.sql.SQLException e)
@@ -347,8 +338,7 @@ implements XDatabaseMetaData2
         }
         catch (java.lang.Exception e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
+            for (StackTraceElement trace : e.getStackTrace()) {
                 System.out.println(trace);
             }
             return null;
@@ -1410,7 +1400,7 @@ implements XDatabaseMetaData2
                 java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
                 System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 3 ColumnCount != 7 :" + resultset.getMetaData().getColumnCount());
                 if (resultset != null) {
-                    result = m_Connection.getProvider().getResultSet(m_xContext, m_Connection, resultset);
+                    result = m_Connection.getProvider().getResultSet(m_Connection, resultset);
                     // we have to check the result columns for the tables privileges #106324#
                     XResultSetMetaDataSupplier supplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
                     XResultSetMetaData metadata = null;
@@ -2184,8 +2174,9 @@ implements XDatabaseMetaData2
     {
         try
         {
-            System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithAddColumn()");
-            return m_Metadata.supportsAlterTableWithAddColumn();
+            boolean value = m_Metadata.supportsAlterTableWithAddColumn();
+            System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithAddColumn(): " + value);
+            return value;
         }
         catch (java.sql.SQLException e)
         {
@@ -2207,8 +2198,9 @@ implements XDatabaseMetaData2
     {
         try
         {
-            System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithDropColumn()");
-            return m_Metadata.supportsAlterTableWithDropColumn();
+            boolean value = m_Metadata.supportsAlterTableWithDropColumn();
+            System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithDropColumn(): " + value);
+            return value;
         }
         catch (java.sql.SQLException e)
         {
@@ -3058,12 +3050,13 @@ implements XDatabaseMetaData2
     }
 
     @Override
-    public boolean supportsResultSetConcurrency(int arg0, int arg1) throws SQLException
+    public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException
     {
         try
         {
-            System.out.println("sdbc.DatabaseMetaData.supportsResultSetConcurrency()");
-            return m_Metadata.supportsResultSetConcurrency (arg0, arg1);
+            boolean value = m_Metadata.supportsResultSetConcurrency (type, concurrency);
+            System.out.println("sdbc.DatabaseMetaData.supportsResultSetConcurrency() Type: " + type + " - Concurrency: " + concurrency + " - Value: " + value);
+            return value;
         }
         catch (java.sql.SQLException e)
         {
@@ -3572,7 +3565,7 @@ implements XDatabaseMetaData2
         XResultSet result = null;
         try {
             if (resultset != null)
-                result = m_Connection.getProvider().getResultSet(m_xContext, m_Connection, resultset);
+                result = m_Connection.getProvider().getResultSet(m_Connection, resultset);
         }
         catch (java.lang.Exception e)
         {
@@ -3589,42 +3582,71 @@ implements XDatabaseMetaData2
     // XDatabaseMetaData.getTypeInfo:
     protected XResultSet _getTypeInfo()
             throws java.sql.SQLException
+    {
+        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+        java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
+        while (resultset.next())
         {
-            ArrayList<CustomRowSet[]> rows = new ArrayList<>();
-            java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
-            while (resultset.next())
-            {
-                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo()");
-                rows.add(_getTypeInfoRowSet(resultset));
-            }
-            resultset.close();
-            return new CustomResultSet(_getTypeInfoMetadata(), rows);
+            System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo()");
+            rows.add(_getTypeInfoRowSet(resultset));
         }
+        resultset.close();
+        return new CustomResultSet(_getTypeInfoMetadata(), rows);
+    }
 
     protected CustomRowSet[] _getTypeInfoRowSet(java.sql.ResultSet resultset)
             throws java.sql.SQLException
-        {
-            CustomRowSet[] row = new CustomRowSet[18];
-            row[0] =  new CustomRowSet(resultset.getString(1));
-            row[1] =  new CustomRowSet(_mapDatabaseDataType(resultset.getShort(2)));
-            row[2] =  new CustomRowSet(resultset.getLong(3));
-            row[3] =  new CustomRowSet(resultset.getString(4));
-            row[4] =  new CustomRowSet(resultset.getString(5));
-            row[5] =  new CustomRowSet(resultset.getString(6));
-            row[6] =  new CustomRowSet(resultset.getShort(7));
-            row[7] =  new CustomRowSet(resultset.getBoolean(8));
-            row[8] =  new CustomRowSet(resultset.getShort(9));
-            row[9] =  new CustomRowSet(resultset.getBoolean(10));
-            row[10] = new CustomRowSet(resultset.getBoolean(11));
-            row[11] = new CustomRowSet(resultset.getBoolean(12));
-            row[12] = new CustomRowSet(resultset.getString(13));
-            row[13] = new CustomRowSet(resultset.getShort(14));
-            row[14] = new CustomRowSet(resultset.getShort(15));
-            row[15] = new CustomRowSet(resultset.getLong(16));
-            row[16] = new CustomRowSet(resultset.getLong(17));
-            row[17] = new CustomRowSet(resultset.getLong(18));
-            return row;
+    {
+        String value;
+        CustomRowSet[] row = new CustomRowSet[18];
+        row[0] =  new CustomRowSet(resultset.getString(1));
+        row[1] =  new CustomRowSet(_mapDatabaseDataType(resultset.getInt(2)));
+        row[2] =  new CustomRowSet(resultset.getLong(3));
+        value = resultset.getString(4);
+        if (resultset.wasNull()) {
+            row[3] = new CustomRowSet("");
+            row[3].setNull();
         }
+        else {
+            row[3] =  new CustomRowSet(value);
+        }
+        value = resultset.getString(5);
+        if (resultset.wasNull()) {
+            row[4] = new CustomRowSet("");
+            row[4].setNull();
+        }
+        else {
+            row[4] =  new CustomRowSet(value);
+        }
+        value = resultset.getString(6);
+        if (resultset.wasNull()) {
+            row[5] = new CustomRowSet("");
+            row[5].setNull();
+        }
+        else {
+            row[5] =  new CustomRowSet(value);
+        }
+        row[6] =  new CustomRowSet(resultset.getShort(7));
+        row[7] =  new CustomRowSet(resultset.getBoolean(8));
+        row[8] =  new CustomRowSet(resultset.getShort(9));
+        row[9] =  new CustomRowSet(resultset.getBoolean(10));
+        row[10] = new CustomRowSet(resultset.getBoolean(11));
+        row[11] = new CustomRowSet(resultset.getBoolean(12));
+        value = resultset.getString(13);
+        if (resultset.wasNull()) {
+            row[12] = new CustomRowSet("");
+            row[12].setNull();
+        }
+        else {
+            row[12] =  new CustomRowSet(value);
+        }
+        row[13] = new CustomRowSet(resultset.getShort(14));
+        row[14] = new CustomRowSet(resultset.getShort(15));
+        row[15] = new CustomRowSet(resultset.getLong(16));
+        row[16] = new CustomRowSet(resultset.getLong(17));
+        row[17] = new CustomRowSet(resultset.getLong(18));
+        return row;
+    }
 
     protected XResultSetMetaData _getTypeInfoMetadata()
     {
@@ -3822,12 +3844,12 @@ implements XDatabaseMetaData2
             row[2] = new CustomRowSet(result.getString(3));
             row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
             String description = result.getString(5);
-            if (description != null) {
-                row[4] = new CustomRowSet(description);
-            }
-            else {
+            if (result.wasNull()) {
                 row[4] = new CustomRowSet("");
                 row[4].setNull();
+            }
+            else {
+                row[4] = new CustomRowSet(description);
             }
             return row;
         }
@@ -4137,34 +4159,38 @@ implements XDatabaseMetaData2
         return new CustomResultSetMetaData(columns);
     }
 
-    protected static String _getPattern(Object value)
+    protected static String _getPattern(Object object)
     {
-        if (AnyConverter.isString(value))
-            return AnyConverter.toString(value);
-        return null;
+        String value = null;
+        if (AnyConverter.isString(object)) {
+            value = AnyConverter.toString(object);
+        }
+        return value;
     }
 
     protected static String _getPattern(String value)
     {
-        //if (value.equals("%"))
-        //    return null;
+        if (value.equals("%")) {
+            return null;
+        }
         return value;
     }
 
     protected static String[] _getPattern(String[] values)
     {
-        for (String value : values)
-        {
-            System.out.println("sdbc.DatabaseMetaDataBase._getPattern() : " + value);
-            if (value.equals("%"))
-                return null;
+        String[] types = values;
+        for (String value : values) {
+            if (value.equals("%")) {
+                types = null;
+                break;
+            }
         }
-        return values;
+        return types;
     }
+
     abstract protected String _mapDatabaseTableTypes(String type);
-    abstract protected String _mapDatabaseTableType(String schema,
-                                                     String type);
-    abstract protected short _mapDatabaseDataType(short type);
+    abstract protected String _mapDatabaseTableType(String schema, String type);
+    abstract protected int _mapDatabaseDataType(int type);
 
 
 }

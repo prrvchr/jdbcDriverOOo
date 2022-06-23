@@ -25,17 +25,23 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import com.sun.star.beans.XPropertySet;
+
+import io.github.prrvchr.uno.sdb.Connection;
+
 
 public final class Table
-    extends TableBase
+    extends TableBase<Column>
 {
 
     private static final String m_name = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
 
+
     // The constructor method:
-    public Table(ConnectionBase connection,
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer()
+    public Table(Connection connection,
                  String catalog,
                  String schema,
                  String name,
@@ -43,15 +49,24 @@ public final class Table
                  String description)
         throws java.sql.SQLException
     {
-        super(m_name, m_services, connection, catalog, schema, name, type, description);
+        super(m_name, m_services, connection, Column.class, catalog, schema, name, type, description);
         System.out.println("sdbcx.Table.Table() : 1" );
     }
-    public Table(ConnectionBase connection,
+    public Table(Connection connection,
                  schemacrawler.schema.Table table)
         throws java.sql.SQLException
     {
-        super(m_name, m_services, connection, table);
+        super(m_name, m_services, connection, Column.class, table);
         System.out.println("sdbcx.Table.Table() : 1" );
+    }
+
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor()
+    {
+        System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
+        return new TableDescriptor(m_Connection, Column.class, this);
     }
 
 

@@ -25,17 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.beans.PropertySet;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public abstract class Item
@@ -45,45 +44,36 @@ public abstract class Item
 
     private final String m_name;
     private final String[] m_services;
-    protected final ConnectionBase m_Connection;
+    protected final Connection m_Connection;
     protected final String m_Name;
-    private static Map<String, Property> _getPropertySet()
-    {
-        short readonly = PropertyAttribute.READONLY;
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_Name", UnoHelper.getProperty("Name", "string", readonly));
-        return map;
-    }
-    private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
-    {
-        Map<String, Property> map = _getPropertySet();
-        map.putAll(properties);
-        return map;
-    }
 
     // The constructor method:
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.User()
+    // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatementBase()
+    // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementBase()
     public Item(String service,
                 String[] services,
-                ConnectionBase connection,
+                Connection connection,
                 String name)
     {
-        super(_getPropertySet());
+        super();
         m_name = service;
         m_services = services;
         m_Connection = connection;
         m_Name = name;
+        registerProperties();
     }
-    public Item(String service,
-                String[] services,
-                ConnectionBase connection,
-                Map<String, Property> properties,
-                String name)
-    {
-        super(_getPropertySet(properties));
-        m_name = service;
-        m_services = services;
-        m_Connection = connection;
-        m_Name = name;
+
+    private void registerProperties() {
+        short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.NAME.name, PropertyIds.NAME.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Name;
+                }
+            }, null);
     }
 
 

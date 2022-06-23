@@ -25,10 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.SQLException;
-
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
@@ -42,21 +40,22 @@ public final class PreparedStatement
                                           "com.sun.star.sdbcx.PreparedStatement"};
 
     // The constructor method:
-    public PreparedStatement(XComponentContext context,
-                             ConnectionBase connection,
+    public PreparedStatement(ConnectionBase connection,
                              String sql)
-    throws SQLException
     {
-        super(context, m_name, m_services, connection, sql);
+        super(m_name, m_services, connection, sql);
         System.out.println("sdbcx.PreparedStatement() 1: '" + sql + "'");
     }
 
 
-    protected XResultSet _getResultSet(XComponentContext ctx,
-                                       java.sql.ResultSet resultset)
-    throws java.sql.SQLException
+    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    throws SQLException
     {
-        return new ResultSet(ctx, m_Connection, this, resultset);
+        XResultSet resultset = null;
+        if (result != null) {
+            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this, this.m_UseBookmarks);
+        }
+        return resultset;
     }
 
 

@@ -48,6 +48,9 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.SchemaCrawler;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.Statement;
+//import io.github.prrvchr.uno.sdbcx.Column;
+//import io.github.prrvchr.uno.sdbcx.Table;
+//import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 import io.github.prrvchr.uno.sdbcx.TableContainer;
 import io.github.prrvchr.uno.sdbcx.UserContainer;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
@@ -90,8 +93,7 @@ public final class Connection
     @Override
     public Object getParent()
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.getParent() *************************");
+        System.out.println("sdb.Connection.getParent() *************************");
         return null;
     }
 
@@ -99,8 +101,7 @@ public final class Connection
     @Override
     public void setParent(Object arg0) throws NoSupportException
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.getParent() *************************");
+        System.out.println("sdb.Connection.setParent() *************************");
     }
 
 
@@ -109,8 +110,7 @@ public final class Connection
     public XPreparedStatement prepareCommand(String command, int type)
     throws SQLException
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.prepareCommand() *************************");
+        System.out.println("sdb.Connection.prepareCommand() *************************");
         return null;
     }
 
@@ -119,8 +119,7 @@ public final class Connection
     @Override
     public XNameAccess getGroups()
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.getGroups() *************************");
+        System.out.println("sdb.Connection.getGroups() *************************");
         return null;
     }
 
@@ -130,16 +129,14 @@ public final class Connection
     public Object createInstance(String service)
     throws Exception
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.createInstance() *************************");
+        System.out.println("sdb.Connection.createInstance() *************************");
         return null;
     }
 
 
     @Override
     public Object createInstanceWithArguments(String service, Object[] arguments) throws Exception {
-        // TODO: Implement me!!!
-        System.out.println("Connection.createInstanceWithArguments() *************************");
+        System.out.println("sdb.Connection.createInstanceWithArguments() *************************");
         return null;
     }
 
@@ -147,7 +144,7 @@ public final class Connection
     @Override
     public String[] getAvailableServiceNames()
     {
-        System.out.println("Connection.getAvailableServiceNames() *************************");
+        System.out.println("sdb.Connection.getAvailableServiceNames() *************************");
         String[] services = {"com.sun.star.sdb.SQLQueryComposer"};
         return services;
     }
@@ -157,8 +154,7 @@ public final class Connection
     @Override
     public XNameAccess getQueries()
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.getQueries() *************************");
+        System.out.println("sdb.Connection.getQueries() *************************");
         return null;
     }
 
@@ -167,8 +163,7 @@ public final class Connection
     @Override
     public XSQLQueryComposer createQueryComposer()
     {
-        // TODO: Implement me!!!
-        System.out.println("Connection.createQueryComposer() *************************");
+        System.out.println("sdb.Connection.createQueryComposer() *************************");
         return null;
     }
 
@@ -182,7 +177,7 @@ public final class Connection
         try {
             System.out.println("sdb.Connection.getTables() 2");
             tables = m_crawler ? SchemaCrawler.getTables(m_provider, this) :
-                                 new TableContainer(this);
+                                 new TableContainer<Table, TableDescriptor, Column>(this, Table.class, TableDescriptor.class);
             System.out.println("sdb.Connection.getTables() 3");
          }
         catch (java.sql.SQLException e) {
@@ -196,7 +191,7 @@ public final class Connection
     @Override
     public XNameAccess getUsers()
     {
-        System.out.println("Connection.getUsers() 1");
+        System.out.println("sdb.Connection.getUsers() 1");
         return new UserContainer(this);
     }
 
@@ -205,29 +200,33 @@ public final class Connection
     @Override
     public XNameAccess getViews()
     {
-        System.out.println("Connection.getViews() *************************");
+        System.out.println("sdb.Connection.getViews() *************************");
         return new ViewContainer(this);
     }
 
 
     protected XStatement _getStatement()
-    throws java.sql.SQLException
     {
-        return new Statement(m_xContext, this);
+        System.out.println("sdb.Connection._getStatement() *****************************");
+        Statement statement = new Statement(this);
+        //m_statements.put(statement, statement);
+        return statement;
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
-    throws java.sql.SQLException
     {
-        System.out.println("sdb.Connection._getPreparedStatement() 1: '" + sql + "'");
-        return new PreparedStatement(m_xContext, this, sql);
+        System.out.println("sdb.Connection._getPreparedStatement() *****************************: '" + sql + "'");
+        PreparedStatement statement = new PreparedStatement(this, sql);
+        //m_statements.put(statement, statement);
+        return statement;
     }
-         
+
     protected XPreparedStatement _getCallableStatement(String sql)
-    throws java.sql.SQLException
     {
-        System.out.println("sdb.Connection._getCallableStatement() 1: '" + sql + "'");
-        return new CallableStatement(m_xContext, this, sql);
+        System.out.println("sdb.Connection._getCallableStatement() *****************************: '" + sql + "'");
+        CallableStatement statement = new CallableStatement(this, sql);
+        //m_statements.put(statement, statement);
+        return statement;
     }
 
 

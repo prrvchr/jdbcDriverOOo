@@ -28,15 +28,12 @@ package io.github.prrvchr.jdbcdriver.smallsql;
 import java.sql.DriverManager;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdb.ResultSet;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+
 
 public final class SmallSQLDriverProvider
     extends DriverProviderMain
@@ -73,30 +70,10 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
-                                                          final ConnectionBase connection)
+    public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        return new SmallSQLDatabaseMetaData(context, connection);
-    }
-
-    @Override
-    public final ResultSetBase getResultSet(final XComponentContext context,
-                                            final ConnectionBase connection,
-                                            final java.sql.ResultSet resultset)
-        throws java.sql.SQLException
-    {
-        return new ResultSet(context, connection, resultset);
-    }
-
-    @Override
-    public final ResultSetBase getResultSet(final XComponentContext context,
-                                            final ConnectionBase connection,
-                                            final StatementMain statement,
-                                            final java.sql.ResultSet resultset)
-        throws java.sql.SQLException
-    {
-        return new ResultSet(context, connection, statement, resultset);
+        return new SmallSQLDatabaseMetaData(connection);
     }
 
 

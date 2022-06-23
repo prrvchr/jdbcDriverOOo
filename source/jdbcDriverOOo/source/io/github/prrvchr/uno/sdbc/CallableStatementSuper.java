@@ -25,13 +25,12 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.sun.star.beans.PropertyVetoException;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.uno.Type;
 
-import com.sun.star.beans.Property;
-import com.sun.star.uno.XComponentContext;
-
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 
 
 public abstract class CallableStatementSuper
@@ -39,21 +38,37 @@ public abstract class CallableStatementSuper
 {
 
     protected boolean m_UseBookmarks = false;
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
-        return map;
-    }
+
 
     // The constructor method:
-    public CallableStatementSuper(XComponentContext context,
-                                 String name,
-                                 String[] services,
-                                 ConnectionBase connection,
-                                 String sql)
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.CallableStatement()
+    // XXX: - io.github.prrvchr.uno.sdbcx.CallableStatement()
+    public CallableStatementSuper(String name,
+                                  String[] services,
+                                  ConnectionBase connection,
+                                  String sql)
     {
-        super(context, name, services, connection, sql, _getPropertySet());
+        super(name, services, connection, sql);
+        registerProperties();
+    }
+
+    private void registerProperties() {
+        registerProperty(PropertyIds.USEBOOKMARKS.name, PropertyIds.USEBOOKMARKS.id, Type.BOOLEAN,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    System.out.println("sdbc.CallableStatementSuper._getUseBookmarks():" + m_UseBookmarks);
+                    return m_UseBookmarks;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    System.out.println("sdbc.CallableStatementSuper._setUseBookmarks():" + (boolean) value);
+                    m_UseBookmarks = (boolean) value;
+                }
+            });
     }
 
 

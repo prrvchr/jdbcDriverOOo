@@ -25,172 +25,210 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.lang.reflect.InvocationTargetException;
+
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XEnumeration;
+import com.sun.star.container.XEnumerationAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdb.Connection;
+
 import schemacrawler.crawl.ResultsCrawler;
 import schemacrawler.schema.ResultsColumn;
 
 
-public class ColumnContainer
-    extends ContainerSuper<Column>
+public class ColumnContainer<T extends ColumnSuper>
+    extends ContainerSuper<ColumnSuper>
 {
 
-    private final TableBase m_Table;
+    private static final String m_name = ColumnContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    private final Class<T> m_column;
 
     // The constructor method:
-    public ColumnContainer(ConnectionBase connection)
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableBase()
+    public ColumnContainer(Connection connection,
+                           Class<T> column,
+                           TableBase<T> table)
     {
-        super(connection);
-        m_Table = null;
+        super(m_name, m_services, connection);
+        m_column = column;
+        _refresh(table);
+        System.out.println("sdbcx.ColumnContainer(): " + getCount());
     }
-
-
-    public ColumnContainer(ConnectionBase connection,
-                           TableBase table)
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableBase()
+    public ColumnContainer(Connection connection,
+                           Class<T> column,
+                           XNameAccess columns)
     {
-        super(connection);
-        m_Table = table;
-        refresh();
-    }
-
-    public ColumnContainer(ConnectionBase connection,
-                           String catalog,
-                           String schema,
-                           String table)
-    {
-        super(connection);
-        m_Table = null;
-        refresh();
-    }
-
-    public ColumnContainer(ConnectionBase connection,
-                           java.sql.ResultSetMetaData metadata)
-        throws java.sql.SQLException
-    {
-        this(connection, metadata, "", "", "");
-    }
-    public ColumnContainer(ConnectionBase connection,
-                           java.sql.ResultSetMetaData metadata,
-                           String catalog,
-                           String schema,
-                           String table)
-        throws java.sql.SQLException
-    {
-        super(connection);
-        m_Table = null;
-        for (int i = 1; i <= metadata.getColumnCount(); i++)
-        {
-            String name = metadata.getColumnName(i);
-            m_Names.add(name);
-            m_Elements.add(new Column(connection, metadata, i, name));
-        }
-    }
-
-
-    public ColumnContainer(ConnectionBase connection,
-                           java.sql.ResultSet result)
-        throws java.sql.SQLException
-    {
-        this(connection, result, "", "", "");
-    }
-    public ColumnContainer(ConnectionBase connection,
-                           java.sql.ResultSet result,
-                           String catalog,
-                           String schema,
-                           String table)
-        throws java.sql.SQLException
-    {
-        super(connection);
-        m_Table = null;
-        if (connection.useSchemaCrawler()) {
-            ResultsCrawler crawler = new ResultsCrawler(result);
-            for (ResultsColumn column : crawler.crawl())
-            {
-                String name = column.getName();
+        super(m_name, m_services, connection);
+        m_column = column;
+        XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
+        System.out.println("sdbcx.ColumnContainer() 1");
+        int position = 1;
+        try {
+            while (iter.hasMoreElements()) {
+                XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
+                System.out.println("sdbcx.ColumnContainer() 2"); 
+                String name = (String) descriptor.getPropertyValue("Name");
+                m_Elements.add(m_column.getDeclaredConstructor(Connection.class, XPropertySet.class, String.class, Integer.class).newInstance(m_Connection, descriptor, name, position++));
                 m_Names.add(name);
-                m_Elements.add(new Column(connection, column, name));
             }
         }
-        else {
-            
+        catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-    }
-
-    public ColumnContainer(ConnectionBase connection,
-                           String catalog,
-                           String schema,
-                           String table,
-                           String column)
-        throws java.sql.SQLException
-    {
-        super(connection);
-        m_Table = null;
-        java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getColumns(catalog, schema, table, column);
-        while (result != null && result.next())
-        {
-            String name = result.getString(4);
-            m_Elements.add(new Column(m_Connection, result, catalog, schema, table, name));
-            m_Names.add(name);
+        catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        result.close();
+        System.out.println("sdbcx.ColumnContainer(): " + getCount());
     }
-
-    public ColumnContainer(ConnectionBase connection,
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableBase()
+    public ColumnContainer(Connection connection,
+                           Class<T> column,
                            schemacrawler.schema.Table table)
         throws java.sql.SQLException
     {
-        super(connection);
-        m_Table = null;
-        String catalog = table.getSchema().getCatalogName();
-        String schema = table.getSchema().getName();
-        String tname = table.getName();
-        for (schemacrawler.schema.Column column : table.getColumns())
-        {
-            String name = column.getName();
-            m_Elements.add(new Column(connection, column, catalog, schema, tname, name));
-            m_Names.add(name);
+        super(m_name, m_services, connection);
+        m_column = column;
+        try {
+            for (schemacrawler.schema.Column c : table.getColumns()) {
+                String name = c.getName();
+                m_Elements.add(m_column.getDeclaredConstructor(Connection.class, schemacrawler.schema.Column.class, String.class).newInstance(connection, c, name));
+                m_Names.add(name);
+            }
+        }
+        catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableDescriptorBase()
+    public ColumnContainer(Connection connection,
+                           Class<T> column)
+    {
+        super(m_name, m_services, connection);
+        m_column = column;
+        System.out.println("sdbcx.ColumnContainer()");
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.CallableStatement.getColumns()
+    // XXX: - io.github.prrvchr.uno.sdb.PreparedStatement.getColumns()
+    public ColumnContainer(Connection connection,
+                           Class<T> column,
+                           java.sql.ResultSetMetaData metadata)
+        throws java.sql.SQLException
+    {
+        super(m_name, m_services, connection);
+        m_column = column;
+        _refresh(metadata);
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.ResultSet.getColumns()
+    public ColumnContainer(Connection connection,
+                           Class<T> column,
+                           java.sql.ResultSet result)
+        throws java.sql.SQLException
+    {
+        super(m_name, m_services, connection);
+        m_column = column;
+        if (connection.useSchemaCrawler()) {
+            try {
+                ResultsCrawler crawler = new ResultsCrawler(result);
+                for (ResultsColumn c : crawler.crawl())
+                {
+                    String name = c.getName();
+                    m_Names.add(name);
+                    m_Elements.add(m_column.getDeclaredConstructor(Connection.class, ResultsColumn.class, String.class).newInstance(connection, c, name));
+                }
+            }
+            catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                   InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        else {
+            _refresh(result.getMetaData());
         }
     }
 
 
     // com.sun.star.sdbcx.XDrop method of Container:
-    protected String _getDropQuery(Column column)
+    protected String _getDropQuery(ColumnBase column)
     {
         return m_Connection.getProvider().getDropColumnQuery(m_Connection, column);
     }
 
 
-    // com.sun.star.util.XRefreshable
-    @Override
-    public void refresh()
+    public void _refresh(TableBase<T> table)
     {
-        if(m_Table != null) {
-            try {
-                m_Names.clear();
-                m_Elements.clear();
-                java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getColumns(m_Table.m_CatalogName, m_Table.m_SchemaName, m_Table.m_Name, "%");
-                while (result.next()) {
-                    String name = result.getString(4);
-                    Column column = new Column(m_Connection, result, m_Table.m_CatalogName, m_Table.m_SchemaName, m_Table.m_Name, name);
-                    m_Elements.add(column);
-                    m_Names.add(name);
-                }
-                result.close();
+        m_Names.clear();
+        m_Elements.clear();
+        try {
+            _refresh(table.m_CatalogName, table.m_SchemaName, table.m_Name);
+        }
+        catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void _refresh(String catalog,
+                          String schema,
+                          String table)
+        throws java.sql.SQLException
+    {
+        try {
+            java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getColumns(catalog, schema, table, "%");
+            while (result.next()) {
+                String name = result.getString(4);
+                m_Elements.add(m_column.getDeclaredConstructor(Connection.class, java.sql.ResultSet.class, String.class).newInstance(m_Connection, result, name));
+                m_Names.add(name);
             }
-            catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            result.close();
+        } 
+        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+               InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+
+    private void _refresh(java.sql.ResultSetMetaData metadata)
+        throws java.sql.SQLException
+    {
+        try {
+            for (int position = 1; position <= metadata.getColumnCount(); position++) {
+                String name = metadata.getColumnName(position);
+                m_Elements.add(m_column.getDeclaredConstructor(Connection.class, java.sql.ResultSetMetaData.class, String.class, Integer.class).newInstance(m_Connection, metadata, name, position));
+                m_Names.add(name);
             }
         }
-
-
-
+        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+               InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
+
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
@@ -208,17 +246,32 @@ public class ColumnContainer
     {
         System.out.println("sdbcx.ColumnContainer.appendByDescriptor() 1");
         try {
+            int position = m_Elements.size() + 1;
             String name = (String) descriptor.getPropertyValue("Name");
-            Column column = new Column(m_Connection, descriptor, name);
+            if (m_Names.contains(name)) {
+                throw new ElementExistException();
+            }
+            T column = m_column.getDeclaredConstructor(Connection.class, XPropertySet.class, String.class, Integer.class).newInstance(m_Connection, descriptor, name, position);
             m_Elements.add(column);
             m_Names.add(name);
-            elementInserted(column);
+            _insertElement(column);
             System.out.println("sdbcx.ColumnContainer.appendByDescriptor() 2 : " + name);
         } 
-        catch (java.sql.SQLException | UnknownPropertyException | WrappedTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+               InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
         }
+        catch (UnknownPropertyException | WrappedTargetException e) {
+            UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    protected String _getDropQuery(ColumnSuper element)
+        throws SQLException
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 

@@ -28,59 +28,29 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XEnumeration;
-import com.sun.star.container.XEnumerationAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.lang.XServiceInfo;
-import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.util.XRefreshListener;
 
-import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdb.Connection;
 
 
 public abstract class ContainerSuper<T extends Item>
     extends ContainerBase<T>
-    implements XServiceInfo,
-               XEnumerationAccess,
-               XNameAccess
+    implements XNameAccess
 
 {
 
-    private static final String m_name = ContainerSuper.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
     protected final List<String> m_Names = new ArrayList<String>();
 
     // The constructor method:
-    public ContainerSuper(ConnectionBase connection)
+    public ContainerSuper(String name,
+                          String[] services,
+                          Connection connection)
     {
-        super(connection);
+        super(name, services, connection);
         System.out.println("sdbcx.ContainerSuper()");
-    }
-
-
-    // com.sun.star.lang.XServiceInfo:
-    @Override
-    public String getImplementationName()
-    {
-        return ServiceInfo.getImplementationName(m_name);
-    }
-
-    @Override
-    public String[] getSupportedServiceNames()
-    {
-        return ServiceInfo.getSupportedServiceNames(m_services);
-    }
-
-    @Override
-    public boolean supportsService(String service)
-    {
-        return ServiceInfo.supportsService(m_services, service);
     }
 
 
@@ -108,42 +78,6 @@ public abstract class ContainerSuper<T extends Item>
     }
 
 
-    // com.sun.star.container.XEnumerationAccess:
-    @Override
-    public XEnumeration createEnumeration()
-    {
-        return new Enumeration(m_Elements.iterator());
-    }
-
-    private class Enumeration
-        extends WeakBase
-        implements XEnumeration
-    {
-        private final java.util.Iterator<T> m_Iterator;
-
-        public Enumeration(java.util.Iterator<T> iterator)
-        {
-            m_Iterator = iterator;
-        }
-
-        @Override
-        public boolean hasMoreElements()
-        {
-            return m_Iterator.hasNext();
-        }
-
-        @Override
-        public Object nextElement()
-            throws NoSuchElementException, WrappedTargetException
-        {
-            if (m_Iterator.hasNext()) {
-                return m_Iterator.next();
-            }
-            throw new NoSuchElementException();
-        }
-    }
-
-
     // com.sun.star.sdbcx.XDrop:
     @Override
     public void dropByName(String name)
@@ -153,36 +87,8 @@ public abstract class ContainerSuper<T extends Item>
         if (!m_Names.contains(name)) {
             throw new NoSuchElementException();
         }
-        int index = m_Names.indexOf(name);
-        dropElement(m_Elements.get(index));
+        dropElement(m_Elements.get(m_Names.indexOf(name)));
     }
-
-
-    // com.sun.star.sdbcx.XAppend
-    @Override
-    public abstract void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException,
-               ElementExistException;
-
-    // com.sun.star.util.XRefreshable
-    @Override
-    public abstract void refresh();
-    @Override
-    public void addRefreshListener(XRefreshListener listener)
-    {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Container.addRefreshListener() ****************************************");
-    }
-    @Override
-    public void removeRefreshListener(XRefreshListener listener)
-    {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Container.removeRefreshListener() ****************************************");
-    }
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public abstract XPropertySet createDataDescriptor();
 
 
 }

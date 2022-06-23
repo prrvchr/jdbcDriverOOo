@@ -25,31 +25,22 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.uno.XComponentContext;
-
 
 public final class DatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
     // The constructor method:
-    public DatabaseMetaData(final XComponentContext ctx,
-                            final ConnectionBase connection)
+    public DatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        super(ctx, connection);
-        System.out.println("sdbc.DatabaseMetaData() 1");
-    }
-	public DatabaseMetaData(final XComponentContext ctx,
-                            final ConnectionBase connection,
-                            final java.sql.DatabaseMetaData metadata)
-    {
-        super(ctx, connection, metadata);
-        System.out.println("sdbc.DatabaseMetaData() 1");
+        super(connection);
+        System.out.println("sdbc.DatabaseMetaData()");
     }
 
+
     @Override
-    protected final short _mapDatabaseDataType(final short type) {
+    protected final int _mapDatabaseDataType(final int type) {
         return type;
     }
 

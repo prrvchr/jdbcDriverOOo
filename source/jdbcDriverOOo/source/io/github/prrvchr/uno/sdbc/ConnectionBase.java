@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+//import java.util.Iterator;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.XServiceInfo;
@@ -61,9 +63,10 @@ public abstract class ConnectionBase
     protected final java.sql.Connection m_Connection;
     protected final PropertyValue[] m_info;
     private final String m_url;
-    private final boolean m_enhanced;
+    public final boolean m_enhanced;
     private boolean m_crawler;
     private Catalog m_catalog = null;
+    //protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
@@ -100,17 +103,36 @@ public abstract class ConnectionBase
         m_enhanced = enhanced;
         m_provider = provider;
         m_crawler = crawler;
-        if (crawler)
-        {
+        if (crawler) {
             m_catalog = SchemaCrawler.getCatalog(connection);
-            for (final schemacrawler.schema.Table t : m_catalog.getTables())
-            {
+            for (final schemacrawler.schema.Table t : m_catalog.getTables()) {
                 System.out.println("Connection.Connection() 2 Table Type: " + t.getTableType().getTableType());
             }
         }
         System.out.println("Connection.Connection() 3");
     }
 
+    // com.sun.star.lang.XComponent
+    @Override
+    protected synchronized void postDisposing()
+    {
+        try {
+            /*for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
+                StatementMain statement = it.next();
+                it.remove();
+                statement.dispose();
+            }*/
+            if (m_Connection != null) {
+                m_Connection.close();
+            }
+        }
+        catch (java.sql.SQLException e) {
+            System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.lang.Exception e) {
+            System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+    }
 
     // com.sun.star.lang.XServiceInfo:
     @Override
@@ -136,17 +158,19 @@ public abstract class ConnectionBase
     @Override
     public void clearWarnings() throws SQLException
     {
-        if (m_provider.supportWarningsSupplier())
+        if (m_provider.supportWarningsSupplier()) {
             WarningsSupplier.clearWarnings(getWrapper(), this);
+        }
     }
 
 
     @Override
     public Object getWarnings() throws SQLException
     {
-        if (m_provider.supportWarningsSupplier())
+        if (m_provider.supportWarningsSupplier()) {
             return WarningsSupplier.getWarnings(getWrapper(), this);
-         return Any.VOID;
+        }
+        return Any.VOID;
     }
 
 
@@ -156,8 +180,9 @@ public abstract class ConnectionBase
     {
         XDatabaseMetaData metadata = null;
         try {
-            metadata = m_provider.getDatabaseMetaData(m_xContext, this);
-        } catch (java.sql.SQLException e) {
+            metadata = m_provider.getDatabaseMetaData(this);
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
         System.out.println("Connection.getMetaData() 1");
@@ -167,28 +192,16 @@ public abstract class ConnectionBase
     @Override
     public void close() throws SQLException
     {
-        try
-        {
-            if (! m_Connection.isClosed())
-            {
-                m_Connection.close();
-                dispose();
-            }
-        } catch (java.sql.SQLException e)
-        {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        
+        dispose();
     }
 
     @Override
     public void commit() throws SQLException
     {
-        try
-        {
+        try {
             m_Connection.commit();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -196,11 +209,10 @@ public abstract class ConnectionBase
     @Override
     public boolean getAutoCommit() throws SQLException
     {
-        try
-        {
+        try {
             return m_Connection.getAutoCommit();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -208,13 +220,12 @@ public abstract class ConnectionBase
     @Override
     public String getCatalog() throws SQLException
     {
-        try
-        {
+        try {
             String value = m_Connection.getCatalog();
             System.out.println("Connection.getCatalog() 1 Catalog: " + value);
             return value != null ? value : "";
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -222,11 +233,10 @@ public abstract class ConnectionBase
     @Override
     public int getTransactionIsolation() throws SQLException
     {
-        try
-        {
+        try {
             return m_Connection.getTransactionIsolation();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -234,11 +244,10 @@ public abstract class ConnectionBase
     @Override
     public boolean isClosed() throws SQLException
     {
-        try
-        {
+        try {
             return m_Connection.isClosed();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -246,13 +255,12 @@ public abstract class ConnectionBase
     @Override
     public boolean isReadOnly() throws SQLException
     {
-        try
-        {
+        try {
             boolean readonly = m_Connection.isReadOnly();
             System.out.println("Connection.isReadOnly() 1 readonly: " + readonly);
             return readonly;
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -260,12 +268,11 @@ public abstract class ConnectionBase
     @Override
     public String nativeSQL(String sql) throws SQLException
     {
-        try
-        {
+        try {
             String value = m_Connection.nativeSQL(sql);
             return value != null ? value : "";
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -273,11 +280,10 @@ public abstract class ConnectionBase
     @Override
     public void rollback() throws SQLException
     {
-        try
-        {
+        try {
             m_Connection.rollback();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -285,11 +291,10 @@ public abstract class ConnectionBase
     @Override
     public void setAutoCommit(boolean commit) throws SQLException
     {
-        try
-        {
+        try {
             m_Connection.setAutoCommit(commit);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -297,11 +302,10 @@ public abstract class ConnectionBase
     @Override
     public void setCatalog(String catalog) throws SQLException
     {
-        try
-        {
+        try {
             m_Connection.setCatalog(catalog);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -309,11 +313,10 @@ public abstract class ConnectionBase
     @Override
     public void setReadOnly(boolean readonly) throws SQLException
     {
-        try
-        {
+        try {
             m_Connection.setReadOnly(readonly);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -321,11 +324,10 @@ public abstract class ConnectionBase
     @Override
     public void setTransactionIsolation(int isolation) throws SQLException
     {
-        try
-        {
+        try {
             m_Connection.setTransactionIsolation(isolation);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -348,31 +350,22 @@ public abstract class ConnectionBase
     @Override
     public XStatement createStatement() throws SQLException
     {
-        try {
-            return _getStatement();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+         return _getStatement();
+
     }
 
     @Override
     public XPreparedStatement prepareStatement(String sql) throws SQLException
     {
-        try {
-            return _getPreparedStatement(sql);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        return _getPreparedStatement(sql);
+
     }
 
     @Override
     public XPreparedStatement prepareCall(String sql) throws SQLException
     {
-        try {
-            return _getCallableStatement(sql);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        return _getCallableStatement(sql);
+
     }
 
 
@@ -401,14 +394,9 @@ public abstract class ConnectionBase
         return m_crawler;
     }
 
-    abstract protected XStatement _getStatement()
-        throws java.sql.SQLException;
-
-    abstract protected XPreparedStatement _getPreparedStatement(String sql)
-        throws java.sql.SQLException;
-
-    abstract protected XPreparedStatement _getCallableStatement(String sql)
-        throws java.sql.SQLException;
+    abstract protected XStatement _getStatement();
+    abstract protected XPreparedStatement _getPreparedStatement(String sql);
+    abstract protected XPreparedStatement _getCallableStatement(String sql);
 
 
 }

@@ -25,52 +25,21 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
-
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class ColumnDescriptor
-    extends Descriptor
+    extends ColumnDescriptorBase
 {
 
     private static final String m_name = ColumnDescriptor.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.ColumnDescriptor",
                                                 "com.sun.star.sdbcx.Descriptor"};
-    protected int m_Type;
-    protected String m_TypeName = "";
-    protected int m_Precision;
-    protected int m_Scale;
-    protected int m_IsNullable;
-    protected boolean m_IsAutoIncrement;
-    protected boolean m_IsRowVersion;
-    protected String m_Description = "";
-    protected String m_DefaultValue = "";
-    protected String m_AutoIncrementCreation = "";
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_Type", UnoHelper.getProperty("Type", "long"));
-        map.put("m_TypeName", UnoHelper.getProperty("TypeName", "string"));
-        map.put("m_Precision", UnoHelper.getProperty("Precision", "long"));
-        map.put("m_Scale", UnoHelper.getProperty("Scale", "long"));
-        map.put("m_IsNullable", UnoHelper.getProperty("IsNullable", "long"));
-        map.put("m_IsAutoIncrement", UnoHelper.getProperty("IsAutoIncrement", "boolean"));
-        map.put("m_IsRowVersion", UnoHelper.getProperty("IsRowVersion", "boolean"));
-        map.put("m_Description", UnoHelper.getProperty("Description", "string"));
-        map.put("m_DefaultValue", UnoHelper.getProperty("DefaultValue", "string"));
-        map.put("m_AutoIncrementCreation", UnoHelper.getProperty("AutoIncrementCreation", "string"));
-        return map;
-    }
 
     // The constructor method:
     public ColumnDescriptor(ConnectionBase connection)
     {
-        super(m_name, m_services, connection, _getPropertySet());
+        super(m_name, m_services, connection);
         System.out.println("sdbcx.ColumnDescriptor() ***************************************************");
     }
 

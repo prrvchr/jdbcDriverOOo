@@ -25,29 +25,28 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
+import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ResultSetSuper;
 
 
 public final class ResultSet
-extends ResultSetSuper
+    extends ResultSetSuper
 {
     private static final String m_name = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet", 
                                                 "com.sun.star.sdbcx.ResultSet"};
 
-
     // The constructor method:
-    public ResultSet(XComponentContext ctx,
-                     ConnectionBase connection,
+    public ResultSet(ConnectionBase connection,
+                     java.sql.ResultSet resultset,
                      XInterface statement,
-                     java.sql.ResultSet resultset)
-    throws java.sql.SQLException
+                     boolean bookmark)
+    throws SQLException
     {
-        super(ctx, m_name, m_services, connection, statement, resultset);
+        super(m_name, m_services, connection, resultset, statement, bookmark);
         System.out.println("sdbcx.ResultSet() 1");
     }
 

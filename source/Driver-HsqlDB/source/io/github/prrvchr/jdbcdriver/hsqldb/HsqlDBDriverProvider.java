@@ -34,17 +34,15 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XComponentContext;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdb.ResultSet;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
+
 
 public final class HsqlDBDriverProvider
     extends DriverProviderMain
@@ -92,32 +90,78 @@ public final class HsqlDBDriverProvider
                                     String catalog,
                                     String schema,
                                     String table)
+        throws SQLException
     {
-        String query = "DROP TABLE \"%s\".\"%s\" IF EXISTS;";
-        return String.format(query, schema, table);
+        try {
+            String query = "DROP TABLE %s IF EXISTS;";
+            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
+            return String.format(query, getTableIdentifier(connection, catalog, schema, table, quote, mixed));
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
     }
-
 
     @Override
     public String getDropViewQuery(ConnectionBase connection,
                                    String catalog,
                                    String schema,
                                    String view)
+        throws SQLException
     {
-        String query = "DROP VIEW \"%s\".\"%s\" IF EXISTS;";
-        return String.format(query, schema, view);
+        try {
+            String query = "DROP VIEW %s IF EXISTS;";
+            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
+            return String.format(query, getTableIdentifier(connection, catalog, schema, view, quote, mixed));
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
     }
 
     @Override
-    public String getCreateTableQuery(ConnectionBase connection,
-                                      String catalog,
-                                      String schema,
-                                      String table,
+    public String getCreateTableQuery(String identifier,
                                       String columns)
-        throws java.sql.SQLException
     {
-        return String.format("CREATE TABLE IF NOT EXISTS \"%s\".\"%s\" (%s);", schema, table, columns);
+        return String.format("CREATE TABLE IF NOT EXISTS %s (%s);", identifier, columns);
     }
+
+    @Override
+    public String getTableCommentQuery(ConnectionBase connection,
+                                       String catalog,
+                                       String schema,
+                                       String table,
+                                       String description,
+                                       String quote,
+                                       boolean mixed)
+        throws SQLException
+    {
+        String query = "COMMENT ON %s IS '%s';";
+        String identifier = getTableIdentifier(connection, catalog, schema, table, quote, mixed);
+        return String.format(query, identifier, description);
+    }
+
+
+    @Override
+    public String getColumnCommentQuery(ConnectionBase connection,
+                                        String catalog,
+                                        String schema,
+                                        String table,
+                                        String column,
+                                        String description,
+                                        String quote,
+                                        boolean mixed)
+        throws SQLException
+    {
+        String query = "COMMENT ON %s IS '%s';";
+        String identifier = getColumnIdentifier(connection, catalog, schema, table, column, quote, mixed);
+        return String.format(query, identifier, description);
+    }
+
 
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
@@ -159,30 +203,10 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public final DatabaseMetaDataBase getDatabaseMetaData(final XComponentContext context,
-                                                          final ConnectionBase connection)
+    public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        return new HsqlDBDatabaseMetaData(context, connection);
-    }
-
-    @Override
-    public final ResultSetBase getResultSet(final XComponentContext context,
-                                            final ConnectionBase connection,
-                                            final java.sql.ResultSet resultset)
-        throws java.sql.SQLException
-    {
-        return new ResultSet(context, connection, resultset);
-    }
-
-    @Override
-    public final ResultSetBase getResultSet(final XComponentContext context,
-                                            final ConnectionBase connection,
-                                            final StatementMain statement,
-                                            final java.sql.ResultSet resultset)
-        throws java.sql.SQLException
-    {
-        return new ResultSet(context, connection, statement, resultset);
+        return new HsqlDBDatabaseMetaData(connection);
     }
 
 

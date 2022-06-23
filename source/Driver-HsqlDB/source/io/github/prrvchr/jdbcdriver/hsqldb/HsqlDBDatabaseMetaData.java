@@ -29,7 +29,6 @@ import java.util.Map;
 
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -53,21 +52,32 @@ public final class HsqlDBDatabaseMetaData
                                                                    Map.entry(2014, 12));
 
     // The constructor method:
-    public HsqlDBDatabaseMetaData(final XComponentContext ctx,
-                                  final ConnectionBase connection)
+    public HsqlDBDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        super(ctx, connection);
-        System.out.println("hsqldb.DatabaseMetaData() 1");
+        super(connection);
+        System.out.println("HsqlDBDatabaseMetaData() 1");
     }
 
     //@Override
-    public boolean supportsCatalogsInDataManipulation() throws SQLException
+    public boolean supportsCatalogsInDataManipulation()
+        throws SQLException
     {
-        // FIXME: If we want to be able to display the different schemas correctly
-        // FIXME: in Base, we need to disable the catalog in Data Manipulation.
+        // FIXME: With the com.sun.star.sdbc.Driver, if we want to be able to display the different
+        // FIXME: schemas correctly in Base, we need to disable the catalog in Data Manipulation.
         // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL
-        return false;
+        boolean value = false;
+        try {
+            if (m_Connection.isEnhanced()) {
+                value = m_Metadata.supportsCatalogsInDataManipulation();
+            }
+        }
+        catch (java.sql.SQLException e) {
+            System.out.println("HsqlDBDatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
+            //throw UnoHelper.getSQLException(e, this);
+        }
+        System.out.println("HsqlDBDatabaseMetaData.supportsCatalogsInDataManipulation(): " + value);
+        return value;
     }
 
 
@@ -119,6 +129,7 @@ public final class HsqlDBDatabaseMetaData
         }
     }
 
+
     @Override
     public final XResultSet getTables(final Object catalog,
                                       final String schema,
@@ -141,26 +152,27 @@ public final class HsqlDBDatabaseMetaData
         }
     }
 
+
     @Override
     protected final CustomRowSet[] _getTablesRowSet(final java.sql.ResultSet result)
-            throws java.sql.SQLException
-        {
-            CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(result.getString(1));
-            row[1] = new CustomRowSet(result.getString(2));
-            row[2] = new CustomRowSet(result.getString(3));
-            row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-            String description = result.getString(5);
-            if (description != null) {
-                row[4] = new CustomRowSet(description);
-            }
-            else {
-                row[4] = new CustomRowSet("");
-                row[4].setNull();
-            }
-            //System.out.println("hsqldb.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
-            return row;
+        throws java.sql.SQLException
+    {
+        CustomRowSet[] row = new CustomRowSet[5];
+        row[0] = new CustomRowSet(result.getString(1));
+        row[1] = new CustomRowSet(result.getString(2));
+        row[2] = new CustomRowSet(result.getString(3));
+        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
+        String description = result.getString(5);
+        if (result.wasNull()) {
+            row[4] = new CustomRowSet("");
+            row[4].setNull();
         }
+        else {
+            row[4] = new CustomRowSet(description);
+        }
+        //System.out.println("hsqldb.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
+        return row;
+    }
 
     @Override
     public final XResultSet getColumns(final Object catalog,
@@ -194,6 +206,7 @@ public final class HsqlDBDatabaseMetaData
     {
         return (short)_mapDatabaseDataType((int) type);
     }
+
     protected final int _mapDatabaseDataType(final int type)
     {
         if (m_dataType.containsKey(type))
@@ -209,6 +222,7 @@ public final class HsqlDBDatabaseMetaData
     {
         return type;
     }
+
     @Override
     protected final String _mapDatabaseTableType(final String schema,
                                                  final String type)

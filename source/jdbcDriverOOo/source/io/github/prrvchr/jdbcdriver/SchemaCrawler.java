@@ -40,7 +40,10 @@ import us.fatehi.utility.LoggingConfig;
 
 import com.sun.star.container.XNameAccess;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdb.Column;
+import io.github.prrvchr.uno.sdb.Table;
+import io.github.prrvchr.uno.sdb.TableDescriptor;
+import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbcx.TableContainer;
 
 
@@ -80,7 +83,7 @@ public final class SchemaCrawler
 
 
     public static XNameAccess getTables(DriverProvider provider,
-                                        ConnectionBase connection)
+                                        Connection connection)
     throws java.sql.SQLException
     {
         try {
@@ -100,7 +103,7 @@ public final class SchemaCrawler
             final Catalog catalog = crawler.crawl();
             //final Catalog catalog = getCatalog(connection, options);
             System.out.println("SchemaCrawler.getTables() 3: " + catalog);
-            return new TableContainer(connection, catalog);
+            return new TableContainer<Table, TableDescriptor, Column>(connection, Table.class, TableDescriptor.class, catalog);
         } catch (java.lang.Exception e) {
             System.out.println("SchemaCrawler.getTables() 4 ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())

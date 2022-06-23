@@ -29,7 +29,6 @@ import java.util.Map;
 
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -54,25 +53,32 @@ public final class H2DatabaseMetaData
                                                                    Map.entry(2014, 12));
 
     // The constructor method:
-    public H2DatabaseMetaData(final XComponentContext ctx,
-                              final ConnectionBase connection)
+    public H2DatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        super(ctx, connection);
+        super(connection);
         System.out.println("h2.DatabaseMetaData() 1");
     }
 
     //@Override
     public boolean supportsCatalogsInDataManipulation() throws SQLException
     {
-        System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
         boolean value = false;
+        try {
+            if (m_Connection.isEnhanced()) {
+                value = m_Metadata.supportsSchemasInDataManipulation();
+            }
+        }
+        catch (java.sql.SQLException e) {
+            System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
+            throw UnoHelper.getSQLException(e, this);
+        }
         System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
         return value;
     }
 
     //@Override
-    public boolean supportsSchemasInDataManipulation() throws SQLException
+    public boolean supportsSchemasInDataManipulation1() throws SQLException
     {
         System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
         boolean value = false;

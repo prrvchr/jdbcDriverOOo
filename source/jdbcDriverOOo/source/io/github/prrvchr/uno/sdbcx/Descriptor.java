@@ -25,16 +25,17 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyVetoException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.beans.PropertySet;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public abstract class Descriptor
@@ -46,31 +47,34 @@ public abstract class Descriptor
     private final String[] m_services;
     protected final ConnectionBase m_Connection;
     protected String m_Name = "";
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_Name", UnoHelper.getProperty("Name", "string"));
-        return map;
-    }
-    private static Map<String, Property> _getPropertySet(Map<String, Property> properties)
-    {
-        Map<String, Property> map = _getPropertySet();
-        map.putAll(properties);
-        return map;
-    }
 
     // The constructor method:
     public Descriptor(String service,
                       String[] services,
-                      ConnectionBase connection,
-                      Map<String, Property> properties)
+                      ConnectionBase connection)
     {
-        super(_getPropertySet(properties));
+        super();
         m_name = service;
         m_services = services;
         m_Connection = connection;
+        registerProperties();
     }
 
+    private void registerProperties() {
+        registerProperty(PropertyIds.NAME.name, PropertyIds.NAME.id, Type.STRING,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Name;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_Name = (String) value;
+                }
+            });
+    }
 
     // com.sun.star.lang.XServiceInfo:
     @Override

@@ -25,16 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.SQLException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyVetoException;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.PropertyIds;
 import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
@@ -46,27 +46,42 @@ public final class Statement
     private static String[] m_services = {"com.sun.star.sdbc.Statement",
                                           "com.sun.star.sdbcx.Statement"};
     public boolean m_UseBookmarks = false;
-    private static Map<String, Property> _getPropertySet()
-    {
-        Map<String, Property> map = new LinkedHashMap<String, Property>();
-        map.put("m_UseBookmarks", UnoHelper.getProperty("UseBookmarks", "boolean"));
-        return map;
-    }
 
     // The constructor method:
-    public Statement(XComponentContext context,
-                     ConnectionBase connection)
-    throws SQLException
+    public Statement(ConnectionBase connection)
     {
-        super(context, m_name, m_services, connection, _getPropertySet());
+        super(m_name, m_services, connection);
+        registerProperties();
         System.out.println("sdbcx.Statement() 1");
     }
 
-    protected XResultSet _getResultSet(XComponentContext ctx,
-                                       java.sql.ResultSet resultset)
-    throws java.sql.SQLException
+    private void registerProperties() {
+        registerProperty(PropertyIds.USEBOOKMARKS.name, PropertyIds.USEBOOKMARKS.id, Type.BOOLEAN,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    System.out.println("sdbcx.Statement._getUseBookmarks():" + m_UseBookmarks);
+                    return m_UseBookmarks;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    System.out.println("sdbcx.Statement._setUseBookmarks():" + (boolean) value);
+                    m_UseBookmarks = (boolean) value;
+                }
+            });
+    }
+
+
+    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    throws SQLException
     {
-        return new ResultSet(ctx, m_Connection, this, resultset);
+        XResultSet resultset = null;
+        if (result != null) {
+            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this);
+        }
+        return resultset;
     }
 
 
