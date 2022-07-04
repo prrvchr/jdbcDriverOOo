@@ -26,62 +26,51 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.sdbcx.XAlterView;
+import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class View
-    extends Item
-    implements XAlterView
+    extends Descriptor
+    implements XAlterView,
+               XRename
 {
-    private static final String m_name = View.class.getName();
+    private static final String m_service = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
-    protected String m_CatalogName;
+
+    private Connection m_connection;
+
+    protected String m_CatalogName = "";
     protected String m_SchemaName = "";
     private String m_Command = "";
     private int m_CheckOption;
 
     // The constructor method:
     public View(Connection connection,
-                String query,
+                boolean sensitive,
                 String catalog,
                 String schema,
-                String name)
-    throws java.sql.SQLException
+                String name,
+                String command,
+                int option)
     {
-        super(m_name, m_services, connection, name);
+        super(m_service, m_services, sensitive, name);
+        m_connection = connection;
         m_CatalogName = catalog;
         m_SchemaName = schema;
-        m_Command = _getViewCommand(connection, query, schema, name);
-        m_CheckOption = CheckOption.NONE;
+        m_Command = command;
+        m_CheckOption = option;
         registerProperties();
-        System.out.println("View.View() Name: " + m_Name + " - Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Command: " + m_Command);
-    }
-
-    private String _getViewCommand(Connection connection,
-                                   String query,
-                                   String schema,
-                                   String view)
-        throws java.sql.SQLException
-    {
-        String command = "";
-        java.sql.PreparedStatement statement = connection.getWrapper().prepareStatement(query);
-        statement.setString(1, schema);
-        statement.setString(2, view);
-        java.sql.ResultSet result = statement.executeQuery();
-        if (result.next()) {
-            command = result.getString(1);
-        }
-        result.close();
-        statement.close();
-        return command;
     }
 
     private void registerProperties() {
@@ -116,14 +105,28 @@ public class View
             }, null);
     }
 
-
     // com.sun.star.sdbcx.XAlterView
     @Override
     public void alterCommand(String command)
         throws SQLException
     {
-        System.out.println("View.alterCommand() : " + command);
-        // TODO Auto-generated method stub
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            System.out.println("sdbcx.View.alterCommand() 1 : " + command);
+            String sql = DataBaseTools.getAlterViewQuery(m_connection, this, command);
+            statement.execute(sql);
+            m_Command = command;
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_connection);
+        }
+    }
+
+    @Override
+    public void rename(String name)
+        throws SQLException,
+        ElementExistException
+    {
+        System.out.println("sdbcx.View.rename() 1 : " + name);
     }
 
 

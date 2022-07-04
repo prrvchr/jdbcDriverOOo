@@ -14,13 +14,17 @@ import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.NamedValue;
+import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
@@ -34,9 +38,68 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.uno.sdbcx.ColumnMain;
+
 
 public class UnoHelper
 {
+
+    public static void ensure(boolean condition, String message) {
+        if (!condition) {
+            throw new com.sun.star.uno.RuntimeException(message);
+        }
+    }
+    
+    public static void ensure(Object reference, String message) {
+        if (reference == null) {
+            throw new com.sun.star.uno.RuntimeException(message);
+        }
+    }
+
+    public static void disposeComponent(final Object object) {
+        final XComponent component = UnoRuntime.queryInterface(XComponent.class, object);
+        if (component != null) {
+            component.dispose();
+        }
+    }
+
+    public static void copyProperties(final XPropertySet src,
+                                      final ColumnMain dst)
+    {
+        copyProperties(src, dst);
+    }
+    public static void copyProperties(final XPropertySet src,
+                                      final XPropertySet dst)
+    {
+        if (src == null || dst == null) {
+            return;
+        }
+        
+        XPropertySetInfo srcPropertySetInfo = src.getPropertySetInfo();
+        XPropertySetInfo dstPropertySetInfo = dst.getPropertySetInfo();
+        
+        for (Property srcProperty : srcPropertySetInfo.getProperties()) {
+            if (dstPropertySetInfo.hasPropertyByName(srcProperty.Name)) {
+                try {
+                    Property dstProperty = dstPropertySetInfo.getPropertyByName(srcProperty.Name);
+                    if ((dstProperty.Attributes & PropertyAttribute.READONLY) == 0) {
+                        Object value = src.getPropertyValue(srcProperty.Name);
+                        if ((dstProperty.Attributes & PropertyAttribute.MAYBEVOID) == 0 || value != null) {
+                            dst.setPropertyValue(srcProperty.Name, value);
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    String error = "Could not copy property '" + srcProperty.Name + "' to the destination set";
+                    XServiceInfo serviceInfo = UnoRuntime.queryInterface(XServiceInfo.class, dst);
+                    if (serviceInfo != null) {
+                        error += " (a '" + serviceInfo.getImplementationName() + "' implementation)";
+                    }
+                    System.out.println("UnoHelper.copyProperties() ERROR: " + error);
+                }
+            }
+        }
+    }
 
     public static void disposeComponent(final XComponent component)
     {

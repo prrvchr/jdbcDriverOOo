@@ -25,39 +25,175 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.List;
 
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XDrop;
+import com.sun.star.uno.AnyConverter;
+import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
-import schemacrawler.schema.Catalog;
+import io.github.prrvchr.uno.sdb.Table;
+import io.github.prrvchr.uno.sdb.TableDescriptor;
 
 
-public class TableContainer<T extends TableBase<C>, D extends TableDescriptorBase<C>, C extends ColumnSuper>
-    extends ContainerSuper<TableBase<C>>
+public class TableContainer
+    extends Container
 {
 
-    private static final String m_name = TableContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
-    private final Class<T> m_table;
-    private final Class<D> m_descriptor;
+    private final Connection m_connection;
 
     // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdb.Connection.getTables()
     public TableContainer(Connection connection,
-                          Class<T> table,
-                          Class<D> descriptor)
+                          boolean sensitive,
+                          List<String> names)
+        throws ElementExistException
+    {
+        super(connection, sensitive, names);
+        m_connection = connection;
+    }
+
+    // com.sun.star.sdbcx.XDrop method of Container:
+    protected String _getDropQuery(TableBase table)
+        throws SQLException
+    {
+        return m_connection.getProvider().getDropTableQuery(m_connection, table.getCatalogName(), table.getSchemaName(), table.getName());
+    }
+
+
+    @Override
+    protected String _getElementName(XPropertySet object)
+        throws SQLException
+    {
+        NameComponents component = DataBaseTools.getTableNameComponents(m_connection, object);
+        return DataBaseTools.composeTableName(m_connection, component.getCatalog(), component.getSchema(), component.getTable(), false, ComposeRule.InDataManipulation);
+    }
+
+    @Override
+    public XPropertySet _appendElement(XPropertySet descriptor,
+                                       String name)
+        throws SQLException
+    {
+        _createTable(descriptor);
+        return _createElement(name);
+    }
+
+    private void _createTable(XPropertySet descriptor)
+        throws SQLException
+    {
+        try (java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement()){
+            String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
+            System.out.println("sdbcx.TableContainer._createTable() SQL: " + sql);
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+    }
+
+    @Override
+    public XPropertySet _createElement(String name)
+        throws SQLException
+    {
+        Table table = null;
+        NameComponents component = DataBaseTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
+        try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
+            if (result.next()) {
+                String type = result.getString(4);
+                type = result.wasNull() ? "" : m_connection.getProvider().getTableType(type);
+                String remarks = result.getString(5);
+                remarks = result.wasNull() ? "" : remarks;
+                table = new Table(this, isCaseSensitive(), component.getCatalog(), component.getSchema(),
+                                  component.getTable(), type, remarks);
+            }
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+        return table;
+    }
+
+    private java.sql.ResultSet _getcreateElementResultSet(NameComponents component)
+        throws SQLException
+    {
+        String catalog = component.getCatalog().isEmpty() ? null : component.getCatalog();
+        String schema = component.getSchema().isEmpty() ? null : component.getSchema();
+        try {
+            java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
+            return metadata.getTables(catalog, schema, component.getTable(), null);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_connection);
+        }
+    }
+    
+    
+    @Override
+    public void _removeElement(int index,
+                               String name)
+        throws SQLException
+    {
+        try {
+            Object object = _getElement(index);
+            NameComponents nameComponents = DataBaseTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
+            boolean isView = false;
+            XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
+            if (propertySet != null) {
+                isView = AnyConverter.toString(propertySet.getPropertyValue(PropertyIds.TYPE.name)).equals("VIEW");
+            }
+            
+            String composedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
+                                                                 nameComponents.getTable(), true, ComposeRule.InDataManipulation);
+            if (isView) {
+                XDrop dropView = UnoRuntime.queryInterface(XDrop.class, m_connection.getViews());
+                String unquotedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
+                                                                     nameComponents.getTable(), false, ComposeRule.InDataManipulation);
+                dropView.dropByName(unquotedName);
+                return;
+            }
+            String sql = "DROP TABLE " + composedName;
+            java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement();
+            statement.execute(sql);
+            statement.close();
+        }
+        catch (WrappedTargetException | UnknownPropertyException | NoSuchElementException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+    }
+
+    public synchronized void _refresh()
+    {
+        m_connection._refresh();
+    }
+
+    public Connection getConnection()
+    {
+        return m_connection;
+    }
+
+    @Override
+    protected XPropertySet _createDescriptor() {
+        return new TableDescriptor(isCaseSensitive());
+    }
+
+/*    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.Connection.getTables()
+    public TableContainer(Connection connection)
     {
         super(m_name, m_services, connection);
-        m_table = table;
-        m_descriptor = descriptor;
         try {
             String value;
             String[] types = m_Connection.getProvider().getTableTypes();
@@ -76,15 +212,14 @@ public class TableContainer<T extends TableBase<C>, D extends TableDescriptorBas
                 String type = result.wasNull() ? "" : m_Connection.getProvider().getTableType(value);
                 value = result.getString(5);
                 String description = result.wasNull() ? "" : value;
-                m_Elements.add(m_table.getDeclaredConstructor(Connection.class, String.class, String.class, String.class, String.class, String.class).newInstance(m_Connection, catalog, schema, name, type, description));
+                m_Elements.add(new Table(m_Connection, catalog, schema, name, type, description));
                 // FIXME: We must construct a unique name!!!
-                m_Names.add(_getTableName(catalog, schema, name));
+                m_Names.add(_getElementName(catalog, schema, name));
                 System.out.println("TableContainer.TableContainer() 4");
             }
             result.close();
         }
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-               InvocationTargetException | NoSuchMethodException | SecurityException e) {
+        catch (java.lang.IllegalArgumentException | java.lang.SecurityException e) {
            // TODO Auto-generated catch block
            e.printStackTrace();
         }
@@ -96,96 +231,23 @@ public class TableContainer<T extends TableBase<C>, D extends TableDescriptorBas
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.jdbcdriver.SchemaCrawler.getTables()
     public TableContainer(Connection connection,
-                          Class<T> table,
-                          Class<D> descriptor,
                           Catalog catalog)
         throws java.sql.SQLException
     {
         super(m_name, m_services, connection);
-        m_table = table;
-        m_descriptor = descriptor;
         try {
             for (final schemacrawler.schema.Table t : catalog.getTables()) {
                 String schema = t.getSchema().getName();
                 String name = t.getName();
-                m_Elements.add(m_table.getDeclaredConstructor(Connection.class, schemacrawler.schema.Table.class).newInstance(m_Connection, t));
+                m_Elements.add(new Table(m_Connection, t));
                 // FIXME: We must construct a unique name!!!
-                m_Names.add(_getTableName(t.getSchema().getCatalogName(), schema, name));
+                m_Names.add(_getElementName(t.getSchema().getCatalogName(), schema, name));
             }
         }
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-               InvocationTargetException | NoSuchMethodException | SecurityException e) {
+        catch (java.lang.IllegalArgumentException | java.lang.SecurityException e) {
             UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
         }
-    }
-
-
-    // com.sun.star.sdbcx.XDrop method of Container:
-    protected String _getDropQuery(TableBase<C> table)
-        throws SQLException
-    {
-        return m_Connection.getProvider().getDropTableQuery(m_Connection, table.m_CatalogName, table.m_SchemaName, table.m_Name);
-    }
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor()
-    {
-        System.out.println("sdbcx.TableContainer.createDataDescriptor() 1 ***************************");
-        XPropertySet descriptor = null;
-        try {
-            descriptor = m_descriptor.getDeclaredConstructor(Connection.class).newInstance(m_Connection);
-        }
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-               InvocationTargetException | NoSuchMethodException | SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println("sdbcx.TableContainer.createDataDescriptor() 2");
-        return descriptor;
-    }
-
-    // com.sun.star.sdbcx.XAppend
-    @Override
-    public void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException,
-               ElementExistException
-    {
-        System.out.println("sdbcx.TableContainer.appendByDescriptor() 1");
-        try {
-            String catalog = (String) descriptor.getPropertyValue("CatalogName");
-            String schema = (String) descriptor.getPropertyValue("SchemaName");
-            String table = (String) descriptor.getPropertyValue("Name");
-            String name = _getTableName(catalog, schema, table);
-            if (m_Names.contains(name)) {
-                 throw new ElementExistException();
-            }
-            System.out.println("sdbcx.TableContainer.appendByDescriptor() 2: " + name);
-            T newtable = m_table.getDeclaredConstructor(Connection.class, XPropertySet.class, String.class).newInstance(m_Connection, descriptor, table);
-            String[] queries = m_Connection.getProvider().getCreateTableQueries(m_Connection, descriptor, catalog, schema, table);
-            System.out.println("sdbcx.TableContainer.appendByDescriptor() 3");
-            _executeQueries(queries);
-            m_Elements.add(newtable);
-            m_Names.add(name);
-            _insertElement(newtable);
-        } 
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-               InvocationTargetException | NoSuchMethodException | SecurityException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
-        }
-        catch (UnknownPropertyException | WrappedTargetException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-
-    private String _getTableName(String catalog,
-                                 String schema,
-                                 String table)
-    {
-        return String.format("%s.%s", schema, table);
-    }
+    }*/
 
 
 }

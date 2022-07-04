@@ -40,7 +40,7 @@ public final class DatabaseMetaData
 
 
     @Override
-    protected final int _mapDatabaseDataType(final int type) {
+    protected final int _getDataType(final int type) {
         return type;
     }
 

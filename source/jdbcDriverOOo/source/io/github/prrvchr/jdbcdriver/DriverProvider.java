@@ -40,7 +40,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
-import io.github.prrvchr.uno.sdbcx.ColumnBase;
+import io.github.prrvchr.uno.sdbcx.ColumnMain;
 
 public interface DriverProvider
 {
@@ -48,6 +48,24 @@ public interface DriverProvider
     public String getProtocol();
 
     public String getProtocol(String subprotocol);
+
+    public java.sql.Connection getConnection();
+
+    public String getConnectionUrl(String location,
+                                   String level);
+
+    public void setConnection(String url,
+                              PropertyValue[] info,
+                              String level)
+        throws java.sql.SQLException;
+
+    public boolean isCaseSensitive();
+
+    public boolean supportsCatalogsInComponentNaming();
+
+    public boolean supportsSchemasInComponentNaming();
+
+    public int getDataType(int type);
 
     public String[] getTableTypes();
 
@@ -110,7 +128,7 @@ public interface DriverProvider
     throws SQLException;
 
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnBase column);
+                                     ColumnMain column);
 
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);
@@ -118,10 +136,7 @@ public interface DriverProvider
     public String getAutoIncrementCreation();
 
     public String[] getCreateTableQueries(ConnectionBase connection,
-                                          XPropertySet descriptor,
-                                          String catalog,
-                                          String schema,
-                                          String table)
+                                          XPropertySet descriptor)
         throws SQLException;
 
 
@@ -180,11 +195,6 @@ public interface DriverProvider
     public boolean acceptsURL(String url);
 
     public String getLoggingLevel(XHierarchicalNameAccess driver);
-
-    public java.sql.Connection getConnection(String url,
-                                             PropertyValue[] info,
-                                             String level)
-        throws java.sql.SQLException;
 
     public Properties getConnectionProperties(List<String> list,
                                               PropertyValue[] info);

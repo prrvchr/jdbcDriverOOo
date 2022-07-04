@@ -73,122 +73,182 @@ public abstract class PropertySet
 
     private final PropertySetAdapter m_adapter;
 
-    protected PropertySet() {
+    protected PropertySet()
+    {
         m_adapter = new PropertySetAdapter(this, this);
     }
 
     @Override
-    protected void postDisposing() {
+    protected void postDisposing()
+    {
         m_adapter.dispose();
     }
 
-    public void registerProperty(String propertyName, Type type, PropertyGetter getter, PropertySetter setter) {
-        registerProperty(propertyName, type, (short)0, getter, setter);
+    public void registerProperty(String name,
+                                 Type type,
+                                 PropertyGetter getter,
+                                 PropertySetter setter)
+    {
+        registerProperty(name, type, (short)0, getter, setter);
     }
-    public void registerProperty(String propertyName, int handle, Type type, PropertyGetter getter, PropertySetter setter) {
-        registerProperty(propertyName, handle, type, (short)0, getter, setter);
+    public void registerProperty(String name,
+                                 int handle,
+                                 Type type,
+                                 PropertyGetter getter,
+                                 PropertySetter setter)
+    {
+        registerProperty(name, handle, type, (short)0, getter, setter);
     }
-    public void registerProperty(String propertyName, int handle, Type type, short attributes, PropertyGetter getter, PropertySetter setter) {
-        m_adapter.registerProperty(propertyName, handle, type, attributes, getter, setter);
+    public void registerProperty(String name,
+                                 int handle,
+                                 Type type,
+                                 short attributes,
+                                 PropertyGetter getter,
+                                 PropertySetter setter)
+    {
+        m_adapter.registerProperty(name, handle, type, attributes, getter, setter);
     }
-    public void registerProperty(String propertyName, Type type, short attributes, PropertyGetter getter, PropertySetter setter) {
-        m_adapter.registerProperty(propertyName, type, attributes, getter, setter);
+    public void registerProperty(String name,
+                                 Type type,
+                                 short attributes,
+                                 PropertyGetter getter,
+                                 PropertySetter setter)
+    {
+        m_adapter.registerProperty(name, type, attributes, getter, setter);
     }
 
-    public synchronized void addPropertyChangeListener(String propertyName, XPropertyChangeListener listener)
-            throws UnknownPropertyException, WrappedTargetException {
+    public synchronized void addPropertyChangeListener(String name,
+                                                       XPropertyChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         // only add listeners if you are not disposed
         if (!bDisposed) {
-            m_adapter.addPropertyChangeListener(propertyName, listener);
+            m_adapter.addPropertyChangeListener(name, listener);
         }
     }
 
-    public synchronized void addVetoableChangeListener(String propertyName, XVetoableChangeListener listener)
-            throws UnknownPropertyException, WrappedTargetException {
+    public synchronized void addVetoableChangeListener(String name,
+                                                       XVetoableChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         // only add listeners if you are not disposed
         if (!bDisposed) {
-            m_adapter.addVetoableChangeListener(propertyName, listener);
+            m_adapter.addVetoableChangeListener(name, listener);
         }
     }
 
-    public synchronized void addPropertiesChangeListener(String[] propertyNames, XPropertiesChangeListener listener) {
+    public synchronized void addPropertiesChangeListener(String[] names,
+                                                         XPropertiesChangeListener listener)
+    {
         // only add listeners if you are not disposed
         if (!bDisposed) {
-            m_adapter.addPropertiesChangeListener(propertyNames, listener);
+            m_adapter.addPropertiesChangeListener(names, listener);
         }
     }
 
-    public XPropertySetInfo getPropertySetInfo() {
+    public XPropertySetInfo getPropertySetInfo()
+    {
         return m_adapter.getPropertySetInfo();
     }
 
-    public synchronized Object getPropertyValue(String propertyName) throws UnknownPropertyException, WrappedTargetException {
+    public synchronized Object getPropertyValue(String name)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         checkDisposed();
-        return m_adapter.getPropertyValue(propertyName);
+        return m_adapter.getPropertyValue(name);
     }
 
     @Override
-    public synchronized Object getFastPropertyValue(int handle) throws UnknownPropertyException, WrappedTargetException {
+    public synchronized Object getFastPropertyValue(int handle)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         checkDisposed();
         return m_adapter.getFastPropertyValue(handle);
     }
 
-    public synchronized Object[] getPropertyValues(String[] propertyNames) {
+    public synchronized Object[] getPropertyValues(String[] names)
+    {
         checkDisposed();
-        return m_adapter.getPropertyValues(propertyNames);
+        return m_adapter.getPropertyValues(names);
     }
 
-    public synchronized void removePropertyChangeListener(String propertyName, XPropertyChangeListener listener)
-            throws UnknownPropertyException, WrappedTargetException {
+    public synchronized void removePropertyChangeListener(String name,
+                                                          XPropertyChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         // all listeners are automatically released in a dispose call
         if (!bDisposed) {
-            m_adapter.removePropertyChangeListener(propertyName, listener);
+            m_adapter.removePropertyChangeListener(name, listener);
         }
     }
 
-    public synchronized void removeVetoableChangeListener(String propertyName, XVetoableChangeListener listener)
-            throws UnknownPropertyException, WrappedTargetException {
+    public synchronized void removeVetoableChangeListener(String name,
+                                                          XVetoableChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         // all listeners are automatically released in a dispose call
         if (!bDisposed) {
-            m_adapter.removeVetoableChangeListener(propertyName, listener);
+            m_adapter.removeVetoableChangeListener(name, listener);
         }
     }
 
-    public synchronized void removePropertiesChangeListener(XPropertiesChangeListener listener) {
+    public synchronized void removePropertiesChangeListener(XPropertiesChangeListener listener)
+    {
         // all listeners are automatically released in a dispose call
         if (!bDisposed) {
             m_adapter.removePropertiesChangeListener(listener);
         }
     }
 
-    public synchronized void setPropertyValue(String propertyName, Object value)
-            throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+    public synchronized void setPropertyValue(String name,
+                                              Object value)
+        throws UnknownPropertyException,
+               PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
         checkDisposed();
-        m_adapter.setPropertyValue(propertyName, value);
+        m_adapter.setPropertyValue(name, value);
     }
 
-    public synchronized void setFastPropertyValue(int handle, Object value)
-            throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+    public synchronized void setFastPropertyValue(int handle,
+                                                  Object value)
+        throws UnknownPropertyException,
+               PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
         checkDisposed();
         m_adapter.setFastPropertyValue(handle, value);
     }
 
-    public synchronized void setPropertyValues(String[] propertyNames, Object[] values)
-            throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+    public synchronized void setPropertyValues(String[] names,
+                                               Object[] values)
+        throws PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
         checkDisposed();
-        m_adapter.setPropertyValues(propertyNames, values);
+        m_adapter.setPropertyValues(names, values);
     }
 
-    public synchronized void firePropertiesChangeEvent(String[] propertyNames, XPropertiesChangeListener listener) {
+    public synchronized void firePropertiesChangeEvent(String[] names,
+                                                       XPropertiesChangeListener listener)
+    {
         checkDisposed();
-        m_adapter.firePropertiesChangeEvent(propertyNames, listener);
+        m_adapter.firePropertiesChangeEvent(names, listener);
     }
 
     /** Checks whether this component (which you should have locked, prior to this call, and until you are done using) is disposed, throwing DisposedException if it is. */
     protected synchronized final void checkDisposed()
     {
         if (bInDispose || bDisposed) {
-            System.out.println("beans.PropertySet()checkDisposed() ERROR: **************************" + this.getClass().getName());
             throw new DisposedException();
         }
     }

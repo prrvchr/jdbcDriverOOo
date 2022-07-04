@@ -111,7 +111,7 @@ public final class DerbyDatabaseMetaData
     }
 
     @Override
-    protected int _mapDatabaseDataType(int type)
+    protected int _getDataType(int type)
     {
         return type;
     }

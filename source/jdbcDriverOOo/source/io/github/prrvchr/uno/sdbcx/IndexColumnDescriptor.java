@@ -29,27 +29,25 @@ import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class IndexColumnDescriptor
     extends ColumnDescriptorBase
 {
 
-    private static final String m_name = IndexColumnDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumnDescriptor",
-                                                "com.sun.star.sdbcx.ColumnDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
+    private static final String m_service = IndexColumnDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumnDescriptor"};
+
     private boolean m_IsAscending;
 
 
     // The constructor method:
-    public IndexColumnDescriptor(ConnectionBase connection)
+    public IndexColumnDescriptor(boolean sensitive)
     {
-        super(m_name, m_services, connection);
+        super(m_service, m_services, sensitive);
         registerProperties();
         System.out.println("sdbcx.IndexColumnDescriptor() ***************************************************");
     }

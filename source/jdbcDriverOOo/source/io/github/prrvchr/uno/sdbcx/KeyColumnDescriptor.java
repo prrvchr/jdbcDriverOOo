@@ -29,29 +29,26 @@ import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class KeyColumnDescriptor
     extends ColumnDescriptorBase
 {
 
-    private static final String m_name = KeyColumnDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumnDescriptor",
-                                                "com.sun.star.sdbcx.ColumnDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
-    private String m_RelatedColumn;
+    private static final String m_service = KeyColumnDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumnDescriptor"};
+    private String m_RelatedColumn = "";
 
 
     // The constructor method:
-    public KeyColumnDescriptor(ConnectionBase connection)
+    public KeyColumnDescriptor(boolean sensitive)
     {
-        super(m_name, m_services, connection);
+        super(m_service, m_services, sensitive);
         registerProperties();
-        System.out.println("sdbcx.KeyColumnDescriptor() ***************************************************");
+        System.out.println("sdbcx.descriptors.KeyColumnDescriptor()");
     }
 
 

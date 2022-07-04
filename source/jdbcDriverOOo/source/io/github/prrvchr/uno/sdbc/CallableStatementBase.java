@@ -52,12 +52,12 @@ public abstract class CallableStatementBase
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatement()
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementSuper()
-    public CallableStatementBase(String name,
+    public CallableStatementBase(String service,
                                  String[] services,
                                  ConnectionBase connection,
                                  String sql)
     {
-        super(name, services, connection);
+        super(service, services, connection);
         m_Sql = sql;
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");
     }
@@ -70,13 +70,12 @@ public abstract class CallableStatementBase
         if (m_Statement == null) {
             try {
                 try {
-                    //m_Statement = m_Connection.getWrapper().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
-                    m_Statement = m_Connection.getWrapper().prepareCall(m_Sql, m_ResultSetType, java.sql.ResultSet.CONCUR_READ_ONLY);
-                    //_setStatement();
+                    m_Statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
+                    _setStatement();
                 } 
                 catch (NoSuchMethodError e) {
-                    m_Statement = m_Connection.getWrapper().prepareCall(m_Sql);
-                    //_setStatement();
+                    m_Statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql);
+                    _setStatement();
                 }
             } 
             catch (java.sql.SQLException e) {

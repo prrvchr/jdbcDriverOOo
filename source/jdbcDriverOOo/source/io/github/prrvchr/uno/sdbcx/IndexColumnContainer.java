@@ -25,40 +25,121 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.beans.UnknownPropertyException;
+import java.util.List;
+
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XEnumeration;
-import com.sun.star.container.XEnumerationAccess;
-import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class IndexColumnContainer
-    extends ContainerSuper<IndexColumn>
+    extends Container
 {
 
-    private static final String m_name = IndexColumnContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    private final Index m_index;
 
     // The constructor method:
-    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexDescriptor()
-    public IndexColumnContainer(Connection connection)
+    public IndexColumnContainer(Object lock,
+                                Index index,
+                                List<String> columns)
+        throws ElementExistException
     {
-        super(m_name, m_services, connection);
-        System.out.println("sdbcx.IndexColumnContainer() 1");
+        super(lock, true, columns);
+        m_index = index;
+
         System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
     }
-    // XXX: Constructor called from methods:
+
+    @Override
+    protected IndexColumnDescriptor _createDescriptor()
+    {
+        return new IndexColumnDescriptor(isCaseSensitive());
+    }
+    
+    @Override
+    protected IndexColumn _createElement(String name)
+        throws SQLException
+    {
+        IndexColumn index = null;
+        try {
+            java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
+            String catalog = m_index.getTable().getCatalogName();
+            String schema = m_index.getTable().getSchemaName();
+            String table = m_index.getTable().getName();
+            System.out.println("sdbcx.IndexColumnContainer._createElement() 1 : " + catalog + "." + schema + "." + table);
+            boolean isAscending = true;
+            java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false);
+            while (result.next()) {
+                System.out.println("sdbcx.IndexColumnContainer._createElement() 2");
+                if (name.equals(result.getString(9))) {
+                    System.out.println("sdbcx.IndexColumnContainer._createElement() 3");
+                    isAscending = !"D".equals(result.getString(10));
+                }
+            }
+            result.close();
+
+            result = metadata.getColumns(catalog, schema, table, name);
+            while (result.next()) {
+                System.out.println("sdbcx.IndexColumnContainer._createElement() 4");
+                if (name.equals(result.getString(4))) {
+                    System.out.println("sdbcx.IndexColumnContainer._createElement() 5");
+                    int dataType = _getConnection().getProvider().getDataType(result.getInt(5));
+                    String typeName = result.getString(6);
+                    int size = result.getInt(7);
+                    int dec = result.getInt(9);
+                    int nul = result.getInt(11);
+                    String columnDef = result.getString(13);
+                    
+                    index = new IndexColumn(isCaseSensitive(), name, typeName, columnDef, "",
+                            nul, size, dec, dataType, false, false, false, isAscending);
+                    System.out.println("sdbcx.IndexColumnContainer._createElement() 5");
+                    break;
+                }
+            }
+            result.close();
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, this);
+        }
+        System.out.println("sdbcx.IndexColumnContainer._createElement() 5");
+        return index;
+    }
+
+    @Override
+    protected void _refresh() {
+        // FIXME
+    }
+
+    @Override
+    protected IndexColumn _appendElement(XPropertySet descriptor,
+                                          String name)
+        throws SQLException
+    {
+        throw new SQLException("Unsupported");
+    }
+
+    @Override
+    protected void _removeElement(int index,
+                                  String name)
+        throws SQLException
+    {
+        throw new SQLException("Unsupported");
+    }
+
+    protected Connection _getConnection()
+    {
+        return m_index.getTable().getTables().getConnection();
+    }
+
+
+/*    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.Index()
     public IndexColumnContainer(Connection connection,
-                                TableBase<?> table,
+                                TableBase table,
                                 boolean ascending,
                                 String name,
                                 int position)
@@ -74,69 +155,27 @@ public class IndexColumnContainer
     // XXX: - io.github.prrvchr.uno.sdbcx.Index(ConnectionBase, XPropertySet, String)
     public IndexColumnContainer(Connection connection,
                                 XNameAccess columns)
-        throws UnknownPropertyException, WrappedTargetException, java.sql.SQLException, NoSuchElementException
+        throws SQLException
     {
         super(m_name, m_services, connection);
         System.out.println("sdbcx.IndexColumnContainer() 1");
-        XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
-        System.out.println("sdbcx.IndexColumnContainer() 1");
-        int position = 1;
-        while (iter.hasMoreElements()) {
-            XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-            String name = (String) descriptor.getPropertyValue("Name");
-            IndexColumn column = new IndexColumn(m_Connection, descriptor, name, position++);
-            m_Elements.add(column);
-            m_Names.add(name);
+        try {
+            XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
+            System.out.println("sdbcx.IndexColumnContainer() 1");
+            int position = 1;
+            while (iter.hasMoreElements()) {
+                XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
+                String name = (String) descriptor.getPropertyValue("Name");
+                IndexColumn column = new IndexColumn(m_Connection, descriptor, position++);
+                m_Elements.add(column);
+                m_Names.add(name);
+            }
+        }
+        catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
+            UnoHelper.getSQLException(e, this);
         }
         System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
-    }
-
-
-    // com.sun.star.sdbcx.XDrop method of Container:
-    protected String _getDropQuery(ColumnBase column)
-    {
-        System.out.println("sdbcx.IndexColumnContainer._getDropQuery() ********************************");
-        return null;
-    }
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor() {
-        System.out.println("sdbcx.IndexColumnContainer.createDataDescriptor() ***************************");
-        return new ColumnDescriptor(m_Connection);
-    }
-
-
-    // com.sun.star.sdbcx.XAppend
-    @Override
-    public void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException,
-               ElementExistException
-    {
-        System.out.println("sdbcx.IndexColumnContainer.appendByDescriptor() 1");
-        try {
-            String name = (String) descriptor.getPropertyValue("Name");
-            IndexColumn column = new IndexColumn(m_Connection, descriptor, name, m_Elements.size() + 1);
-            m_Elements.add(column);
-            m_Names.add(name);
-            _insertElement(column);
-            System.out.println("sdbcx.IndexColumnContainer.appendByDescriptor() 2 : " + name);
-        } 
-        catch (java.sql.SQLException | UnknownPropertyException | WrappedTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-
-    @Override
-    protected String _getDropQuery(IndexColumn element)
-        throws SQLException
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    }*/
 
 
 }

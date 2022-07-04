@@ -49,16 +49,16 @@ public final class SmallSQLDatabaseMetaData
 {
 
 
-    private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
-                                                                   Map.entry(-15, 1),
-                                                                   Map.entry(-9, 12),
-                                                                   Map.entry(-8, 4),
-                                                                   Map.entry(70, 1111),
-                                                                   Map.entry(2009, 1111),
-                                                                   Map.entry(2011, 2005),
-                                                                   Map.entry(2012, 2006),
-                                                                   Map.entry(2013, 12),
-                                                                   Map.entry(2014, 12));
+    protected static final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
+                                                                            Map.entry(-15, 1),
+                                                                            Map.entry(-9, 12),
+                                                                            Map.entry(-8, 4),
+                                                                            Map.entry(70, 1111),
+                                                                            Map.entry(2009, 1111),
+                                                                            Map.entry(2011, 2005),
+                                                                            Map.entry(2012, 2006),
+                                                                            Map.entry(2013, 12),
+                                                                            Map.entry(2014, 12));
 
     // The constructor method:
     public SmallSQLDatabaseMetaData(final ConnectionBase connection)
@@ -144,11 +144,11 @@ public final class SmallSQLDatabaseMetaData
         throws java.sql.SQLException
     {
         CustomRowSet[] row = new CustomRowSet[5];
-        row[0] = new CustomRowSet(_getCatalogName(result.getString(1)));
-        row[1] = new CustomRowSet(result.getString(2));
-        row[2] = new CustomRowSet(result.getString(3));
-        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-        row[4] = new CustomRowSet(result.getString(5));
+        row[0] = new CustomRowSet(_getCatalogName(result.getString(1)), result.wasNull());
+        row[1] = new CustomRowSet(result.getString(2), result.wasNull());
+        row[2] = new CustomRowSet(result.getString(3), result.wasNull());
+        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
+        row[4] = new CustomRowSet(result.getString(5), result.wasNull());
         return row;
     }
 
@@ -216,9 +216,9 @@ public final class SmallSQLDatabaseMetaData
 
     protected final short _mapDatabaseDataType(final short type)
     {
-        return (short)_mapDatabaseDataType((int) type);
+        return (short)_getDataType((int) type);
     }
-    protected final int _mapDatabaseDataType(final int type)
+    protected final int _getDataType(final int type)
     {
         if (m_dataType.containsKey(type))
         {
@@ -255,7 +255,7 @@ public final class SmallSQLDatabaseMetaData
         CustomRowSet[] row = new CustomRowSet[1];
         String catalog = _getCatalogName(m_Metadata.getConnection().getCatalog());
         System.out.println("smallsql.SmallSQLDatabaseMetaDataBase._getCatalogsRowSet() 1 : " + catalog);
-        row[0] = new CustomRowSet(catalog);
+        row[0] = new CustomRowSet(catalog, false);
         return row;
     }
 

@@ -40,16 +40,16 @@ public final class HsqlDBDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
-    private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
-                                                                   Map.entry(-15, 1),
-                                                                   Map.entry(-9, 12),
-                                                                   Map.entry(-8, 4),
-                                                                   Map.entry(70, 1111),
-                                                                   Map.entry(2009, 1111),
-                                                                   Map.entry(2011, 2005),
-                                                                   Map.entry(2012, 2006),
-                                                                   Map.entry(2013, 12),
-                                                                   Map.entry(2014, 12));
+    protected static final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
+                                                                            Map.entry(-15, 1),
+                                                                            Map.entry(-9, 12),
+                                                                            Map.entry(-8, 4),
+                                                                            Map.entry(70, 1111),
+                                                                            Map.entry(2009, 1111),
+                                                                            Map.entry(2011, 2005),
+                                                                            Map.entry(2012, 2006),
+                                                                            Map.entry(2013, 12),
+                                                                            Map.entry(2014, 12));
 
     // The constructor method:
     public HsqlDBDatabaseMetaData(final ConnectionBase connection)
@@ -63,19 +63,10 @@ public final class HsqlDBDatabaseMetaData
     public boolean supportsCatalogsInDataManipulation()
         throws SQLException
     {
-        // FIXME: With the com.sun.star.sdbc.Driver, if we want to be able to display the different
+        // FIXME: With HsqlDB, if we want to be able to display the different
         // FIXME: schemas correctly in Base, we need to disable the catalog in Data Manipulation.
         // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL
         boolean value = false;
-        try {
-            if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsCatalogsInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("HsqlDBDatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
-            //throw UnoHelper.getSQLException(e, this);
-        }
         System.out.println("HsqlDBDatabaseMetaData.supportsCatalogsInDataManipulation(): " + value);
         return value;
     }
@@ -158,18 +149,11 @@ public final class HsqlDBDatabaseMetaData
         throws java.sql.SQLException
     {
         CustomRowSet[] row = new CustomRowSet[5];
-        row[0] = new CustomRowSet(result.getString(1));
-        row[1] = new CustomRowSet(result.getString(2));
-        row[2] = new CustomRowSet(result.getString(3));
-        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-        String description = result.getString(5);
-        if (result.wasNull()) {
-            row[4] = new CustomRowSet("");
-            row[4].setNull();
-        }
-        else {
-            row[4] = new CustomRowSet(description);
-        }
+        row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+        row[1] = new CustomRowSet(result.getString(2), result.wasNull());
+        row[2] = new CustomRowSet(result.getString(3), result.wasNull());
+        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
+        row[4] = new CustomRowSet(result.getString(5), result.wasNull());
         //System.out.println("hsqldb.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
         return row;
     }
@@ -202,12 +186,12 @@ public final class HsqlDBDatabaseMetaData
     }
 
 
-    protected final short _mapDatabaseDataType(final short type)
+    protected final short _getDataType(final short type)
     {
-        return (short)_mapDatabaseDataType((int) type);
+        return (short)_getDataType((int) type);
     }
 
-    protected final int _mapDatabaseDataType(final int type)
+    protected final int _getDataType(final int type)
     {
         if (m_dataType.containsKey(type))
         {

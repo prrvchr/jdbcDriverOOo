@@ -33,14 +33,14 @@ public class PreparedStatement
     extends PreparedStatementBase
 {
 
-    private static final String m_name = PreparedStatement.class.getName();
+    private static final String m_service = PreparedStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
 
     // The constructor method:
     public PreparedStatement(ConnectionBase connection,
                              String sql)
     {
-        super(m_name, m_services, connection, sql);
+        super(m_service, m_services, connection, sql);
         System.out.println("sdbc.PreparedStatement() 1: '" + sql + "'");
     }
 

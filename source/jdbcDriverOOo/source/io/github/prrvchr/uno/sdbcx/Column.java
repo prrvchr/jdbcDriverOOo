@@ -25,24 +25,38 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-
-import com.sun.star.beans.UnknownPropertyException;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
-
-import io.github.prrvchr.uno.sdb.Connection;
-
 
 public class Column
     extends ColumnSuper
 {
-    private static final String m_name = Column.class.getName();
+    private static final String m_service = Column.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
 
     // The constructor method:
-    // XXX: Constructor called from methods:
+    public Column(final TableBase table,
+                  final boolean sensitive)
+    {
+        super(m_service, m_services, table, sensitive);
+    }
+    public Column(final TableBase table,
+                  final boolean sensitive,
+                  final String name,
+                  final String typename,
+                  final String defaultvalue,
+                  final String description,
+                  final int nullable,
+                  final int precision,
+                  final int scale,
+                  final int type,
+                  final boolean autoincrement,
+                  final boolean rowversion,
+                  final boolean currency)
+    {
+        super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+    }
+
+
+/*    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
     // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer.appendByDescriptor()
     public Column(Connection connection,
@@ -91,7 +105,7 @@ public class Column
                   String name)
     {
         super(m_name, m_services, connection, column, name);
-    }
+    }*/
 
 
 }

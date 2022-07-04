@@ -32,13 +32,13 @@ import com.sun.star.sdbc.XResultSet;
 public final class Statement
 extends StatementBase
 {
-    private static String m_name = Statement.class.getName();
-    private static String[] m_services = {"com.sun.star.sdbc.Statement"};
+    private static final String m_service = Statement.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbc.Statement"};
 
     // The constructor method:
     public Statement(ConnectionBase connection)
     {
-        super(m_name, m_services, connection);
+        super(m_service, m_services, connection);
         System.out.println("sdbc.Statement() 1");
     }
 

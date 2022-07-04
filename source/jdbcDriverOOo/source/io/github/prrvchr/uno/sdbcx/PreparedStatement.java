@@ -35,15 +35,15 @@ import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
 public final class PreparedStatement
     extends PreparedStatementSuper
 {
-    private static String m_name = PreparedStatement.class.getName();
-    private static String[] m_services = {"com.sun.star.sdbc.PreparedStatement",
-                                          "com.sun.star.sdbcx.PreparedStatement"};
+    private static final String m_service = PreparedStatement.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement",
+                                                "com.sun.star.sdbcx.PreparedStatement"};
 
     // The constructor method:
     public PreparedStatement(ConnectionBase connection,
                              String sql)
     {
-        super(m_name, m_services, connection, sql);
+        super(m_service, m_services, connection, sql);
         System.out.println("sdbcx.PreparedStatement() 1: '" + sql + "'");
     }
 

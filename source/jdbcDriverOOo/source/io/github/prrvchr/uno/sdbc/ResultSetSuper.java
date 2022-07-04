@@ -39,6 +39,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.uno.XInterface;
 import com.sun.star.util.XCancellable;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 
 
@@ -53,7 +54,7 @@ public abstract class ResultSetSuper
     private final boolean m_CanUpdateInsertedRows = false;
     
     // The constructor method:
-    public ResultSetSuper(String name,
+    public ResultSetSuper(String service,
                           String[] services,
                           ConnectionBase connection,
                           java.sql.ResultSet resultset,
@@ -61,7 +62,7 @@ public abstract class ResultSetSuper
                           boolean bookmark)
     throws SQLException
     {
-        super(name, services, connection, resultset, statement);
+        super(service, services, connection, resultset, statement);
         m_IsBookmarkable = bookmark;
         registerProperties();
         System.out.println("sdbc.ResultSetSuper(): " + m_IsBookmarkable);

@@ -31,7 +31,6 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
-import io.github.prrvchr.uno.sdbcx.ColumnContainer;
 
 
 public final class PreparedStatement
@@ -39,15 +38,15 @@ public final class PreparedStatement
     implements XColumnsSupplier
 {
 
-    private static String m_name = PreparedStatement.class.getName();
-    private static String[] m_services = {"com.sun.star.sdb.PreparedStatement",
+    private static final String m_service = PreparedStatement.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdb.PreparedStatement",
                                           "com.sun.star.sdbc.PreparedStatement"};
 
     // The constructor method:
     public PreparedStatement(Connection connection,
                              String sql)
     {
-        super(m_name, m_services, connection, sql);
+        super(m_service, m_services, connection, sql);
         System.out.println("sdb.PreparedStatement() 1: '" + sql + "'");
     }
 
@@ -56,17 +55,15 @@ public final class PreparedStatement
     @Override
     public XNameAccess getColumns()
     {
-        try
-        {
+        /*try {
             System.out.println("sdb.PreparedStatement.getColumns() ************************************");
             java.sql.ResultSetMetaData metadata = _getPreparedStatement().getMetaData();
-            return new ColumnContainer<Column>((Connection) m_Connection, Column.class, metadata);
+            return new ColumnContainer((Connection) m_Connection, metadata);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdb.PreparedStatement.getColumns() 2 **********************************");
             // pass
-        }
+        }*/
         return null;
     }
 

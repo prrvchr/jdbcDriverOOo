@@ -32,7 +32,7 @@ import com.sun.star.uno.XInterface;
 public class ResultSet
     extends ResultSetBase
 {
-    private static final String m_name = ResultSet.class.getName();
+    private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
 
 
@@ -50,7 +50,7 @@ public class ResultSet
                      boolean bookmark)
         throws SQLException
     {
-        super(m_name, m_services, connection, resultset, statement);
+        super(m_service, m_services, connection, resultset, statement);
         System.out.println("sdbc.ResultSet() 1");
     }
 

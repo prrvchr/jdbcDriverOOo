@@ -33,33 +33,43 @@ import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
-public abstract class TableDescriptorBase<T extends ColumnSuper>
+public abstract class TableDescriptorBase
     extends Descriptor
     implements XColumnsSupplier,
                XKeysSupplier
 {
 
-    private XNameAccess m_xColumns = null;
-    private XIndexAccess m_xKeys = null;
+    private ColumnDescriptorContainer m_columns;
+    private KeyDescriptorContainer m_keys;
     private String m_CatalogName = "";
     private String m_SchemaName = "";
     private String m_Description = "";
 
-
     // The constructor method:
     public TableDescriptorBase(String service,
                                String[] services,
-                               Connection connection,
-                               Class<T> column)
+                               boolean sensitive)
+    {
+        super(service, services, sensitive);
+        m_columns = new ColumnDescriptorContainer(this, sensitive);
+        m_keys = new KeyDescriptorContainer(this, sensitive);
+        registerProperties();
+        System.out.println("sdbcx.descriptors.TableDescriptor()");
+    }
+
+
+/*    // The constructor method:
+    public TableDescriptorBase(String service,
+                               String[] services,
+                               Connection connection)
     {
         super(service, services, connection);
-        m_xColumns = new ColumnContainer<T>(connection, column);
+        m_xColumns = new ColumnContainer(connection);
         m_xKeys = new KeyContainer(connection);
         registerProperties();
         System.out.println("sdbcx.TableDescriptor() ***************************************************");
@@ -68,19 +78,18 @@ public abstract class TableDescriptorBase<T extends ColumnSuper>
     public TableDescriptorBase(String service,
                                String[] services,
                                Connection connection,
-                               Class<T> column,
-                               TableBase<?> table)
+                               TableBase table)
     {
         super(service, services, connection);
         m_Name = table.m_Name;
         m_CatalogName = table.m_CatalogName;
         m_SchemaName = table.m_SchemaName;
         m_Description = table.m_Description;
-        m_xColumns = new ColumnContainer<T>(connection, column, table.getColumns());
+        m_xColumns = new ColumnContainer(connection, table.getColumns());
         m_xKeys = new KeyContainer(connection, table.getKeys(), table);
         registerProperties();
         System.out.println("sdbcx.TableDescriptor() ***************************************************");
-    }
+    }*/
 
     private void registerProperties() {
         registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING,
@@ -130,16 +139,16 @@ public abstract class TableDescriptorBase<T extends ColumnSuper>
     @Override
     public XNameAccess getColumns()
     {
-        System.out.println("sdbcx.TableDescriptor.getColumns() ***************************************************");
-        return m_xColumns;
+        System.out.println("sdbcx.descriptors.TableDescriptorBase.getColumns()");
+        return m_columns;
     }
 
 
     // com.sun.star.sdbcx.XKeysSupplier:
     @Override
     public XIndexAccess getKeys() {
-        System.out.println("sdbcx.TableDescriptor.getKeys() ***************************************************");
-        return m_xKeys;
+        System.out.println("sdbcx.descriptors.TableDescriptorBase.getKeys()");
+        return m_keys;
     }
 
 

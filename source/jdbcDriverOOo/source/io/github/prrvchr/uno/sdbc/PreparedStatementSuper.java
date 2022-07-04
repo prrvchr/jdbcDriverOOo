@@ -29,6 +29,7 @@ import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 
@@ -44,12 +45,12 @@ public abstract class PreparedStatementSuper
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdb.PreparedStatement()
     // XXX: - io.github.prrvchr.uno.sdbcx.PreparedStatement()
-    public PreparedStatementSuper(String name,
+    public PreparedStatementSuper(String service,
                                   String[] services,
                                   ConnectionBase connection,
                                   String sql)
     {
-        super(name, services, connection, sql);
+        super(service, services, connection, sql);
         registerProperties();
         System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }

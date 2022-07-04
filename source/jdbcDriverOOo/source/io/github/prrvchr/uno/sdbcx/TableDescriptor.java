@@ -25,32 +25,19 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import io.github.prrvchr.uno.sdb.Connection;
-
-
 public class TableDescriptor
-    extends TableDescriptorBase<Column>
+    extends TableDescriptorBase
 {
 
-    private static final String m_name = TableDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.TableDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
+    private static final String m_service = TableDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.TableDescriptor"};
 
     // The constructor method:
-    public TableDescriptor(Connection connection,
-                           Class<Column> column)
+    public TableDescriptor(boolean sensitive)
     {
-        super(m_name, m_services, connection, column);
-        System.out.println("sdbcx.TableDescriptor() ***************************************************");
+        super(m_service, m_services, sensitive);
+        System.out.println("sdbcx.descriptors.TableDescriptor()");
     }
-    public TableDescriptor(Connection connection,
-                           Class<Column> column,
-                           Table table)
-    {
-        super(m_name, m_services, connection, column, table);
-        System.out.println("sdbcx.TableDescriptor() ***************************************************");
-    }
-
 
 
 }

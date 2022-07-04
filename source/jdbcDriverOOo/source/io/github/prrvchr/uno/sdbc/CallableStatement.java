@@ -33,14 +33,14 @@ public final class CallableStatement
     extends CallableStatementBase
 {
 
-    private static final String m_name = CallableStatement.class.getName();
+    private static final String m_service = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
 
     // The constructor method:
     public CallableStatement(ConnectionBase connection,
                              String sql)
     {
-        super(m_name, m_services, connection, sql);
+        super(m_service, m_services, connection, sql);
         System.out.println("sdbc.CallableStatement() 1");
     }
 

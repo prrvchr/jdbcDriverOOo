@@ -27,19 +27,46 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
 
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Table
-    extends TableBase<Column>
+    extends TableBase
 {
 
-    private static final String m_name = Table.class.getName();
+    private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
 
-
     // The constructor method:
-    // XXX: Constructor called from methods:
+    public Table(TableContainer container,
+                 boolean sensitive,
+                 String catalog,
+                 String schema,
+                 String name,
+                 String type,
+                 String remarks)
+    {
+        super(m_service, m_services, container, sensitive, name);
+        super.m_CatalogName = catalog;
+        super.m_SchemaName= schema;
+        super.m_Type = type;
+        super.m_Description = remarks;
+    }
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor()
+    {
+        System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
+        TableDescriptor descriptor = new TableDescriptor(true);
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
+    }
+
+
+/*    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer()
     public Table(Connection connection,
                  String catalog,
@@ -47,27 +74,26 @@ public final class Table
                  String name,
                  String type,
                  String description)
-        throws java.sql.SQLException
+        throws SQLException
     {
-        super(m_name, m_services, connection, Column.class, catalog, schema, name, type, description);
+        super(m_name, m_services, connection, catalog, schema, name, type, description);
         System.out.println("sdbcx.Table.Table() : 1" );
     }
     public Table(Connection connection,
                  schemacrawler.schema.Table table)
         throws java.sql.SQLException
     {
-        super(m_name, m_services, connection, Column.class, table);
+        super(m_name, m_services, connection, table);
         System.out.println("sdbcx.Table.Table() : 1" );
     }
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor()
+    public Table(Connection connection,
+                 XPropertySet descriptor)
+        throws SQLException
     {
-        System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
-        return new TableDescriptor(m_Connection, Column.class, this);
-    }
+        super(m_name, m_services, connection, descriptor);
+        System.out.println("sdbcx.Table.Table() : 1" );
+    }*/
+
 
 
 }

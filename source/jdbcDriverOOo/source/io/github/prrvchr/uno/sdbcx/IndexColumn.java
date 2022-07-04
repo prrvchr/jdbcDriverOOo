@@ -26,37 +26,65 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.UnknownPropertyException;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class IndexColumn
-    extends ColumnBase
+    extends ColumnMain
 {
-    private static final String m_name = IndexColumn.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumn",
-                                                "com.sun.star.sdbcx.Column"};
+    private static final String m_service = IndexColumn.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumn"};
+
     private boolean m_IsAscending = false;
 
+
     // The constructor method:
+    public IndexColumn(final boolean sensitive,
+                       final String name,
+                       final String typename,
+                       final String defaultvalue,
+                       final String description,
+                       final int nullable,
+                       final int precision,
+                       final int scale,
+                       final int type,
+                       final boolean autoincrement,
+                       final boolean rowversion,
+                       final boolean currency,
+                       final boolean ascending) {
+        super(m_service, m_services, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        m_IsAscending = ascending;
+        registerProperties();
+    }
+
+
+    private void registerProperties() {
+        short attribute = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.ISASCENDING.name, PropertyIds.ISASCENDING.id, Type.BOOLEAN, attribute,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_IsAscending;
+                }
+            }, null);
+    }
+
+    
+/*    // The constructor method:
     public IndexColumn(Connection connection,
                        XPropertySet descriptor,
-                       String name,
                        int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException
+        throws SQLException
     {
-        super(m_name, m_services, connection, descriptor, name, position);
+        super(m_name, m_services, connection, descriptor, position);
         registerProperties();
     }
     public IndexColumn(Connection connection,
-                       TableBase<?> table,
+                       TableBase table,
                        boolean ascending,
                        String name,
                        int position)
@@ -74,16 +102,6 @@ public class IndexColumn
     {
         super(m_name, m_services, connection, result, name, position);
         registerProperties();
-    }
+    }*/
 
-    private void registerProperties() {
-        short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.ISASCENDING.name, PropertyIds.ISASCENDING.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsAscending;
-                }
-            }, null);
-    }
 }

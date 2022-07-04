@@ -31,10 +31,9 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class KeyDescriptor
@@ -42,10 +41,11 @@ public class KeyDescriptor
     implements XColumnsSupplier
 {
 
-    private static final String m_name = KeyDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
-    private XNameAccess m_xColumns = null;
+    private static final String m_service = KeyDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.KeyDescriptor"};
+
+    private KeyColumnDescriptorContainer m_columns = null;
+
     private int m_Type;
     private String m_ReferencedTable = "";
     private int m_UpdateRule;
@@ -53,26 +53,13 @@ public class KeyDescriptor
 
 
     // The constructor method:
-    public KeyDescriptor(Connection connection)
+    public KeyDescriptor(boolean sensitive)
     {
-        super(m_name, m_services, connection);
-        m_xColumns = new KeyColumnContainer(connection);
+        super(m_service, m_services, sensitive);
+        m_columns = new KeyColumnDescriptorContainer(this, isCaseSensitive());
         registerProperties();
-        System.out.println("sdbcx.KeyDescriptor() ***************************************************");
+        System.out.println("sdbcx.descriptors.KeyDescriptor()");
     }
-    public KeyDescriptor(Connection connection,
-                         Key key)
-    {
-        super(m_name, m_services, connection);
-        m_Type = key.m_Type;
-        m_ReferencedTable = key.m_ReferencedTable;
-        m_UpdateRule = key.m_UpdateRule;
-        m_DeleteRule = key.m_DeleteRule;
-        m_xColumns = new KeyColumnContainer(connection, key.m_columns);
-        registerProperties();
-        System.out.println("sdbcx.KeyDescriptor() ***************************************************");
-    }
-
 
     private void registerProperties() {
         registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG,
@@ -134,8 +121,8 @@ public class KeyDescriptor
     @Override
     public XNameAccess getColumns()
     {
-        System.out.println("sdbcx.TableDescriptor.getColumns() ***************************************************");
-        return m_xColumns;
+        System.out.println("sdbcx.descriptors.KeyDescriptor.getColumns()");
+        return m_columns;
     }
 
 

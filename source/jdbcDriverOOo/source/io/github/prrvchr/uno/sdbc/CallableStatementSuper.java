@@ -29,6 +29,7 @@ import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 
@@ -44,12 +45,12 @@ public abstract class CallableStatementSuper
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdb.CallableStatement()
     // XXX: - io.github.prrvchr.uno.sdbcx.CallableStatement()
-    public CallableStatementSuper(String name,
+    public CallableStatementSuper(String service,
                                   String[] services,
                                   ConnectionBase connection,
                                   String sql)
     {
-        super(name, services, connection, sql);
+        super(service, services, connection, sql);
         registerProperties();
     }
 

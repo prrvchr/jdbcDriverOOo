@@ -56,7 +56,7 @@ import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
-import io.github.prrvchr.uno.sdbcx.ColumnBase;
+import io.github.prrvchr.uno.sdbcx.ColumnMain;
 
 public abstract class DriverProviderMain
     implements DriverProvider
@@ -64,6 +64,7 @@ public abstract class DriverProviderMain
 
     static final String m_protocol = "xdbc:";
     static final boolean m_warnings = true;
+    private java.sql.Connection m_connection = null;
     protected List<String> m_properties = List.of("user", "password");
 
     // The constructor method:
@@ -82,6 +83,27 @@ public abstract class DriverProviderMain
     public String getProtocol(String subprotocol)
     {
         return m_protocol + subprotocol;
+    }
+
+    @Override
+    public boolean isCaseSensitive()
+    {
+        return true;
+    }
+
+    public boolean supportsCatalogsInComponentNaming()
+    {
+        return true;
+    }
+
+    public boolean supportsSchemasInComponentNaming()
+    {
+        return true;
+    }
+
+    @Override
+    public int getDataType(int type) {
+        return type;
     }
 
     @Override
@@ -118,7 +140,7 @@ public abstract class DriverProviderMain
     {
         try {
             String query = "DROP TABLE %s";
-            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
             return String.format(query, getTableIdentifier(connection, catalog, schema, table, quote, mixed));
@@ -137,7 +159,7 @@ public abstract class DriverProviderMain
     {
         try {
             String query = "DROP VIEW %s";
-            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
             return String.format(query, getTableIdentifier(connection, catalog, schema, view, quote, mixed));
@@ -149,7 +171,7 @@ public abstract class DriverProviderMain
 
     @Override
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnBase column)
+                                     ColumnMain column)
     {
         return null;
     }
@@ -169,10 +191,7 @@ public abstract class DriverProviderMain
 
     @Override
     public String[] getCreateTableQueries(ConnectionBase connection,
-                                          XPropertySet descriptor,
-                                          String catalog,
-                                          String schema,
-                                          String table)
+                                          XPropertySet descriptor)
         throws SQLException
     {
         List<String> queries = new ArrayList<String>();
@@ -181,7 +200,10 @@ public abstract class DriverProviderMain
         XIndexAccess keys = ((XKeysSupplier) UnoRuntime.queryInterface(XKeysSupplier.class, descriptor)).getKeys();
         System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 2");
         try {
-            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            String catalog = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.CATALOGNAME.name));
+            String schema = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.SCHEMANAME.name));
+            String table = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.NAME.name));
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
             String[] elements = getTableElementsQuery(connection, columns, keys, quote, mixed);
@@ -226,7 +248,7 @@ public abstract class DriverProviderMain
         throws SQLException
     {
         try {
-            return getTableIdentifier(connection.getWrapper().getMetaData(), catalog, schema, table, quote, mixed);
+            return getTableIdentifier(connection.getProvider().getConnection().getMetaData(), catalog, schema, table, quote, mixed);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
@@ -271,7 +293,7 @@ public abstract class DriverProviderMain
         throws SQLException
     {
         try {
-            return getColumnIdentifier(connection.getWrapper().getMetaData(), catalog, schema, table, column, quote, mixed);
+            return getColumnIdentifier(connection.getProvider().getConnection().getMetaData(), catalog, schema, table, column, quote, mixed);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
@@ -534,12 +556,26 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public java.sql.Connection getConnection(final String url,
-                                             final PropertyValue[] info,
-                                             String level)
+    public void setConnection(final String location,
+                              final PropertyValue[] info,
+                              String level)
         throws java.sql.SQLException
     {
-        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+        String url = getConnectionUrl(location, level);
+        m_connection = DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+    }
+
+    @Override
+    public java.sql.Connection getConnection()
+    {
+        return m_connection;
+    }
+
+    @Override
+    public String getConnectionUrl(String location,
+                                   String level)
+    {
+        return location;
     }
 
     @Override
@@ -594,7 +630,7 @@ public abstract class DriverProviderMain
                                       final StatementMain statement)
         throws SQLException
     {
-        return new io.github.prrvchr.uno.sdbcx.ResultSet(connection, resultset, statement, false);
+        return new io.github.prrvchr.uno.sdbc.ResultSet(connection, resultset, statement, false);
     }
 
     @Override

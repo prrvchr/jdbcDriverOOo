@@ -25,37 +25,33 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.sql.SQLException;
-
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.sdbcx.CallableStatement;
-import io.github.prrvchr.uno.sdbcx.PreparedStatement;
-import io.github.prrvchr.uno.sdbcx.Statement;
+//import io.github.prrvchr.uno.sdbcx.CallableStatement;
+//import io.github.prrvchr.uno.sdbcx.PreparedStatement;
+//import io.github.prrvchr.uno.sdbcx.Statement;
 
 
 public class Connection
     extends ConnectionBase
 {
 
-    private static String m_name = Connection.class.getName();
-    private static String[] m_services = {"com.sun.star.sdbc.Connection"};
+    private static final String m_service = Connection.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbc.Connection"};
     private static final boolean m_crawler = false;
 
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
-                      java.sql.Connection connection,
                       String url,
                       PropertyValue[] info,
                       boolean enhanced)
-        throws SQLException
     {
-        super(ctx, m_name, m_services, provider, connection, url, info, enhanced, m_crawler);
+        super(ctx, m_service, m_services, provider, url, info, enhanced, m_crawler);
         System.out.println("sdbc.Connection() 1");
     }
 

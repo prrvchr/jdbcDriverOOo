@@ -86,21 +86,11 @@ public class CustomRowSet{
     }
     public CustomRowSet(Date value) {
         this();
-        if (value != null)
-            setDate(value);
-        else {
-            setNull();
-            m_type = DataType.DATE;
-        }
+        setDate(value);
     }
     public CustomRowSet(DateTime value) {
         this();
-        if (value != null)
-            setDateTime(value);
-        else {
-            setNull();
-            m_type = DataType.TIMESTAMP;
-        }
+        setDateTime(value);
     }
     public CustomRowSet(double value) {
         this();
@@ -130,24 +120,21 @@ public class CustomRowSet{
         this();
         setSequence(value);
     }
-    public CustomRowSet(String value) {
+    public CustomRowSet(String value,
+                        boolean isnull)
+    {
         this();
-        if (value != null)
-            setString(value);
-        else {
+        if (isnull) {
             setNull();
-            m_type = DataType.VARCHAR;
         }
-
+        else {
+            setString(value);
+        }
     }
+
     public CustomRowSet(Time value) {
         this();
-        if (value != null)
-            setTime(value);
-        else {
-            setNull();
-            m_type = DataType.TIME;
-        }
+        setTime(value);
     }
 
     public boolean isNull() {
@@ -1278,7 +1265,7 @@ public class CustomRowSet{
         this.m_value = value;
         m_type = DataType.VARCHAR;
     }
-  
+
     public void setTime(Time value) {
         m_flags &= ~FLAG_NULL;
         this.m_value = new Time(value.NanoSeconds, value.Seconds, value.Minutes, value.Hours, false);

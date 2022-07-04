@@ -25,12 +25,10 @@
 */
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
-import java.sql.DriverManager;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
@@ -79,10 +77,23 @@ public final class HsqlDBDriverProvider
         return url.startsWith(getProtocol(m_subProtocol));
     }
 
+    public boolean supportsCatalogsInComponentNaming()
+    {
+        return false;
+    }
+
+    @Override
+    public int getDataType(int type) {
+        if (HsqlDBDatabaseMetaData.m_dataType.containsKey(type)) {
+            return HsqlDBDatabaseMetaData.m_dataType.get(type);
+        }
+        return type;
+    }
+
     @Override
     public String getUserQuery()
     {
-        return "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+        return "SELECT USER FROM INFORMATION_SCHEMA.SYSTEM_USERS";
     }
 
     @Override
@@ -94,7 +105,7 @@ public final class HsqlDBDriverProvider
     {
         try {
             String query = "DROP TABLE %s IF EXISTS;";
-            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
             return String.format(query, getTableIdentifier(connection, catalog, schema, table, quote, mixed));
@@ -113,7 +124,7 @@ public final class HsqlDBDriverProvider
     {
         try {
             String query = "DROP VIEW %s IF EXISTS;";
-            java.sql.DatabaseMetaData metadata = connection.getWrapper().getMetaData();
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
             return String.format(query, getTableIdentifier(connection, catalog, schema, view, quote, mixed));
@@ -175,16 +186,14 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String url,
-                                             final PropertyValue[] info,
-                                             final String level)
-        throws java.sql.SQLException
+    public String getConnectionUrl(final String location,
+                                                final String level)
     {
-        String location = url;
+        String url = location;
         if (!level.equals("-1")) {
-            location += ";hsqldb.sqllog=" + m_sqllogger.get(level);
+            url += ";hsqldb.sqllog=" + m_sqllogger.get(level);
         }
-        return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));
+        return url;
     }
 
     @Override

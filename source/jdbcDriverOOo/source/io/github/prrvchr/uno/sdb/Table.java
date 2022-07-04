@@ -27,90 +27,53 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.Collection;
 
-import com.sun.star.awt.FontDescriptor;
 import com.sun.star.beans.PropertyAttribute;
-//import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-//import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 import io.github.prrvchr.uno.sdbcx.TableBase;
+import io.github.prrvchr.uno.sdbcx.TableContainer;
 
 
 public final class Table
-    extends TableBase<Column>
+    extends TableBase
 {
 
-    private static final String m_name = Table.class.getName();
+    private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
     private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
-    protected String m_Filter = "";
+    /*protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
-    protected FontDescriptor m_FontDescriptor = null;
     protected int m_RowHeight = 15;
     protected int m_TextColor = 0;
     protected String m_HavingClause = "";
-    protected String m_GroupBy = "";
+    protected FontDescriptor m_FontDescriptor = null;
+    protected String m_GroupBy = "";*/
 
     // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdb.Table.createDataDescriptor()
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer.createDataDescriptor()
-    public Table(Connection connection,
-                 XPropertySet descriptor,
-                 String name)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, Column.class, descriptor, name);
-        //m_Privileges = _getTablePrivileges();
-        registerProperties();
-        System.out.println("sdb.Table.Table()");
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer()
-    public Table(Connection connection,
+    public Table(TableContainer container,
+                 boolean sensitive,
                  String catalog,
                  String schema,
                  String name,
                  String type,
-                 String description)
-        throws java.sql.SQLException
+                 String remarks)
     {
-        super(m_name, m_services, connection, Column.class, catalog, schema, name, type, description);
-        //m_Privileges = _getTablePrivileges();
+        super(m_service, m_services, container, sensitive, name);
+        System.out.println("sdbc.Table() 1");
+        super.m_CatalogName = catalog;
+        super.m_SchemaName= schema;
+        super.m_Type = type;
+        super.m_Description = remarks;
         registerProperties();
-        System.out.println("sdb.Table.Table() *********************");
-    }
-    public Table(Connection connection,
-                 schemacrawler.schema.Table table)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, Column.class, table);
-        //m_Privileges = _getTablePrivileges(table);
-        registerProperties();
-        System.out.println("sdb.Table.Table() : 1" );
-    }
-    protected int _getPrivileges()
-    {
-        System.out.println("sdb.Table._getPrivileges() : 1 ************************************: " + m_Privileges);
-        return m_Privileges;
-    }
-    protected String _getFilter()
-    {
-        System.out.println("sdb.Table._getFilter() : 1 ************************************: " + m_Filter);
-        return m_Filter;
-    }
-    protected void _setFilter(String filter)
-    {
-        System.out.println("sdb.Table._setFilter() : 1 ************************************: " + filter);
-        m_Filter = filter;
+        System.out.println("sdbc.Table() 2");
     }
 
     private void registerProperties() {
@@ -161,7 +124,46 @@ public final class Table
                     m_Order = (String) value;
                 }
             });
-        registerProperty(PropertyIds.FONTDESCRIPTOR.name, PropertyIds.FONTDESCRIPTOR.id, Type.ANY,
+        registerProperty(PropertyIds.ROWHEIGHT.name, PropertyIds.ROWHEIGHT.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_RowHeight;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_RowHeight = (int) value;
+                }
+            });
+        registerProperty(PropertyIds.TEXTCOLOR.name, PropertyIds.TEXTCOLOR.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_TextColor;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_TextColor = (int) value;
+                }
+            });
+        registerProperty(PropertyIds.HAVINGCLAUSE.name, PropertyIds.HAVINGCLAUSE.id, Type.STRING,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_HavingClause;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_HavingClause = (String) value;
+                }
+            });
+        registerProperty(PropertyIds.FONTDESCRIPTOR.name, PropertyIds.FONTDESCRIPTOR.id, new Type(FontDescriptor.class),
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
@@ -174,68 +176,69 @@ public final class Table
                     m_FontDescriptor = (FontDescriptor) value;
                 }
             });
-        registerProperty(PropertyIds.ROWHEIGHT.name, PropertyIds.ROWHEIGHT.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return m_RowHeight;
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                        m_RowHeight = (int) value;
-                    }
-                });
-        registerProperty(PropertyIds.TEXTCOLOR.name, PropertyIds.TEXTCOLOR.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return m_TextColor;
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                        m_TextColor = (int) value;
-                    }
-                });
-        registerProperty(PropertyIds.HAVINGCLAUSE.name, PropertyIds.HAVINGCLAUSE.id, Type.STRING,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return m_HavingClause;
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                        m_HavingClause = (String) value;
-                    }
-                });
         registerProperty(PropertyIds.GROUPBY.name, PropertyIds.GROUPBY.id, Type.STRING,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return m_GroupBy;
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                        m_GroupBy = (String) value;
-                    }
-                });*/
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_GroupBy;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_GroupBy = (String) value;
+                }
+            });*/
     }
 
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor()
+    {
+        System.out.println("sdb.Table.createDataDescriptor() ***************************************************");
+        TableDescriptor descriptor = new TableDescriptor(isCaseSensitive());
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
+    }
+
+
+/*    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.Table.createDataDescriptor()
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer.createDataDescriptor()
+    public Table(Connection connection,
+                 XPropertySet descriptor)
+        throws SQLException
+    {
+        super(m_name, m_services, connection, descriptor);
+        //m_Privileges = _getTablePrivileges();
+        registerProperties();
+        System.out.println("sdb.Table.Table()");
+    }
+    public Table(Connection connection,
+                 schemacrawler.schema.Table table)
+        throws java.sql.SQLException
+    {
+        super(m_name, m_services, connection, table);
+        //m_Privileges = _getTablePrivileges(table);
+        registerProperties();
+        System.out.println("sdb.Table.Table() : 1" );
+    }*/
+
+    protected int _getPrivileges()
+    {
+        System.out.println("sdb.Table._getPrivileges() : 1 ************************************: " + m_Privileges);
+        return m_Privileges;
+    }
 
     @SuppressWarnings("unused")
     private int _getTablePrivileges()
         throws java.sql.SQLException
     {
         int value = 0;
-        System.out.println("sdb.Table._getTablePrivileges() : 1 Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Table: " + m_Name);
-        java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getTablePrivileges(m_CatalogName, m_SchemaName, m_Name);
+        System.out.println("sdb.Table._getTablePrivileges() : 1 Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Table: " + getName());
+        java.sql.ResultSet result = m_tables.getConnection().getProvider().getConnection().getMetaData().getTablePrivileges(m_CatalogName, m_SchemaName, getName());
         while (result != null && result.next()) {
             System.out.println("sdb.Table._getTablePrivileges() : 2 " + result.getString(6));
             //value += UnoHelper.getConstantValue(Privilege.class, result.getString(6));
@@ -262,16 +265,6 @@ public final class Table
             break;
         }
         return value;
-    }
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor()
-    {
-        System.out.println("sdb.Table.createDataDescriptor() ***************************************************");
-        TableDescriptor descriptor = new TableDescriptor(m_Connection, Column.class, this);
-        return descriptor;
     }
 
 

@@ -26,27 +26,72 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
-import schemacrawler.schema.TableConstraintColumn;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class KeyColumn
-    extends ColumnBase
+    extends ColumnMain
 {
-    private static final String m_name = KeyColumn.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn",
-                                                "com.sun.star.sdbcx.Column"};
-    private final String m_RelatedColumn;
+    private static final String m_service = KeyColumn.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn"};
+
+    private String m_RelatedColumn;
 
     // The constructor method:
+    protected KeyColumn(boolean sensitive) {
+        super(m_service, m_services, sensitive);
+        registerProperties();
+    }
+    public KeyColumn(final boolean sensitive,
+                     final String name,
+                     final String typename,
+                     final String defaultvalue,
+                     final String description,
+                     final int nullable,
+                     final int precision,
+                     final int scale,
+                     final int type,
+                     final boolean autoincrement,
+                     final boolean rowversion,
+                     final boolean currency,
+                     final String referenced)
+    {
+        super(m_service, m_services, sensitive, name, typename, defaultvalue, description,
+              nullable, precision, scale, type, autoincrement, rowversion, currency);
+        m_RelatedColumn = referenced;
+        registerProperties();
+    }
+
+
+    private void registerProperties() {
+        short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.RELATEDCOLUMN.name, PropertyIds.RELATEDCOLUMN.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_RelatedColumn;
+                }
+            }, null);
+    }
+
+    
+    @Override
+    public XPropertySet createDataDescriptor() {
+        KeyColumnDescriptor descriptor = new KeyColumnDescriptor(isCaseSensitive());
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
+    }
+
+
+/*    // The constructor method:
     public KeyColumn(Connection connection,
                      XPropertySet descriptor,
                      String name,
@@ -60,7 +105,7 @@ public class KeyColumn
 
 
     public KeyColumn(Connection connection,
-                     TableBase<?> table,
+                     TableBase table,
                      String name,
                      int position)
         throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
@@ -86,18 +131,6 @@ public class KeyColumn
         super(m_name, m_services, connection, column, column.getName());
         m_RelatedColumn = "";
         registerProperties();
-    }
-
-    private void registerProperties() {
-        short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.RELATEDCOLUMN.name, PropertyIds.RELATEDCOLUMN.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_RelatedColumn;
-                }
-            }, null);
-    }
-
+    }*/
 
 }

@@ -26,15 +26,13 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class IndexDescriptor
@@ -42,76 +40,63 @@ public class IndexDescriptor
     implements XColumnsSupplier
 {
 
-    private static final String m_name = IndexDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.IndexDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
-    private XNameAccess m_xColumns = null;
-    private int m_Type;
-    private String m_ReferencedTable = "";
-    private int m_UpdateRule;
-    private int m_DeleteRule;
+    private static final String m_service = IndexDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.IndexDescriptor"};
+
+    private IndexColumnDescriptorContainer m_columns;
+
+    private String m_Catalog = "";
+    private boolean m_IsUnique;
+    private boolean m_IsClustered;
 
 
     // The constructor method:
-    public IndexDescriptor(Connection connection)
+    public IndexDescriptor(boolean sensitive)
     {
-        super(m_name, m_services, connection);
-        m_xColumns = new IndexColumnContainer(connection);
+        super(m_service, m_services, sensitive);
+        m_columns = new IndexColumnDescriptorContainer(this, isCaseSensitive());
         registerProperties();
-        System.out.println("sdbcx.KeyDescriptor() ***************************************************");
+        System.out.println("sdbcx.descriptors.IndexDescriptor()");
     }
 
     private void registerProperties() {
-        registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG,
+        registerProperty(PropertyIds.CATALOG.name, PropertyIds.CATALOG.id, Type.STRING,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_Type;
+                    return m_Catalog;
                 }
             },
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Type = (int) value;
+                    m_Catalog = (String) value;
                 }
             });
-        registerProperty(PropertyIds.REFERENCEDTABLE.name, PropertyIds.REFERENCEDTABLE.id, Type.STRING,
+        registerProperty(PropertyIds.ISUNIQUE.name, PropertyIds.ISUNIQUE.id, Type.BOOLEAN,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_ReferencedTable;
+                    return m_IsUnique;
                 }
             },
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_ReferencedTable = (String) value;
+                    m_IsUnique = (boolean) value;
                 }
             });
-        registerProperty(PropertyIds.UPDATERULE.name, PropertyIds.UPDATERULE.id, Type.LONG,
+        registerProperty(PropertyIds.ISCLUSTERED.name, PropertyIds.ISCLUSTERED.id, Type.BOOLEAN,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_UpdateRule;
+                    return m_IsClustered;
                 }
             },
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_UpdateRule = (int) value;
-                }
-            });
-        registerProperty(PropertyIds.DELETERULE.name, PropertyIds.DELETERULE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_DeleteRule;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_DeleteRule = (int) value;
+                    m_IsClustered = (boolean) value;
                 }
             });
     }
@@ -119,10 +104,10 @@ public class IndexDescriptor
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
-    public XNameAccess getColumns()
+    public IndexColumnDescriptorContainer getColumns()
     {
-        System.out.println("sdbcx.TableDescriptor.getColumns() ***************************************************");
-        return m_xColumns;
+        System.out.println("sdbcx.descriptors.IndexDescriptor.getColumns()");
+        return m_columns;
     }
 
 

@@ -25,25 +25,21 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-
 import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.beans.UnknownPropertyException;
-import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 import io.github.prrvchr.uno.sdbcx.ColumnSuper;
+import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
 public class Column
     extends ColumnSuper
 {
-    private static final String m_name = Column.class.getName();
+    private static final String m_service = Column.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Column",
                                                 "com.sun.star.sdbcx.Column",
                                                 "com.sun.star.sdb.ColumnSettings"};
@@ -54,60 +50,27 @@ public class Column
     private boolean m_Hidden = false;
 
     // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer.appendByDescriptor()
-    public Column(Connection connection,
-                  XPropertySet descriptor,
-                  String name,
-                  int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException
+    public Column(final TableBase table,
+                  final boolean sensitive)
     {
-        super(m_name, m_services, connection, descriptor, name, position);
-        m_Position = m_position;
+        super(m_service, m_services, table, sensitive);
         registerProperties();
     }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    public Column(Connection connection,
-                  java.sql.ResultSet result,
-                  String name)
-        throws java.sql.SQLException
+    public Column(final TableBase table,
+                  final boolean sensitive,
+                  final String name,
+                  final String typeName,
+                  final String defaultValue,
+                  final String description,
+                  final int nullable,
+                  final int precision,
+                  final int scale,
+                  final int type,
+                  final boolean autoincrement,
+                  final boolean rowversion,
+                  final boolean currency)
     {
-        super(m_name, m_services, connection, result, name);
-        m_Position = m_position;
-        registerProperties();
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    public Column(Connection connection,
-                  schemacrawler.schema.Column column,
-                  String name)
-    {
-        super(m_name, m_services, connection, column, name);
-        m_Position = m_position;
-        registerProperties();
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    public Column(Connection connection,
-                  schemacrawler.schema.ResultsColumn column,
-                  String name)
-    {
-        super(m_name, m_services, connection, column, name);
-        m_Position = m_position;
-        registerProperties();
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    public Column(Connection connection,
-                  ResultSetMetaData metadata,
-                  String name,
-                  int position)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, metadata, name, position);
-        m_Position = m_position;
+        super(m_service, m_services, table, sensitive, name, typeName, defaultValue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();
     }
 
@@ -179,6 +142,73 @@ public class Column
                 }
             });
     }
+
+
+/*    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
+    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer.appendByDescriptor()
+    public Column(Connection connection,
+                  XPropertySet descriptor,
+                  int position)
+        throws SQLException
+    {
+        super(m_name, m_services, connection, descriptor, position);
+        registerProperties();
+    }
+    public Column(Connection connection,
+                  XPropertySet descriptor,
+                  String name,
+                  int position)
+        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException
+    {
+        super(m_name, m_services, connection, descriptor, name, position);
+        m_Position = m_position;
+        registerProperties();
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
+    public Column(Connection connection,
+                  java.sql.ResultSet result,
+                  String name)
+        throws java.sql.SQLException
+    {
+        super(m_name, m_services, connection, result, name);
+        m_Position = m_position;
+        registerProperties();
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
+    public Column(Connection connection,
+                  schemacrawler.schema.Column column,
+                  String name)
+    {
+        super(m_name, m_services, connection, column, name);
+        m_Position = m_position;
+        registerProperties();
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
+    public Column(Connection connection,
+                  schemacrawler.schema.ResultsColumn column,
+                  String name)
+    {
+        super(m_name, m_services, connection, column, name);
+        m_Position = m_position;
+        registerProperties();
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
+    public Column(Connection connection,
+                  ResultSetMetaData metadata,
+                  String name,
+                  int position)
+        throws java.sql.SQLException
+    {
+        super(m_name, m_services, connection, metadata, name, position);
+        m_Position = m_position;
+        registerProperties();
+    }*/
+
 
 
 }

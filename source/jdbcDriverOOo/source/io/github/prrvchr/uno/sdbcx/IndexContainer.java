@@ -25,33 +25,217 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XEnumeration;
-import com.sun.star.container.XEnumerationAccess;
-import com.sun.star.container.XNameAccess;
+import com.sun.star.container.XIndexAccess;
+import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.sdbc.IndexType;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class IndexContainer
-    extends ContainerSuper<Index>
+    extends Container
 {
 
-    private static final String m_name = IndexContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    private final TableBase m_Table;
 
     // The constructor method:
-    public IndexContainer(Connection connection,
-                          TableBase<?> table)
+    public IndexContainer(TableBase table,
+                          Object lock,
+                          boolean sensitive,
+                          List<String> indexes)
+    throws ElementExistException
+    {
+        super(lock, sensitive, indexes);
+        m_Table = table;
+    }
+
+
+    @Override
+    protected XPropertySet _createElement(String name)
+        throws SQLException
+    {
+        Index index = null;
+        try {
+            System.out.println("sdbcx.IndexContainer._createElement() 1: " + name);
+            Connection connection = m_Table.getTables().getConnection();
+            if (connection == null) {
+                return null;
+            }
+            System.out.println("sdbcx.IndexContainer._createElement() 2");
+            String qualifier = "";
+            String subname;
+            int len = name.indexOf('.');
+            if (len >= 0) {
+                qualifier = name.substring(0, len);
+                subname = name.substring(len + 1);
+            }
+            else {
+                subname = name;
+            }
+            System.out.println("sdbcx.IndexContainer._createElement() 3: Name: " + name + " - Qualifier: " + qualifier + " - Subname: " + subname);
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+            java.sql.ResultSet result = metadata.getIndexInfo(m_Table.getCatalogName(), m_Table.getSchemaName(), m_Table.getName(), false, false);
+            boolean found = false;
+            boolean unique = false;
+            int type = -1;
+            boolean primary = false;
+            List<String> columns = new ArrayList<>();
+            while (result.next()) {
+                unique  = !result.getBoolean(4);
+                System.out.println("sdbcx.IndexContainer._createElement() 4");
+                if (qualifier.isEmpty() || qualifier.equals(result.getString(5)) && subname.equals(result.getString(6))) {
+                    System.out.println("sdbcx.IndexContainer._createElement() 5");
+                    found = true;
+                    type = result.getShort(7);
+                    primary = isPrimaryKeyIndex(metadata, m_Table, subname);
+                    String columnName = result.getString(9);
+                    if (!result.wasNull()) {
+                        System.out.println("sdbcx.IndexContainer._createElement() 6 ColumnName: " + columnName);
+                        columns.add(columnName);
+                    }
+                }
+            }
+            if (found) {
+                boolean clustered = type == IndexType.CLUSTERED;
+                index = new Index(m_Table, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
+                System.out.println("sdbcx.IndexContainer._createElement() 7");
+            }
+        }
+        catch (ElementExistException e) {
+            throw UnoHelper.getSQLException(e, m_Table);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_Table);
+        }
+        System.out.println("sdbcx.IndexContainer._createElement() 8");
+        return index;
+    }
+    
+    private static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,
+                                             TableBase table,
+                                             String name)
+        throws java.sql.SQLException
+    {
+        boolean primary = false;
+        java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName());
+        if (result.next()) { // there can be only one primary key
+            primary = result.getString(6).equals(name);
+        }
+        return primary;
+    }
+
+
+    @Override
+    protected XPropertySet _appendElement(XPropertySet descriptor,
+                                          String name)
+        throws SQLException
+    {
+        try {
+            if (_getConnection() == null) {
+                return null;
+            }
+            java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            boolean isUnique = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISUNIQUE.name));
+            String composedName = DataBaseTools.composeTableName(_getConnection(), m_Table, ComposeRule.InIndexDefinitions, false, false, true);
+            StringBuilder columnsText = new StringBuilder();
+            String separator = "";
+            XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+            XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
+            for (int i = 0; i < columns.getCount(); i++) {
+                columnsText.append(separator);
+                separator = ", ";
+                XPropertySet column = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
+                columnsText.append(DataBaseTools.quoteName(quote, AnyConverter.toString(column.getPropertyValue(PropertyIds.NAME.name))));
+                // FIXME: ::dbtools::getBooleanDataSourceSetting( m_pTable->getConnection(), "AddIndexAppendix" );
+                boolean isAscending = AnyConverter.toBoolean(column.getPropertyValue(PropertyIds.ISASCENDING.name));
+                columnsText.append(isAscending ? " ASC" : " DESC");
+            }
+            String sql = String.format("CREATE %s INDEX %s ON %s (%s)",
+                    isUnique ? "UNIQUE" : "",
+                    name.isEmpty() ? "" : DataBaseTools.quoteName(quote, name),
+                    composedName,
+                    columnsText.toString());
+            java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
+            statement.execute(sql);
+            return _createElement(name);
+        }
+        catch (WrappedTargetException | UnknownPropertyException | IndexOutOfBoundsException e) {
+            throw UnoHelper.getSQLException(e, m_Table);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_Table);
+        }
+    }
+
+    @Override
+    protected void _removeElement(int index,
+                                  String elementName)
+        throws SQLException
+    {
+        if (_getConnection() == null) {
+            return;
+        }
+        String name;
+        String schema = "";
+        int len = elementName.indexOf('.');
+        if (len >= 0) {
+            schema = elementName.substring(0, len);
+        }
+        name = elementName.substring(len + 1);
+        try {
+            String composedName = DataBaseTools.composeTableName(_getConnection(), m_Table, ComposeRule.InTableDefinitions, false, false, true);
+            @SuppressWarnings("unused")
+            String indexName = DataBaseTools.composeTableName(_getConnection(), "", schema, name, true, ComposeRule.InIndexDefinitions);
+            String sql = String.format("ALTER TABLE %s DROP CONSTRAINT %s", composedName, name);
+            java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
+            System.out.println("sdbcx.IndexContainer._removeElement() 1 Query: '" + sql + "' - Table: " + composedName);
+            statement.execute(sql);
+            statement.close();
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_Table);
+        }
+    }
+
+    public Connection _getConnection()
+    {
+        return m_Table.getTables().getConnection();
+    }
+
+    @Override
+    protected void _refresh() {
+        // FIXME
+    }
+
+
+    @Override
+    protected XPropertySet _createDescriptor() {
+        return new IndexDescriptor(isCaseSensitive());
+    }
+
+
+/*    public IndexContainer(Connection connection,
+                          TableBase table)
+        throws SQLException
     {
         super(m_name, m_services, connection);
+        m_Table = table;
         try {
             java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getIndexInfo(null, table.m_SchemaName, table.m_Name, false, true);
             while (result.next()) {
@@ -87,6 +271,7 @@ public class IndexContainer
     }
     public IndexContainer(Connection connection,
                           XNameAccess indexes)
+        throws SQLException
     {
         super(m_name, m_services, connection);
         XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, indexes)).createEnumeration();
@@ -102,52 +287,9 @@ public class IndexContainer
             }
         }
         catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            UnoHelper.getSQLException(e, this);
         }
-        catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    // com.sun.star.sdbcx.XDrop method of Container:
-    protected String _getDropQuery(Index index)
-    {
-        System.out.println("sdbcx.IndexContainer._getDropQuery() 1 ***************************");
-        return null;
-    }
-
-
-    // com.sun.star.sdbcx.XAppend
-    @Override
-    public void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException,
-               ElementExistException
-    {
-        System.out.println("sdbcx.IndexContainer.appendByDescriptor() 1 ***************************");
-        try {
-            String name = (String) descriptor.getPropertyValue("Name");
-            if (hasByName(name)) {
-                throw new ElementExistException();
-            }
-            Index index = new Index(m_Connection, descriptor, name);
-            m_Elements.add(index);
-            m_Names.add(name);
-            _insertElement(index);
-            System.out.println("sdbcx.IndexContainer.appendByDescriptor() 2");
-        } 
-        catch (java.sql.SQLException | UnknownPropertyException | WrappedTargetException | NoSuchElementException e) {
-            System.out.println("sdbcx.IndexContainer.appendByDescriptor() ERROR\n" + UnoHelper.getStackTrace(e));
-        }
-    }
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor() {
-        return new IndexDescriptor(m_Connection);
-    }
+    }*/
 
 
 }

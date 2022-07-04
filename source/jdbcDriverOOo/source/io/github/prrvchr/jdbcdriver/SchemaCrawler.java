@@ -38,11 +38,7 @@ import schemacrawler.schemacrawler.SchemaRetrievalOptions;
 import schemacrawler.tools.utility.SchemaCrawlerUtility;
 import us.fatehi.utility.LoggingConfig;
 
-import com.sun.star.container.XNameAccess;
 
-import io.github.prrvchr.uno.sdb.Column;
-import io.github.prrvchr.uno.sdb.Table;
-import io.github.prrvchr.uno.sdb.TableDescriptor;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbcx.TableContainer;
 
@@ -82,8 +78,8 @@ public final class SchemaCrawler
     }
 
 
-    public static XNameAccess getTables(DriverProvider provider,
-                                        Connection connection)
+    public static TableContainer getTables(DriverProvider provider,
+                                           Connection connection)
     throws java.sql.SQLException
     {
         try {
@@ -98,12 +94,13 @@ public final class SchemaCrawler
                 .withLimitOptions(limit.toOptions())
                 .withLoadOptions(load.toOptions());
             System.out.println("SchemaCrawler.getTables() 2");
-            final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection.getWrapper());
-            schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(connection.getWrapper(), retrieval, options);
+            final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection.getProvider().getConnection());
+            schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(connection.getProvider().getConnection(), retrieval, options);
             final Catalog catalog = crawler.crawl();
             //final Catalog catalog = getCatalog(connection, options);
             System.out.println("SchemaCrawler.getTables() 3: " + catalog);
-            return new TableContainer<Table, TableDescriptor, Column>(connection, Table.class, TableDescriptor.class, catalog);
+            //return new TableContainer(connection, catalog);
+            return null;
         } catch (java.lang.Exception e) {
             System.out.println("SchemaCrawler.getTables() 4 ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())

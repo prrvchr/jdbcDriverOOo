@@ -25,11 +25,9 @@
 */
 package io.github.prrvchr.jdbcdriver.derby;
 
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
@@ -75,15 +73,6 @@ public final class DerbyDriverProvider
             level = (String) driver.getByHierarchicalName(property);
         } catch (NoSuchElementException e) { }
         return level;
-    }
-
-    @Override
-    public java.sql.Connection getConnection(final String url,
-                                             final PropertyValue[] info,
-                                             final String level)
-        throws java.sql.SQLException
-    {
-        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
     }
 
     @Override

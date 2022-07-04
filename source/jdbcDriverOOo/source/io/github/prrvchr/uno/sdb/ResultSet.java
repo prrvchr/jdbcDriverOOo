@@ -30,28 +30,28 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ResultSetSuper;
-import io.github.prrvchr.uno.sdbcx.ColumnContainer;
 
 
 public final class ResultSet
     extends ResultSetSuper
     implements XColumnsSupplier
 {
-    private static final String m_name = ResultSet.class.getName();
+    private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.ResultSet",
                                                 "com.sun.star.sdbc.ResultSet", 
                                                 "com.sun.star.sdbcx.ResultSet"};
 
 
     // The constructor method:
-    public ResultSet(Connection connection,
+    public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
                      XInterface statement,
                      boolean bookmark)
     throws SQLException
     {
-        super(m_name, m_services, connection, resultset, statement, bookmark);
+        super(m_service, m_services, connection, resultset, statement, bookmark);
         System.out.println("sdb.ResultSet() 1");
     }
 
@@ -61,17 +61,17 @@ public final class ResultSet
     public XNameAccess getColumns()
     {
         System.out.println("sdb.ResultSet.getColumns() 1 *********************************************");
-        XNameAccess columns = null;
+        /*XNameAccess columns = null;
         try {
-            columns = new ColumnContainer<Column>((Connection) m_Connection, Column.class, m_ResultSet);
+            columns = new ColumnContainer((Connection) m_Connection, m_ResultSet);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdb.ResultSet.getColumns() ERROR *****************************************");
             //throw UnoHelper.getSQLException(e, this);
         }
         System.out.println("sdb.ResultSet.getColumns() 2 *********************************************");
-        return columns;
+        return columns;*/
+        return null;
     }
 
 

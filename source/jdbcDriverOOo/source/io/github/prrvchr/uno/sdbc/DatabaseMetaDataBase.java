@@ -58,7 +58,7 @@ implements XDatabaseMetaData2
         throws java.sql.SQLException
     {
         m_Connection = connection;
-        m_Metadata = connection.getWrapper().getMetaData();
+        m_Metadata = connection.getProvider().getConnection().getMetaData();
         System.out.println("sdbc.DatabaseMetaDataBase() 1");
     }
 
@@ -87,13 +87,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean allProceduresAreCallable() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.allProceduresAreCallable()");
             return m_Metadata.allProceduresAreCallable();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -110,13 +108,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean allTablesAreSelectable() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.allTablesAreSelectable()");
             return m_Metadata.allTablesAreSelectable();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -133,13 +129,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean dataDefinitionCausesTransactionCommit() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.dataDefinitionCausesTransactionCommit()");
             return m_Metadata.dataDefinitionCausesTransactionCommit();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -156,13 +150,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean dataDefinitionIgnoredInTransactions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.dataDefinitionIgnoredInTransactions()");
             return m_Metadata.dataDefinitionIgnoredInTransactions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -179,13 +171,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean deletesAreDetected(int type) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.deletesAreDetected()");
             return m_Metadata.deletesAreDetected(type);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -202,13 +192,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean doesMaxRowSizeIncludeBlobs() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.doesMaxRowSizeIncludeBlobs()");
             return m_Metadata.doesMaxRowSizeIncludeBlobs();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -226,13 +214,11 @@ implements XDatabaseMetaData2
     public XResultSet getBestRowIdentifier(Object catalog, String schema, String table, int scope, boolean nullable)
             throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getBestRowIdentifier()");
             return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, scope, nullable));
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -249,15 +235,12 @@ implements XDatabaseMetaData2
     @Override
     public String getCatalogSeparator() throws SQLException
     {
-        try
-        {
-            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator() 1");
+        try {
             String value = m_Metadata.getCatalogSeparator();
-            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator() 2: " + value);
+            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator(): " + value);
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -274,14 +257,12 @@ implements XDatabaseMetaData2
     @Override
     public String getCatalogTerm() throws SQLException
     {
-        try
-        {
-            System.out.println("sdbc.DatabaseMetaData.getCatalogTerm()");
+        try {
             String value = m_Metadata.getCatalogTerm();
+            System.out.println("sdbc.DatabaseMetaData.getCatalogTerm(): " + value);
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -298,8 +279,7 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getCatalogs() throws SQLException
     {
-        try
-        {
+        try {
             java.sql.ResultSet result = m_Metadata.getCatalogs();
             while (result.next())
             {
@@ -308,8 +288,7 @@ implements XDatabaseMetaData2
             result.close();
             return _getResultSet(m_Metadata.getCatalogs());
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -331,8 +310,7 @@ implements XDatabaseMetaData2
             java.sql.ResultSet resultset = m_Metadata.getColumnPrivileges(_getPattern(catalog), _getPattern(schema), table, column);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -348,14 +326,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getColumns(Object catalog, String schema, String table, String column) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getColumns()");
             java.sql.ResultSet resultset = m_Metadata.getColumns(_getPattern(catalog), _getPattern(schema), table, column);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -379,16 +355,14 @@ implements XDatabaseMetaData2
     public XResultSet getCrossReference(Object catalog1, String schema1, String table1, Object catalog2, String schema2, String table2)
             throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getCrossReference()");
             schema1 = _getPattern(schema1);
             schema2 = _getPattern(schema2);
             java.sql.ResultSet resultset = m_Metadata.getCrossReference(_getPattern(catalog1), schema1, table1, _getPattern(catalog2), schema2, table2);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -405,14 +379,12 @@ implements XDatabaseMetaData2
     @Override
     public String getDatabaseProductName() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getDatabaseProductName()");
             String value = m_Metadata.getDatabaseProductName();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -429,14 +401,12 @@ implements XDatabaseMetaData2
     @Override
     public String getDatabaseProductVersion() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getDatabaseProductVersion()");
             String value = m_Metadata.getDatabaseProductVersion();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -453,13 +423,11 @@ implements XDatabaseMetaData2
     @Override
     public int getDefaultTransactionIsolation() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getDefaultTransactionIsolation()");
             return m_Metadata.getDefaultTransactionIsolation();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -490,14 +458,12 @@ implements XDatabaseMetaData2
     @Override
     public String getDriverName() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getDriverName()");
             String value = m_Metadata.getDriverName();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -514,14 +480,12 @@ implements XDatabaseMetaData2
     @Override
     public String getDriverVersion() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getDriverVersion()");
             String value = m_Metadata.getDriverVersion();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -538,14 +502,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getExportedKeys(Object catalog, String schema, String table) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getExportedKeys()");
             java.sql.ResultSet resultset = m_Metadata.getExportedKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -562,14 +524,12 @@ implements XDatabaseMetaData2
     @Override
     public String getExtraNameCharacters() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getExtraNameCharacters()");
             String value = m_Metadata.getExtraNameCharacters();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -586,15 +546,13 @@ implements XDatabaseMetaData2
     @Override
     public String getIdentifierQuoteString() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getIdentifierQuoteString() 1");
             String value = m_Metadata.getIdentifierQuoteString();
             System.out.println("sdbc.DatabaseMetaData.getIdentifierQuoteString() 2: " + value);
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -611,14 +569,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getImportedKeys(Object catalog, String schema, String table) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getImportedKeys()");
             java.sql.ResultSet resultset = m_Metadata.getImportedKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -642,8 +598,7 @@ implements XDatabaseMetaData2
             java.sql.ResultSet resultset = m_Metadata.getIndexInfo(_getPattern(catalog), _getPattern(schema), table, arg3, arg4);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -660,13 +615,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxBinaryLiteralLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxBinaryLiteralLength()");
             return m_Metadata.getMaxBinaryLiteralLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -683,13 +636,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxCatalogNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxCatalogNameLength()");
             return m_Metadata.getMaxCatalogNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -706,13 +657,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxCharLiteralLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxCharLiteralLength()");
             return m_Metadata.getMaxCharLiteralLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -729,13 +678,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxColumnNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxColumnNameLength()");
             return m_Metadata.getMaxColumnNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -752,13 +699,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxColumnsInGroupBy() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInGroupBy()");
             return m_Metadata.getMaxColumnsInGroupBy();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -775,13 +720,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxColumnsInIndex() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInIndex()");
             return m_Metadata.getMaxColumnsInIndex();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -798,13 +741,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxColumnsInOrderBy() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInOrderBy()");
             return m_Metadata.getMaxColumnsInOrderBy();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -821,13 +762,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxColumnsInSelect() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInSelect()");
             return m_Metadata.getMaxColumnsInSelect();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -844,13 +783,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxColumnsInTable() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInTable()");
             return m_Metadata.getMaxColumnsInTable();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -867,13 +804,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxConnections() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxConnections()");
             return m_Metadata.getMaxConnections();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -890,13 +825,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxCursorNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxCursorNameLength()");
             return m_Metadata.getMaxCursorNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -913,13 +846,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxIndexLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxIndexLength()");
             return m_Metadata.getMaxIndexLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -936,13 +867,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxProcedureNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxProcedureNameLength()");
             return m_Metadata.getMaxProcedureNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -959,13 +888,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxRowSize() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxRowSize()");
             return m_Metadata.getMaxRowSize();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -982,13 +909,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxSchemaNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxSchemaNameLength()");
             return m_Metadata.getMaxSchemaNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1005,13 +930,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxStatementLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxStatementLength()");
             return m_Metadata.getMaxStatementLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1028,13 +951,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxStatements() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxStatements()");
             return m_Metadata.getMaxStatements();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1051,13 +972,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxTableNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxTableNameLength()");
             return m_Metadata.getMaxTableNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1074,13 +993,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxTablesInSelect() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxTablesInSelect()");
             return m_Metadata.getMaxTablesInSelect();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1097,13 +1014,11 @@ implements XDatabaseMetaData2
     @Override
     public int getMaxUserNameLength() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getMaxUserNameLength()");
             return m_Metadata.getMaxUserNameLength();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1120,14 +1035,12 @@ implements XDatabaseMetaData2
     @Override
     public String getNumericFunctions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getNumericFunctions()");
             String value = m_Metadata.getNumericFunctions();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1144,14 +1057,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getPrimaryKeys(Object catalog, String schema, String table) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getPrimaryKeys()");
             java.sql.ResultSet resultset = m_Metadata.getPrimaryKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1168,14 +1079,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getProcedureColumns(Object catalog, String schema, String table, String column) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getProcedureColumns()");
             java.sql.ResultSet resultset = m_Metadata.getProcedureColumns(_getPattern(catalog), _getPattern(schema), table, column);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1192,14 +1101,12 @@ implements XDatabaseMetaData2
     @Override
     public String getProcedureTerm() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getProcedureTerm()");
             String value = m_Metadata.getProcedureTerm();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1216,14 +1123,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getProcedures(Object catalog, String schema, String table) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getProcedures()");
             java.sql.ResultSet resultset = m_Metadata.getProcedures(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1240,14 +1145,12 @@ implements XDatabaseMetaData2
     @Override
     public String getSQLKeywords() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getSQLKeywords()");
             String value = m_Metadata.getSQLKeywords();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1264,14 +1167,12 @@ implements XDatabaseMetaData2
     @Override
     public String getSchemaTerm() throws SQLException
     {
-        try
-        {
+        try {
             String value = m_Metadata.getSchemaTerm();
             System.out.println("sdbc.DatabaseMetaData.getSchemaTerm() : " + value);
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1288,8 +1189,7 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getSchemas() throws SQLException
     {
-        try
-        {
+        try {
             java.sql.ResultSet result = m_Metadata.getSchemas();
             while (result.next())
             {
@@ -1298,8 +1198,7 @@ implements XDatabaseMetaData2
             result.close();
             return _getResultSet(m_Metadata.getSchemas());
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1316,14 +1215,12 @@ implements XDatabaseMetaData2
     @Override
     public String getSearchStringEscape() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getSearchStringEscape()");
             String value = m_Metadata.getSearchStringEscape();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1340,14 +1237,12 @@ implements XDatabaseMetaData2
     @Override
     public String getStringFunctions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getStringFunctions()");
             String value = m_Metadata.getStringFunctions();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1364,14 +1259,12 @@ implements XDatabaseMetaData2
     @Override
     public String getSystemFunctions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getSystemFunctions()");
             String value = m_Metadata.getSystemFunctions();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1388,8 +1281,7 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getTablePrivileges(Object catalog, String schema, String table) throws SQLException
     {
-        try
-        {
+        try {
             XResultSet result = null;
             System.out.println("sdbc.DatabaseMetaData.getTablePrivileges()");
             if (_isIgnoreDriverPrivilegesEnabled()) {
@@ -1400,7 +1292,7 @@ implements XDatabaseMetaData2
                 java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
                 System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 3 ColumnCount != 7 :" + resultset.getMetaData().getColumnCount());
                 if (resultset != null) {
-                    result = m_Connection.getProvider().getResultSet(m_Connection, resultset);
+                    result = _getResultSet(resultset);
                     // we have to check the result columns for the tables privileges #106324#
                     XResultSetMetaDataSupplier supplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
                     XResultSetMetaData metadata = null;
@@ -1431,8 +1323,7 @@ implements XDatabaseMetaData2
                         while (result.next()) {
                             CustomRowSet[] rowset = new CustomRowSet[7];
                             for (int i = 0; i < rowset.length; i++) {
-                                rowset[i] = new CustomRowSet("");
-                                rowset[i].setNull();
+                                rowset[i] = new CustomRowSet(null, true);
                             }
                             for (Map.Entry<Integer,Integer> column : columns.entrySet()) {
                                 String value = row.getString(column.getKey());
@@ -1451,8 +1342,7 @@ implements XDatabaseMetaData2
             System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 5 ***********************************");
             return result;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1474,8 +1364,7 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getTableTypes() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getTableTypes()");
             java.sql.ResultSet resultset = m_Metadata.getTableTypes();
             while (resultset.next())
@@ -1484,8 +1373,7 @@ implements XDatabaseMetaData2
             }
             return _getResultSet(m_Metadata.getTableTypes());
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1502,8 +1390,7 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getTables(Object catalog, String schema, String table, String[] types) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
             java.sql.ResultSet resultset = m_Metadata.getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
             return _getResultSet(resultset);
@@ -1521,21 +1408,18 @@ implements XDatabaseMetaData2
     @Override
     public String getTimeDateFunctions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getTimeDateFunctions()");
             String value = m_Metadata.getTimeDateFunctions();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
+            for (StackTraceElement trace : e.getStackTrace()) {
                 System.out.println(trace);
             }
             return "";
@@ -1545,21 +1429,18 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getTypeInfo() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getTypeInfo()");
             java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
+            for (StackTraceElement trace : e.getStackTrace()) {
                 System.out.println(trace);
             }
             return null;
@@ -1569,14 +1450,12 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getUDTs(Object catalog, String schema, String type, int[] types) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getUDTs()");
             java.sql.ResultSet resultset = m_Metadata.getUDTs(_getPattern(catalog), _getPattern(schema), type, types);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1593,14 +1472,12 @@ implements XDatabaseMetaData2
     @Override
     public String getUserName() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.getUserName()");
             String value = m_Metadata.getUserName();
             return value != null ? value : "";
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1623,8 +1500,7 @@ implements XDatabaseMetaData2
             java.sql.ResultSet resultset = m_Metadata.getVersionColumns(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1641,13 +1517,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean insertsAreDetected(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.insertsAreDetected()");
             return m_Metadata.insertsAreDetected(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1664,15 +1538,13 @@ implements XDatabaseMetaData2
     @Override
     public boolean isCatalogAtStart() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.isCatalogAtStart() 1");
             boolean value = m_Metadata.isCatalogAtStart();
             System.out.println("sdbc.DatabaseMetaData.isCatalogAtStart() 2: " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1689,13 +1561,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean isReadOnly() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.isReadOnly()");
             return m_Metadata.isReadOnly();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1712,13 +1582,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean nullPlusNonNullIsNull() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.nullPlusNonNullIsNull()");
             return m_Metadata.nullPlusNonNullIsNull();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1735,13 +1603,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean nullsAreSortedAtEnd() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.nullsAreSortedAtEnd()");
             return m_Metadata.nullsAreSortedAtEnd();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1758,13 +1624,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean nullsAreSortedAtStart() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.nullsAreSortedAtStart()");
             return m_Metadata.nullsAreSortedAtStart();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1781,13 +1645,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean nullsAreSortedHigh() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.nullsAreSortedHigh()");
             return m_Metadata.nullsAreSortedHigh();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1804,13 +1666,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean nullsAreSortedLow() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.nullsAreSortedLow()");
             return m_Metadata.nullsAreSortedLow();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1827,13 +1687,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean othersDeletesAreVisible(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.othersDeletesAreVisible()");
             return m_Metadata.othersDeletesAreVisible(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1850,13 +1708,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean othersInsertsAreVisible(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.othersInsertsAreVisible()");
             return m_Metadata.othersInsertsAreVisible(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1873,13 +1729,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean othersUpdatesAreVisible(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.othersUpdatesAreVisible()");
             return m_Metadata.othersUpdatesAreVisible(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1896,13 +1750,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean ownDeletesAreVisible(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.ownDeletesAreVisible()");
             return m_Metadata.ownDeletesAreVisible(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1919,13 +1771,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean ownInsertsAreVisible(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.ownInsertsAreVisible()");
             return m_Metadata.ownInsertsAreVisible(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1942,13 +1792,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean ownUpdatesAreVisible(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.ownUpdatesAreVisible()");
             return m_Metadata.ownUpdatesAreVisible(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1965,13 +1813,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean storesLowerCaseIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.storesLowerCaseIdentifiers()");
             return m_Metadata.storesLowerCaseIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1988,13 +1834,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean storesLowerCaseQuotedIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.storesLowerCaseQuotedIdentifiers()");
             return m_Metadata.storesLowerCaseQuotedIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2011,13 +1855,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean storesMixedCaseIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.storesMixedCaseIdentifiers()");
             return m_Metadata.storesMixedCaseIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2034,13 +1876,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.storesMixedCaseQuotedIdentifiers()");
             return m_Metadata.storesMixedCaseQuotedIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2057,13 +1897,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean storesUpperCaseIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.storesUpperCaseIdentifiers()");
             return m_Metadata.storesUpperCaseIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2080,13 +1918,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean storesUpperCaseQuotedIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.storesUpperCaseQuotedIdentifiers()");
             return m_Metadata.storesUpperCaseQuotedIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2103,13 +1939,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsANSI92EntryLevelSQL() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsANSI92EntryLevelSQL()");
             return m_Metadata.supportsANSI92EntryLevelSQL();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2126,13 +1960,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsANSI92FullSQL() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsANSI92FullSQL()");
             return m_Metadata.supportsANSI92FullSQL();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2149,13 +1981,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsANSI92IntermediateSQL() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsANSI92IntermediateSQL()");
             return m_Metadata.supportsANSI92IntermediateSQL();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2172,14 +2002,12 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsAlterTableWithAddColumn() throws SQLException
     {
-        try
-        {
+        try {
             boolean value = m_Metadata.supportsAlterTableWithAddColumn();
             System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithAddColumn(): " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2196,14 +2024,12 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsAlterTableWithDropColumn() throws SQLException
     {
-        try
-        {
+        try {
             boolean value = m_Metadata.supportsAlterTableWithDropColumn();
             System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithDropColumn(): " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2220,13 +2046,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsBatchUpdates() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsBatchUpdates()");
             return m_Metadata.supportsBatchUpdates();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2243,15 +2067,13 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCatalogsInDataManipulation() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
             boolean value = m_Metadata.supportsCatalogsInDataManipulation();
             System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2268,13 +2090,12 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCatalogsInIndexDefinitions() throws SQLException
     {
-        try
-        {
-            System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInIndexDefinitions()");
-            return m_Metadata.supportsCatalogsInIndexDefinitions();
+        try {
+            boolean value = m_Metadata.supportsCatalogsInIndexDefinitions();
+            System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInIndexDefinitions(): " + value);
+            return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2291,13 +2112,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInPrivilegeDefinitions()");
             return m_Metadata.supportsCatalogsInPrivilegeDefinitions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2314,13 +2133,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCatalogsInProcedureCalls() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInProcedureCalls()");
             return m_Metadata.supportsCatalogsInProcedureCalls();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2337,13 +2154,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCatalogsInTableDefinitions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInTableDefinitions()");
             return m_Metadata.supportsCatalogsInTableDefinitions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2360,13 +2175,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsColumnAliasing() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsColumnAliasing()");
             return m_Metadata.supportsColumnAliasing();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2383,13 +2196,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsConvert(int arg0, int arg1) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsConvert()");
             return m_Metadata.supportsConvert();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2406,13 +2217,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCoreSQLGrammar() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsCoreSQLGrammar()");
             return m_Metadata.supportsCoreSQLGrammar();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2429,13 +2238,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsCorrelatedSubqueries() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsCorrelatedSubqueries()");
             return m_Metadata.supportsCorrelatedSubqueries();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2452,13 +2259,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsDataDefinitionAndDataManipulationTransactions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsDataDefinitionAndDataManipulationTransactions()");
             return m_Metadata.supportsDataDefinitionAndDataManipulationTransactions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2475,13 +2280,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsDataManipulationTransactionsOnly() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsDataManipulationTransactionsOnly()");
             return m_Metadata.supportsDataManipulationTransactionsOnly();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2498,13 +2301,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsDifferentTableCorrelationNames() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsDifferentTableCorrelationNames()");
             return m_Metadata.supportsDifferentTableCorrelationNames();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2521,13 +2322,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsExpressionsInOrderBy() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsExpressionsInOrderBy()");
             return m_Metadata.supportsExpressionsInOrderBy();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2544,13 +2343,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsExtendedSQLGrammar() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsExtendedSQLGrammar()");
             return m_Metadata.supportsExtendedSQLGrammar();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2567,13 +2364,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsFullOuterJoins() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsFullOuterJoins()");
             return m_Metadata.supportsFullOuterJoins();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2590,13 +2385,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsGroupBy() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsGroupBy()");
             return m_Metadata.supportsGroupBy();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2613,13 +2406,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsGroupByBeyondSelect() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsGroupByBeyondSelect()");
             return m_Metadata.supportsGroupByBeyondSelect();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2636,13 +2427,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsGroupByUnrelated() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsGroupByUnrelated()");
             return m_Metadata.supportsGroupByUnrelated();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2659,13 +2448,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsIntegrityEnhancementFacility() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsIntegrityEnhancementFacility()");
             return m_Metadata.supportsIntegrityEnhancementFacility();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2682,13 +2469,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsLikeEscapeClause() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsLikeEscapeClause()");
             return m_Metadata.supportsLikeEscapeClause();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2705,13 +2490,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsLimitedOuterJoins() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsLimitedOuterJoins()");
             return m_Metadata.supportsLimitedOuterJoins();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2728,13 +2511,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsMinimumSQLGrammar() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsMinimumSQLGrammar()");
             return m_Metadata.supportsMinimumSQLGrammar();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             // FIXME: SDBC bug. Must be able to throw exception.
             // FIXME: throw UnoHelper.getSQLException(e, this);
@@ -2753,13 +2534,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsMixedCaseIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsMixedCaseIdentifiers()");
             return m_Metadata.supportsMixedCaseIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2776,13 +2555,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsMixedCaseQuotedIdentifiers()");
             return m_Metadata.supportsMixedCaseQuotedIdentifiers();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2799,13 +2576,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsMultipleResultSets() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsMultipleResultSets()");
             return m_Metadata.supportsMultipleResultSets();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2822,13 +2597,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsMultipleTransactions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsMultipleTransactions()");
             return m_Metadata.supportsMultipleTransactions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2845,13 +2618,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsNonNullableColumns() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsNonNullableColumns()");
             return m_Metadata.supportsNonNullableColumns();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2868,13 +2639,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsOpenCursorsAcrossCommit() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsOpenCursorsAcrossCommit()");
             return m_Metadata.supportsOpenCursorsAcrossCommit();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2891,13 +2660,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsOpenCursorsAcrossRollback() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsOpenCursorsAcrossRollback()");
             return m_Metadata.supportsOpenCursorsAcrossRollback();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2914,13 +2681,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsOpenStatementsAcrossCommit() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsOpenStatementsAcrossCommit()");
             return m_Metadata.supportsOpenStatementsAcrossCommit();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2937,13 +2702,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsOpenStatementsAcrossRollback() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsOpenStatementsAcrossRollback()");
             return m_Metadata.supportsOpenStatementsAcrossRollback();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2960,13 +2723,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsOrderByUnrelated() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsOrderByUnrelated()");
             return m_Metadata.supportsOrderByUnrelated();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -2983,13 +2744,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsOuterJoins() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsOuterJoins()");
             return m_Metadata.supportsOuterJoins();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3006,13 +2765,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsPositionedDelete() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsPositionedDelete()");
             return m_Metadata.supportsPositionedDelete();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3029,13 +2786,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsPositionedUpdate() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsPositionedUpdate()");
             return m_Metadata.supportsPositionedUpdate();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3052,14 +2807,12 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException
     {
-        try
-        {
+        try {
             boolean value = m_Metadata.supportsResultSetConcurrency (type, concurrency);
             System.out.println("sdbc.DatabaseMetaData.supportsResultSetConcurrency() Type: " + type + " - Concurrency: " + concurrency + " - Value: " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3076,13 +2829,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsResultSetType(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsResultSetType()");
             return m_Metadata.supportsResultSetType(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3099,15 +2850,13 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSchemasInDataManipulation() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
             boolean value = m_Metadata.supportsSchemasInDataManipulation();
             System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3124,13 +2873,12 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSchemasInIndexDefinitions() throws SQLException
     {
-        try
-        {
-            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInIndexDefinitions()");
-            return m_Metadata.supportsSchemasInIndexDefinitions();
+        try {
+            boolean value = m_Metadata.supportsSchemasInIndexDefinitions();
+            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInIndexDefinitions(): " +  value);
+            return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3147,13 +2895,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSchemasInPrivilegeDefinitions()");
             return m_Metadata.supportsSchemasInPrivilegeDefinitions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3170,13 +2916,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSchemasInProcedureCalls() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSchemasInProcedureCalls()");
             return m_Metadata.supportsSchemasInProcedureCalls();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3193,14 +2937,12 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSchemasInTableDefinitions() throws SQLException
     {
-        try
-        {
+        try {
             boolean value = m_Metadata.supportsSchemasInTableDefinitions();
             System.out.println("sdbc.DatabaseMetaData.supportsSchemasInTableDefinitions(): " + value);
             return value;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3217,13 +2959,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSelectForUpdate() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSelectForUpdate()");
             return m_Metadata.supportsSelectForUpdate();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3240,13 +2980,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsStoredProcedures() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsStoredProcedures()");
             return m_Metadata.supportsStoredProcedures();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3263,13 +3001,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSubqueriesInComparisons() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInComparisons()");
             return m_Metadata.supportsSubqueriesInComparisons();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3286,13 +3022,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSubqueriesInExists() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInExists()");
             return m_Metadata.supportsSubqueriesInExists();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3309,13 +3043,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSubqueriesInIns() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInIns()");
             return m_Metadata.supportsSubqueriesInIns();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3332,13 +3064,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsSubqueriesInQuantifieds() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInQuantifieds()");
             return m_Metadata.supportsSubqueriesInQuantifieds();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3355,13 +3085,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsTableCorrelationNames() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsTableCorrelationNames()");
             return m_Metadata.supportsTableCorrelationNames();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3378,13 +3106,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsTransactionIsolationLevel(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsTransactionIsolationLevel()");
             return m_Metadata.supportsTransactionIsolationLevel(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3401,13 +3127,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsTransactions() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsTransactions()");
             return m_Metadata.supportsTransactions();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3424,13 +3148,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsTypeConversion() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsTypeConversion()");
             return m_Metadata.supportsConvert();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3447,13 +3169,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsUnion() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsUnion()");
             return m_Metadata.supportsUnion();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3470,13 +3190,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean supportsUnionAll() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.supportsUnionAll()");
             return m_Metadata.supportsUnionAll();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3493,13 +3211,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean updatesAreDetected(int arg0) throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.updatesAreDetected()");
             return m_Metadata.updatesAreDetected(arg0);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3516,13 +3232,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean usesLocalFilePerTable() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.usesLocalFilePerTable()");
             return m_Metadata.usesLocalFilePerTable();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3539,13 +3253,11 @@ implements XDatabaseMetaData2
     @Override
     public boolean usesLocalFiles() throws SQLException
     {
-        try
-        {
+        try {
             System.out.println("sdbc.DatabaseMetaData.usesLocalFiles()");
             return m_Metadata.usesLocalFiles();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
@@ -3569,7 +3281,7 @@ implements XDatabaseMetaData2
         }
         catch (java.lang.Exception e)
         {
-            System.out.println("sdbc.DatabaseMetaData._getResultSet() ********************************* ERROR: " + e);
+            System.out.println("sdbc.DatabaseMetaData._getResultSet() ********************************* ERROR: ");
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -3594,57 +3306,29 @@ implements XDatabaseMetaData2
         return new CustomResultSet(_getTypeInfoMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getTypeInfoRowSet(java.sql.ResultSet resultset)
+    protected CustomRowSet[] _getTypeInfoRowSet(java.sql.ResultSet result)
             throws java.sql.SQLException
     {
-        String value;
         CustomRowSet[] row = new CustomRowSet[18];
-        row[0] =  new CustomRowSet(resultset.getString(1));
-        row[1] =  new CustomRowSet(_mapDatabaseDataType(resultset.getInt(2)));
-        row[2] =  new CustomRowSet(resultset.getLong(3));
-        value = resultset.getString(4);
-        if (resultset.wasNull()) {
-            row[3] = new CustomRowSet("");
-            row[3].setNull();
-        }
-        else {
-            row[3] =  new CustomRowSet(value);
-        }
-        value = resultset.getString(5);
-        if (resultset.wasNull()) {
-            row[4] = new CustomRowSet("");
-            row[4].setNull();
-        }
-        else {
-            row[4] =  new CustomRowSet(value);
-        }
-        value = resultset.getString(6);
-        if (resultset.wasNull()) {
-            row[5] = new CustomRowSet("");
-            row[5].setNull();
-        }
-        else {
-            row[5] =  new CustomRowSet(value);
-        }
-        row[6] =  new CustomRowSet(resultset.getShort(7));
-        row[7] =  new CustomRowSet(resultset.getBoolean(8));
-        row[8] =  new CustomRowSet(resultset.getShort(9));
-        row[9] =  new CustomRowSet(resultset.getBoolean(10));
-        row[10] = new CustomRowSet(resultset.getBoolean(11));
-        row[11] = new CustomRowSet(resultset.getBoolean(12));
-        value = resultset.getString(13);
-        if (resultset.wasNull()) {
-            row[12] = new CustomRowSet("");
-            row[12].setNull();
-        }
-        else {
-            row[12] =  new CustomRowSet(value);
-        }
-        row[13] = new CustomRowSet(resultset.getShort(14));
-        row[14] = new CustomRowSet(resultset.getShort(15));
-        row[15] = new CustomRowSet(resultset.getLong(16));
-        row[16] = new CustomRowSet(resultset.getLong(17));
-        row[17] = new CustomRowSet(resultset.getLong(18));
+        row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+        row[1] = new CustomRowSet(_getDataType(result.getInt(2)));
+        row[2] = new CustomRowSet(result.getLong(3));
+        row[3] = new CustomRowSet(result.getString(4), result.wasNull());
+        row[4] = new CustomRowSet(result.getString(5), result.wasNull());
+        row[5] = new CustomRowSet(result.getString(6), result.wasNull());
+        row[6] = new CustomRowSet(result.getShort(7));
+        row[7] = new CustomRowSet(result.getBoolean(8));
+        row[8] = new CustomRowSet(result.getShort(9));
+        row[9] = new CustomRowSet(result.getBoolean(10));
+        row[10] = new CustomRowSet(result.getBoolean(11));
+        row[11] = new CustomRowSet(result.getBoolean(12));
+        System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TypeName: " + result.getString(1) + " - AutoIncrement: " + result.getBoolean(12));
+        row[12] = new CustomRowSet(result.getString(13), result.wasNull());
+        row[13] = new CustomRowSet(result.getShort(14));
+        row[14] = new CustomRowSet(result.getShort(15));
+        row[15] = new CustomRowSet(result.getLong(16));
+        row[16] = new CustomRowSet(result.getLong(17));
+        row[17] = new CustomRowSet(result.getLong(18));
         return row;
     }
 
@@ -3795,11 +3479,11 @@ implements XDatabaseMetaData2
         return new CustomResultSet(_getTableTypesMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getTableTypesRowSet(java.sql.ResultSet resultset)
+    protected CustomRowSet[] _getTableTypesRowSet(java.sql.ResultSet result)
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[1];
-            row[0] =  new CustomRowSet(_mapDatabaseTableTypes(resultset.getString(1)));
+            row[0] =  new CustomRowSet(_mapDatabaseTableTypes(result.getString(1)), result.wasNull());
             return row;
         }
 
@@ -3839,19 +3523,12 @@ implements XDatabaseMetaData2
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(result.getString(1));
-            row[1] = new CustomRowSet(result.getString(2));
-            row[2] = new CustomRowSet(result.getString(3));
-            row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)));
-            String description = result.getString(5);
-            if (result.wasNull()) {
-                row[4] = new CustomRowSet("");
-                row[4].setNull();
-            }
-            else {
-                row[4] = new CustomRowSet(description);
-            }
-            return row;
+            row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+            row[1] = new CustomRowSet(result.getString(2), result.wasNull());
+            row[2] = new CustomRowSet(result.getString(3), result.wasNull());
+            row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
+            row[4] = new CustomRowSet(result.getString(5), result.wasNull());
+           return row;
         }
 
     private XResultSetMetaData _getTablesMetadata()
@@ -3900,39 +3577,41 @@ implements XDatabaseMetaData2
     protected XResultSet _getColumns(String catalog, String schema, String table, String column)
             throws java.sql.SQLException
         {
-            ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+        System.out.println("sdbc.DatabaseMetaDataBase._getColumns() 1 Catalog: " + catalog + " - Schema: " + schema + " - Table: " + table + " - Column: " + column);
+
+        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
             java.sql.ResultSet resultset = m_Metadata.getColumns(catalog, schema, table, column);
-            while (resultset.next())
-            {
-                System.out.println("sdbc.DatabaseMetaDataBase._getColumns()");
+            while (resultset.next()) {
+                System.out.println("sdbc.DatabaseMetaDataBase._getColumns() 2");
                 rows.add(_getColumnsRowSet(resultset));
             }
             resultset.close();
+            System.out.println("sdbc.DatabaseMetaDataBase._getColumns() 3");
             return new CustomResultSet(_getColumnsMetadata(), rows);
         }
 
-    protected CustomRowSet[] _getColumnsRowSet(java.sql.ResultSet resultset)
+    protected CustomRowSet[] _getColumnsRowSet(java.sql.ResultSet result)
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[18];
-            row[0] =  new CustomRowSet(resultset.getString(1));
-            row[1] =  new CustomRowSet(resultset.getString(2));
-            row[2] =  new CustomRowSet(resultset.getString(3));
-            row[3] =  new CustomRowSet(resultset.getString(4));
-            row[4] =  new CustomRowSet(_mapDatabaseDataType(resultset.getShort(5)));
-            row[5] =  new CustomRowSet(resultset.getString(6));
-            row[6] =  new CustomRowSet(resultset.getLong(7));
-            row[7] =  new CustomRowSet(resultset.getString(8));
-            row[8] =  new CustomRowSet(resultset.getLong(9));
-            row[9] =  new CustomRowSet(resultset.getLong(10));
-            row[10] = new CustomRowSet(resultset.getLong(11));
-            row[11] = new CustomRowSet(resultset.getString(12));
-            row[12] = new CustomRowSet(resultset.getString(13));
-            row[13] = new CustomRowSet(resultset.getLong(14));
-            row[14] = new CustomRowSet(resultset.getLong(15));
-            row[15] = new CustomRowSet(resultset.getLong(16));
-            row[16] = new CustomRowSet(resultset.getInt(17));
-            row[17] = new CustomRowSet(resultset.getString(18));
+            row[0] =  new CustomRowSet(result.getString(1), result.wasNull());
+            row[1] =  new CustomRowSet(result.getString(2), result.wasNull());
+            row[2] =  new CustomRowSet(result.getString(3), result.wasNull());
+            row[3] =  new CustomRowSet(result.getString(4), result.wasNull());
+            row[4] =  new CustomRowSet(_getDataType(result.getShort(5)));
+            row[5] =  new CustomRowSet(result.getString(6), result.wasNull());
+            row[6] =  new CustomRowSet(result.getLong(7));
+            row[7] =  new CustomRowSet(result.getString(8), result.wasNull());
+            row[8] =  new CustomRowSet(result.getLong(9));
+            row[9] =  new CustomRowSet(result.getLong(10));
+            row[10] = new CustomRowSet(result.getLong(11));
+            row[11] = new CustomRowSet(result.getString(12), result.wasNull());
+            row[12] = new CustomRowSet(result.getString(13), result.wasNull());
+            row[13] = new CustomRowSet(result.getLong(14));
+            row[14] = new CustomRowSet(result.getLong(15));
+            row[15] = new CustomRowSet(result.getLong(16));
+            row[16] = new CustomRowSet(result.getInt(17));
+            row[17] = new CustomRowSet(result.getString(18), result.wasNull());
             return row;
         }
 
@@ -4093,14 +3772,13 @@ implements XDatabaseMetaData2
             throws SQLException
     {
         CustomRowSet[] row = new CustomRowSet[7];
-        row[0] = new CustomRowSet(result.getString(1));
-        row[1] = new CustomRowSet(result.getString(2));
-        row[2] = new CustomRowSet(result.getString(3));
-        row[3] = new CustomRowSet("");
-        row[3].setNull();
-        row[4] = new CustomRowSet(username);
-        row[5] = new CustomRowSet(privilege);
-        row[6] = new CustomRowSet("YES");
+        row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+        row[1] = new CustomRowSet(result.getString(2), result.wasNull());
+        row[2] = new CustomRowSet(result.getString(3), result.wasNull());
+        row[3] = new CustomRowSet(null, true);
+        row[4] = new CustomRowSet(username, false);
+        row[5] = new CustomRowSet(privilege, false);
+        row[6] = new CustomRowSet("YES", false);
         return row;
     }
 
@@ -4159,6 +3837,7 @@ implements XDatabaseMetaData2
         return new CustomResultSetMetaData(columns);
     }
 
+
     protected static String _getPattern(Object object)
     {
         String value = null;
@@ -4188,9 +3867,10 @@ implements XDatabaseMetaData2
         return types;
     }
 
+
     abstract protected String _mapDatabaseTableTypes(String type);
     abstract protected String _mapDatabaseTableType(String schema, String type);
-    abstract protected int _mapDatabaseDataType(int type);
+    abstract protected int _getDataType(int type);
 
 
 }

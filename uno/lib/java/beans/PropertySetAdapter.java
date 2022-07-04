@@ -75,6 +75,8 @@ import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.uno.helper.UnoHelper;
+
 
 public class PropertySetAdapter
     implements XPropertySet,
@@ -94,36 +96,45 @@ public class PropertySetAdapter
     protected final InterfaceContainer propertiesChangeListeners = new InterfaceContainer();
     private final PropertySetInfo propertySetInfo = new PropertySetInfo();
 
-    public static interface PropertyGetter {
+    public static interface PropertyGetter
+    {
         Object getValue() throws WrappedTargetException;
     }
 
-    public static interface PropertySetter {
+    public static interface PropertySetter
+    {
         void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException;
     }
 
-    private static class PropertyData {
+    private static class PropertyData
+    {
         Property property;
         PropertyGetter getter;
         PropertySetter setter;
         
-        PropertyData(Property property, PropertyGetter getter, PropertySetter setter) {
+        PropertyData(Property property, PropertyGetter getter, PropertySetter setter)
+        {
             this.property = property;
             this.getter = getter;
             this.setter = setter;
         }
     }
 
-    private static final Comparator<Property> propertyNameComparator = new Comparator<Property>() {
+    private static final Comparator<Property> propertyNameComparator = new Comparator<Property>()
+    {
         @Override
-        public int compare(Property first, Property second) {
+        public int compare(Property first,
+                           Property second)
+        {
             return first.Name.compareTo(second.Name);
         }
     };
 
-    private class PropertySetInfo implements XPropertySetInfo {
+    private class PropertySetInfo implements XPropertySetInfo
+    {
         @Override
-        public Property[] getProperties() {
+        public Property[] getProperties()
+        {
             Property[] properties = new Property[propertiesByName.size()];
             int next = 0;
             for (Map.Entry<String,PropertyData> entry : propertiesByName.entrySet()) {
@@ -134,14 +145,21 @@ public class PropertySetAdapter
         }
 
         @Override
-        public Property getPropertyByName(String propertyName) throws UnknownPropertyException {
+        public Property getPropertyByName(String propertyName)
+            throws UnknownPropertyException
+        {
             PropertyData propertyData = getPropertyData(propertyName);
             return propertyData.property;
         }
 
         @Override
-        public boolean hasPropertyByName(String propertyName) {
-            return propertiesByName.containsKey(propertyName);
+        public boolean hasPropertyByName(String name)
+        {
+            boolean value = propertiesByName.containsKey(name);
+            if (!value) {
+                System.out.println("beans.PropertySetAdapter.hasPropertyByName() ERROR *******************************************\n" + lock.getClass().getName() + " : " + name);
+            }
+            return value;
         }
     }
 
@@ -150,12 +168,15 @@ public class PropertySetAdapter
      * @param lock the lock that will be held while calling the getters and setters
      * @param eventSource the com.sun.star.lang.EventObject Source field, to use in events sent to listeners
      */
-    public PropertySetAdapter(Object lock, Object eventSource) {
+    public PropertySetAdapter(Object lock,
+                              Object eventSource)
+    {
         this.lock = lock;
         this.eventSource = eventSource;
     }
 
-    public void dispose() {
+    public void dispose()
+    {
         // Create an event with this as sender
         EventObject event = new EventObject(eventSource);
         
@@ -164,105 +185,141 @@ public class PropertySetAdapter
         vetoableListeners.disposeAndClear(event);
     }
 
-    public void registerProperty(String propertyName, int handle, Type type, short attributes,
-            PropertyGetter getter, PropertySetter setter) {
-        Property property = new Property(propertyName, handle, type, attributes);
-        PropertyData propertyData = new PropertyData(property, getter, setter);
-        propertiesByName.put(propertyName, propertyData);
-        propertiesByHandle.put(property.Handle, propertyData);
+    public void registerProperty(String name,
+                                 int handle,
+                                 Type type,
+                                 short attributes,
+                                 PropertyGetter getter,
+                                 PropertySetter setter)
+    {
+        Property property = new Property(name, handle, type, attributes);
+        PropertyData data = new PropertyData(property, getter, setter);
+        propertiesByName.put(name, data);
+        propertiesByHandle.put(property.Handle, data);
     }
 
-    public void registerProperty(String propertyName, Type type, short attributes,
-            PropertyGetter getter, PropertySetter setter) {
+    public void registerProperty(String name,
+                                 Type type,
+                                 short attributes,
+                                 PropertyGetter getter,
+                                 PropertySetter setter)
+    {
         int handle;
         // registerProperty() should only be called from one thread, but just in case:
         handle = nextHandle.getAndIncrement();
-        registerProperty(propertyName, handle, type, attributes, getter, setter);
+        registerProperty(name, handle, type, attributes, getter, setter);
     }
 
     @Override
-    public void addPropertyChangeListener(
-            String propertyName, XPropertyChangeListener listener) throws UnknownPropertyException, WrappedTargetException {
-        PropertyData propertyData = getPropertyData(propertyName);
-        if ((propertyData.property.Attributes & PropertyAttribute.BOUND) != 0) {
-            boundListeners.addInterface(propertyName, listener);
+    public void addPropertyChangeListener(String name,
+                                          XPropertyChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
+        PropertyData data = getPropertyData(name);
+        if ((data.property.Attributes & PropertyAttribute.BOUND) != 0) {
+            boundListeners.addInterface(name, listener);
         } // else ignore silently
     }
 
     @Override
-    public void addVetoableChangeListener(
-            String propertyName, XVetoableChangeListener listener) throws UnknownPropertyException, WrappedTargetException {
-        PropertyData propertyData = getPropertyData(propertyName);
-        if ((propertyData.property.Attributes & PropertyAttribute.CONSTRAINED) != 0) {
-            vetoableListeners.addInterface(propertyName, listener);
+    public void addVetoableChangeListener(String name,
+                                          XVetoableChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
+        PropertyData data = getPropertyData(name);
+        if ((data.property.Attributes & PropertyAttribute.CONSTRAINED) != 0) {
+            vetoableListeners.addInterface(name, listener);
         } // else ignore silently
     }
 
     @Override
-    public void addPropertiesChangeListener(String[] propertyNames, XPropertiesChangeListener listener) {
+    public void addPropertiesChangeListener(String[] names,
+                                            XPropertiesChangeListener listener)
+    {
         propertiesChangeListeners.add(listener);
     }
 
     @Override
-    public XPropertySetInfo getPropertySetInfo() {
+    public XPropertySetInfo getPropertySetInfo()
+    {
         return propertySetInfo;
     }
 
-    private PropertyData getPropertyData(String propertyName) throws UnknownPropertyException {
-        PropertyData propertyData = propertiesByName.get(propertyName);
-        if (propertyData == null) {
-            throw new UnknownPropertyException(propertyName);
+    private PropertyData getPropertyData(String name)
+        throws UnknownPropertyException
+    {
+        PropertyData data = propertiesByName.get(name);
+        if (data == null) {
+            System.out.println("beans.PropertySetAdapter.getPropertyData() ERROR Property Name: " + name);
+            throw new UnknownPropertyException(name);
         }
-        return propertyData;
+        return data;
     }
 
-    private PropertyData getPropertyData(int handle) throws UnknownPropertyException {
-        PropertyData propertyData = propertiesByHandle.get(handle);
-        if (propertyData == null) {
+    private PropertyData getPropertyData(int handle)
+        throws UnknownPropertyException
+    {
+        PropertyData data = propertiesByHandle.get(handle);
+        if (data == null) {
+            System.out.println("beans.PropertySetAdapter.getPropertyData() ERROR Property handle: " + handle);
             throw new UnknownPropertyException(Integer.toString(handle));
         }
-        return propertyData;
+        return data;
     }
 
-    private Object getPropertyValue(PropertyData propertyData) throws WrappedTargetException {
-        Object ret;
+    private Object getPropertyValue(PropertyData data)
+        throws WrappedTargetException
+    {
+        Object value;
         synchronized (lock) {
-            ret = propertyData.getter.getValue();
+            value = data.getter.getValue();
         }
         
         // null must not be returned. Either a void any is returned or an any containing
         // an interface type and a null reference.
-        if (ret == null) {
-            if (propertyData.property.Type.getTypeClass() == TypeClass.INTERFACE) {
-                ret = new Any(propertyData.property.Type, null);
-            } else {
-                ret = new Any(new Type(void.class), null);
+        if (value == null) {
+            if (data.property.Type.getTypeClass() == TypeClass.INTERFACE) {
+                value = new Any(data.property.Type, null);
+            }
+            else {
+                value = new Any(new Type(void.class), null);
             }
         }
-        return ret;
+        return value;
     }
 
     @Override
-    public Object getPropertyValue(String propertyName) throws UnknownPropertyException, WrappedTargetException {
-        PropertyData propertyData = getPropertyData(propertyName);
+    public Object getPropertyValue(String name)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
+        PropertyData propertyData = getPropertyData(name);
         return getPropertyValue(propertyData);
     }
 
     @Override
-    public Object getFastPropertyValue(int handle) throws UnknownPropertyException, WrappedTargetException {
+    public Object getFastPropertyValue(int handle)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
+
         PropertyData propertyData = getPropertyData(handle);
         return getPropertyValue(propertyData);
     }
 
     @Override
-    public Object[] getPropertyValues(String[] propertyNames) {
-        Object[] values = new Object[propertyNames.length];
-        for (int i = 0; i < propertyNames.length; i++) {
+    public Object[] getPropertyValues(String[] names)
+    {
+        Object[] values = new Object[names.length];
+        for (int i = 0; i < names.length; i++) {
             Object value = null;
             try {
-                value = getPropertyValue(propertyNames[i]);
-            } catch (UnknownPropertyException unknownPropertyException) {
-            } catch (WrappedTargetException wrappedTargetException) {
+                value = getPropertyValue(names[i]);
+            }
+            catch (UnknownPropertyException | WrappedTargetException e) {
+                System.out.println("beans.PropertySetAdapter.getPropertyValues() ERROR\n" + UnoHelper.getStackTrace(e));
             }
             values[i] = value;
         }
@@ -270,53 +327,76 @@ public class PropertySetAdapter
     }
 
     @Override
-    public void removePropertyChangeListener(
-            String propertyName, XPropertyChangeListener listener) throws UnknownPropertyException, WrappedTargetException {
+    public void removePropertyChangeListener(String name,
+                                             XPropertyChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         // check existence:
-        getPropertyData(propertyName);
-        boundListeners.removeInterface(propertyName, listener);
+        getPropertyData(name);
+        boundListeners.removeInterface(name, listener);
     }
 
     @Override
-    public synchronized void removeVetoableChangeListener(
-            String propertyName, XVetoableChangeListener listener) throws UnknownPropertyException, WrappedTargetException {
+    public synchronized void removeVetoableChangeListener(String name,
+                                                          XVetoableChangeListener listener)
+        throws UnknownPropertyException,
+               WrappedTargetException
+    {
         // check existence:
-        getPropertyData(propertyName);
-        vetoableListeners.removeInterface(propertyName, listener);
+        getPropertyData(name);
+        vetoableListeners.removeInterface(name, listener);
     }
 
     @Override
-    public void removePropertiesChangeListener(XPropertiesChangeListener listener) {
+    public void removePropertiesChangeListener(XPropertiesChangeListener listener)
+    {
         propertiesChangeListeners.remove(listener);
     }
 
     @Override
-    public void setPropertyValue(String propertyName, Object value)
-            throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-        PropertyData propertyData = getPropertyData(propertyName);
+    public void setPropertyValue(String name,
+                                 Object value)
+        throws UnknownPropertyException,
+               PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
+        PropertyData propertyData = getPropertyData(name);
         setPropertyValue(propertyData, value);
     }
 
     @Override
-    public void setFastPropertyValue(int handle, Object value)
-            throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+    public void setFastPropertyValue(int handle,
+                                     Object value)
+        throws UnknownPropertyException,
+               PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
         PropertyData propertyData = getPropertyData(handle);
         setPropertyValue(propertyData, value);
     }
 
-    private void setPropertyValue(PropertyData propertyData, Object value)
-            throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-        if ((propertyData.property.Attributes & PropertyAttribute.READONLY) != 0) {
+    private void setPropertyValue(PropertyData data,
+                                  Object value)
+        throws UnknownPropertyException,
+               PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
+        if ((data.property.Attributes & PropertyAttribute.READONLY) != 0) {
             throw new PropertyVetoException();
         }
         // The value may be null only if MAYBEVOID attribute is set         
-        boolean isVoid = false;
+        boolean isvoid = false;
         if (value instanceof Any) {
-            isVoid = ((Any) value).getObject() == null;
-        } else {
-            isVoid = value == null;
+            isvoid = ((Any) value).getObject() == null;
         }
-        if (isVoid && (propertyData.property.Attributes & PropertyAttribute.MAYBEVOID) == 0) { 
+        else {
+            isvoid = value == null;
+        }
+        if (isvoid && (data.property.Attributes & PropertyAttribute.MAYBEVOID) == 0) { 
             throw new IllegalArgumentException("The property must have a value; the MAYBEVOID attribute is not set!");
         }
 
@@ -324,91 +404,107 @@ public class PropertySetAdapter
         boolean isValueOk = false;
         if (value instanceof Any) {
             isValueOk = checkType(((Any) value).getObject());
-        } else {
+        }
+        else {
             isValueOk = checkType(value);
         }
         if (!isValueOk) {
             throw new IllegalArgumentException("No valid UNO type");
         }
 
-        Object[] futureValue = new Object[] { AnyConverter.toObject(propertyData.property.Type, value) };
-        Object[] currentValue = new Object[] { getPropertyValue(propertyData.property.Name) };
-        Property[] properties = new Property[] { propertyData.property };
+        Object[] futureValue = new Object[] { AnyConverter.toObject(data.property.Type, value) };
+        Object[] currentValue = new Object[] { getPropertyValue(data.property.Name) };
+        Property[] properties = new Property[] { data.property };
         
         fire(properties, currentValue, futureValue, false);
         synchronized (lock) {
-            propertyData.setter.setValue(futureValue[0]);
+            data.setter.setValue(futureValue[0]);
         }
         fire(properties, currentValue, futureValue, true);
     }
 
     @Override
-    public void setPropertyValues(String[] propertyNames, Object[] values) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-        for (int i = 0; i < propertyNames.length; i++) {
+    public void setPropertyValues(String[] names,
+                                  Object[] values)
+        throws PropertyVetoException,
+               IllegalArgumentException,
+               WrappedTargetException
+    {
+        for (int i = 0; i < names.length; i++) {
             try {
-                setPropertyValue(propertyNames[i], values[i]);
-            } catch (UnknownPropertyException e) {
+                setPropertyValue(names[i], values[i]);
+            }
+            catch (UnknownPropertyException e) {
                 continue;
             }
         }
     }
 
     private boolean checkType(Object obj) {
-        if (obj == null 
-        || obj instanceof Boolean 
-        || obj instanceof Character
-        || obj instanceof Number
-        || obj instanceof String
-        || obj instanceof XInterface
-        || obj instanceof Type
-        || obj instanceof com.sun.star.uno.Enum
-        || obj.getClass().isArray())
+        if (obj == null ||
+            obj instanceof Boolean ||
+            obj instanceof Character ||
+            obj instanceof Number ||
+            obj instanceof String ||
+            obj instanceof XInterface ||
+            obj instanceof Type ||
+            obj instanceof com.sun.star.uno.Enum ||
+            obj.getClass().isArray())
             return true;
         return false;
     }
 
     @Override
-    public void firePropertiesChangeEvent(String[] propertyNames, XPropertiesChangeListener listener) {
-        PropertyChangeEvent[] events = new PropertyChangeEvent[propertyNames.length];
-        int eventCount = 0;
-        for (int i = 0; i < propertyNames.length; i++) {
+    public void firePropertiesChangeEvent(String[] names,
+                                          XPropertiesChangeListener listener)
+    {
+        PropertyChangeEvent[] events = new PropertyChangeEvent[names.length];
+        int count = 0;
+        for (int i = 0; i < names.length; i++) {
             try {
-                PropertyData propertyData = getPropertyData(propertyNames[i]);
-                Object value = getPropertyValue(propertyNames[i]);
-                events[eventCount++] = new PropertyChangeEvent(eventSource, propertyNames[i],
-                        false, propertyData.property.Handle, value, value);
-            } catch (UnknownPropertyException unknownPropertyException) {
-            } catch (WrappedTargetException wrappedTargetException) {
+                PropertyData data = getPropertyData(names[i]);
+                Object value = getPropertyValue(names[i]);
+                events[count++] = new PropertyChangeEvent(eventSource, names[i],
+                        false, data.property.Handle, value, value);
+            }
+            catch (UnknownPropertyException e) {
+            }
+            catch (WrappedTargetException e) {
             }
         }
-        if (eventCount > 0) {
-            if (events.length != eventCount) {
-                PropertyChangeEvent[] tmp = new PropertyChangeEvent[eventCount];
-                System.arraycopy(events, 0, tmp, 0, eventCount);
+        if (count > 0) {
+            if (events.length != count) {
+                PropertyChangeEvent[] tmp = new PropertyChangeEvent[count];
+                System.arraycopy(events, 0, tmp, 0, count);
                 events = tmp;
             }
             listener.propertiesChange(events);
         }
     }
 
-    private void fire(Property[] properties, Object[] oldValues, Object[] newValues, boolean hasChanged) throws PropertyVetoException {
+    private void fire(Property[] properties,
+                      Object[] oldvalues,
+                      Object[] newvalues,
+                      boolean changed)
+        throws PropertyVetoException
+    {
         PropertyChangeEvent[] events = new PropertyChangeEvent[properties.length];
-        int eventCount = 0;
+        int count = 0;
         for (int i = 0; i < properties.length; i++) {
-            if ((!hasChanged && (properties[i].Attributes & PropertyAttribute.CONSTRAINED) != 0) ||
-                    (hasChanged && (properties[i].Attributes & PropertyAttribute.BOUND) != 0)) {
-                events[eventCount++] = new PropertyChangeEvent(
-                        eventSource, properties[i].Name, false, properties[i].Handle, oldValues[i], newValues[i]);
+            if ((!changed && (properties[i].Attributes & PropertyAttribute.CONSTRAINED) != 0) ||
+                    (changed && (properties[i].Attributes & PropertyAttribute.BOUND) != 0)) {
+                events[count++] = new PropertyChangeEvent(
+                        eventSource, properties[i].Name, false, properties[i].Handle, oldvalues[i], newvalues[i]);
             }
         }
-        for (int i = 0; i < eventCount; i++) {
-            fireListeners(hasChanged, events[i].PropertyName, events[i]);
-            fireListeners(hasChanged, "", events[i]);
+        for (int i = 0; i < count; i++) {
+            fireListeners(changed, events[i].PropertyName, events[i]);
+            fireListeners(changed, "", events[i]);
         }
-        if (hasChanged && eventCount > 0) {
-            if (eventCount != events.length) {
-                PropertyChangeEvent[] tmp = new PropertyChangeEvent[eventCount];
-                System.arraycopy(events, 0, tmp, 0, eventCount);
+        if (changed && count > 0) {
+            if (count != events.length) {
+                PropertyChangeEvent[] tmp = new PropertyChangeEvent[count];
+                System.arraycopy(events, 0, tmp, 0, count);
                 events = tmp;
             }
             for (Iterator<?> it = propertiesChangeListeners.iterator(); it.hasNext();) {
@@ -418,20 +514,26 @@ public class PropertySetAdapter
         }
     }
 
-    private void fireListeners(boolean hasChanged, String key, PropertyChangeEvent event) throws PropertyVetoException {
+    private void fireListeners(boolean changed,
+                               String key,
+                               PropertyChangeEvent event)
+        throws PropertyVetoException
+    {
         InterfaceContainer listeners;
-        if (hasChanged) {
+        if (changed) {
             listeners = boundListeners.getContainer(key);
-        } else {
+        }
+        else {
             listeners = vetoableListeners.getContainer(key);
         }
         if (listeners != null) {
             Iterator<?> it = listeners.iterator();
             while (it.hasNext()) {
                 Object listener = it.next();
-                if (hasChanged) {
+                if (changed) {
                     ((XPropertyChangeListener)listener).propertyChange(event);
-                } else {
+                }
+                else {
                     ((XVetoableChangeListener)listener).vetoableChange(event);
                 }
             }

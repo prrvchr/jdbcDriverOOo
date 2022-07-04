@@ -29,6 +29,7 @@ package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
@@ -43,10 +44,8 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.SchemaCrawler;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import schemacrawler.schema.Catalog;
 
 
 public abstract class ConnectionBase
@@ -57,59 +56,46 @@ public abstract class ConnectionBase
 {
 
     protected final XComponentContext m_xContext;
-    private final String m_name;
+    private final String m_service;
     private final String[] m_services;
     protected final DriverProvider m_provider;
-    protected final java.sql.Connection m_Connection;
     protected final PropertyValue[] m_info;
     private final String m_url;
     public final boolean m_enhanced;
     private boolean m_crawler;
-    private Catalog m_catalog = null;
     //protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
-                          String name,
+                          String service,
                           String[] services,
                           DriverProvider provider,
-                          java.sql.Connection connection,
                           String url,
                           PropertyValue[] info,
                           boolean enhanced)
-        throws java.sql.SQLException
     {
-        this(ctx, name, services, provider, connection, url, info, enhanced, false);
+        this(ctx, service, services, provider, url, info, enhanced, false);
     }
     public ConnectionBase(XComponentContext ctx,
-                          String name,
+                          String service,
                           String[] services,
                           DriverProvider provider,
-                          java.sql.Connection connection,
                           String url,
                           PropertyValue[] info,
                           boolean enhanced,
                           boolean crawler)
-        throws java.sql.SQLException
     {
         super();
         System.out.println("Connection.Connection() 1");
         m_xContext = ctx;
-        m_name = name;
+        m_service = service;
         m_services = services;
-        m_Connection = connection;
         m_url = url;
         m_info = info;
         m_enhanced = enhanced;
         m_provider = provider;
         m_crawler = crawler;
-        if (crawler) {
-            m_catalog = SchemaCrawler.getCatalog(connection);
-            for (final schemacrawler.schema.Table t : m_catalog.getTables()) {
-                System.out.println("Connection.Connection() 2 Table Type: " + t.getTableType().getTableType());
-            }
-        }
-        System.out.println("Connection.Connection() 3");
+        System.out.println("Connection.Connection() 2");
     }
 
     // com.sun.star.lang.XComponent
@@ -122,8 +108,8 @@ public abstract class ConnectionBase
                 it.remove();
                 statement.dispose();
             }*/
-            if (m_Connection != null) {
-                m_Connection.close();
+            if (getProvider().getConnection() != null) {
+                getProvider().getConnection().close();
             }
         }
         catch (java.sql.SQLException e) {
@@ -138,7 +124,7 @@ public abstract class ConnectionBase
     @Override
     public String getImplementationName()
     {
-        return ServiceInfo.getImplementationName(m_name);
+        return ServiceInfo.getImplementationName(m_service);
     }
 
     @Override
@@ -159,7 +145,7 @@ public abstract class ConnectionBase
     public void clearWarnings() throws SQLException
     {
         if (m_provider.supportWarningsSupplier()) {
-            WarningsSupplier.clearWarnings(getWrapper(), this);
+            WarningsSupplier.clearWarnings(getProvider().getConnection(), this);
         }
     }
 
@@ -168,7 +154,7 @@ public abstract class ConnectionBase
     public Object getWarnings() throws SQLException
     {
         if (m_provider.supportWarningsSupplier()) {
-            return WarningsSupplier.getWarnings(getWrapper(), this);
+            return WarningsSupplier.getWarnings(getProvider().getConnection(), this);
         }
         return Any.VOID;
     }
@@ -199,7 +185,7 @@ public abstract class ConnectionBase
     public void commit() throws SQLException
     {
         try {
-            m_Connection.commit();
+            getProvider().getConnection().commit();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -210,7 +196,7 @@ public abstract class ConnectionBase
     public boolean getAutoCommit() throws SQLException
     {
         try {
-            return m_Connection.getAutoCommit();
+            return getProvider().getConnection().getAutoCommit();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -221,7 +207,7 @@ public abstract class ConnectionBase
     public String getCatalog() throws SQLException
     {
         try {
-            String value = m_Connection.getCatalog();
+            String value = getProvider().getConnection().getCatalog();
             System.out.println("Connection.getCatalog() 1 Catalog: " + value);
             return value != null ? value : "";
         }
@@ -234,7 +220,7 @@ public abstract class ConnectionBase
     public int getTransactionIsolation() throws SQLException
     {
         try {
-            return m_Connection.getTransactionIsolation();
+            return getProvider().getConnection().getTransactionIsolation();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -245,7 +231,7 @@ public abstract class ConnectionBase
     public boolean isClosed() throws SQLException
     {
         try {
-            return m_Connection.isClosed();
+            return getProvider().getConnection().isClosed();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -256,7 +242,7 @@ public abstract class ConnectionBase
     public boolean isReadOnly() throws SQLException
     {
         try {
-            boolean readonly = m_Connection.isReadOnly();
+            boolean readonly = getProvider().getConnection().isReadOnly();
             System.out.println("Connection.isReadOnly() 1 readonly: " + readonly);
             return readonly;
         }
@@ -269,7 +255,7 @@ public abstract class ConnectionBase
     public String nativeSQL(String sql) throws SQLException
     {
         try {
-            String value = m_Connection.nativeSQL(sql);
+            String value = getProvider().getConnection().nativeSQL(sql);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -281,7 +267,7 @@ public abstract class ConnectionBase
     public void rollback() throws SQLException
     {
         try {
-            m_Connection.rollback();
+            getProvider().getConnection().rollback();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -292,7 +278,7 @@ public abstract class ConnectionBase
     public void setAutoCommit(boolean commit) throws SQLException
     {
         try {
-            m_Connection.setAutoCommit(commit);
+            getProvider().getConnection().setAutoCommit(commit);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -303,7 +289,7 @@ public abstract class ConnectionBase
     public void setCatalog(String catalog) throws SQLException
     {
         try {
-            m_Connection.setCatalog(catalog);
+            getProvider().getConnection().setCatalog(catalog);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -314,7 +300,7 @@ public abstract class ConnectionBase
     public void setReadOnly(boolean readonly) throws SQLException
     {
         try {
-            m_Connection.setReadOnly(readonly);
+            getProvider().getConnection().setReadOnly(readonly);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -325,7 +311,7 @@ public abstract class ConnectionBase
     public void setTransactionIsolation(int isolation) throws SQLException
     {
         try {
-            m_Connection.setTransactionIsolation(isolation);
+            getProvider().getConnection().setTransactionIsolation(isolation);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -369,10 +355,6 @@ public abstract class ConnectionBase
     }
 
 
-    public java.sql.Connection getWrapper()
-    {
-        return m_Connection;
-    }
     public DriverProvider getProvider()
     {
         return m_provider;
@@ -397,6 +379,16 @@ public abstract class ConnectionBase
     abstract protected XStatement _getStatement();
     abstract protected XPreparedStatement _getPreparedStatement(String sql);
     abstract protected XPreparedStatement _getCallableStatement(String sql);
+
+
+    /** Checks whether this component (which you should have locked, prior to this call, and until you are done using) is disposed, throwing DisposedException if it is. */
+    protected synchronized final void checkDisposed()
+    {
+        if (bInDispose || bDisposed) {
+            System.out.println("beans.PropertySet()checkDisposed() ERROR: **************************" + this.getClass().getName());
+            throw new DisposedException();
+        }
+    }
 
 
 }

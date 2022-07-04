@@ -46,7 +46,7 @@ public final class Driver
     extends DriverBase
     implements XDataDefinitionSupplier
 {
-    private static final String m_name = Driver.class.getName();
+    private static final String m_service = Driver.class.getName();
     private static final String[] m_services = {"io.github.prrvchr.jdbcdriver.sdbcx.Driver",
                                                 "com.sun.star.sdbcx.Driver",
                                                 "com.sun.star.sdbc.Driver"};
@@ -55,19 +55,17 @@ public final class Driver
     public Driver(XComponentContext ctx)
     throws Exception
     {
-        super(ctx, m_name, m_services);
+        super(ctx, m_service, m_services);
         System.out.println("sdbcx.Driver() 1");
     }
 
     protected XConnection _getConnection(XComponentContext ctx,
                                          DriverProvider provider,
-                                         java.sql.Connection connection,
                                          String url,
                                          PropertyValue[] info,
                                          boolean enhanced)
-        throws java.sql.SQLException
     {
-        return new Connection(ctx, provider, connection, url, info, enhanced);
+        return new Connection(ctx, provider, url, info, enhanced);
     }
 
 
@@ -75,7 +73,7 @@ public final class Driver
     public static XSingleComponentFactory __getComponentFactory(String name)
     {
         XSingleComponentFactory factory = null;
-        if (name.equals(m_name))
+        if (name.equals(m_service))
         {
             factory = Factory.createComponentFactory(Driver.class, m_services);
         }
@@ -84,7 +82,7 @@ public final class Driver
 
     public static boolean __writeRegistryServiceInfo(XRegistryKey key)
     {
-        return Factory.writeRegistryServiceInfo(m_name, m_services, key);
+        return Factory.writeRegistryServiceInfo(m_service, m_services, key);
     }
 
 

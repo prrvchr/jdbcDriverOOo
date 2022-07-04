@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.sdbc.ResultSetSuper;
 public final class ResultSet
     extends ResultSetSuper
 {
-    private static final String m_name = ResultSet.class.getName();
+    private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet", 
                                                 "com.sun.star.sdbcx.ResultSet"};
 
@@ -46,7 +46,7 @@ public final class ResultSet
                      boolean bookmark)
     throws SQLException
     {
-        super(m_name, m_services, connection, resultset, statement, bookmark);
+        super(m_service, m_services, connection, resultset, statement, bookmark);
         System.out.println("sdbcx.ResultSet() 1");
     }
 

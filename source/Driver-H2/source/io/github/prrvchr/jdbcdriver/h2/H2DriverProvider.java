@@ -25,10 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver.h2;
 
-import java.sql.DriverManager;
-import java.util.List;
-
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
@@ -44,7 +40,6 @@ public final class H2DriverProvider
 {
 
     private static final String m_subProtocol = "h2";
-    private List<String> m_properties = List.of("user", "password");
     private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
     // The constructor method:
@@ -57,6 +52,14 @@ public final class H2DriverProvider
     public final boolean acceptsURL(final String url)
     {
         return url.startsWith(getProtocol(m_subProtocol));
+    }
+
+    @Override
+    public int getDataType(int type) {
+        if (H2DatabaseMetaData.m_dataType.containsKey(type)) {
+            return H2DatabaseMetaData.m_dataType.get(type);
+        }
+        return type;
     }
 
     public String[] getTableTypes()
@@ -76,7 +79,7 @@ public final class H2DriverProvider
     @Override
     public String getUserQuery()
     {
-        return "SELECT * FROM INFORMATION_SCHEMA.USERS";
+        return "SELECT USER FROM INFORMATION_SCHEMA.USERS";
     }
 
     @Override
@@ -101,16 +104,14 @@ public final class H2DriverProvider
     }
 
     @Override
-    public java.sql.Connection getConnection(final String url,
-                                             final PropertyValue[] info,
-                                             final String level)
-        throws java.sql.SQLException
+    public String getConnectionUrl(final String location,
+                                   final String level)
     {
-        String location = url;
+        String url = location;
         if (!level.equals("-1")) {
-            location += m_logger;
+            url += m_logger;
         }
-        return DriverManager.getConnection(location, getConnectionProperties(m_properties, info));
+        return url;
     }
 
     @Override

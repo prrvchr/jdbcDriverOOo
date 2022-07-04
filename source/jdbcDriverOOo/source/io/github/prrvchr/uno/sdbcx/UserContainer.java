@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.List;
+
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
@@ -33,68 +35,71 @@ import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class UserContainer
-    extends ContainerSuper<User>
+    extends Container
 {
 
-    private static final String m_name = UserContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    private final Connection m_connection;
 
     // The constructor method:
-    public UserContainer(Connection connection)
+    public UserContainer(Connection connection,
+                         boolean sensitive,
+                         List<String> names)
+        throws ElementExistException
     {
-        super(m_name, m_services, connection);
-        refresh();
+        super(connection, sensitive, names);
+        m_connection = connection;
     }
 
-    // com.sun.star.sdbcx.XDrop method of Container:
-    protected String _getDropQuery(User user)
-    {
-        return m_Connection.getProvider().getDropUserQuery(m_Connection, user.m_Name);
-    }
-
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor() {
-        System.out.println("sdbcx.UserContainer.createDataDescriptor() ***************************");
+    protected XPropertySet _appendElement(XPropertySet descriptor,
+                                          String name)
+        throws SQLException,
+               ElementExistException
+    {
+        System.out.println("sdbcx.UserContainer._appendElement()");
+        return null;
+    }
+
+    @Override
+    protected XPropertySet _createElement(String name)
+        throws SQLException
+    {
+        System.out.println("sdbcx.UserContainer._createElement()");
+        return new User(m_connection, isCaseSensitive(), name);
+    }
+
+    @Override
+    protected void _removeElement(int index,
+                                  String name)
+        throws SQLException
+    {
+        System.out.println("sdbcx.UserContainer._removeElement()");
+    }
+
+    @Override
+    protected void _refresh()
+    {
+        System.out.println("sdbcx.UserContainer._refresh()");
+        m_connection._refresh();
+    }
+
+    @Override
+    protected XPropertySet _createDescriptor()
+    {
+        System.out.println("sdbcx.UserContainer._createDescriptor()");
         return null;
     }
 
 
-    public void refresh()
+/*    protected User _appendElement(XPropertySet descriptor,
+                                  String name)
+        throws SQLException
     {
-        m_Names.clear();
-        m_Elements.clear();
-        String query = m_Connection.getProvider().getUserQuery();
-        if (query != null) {
-            try {
-                java.sql.Statement statement = m_Connection.getWrapper().createStatement();
-                java.sql.ResultSet result = statement.executeQuery(query);
-                while (result.next()) {
-                    String name = result.getString(1);
-                    System.out.println("sdbcx.UserContainer.refresh() 2 : " + name);
-                    m_Elements.add(new User(m_Connection, name));
-                    m_Names.add(name);
-                }
-                result.close();
-                statement.close();
-            }
-            catch (java.sql.SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-    // com.sun.star.sdbcx.XAppend
-    @Override
-    public void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException,
-               ElementExistException
-    {
-        System.out.println("sdbcx.UserContainer.appendByDescriptor() ****************************");
-    }
+        //String[] queries = m_Connection.getProvider().getCreateUserQueries(m_Connection, descriptor);
+        System.out.println("sdbcx.UserContainer._createElement()");
+        //_executeQueries(queries);
+        return new User(m_Connection, name);
+    }*/
 
 
 }

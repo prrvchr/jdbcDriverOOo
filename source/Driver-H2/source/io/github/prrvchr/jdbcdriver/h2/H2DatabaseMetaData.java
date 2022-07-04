@@ -41,16 +41,16 @@ public final class H2DatabaseMetaData
 {
 
     private final Map<String, String> m_tableType = Map.ofEntries(Map.entry("BASE TABLE", "TABLE"));
-    private final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
-                                                                   Map.entry(-15, 1),
-                                                                   Map.entry(-9, 12),
-                                                                   Map.entry(-8, 4),
-                                                                   Map.entry(70, 1111),
-                                                                   Map.entry(2009, 1111),
-                                                                   Map.entry(2011, 2005),
-                                                                   Map.entry(2012, 2006),
-                                                                   Map.entry(2013, 12),
-                                                                   Map.entry(2014, 12));
+    protected static final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
+                                                                            Map.entry(-15, 1),
+                                                                            Map.entry(-9, 12),
+                                                                            Map.entry(-8, 4),
+                                                                            Map.entry(70, 1111),
+                                                                            Map.entry(2009, 1111),
+                                                                            Map.entry(2011, 2005),
+                                                                            Map.entry(2012, 2006),
+                                                                            Map.entry(2013, 12),
+                                                                            Map.entry(2014, 12));
 
     // The constructor method:
     public H2DatabaseMetaData(final ConnectionBase connection)
@@ -76,26 +76,6 @@ public final class H2DatabaseMetaData
         System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
         return value;
     }
-
-    //@Override
-    public boolean supportsSchemasInDataManipulation1() throws SQLException
-    {
-        System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
-        boolean value = false;
-        try {
-            if (!m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsSchemasInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e)
-        {
-            System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("h2.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
-        return value;
-    }
-
 
     @Override
     public final XResultSet getTypeInfo()
@@ -172,12 +152,12 @@ public final class H2DatabaseMetaData
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(result.getString(1));
+            row[0] = new CustomRowSet(result.getString(1), result.wasNull());
             String schema = result.getString(2);
-            row[1] = new CustomRowSet(schema);
-            row[2] = new CustomRowSet(result.getString(3));
-            row[3] = new CustomRowSet(_mapDatabaseTableType(schema, result.getString(4)));
-            row[4] = new CustomRowSet("");
+            row[1] = new CustomRowSet(schema, result.wasNull());
+            row[2] = new CustomRowSet(result.getString(3), result.wasNull());
+            row[3] = new CustomRowSet(_mapDatabaseTableType(schema, result.getString(4)), result.wasNull());
+            row[4] = new CustomRowSet(null, true);
             //System.out.println("h2.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
             return row;
         }
@@ -212,9 +192,9 @@ public final class H2DatabaseMetaData
 
     protected final short _mapDatabaseDataType(final short type)
     {
-        return (short)_mapDatabaseDataType((int) type);
+        return (short)_getDataType((int) type);
     }
-    protected final int _mapDatabaseDataType(final int type)
+    protected final int _getDataType(final int type)
     {
         if (m_dataType.containsKey(type))
         {

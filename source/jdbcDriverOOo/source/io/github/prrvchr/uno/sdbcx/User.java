@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
@@ -39,20 +38,23 @@ import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class User
-    extends Item
+    extends Descriptor
     implements XUser
 {
 
-    private static final String m_name = User.class.getName();
+    private static final String m_service = User.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.User"};
-    private final XNameAccess m_Tables;
+
+    @SuppressWarnings("unused")
+    private Connection m_connection;
 
     // The constructor method:
     public User(Connection connection,
+                boolean sensitive,
                 String name)
     {
-        super(m_name, m_services, connection, name);
-        m_Tables = connection.getTables();
+        super(m_service, m_services, sensitive, name);
+        m_connection = connection;
     }
 
 
@@ -77,7 +79,7 @@ public class User
         int privilege = 0;
         try {
             System.out.println("sdbcx.User.getPrivileges() Name: " + name + " - Type: " + type);
-            XPropertySet table = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, m_Tables.getByName(name));
+            XPropertySet table = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, m_connection.getTables().getByName(name));
             privilege = (int) table.getPropertyValue("Privileges");
         }
         catch (UnknownPropertyException | WrappedTargetException | NoSuchElementException e) {

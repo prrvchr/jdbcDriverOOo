@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 public class CallableStatement
     extends CallableStatementSuper
 {
-    private static final String m_name = CallableStatement.class.getName();
+    private static final String m_service = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement",
                                                 "com.sun.star.sdbcx.CallableStatement"};
 
@@ -44,7 +44,7 @@ public class CallableStatement
     public CallableStatement(ConnectionBase connection,
                              String sql)
     {
-        super(m_name, m_services, connection, sql);
+        super(m_service, m_services, connection, sql);
         System.out.println("sdbcx.CallableStatement() 1");
     }
 

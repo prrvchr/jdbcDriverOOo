@@ -25,41 +25,94 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.SQLException;
+import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
-import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public class Index
-    extends Item
+    extends Descriptor
     implements XColumnsSupplier,
                XDataDescriptorFactory
 {
 
-    private static final String m_name = Index.class.getName();
+    private static final String m_service = Index.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Index"};
+
     protected IndexColumnContainer m_columns = null;
-    protected final String m_Catalog;
-    protected final boolean m_IsUnique;
-    protected final boolean m_IsPrimaryKeyIndex;
-    protected final boolean m_IsClustered;
+    protected final TableBase m_table;
+
+    protected String m_Catalog;
+    protected boolean m_IsUnique;
+    protected boolean m_IsPrimaryKeyIndex;
+    protected boolean m_IsClustered;
 
     // The constructor method:
-    // XXX: Constructor called from methods:
+    public Index(TableBase table,
+                 boolean sensitive,
+                 String name,
+                 String catalog,
+                 boolean unique,
+                 boolean primarykey,
+                 boolean clustered,
+                 List<String> columns)
+        throws ElementExistException
+    {
+        super(m_service, m_services, sensitive, name);
+        m_table = table;
+        m_Catalog = catalog;
+        m_IsUnique = unique;
+        m_IsPrimaryKeyIndex = primarykey;
+        m_IsClustered = clustered;
+        m_columns = new IndexColumnContainer(this, this, columns);
+        registerProperties();
+    }
+
+/*    // The constructor method:
+    // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer.appendByDescriptor()
+    public Index(Connection connection,
+                 String name,
+                 String catalog,
+                 boolean unique,
+                 boolean primarykey,
+                 boolean clustered,
+                 List<String> columns)
+    {
+        super(m_name, m_services, connection, name);
+        m_Catalog = catalog;
+        m_IsUnique = unique;
+        m_IsPrimaryKeyIndex = primarykey;
+        m_IsClustered = clustered;
+    }
+    public Index(Connection connection,
+                 XPropertySet descriptor)
+        throws SQLException
+    {
+        super(m_name, m_services, connection, descriptor);
+        System.out.println("sdbcx.Index() 1");
+        try {
+            m_Catalog = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.CATALOG.name));
+            m_IsUnique = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISUNIQUE.name));
+            //m_IsPrimaryKeyIndex = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISPRIMARYKEYINDEX.name));
+            m_IsClustered = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISCLUSTERED.name));
+            XColumnsSupplier columns = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+            m_columns = new IndexColumnContainer(m_Connection, columns.getColumns());
+        }
+        catch (java.lang.Exception e) {
+            System.out.println("sdbcx.Index() 1 ERROR *******************");
+        }
+        registerProperties();
+    }
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer(ConnectionBase, XNameAccess, TableBase<?>)
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer.appendByDescriptor()
     public Index(Connection connection,
@@ -85,7 +138,7 @@ public class Index
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer(ConnectionBase, XNameAccess, TableBase<?>)
     public Index(Connection connection,
-                 TableBase<?> table,
+                 TableBase table,
                  String name,
                  String catalog,
                  boolean unique,
@@ -109,7 +162,7 @@ public class Index
             System.out.println("sdbcx.Index() 2 ERROR *******************\n" + UnoHelper.getStackTrace(e));
         }
         registerProperties();
-    }
+    }*/
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
@@ -151,7 +204,7 @@ public class Index
     }
 
 
-    protected void _addColumn(IndexColumn column)
+/*    protected void _addColumn(IndexColumn column)
         throws SQLException
     {
         int index = 0;
@@ -168,17 +221,20 @@ public class Index
             }
             index++;
         }
-    }
+    }*/
 
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor()
     {
-        return new IndexDescriptor(m_Connection);
+        return new IndexDescriptor(isCaseSensitive());
     }
 
-
+    public TableBase getTable()
+    {
+        return m_table;
+    }
 
 
 }

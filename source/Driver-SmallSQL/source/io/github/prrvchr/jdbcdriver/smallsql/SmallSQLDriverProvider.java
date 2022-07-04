@@ -25,10 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver.smallsql;
 
-import java.sql.DriverManager;
-
-import com.sun.star.beans.PropertyValue;
-
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -56,17 +52,17 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public final boolean supportWarningsSupplier() {
-        return m_warnings;
+    public int getDataType(int type) {
+        if (SmallSQLDatabaseMetaData.m_dataType.containsKey(type)) {
+            return SmallSQLDatabaseMetaData.m_dataType.get(type);
+        }
+        return type;
     }
 
+
     @Override
-    public java.sql.Connection getConnection(final String url,
-                                             final PropertyValue[] info,
-                                             final String level)
-        throws java.sql.SQLException
-    {
-        return DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+    public final boolean supportWarningsSupplier() {
+        return m_warnings;
     }
 
     @Override

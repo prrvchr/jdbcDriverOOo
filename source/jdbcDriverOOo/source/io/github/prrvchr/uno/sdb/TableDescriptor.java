@@ -30,57 +30,34 @@ import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 import io.github.prrvchr.uno.sdbcx.TableDescriptorBase;
 
 
 public final class TableDescriptor
-    extends TableDescriptorBase<Column>
+    extends TableDescriptorBase
 {
 
-    private static final String m_name = TableDescriptor.class.getName();
+    private static final String m_service = TableDescriptor.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.TableDescriptor",
                                                 "com.sun.star.sdb.DataSettings",
                                                 "com.sun.star.sdbcx.TableDescriptor",
                                                 "com.sun.star.sdbcx.Descriptor"};
     private String m_Filter = "";
-    private boolean m_ApplyFilter = false;
+    private boolean m_ApplyFilter;
     private String m_Order = "";
-    private FontDescriptor m_FontDescriptor = new FontDescriptor();
-    private int m_RowHeight = 15;
-    private int m_TextColor = 0;
+    private FontDescriptor m_FontDescriptor = null;
+    private int m_RowHeight;
+    private int m_TextColor;
     private String m_HavingClause = "";
     private String m_GroupBy = "";
 
-
     // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer.createDataDescriptor()
-    public TableDescriptor(Connection connection,
-                           Class<Column> column)
-        throws java.sql.SQLException
+    public TableDescriptor(boolean sensitive)
     {
-        super(m_name, m_services, connection, column);
-        registerProperties();
-        System.out.println("sdb.TableDescriptor()");
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdb.Table.createDataDescriptor()
-    public TableDescriptor(Connection connection,
-                           Class<Column> column,
-                           Table table)
-    {
-        super(m_name, m_services, connection, column, table);
-        m_Filter = table.m_Filter;
-        m_ApplyFilter = table.m_ApplyFilter;
-        m_Order = table.m_Order;
-        //m_FontDescriptor = table.m_FontDescriptor;
-        m_RowHeight = table.m_RowHeight;
-        m_TextColor = table.m_TextColor;
-        m_HavingClause = table.m_HavingClause;
-        m_GroupBy = table.m_GroupBy;
+        super(m_service, m_services, sensitive);
         registerProperties();
         System.out.println("sdb.TableDescriptor()");
     }
@@ -126,7 +103,7 @@ public final class TableDescriptor
                     m_Order = (String) value;
                 }
             });
-        registerProperty(PropertyIds.FONTDESCRIPTOR.name, PropertyIds.FONTDESCRIPTOR.id, new Type("com.sun.star.awt.FontDescriptor"),
+        registerProperty(PropertyIds.FONTDESCRIPTOR.name, PropertyIds.FONTDESCRIPTOR.id, new Type(FontDescriptor.class),
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
@@ -193,5 +170,33 @@ public final class TableDescriptor
             });
     }
 
+
+/*    // The constructor method:
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer.createDataDescriptor()
+    public TableDescriptor(Connection connection)
+        throws java.sql.SQLException
+    {
+        super(m_name, m_services, connection);
+        registerProperties();
+        System.out.println("sdb.TableDescriptor()");
+    }
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.Table.createDataDescriptor()
+    public TableDescriptor(Connection connection,
+                           Table table)
+    {
+        super(m_name, m_services, connection, table);
+        m_Filter = table.m_Filter;
+        m_ApplyFilter = table.m_ApplyFilter;
+        m_Order = table.m_Order;
+        //m_FontDescriptor = table.m_FontDescriptor;
+        m_RowHeight = table.m_RowHeight;
+        m_TextColor = table.m_TextColor;
+        m_HavingClause = table.m_HavingClause;
+        m_GroupBy = table.m_GroupBy;
+        registerProperties();
+        System.out.println("sdb.TableDescriptor()");
+    }*/
 
 }

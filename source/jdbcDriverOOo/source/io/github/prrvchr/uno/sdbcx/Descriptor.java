@@ -25,17 +25,17 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.PropertyIds;
 
 
 public abstract class Descriptor
@@ -43,31 +43,49 @@ public abstract class Descriptor
     implements XServiceInfo
 {
 
-    private final String m_name;
+    private final String m_service;
     private final String[] m_services;
-    protected final ConnectionBase m_Connection;
-    protected String m_Name = "";
+    private String m_Name;
+    private final boolean m_sensitive;
 
     // The constructor method:
     public Descriptor(String service,
                       String[] services,
-                      ConnectionBase connection)
+                      boolean sensitive)
+    {
+        this(service, services, sensitive, false, "");
+    }
+    public Descriptor(String service,
+                      String[] services,
+                      boolean sensitive,
+                      String name)
+    {
+        this(service, services, sensitive, true, name);
+    }
+    private Descriptor(String service,
+                      String[] services,
+                      boolean sensitive,
+                      boolean readonly,
+                      String name)
     {
         super();
-        m_name = service;
+        m_service = service;
         m_services = services;
-        m_Connection = connection;
-        registerProperties();
+        m_sensitive = sensitive;
+        m_Name = name;
+        registerProperties(readonly);
     }
 
-    private void registerProperties() {
-        registerProperty(PropertyIds.NAME.name, PropertyIds.NAME.id, Type.STRING,
+    private void registerProperties(boolean readonly) {
+        short attribute = readonly ? PropertyAttribute.READONLY : 0;
+        registerProperty(PropertyIds.NAME.name, PropertyIds.NAME.id, Type.STRING, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_Name;
                 }
             },
+            readonly ? null :
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
@@ -80,7 +98,7 @@ public abstract class Descriptor
     @Override
     public String getImplementationName()
     {
-        return ServiceInfo.getImplementationName(m_name);
+        return ServiceInfo.getImplementationName(m_service);
     }
 
     @Override
@@ -93,6 +111,20 @@ public abstract class Descriptor
     public boolean supportsService(String service)
     {
         return ServiceInfo.supportsService(m_services, service);
+    }
+
+
+    // Method for internal use (no UNO method)
+    public String getName() {
+        return m_Name;
+    }
+    
+    public void setName(String name) {
+        m_Name = name;
+    }
+    
+    public boolean isCaseSensitive() {
+        return m_sensitive;
     }
 
 
