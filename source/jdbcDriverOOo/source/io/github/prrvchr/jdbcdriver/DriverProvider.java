@@ -61,6 +61,8 @@ public interface DriverProvider
 
     public boolean isCaseSensitive();
 
+    public String getAlterViewQuery();
+
     public boolean supportsCatalogsInComponentNaming();
 
     public boolean supportsSchemasInComponentNaming();

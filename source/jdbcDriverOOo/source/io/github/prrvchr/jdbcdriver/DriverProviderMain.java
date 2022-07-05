@@ -102,6 +102,13 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public String getAlterViewQuery()
+    {
+        return "ALTER VIEW %s AS %s";
+    }
+
+
+    @Override
     public int getDataType(int type) {
         return type;
     }

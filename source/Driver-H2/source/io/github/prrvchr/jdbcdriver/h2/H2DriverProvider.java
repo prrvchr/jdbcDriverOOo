@@ -62,6 +62,12 @@ public final class H2DriverProvider
         return type;
     }
 
+    @Override
+    public String getAlterViewQuery()
+    {
+        return "CREATE OR REPLACE VIEW %s AS %s";
+    }
+
     public String[] getTableTypes()
     {
         String[] types = {"BASE TABLE", "VIEW", "ALIAS", "SYNONYM"};

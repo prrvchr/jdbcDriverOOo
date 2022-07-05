@@ -791,16 +791,16 @@ public class DataBaseTools {
      *    The new command of the view.
      *
      * @return
-     *   The CREATE VIEW statement.
+     *   The ALTER VIEW statement.
      */
     public static String getAlterViewQuery(Connection connection,
                                            XPropertySet descriptor,
                                            String command)
         throws SQLException
     {
- 
+        String query = connection.getProvider().getAlterViewQuery();
         String view = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
-        return String.format("ALTER VIEW %s AS %s", view, command);
+        return String.format(query, view, command);
     }
 
 
