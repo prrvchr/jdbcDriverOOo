@@ -31,9 +31,9 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-//import io.github.prrvchr.uno.sdbcx.CallableStatement;
-//import io.github.prrvchr.uno.sdbcx.PreparedStatement;
-//import io.github.prrvchr.uno.sdbcx.Statement;
+import io.github.prrvchr.uno.sdbcx.CallableStatement;
+import io.github.prrvchr.uno.sdbcx.PreparedStatement;
+import io.github.prrvchr.uno.sdbcx.Statement;
 
 
 public class Connection
