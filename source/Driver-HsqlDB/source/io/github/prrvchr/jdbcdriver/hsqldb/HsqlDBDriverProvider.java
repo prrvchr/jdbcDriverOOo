@@ -189,11 +189,12 @@ public final class HsqlDBDriverProvider
     public String getConnectionUrl(final String location,
                                                 final String level)
     {
+        @SuppressWarnings("unused")
         String url = location;
         if (!level.equals("-1")) {
             url += ";hsqldb.sqllog=" + m_sqllogger.get(level);
         }
-        return url;
+        return location;
     }
 
     @Override
