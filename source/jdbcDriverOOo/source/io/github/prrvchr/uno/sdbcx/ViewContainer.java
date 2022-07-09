@@ -116,7 +116,6 @@ public class ViewContainer
                 throw new SQLException("View not found", this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, null);
             }
             result.close();
-            statement.close();
             final int value;
             if (option.equals("NONE")) {
                 value = CheckOption.NONE;

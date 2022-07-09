@@ -51,6 +51,5 @@ public enum ComposeRule {
     InDataManipulation,
     InProcedureCalls,
     InPrivilegeDefinitions,
-    InComponentNaming,
     Complete
 }

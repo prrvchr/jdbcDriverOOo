@@ -59,7 +59,6 @@ implements XDatabaseMetaData2
     {
         m_Connection = connection;
         m_Metadata = connection.getProvider().getConnection().getMetaData();
-        System.out.println("sdbc.DatabaseMetaDataBase() 1");
     }
 
     public DatabaseMetaDataBase(final ConnectionBase connection,
@@ -237,7 +236,7 @@ implements XDatabaseMetaData2
     {
         try {
             String value = m_Metadata.getCatalogSeparator();
-            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator(): " + value);
+            //System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -1539,9 +1538,9 @@ implements XDatabaseMetaData2
     public boolean isCatalogAtStart() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.isCatalogAtStart() 1");
+            //System.out.println("sdbc.DatabaseMetaData.isCatalogAtStart() 1");
             boolean value = m_Metadata.isCatalogAtStart();
-            System.out.println("sdbc.DatabaseMetaData.isCatalogAtStart() 2: " + value);
+            //System.out.println("sdbc.DatabaseMetaData.isCatalogAtStart() 2: " + value);
             return value;
         }
         catch (java.sql.SQLException e) {
@@ -1562,20 +1561,10 @@ implements XDatabaseMetaData2
     public boolean isReadOnly() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.isReadOnly()");
             return m_Metadata.isReadOnly();
         }
         catch (java.sql.SQLException e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return false;
         }
     }
 
@@ -2068,9 +2057,9 @@ implements XDatabaseMetaData2
     public boolean supportsCatalogsInDataManipulation() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
+            //System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
             boolean value = m_Metadata.supportsCatalogsInDataManipulation();
-            System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
+            //System.out.println("sdbc.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
             return value;
         }
         catch (java.sql.SQLException e) {
@@ -2851,9 +2840,9 @@ implements XDatabaseMetaData2
     public boolean supportsSchemasInDataManipulation() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
+            //System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
             boolean value = m_Metadata.supportsSchemasInDataManipulation();
-            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
+            //System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
             return value;
         }
         catch (java.sql.SQLException e) {

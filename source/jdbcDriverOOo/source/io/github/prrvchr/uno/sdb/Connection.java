@@ -51,8 +51,8 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbcx.GroupContainer;
 import io.github.prrvchr.uno.sdbcx.Statement;
 //import io.github.prrvchr.uno.sdbcx.Column;
 //import io.github.prrvchr.uno.sdbcx.Table;
@@ -82,6 +82,7 @@ public final class Connection
     private TableContainer m_Tables = null;
     private ViewContainer m_Views = null;
     private UserContainer m_Users = null;
+    private GroupContainer m_Groups = null;
     private static final boolean m_crawler = false;
 
     // The constructor method:
@@ -106,6 +107,9 @@ public final class Connection
         }
         if (m_Users != null) {
             m_Users.dispose();
+        }
+        if (m_Groups != null) {
+            m_Groups.dispose();
         }
         super.postDisposing();
     }
@@ -184,14 +188,10 @@ public final class Connection
     @Override
     public synchronized XNameAccess getTables()
     {
-        System.out.println("sdb.Connection.getTables() 1");
         checkDisposed();
         if (m_Tables == null) {
-            System.out.println("sdb.Connection.getTables() 2");
             _refreshTables();
-            System.out.println("sdb.Connection.getTables() 3");
         }
-        System.out.println("sdb.Connection.getTables() 4");
         return m_Tables;
     }
 
@@ -200,28 +200,11 @@ public final class Connection
         return m_Tables;
     }
 
-    /*    public synchronized XNameAccess getTables1()
+    public synchronized UserContainer getUsersInternal()
     {
-        m_catalog = SchemaCrawler.getCatalog(provider.getConnection());
-        for (final schemacrawler.schema.Table t : m_catalog.getTables()) {
-            System.out.println("Connection.Connection() 2 Table Type: " + t.getTableType().getTableType());
-        }
-        System.out.println("sdb.Connection.getTables() 1");
-        checkDisposed();
-        if (m_Tables == null) {
-            try {
-                System.out.println("sdb.Connection.getTables() 2");
-                m_Tables = m_crawler ? SchemaCrawler.getTables(m_provider, this) :
-                                       new TableContainer(this);
-                System.out.println("sdb.Connection.getTables() 3");
-            }
-            catch (java.sql.SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("sdb.Connection.getTables() 4");
-        return m_Tables;
-    }*/
+        return m_Users;
+    }
+
 
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
@@ -255,14 +238,13 @@ public final class Connection
     @Override
     public XNameAccess getGroups()
     {
-        System.out.println("sdb.Connection.getGroups() 1");
-        /*checkDisposed();
+        System.out.println("sdb.Connection.getGroups() *********************************************");
+        checkDisposed();
         if (m_Groups == null) {
             _refreshViews();
         }
         System.out.println("sdb.Connection.getViews() 2");
-        return m_Groups;*/
-        return null;
+        return m_Groups;
     }
 
 
@@ -295,8 +277,8 @@ public final class Connection
         checkDisposed();
         _refreshTables();
         _refreshViews();
-        _refreshGroups();
         _refreshUsers();
+        _refreshGroups();
     }
 
     private void _refreshTables()
@@ -309,11 +291,8 @@ public final class Connection
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
             java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
             List<String> names = new ArrayList<>();
-            System.out.println("sdb.Connection._refreshTables() 1");
             while (result.next()) {
-                System.out.println("sdb.Connection._refreshTables() 2");
                 String name = _buildName(result);
-                System.out.println("sdb.Connection._refreshTables() 3 Table Name: " + name);
                 names.add(name);
             }
             result.close();
@@ -324,14 +303,9 @@ public final class Connection
                 m_Tables.refill(names);
             }
         }
-        catch (ElementExistException | java.sql.SQLException e) {
-            System.out.println("sdb.Connection._refreshTables() ERROR\n" + UnoHelper.getStackTrace(e));
+        catch (ElementExistException | java.sql.SQLException | SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
-        catch (java.lang.Exception e) {
-            System.out.println("sdb.Connection._refreshTables() ERROR\n" + UnoHelper.getStackTrace(e));
-        }
-        System.out.println("sdb.Connection._refreshTables() 4");
     }
 
     public void _refreshViews() {
@@ -361,6 +335,27 @@ public final class Connection
 
     public void _refreshGroups()
     {
+        System.out.println("sdb.Connection._refreshGroups() 1");
+        try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
+            java.sql.ResultSet result = statement.executeQuery(getProvider().getGroupQuery());
+            List<String> names = new ArrayList<>();
+            while (result.next()) {
+                String name = result.getString(1);
+                System.out.println("sdb.Connection._refreshGroups() 2 Group Name: " + name);
+                names.add(name);
+            }
+            result.close();
+            if (m_Groups == null) {
+                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
+            }
+            else {
+                m_Groups.refill(names);
+            }
+        }
+        catch (ElementExistException | java.sql.SQLException e) {
+            throw new com.sun.star.uno.RuntimeException("Error", e);
+        }
+        System.out.println("sdb.Connection._refreshGroups() 3");
     }
 
     public void _refreshUsers()
@@ -393,4 +388,30 @@ public final class Connection
     {
         return DataBaseTools.buildName(this, result, ComposeRule.InDataManipulation);
     }
+
+
+    /*    public synchronized XNameAccess getTables1()
+    {
+        m_catalog = SchemaCrawler.getCatalog(provider.getConnection());
+        for (final schemacrawler.schema.Table t : m_catalog.getTables()) {
+            System.out.println("Connection.Connection() 2 Table Type: " + t.getTableType().getTableType());
+        }
+        System.out.println("sdb.Connection.getTables() 1");
+        checkDisposed();
+        if (m_Tables == null) {
+            try {
+                System.out.println("sdb.Connection.getTables() 2");
+                m_Tables = m_crawler ? SchemaCrawler.getTables(m_provider, this) :
+                                       new TableContainer(this);
+                System.out.println("sdb.Connection.getTables() 3");
+            }
+            catch (java.sql.SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("sdb.Connection.getTables() 4");
+        return m_Tables;
+    }*/
+
+
 }

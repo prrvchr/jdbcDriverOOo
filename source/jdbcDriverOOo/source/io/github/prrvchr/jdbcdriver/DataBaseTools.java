@@ -162,9 +162,6 @@ public class DataBaseTools {
         case InPrivilegeDefinitions:
             return new NameComponentSupport(
                     metadata.supportsCatalogsInPrivilegeDefinitions(), metadata.supportsSchemasInPrivilegeDefinitions());
-        case InComponentNaming:
-            return new NameComponentSupport(
-                    connection.getProvider().supportsCatalogsInComponentNaming(), connection.getProvider().supportsSchemasInComponentNaming());
         case Complete:
             return new NameComponentSupport(
                     true, true);
@@ -282,12 +279,12 @@ public class DataBaseTools {
                                             String catalog,
                                             String schema,
                                             String table,
-                                            boolean shouldQuote,
-                                            ComposeRule composeRule)
+                                            boolean quoted,
+                                            ComposeRule rule)
         throws SQLException
     {
         StringBuilder composedName = new StringBuilder();
-        NameComponentSupport nameComponentSupport = getNameComponentSupport(connection, composeRule);
+        NameComponentSupport nameComponentSupport = getNameComponentSupport(connection, rule);
         try {
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             UnoHelper.ensure(!table.isEmpty(), "At least the table name should be non-empty");
@@ -300,21 +297,21 @@ public class DataBaseTools {
                 catalogAtStart = metadata.isCatalogAtStart();
                 
                 if (catalogAtStart && !catalogSeparator.isEmpty()) {
-                    composedName.append(shouldQuote ? quoteName(quoteString, catalog) : catalog);
+                    composedName.append(quoted ? quoteName(quoteString, catalog) : catalog);
                     composedName.append(catalogSeparator);
                 }
             }
             
             if (!schema.isEmpty() && nameComponentSupport.useSchemas) {
-                composedName.append(shouldQuote ? quoteName(quoteString, schema) : schema);
+                composedName.append(quoted ? quoteName(quoteString, schema) : schema);
                 composedName.append(".");
             }
             
-            composedName.append(shouldQuote ? quoteName(quoteString, table) : table);
+            composedName.append(quoted ? quoteName(quoteString, table) : table);
             
             if (!catalog.isEmpty() && !catalogAtStart && !catalogSeparator.isEmpty() && nameComponentSupport.useCatalogs) {
                 composedName.append(catalogSeparator);
-                composedName.append(shouldQuote ? quoteName(quoteString, catalog) : catalog);
+                composedName.append(quoted ? quoteName(quoteString, catalog) : catalog);
             }
         }
         catch (java.sql.SQLException e) {
@@ -396,11 +393,11 @@ public class DataBaseTools {
      */
     public static String quoteTableName(Connection connection,
                                         String name,
-                                        ComposeRule composeRule)
+                                        ComposeRule rule)
         throws SQLException
     {
-        NameComponents nameComponents = qualifiedNameComponents(connection, name, composeRule);
-        return doComposeTableName(connection, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(), true, composeRule);
+        NameComponents nameComponents = qualifiedNameComponents(connection, name, rule);
+        return doComposeTableName(connection, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(), true, rule);
     }
     
     /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
@@ -453,16 +450,17 @@ public class DataBaseTools {
 
     /** creates a SQL CREATE TABLE statement
      *
-     * @param  descriptor
-     *    The descriptor of the new table.
      * @param  connection
      *    The connection.
+     * @param  descriptor
+     *    The descriptor of the new table.
      * @param  helper
      *    Allow to add special SQL constructs.
      * @param  pattern
      *   
      * @return
      *   The CREATE TABLE statement.
+     * @throws SQLException
      */
     public static String getCreateTableQuery(Connection connection,
                                              XPropertySet descriptor,
@@ -471,25 +469,29 @@ public class DataBaseTools {
         throws SQLException
     {
         String table = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
-        List<String> parts = getCreateTableQueryParts(descriptor, connection, helper, pattern, table);
+        List<String> parts = getCreateTableColumnParts(connection, descriptor, helper, pattern, table);
+        parts.addAll(getCreateTableKeyParts(connection, descriptor));
         return String.format("CREATE TABLE %s (%s)", table, String.join(",", parts));
     }
 
-    /** creates the column and index parts of the SQL CREATE TABLE statement.
-     * @param  descriptor
-     *    The descriptor of the new table.
+    /** creates the columns parts of the SQL CREATE TABLE statement.
      * @param  connection
      *    The connection.
+     * @param  descriptor
+     *    The descriptor of the new table.
      * @param  helper
      *    Allow to add special SQL constructs.
      * @param  createPattern
-     * 
+     *   
+     * @return
+     *   The columns parts.
+     * @throws SQLException
      */
-    public static List<String> getCreateTableQueryParts(XPropertySet descriptor,
-                                                        Connection connection,
-                                                        ISQLStatementHelper helper,
-                                                        String createPattern,
-                                                        String table)
+    public static List<String> getCreateTableColumnParts(Connection connection,
+                                                         XPropertySet descriptor,
+                                                         ISQLStatementHelper helper,
+                                                         String createPattern,
+                                                         String table)
         throws SQLException
     {
         List<String> parts = new ArrayList<String>();
@@ -511,7 +513,6 @@ public class DataBaseTools {
                     parts.add(getStandardColumnPartQuery(connection, columnProperties, helper, createPattern));
                }
             }
-            addCreateTableKeyPart(connection, descriptor, parts);
         }
         catch (IllegalArgumentException | WrappedTargetException | IndexOutOfBoundsException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
@@ -519,15 +520,16 @@ public class DataBaseTools {
         return parts;
     }
 
-    /** creates the standard sql statement for the column part of a create table statement.
-     *  @param  columnProperties
-     *      The descriptor of the column.
+    /** creates the standard sql statement for the column part of statement.
      *  @param  connection
      *      The connection.
+     *  @param  columnProperties
+     *      The descriptor of the column.
      *  @param  helper
      *       Allow to add special SQL constructs.
      *  @param  createPattern
      *      
+     * @throws SQLException
      */
     public static String getStandardColumnPartQuery(Connection connection,
                                                     XPropertySet columnProperties,
@@ -643,24 +645,22 @@ public class DataBaseTools {
         }
         return sql.toString();
     }
-    
-    /** creates the standard sql statement for the key part of a create table statement.
-     * @param  descriptor
-     *      The descriptor of the new table.
+
+    /** creates the keys parts of SQL CREATE TABLE statement.
      * @param  connection
      *      The connection.
-     * @throws UnknownPropertyException 
-     * @throws WrappedTargetException 
-     * @throws IllegalArgumentException 
+     * @param  descriptor
+     *      The descriptor of the new table.
+     *   
+     * @return
+     *      The keys parts.
+     * @throws SQLException
      */
-    public static void addCreateTableKeyPart(Connection connection,
-                                             XPropertySet descriptor,
-                                             List<String> parts)
-        throws SQLException,
-               IllegalArgumentException,
-               WrappedTargetException,
-               IndexOutOfBoundsException
+    public static List<String> getCreateTableKeyParts(Connection connection,
+                                                      XPropertySet descriptor)
+        throws SQLException
     {
+        List<String> parts = new ArrayList<String>();
         try {
             XDatabaseMetaData metadata = connection.getMetaData();
             XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
@@ -723,9 +723,11 @@ public class DataBaseTools {
                 }
             }
         }
-        catch (UnknownPropertyException e) {
+        catch (UnknownPropertyException | IllegalArgumentException |
+               WrappedTargetException | IndexOutOfBoundsException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
+        return parts;
     }
     
     private static String getColumnNames(XDatabaseMetaData metadata,
@@ -801,6 +803,120 @@ public class DataBaseTools {
         String query = connection.getProvider().getAlterViewQuery();
         String view = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
         return String.format(query, view, command);
+    }
+
+
+    /** creates a SQL CREATE USER statement
+     *
+     * @param  connection
+     *    The connection.
+     * @param  descriptor
+     *    The descriptor of the new user.
+     * @param  name
+     *    The name of the new user.
+     * @param  sensitive
+     *    Is the name case sensitive.
+     *   
+     * @return
+     *   The CREATE USER statement.
+     * @throws SQLException
+     */
+    public static String getCreateUserQuery(Connection connection,
+                                            XPropertySet descriptor,
+                                            String name,
+                                            boolean sensitive)
+        throws SQLException
+    {
+        String sql;
+        try {
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            name = sensitive ? quoteName(quote, name) : name;
+            String password = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.PASSWORD.name));
+            password = password.isBlank() ? "" : password;
+            sql = String.format("CREATE USER %s PASSWORD '%s'", name, password);
+        }
+        catch (IllegalArgumentException | UnknownPropertyException | WrappedTargetException e) {
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
+    }
+
+
+    /** creates a SQL DROP USER statement
+     *
+     * @param  connection
+     *    The connection.
+     * @param  descriptor
+     *    The descriptor of the new user.
+     * @param  name
+     *    The name of the new user.
+     * @param  sensitive
+     *    Is the name case sensitive.
+     *   
+     * @return
+     *   The DROP USER statement.
+     * @throws SQLException
+     */
+    public static String getDropUserQuery(Connection connection,
+                                          String name,
+                                          boolean sensitive)
+        throws SQLException
+    {
+        String sql = "DROP USER ";
+        try {
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            sql += sensitive ? quoteName(quote, name) : name;;
+        }
+        catch (IllegalArgumentException e) {
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
+    }
+
+    /** creates a SQL ALTER USER SET PASSWORD statement
+     *
+     * @param  connection
+     *    The connection.
+     * @param  name
+     *    The name of the user.
+     * @param  password
+     *    The new password of the user.
+     * @param  sensitive
+     *    Is the name of user case sensitive.
+     *   
+     * @return
+     *   The ALTER USER SET PASSWORD statement.
+     * @throws SQLException
+     */
+    public static String getChangeUserPasswordQuery(Connection connection,
+                                                    String name,
+                                                    String password,
+                                                    boolean sensitive)
+        throws SQLException
+    {
+        String sql;
+        try {
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            name = sensitive ? quoteName(quote, name) : name;
+            password = password.isBlank() ? "" : password;
+            sql = String.format("ALTER USER %s SET PASSWORD '%s'", name, password);
+        }
+        catch (IllegalArgumentException e) {
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
     }
 
 

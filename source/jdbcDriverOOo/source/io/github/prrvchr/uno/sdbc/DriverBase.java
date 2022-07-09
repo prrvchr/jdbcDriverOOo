@@ -79,7 +79,6 @@ public abstract class DriverBase
     public DriverBase(final XComponentContext context,
                       final String service, 
                       final String[] services)
-        throws Exception
     {
         super();
         System.out.println("sdbc.DriverBase() 1");

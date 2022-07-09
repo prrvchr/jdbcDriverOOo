@@ -53,20 +53,20 @@ public abstract class Descriptor
                       String[] services,
                       boolean sensitive)
     {
-        this(service, services, sensitive, false, "");
+        this(service, services, sensitive, "", false);
     }
     public Descriptor(String service,
                       String[] services,
                       boolean sensitive,
                       String name)
     {
-        this(service, services, sensitive, true, name);
+        this(service, services, sensitive, name, true);
     }
     private Descriptor(String service,
                       String[] services,
                       boolean sensitive,
-                      boolean readonly,
-                      String name)
+                      String name,
+                      boolean readonly)
     {
         super();
         m_service = service;

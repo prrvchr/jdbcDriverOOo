@@ -162,17 +162,15 @@ public abstract class ConnectionBase
 
     // com.sun.star.sdbc.XConnection:
     @Override
-    public XDatabaseMetaData getMetaData() throws SQLException
+    public XDatabaseMetaData getMetaData()
+        throws SQLException
     {
-        XDatabaseMetaData metadata = null;
         try {
-            metadata = m_provider.getDatabaseMetaData(this);
+            return m_provider.getDatabaseMetaData(this);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
-        System.out.println("Connection.getMetaData() 1");
-        return metadata;
     }
 
     @Override

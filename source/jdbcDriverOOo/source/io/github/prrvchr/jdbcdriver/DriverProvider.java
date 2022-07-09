@@ -63,10 +63,6 @@ public interface DriverProvider
 
     public String getAlterViewQuery();
 
-    public boolean supportsCatalogsInComponentNaming();
-
-    public boolean supportsSchemasInComponentNaming();
-
     public int getDataType(int type);
 
     public String[] getTableTypes();
@@ -76,6 +72,14 @@ public interface DriverProvider
     public String getViewQuery();
 
     public String getUserQuery();
+
+    public String getGroupQuery();
+
+    public String getGroupUsersQuery();
+
+    public String getUserGroupsQuery();
+
+    public int getPrivilege(String privilege);
 
     public String getTableIdentifier(ConnectionBase connection,
                                      String catalog,

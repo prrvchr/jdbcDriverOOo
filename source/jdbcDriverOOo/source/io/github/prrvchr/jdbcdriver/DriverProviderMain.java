@@ -44,6 +44,7 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.Privilege;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
@@ -91,16 +92,6 @@ public abstract class DriverProviderMain
         return true;
     }
 
-    public boolean supportsCatalogsInComponentNaming()
-    {
-        return true;
-    }
-
-    public boolean supportsSchemasInComponentNaming()
-    {
-        return true;
-    }
-
     @Override
     public String getAlterViewQuery()
     {
@@ -138,6 +129,63 @@ public abstract class DriverProviderMain
         return null;
     }
 
+    @Override
+    public String getGroupQuery()
+    {
+        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS GROUP BY ROLE_NAME;";
+    }
+
+    @Override
+    public String getGroupUsersQuery()
+    {
+        return "SELECT GRANTEE FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE ROLE_NAME=?;";
+    }
+
+    @Override
+    public String getUserGroupsQuery()
+    {
+        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE GRANTEE=?;";
+    }
+
+
+    @Override
+    public int getPrivilege(String privilege)
+    {
+        int flag = 0;
+        switch (privilege) {
+        case "SELECT":
+            flag = Privilege.SELECT;
+            break;
+        case "INSERT":
+            flag = Privilege.INSERT;
+            break;
+        case "UPDATE":
+            flag = Privilege.UPDATE;
+            break;
+        case "DELETE":
+            flag = Privilege.DELETE;
+            break;
+        case "READ":
+            flag = Privilege.READ;
+            break;
+        case "CREATE":
+            flag = Privilege.CREATE;
+            break;
+        case "ALTER":
+            flag = Privilege.ALTER;
+            break;
+        case "REFERENCES":
+            flag = Privilege.REFERENCE;
+            break;
+        case "DROP":
+            flag = Privilege.DROP;
+            break;
+        }
+        return flag;
+    }
+
+
+    
     @Override
     public String getDropTableQuery(ConnectionBase connection,
                                     String catalog,

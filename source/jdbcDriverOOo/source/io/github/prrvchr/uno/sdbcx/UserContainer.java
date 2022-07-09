@@ -31,6 +31,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
 
@@ -50,14 +52,28 @@ public class UserContainer
         m_connection = connection;
     }
 
+
     @Override
     protected XPropertySet _appendElement(XPropertySet descriptor,
                                           String name)
-        throws SQLException,
-               ElementExistException
+        throws SQLException
     {
-        System.out.println("sdbcx.UserContainer._appendElement()");
-        return null;
+        _createUser(descriptor, name);
+        return _createElement(name);
+    }
+
+    private void _createUser(XPropertySet descriptor,
+                             String name)
+        throws SQLException
+    {
+        String sql = DataBaseTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());
+        System.out.println("sdbcx.UserContainer._createUser() SQL: " + sql);
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
     }
 
     @Override
@@ -73,7 +89,14 @@ public class UserContainer
                                   String name)
         throws SQLException
     {
-        System.out.println("sdbcx.UserContainer._removeElement()");
+        String sql = DataBaseTools.getDropUserQuery(m_connection, name, isCaseSensitive());
+        System.out.println("sdbcx.UserContainer._removeElement() SQL: " + sql);
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
     }
 
     @Override
@@ -87,19 +110,8 @@ public class UserContainer
     protected XPropertySet _createDescriptor()
     {
         System.out.println("sdbcx.UserContainer._createDescriptor()");
-        return null;
+        return new UserDescriptor(isCaseSensitive());
     }
-
-
-/*    protected User _appendElement(XPropertySet descriptor,
-                                  String name)
-        throws SQLException
-    {
-        //String[] queries = m_Connection.getProvider().getCreateUserQueries(m_Connection, descriptor);
-        System.out.println("sdbcx.UserContainer._createElement()");
-        //_executeQueries(queries);
-        return new User(m_Connection, name);
-    }*/
 
 
 }

@@ -77,11 +77,6 @@ public final class HsqlDBDriverProvider
         return url.startsWith(getProtocol(m_subProtocol));
     }
 
-    public boolean supportsCatalogsInComponentNaming()
-    {
-        return false;
-    }
-
     @Override
     public int getDataType(int type) {
         if (HsqlDBDatabaseMetaData.m_dataType.containsKey(type)) {
@@ -93,7 +88,7 @@ public final class HsqlDBDriverProvider
     @Override
     public String getUserQuery()
     {
-        return "SELECT USER FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS";
     }
 
     @Override

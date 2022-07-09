@@ -35,7 +35,6 @@ public final class DatabaseMetaData
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("sdbc.DatabaseMetaData()");
     }
 
 

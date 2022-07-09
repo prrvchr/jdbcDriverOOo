@@ -30,7 +30,6 @@ import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.sdbc.XConnection;
-import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -45,7 +44,6 @@ public final class Driver
 
     // The constructor method:
     public Driver(XComponentContext ctx)
-    throws Exception
     {
         super(ctx, m_service, m_services);
         System.out.println("sdbc.Driver() 1");

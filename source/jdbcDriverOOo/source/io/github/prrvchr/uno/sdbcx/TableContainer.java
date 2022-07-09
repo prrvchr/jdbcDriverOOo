@@ -75,8 +75,8 @@ public class TableContainer
     protected String _getElementName(XPropertySet object)
         throws SQLException
     {
-        NameComponents component = DataBaseTools.getTableNameComponents(m_connection, object);
-        return DataBaseTools.composeTableName(m_connection, component.getCatalog(), component.getSchema(), component.getTable(), false, ComposeRule.InDataManipulation);
+        NameComponents components = DataBaseTools.getTableNameComponents(m_connection, object);
+        return DataBaseTools.composeTableName(m_connection, components.getCatalog(), components.getSchema(), components.getTable(), false, ComposeRule.InDataManipulation);
     }
 
     @Override
@@ -124,17 +124,13 @@ public class TableContainer
     }
 
     private java.sql.ResultSet _getcreateElementResultSet(NameComponents component)
-        throws SQLException
+        throws java.sql.SQLException
     {
         String catalog = component.getCatalog().isEmpty() ? null : component.getCatalog();
         String schema = component.getSchema().isEmpty() ? null : component.getSchema();
-        try {
-            java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
-            return metadata.getTables(catalog, schema, component.getTable(), null);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
-        }
+        java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
+        return metadata.getTables(catalog, schema, component.getTable(), null);
+
     }
     
     

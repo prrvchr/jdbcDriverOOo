@@ -56,7 +56,6 @@ public final class HsqlDBDatabaseMetaData
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("HsqlDBDatabaseMetaData() 1");
     }
 
     //@Override
@@ -66,9 +65,7 @@ public final class HsqlDBDatabaseMetaData
         // FIXME: With HsqlDB, if we want to be able to display the different
         // FIXME: schemas correctly in Base, we need to disable the catalog in Data Manipulation.
         // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL
-        boolean value = false;
-        System.out.println("HsqlDBDatabaseMetaData.supportsCatalogsInDataManipulation(): " + value);
-        return value;
+        return false;
     }
 
 

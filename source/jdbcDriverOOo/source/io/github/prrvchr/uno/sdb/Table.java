@@ -30,6 +30,7 @@ import java.util.Collection;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.Type;
 
@@ -47,7 +48,8 @@ public final class Table
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
-    private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
+    private int m_Privileges = 0;
+    //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
     /*protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
@@ -65,6 +67,7 @@ public final class Table
                  String name,
                  String type,
                  String remarks)
+        throws SQLException
     {
         super(m_service, m_services, container, sensitive, name);
         System.out.println("sdbc.Table() 1");
@@ -72,6 +75,7 @@ public final class Table
         super.m_SchemaName= schema;
         super.m_Type = type;
         super.m_Description = remarks;
+        m_Privileges = _getPrivileges();
         registerProperties();
         System.out.println("sdbc.Table() 2");
     }
@@ -203,49 +207,29 @@ public final class Table
         return descriptor;
     }
 
-
-/*    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdb.Table.createDataDescriptor()
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer.createDataDescriptor()
-    public Table(Connection connection,
-                 XPropertySet descriptor)
+    private int _getPrivileges()
         throws SQLException
     {
-        super(m_name, m_services, connection, descriptor);
-        //m_Privileges = _getTablePrivileges();
-        registerProperties();
-        System.out.println("sdb.Table.Table()");
-    }
-    public Table(Connection connection,
-                 schemacrawler.schema.Table table)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, table);
-        //m_Privileges = _getTablePrivileges(table);
-        registerProperties();
-        System.out.println("sdb.Table.Table() : 1" );
-    }*/
-
-    protected int _getPrivileges()
-    {
-        System.out.println("sdb.Table._getPrivileges() : 1 ************************************: " + m_Privileges);
-        return m_Privileges;
-    }
-
-    @SuppressWarnings("unused")
-    private int _getTablePrivileges()
-        throws java.sql.SQLException
-    {
         int value = 0;
-        System.out.println("sdb.Table._getTablePrivileges() : 1 Catalog: " + m_CatalogName + " - Schema: " + m_SchemaName + " - Table: " + getName());
-        java.sql.ResultSet result = m_tables.getConnection().getProvider().getConnection().getMetaData().getTablePrivileges(m_CatalogName, m_SchemaName, getName());
-        while (result != null && result.next()) {
-            System.out.println("sdb.Table._getTablePrivileges() : 2 " + result.getString(6));
-            //value += UnoHelper.getConstantValue(Privilege.class, result.getString(6));
-            System.out.println("sdb.Table._getTablePrivileges() : 3 " + value);
+        System.out.println("sdb.Table._getTablePrivileges() : 1 Catalog: " + getCatalogName() + " - Schema: " + getSchemaName() + " - Table: " + getName());
+        try {
+            java.sql.ResultSet result = m_tables.getConnection().getProvider().getConnection().getMetaData().getTablePrivileges(getCatalogName(), getSchemaName(), getName());
+            while (result != null && result.next()) {
+                String catalog = result.getString(1);
+                String schema = result.getString(2);
+                String table = result.getString(3);
+                String grantor = result.getString(4);
+                String grantee = result.getString(5);
+                String privilege = result.getString(6);
+                String grantable = result.getString(7);
+                String msg = String.format("%s.%s.%s Grantor: %s, Grantee: %s, Privilege: %s, Grantable: %s", catalog, schema, table, grantor, grantee, privilege, grantable);
+                System.out.println("sdb.Table._getTablePrivileges() : 2 " + msg);
+            }
+            result.close();
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, getConnection());
         }
-        result.close();
-        value = 100;
+        value = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
         System.out.println("sdb.Table._getTablePrivileges() : 4 " + value);
         return value;
     }
