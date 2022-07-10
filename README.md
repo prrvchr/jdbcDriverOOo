@@ -104,6 +104,16 @@ If you use HsqlDB as database, follow these steps:
 
 Now your database is up to date.
 
+## LibreOffice/OpenOffice Base improvement:
+
+### Managing Users and Privileges in Base:
+
+Management of users and privileges of the underlying database is possible in Base.  
+To do this, please access the User Administration window via the menu: **Tools -> User Administration**
+
+![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6.png)
+
+
 ## Has been tested with:
 
 * LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1

@@ -104,6 +104,15 @@ Si vous utilisez HsqlDB comme base de données, procédez comme suit:
 
 Maintenant votre base de données est à jour.
 
+## Amélioration dans LibreOffice/OpenOffice Base:
+
+### La gestion des utilisateurs et des privilèges dans Base:
+
+La gestion des utilisateurs et des privilèges de la base de données sous jacente est possible dans Base.  
+Pour cela veuillez acceder à la fenetre de Administration des utilisateurs par le menu: **Outils -> Gestion des utilisateurs**
+
+![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6_fr.png)
+
 ## A été testé avec:
 
 * LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1
