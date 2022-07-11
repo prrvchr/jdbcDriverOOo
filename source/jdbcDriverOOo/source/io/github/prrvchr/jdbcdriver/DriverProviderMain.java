@@ -185,6 +185,41 @@ public abstract class DriverProviderMain
     }
 
 
+    @Override
+    public List<String> getPrivileges(int privilege)
+    {
+        List<String> flags = new ArrayList<>();
+        if ((privilege & Privilege.SELECT) == Privilege.SELECT) {
+            flags.add("SELECT");
+        }
+        if ((privilege & Privilege.INSERT) == Privilege.INSERT) {
+            flags.add("INSERT");
+        }
+        if ((privilege & Privilege.UPDATE) == Privilege.UPDATE) {
+            flags.add("UPDATE");
+        }
+        if ((privilege & Privilege.DELETE) == Privilege.DELETE) {
+            flags.add("DELETE");
+        }
+        if ((privilege & Privilege.READ) == Privilege.READ) {
+            flags.add("READ");
+        }
+        if ((privilege & Privilege.CREATE) == Privilege.CREATE) {
+            flags.add("CREATE");
+        }
+        if ((privilege & Privilege.ALTER) == Privilege.ALTER) {
+            flags.add("ALTER");
+        }
+        if ((privilege & Privilege.REFERENCE) == Privilege.REFERENCE) {
+            flags.add("REFERENCES");
+        }
+        if ((privilege & Privilege.DROP) == Privilege.DROP) {
+            flags.add("DROP");
+        }
+        return flags;
+    }
+
+
     
     @Override
     public String getDropTableQuery(ConnectionBase connection,

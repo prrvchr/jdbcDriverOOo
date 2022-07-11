@@ -26,14 +26,17 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.Privilege;
+import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XUsersSupplier;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -63,28 +66,36 @@ public class Group
     // com.sun.star.sdbcx.XAuthorizable:
     @Override
     public int getGrantablePrivileges(String name, int type) throws SQLException {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Group.getGrantablePrivileges() Name: " + name + " - Type: " + type);
-        return 511;
+        int privileges = 0;
+        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            List<String> grantees = new ArrayList<>(List.of(getName()));
+            privileges = DataBaseTools.getTableOrViewGrantablePrivileges(m_connection, grantees, name);
+        }
+        return privileges;
     }
 
     @Override
     public int getPrivileges(String name, int type) throws SQLException {
-        System.out.println("sdbcx.Group.getPrivileges() Name: " + name + " - Type: " + type);
-        int privilege = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
-        return privilege;
+        int privileges = 0;
+        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            List<String> grantees = new ArrayList<>(List.of(getName()));
+            privileges = DataBaseTools.getTableOrViewPrivileges(m_connection, grantees, name);
+        }
+        return privileges;
     }
 
     @Override
     public void grantPrivileges(String name, int type, int privilege) throws SQLException {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Group.grantPrivileges() Name: " + name + " - Type: " + type + " - Privilege: " + privilege);
+        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            DataBaseTools.grantTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+        }
     }
 
     @Override
     public void revokePrivileges(String name, int type, int privilege) throws SQLException {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.Group.revokePrivileges() Name: " + name + " - Type: " + type + " - Privilege: " + privilege);
+        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            DataBaseTools.revokeTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+        }
     }
 
 

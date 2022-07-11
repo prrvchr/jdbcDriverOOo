@@ -81,6 +81,8 @@ public interface DriverProvider
 
     public int getPrivilege(String privilege);
 
+    public List<String> getPrivileges(int privilege);
+
     public String getTableIdentifier(ConnectionBase connection,
                                      String catalog,
                                      String schema,

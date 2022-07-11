@@ -46,6 +46,7 @@
 package io.github.prrvchr.jdbcdriver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -919,6 +920,104 @@ public class DataBaseTools {
         return sql;
     }
 
+    public static int getTableOrViewPrivileges(Connection connection,
+                                               List<String> grantees,
+                                               String name)
+    throws SQLException
+    {
+        String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE ";
+        return _getTableOrViewPrivileges(connection, grantees, name, sql);
+    }
+
+
+    public static int getTableOrViewGrantablePrivileges(Connection connection,
+                                                        List<String> grantees,
+                                                        String name)
+    throws SQLException
+    {
+        String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
+        return _getTableOrViewPrivileges(connection, grantees, name, sql);
+    }
+
+    private static int _getTableOrViewPrivileges(Connection connection,
+                                                 List<String> grantees,
+                                                 String name,
+                                                 String sql)
+        throws SQLException
+    {
+        int privilege = 0;
+        NameComponents component = DataBaseTools.qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
+        if (!component.getCatalog().isEmpty()) {
+            sql += "TABLE_CATALOG = ? AND ";
+        }
+        if (!component.getSchema().isEmpty()) {
+            sql += "TABLE_SCHEMA = ? AND ";
+        }
+        sql += String.format("TABLE_NAME = ? AND GRANTEE IN (%s)", String.join(", ", new ArrayList<>(Collections.nCopies(grantees.size(), "?"))));
+        try (java.sql.PreparedStatement statement = connection.getProvider().getConnection().prepareStatement(sql)){
+            int next = 1;
+            if (!component.getCatalog().isEmpty()) {
+                statement.setString(next++, component.getCatalog());
+            }
+            if (!component.getSchema().isEmpty()) {
+                statement.setString(next++, component.getSchema());
+            }
+            statement.setString(next++, component.getTable());
+            for (String grantee : grantees) {
+                statement.setString(next++, grantee);
+            }
+            java.sql.ResultSet result = statement.executeQuery();
+            while (result.next()) {
+                privilege |= connection.getProvider().getPrivilege(result.getString(1));
+            }
+            result.close();
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e);
+        }
+        return privilege;
+    }
+
+    public static void grantTableOrViewPrivileges(Connection connection,
+                                                  String grantee,
+                                                  String name,
+                                                  int privilege,
+                                                  ComposeRule rule,
+                                                  boolean sensitive)
+        throws SQLException
+    {
+        List<String> values = connection.getProvider().getPrivileges(privilege);
+        grantee = sensitive ? quoteName(connection.getMetaData().getIdentifierQuoteString(), grantee) : grantee;
+        String sql = String.format("GRANT %s ON %s TO %s", String.join(",", values), quoteTableName(connection, name, rule), grantee);
+        System.out.println("DataBaseTools.grantTableOrViewPrivileges() SQL: " + sql);
+        try (java.sql.Statement statement = connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+    }
+
+
+    public static void revokeTableOrViewPrivileges(Connection connection,
+                                                   String grantee,
+                                                   String name,
+                                                   int privilege,
+                                                   ComposeRule rule,
+                                                   boolean sensitive)
+        throws SQLException
+    {
+        List<String> values = connection.getProvider().getPrivileges(privilege);
+        grantee = sensitive ? quoteName(connection.getMetaData().getIdentifierQuoteString(), grantee) : grantee;
+        String sql = String.format("REVOKE %s ON %s FROM %s RESTRICT", String.join(",", values), quoteTableName(connection, name, rule), grantee);
+        System.out.println("DataBaseTools.revokeTableOrViewPrivileges() SQL: " + sql);
+        try (java.sql.Statement statement = connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+    }
 
     /** collects the information about auto increment, currency and data type for the given column name.
      * The column must be quoted, * is also valid.
