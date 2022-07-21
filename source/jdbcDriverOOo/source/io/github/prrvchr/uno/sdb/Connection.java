@@ -195,17 +195,6 @@ public final class Connection
         return m_Tables;
     }
 
-    public synchronized TableContainer getTablesInternal()
-    {
-        return m_Tables;
-    }
-
-    public synchronized UserContainer getUsersInternal()
-    {
-        return m_Users;
-    }
-
-
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public synchronized XNameAccess getUsers()
@@ -218,7 +207,6 @@ public final class Connection
         System.out.println("sdb.Connection.getUsers() 2");
         return m_Users;
     }
-
 
     // com.sun.star.sdbcx.XViewsSupplier:
     @Override
@@ -233,7 +221,6 @@ public final class Connection
         return m_Views;
     }
 
-
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
     public XNameAccess getGroups()
@@ -241,10 +228,21 @@ public final class Connection
         System.out.println("sdb.Connection.getGroups() *********************************************");
         checkDisposed();
         if (m_Groups == null) {
-            _refreshViews();
+            _refreshGroups();
         }
         System.out.println("sdb.Connection.getViews() 2");
         return m_Groups;
+    }
+
+
+    public synchronized TableContainer getTablesInternal()
+    {
+        return m_Tables;
+    }
+
+    public synchronized UserContainer getUsersInternal()
+    {
+        return m_Users;
     }
 
 
@@ -345,11 +343,12 @@ public final class Connection
                 names.add(name);
             }
             result.close();
+            List<String> groups = getProvider().getDefaultGrantees(names);
             if (m_Groups == null) {
-                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
+                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(), groups);
             }
             else {
-                m_Groups.refill(names);
+                m_Groups.refill(groups);
             }
         }
         catch (ElementExistException | java.sql.SQLException e) {

@@ -36,9 +36,11 @@ from .dbconfig import g_protocol
 from .dbconfig import g_jar
 
 from .unotool import createService
+from .unotool import getContainerWindow
 from .unotool import getDialog
 from .unotool import getFilePicker
 from .unotool import getFileSequence
+from .unotool import getFileUrl
 from .unotool import getPathSettings
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
@@ -55,3 +57,6 @@ from .logger import logMessage
 from .logger import setLoggerSetting
 
 from .options import OptionsManager
+
+from .admindispatch import AdminDispatch
+

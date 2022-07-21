@@ -158,26 +158,26 @@ public class DataBaseTableHelper
     }
 
     public static Map<String, Key> readKeys(Connection connection,
-                                            boolean isCaseSensitive,
+                                            boolean sensitive,
                                             TableBase table)
         throws SQLException,
                ElementExistException
     {
         Map<String, Key> keys = new TreeMap<>();
-        Key key = readPrimaryKey(connection, table, isCaseSensitive);
-        keys.put(key.getName(), key);
-        readForeignKeys(connection, table, keys, isCaseSensitive);
+        readPrimaryKey(connection, table, sensitive, keys);
+        readForeignKeys(connection, table, sensitive, keys);
         return keys;
     }
 
-    private static Key readPrimaryKey(Connection connection,
-                                      TableBase table,
-                                      boolean sensitive)
+    private static void readPrimaryKey(Connection connection,
+                                       TableBase table,
+                                       boolean sensitive,
+                                       Map<String, Key> keys)
         throws SQLException,
                ElementExistException
     {
         ArrayList<String> columns = new ArrayList<>();
-        String name = "";
+        String name = null;
         try {
             boolean fetched = false;
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
@@ -197,13 +197,15 @@ public class DataBaseTableHelper
         catch (java.sql.SQLException e) {
             UnoHelper.getSQLException(e, connection);
         }
-        return new Key(table, sensitive, name, "", KeyType.PRIMARY, 0, 0, columns);
+        if (name != null) {
+            keys.put(name, new Key(table, sensitive, name, "", KeyType.PRIMARY, 0, 0, columns));
+        }
     }
 
     private static void readForeignKeys(Connection connection,
                                         TableBase table,
-                                        Map<String, Key> keys,
-                                        boolean isCaseSensitive)
+                                        boolean sensitive,
+                                        Map<String, Key> keys)
         throws SQLException,
                ElementExistException
     {
@@ -228,7 +230,7 @@ public class DataBaseTableHelper
                 if (!result.wasNull() && !fkName.isEmpty()) {
                     if (!oldFkName.equals(fkName)) {
                         if (keyProperties != null) {
-                            Key key = new Key(table, isCaseSensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
+                            Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
                                               keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
                             
                             keys.put(oldFkName, key);
@@ -252,7 +254,7 @@ public class DataBaseTableHelper
             UnoHelper.getSQLException(e, connection);
         }        
         if (keyProperties != null) {
-            Key key = new Key(table, isCaseSensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
+            Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
                               keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
             keys.put(oldFkName, key);
         }
@@ -279,8 +281,8 @@ public class DataBaseTableHelper
                     // don't insert the name if the last one we inserted was the same
                     if (!previousRoundName.equals(name)) {
                         System.out.println("sdbcx.IndexContainer.readIndexes() add Name: " + name);
-
                         names.add(name);
+                        previousRoundName = name;
                     }
                 }
             }

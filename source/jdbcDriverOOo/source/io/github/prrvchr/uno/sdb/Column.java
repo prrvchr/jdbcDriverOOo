@@ -33,7 +33,6 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbcx.ColumnSuper;
-import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
 public class Column
@@ -50,14 +49,18 @@ public class Column
     private boolean m_Hidden = false;
 
     // The constructor method:
-    public Column(final TableBase table,
-                  final boolean sensitive)
+    public Column(final boolean sensitive,
+                  final String catalog,
+                  final String schema,
+                  final String table)
     {
-        super(m_service, m_services, table, sensitive);
+        super(m_service, m_services, sensitive, catalog, schema, table);
         registerProperties();
     }
-    public Column(final TableBase table,
-                  final boolean sensitive,
+    public Column(final boolean sensitive,
+                  final String catalog,
+                  final String schema,
+                  final String table,
                   final String name,
                   final String typeName,
                   final String defaultValue,
@@ -70,7 +73,7 @@ public class Column
                   final boolean rowversion,
                   final boolean currency)
     {
-        super(m_service, m_services, table, sensitive, name, typeName, defaultValue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        super(m_service, m_services, sensitive, catalog, schema, table, name, typeName, defaultValue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();
     }
 

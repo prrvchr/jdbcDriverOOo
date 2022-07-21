@@ -295,7 +295,7 @@ public class UnoHelper
         return sw.toString();
     }
 
-    public static WrappedTargetException getWrappedException(SQLException e)
+    public static WrappedTargetException getWrappedException(Exception e)
     {
         WrappedTargetException exception = null;
         if (e != null) {

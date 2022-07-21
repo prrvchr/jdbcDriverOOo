@@ -32,12 +32,15 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class Index
@@ -77,6 +80,69 @@ public class Index
         m_columns = new IndexColumnContainer(this, this, columns);
         registerProperties();
     }
+
+    private void registerProperties() {
+        short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.CATALOG.name, PropertyIds.CATALOG.id, Type.STRING, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Catalog;
+                }
+            }, null);
+        registerProperty(PropertyIds.ISUNIQUE.name, PropertyIds.ISUNIQUE.id, Type.BOOLEAN, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_IsUnique;
+                }
+            }, null);
+        registerProperty(PropertyIds.ISPRIMARYKEYINDEX.name, PropertyIds.ISPRIMARYKEYINDEX.id, Type.BOOLEAN, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_IsPrimaryKeyIndex;
+                }
+            }, null);
+        registerProperty(PropertyIds.ISCLUSTERED.name, PropertyIds.ISCLUSTERED.id, Type.BOOLEAN, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_IsClustered;
+                }
+            }, null);
+    }
+
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor()
+    {
+        System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
+        IndexDescriptor descriptor = new IndexDescriptor(isCaseSensitive());
+        UnoHelper.copyProperties(this, descriptor);
+        try {
+            DataBaseTools.cloneDescriptorColumns(this, descriptor);
+        }
+        catch (SQLException e) {
+        }
+        return descriptor;
+    }
+
+
+    // com.sun.star.sdbcx.XColumnsSupplier
+    @Override
+    public XNameAccess getColumns()
+    {
+        return m_columns;
+    }
+
+
+    public TableBase getTable()
+    {
+        return m_table;
+    }
+
 
 /*    // The constructor method:
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer.appendByDescriptor()
@@ -163,78 +229,6 @@ public class Index
         }
         registerProperties();
     }*/
-
-    private void registerProperties() {
-        short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CATALOG.name, PropertyIds.CATALOG.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Catalog;
-                }
-            }, null);
-        registerProperty(PropertyIds.ISUNIQUE.name, PropertyIds.ISUNIQUE.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsUnique;
-                }
-            }, null);
-        registerProperty(PropertyIds.ISPRIMARYKEYINDEX.name, PropertyIds.ISPRIMARYKEYINDEX.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsPrimaryKeyIndex;
-                }
-            }, null);
-        registerProperty(PropertyIds.ISCLUSTERED.name, PropertyIds.ISCLUSTERED.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsClustered;
-                }
-            }, null);
-    }
-
-    // com.sun.star.sdbcx.XColumnsSupplier
-    @Override
-    public XNameAccess getColumns()
-    {
-        return m_columns;
-    }
-
-
-/*    protected void _addColumn(IndexColumn column)
-        throws SQLException
-    {
-        int index = 0;
-        for (IndexColumn element : m_columns.m_Elements) {
-            if (column.m_position < element.m_position) {
-                m_columns.m_Elements.add(index, column);
-                m_columns.m_Names.add(index, column.m_Name);
-                break;
-            }
-            if (column.m_position > element.m_position) {
-                m_columns.m_Elements.add(index + 1, column);
-                m_columns.m_Names.add(index + 1, column.m_Name);
-                break;
-            }
-            index++;
-        }
-    }*/
-
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor()
-    {
-        return new IndexDescriptor(isCaseSensitive());
-    }
-
-    public TableBase getTable()
-    {
-        return m_table;
-    }
 
 
 }

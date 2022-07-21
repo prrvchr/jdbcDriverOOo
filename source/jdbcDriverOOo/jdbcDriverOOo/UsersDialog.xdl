@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="UsersDialog" dlg:left="5" dlg:top="5" dlg:width="280" dlg:height="260" dlg:help-text="&amp;UsersDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;UsersDialog.Title">
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="5" dlg:top="3" dlg:width="270" dlg:height="14" dlg:help-text="&amp;UsersDialog.FixedLine1.HelpText" dlg:value="&amp;UsersDialog.FixedLine1.Label"/>
+    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="50" dlg:height="15" dlg:help-text="&amp;UsersDialog.Label1.HelpText" dlg:value="&amp;UsersDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="155" dlg:top="20" dlg:width="120" dlg:height="13" dlg:help-text="&amp;UsersDialog.ListBox1.HelpText" dlg:value="&amp;UsersDialog.ListBox1.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetUser" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="10" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton1.HelpText" dlg:value="&amp;UsersDialog.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddUser" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:disabled="true" dlg:left="100" dlg:top="42" dlg:width="85" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton2.HelpText" dlg:value="&amp;UsersDialog.CommandButton2.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetPassword" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="5" dlg:disabled="true" dlg:left="195" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton3.HelpText" dlg:value="&amp;UsersDialog.CommandButton3.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:DropUser" script:language="UNO"/>
+    </dlg:button>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="6" dlg:left="5" dlg:top="62" dlg:width="270" dlg:height="14" dlg:help-text="&amp;UsersDialog.FixedLine2.HelpText" dlg:value="&amp;UsersDialog.FixedLine2.Label"/>
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="8" dlg:disabled="true" dlg:left="10" dlg:top="240" dlg:width="90" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton4.HelpText" dlg:value="&amp;UsersDialog.CommandButton4.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetPrivileges" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton5" dlg:tab-index="9" dlg:left="175" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton5.HelpText" dlg:value="&amp;UsersDialog.CommandButton5.Label" dlg:button-type="cancel"/>
+    <dlg:button dlg:id="CommandButton6" dlg:tab-index="10" dlg:left="230" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton6.HelpText" dlg:default="true" dlg:value="&amp;UsersDialog.CommandButton6.Label" dlg:button-type="ok"/>
+  </dlg:bulletinboard>
+</dlg:window>

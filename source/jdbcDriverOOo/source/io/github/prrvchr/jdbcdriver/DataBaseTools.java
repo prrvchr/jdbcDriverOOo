@@ -51,12 +51,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.XChild;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.IOException;
@@ -64,13 +62,11 @@ import com.sun.star.io.XInputStream;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.KeyRule;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XDatabaseMetaData;
-import com.sun.star.sdbc.XDataSource;
 import com.sun.star.sdbc.XParameters;
 import com.sun.star.sdbc.XRowUpdate;
 import com.sun.star.sdbcx.KeyType;
@@ -216,7 +212,7 @@ public class DataBaseTools {
         }
         return composedName.toString();
     }
-    
+
     public static String composeTableName(Connection connection,
                                           XPropertySet table,
                                           ComposeRule rule,
@@ -229,53 +225,8 @@ public class DataBaseTools {
         return doComposeTableName(connection, catalog ? "" : component.getCatalog(),
                                   schema ? "" : component.getSchema(), component.getTable(), quoted, rule);
     }
-    
-    /** check if a specific property is enabled in the info sequence
-     *  @deprecated
-     *  Use getBooleanDataSourceSetting instead, which cares for the default of the property itself,
-     *   instead of spreading this knowledge through all callers.
-     */
-    public static boolean isDataSourcePropertyEnabled(Object object, String property, boolean defaultValue)
-        throws java.sql.SQLException {
-        try {
-            boolean enabled = defaultValue;
-            XPropertySet properties = UnoRuntime.queryInterface(XPropertySet.class, findDataSource(object));
-            if (properties != null) {
-                PropertyValue[] info = (PropertyValue[]) AnyConverter.toArray(properties.getPropertyValue("Info"));
-                for (PropertyValue propertyValue : info) {
-                    if (propertyValue.Name.equals(property)) {
-                        enabled = AnyConverter.toBoolean(propertyValue.Value);
-                        break;
-                    }
-                }
-            }
-            return enabled;
-        }
-        catch (IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
-            throw new java.sql.SQLException(e.getMessage());
-        }
-    }
-    
-    /** search the parent hierarchy for a data source.
-     */
-    public static XDataSource findDataSource(Object parent) {
-        XOfficeDatabaseDocument databaseDocument = UnoRuntime.queryInterface(XOfficeDatabaseDocument.class, parent);
-        XDataSource dataSource = null;
-        if (databaseDocument != null) {
-            dataSource = databaseDocument.getDataSource();
-        }
-        if (dataSource == null) {
-            dataSource = UnoRuntime.queryInterface(XDataSource.class, parent);
-        }
-        if (dataSource == null) {
-            XChild child = UnoRuntime.queryInterface(XChild.class, parent);
-            if (child != null) {
-                dataSource = findDataSource(child.getParent());
-            }
-        }
-        return dataSource;
-    }
-    
+
+
     public static String doComposeTableName(Connection connection,
                                             String catalog,
                                             String schema,
@@ -320,7 +271,7 @@ public class DataBaseTools {
         }
         return composedName.toString();
     }
-    
+
     /** composes a table name for usage in a SELECT statement
      *
      * This includes quoting of the table as indicated by the connection's meta data, plus respecting
@@ -338,7 +289,7 @@ public class DataBaseTools {
         boolean useschema = UnoHelper.getDefaultPropertyValue(connection.getInfo(), "UseSchemaInSelect", true);
         return doComposeTableName(connection, usecatalog ? catalog : "", useschema ? schema : "", table, true, ComposeRule.InDataManipulation);
     }
-    
+
     /** composes a table name for usage in a SELECT statement
      *
      * This includes quoting of the table as indicated by the connection's meta data, plus respecting
@@ -353,7 +304,7 @@ public class DataBaseTools {
         NameComponents component = getTableNameComponents(connection, table);
         return composeTableNameForSelect(connection, component.getCatalog(), component.getSchema(), component.getTable());
     }
-    
+
     public static NameComponents getTableNameComponents(Connection connection,
                                                         XPropertySet table)
         throws SQLException
@@ -378,7 +329,7 @@ public class DataBaseTools {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
     }
-    
+
     /** quote the given name with the given quote string.
      */
     public static String quoteName(String quote,
@@ -389,7 +340,7 @@ public class DataBaseTools {
         }
         return name;
     }
-    
+
     /** quote the given table name (which may contain a catalog and a schema) according to the rules provided by the meta data
      */
     public static String quoteTableName(Connection connection,
@@ -400,7 +351,7 @@ public class DataBaseTools {
         NameComponents nameComponents = qualifiedNameComponents(connection, name, rule);
         return doComposeTableName(connection, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(), true, rule);
     }
-    
+
     /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
      * @param  metadata     meta data describing the connection where you got the table name from
      * @param  name     fully qualified table name
@@ -730,7 +681,7 @@ public class DataBaseTools {
         }
         return parts;
     }
-    
+
     private static String getColumnNames(XDatabaseMetaData metadata,
                                          XIndexAccess columns)
         throws SQLException,
@@ -758,7 +709,6 @@ public class DataBaseTools {
         return sql.toString();
     }
 
-
     /** creates a SQL CREATE VIEW statement
      *
      * @param  connection
@@ -783,7 +733,6 @@ public class DataBaseTools {
         }
     }
 
-
     /** creates a SQL ALTER VIEW statement
      *
      * @param  connection
@@ -805,7 +754,6 @@ public class DataBaseTools {
         String view = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
         return String.format(query, view, command);
     }
-
 
     /** creates a SQL CREATE USER statement
      *
@@ -845,7 +793,6 @@ public class DataBaseTools {
         }
         return sql;
     }
-
 
     /** creates a SQL DROP USER statement
      *
@@ -922,31 +869,53 @@ public class DataBaseTools {
 
     public static int getTableOrViewPrivileges(Connection connection,
                                                List<String> grantees,
-                                               String name)
+                                               String catalog,
+                                               String schema,
+                                               String table)
     throws SQLException
     {
-        String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE ";
-        return _getTableOrViewPrivileges(connection, grantees, name, sql);
+        NameComponents component = new NameComponents(catalog, schema, table);
+        return getTableOrViewPrivileges(connection, grantees, component);
     }
 
 
+    public static int getTableOrViewPrivileges(Connection connection,
+                                               List<String> names,
+                                               String name)
+    throws SQLException
+    {
+        List<String> grantees = connection.getProvider().getDefaultGrantees(names);
+        NameComponents component = qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
+        return getTableOrViewPrivileges(connection, grantees, component);
+    }
+
+    public static int getTableOrViewPrivileges(Connection connection,
+                                               List<String> grantees,
+                                               NameComponents component)
+    throws SQLException
+    {
+        String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE ";
+        return _getTableOrViewPrivileges(connection, grantees, component, sql);
+    }
+
     public static int getTableOrViewGrantablePrivileges(Connection connection,
-                                                        List<String> grantees,
+                                                        List<String> names,
                                                         String name)
     throws SQLException
     {
+        List<String> grantees = connection.getProvider().getDefaultGrantees(names);
+        NameComponents component = DataBaseTools.qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
         String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
-        return _getTableOrViewPrivileges(connection, grantees, name, sql);
+        return _getTableOrViewPrivileges(connection, grantees, component, sql);
     }
 
     private static int _getTableOrViewPrivileges(Connection connection,
                                                  List<String> grantees,
-                                                 String name,
+                                                 NameComponents component,
                                                  String sql)
         throws SQLException
     {
         int privilege = 0;
-        NameComponents component = DataBaseTools.qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
         if (!component.getCatalog().isEmpty()) {
             sql += "TABLE_CATALOG = ? AND ";
         }
@@ -998,7 +967,6 @@ public class DataBaseTools {
         }
     }
 
-
     public static void revokeTableOrViewPrivileges(Connection connection,
                                                    String grantee,
                                                    String name,
@@ -1009,7 +977,7 @@ public class DataBaseTools {
     {
         List<String> values = connection.getProvider().getPrivileges(privilege);
         grantee = sensitive ? quoteName(connection.getMetaData().getIdentifierQuoteString(), grantee) : grantee;
-        String sql = String.format("REVOKE %s ON %s FROM %s RESTRICT", String.join(",", values), quoteTableName(connection, name, rule), grantee);
+        String sql = String.format("REVOKE %s ON %s FROM %s CASCADE", String.join(",", values), quoteTableName(connection, name, rule), grantee);
         System.out.println("DataBaseTools.revokeTableOrViewPrivileges() SQL: " + sql);
         try (java.sql.Statement statement = connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);
@@ -1056,7 +1024,7 @@ public class DataBaseTools {
         statement.close();
         return columns;
     }
-    
+
     /** returns the primary key columns of the table
      */
     public static XNameAccess getPrimaryKeyColumns(XPropertySet table)
@@ -1087,7 +1055,7 @@ public class DataBaseTools {
             throw new java.sql.SQLException(e.getMessage());
         }
     }
-    
+
     public static void cloneDescriptorColumns(XPropertySet source,
                                               XPropertySet destination)
         throws SQLException
@@ -1113,7 +1081,7 @@ public class DataBaseTools {
         }
         System.out.println("DataBaseTools.cloneDescriptorColumns() 4");
     }
-    
+
     public static boolean updateObject(XRowUpdate updatedObject,
                                        int columnIndex,
                                        Object value)
@@ -1202,7 +1170,7 @@ public class DataBaseTools {
             throw new SQLException("Error", Any.VOID, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, exception);
         }
     }
-    
+
     public static boolean setObject(XParameters parameters,
                                     int index, Object any)
         throws SQLException
@@ -1316,5 +1284,5 @@ public class DataBaseTools {
         }
     }
 
-}
 
+}

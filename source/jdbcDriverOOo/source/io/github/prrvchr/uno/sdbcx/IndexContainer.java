@@ -97,8 +97,8 @@ public class IndexContainer
             List<String> columns = new ArrayList<>();
             while (result.next()) {
                 unique  = !result.getBoolean(4);
-                System.out.println("sdbcx.IndexContainer._createElement() 4");
-                if (qualifier.isEmpty() || qualifier.equals(result.getString(5)) && subname.equals(result.getString(6))) {
+                System.out.println("sdbcx.IndexContainer._createElement() 4 SubName: " + result.getString(6));
+                if ((qualifier.isEmpty() || qualifier.equals(result.getString(5))) && subname.equals(result.getString(6))) {
                     System.out.println("sdbcx.IndexContainer._createElement() 5");
                     found = true;
                     type = result.getShort(7);
@@ -134,7 +134,7 @@ public class IndexContainer
         boolean primary = false;
         java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName());
         if (result.next()) { // there can be only one primary key
-            primary = result.getString(6).equals(name);
+            primary = name.equals(result.getString(6));
         }
         return primary;
     }
@@ -220,6 +220,7 @@ public class IndexContainer
 
     @Override
     protected void _refresh() {
+        System.out.println("sdbcx.IndexContainer._refresh() *********************************");
         // FIXME
     }
 

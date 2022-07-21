@@ -55,7 +55,7 @@ import io.github.prrvchr.uno.sdb.Connection;
 public abstract class TableBase
     extends Descriptor
     implements XColumnsSupplier,
-                XIndexesSupplier,
+               XIndexesSupplier,
                XKeysSupplier,
                XAlterTable,
                XDataDescriptorFactory

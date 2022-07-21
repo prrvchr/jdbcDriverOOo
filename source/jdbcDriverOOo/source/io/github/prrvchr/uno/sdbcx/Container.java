@@ -335,7 +335,7 @@ public abstract class Container
             if (m_Elements.containsKey(name)) {
                  throw new ElementExistException();
             }
-            System.out.println("sdbcx.Container.appendByDescriptor() 2: " + name);
+            System.out.println("sdbcx.Container.appendByDescriptor() 2: Class: " + this.getClass().getName() + " - Name: " + name);
             XPropertySet element = _appendElement(descriptor, name);
             if (element == null) {
                 throw new RuntimeException();

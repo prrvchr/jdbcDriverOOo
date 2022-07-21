@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyVetoException;
@@ -102,7 +103,7 @@ public class KeyContainer
         }
         if (key == null) { // we have a primary key with a system name
             // FIXME: so why was this exactly the same?
-            System.out.println("sdbcx.KeyContainer._createElement() 3");
+            System.out.println("sdbcx.KeyContainer._createElement() 3 ***********************************");
             key = m_keys.get(name);
         }
         System.out.println("sdbcx.KeyContainer._createElement() 4");
@@ -118,20 +119,7 @@ public class KeyContainer
             return null;
         }
         try {
-            java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
             int keyType = AnyConverter.toInt(descriptor.getPropertyValue(PropertyIds.TYPE.name));
-            int updateRule = 0;
-            int deleteRule = 0;
-            String referencedName = "";
-            if (keyType == KeyType.FOREIGN) {
-                referencedName = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.UPDATERULE.name));
-                updateRule = AnyConverter.toInt(descriptor.getPropertyValue(PropertyIds.UPDATERULE.name));
-                deleteRule = AnyConverter.toInt(descriptor.getPropertyValue(PropertyIds.DELETERULE.name));
-            }
-            
-            String quote = metadata.getIdentifierQuoteString();
-            String tableName = DataBaseTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, false, false, true);
-            
             String keyTypeString;
             if (keyType == KeyType.PRIMARY) {
                 keyTypeString = "PRIMARY KEY";
@@ -142,31 +130,41 @@ public class KeyContainer
             else {
                 throw new SQLException();
             }
-            StringBuilder columnsText = new StringBuilder();
+
+            String referencedName = "";
+            int updateRule = 0;
+            int deleteRule = 0;
+            if (keyType == KeyType.FOREIGN) {
+                referencedName = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.REFERENCEDTABLE.name));
+                System.out.println("sdbcx.KeyContainer._appendElement() ReferencedTable: " + referencedName);
+                updateRule = AnyConverter.toInt(descriptor.getPropertyValue(PropertyIds.UPDATERULE.name));
+                deleteRule = AnyConverter.toInt(descriptor.getPropertyValue(PropertyIds.DELETERULE.name));
+            }
+            
+            java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            String tableName = DataBaseTools.doComposeTableName(_getConnection(), m_table.m_CatalogName, m_table.m_SchemaName,m_table.getName(), isCaseSensitive(), ComposeRule.InTableDefinitions);
+
+            List<String> cols = new ArrayList<String>();
             XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
-            String separator = "";
             for (int i = 0; i < columns.getCount(); i++) {
-                columnsText.append(separator);
-                separator = ",";
                 XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                columnsText.append(DataBaseTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.NAME.name))));
+                cols.add(DataBaseTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.NAME.name))));
             }
-            String sql = String.format("ALTER TABLE %s ADD %s (%s)", tableName, keyTypeString, columnsText.toString());
+            String sql = String.format("ALTER TABLE %s ADD %s (%s)", tableName, keyTypeString, String.join(",", cols));
             if (keyType == KeyType.FOREIGN) {
                 String quotedTableName = DataBaseTools.quoteTableName(_getConnection(), referencedName, ComposeRule.InTableDefinitions);
-                StringBuilder relatedColumns = new StringBuilder();
-                separator = "";
+                cols = new ArrayList<String>();
                 for (int i = 0; i < columns.getCount(); i++) {
-                    relatedColumns.append(separator);
-                    separator = ",";
                     XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                    relatedColumns.append(DataBaseTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.RELATEDCOLUMN.name))));
+                    cols.add(DataBaseTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.RELATEDCOLUMN.name))));
                 }
-                sql += String.format(" REFERENCES %s (%s)%s%s", quotedTableName, relatedColumns.toString(),
-                        getKeyRuleString(true, updateRule), getKeyRuleString(false, deleteRule));
+                sql += String.format(" REFERENCES %s (%s) %s %s", quotedTableName, String.join(",", cols),
+                                     getKeyRuleString(true, updateRule), getKeyRuleString(false, deleteRule));
             }
             java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
+            System.out.println("sdbcx.KeyContainer._appendElement() SQL: " + sql);
             statement.execute(sql);
             statement.close();
             // find the name which the database gave the new key
@@ -201,20 +199,22 @@ public class KeyContainer
         }
     }
 
-    protected String getKeyRuleString(boolean isUpdate, int rule) {
+    protected String getKeyRuleString(boolean isUpdate,
+                                      int rule)
+    {
         String keyRule = "";
         switch (rule) {
         case KeyRule.CASCADE:
-            keyRule = isUpdate ? " ON UPDATE CASCADE " : " ON DELETE CASCADE ";
+            keyRule = isUpdate ? "ON UPDATE CASCADE" : "ON DELETE CASCADE";
             break;
         case KeyRule.RESTRICT:
-            keyRule = isUpdate ? " ON UPDATE RESTRICT " : " ON DELETE RESTRICT ";
+            keyRule = isUpdate ? "ON UPDATE RESTRICT" : "ON DELETE RESTRICT";
             break;
         case KeyRule.SET_NULL:
-            keyRule = isUpdate ? " ON UPDATE SET NULL " : " ON DELETE SET NULL ";
+            keyRule = isUpdate ? "ON UPDATE SET NULL" : "ON DELETE SET NULL";
             break;
         case KeyRule.SET_DEFAULT:
-            keyRule = isUpdate ? " ON UPDATE SET DEFAULT " : " ON DELETE SET DEFAULT ";
+            keyRule = isUpdate ? "ON UPDATE SET DEFAULT" : "ON DELETE SET DEFAULT";
             break;
         }
         return keyRule;

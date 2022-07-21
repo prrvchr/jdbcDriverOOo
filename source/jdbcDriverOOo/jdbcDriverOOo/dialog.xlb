@@ -4,4 +4,7 @@
   <library:element library:name="LogWindow"/>
   <library:element library:name="LogDialog"/>
   <library:element library:name="OptionsDialog"/>
+  <library:element library:name="UsersDialog"/>
+  <library:element library:name="GroupsDialog"/>
+  <library:element library:name="PrivilegesDialog"/>
 </library:library>

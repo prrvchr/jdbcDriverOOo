@@ -25,15 +25,22 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
+import com.sun.star.sdbcx.XGroupsSupplier;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -48,7 +55,7 @@ public final class Table
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
-    private int m_Privileges = 0;
+    //private int m_Privileges = 0;
     //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
     /*protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
@@ -75,7 +82,6 @@ public final class Table
         super.m_SchemaName= schema;
         super.m_Type = type;
         super.m_Description = remarks;
-        m_Privileges = _getPrivileges();
         registerProperties();
         System.out.println("sdbc.Table() 2");
     }
@@ -86,7 +92,7 @@ public final class Table
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_Privileges;
+                    return _getPrivileges();
                 }
             }, null);
         /*registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
@@ -208,31 +214,24 @@ public final class Table
     }
 
     private int _getPrivileges()
-        throws SQLException
+        throws WrappedTargetException
     {
-        int value = 0;
-        System.out.println("sdb.Table._getTablePrivileges() : 1 Catalog: " + getCatalogName() + " - Schema: " + getSchemaName() + " - Table: " + getName());
+        int privileges = 0;
         try {
-            java.sql.ResultSet result = m_tables.getConnection().getProvider().getConnection().getMetaData().getTablePrivileges(getCatalogName(), getSchemaName(), getName());
-            while (result != null && result.next()) {
-                String catalog = result.getString(1);
-                String schema = result.getString(2);
-                String table = result.getString(3);
-                String grantor = result.getString(4);
-                String grantee = result.getString(5);
-                String privilege = result.getString(6);
-                String grantable = result.getString(7);
-                String msg = String.format("%s.%s.%s Grantor: %s, Grantee: %s, Privilege: %s, Grantable: %s", catalog, schema, table, grantor, grantee, privilege, grantable);
-                System.out.println("sdb.Table._getTablePrivileges() : 2 " + msg);
-            }
-            result.close();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, getConnection());
+            String name = getConnection().getMetaData().getUserName();
+            XGroupsSupplier groups = (XGroupsSupplier) AnyConverter.toObject(XGroupsSupplier.class, getConnection().getUsers().getByName(name));
+            List<String> grantees = new ArrayList<>(List.of(name));
+            grantees.addAll(Arrays.asList(groups.getGroups().getElementNames()));
+            privileges = DataBaseTools.getTableOrViewPrivileges(getConnection(), grantees, m_CatalogName, m_SchemaName, getName());
         }
-        value = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
-        System.out.println("sdb.Table._getTablePrivileges() : 4 " + value);
-        return value;
+        catch (NoSuchElementException | SQLException e) {
+            throw UnoHelper.getWrappedException(e);
+        }
+        System.out.println("sdb.Table._getTablePrivileges() : 4 " + privileges);
+        return privileges;
     }
+
+
     @SuppressWarnings("unused")
     private static int _getTablePrivileges(schemacrawler.schema.Table table)
         throws java.sql.SQLException

@@ -152,7 +152,7 @@ public class ColumnContainer
             if (nullable != ColumnValue.NO_NULLS && primaryKeyColumns != null && primaryKeyColumns.hasByName(name)) {
                 nullable = ColumnValue.NO_NULLS;
             }
-            column = new Column(m_table, isCaseSensitive(), name, columnDescription.typeName, columnDescription.defaultValue, columnDescription.remarks,
+            column = new Column(isCaseSensitive(), m_table.m_CatalogName, m_table.m_SchemaName, m_table.getName(), name, columnDescription.typeName, columnDescription.defaultValue, columnDescription.remarks,
                     nullable, columnDescription.columnSize, columnDescription.decimalDigits, columnDescription.type,
                     isAutoIncrement, false, isCurrency);
         }

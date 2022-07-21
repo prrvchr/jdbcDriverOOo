@@ -202,24 +202,29 @@ public abstract class DriverProviderMain
             flags.add("DELETE");
         }
         if ((privilege & Privilege.READ) == Privilege.READ) {
-            flags.add("READ");
+            //flags.add("READ");
         }
         if ((privilege & Privilege.CREATE) == Privilege.CREATE) {
-            flags.add("CREATE");
+            //flags.add("CREATE");
         }
         if ((privilege & Privilege.ALTER) == Privilege.ALTER) {
-            flags.add("ALTER");
+            //flags.add("ALTER");
         }
         if ((privilege & Privilege.REFERENCE) == Privilege.REFERENCE) {
             flags.add("REFERENCES");
         }
         if ((privilege & Privilege.DROP) == Privilege.DROP) {
-            flags.add("DROP");
+            //flags.add("DROP");
         }
         return flags;
     }
 
-
+    public List<String> getDefaultGrantees(List<String> names)
+    {
+        List<String> grantees = new ArrayList<>(List.of("PUBLIC"));
+        grantees.addAll(names);
+        return grantees;
+    }
     
     @Override
     public String getDropTableQuery(ConnectionBase connection,

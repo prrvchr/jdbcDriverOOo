@@ -26,11 +26,13 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class IndexColumn
@@ -44,6 +46,9 @@ public class IndexColumn
 
     // The constructor method:
     public IndexColumn(final boolean sensitive,
+                       final String catalog,
+                       final String schema,
+                       final String table,
                        final String name,
                        final String typename,
                        final String defaultvalue,
@@ -73,35 +78,16 @@ public class IndexColumn
             }, null);
     }
 
-    
-/*    // The constructor method:
-    public IndexColumn(Connection connection,
-                       XPropertySet descriptor,
-                       int position)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, descriptor, position);
-        registerProperties();
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public XPropertySet createDataDescriptor() {
+        IndexColumnDescriptor descriptor = new IndexColumnDescriptor(isCaseSensitive());
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
     }
-    public IndexColumn(Connection connection,
-                       TableBase table,
-                       boolean ascending,
-                       String name,
-                       int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
-    {
-        super(m_name, m_services, connection, table, name, position);
-        m_IsAscending = ascending;
-        registerProperties();
-    }
-    public IndexColumn(Connection connection,
-                       java.sql.ResultSet result,
-                       String name,
-                       int position)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, result, name, position);
-        registerProperties();
-    }*/
+
 
 }

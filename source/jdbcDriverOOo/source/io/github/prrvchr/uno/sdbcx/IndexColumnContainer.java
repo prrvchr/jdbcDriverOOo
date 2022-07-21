@@ -50,7 +50,6 @@ public class IndexColumnContainer
     {
         super(lock, true, columns);
         m_index = index;
-
         System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
     }
 
@@ -93,10 +92,10 @@ public class IndexColumnContainer
                     int dec = result.getInt(9);
                     int nul = result.getInt(11);
                     String columnDef = result.getString(13);
-                    
-                    index = new IndexColumn(isCaseSensitive(), name, typeName, columnDef, "",
-                            nul, size, dec, dataType, false, false, false, isAscending);
-                    System.out.println("sdbcx.IndexColumnContainer._createElement() 5");
+                    index = new IndexColumn(isCaseSensitive(), m_index.getTable().m_CatalogName,
+                                            m_index.getTable().m_SchemaName, table, name, typeName, columnDef,
+                                            "", nul, size, dec, dataType, false, false, false, isAscending);
+                    System.out.println("sdbcx.IndexColumnContainer._createElement() 6");
                     break;
                 }
             }
@@ -105,20 +104,22 @@ public class IndexColumnContainer
         catch (java.sql.SQLException e) {
             UnoHelper.getSQLException(e, this);
         }
-        System.out.println("sdbcx.IndexColumnContainer._createElement() 5");
+        System.out.println("sdbcx.IndexColumnContainer._createElement() 7");
         return index;
     }
 
     @Override
     protected void _refresh() {
+        System.out.println("sdbcx.IndexColumnContainer._refresh() *********************************");
         // FIXME
     }
 
     @Override
     protected IndexColumn _appendElement(XPropertySet descriptor,
-                                          String name)
+                                         String name)
         throws SQLException
     {
+        System.out.println("sdbcx.IndexColumnContainer._appendElement() *********************************");
         throw new SQLException("Unsupported");
     }
 
@@ -127,6 +128,7 @@ public class IndexColumnContainer
                                   String name)
         throws SQLException
     {
+        System.out.println("sdbcx.IndexColumnContainer._removeElement() *********************************");
         throw new SQLException("Unsupported");
     }
 
@@ -134,48 +136,6 @@ public class IndexColumnContainer
     {
         return m_index.getTable().getTables().getConnection();
     }
-
-
-/*    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Index()
-    public IndexColumnContainer(Connection connection,
-                                TableBase table,
-                                boolean ascending,
-                                String name,
-                                int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
-    {
-        super(m_name, m_services, connection);
-        System.out.println("sdbcx.IndexColumnContainer() 1");
-        m_Elements.add(new IndexColumn(m_Connection, table, ascending, name, position));
-        m_Names.add(name);
-        System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Index(ConnectionBase, XPropertySet, String)
-    public IndexColumnContainer(Connection connection,
-                                XNameAccess columns)
-        throws SQLException
-    {
-        super(m_name, m_services, connection);
-        System.out.println("sdbcx.IndexColumnContainer() 1");
-        try {
-            XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
-            System.out.println("sdbcx.IndexColumnContainer() 1");
-            int position = 1;
-            while (iter.hasMoreElements()) {
-                XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-                String name = (String) descriptor.getPropertyValue("Name");
-                IndexColumn column = new IndexColumn(m_Connection, descriptor, position++);
-                m_Elements.add(column);
-                m_Names.add(name);
-            }
-        }
-        catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
-            UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
-    }*/
 
 
 }
