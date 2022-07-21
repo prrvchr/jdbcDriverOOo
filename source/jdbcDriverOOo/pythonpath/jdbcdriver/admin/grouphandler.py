@@ -43,21 +43,15 @@ class DialogHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'SetUser':
+            if method == 'SetGroup':
                 if self._manager.isHandlerEnabled():
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
-            elif method == 'AddUser':
-                if self._manager.isHandlerEnabled():
-                    pass
+            elif method == 'AddGroup':
                 handled = True
-            elif method == 'SetPassword':
-                if self._manager.isHandlerEnabled():
-                    pass
+            elif method == 'SetUsers':
                 handled = True
-            elif method == 'DropUser':
-                if self._manager.isHandlerEnabled():
-                    pass
+            elif method == 'DropGroup':
                 handled = True
             elif method == 'SetPrivileges':
                 self._manager.setPrivileges()
@@ -68,9 +62,9 @@ class DialogHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetUser',
-                'AddUser',
-                'SetPassword',
-                'DropUser',
+        return ('SetGroup',
+                'AddGroup',
+                'SetUsers',
+                'DropGroup',
                 'SetPrivileges')
 

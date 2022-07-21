@@ -27,49 +27,18 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
-from com.sun.star.sdbcx.Privilege import SELECT
-from com.sun.star.sdbcx.Privilege import INSERT
-from com.sun.star.sdbcx.Privilege import UPDATE
-from com.sun.star.sdbcx.Privilege import DELETE
-from com.sun.star.sdbcx.Privilege import READ
-from com.sun.star.sdbcx.Privilege import CREATE
-from com.sun.star.sdbcx.Privilege import ALTER
-from com.sun.star.sdbcx.Privilege import REFERENCE
-from com.sun.star.sdbcx.Privilege import DROP
-
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
-from .user import UserModel
-from .user import DialogHandler
-from .user import UserView
-from .griddata import GridData
-from .gridlistener import GridListener
-from .privilegeview import PrivilegeView
-
 from .adminmanager import AdminManager
 
-from jdbcdriver import getMessage
-from jdbcdriver import logMessage
-from jdbcdriver import getDialog
-from jdbcdriver import g_extension
+from .userhandler import DialogHandler
 
 import traceback
 
 
 class UserManager(AdminManager):
     def __init__(self, ctx, connection, parent):
-        super(UserManager, self).__init__(ctx)
+        name = connection.getMetaData().getUserName()
         users = connection.getUsers()
         tables = connection.getTables()
-        data = GridData(ctx, users, tables.getElementNames(), self._flags)
-        name = connection.getMetaData().getUserName()
-        self._model = UserModel(ctx, users.getByName(name), users, tables, data, self._flags)
-        self._view = UserView(ctx, DialogHandler(self), parent)
-        self._view.init(*self._model.getInitData(), GridListener(self))
+        user = users.getByName(name)
+        super(UserManager, self).__init__(ctx, tables, users, user, 'UsersDialog', DialogHandler(self), parent)
 

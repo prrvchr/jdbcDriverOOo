@@ -45,18 +45,24 @@ from com.sun.star.sdbcx.Privilege import DROP
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
+from .griddata import GridData
+from .adminmodel import AdminModel
+from .adminview import AdminView
+from .gridlistener import GridListener
 from .privilegeview import PrivilegeView
 
 import traceback
 
 
 class AdminManager(unohelper.Base):
-    def __init__(self, ctx):
+    def __init__(self, ctx, tables, grantees, user, dlg, handler, parent):
         self._ctx = ctx
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
+        data = GridData(ctx, grantees, tables.getElementNames(), self._flags)
+        self._model = AdminModel(ctx, user, grantees, tables, data, self._flags)
         self._disabled = True
-        self._model = None
-        self._view = None
+        self._view = AdminView(ctx, dlg, handler, parent)
+        self._view.init(*self._model.getInitData(), GridListener(self))
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):

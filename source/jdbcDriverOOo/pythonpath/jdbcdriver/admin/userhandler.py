@@ -27,12 +27,44 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...admin import AdminModel
+import unohelper
+
+from com.sun.star.awt import XDialogEventHandler
 
 import traceback
 
 
-class GroupModel(AdminModel):
-    def __init__(self, ctx, user, groups, tables, data, flags):
-        super(GroupModel, self).__init__(ctx, user, groups, tables, data, flags)
+class DialogHandler(unohelper.Base,
+                    XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetUser':
+                if self._manager.isHandlerEnabled():
+                    self._manager.setGrantee(event.Source.getSelectedItem())
+                handled = True
+            elif method == 'AddUser':
+                handled = True
+            elif method == 'SetPassword':
+                handled = True
+            elif method == 'DropUser':
+                handled = True
+            elif method == 'SetPrivileges':
+                self._manager.setPrivileges()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('SetUser',
+                'AddUser',
+                'SetPassword',
+                'DropUser',
+                'SetPrivileges')
 
