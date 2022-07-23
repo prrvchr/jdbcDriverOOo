@@ -52,6 +52,7 @@ class DialogHandler(unohelper.Base,
             elif method == 'SetPassword':
                 handled = True
             elif method == 'DropUser':
+                self._manager.dropUser()
                 handled = True
             elif method == 'SetPrivileges':
                 self._manager.setPrivileges()

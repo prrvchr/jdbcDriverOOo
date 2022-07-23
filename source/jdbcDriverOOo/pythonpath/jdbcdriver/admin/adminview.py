@@ -50,6 +50,9 @@ class AdminView(unohelper.Base):
     def execute(self):
         return self._dialog.execute()
 
+    def dispose(self):
+        return self._dialog.dispose()
+
     def enableButton(self):
         self._getSetGrantee().Model.Enabled = True
         self._getDropGrantee().Model.Enabled = True
@@ -66,6 +69,9 @@ class AdminView(unohelper.Base):
 
     def getSelectedGrantee(self):
         return self._getGrantees().getSelectedItem()
+
+    def getDropGranteeInfo(self):
+        return self.getSelectedGrantee(), self._dialog.getPeer()
 
     def _createGrid(self, model, columns):
         grid = self._dialog.Model.createInstance("com.sun.star.awt.grid.UnoControlGridModel")

@@ -53,9 +53,13 @@ class AdminModel(unohelper.Base):
         self._grantees = grantees
         self._tables = tables
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._resources = {'TableHeader': 'GroupsDialog.Label2.Label',
-                           'PrivilegeHeader': 'PrivilegesDialog.CheckBox%s.Label',
-                           'PrivilegeTitle' : 'PrivilegesDialog.Title'}
+        self._resources = {'TableHeader'      : 'GroupsDialog.Label2.Label',
+                           'PrivilegeHeader'  : 'PrivilegesDialog.CheckBox%s.Label',
+                           'PrivilegeTitle'   : 'PrivilegesDialog.Title',
+                           'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
+                           'DropGroupMessage' : 'MessageBox.DropGroup.Message',
+                           'DropUserTitle'    : 'MessageBox.DropUser.Title',
+                           'DropUserMessage'  : 'MessageBox.DropUser.Message'}
         self._data = data
         self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
         self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, True, LEFT))
@@ -73,6 +77,15 @@ class AdminModel(unohelper.Base):
 
     def getInitData(self):
         return self._data, self._column, self._grantees.getElementNames()
+
+    def getDropGroupInfo(self, group):
+        return self._getDropGroupMessage(group), self._getDropGroupTitle()
+
+    def getDropUserInfo(self, user):
+        return self._getDropUserMessage(user), self._getDropUserTitle()
+
+    def dropGrantee(self, grantee):
+        print("AdminModel.dropGrantee() %s" % grantee)
 
     def setGrantee(self, grantee):
         self._data.setRole(grantee)
@@ -118,4 +131,19 @@ class AdminModel(unohelper.Base):
         resource = self._resources.get('PrivilegeTitle')
         return self._resolver.resolveString(resource) % table
 
+    def _getDropGroupTitle(self):
+        resource = self._resources.get('DropGroupTitle')
+        return self._resolver.resolveString(resource)
+
+    def _getDropUserTitle(self):
+        resource = self._resources.get('DropUserTitle')
+        return self._resolver.resolveString(resource)
+
+    def _getDropGroupMessage(self, group):
+        resource = self._resources.get('DropGroupMessage')
+        return self._resolver.resolveString(resource) % group
+    
+    def _getDropUserMessage(self, user):
+        resource = self._resources.get('DropUserMessage')
+        return self._resolver.resolveString(resource) % user
 

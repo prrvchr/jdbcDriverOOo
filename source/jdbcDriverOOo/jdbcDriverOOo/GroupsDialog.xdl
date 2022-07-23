@@ -23,7 +23,6 @@
     <dlg:button dlg:id="CommandButton4" dlg:tab-index="8" dlg:disabled="true" dlg:left="10" dlg:top="240" dlg:width="90" dlg:height="15" dlg:help-text="&amp;GroupsDialog.CommandButton4.HelpText" dlg:value="&amp;GroupsDialog.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetPrivileges" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton5" dlg:tab-index="9" dlg:left="175" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;GroupsDialog.CommandButton5.HelpText" dlg:value="&amp;GroupsDialog.CommandButton5.Label" dlg:button-type="cancel"/>
-    <dlg:button dlg:id="CommandButton6" dlg:tab-index="10" dlg:left="230" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;GroupsDialog.CommandButton6.HelpText" dlg:default="true" dlg:value="&amp;GroupsDialog.CommandButton6.Label" dlg:button-type="ok"/>
+    <dlg:button dlg:id="CommandButton5" dlg:tab-index="9" dlg:left="230" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;GroupsDialog.CommandButton5.HelpText" dlg:value="&amp;GroupsDialog.CommandButton5.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>

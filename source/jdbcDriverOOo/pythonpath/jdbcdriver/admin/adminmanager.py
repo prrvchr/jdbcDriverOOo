@@ -51,6 +51,8 @@ from .adminview import AdminView
 from .gridlistener import GridListener
 from .privilegeview import PrivilegeView
 
+from jdbcdriver import createMessageBox
+
 import traceback
 
 
@@ -75,6 +77,23 @@ class AdminManager(unohelper.Base):
 
     def execute(self):
         return self._view.execute()
+
+    def dispose(self):
+        self._view.dispose()
+
+    def dropGroup(self):
+        grantee, peer = self._view.getDropGranteeInfo()
+        self._dropGrantee(grantee, peer, *self._model.getDropGroupInfo(grantee))
+
+    def dropUser(self):
+        grantee, peer = self._view.getDropGranteeInfo()
+        self._dropGrantee(grantee, peer, *self._model.getDropUserInfo(grantee))
+
+    def _dropGrantee(self, grantee, peer, message, title):
+        dialog = createMessageBox(peer, message, title, 'query')
+        if dialog.execute() == OK:
+            self._model.dropGrantee(grantee)
+        dialog.dispose()
 
     def setGrantee(self, grantee):
         self._model.setGrantee(grantee)

@@ -45,7 +45,12 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .admin import UserManager
 from .admin import GroupManager
 
+from jdbcdriver import createMessageBox
 from jdbcdriver import createService
+from jdbcdriver import hasInterface
+from jdbcdriver import getStringResource
+from jdbcdriver import g_extension
+from jdbcdriver import g_identifier
 
 import traceback
 
@@ -57,7 +62,6 @@ class AdminDispatch(unohelper.Base,
         self._frame = frame
         self._listeners = []
 
-
 # XNotifyingDispatch
     def dispatchWithNotification(self, url, arguments, listener):
         state, result = self.dispatch(url, arguments)
@@ -68,10 +72,21 @@ class AdminDispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        if url.Path == 'users':
-            state, result = self._showUser(arguments)
+        users = "com.sun.star.sdbcx.XUsersSupplier"
+        groups = "com.sun.star.sdbcx.XGroupsSupplier"
+        parent = self._frame.getContainerWindow()
+        close, connection = self._getConnection()
+        if not hasInterface(connection, users) or not hasInterface(connection, groups):
+            resolver = getStringResource(self._ctx, g_identifier, g_extension)
+            dialog = createMessageBox(parent, self._getAdminMessage(resolver), self._getAdminTitle(resolver), 'error')
+            dialog.execute()
+            dialog.dispose()
+        elif url.Path == 'users':
+            state, result = self._showUser(connection, parent)
         elif url.Path == 'groups':
-            state, result = self._showGroup(arguments)
+            state, result = self._showGroup(connection, parent)
+        if close:
+            connection.close()
         return state, result
 
     def addStatusListener(self, listener, url):
@@ -87,76 +102,42 @@ class AdminDispatch(unohelper.Base,
             self._listeners.remove(listener)
 
 # AdminDispatch private methods
-    #Users methods
-    def _showUser(self, arguments):
+    def _showUser(self, connection, parent):
         state = FAILURE
         try:
-            print("AdminDispatch._showUser() 1")
-            close = False
-            connection = self._frame.Controller.ActiveConnection
-            if connection is None:
-                print("AdminDispatch._showUser() 2")
-                datasource = self._frame.Controller.DataSource
-                connection = datasource.getConnection(datasource.User, datasource.Password)
-                close = True
-            print("AdminDispatch._showUser() 3")
-            manager = UserManager(self._ctx, connection, self._frame.getContainerWindow())
-            print("AdminDispatch._showUser() 4")
-            if manager.execute() == OK:
-                print("AdminDispatch._showUser() 5")
-                state = SUCCESS
-                pass
-            #mri = createService(self._ctx, 'mytools.Mri')
-            #mri.inspect(connection)
-            if close:
-                print("AdminDispatch._showGroup() 6")
-                connection.close()
-            print("AdminDispatch._showGroup() 7")
+            manager = UserManager(self._ctx, connection, parent)
+            manager.execute()
+            state = SUCCESS
+            manager.dispose()
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
         return state, None
 
-    #Groups methods
-    def _showGroup(self, arguments):
+    def _showGroup(self, connection, parent):
         state = FAILURE
         try:
-            print("AdminDispatch._showGroup() 1")
-            close = False
-            connection = self._frame.Controller.ActiveConnection
-            if connection is None:
-                print("AdminDispatch._showGroup() 2")
-                datasource = self._frame.Controller.DataSource
-                connection = datasource.getConnection(datasource.User, datasource.Password)
-                close = True
-            print("AdminDispatch._showGroup() 3")
-            manager = GroupManager(self._ctx, connection, self._frame.getContainerWindow())
-            print("AdminDispatch._showGroup() 4")
-            if manager.execute() == OK:
-                print("AdminDispatch._showGroup() 5")
-                state = SUCCESS
-                pass
-            #mri = createService(self._ctx, 'mytools.Mri')
-            #mri.inspect(connection)
-            if close:
-                print("AdminDispatch._showGroup() 6")
-                connection.close()
-            print("AdminDispatch._showGroup() 7")
+            manager = GroupManager(self._ctx, connection, parent)
+            manager.execute()
+            state = SUCCESS
+            manager.dispose()
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
         return state, None
 
-    def _getConnection(self, controller):
-        print("AdminDispatch._getConnection() 1")
+    def _getConnection(self):
         close = False
-        print("AdminDispatch._getConnection() 2")
-        connection = controller.ActiveConnection
+        connection = self._frame.Controller.ActiveConnection
         if connection is None:
-            print("AdminDispatch._getConnection() 3")
-            datasource = controller.DataSource
+            datasource = self._frame.Controller.DataSource
             connection = datasource.getConnection(datasource.User, datasource.Password)
             close = True
-        print("AdminDispatch._getConnection() 4")
         return close, connection
+
+    def _getAdminTitle(self, resolver):
+        return resolver.resolveString('MessageBox.Admin.Title')
+
+    def _getAdminMessage(self, resolver):
+        return resolver.resolveString('MessageBox.Admin.Message')
 

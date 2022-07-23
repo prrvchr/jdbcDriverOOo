@@ -35,6 +35,7 @@ from .dbconfig import g_folder
 from .dbconfig import g_protocol
 from .dbconfig import g_jar
 
+from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import getContainerWindow
 from .unotool import getDialog
@@ -47,6 +48,7 @@ from .unotool import getSimpleFile
 from .unotool import getStringResource
 from .unotool import getUrl
 from .unotool import getUrlTransformer
+from .unotool import hasInterface
 from .unotool import parseUrl
 
 from .logger import clearLogger
