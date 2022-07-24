@@ -70,8 +70,8 @@ class AdminView(unohelper.Base):
     def getSelectedGrantee(self):
         return self._getGrantees().getSelectedItem()
 
-    def getDropGranteeInfo(self):
-        return self.getSelectedGrantee(), self._dialog.getPeer()
+    def getPeer(self):
+        return self._dialog.getPeer()
 
     def _createGrid(self, model, columns):
         grid = self._dialog.Model.createInstance("com.sun.star.awt.grid.UnoControlGridModel")

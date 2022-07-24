@@ -48,6 +48,7 @@ class DialogHandler(unohelper.Base,
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
             elif method == 'AddUser':
+                self._manager.addUser()
                 handled = True
             elif method == 'SetPassword':
                 handled = True

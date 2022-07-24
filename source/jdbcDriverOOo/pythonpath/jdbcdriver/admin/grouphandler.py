@@ -48,6 +48,7 @@ class DialogHandler(unohelper.Base,
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
             elif method == 'AddGroup':
+                self._manager.addGroup()
                 handled = True
             elif method == 'SetUsers':
                 handled = True

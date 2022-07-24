@@ -50,6 +50,9 @@ from .adminmodel import AdminModel
 from .adminview import AdminView
 from .gridlistener import GridListener
 from .privilegeview import PrivilegeView
+from .addview import AddView
+from .addhandler import GroupHandler
+from .addhandler import UserHandler
 
 from jdbcdriver import createMessageBox
 
@@ -81,12 +84,27 @@ class AdminManager(unohelper.Base):
     def dispose(self):
         self._view.dispose()
 
+    def addGroup(self):
+        self._addGrantee('AddGroupDialog.xdl', GroupHandler(self))
+
+    def addUser(self):
+        self._addGrantee('AddUserDialog.xdl', UserHandler(self))
+
+    def _addGrantee(self, xdl, handler):
+        peer = self._view.getPeer()
+        dialog = AddView(self._ctx, xdl, handler, peer)
+        if dialog.execute() == OK:
+            self._model.addGrantee(dialog.getGrantee())
+        dialog.dispose()
+
     def dropGroup(self):
-        grantee, peer = self._view.getDropGranteeInfo()
+        peer = self._view.getPeer()
+        grantee = self._view.getSelectedGrantee()
         self._dropGrantee(grantee, peer, *self._model.getDropGroupInfo(grantee))
 
     def dropUser(self):
-        grantee, peer = self._view.getDropGranteeInfo()
+        peer = self._view.getPeer()
+        grantee = self._view.getSelectedGrantee()
         self._dropGrantee(grantee, peer, *self._model.getDropUserInfo(grantee))
 
     def _dropGrantee(self, grantee, peer, message, title):

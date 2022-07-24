@@ -84,6 +84,9 @@ class AdminModel(unohelper.Base):
     def getDropUserInfo(self, user):
         return self._getDropUserMessage(user), self._getDropUserTitle()
 
+    def addGrantee(self, grantee):
+        print("AdminModel.addGrantee() %s" % grantee)
+
     def dropGrantee(self, grantee):
         print("AdminModel.dropGrantee() %s" % grantee)
 
