@@ -33,9 +33,9 @@ from jdbcdriver import getDialog
 from jdbcdriver import g_extension
 
 
-class AddView(unohelper.Base):
-    def __init__(self, ctx, xdl, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+class UserView(unohelper.Base):
+    def __init__(self, ctx, handler, parent):
+        self._dialog = getDialog(ctx, g_extension, 'SetUserDialog.xdl', handler, parent)
 
     def execute(self):
         return self._dialog.execute()
@@ -43,12 +43,27 @@ class AddView(unohelper.Base):
     def dispose(self):
         return self._dialog.dispose()
 
-    def getGrantee(self):
-        return self._getName().Text
+    def getPassword(self):
+        return self._getPassword().Text
 
-    def _getName(self):
-        return self._dialog.getControl('TextField1')
+    def getConfirmation(self):
+        return self._getConfirmation().Text
+
+    def enableOk(self, enabled):
+        self._getOk().Model.Enabled = enabled
+
+    def enableConfirmation(self, enabled):
+        control = self._getConfirmation()
+        control.Model.Enabled = enabled
+        if not enabled:
+            control.Text = ""
 
     def _getPassword(self):
+        return self._dialog.getControl('TextField1')
+
+    def _getConfirmation(self):
         return self._dialog.getControl('TextField2')
+
+    def _getOk(self):
+        return self._dialog.getControl('CommandButton2')
 

@@ -36,8 +36,8 @@ from jdbcdriver import g_extension
 
 
 class AdminView(unohelper.Base):
-    def __init__(self, ctx, dlg, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, dlg, handler, parent)
+    def __init__(self, ctx, xdl, handler, parent):
+        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
 
     def init(self, model, columns, grantees, listener):
         self._createGrid(model, columns)

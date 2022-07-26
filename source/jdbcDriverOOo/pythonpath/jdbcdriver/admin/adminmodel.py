@@ -84,11 +84,27 @@ class AdminModel(unohelper.Base):
     def getDropUserInfo(self, user):
         return self._getDropUserMessage(user), self._getDropUserTitle()
 
+    def isNameValid(self, name):
+        return len(name) and name not in self._grantees.getElementNames()
+
+    def isUserValid(self, user, pwd, confirmation):
+        return self.isNameValid(user) and self.isPasswordConfirmed(pwd, confirmation)
+
+    def isPasswordValid(self, pwd):
+        return len(pwd)
+
+    def isPasswordConfirmed(self, pwd, confirmation):
+        return pwd == confirmation
+
+
     def addGrantee(self, grantee):
         print("AdminModel.addGrantee() %s" % grantee)
 
     def dropGrantee(self, grantee):
         print("AdminModel.dropGrantee() %s" % grantee)
+
+    def setUserPassword(self, pwd):
+        print("AdminModel.setUserPassword() %s" % pwd)
 
     def setGrantee(self, grantee):
         self._data.setRole(grantee)

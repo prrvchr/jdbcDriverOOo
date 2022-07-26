@@ -43,14 +43,15 @@ class DialogHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'SetUser':
+            if method == 'SetGrantee':
                 if self._manager.isHandlerEnabled():
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
             elif method == 'AddUser':
                 self._manager.addUser()
                 handled = True
-            elif method == 'SetPassword':
+            elif method == 'ChangePassword':
+                self._manager.changePassword()
                 handled = True
             elif method == 'DropUser':
                 self._manager.dropUser()
@@ -64,9 +65,64 @@ class DialogHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetUser',
+        return ('SetGrantee',
                 'AddUser',
-                'SetPassword',
+                'ChangePassword',
                 'DropUser',
                 'SetPrivileges')
+
+
+class AddUserHandler(unohelper.Base,
+                     XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetUser':
+                self._manager.setUser(event.Source.Text)
+                handled = True
+            elif method == 'SetPassword':
+                self._manager.setUserPassword(event.Source.Text)
+                handled = True
+            elif method == 'SetConfirmation':
+                self._manager.setUserPasswordConfirmation(event.Source.Text)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('SetUser',
+                'SetPassword',
+                'SetConfirmation')
+
+
+class ChangePasswordHandler(unohelper.Base,
+                            XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetPassword':
+                self._manager.setPassword(event.Source.Text)
+                handled = True
+            elif method == 'SetConfirmation':
+                self._manager.setPasswordConfirmation(event.Source.Text)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('SetPassword',
+                'SetConfirmation')
+
 

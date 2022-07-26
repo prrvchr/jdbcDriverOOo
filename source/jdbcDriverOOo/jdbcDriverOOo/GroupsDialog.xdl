@@ -8,7 +8,7 @@
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="5" dlg:top="3" dlg:width="270" dlg:height="14" dlg:help-text="&amp;GroupsDialog.FixedLine1.HelpText" dlg:value="&amp;GroupsDialog.FixedLine1.Label"/>
     <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="50" dlg:height="15" dlg:help-text="&amp;GroupsDialog.Label1.HelpText" dlg:value="&amp;GroupsDialog.Label1.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="155" dlg:top="20" dlg:width="120" dlg:height="13" dlg:help-text="&amp;GroupsDialog.ListBox1.HelpText" dlg:value="&amp;GroupsDialog.ListBox1.Text" dlg:spin="true">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGroup" script:language="UNO"/>
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGrantee" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="10" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;GroupsDialog.CommandButton1.HelpText" dlg:value="&amp;GroupsDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddGroup" script:language="UNO"/>

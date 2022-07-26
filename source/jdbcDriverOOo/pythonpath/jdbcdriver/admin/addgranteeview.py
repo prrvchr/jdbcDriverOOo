@@ -29,50 +29,48 @@
 
 import unohelper
 
-from com.sun.star.awt import XDialogEventHandler
-
-import traceback
-
-
-class GroupHandler(unohelper.Base,
-                   XDialogEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # com.sun.star.awt.XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        try:
-            handled = False
-            if method == 'SetName':
-                self._manager.setName(event.Source.Text)
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ('SetName', )
+from jdbcdriver import getDialog
+from jdbcdriver import g_extension
 
 
-class UserHandler(unohelper.Base,
-                  XDialogEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
+class AddGranteeView(unohelper.Base):
+    def __init__(self, ctx, xdl, handler, parent):
+        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
 
-    # com.sun.star.awt.XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        try:
-            handled = False
-            if method == 'SetName':
-                self._manager.setName(event.Source.Text)
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
+    def execute(self):
+        return self._dialog.execute()
 
-    def getSupportedMethodNames(self):
-        return ('SetName', )
+    def dispose(self):
+        return self._dialog.dispose()
 
+    def getGrantee(self):
+        return self._getName().Text
+
+    def getPassword(self):
+        return self._getPassword().Text
+
+    def getConfirmation(self):
+        return self._getConfirmation().Text
+
+    def enableOk(self, enabled):
+        self._getOk().Model.Enabled = enabled
+        print("AddGranteeView.enableAdd() %s" % enabled)
+
+    def enableConfirmation(self, enabled):
+        control = self._getConfirmation()
+        control.Model.Enabled = enabled
+        if not enabled:
+            control.Text = ""
+
+    def _getName(self):
+        return self._dialog.getControl('TextField1')
+
+    def _getPassword(self):
+        return self._dialog.getControl('TextField2')
+
+    def _getConfirmation(self):
+        return self._dialog.getControl('TextField3')
+
+    def _getOk(self):
+        return self._dialog.getControl('CommandButton2')
 

@@ -43,7 +43,7 @@ class DialogHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'SetGroup':
+            if method == 'SetGrantee':
                 if self._manager.isHandlerEnabled():
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
@@ -51,6 +51,7 @@ class DialogHandler(unohelper.Base,
                 self._manager.addGroup()
                 handled = True
             elif method == 'SetUsers':
+                self._manager.setUsers()
                 handled = True
             elif method == 'DropGroup':
                 self._manager.dropGroup()
@@ -64,9 +65,52 @@ class DialogHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetGroup',
+        return ('SetGrantee',
                 'AddGroup',
                 'SetUsers',
                 'DropGroup',
                 'SetPrivileges')
+
+
+class AddGroupHandler(unohelper.Base,
+                      XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetGroup':
+                self._manager.setGroup(event.Source.Text)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('SetGroup', )
+
+
+class SetGroupHandler(unohelper.Base,
+                      XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetGroup':
+                self._manager.setGroup(event.Source.Text)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('SetGroup', )
+
 
