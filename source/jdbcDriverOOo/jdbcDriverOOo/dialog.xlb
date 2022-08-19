@@ -6,9 +6,9 @@
   <library:element library:name="OptionsDialog"/>
   <library:element library:name="UsersDialog"/>
   <library:element library:name="GroupsDialog"/>
-  <library:element library:name="AddUserDialog"/>
-  <library:element library:name="AddGroupDialog"/>
+  <library:element library:name="NewUserDialog"/>
+  <library:element library:name="NewGroupDialog"/>
   <library:element library:name="SetUserDialog"/>
-  <library:element library:name="SetGroupDialog"/>
+  <library:element library:name="AddUserDialog"/>
   <library:element library:name="PrivilegesDialog"/>
 </library:library>

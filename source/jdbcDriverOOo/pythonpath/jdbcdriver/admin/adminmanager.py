@@ -50,11 +50,13 @@ from .adminmodel import AdminModel
 from .adminview import AdminView
 from .gridlistener import GridListener
 from .privilegeview import PrivilegeView
-from .addgranteeview import AddGranteeView
-from .grouphandler import AddGroupHandler
+from .granteeview import GranteeView
+from .adduserview import AddUserView
+from .grouphandler import NewGroupHandler
 from .grouphandler import SetGroupHandler
-from .userhandler import AddUserHandler
+from .userhandler import NewUserHandler
 from .userhandler import ChangePasswordHandler
+from .userhandler import AddUserHandler
 from .userview import UserView
 
 from jdbcdriver import createMessageBox
@@ -63,11 +65,11 @@ import traceback
 
 
 class AdminManager(unohelper.Base):
-    def __init__(self, ctx, tables, grantees, user, xdl, handler, parent):
+    def __init__(self, ctx, tables, user, users, grantees, xdl, handler, parent):
         self._ctx = ctx
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
         data = GridData(ctx, grantees, tables.getElementNames(), self._flags)
-        self._model = AdminModel(ctx, user, grantees, tables, data, self._flags)
+        self._model = AdminModel(ctx, user, users, grantees, tables, data, self._flags)
         self._dialog = None
         self._disabled = True
         self._view = AdminView(ctx, xdl, handler, parent)
@@ -95,14 +97,14 @@ class AdminManager(unohelper.Base):
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
 
-    def addGroup(self):
-        self._addGrantee('AddGroupDialog', AddGroupHandler(self))
+    def createGroup(self):
+        self._createGrantee('NewGroupDialog', NewGroupHandler(self))
 
-    def addUser(self):
-        self._addGrantee('AddUserDialog', AddUserHandler(self))
+    def createUser(self):
+        self._createGrantee('NewUserDialog', NewUserHandler(self))
 
-    def _addGrantee(self, xdl, handler):
-        self._dialog = AddGranteeView(self._ctx, xdl, handler, self._view.getPeer())
+    def _createGrantee(self, xdl, handler):
+        self._dialog = GranteeView(self._ctx, xdl, handler, self._view.getPeer())
         if self._dialog.execute() == OK:
             self._model.addGrantee(self._dialog.getGrantee())
         self._dialog.dispose()
@@ -127,8 +129,42 @@ class AdminManager(unohelper.Base):
         pwd = self._dialog.getPassword()
         self._dialog.enableOk(self._model.isUserValid(user, pwd, confirmation))
 
+
     def setUsers(self):
-        print("AdminManager.setUsers()")
+        print("AdminManager.setUsers() 1")
+        group = self._view.getSelectedGrantee()
+        members = self._model.getMembers(group)
+        users = self._model.getUsers(members)
+        title = self._model.getTitle(group)
+        self._dialog = AddUserView(self._ctx, AddUserHandler(self), self._view.getPeer(), title, members, users)
+        if self._dialog.execute() == OK:
+            self._model.setUsers(group, self._dialog.getUsers())
+        self._dialog.dispose()
+        self._dialog = None
+        print("AdminManager.setUsers() 2")
+
+    def toogleRemoveUser(self, enabled):
+        self._dialog.toogleRemoveUser(enabled)
+        print("AdminManager.toogleRemoveUser()")
+
+    def removeUser(self):
+        self._dialog.removeUser()
+        self._toogleOk()
+        print("AdminManager.removeUser()")
+
+    def toogleAddUser(self, enabled):
+        self._dialog.toogleAddUser(enabled)
+        print("AdminManager.toogleAddUser()")
+
+    def addUser(self):
+        self._dialog.addUser()
+        self._toogleOk()
+        print("AdminManager.addUser()")
+
+    def _toogleOk(self):
+        name = self._view.getSelectedGrantee()
+        enabled = self._model.isMemberModifed(name, self._dialog.getUsers())
+        self._dialog.enableOk(enabled)
 
     def changePassword(self):
         peer = self._view.getPeer()

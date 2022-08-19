@@ -47,8 +47,8 @@ class DialogHandler(unohelper.Base,
                 if self._manager.isHandlerEnabled():
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
-            elif method == 'AddGroup':
-                self._manager.addGroup()
+            elif method == 'NewGroup':
+                self._manager.createGroup()
                 handled = True
             elif method == 'SetUsers':
                 self._manager.setUsers()
@@ -66,13 +66,13 @@ class DialogHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('SetGrantee',
-                'AddGroup',
+                'NewGroup',
                 'SetUsers',
                 'DropGroup',
                 'SetPrivileges')
 
 
-class AddGroupHandler(unohelper.Base,
+class NewGroupHandler(unohelper.Base,
                       XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager

@@ -48,8 +48,9 @@ import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, ctx, user, grantees, tables, data, flags):
+    def __init__(self, ctx, user, users, grantees, tables, data, flags):
         self._user = user
+        self._users = users
         self._grantees = grantees
         self._tables = tables
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
@@ -59,7 +60,8 @@ class AdminModel(unohelper.Base):
                            'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
                            'DropGroupMessage' : 'MessageBox.DropGroup.Message',
                            'DropUserTitle'    : 'MessageBox.DropUser.Title',
-                           'DropUserMessage'  : 'MessageBox.DropUser.Message'}
+                           'DropUserMessage'  : 'MessageBox.DropUser.Message',
+                           'AddUserTitle'     : 'AddUserDialog.Title'}
         self._data = data
         self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
         self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, True, LEFT))
@@ -96,9 +98,32 @@ class AdminModel(unohelper.Base):
     def isPasswordConfirmed(self, pwd, confirmation):
         return pwd == confirmation
 
-
     def addGrantee(self, grantee):
         print("AdminModel.addGrantee() %s" % grantee)
+
+    def getMembers(self, name):
+        group = self._grantees.getByName(name)
+        return group.getUsers().getElementNames()
+
+    def getTitle(self, group):
+        return self._getAddUserTitle(group)
+
+    def isMemberModifed(self, name, users):
+        members = self.getMembers(name)
+        for user in users:
+            if user not in members:
+                return True
+        for member in members:
+            if member not in users:
+                return True
+        return False
+
+    def getUsers(self, members):
+        users = self._users.getElementNames()
+        return (user for user in users if user not in members)
+
+    def setUsers(self, grantee, users):
+        print("AdminModel.setUsers() %s - %s" % (grantee, users))
 
     def dropGrantee(self, grantee):
         print("AdminModel.dropGrantee() %s" % grantee)
@@ -161,8 +186,13 @@ class AdminModel(unohelper.Base):
     def _getDropGroupMessage(self, group):
         resource = self._resources.get('DropGroupMessage')
         return self._resolver.resolveString(resource) % group
-    
+
     def _getDropUserMessage(self, user):
         resource = self._resources.get('DropUserMessage')
         return self._resolver.resolveString(resource) % user
+
+    def _getAddUserTitle(self, group):
+        resource = self._resources.get('AddUserTitle')
+        return self._resolver.resolveString(resource) % group
+
 

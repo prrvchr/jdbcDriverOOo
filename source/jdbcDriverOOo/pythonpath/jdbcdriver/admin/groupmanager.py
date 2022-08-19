@@ -41,5 +41,5 @@ class GroupManager(AdminManager):
         groups = connection.getGroups()
         tables = connection.getTables()
         user = users.getByName(name)
-        super(GroupManager, self).__init__(ctx, tables, groups, user, 'GroupsDialog', DialogHandler(self), parent)
+        super(GroupManager, self).__init__(ctx, tables, user, users, groups, 'GroupsDialog', DialogHandler(self), parent)
 

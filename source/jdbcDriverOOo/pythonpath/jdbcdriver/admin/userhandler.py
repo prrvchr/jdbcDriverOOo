@@ -47,8 +47,8 @@ class DialogHandler(unohelper.Base,
                 if self._manager.isHandlerEnabled():
                     self._manager.setGrantee(event.Source.getSelectedItem())
                 handled = True
-            elif method == 'AddUser':
-                self._manager.addUser()
+            elif method == 'NewUser':
+                self._manager.createUser()
                 handled = True
             elif method == 'ChangePassword':
                 self._manager.changePassword()
@@ -66,13 +66,13 @@ class DialogHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('SetGrantee',
-                'AddUser',
+                'NewUser',
                 'ChangePassword',
                 'DropUser',
                 'SetPrivileges')
 
 
-class AddUserHandler(unohelper.Base,
+class NewUserHandler(unohelper.Base,
                      XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
@@ -124,5 +124,40 @@ class ChangePasswordHandler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('SetPassword',
                 'SetConfirmation')
+
+
+class AddUserHandler(unohelper.Base,
+                     XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ToogleRemove':
+                enabled = event.Source.getSelectedItemPos() != -1
+                self._manager.toogleRemoveUser(enabled)
+                handled = True
+            elif method == 'RemoveUser':
+                self._manager.removeUser()
+                handled = True
+            elif method == 'ToogleAdd':
+                enabled = event.Source.getSelectedItemPos() != -1
+                self._manager.toogleAddUser(enabled)
+                handled = True
+            elif method == 'AddUser':
+                self._manager.addUser()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('ToogleRemove',
+                'RemoveUser',
+                'ToogleAdd',
+                'AddUser')
 
 

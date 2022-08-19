@@ -40,5 +40,5 @@ class UserManager(AdminManager):
         users = connection.getUsers()
         tables = connection.getTables()
         user = users.getByName(name)
-        super(UserManager, self).__init__(ctx, tables, users, user, 'UsersDialog', DialogHandler(self), parent)
+        super(UserManager, self).__init__(ctx, tables, user, users, users, 'UsersDialog', DialogHandler(self), parent)
 

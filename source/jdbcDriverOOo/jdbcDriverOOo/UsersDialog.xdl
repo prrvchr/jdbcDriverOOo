@@ -11,7 +11,7 @@
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGrantee" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="10" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton1.HelpText" dlg:value="&amp;UsersDialog.CommandButton1.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddUser" script:language="UNO"/>
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:NewUser" script:language="UNO"/>
     </dlg:button>
     <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:disabled="true" dlg:left="100" dlg:top="42" dlg:width="85" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton2.HelpText" dlg:value="&amp;UsersDialog.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ChangePassword" script:language="UNO"/>
