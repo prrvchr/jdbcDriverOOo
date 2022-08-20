@@ -114,7 +114,7 @@ User management of the underlying database is accessible in Base via the menu: *
 
 ![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6.png)
 
-The privileges management of the users of the underlying database is accessible in this window by the button: **Modify privileges**
+The privileges management of the users of the underlying database is accessible in this window by the button: **Change privileges**
 
 ![jdbcDriverOOo screenshot 7](img/jdbcDriverOOo-7.png)
 
