@@ -224,7 +224,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Support in Base for auto-incrementing primary keys for HsqlDB and Derby. H2 does not support yet.
 
-- Write of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the management of users and rights in Base. Its use can be requested in **Tools -> Options -> Base drivers -> JDBC Driver**. It is not finished and is not yet functional.
+- Write of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the management of users, roles and privileges in Base. Its use can be disabled via the menu: **Tools -> Options -> Base drivers -> JDBC Driver**.
 
 - Implemented a Java service provider [UnoLogger.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging) for the [SLF4J](https://www.slf4j.org/) API to be able to redirect driver logging from the underlying databases to the UNO API [com.sun.star.logging.*](https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html).
 

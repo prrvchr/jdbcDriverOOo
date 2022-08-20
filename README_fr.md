@@ -224,7 +224,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Prise en charge dans Base des clés primaires auto incrémentées pour HsqlDB et Derby. H2 ne supporte pas encore.
 
-- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs et des droits dans Base. Son utilisation peut être demandée dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC**. Il n'est pas terminé et n'est pas encore fonctionnel.
+- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs, des rôles et des privilèges dans Base. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
 
 - Implémentation d'un fournisseur de services Java [UnoLogger.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging) pour l'API [SLF4J](https://www.slf4j.org/) afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*](https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html).
 
