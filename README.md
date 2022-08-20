@@ -166,8 +166,6 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 
-For now, only the use of the SQL Array type in the queries is available.
-
 ### What has been done for version 0.0.1:
 
 - The writing of this driver was facilitated by a [discussion with Villeroy](https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912), on the OpenOffice forum, which I would like to thank, because knowledge is only worth if it is shared...
@@ -235,11 +233,14 @@ For now, only the use of the SQL Array type in the queries is available.
     - Updating and/or adding Java archives of JDBC drivers.
     - Enabling driver logging of the underlying database.
 
+- Writing, following the MVC model, [administration windows](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) for users and roles (groups) and their associated privileges, accessible in Base by: **Administration -> User administration** and/or **Administration - > Group administration**, allowing:
+
+    - Managing users and their privileges.
+    - Management of roles (groups) and their privileges.
+
 - Many other fix...
 
 ### What remains to be done for version 0.0.4:
-
-- Managing rights and users in Base in read and write mode.
 
 - Add new languages for internationalization...
 

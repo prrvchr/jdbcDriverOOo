@@ -106,7 +106,7 @@ Maintenant votre base de données est à jour.
 
 ## Amélioration dans LibreOffice/OpenOffice Base:
 
-Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateurs**, des **roles** (groupes) et de leurs **privilèges** associés de la base de données sous jacente.
+Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateurs**, des **rôles** (groupes) et de leurs **privilèges** associés de la base de données sous jacente.
 
 ### La gestion des utilisateurs et des privilèges dans Base:
 
@@ -118,9 +118,9 @@ La gestion des privilèges des utilisateurs de la base de données sous jacente 
 
 ![jdbcDriverOOo screenshot 7](img/jdbcDriverOOo-7_fr.png)
 
-### La gestion des roles (groupes) dans Base:
+### La gestion des rôles (groupes) dans Base:
 
-La gestion des roles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
+La gestion des rôles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
 
 ![jdbcDriverOOo screenshot 8](img/jdbcDriverOOo-8_fr.png)
 
@@ -165,8 +165,6 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - La gestion des droits et des utilisateurs dans Base.
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
-
-Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est disponible.
 
 ### Ce qui a été fait pour la version 0.0.1:
 
@@ -235,11 +233,14 @@ Pour l'instant, seule l'utilisation du type SQL Array dans les requêtes est dis
     - La mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
     - L'activation de la journalisation du pilote de la base de la données sous-jacente.
 
+- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) des utilisateurs et des rôles (groupes) et de leurs privileges associés, accessible dans Base par: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
+
+    - La gestion des utilisateurs et de leurs privilèges.
+    - La gestion des rôles (groupes) et de leurs privilèges.
+
 - Beaucoup d'autres correctifs...
 
 ### Que reste-t-il à faire pour la version 0.0.4:
-
-- La gestion des droits et des utilisateurs dans Base en lecture et écriture...
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
