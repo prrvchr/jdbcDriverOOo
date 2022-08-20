@@ -162,7 +162,7 @@ but uses the `jdbc:*` protocol internally to connect.
 
 It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:
 
-- The management of rights and users in Base.
+- The management of users, roles (groups) and privileges in Base.
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 

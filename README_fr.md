@@ -162,7 +162,7 @@ mais utilise le protocole `jdbc:*` en interne pour se connecter.
 
 Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice / OpenOffice ne fournit pas, à savoir:
 
-- La gestion des droits et des utilisateurs dans Base.
+- La gestion des utilisateurs, des roles (groupes) et des privilèges dans Base.
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
 
