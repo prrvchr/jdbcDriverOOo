@@ -222,21 +222,21 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Renamed the **HsqlDBDriverOOo** repository and extension to **jdbcDriverOOo**.
 
-- Support in Base for auto-incrementing primary keys for HsqlDB and Derby. H2 does not support yet.
+- Support in Base for **auto-incrementing primary keys** for HsqlDB, H2 and Derby.
 
-- Write of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the management of users, roles and privileges in Base. Its use can be disabled via the menu: **Tools -> Options -> Base drivers -> JDBC Driver**.
+- Writing of [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). This high-level driver must allow the **management of users, roles and privileges in Base**. Its use can be disabled via the menu: **Tools -> Options -> Base drivers -> JDBC Driver**.
 
 - Implemented a Java service provider [UnoLogger.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging) for the [SLF4J](https://www.slf4j.org/) API to be able to redirect driver logging from the underlying databases to the UNO API [com.sun.star.logging.*](https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html).
 
-- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/options) dialog accessible by: **Tools -> Options -> Base drivers -> JDBC Driver**, to allow:
+- Rewrite, following the MVC model, of the [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/options) dialog accessible via the menu: **Tools -> Options -> Base drivers -> JDBC Driver**, to allow:
 
     - Updating and/or adding Java archives of JDBC drivers.
     - Enabling driver logging of the underlying database.
 
-- Writing, following the MVC model, [administration windows](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) for users and roles (groups) and their associated privileges, accessible in Base by: **Administration -> User administration** and/or **Administration - > Group administration**, allowing:
+- Writing, following the MVC model, [administration windows](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) for users and roles (groups) and their associated privileges, accessible in Base via the menu: **Administration -> User administration** and/or **Administration - > Group administration**, allowing:
 
-    - Managing users and their privileges.
-    - Management of roles (groups) and their privileges.
+    - **Management of users** and their privileges.
+    - **Management of roles** (groups) and their privileges.
 
 - Many other fix...
 

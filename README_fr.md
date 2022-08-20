@@ -222,21 +222,21 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Renommage du dépot et de l'extension **HsqlDBDriverOOo** en **jdbcDriverOOo**.
 
-- Prise en charge dans Base des clés primaires auto incrémentées pour HsqlDB et Derby. H2 ne supporte pas encore.
+- Prise en charge dans Base des **clés primaires auto incrémentées** pour HsqlDB, H2 et Derby.
 
-- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la gestion des utilisateurs, des rôles et des privilèges dans Base. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
+- Ecriture de [com.sun.star.sdbcx.Driver](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java). Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
 
 - Implémentation d'un fournisseur de services Java [UnoLogger.jar](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging) pour l'API [SLF4J](https://www.slf4j.org/) afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*](https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html).
 
-- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/options), accessible par: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre:
+- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options](https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/options), accessible par le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre:
 
     - La mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
     - L'activation de la journalisation du pilote de la base de la données sous-jacente.
 
-- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) des utilisateurs et des rôles (groupes) et de leurs privileges associés, accessible dans Base par: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
+- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) des utilisateurs et des rôles (groupes) et de leurs privileges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
 
-    - La gestion des utilisateurs et de leurs privilèges.
-    - La gestion des rôles (groupes) et de leurs privilèges.
+    - La **gestion des utilisateurs** et de leurs privilèges.
+    - La **gestion des rôles** (groupes) et de leurs privilèges.
 
 - Beaucoup d'autres correctifs...
 
