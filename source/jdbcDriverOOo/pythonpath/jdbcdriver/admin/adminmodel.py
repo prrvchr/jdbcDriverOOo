@@ -98,8 +98,20 @@ class AdminModel(unohelper.Base):
     def isPasswordConfirmed(self, pwd, confirmation):
         return pwd == confirmation
 
-    def addGrantee(self, grantee):
-        print("AdminModel.addGrantee() %s" % grantee)
+    def createUser(self, user, password):
+        descriptor = self._grantees.createDataDescriptor()
+        descriptor.setPropertyValue('Password', password)
+        return self._createGrantee(descriptor, user)
+
+    def createGroup(self, group):
+        descriptor = self._grantees.createDataDescriptor()
+        return self._createGrantee(descriptor, group)
+
+    def _createGrantee(self, descriptor, grantee):
+        descriptor.setPropertyValue('Name', grantee)
+        self._grantees.appendByDescriptor(descriptor)
+        print("AdminModel._createGrantee() %s" % grantee)
+        return self._grantees.getElementNames()
 
     def getMembers(self, name):
         group = self._grantees.getByName(name)
@@ -108,7 +120,7 @@ class AdminModel(unohelper.Base):
     def getTitle(self, group):
         return self._getAddUserTitle(group)
 
-    def isMemberModifed(self, name, users):
+    def isMemberModified(self, name, users):
         members = self.getMembers(name)
         for user in users:
             if user not in members:
@@ -120,15 +132,27 @@ class AdminModel(unohelper.Base):
 
     def getUsers(self, members):
         users = self._users.getElementNames()
-        return (user for user in users if user not in members)
+        return tuple(user for user in users if user not in members)
 
-    def setUsers(self, grantee, users):
-        print("AdminModel.setUsers() %s - %s" % (grantee, users))
+    def setUsers(self, group, elements):
+        users = self._grantees.getByName(group).getUsers()
+        members = users.getElementNames()
+        for element in elements:
+            if element not in members:
+                descriptor = users.createDataDescriptor()
+                descriptor.setPropertyValue('Name', element)
+                users.appendByDescriptor(descriptor)
+        for member in members:
+            if member not in elements:
+                users.dropByName(member)
 
     def dropGrantee(self, grantee):
+        self._grantees.dropByName(grantee)
         print("AdminModel.dropGrantee() %s" % grantee)
+        return self._grantees.getElementNames()
 
-    def setUserPassword(self, pwd):
+    def setUserPassword(self, name, pwd):
+        self._grantees.getByName(name).changePassword(pwd, pwd)
         print("AdminModel.setUserPassword() %s" % pwd)
 
     def setGrantee(self, grantee):
@@ -194,5 +218,4 @@ class AdminModel(unohelper.Base):
     def _getAddUserTitle(self, group):
         resource = self._resources.get('AddUserTitle')
         return self._resolver.resolveString(resource) % group
-
 

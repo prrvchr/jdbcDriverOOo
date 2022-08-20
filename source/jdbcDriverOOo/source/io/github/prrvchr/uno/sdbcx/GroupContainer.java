@@ -38,7 +38,7 @@ public class GroupContainer
     extends Container
 {
 
-    private final Connection m_connection;
+    protected final Connection m_connection;
 
     // The constructor method:
     public GroupContainer(Connection connection,
@@ -60,7 +60,7 @@ public class GroupContainer
         return _createElement(name);
     }
 
-    private void _createGroup(XPropertySet descriptor,
+    protected void _createGroup(XPropertySet descriptor,
                               String name)
         throws SQLException
     {

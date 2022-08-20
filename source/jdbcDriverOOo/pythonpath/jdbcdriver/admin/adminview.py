@@ -42,9 +42,14 @@ class AdminView(unohelper.Base):
     def init(self, model, columns, grantees, listener):
         self._createGrid(model, columns)
         self._getGrid().addSelectionListener(listener)
+        self.initGrantees(grantees)
+
+    def initGrantees(self, grantees, grantee=None):
         control = self._getGrantees()
         control.Model.StringItemList = grantees
-        if control.ItemCount > 0:
+        if grantee is not None:
+            control.selectItem(grantee, True)
+        elif control.ItemCount > 0:
             control.selectItemPos(0, True)
 
     def execute(self):

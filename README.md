@@ -106,13 +106,27 @@ Now your database is up to date.
 
 ## LibreOffice/OpenOffice Base improvement:
 
+This driver allows in LibreOffice / OpenOffice Base the management of **users**, **roles** (groups) and their associated **privileges** of the underlying database.
+
 ### Managing Users and Privileges in Base:
 
-Management of users and privileges of the underlying database is possible in Base.  
-To do this, please access the User Administration window via the menu: **Tools -> User Administration**
+User management of the underlying database is accessible in Base via the menu: **Administration -> User administration**
 
 ![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6.png)
 
+The privileges management of the users of the underlying database is accessible in this window by the button: **Modify privileges**
+
+![jdbcDriverOOo screenshot 7](img/jdbcDriverOOo-7.png)
+
+### Managing roles (groups) in Base:
+
+The management of the roles (groups) of the underlying database is accessible in Base via the menu: **Administration -> Group administration**
+
+![jdbcDriverOOo screenshot 8](img/jdbcDriverOOo-8.png)
+
+The management of users who are members of the group of the underlying database is accessible in this window via the button: **Group users**
+
+![jdbcDriverOOo screenshot 9](img/jdbcDriverOOo-9.png)
 
 ## Has been tested with:
 

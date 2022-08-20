@@ -353,9 +353,9 @@ public class DataBaseTools {
     }
 
     /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
-     * @param  metadata     meta data describing the connection where you got the table name from
-     * @param  name     fully qualified table name
-     * @param  rule       where do you need the name for
+     * @param metadata     meta data describing the connection where you got the table name from
+     * @param name     fully qualified table name
+     * @param rule       where do you need the name for
      * @return the NameComponents object with the catalog, schema and table
      */
     public static NameComponents qualifiedNameComponents(Connection connection,
@@ -402,13 +402,13 @@ public class DataBaseTools {
 
     /** creates a SQL CREATE TABLE statement
      *
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  descriptor
+     * @param descriptor
      *    The descriptor of the new table.
-     * @param  helper
+     * @param helper
      *    Allow to add special SQL constructs.
-     * @param  pattern
+     * @param pattern
      *   
      * @return
      *   The CREATE TABLE statement.
@@ -427,13 +427,13 @@ public class DataBaseTools {
     }
 
     /** creates the columns parts of the SQL CREATE TABLE statement.
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  descriptor
+     * @param descriptor
      *    The descriptor of the new table.
-     * @param  helper
+     * @param helper
      *    Allow to add special SQL constructs.
-     * @param  createPattern
+     * @param createPattern
      *   
      * @return
      *   The columns parts.
@@ -473,13 +473,13 @@ public class DataBaseTools {
     }
 
     /** creates the standard sql statement for the column part of statement.
-     *  @param  connection
+     *  @param connection
      *      The connection.
-     *  @param  columnProperties
+     *  @param columnProperties
      *      The descriptor of the column.
-     *  @param  helper
+     *  @param helper
      *       Allow to add special SQL constructs.
-     *  @param  createPattern
+     *  @param createPattern
      *      
      * @throws SQLException
      */
@@ -599,9 +599,9 @@ public class DataBaseTools {
     }
 
     /** creates the keys parts of SQL CREATE TABLE statement.
-     * @param  connection
+     * @param connection
      *      The connection.
-     * @param  descriptor
+     * @param descriptor
      *      The descriptor of the new table.
      *   
      * @return
@@ -711,9 +711,9 @@ public class DataBaseTools {
 
     /** creates a SQL CREATE VIEW statement
      *
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  descriptor
+     * @param descriptor
      *    The descriptor of the new view.
      *
      * @return
@@ -735,11 +735,11 @@ public class DataBaseTools {
 
     /** creates a SQL ALTER VIEW statement
      *
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  descriptor
+     * @param descriptor
      *    The descriptor of the view.
-     * @param  command
+     * @param command
      *    The new command of the view.
      *
      * @return
@@ -757,13 +757,13 @@ public class DataBaseTools {
 
     /** creates a SQL CREATE USER statement
      *
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  descriptor
+     * @param descriptor
      *    The descriptor of the new user.
-     * @param  name
+     * @param name
      *    The name of the new user.
-     * @param  sensitive
+     * @param sensitive
      *    Is the name case sensitive.
      *   
      * @return
@@ -778,11 +778,13 @@ public class DataBaseTools {
     {
         String sql;
         try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            name = sensitive ? quoteName(quote, name) : name;
             String password = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.PASSWORD.name));
             password = password.isBlank() ? "" : password;
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                name = quoteName(quote, name);
+            }
             sql = String.format("CREATE USER %s PASSWORD '%s'", name, password);
         }
         catch (IllegalArgumentException | UnknownPropertyException | WrappedTargetException e) {
@@ -796,13 +798,11 @@ public class DataBaseTools {
 
     /** creates a SQL DROP USER statement
      *
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  descriptor
-     *    The descriptor of the new user.
-     * @param  name
+     * @param name
      *    The name of the new user.
-     * @param  sensitive
+     * @param sensitive
      *    Is the name case sensitive.
      *   
      * @return
@@ -814,14 +814,14 @@ public class DataBaseTools {
                                           boolean sensitive)
         throws SQLException
     {
-        String sql = "DROP USER ";
+        String sql;
         try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            sql += sensitive ? quoteName(quote, name) : name;;
-        }
-        catch (IllegalArgumentException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                name = quoteName(quote, name);
+            }
+            sql = String.format("DROP USER %s", name);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
@@ -831,13 +831,13 @@ public class DataBaseTools {
 
     /** creates a SQL ALTER USER SET PASSWORD statement
      *
-     * @param  connection
+     * @param connection
      *    The connection.
-     * @param  name
+     * @param name
      *    The name of the user.
-     * @param  password
+     * @param password
      *    The new password of the user.
-     * @param  sensitive
+     * @param sensitive
      *    Is the name of user case sensitive.
      *   
      * @return
@@ -852,10 +852,12 @@ public class DataBaseTools {
     {
         String sql;
         try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            name = sensitive ? quoteName(quote, name) : name;
             password = password.isBlank() ? "" : password;
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                name = quoteName(quote, name);
+            }
             sql = String.format("ALTER USER %s SET PASSWORD '%s'", name, password);
         }
         catch (IllegalArgumentException e) {
@@ -866,6 +868,83 @@ public class DataBaseTools {
         }
         return sql;
     }
+
+
+    /** creates a SQL GRANT ROLE statement
+     *
+     * @param connection
+     *    The connection.
+     * @param group
+     *    The role.
+     * @param user
+     *    The role member user.
+     * @param sensitive
+     *    Is the role and user case sensitive.
+     *   
+     * @return
+     *   The GRANT ROLE statement.
+     * @throws SQLException
+     */
+    public static String getGrantRoleQuery(Connection connection,
+                                           String group,
+                                           String user,
+                                           boolean sensitive)
+        throws SQLException
+    {
+        String sql;
+        try {
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                group = quoteName(quote, group);
+                user = quoteName(quote, user);
+            }
+            sql = String.format("GRANT %s TO %s", group, user);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
+    }
+
+
+    /** creates a SQL REVOKE ROLE statement
+     *
+     * @param connection
+     *    The connection.
+     * @param group
+     *    The role.
+     * @param user
+     *    The role member user.
+     * @param sensitive
+     *    Is the role and user case sensitive.
+     *   
+     * @return
+     *   The REVOKE ROLE statement.
+     * @throws SQLException
+     */
+    public static String getRevokeRoleQuery(Connection connection,
+                                            String group,
+                                            String user,
+                                            boolean sensitive)
+        throws SQLException
+    {
+        String sql;
+        try {
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                group = quoteName(quote, group);
+                user = quoteName(quote, user);
+            }
+            sql = String.format("REVOKE %s FROM %s RESTRICT", group, user);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
+    }
+
 
     public static int getTableOrViewPrivileges(Connection connection,
                                                List<String> grantees,
@@ -989,11 +1068,11 @@ public class DataBaseTools {
 
     /** collects the information about auto increment, currency and data type for the given column name.
      * The column must be quoted, * is also valid.
-     * @param  connection
+     * @param connection
      *     The connection.
-     * @param  composedName
+     * @param composedName
      *    The quoted table name. ccc.sss.ttt
-     * @param  columnName
+     * @param columnName
      *    The name of the column, or *
      * @return
      *    The information about the column(s).

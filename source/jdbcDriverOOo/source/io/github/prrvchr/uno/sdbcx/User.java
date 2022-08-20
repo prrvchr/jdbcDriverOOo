@@ -154,7 +154,7 @@ public class User
         catch (java.sql.SQLException e) {
             UnoHelper.getSQLException(e, m_connection);
         }
-        return new GroupContainer(m_connection, isCaseSensitive(), groups);
+        return new UserGroupContainer(m_connection, isCaseSensitive(), groups, getName());
     }
 
 

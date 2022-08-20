@@ -106,12 +106,27 @@ Maintenant votre base de données est à jour.
 
 ## Amélioration dans LibreOffice/OpenOffice Base:
 
+Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateurs**, des **roles** (groupes) et de leurs **privilèges** associés de la base de données sous jacente.
+
 ### La gestion des utilisateurs et des privilèges dans Base:
 
-La gestion des utilisateurs et des privilèges de la base de données sous jacente est possible dans Base.  
-Pour cela veuillez acceder à la fenetre de Administration des utilisateurs par le menu: **Outils -> Gestion des utilisateurs**
+La gestion des utilisateurs de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des utilisateurs**
 
 ![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6_fr.png)
+
+La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**
+
+![jdbcDriverOOo screenshot 7](img/jdbcDriverOOo-7_fr.png)
+
+### La gestion des roles (groupes) dans Base:
+
+La gestion des roles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
+
+![jdbcDriverOOo screenshot 8](img/jdbcDriverOOo-8_fr.png)
+
+La gestion des utilisateurs membres du groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Utilisateurs du groupe**
+
+![jdbcDriverOOo screenshot 9](img/jdbcDriverOOo-9_fr.png)
 
 ## A été testé avec:
 

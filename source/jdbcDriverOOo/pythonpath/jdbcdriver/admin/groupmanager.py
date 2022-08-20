@@ -36,10 +36,6 @@ import traceback
 
 class GroupManager(AdminManager):
     def __init__(self, ctx, connection, parent):
-        name = connection.getMetaData().getUserName()
-        users = connection.getUsers()
         groups = connection.getGroups()
-        tables = connection.getTables()
-        user = users.getByName(name)
-        super(GroupManager, self).__init__(ctx, tables, user, users, groups, 'GroupsDialog', DialogHandler(self), parent)
+        super(GroupManager, self).__init__(ctx, connection, groups, 'GroupsDialog', DialogHandler(self), parent)
 

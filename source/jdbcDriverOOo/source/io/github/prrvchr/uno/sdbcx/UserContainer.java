@@ -40,7 +40,7 @@ public class UserContainer
     extends Container
 {
 
-    private final Connection m_connection;
+    protected final Connection m_connection;
 
     // The constructor method:
     public UserContainer(Connection connection,
@@ -62,7 +62,7 @@ public class UserContainer
         return _createElement(name);
     }
 
-    private void _createUser(XPropertySet descriptor,
+    protected void _createUser(XPropertySet descriptor,
                              String name)
         throws SQLException
     {
