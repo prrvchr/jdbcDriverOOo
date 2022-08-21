@@ -57,7 +57,7 @@ class DialogHandler(unohelper.Base,
                 self._manager.dropGroup()
                 handled = True
             elif method == 'SetPrivileges':
-                self._manager.setPrivileges()
+                self._manager.setGroupPrivileges()
                 handled = True
             return handled
         except Exception as e:

@@ -343,12 +343,11 @@ public final class Connection
                 names.add(name);
             }
             result.close();
-            List<String> groups = getProvider().getDefaultGrantees(names);
             if (m_Groups == null) {
-                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(), groups);
+                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
             }
             else {
-                m_Groups.refill(groups);
+                m_Groups.refill(names);
             }
         }
         catch (ElementExistException | java.sql.SQLException e) {

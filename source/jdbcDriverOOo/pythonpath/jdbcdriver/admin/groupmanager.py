@@ -37,5 +37,5 @@ import traceback
 class GroupManager(AdminManager):
     def __init__(self, ctx, connection, parent):
         groups = connection.getGroups()
-        super(GroupManager, self).__init__(ctx, connection, groups, 'GroupsDialog', DialogHandler(self), parent)
+        super(GroupManager, self).__init__(ctx, connection, groups, 'GroupsDialog', DialogHandler(self), parent, False)
 

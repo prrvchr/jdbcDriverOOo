@@ -65,13 +65,13 @@ import traceback
 
 
 class AdminManager(unohelper.Base):
-    def __init__(self, ctx, connection, grantees, xdl, handler, parent):
+    def __init__(self, ctx, connection, grantees, xdl, handler, parent, inherited):
         self._ctx = ctx
         tables = connection.getTables()
         users = connection.getUsers()
         user = users.getByName(connection.getMetaData().getUserName())
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
-        data = GridData(ctx, grantees, tables.getElementNames(), self._flags)
+        data = GridData(ctx, grantees, tables.getElementNames(), self._flags, inherited)
         self._model = AdminModel(ctx, user, users, grantees, tables, data, self._flags)
         self._dialog = None
         self._disabled = True
@@ -189,10 +189,18 @@ class AdminManager(unohelper.Base):
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
 
-    def setPrivileges(self):
+    def setUserPrivileges(self):
         index = self._view.getSelectedGridIndex()
-        catalog, schema, title, privileges, grantables = self._model.getTableInfo(index)
-        dialog = PrivilegeView(self._ctx, catalog, schema, title, privileges, grantables, self._flags)
+        table, privileges, grantables, inherited = self._model.getUserPrivilegesData(index)
+        self._setPrivileges(index, table, privileges, grantables, inherited)
+
+    def setGroupPrivileges(self):
+        index = self._view.getSelectedGridIndex()
+        table, privileges, grantables = self._model.getGroupPrivilegesData(index)
+        self._setPrivileges(index, table, privileges, grantables, 0)
+
+    def _setPrivileges(self, index, table, privileges, grantables, inherited):
+        dialog = PrivilegeView(self._ctx, self._flags, table, privileges, grantables, inherited)
         if dialog.execute() == OK:
             flags = dialog.getPrivileges(self._flags)
             if flags != privileges:

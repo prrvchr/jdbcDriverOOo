@@ -34,14 +34,18 @@ from jdbcdriver import g_extension
 
 
 class PrivilegeView(unohelper.Base):
-    def __init__(self, ctx, catalog, schema, title, privileges, grantables, flags):
+    def __init__(self, ctx, flags, table, privileges, grantables, inherited):
         self._dialog = getDialog(ctx, g_extension, 'PrivilegesDialog')
-        self._dialog.Title = title
-        self._getCatalog().Text = catalog
-        self._getSchema().Text = schema
+        self._getTable().Text = table
+        self.setPrivileges(flags, privileges, grantables, inherited)
+
+    def setPrivileges(self, flags, privileges, grantables, inherited):
         for index, flag in flags.items():
+            state = 1 if flag == privileges & flag else 0
+            tristate = state == 0 and flag == inherited & flag
             control = self._getPrivilege(index)
-            control.State = flag == privileges & flag
+            control.Model.TriState = tristate
+            control.State = 2 if tristate else state
             control.Model.Enabled = flag == grantables & flag
 
     def execute(self):
@@ -51,17 +55,14 @@ class PrivilegeView(unohelper.Base):
         privileges = 0
         for index, flag in flags.items():
             control = self._getPrivilege(index)
-            privileges += flag if control.State else 0
+            privileges += flag if control.State == 1 else 0
         return privileges
 
     def dispose(self):
         self._dialog.dispose()
 
-    def _getCatalog(self):
+    def _getTable(self):
         return self._dialog.getControl('Label2')
-
-    def _getSchema(self):
-        return self._dialog.getControl('Label4')
 
     def _getPrivilege(self, index):
         return self._dialog.getControl('CheckBox%s' % index)

@@ -959,11 +959,10 @@ public class DataBaseTools {
 
 
     public static int getTableOrViewPrivileges(Connection connection,
-                                               List<String> names,
+                                               List<String> grantees,
                                                String name)
     throws SQLException
     {
-        List<String> grantees = connection.getProvider().getDefaultGrantees(names);
         NameComponents component = qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
         return getTableOrViewPrivileges(connection, grantees, component);
     }
@@ -978,11 +977,10 @@ public class DataBaseTools {
     }
 
     public static int getTableOrViewGrantablePrivileges(Connection connection,
-                                                        List<String> names,
+                                                        List<String> grantees,
                                                         String name)
     throws SQLException
     {
-        List<String> grantees = connection.getProvider().getDefaultGrantees(names);
         NameComponents component = DataBaseTools.qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
         String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
         return _getTableOrViewPrivileges(connection, grantees, component, sql);

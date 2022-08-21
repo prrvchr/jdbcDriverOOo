@@ -98,7 +98,7 @@ public class User
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
-            grantees.addAll(Arrays.asList(getGroups().getElementNames()));
+            //grantees.addAll(Arrays.asList(getGroups().getElementNames()));
             privileges = DataBaseTools.getTableOrViewPrivileges(m_connection, grantees, name);
         }
         return privileges;

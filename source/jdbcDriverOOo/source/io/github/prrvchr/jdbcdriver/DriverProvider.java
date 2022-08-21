@@ -83,8 +83,6 @@ public interface DriverProvider
 
     public List<String> getPrivileges(int privilege);
 
-    public List<String> getDefaultGrantees(List<String> name);
-
     public String getTableIdentifier(ConnectionBase connection,
                                      String catalog,
                                      String schema,

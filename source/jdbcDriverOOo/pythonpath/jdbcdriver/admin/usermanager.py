@@ -37,5 +37,5 @@ import traceback
 class UserManager(AdminManager):
     def __init__(self, ctx, connection, parent):
         users = connection.getUsers()
-        super(UserManager, self).__init__(ctx, connection, users, 'UsersDialog', DialogHandler(self), parent)
+        super(UserManager, self).__init__(ctx, connection, users, 'UsersDialog', DialogHandler(self), parent, True)
 

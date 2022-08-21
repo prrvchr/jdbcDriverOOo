@@ -56,7 +56,6 @@ class AdminModel(unohelper.Base):
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'TableHeader'      : 'GroupsDialog.Label2.Label',
                            'PrivilegeHeader'  : 'PrivilegesDialog.CheckBox%s.Label',
-                           'PrivilegeTitle'   : 'PrivilegesDialog.Title',
                            'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
                            'DropGroupMessage' : 'MessageBox.DropGroup.Message',
                            'DropUserTitle'    : 'MessageBox.DropUser.Title',
@@ -148,15 +147,13 @@ class AdminModel(unohelper.Base):
 
     def dropGrantee(self, grantee):
         self._grantees.dropByName(grantee)
-        print("AdminModel.dropGrantee() %s" % grantee)
         return self._grantees.getElementNames()
 
     def setUserPassword(self, name, pwd):
         self._grantees.getByName(name).changePassword(pwd, pwd)
-        print("AdminModel.setUserPassword() %s" % pwd)
 
     def setGrantee(self, grantee):
-        self._data.setRole(grantee)
+        self._data.setGrantee(grantee)
 
     def getGrantablePrivileges(self, index):
         privileges = 0
@@ -164,15 +161,17 @@ class AdminModel(unohelper.Base):
             privileges = self._user.getGrantablePrivileges(self._getTable(index), TABLE)
         return privileges
 
-    def getTableInfo(self, index):
+    def getUserPrivilegesData(self, index):
         name = self._getTable(index)
-        table = self._tables.getByName(name)
-        catalog = table.getPropertyValue("CatalogName")
-        schema = table.getPropertyValue("SchemaName")
-        title = self._getPrivilegeTitle(table.getPropertyValue("Name"))
-        privileges = self._data._getTablePrivilege(name, index)
-        grantables = self.getGrantablePrivileges(index)
-        return catalog, schema, title, privileges, grantables
+        privileges, grantables = self._getPrivilegesData(index, name)
+        inherited = self._data.getInheritedPrivileges(name)
+        print("AdminModel.getUserPrivilegesData() %s" % inherited)
+        return name, privileges, grantables, inherited
+
+    def getGroupPrivilegesData(self, index):
+        name = self._getTable(index)
+        privileges, grantables = self._getPrivilegesData(index, name)
+        return name, privileges, grantables
 
     def setPrivileges(self, name, index, grant, revoke):
         table = self._getTable(index)
@@ -182,6 +181,11 @@ class AdminModel(unohelper.Base):
         if revoke != 0:
             grantee.revokePrivileges(table, TABLE, revoke)
         self._data.refresh(index)
+
+    def _getPrivilegesData(self, index, name):
+        privileges = self._data.getGranteePrivileges(name)
+        grantables = self.getGrantablePrivileges(index)
+        return privileges, grantables
 
     def _getTable(self, index):
         return self._tables.getElementNames()[index]
@@ -194,10 +198,6 @@ class AdminModel(unohelper.Base):
     def _getPrivilegeHeader(self, index):
         resource = self._resources.get('PrivilegeHeader') % index
         return self._resolver.resolveString(resource)
-
-    def _getPrivilegeTitle(self, table):
-        resource = self._resources.get('PrivilegeTitle')
-        return self._resolver.resolveString(resource) % table
 
     def _getDropGroupTitle(self):
         resource = self._resources.get('DropGroupTitle')

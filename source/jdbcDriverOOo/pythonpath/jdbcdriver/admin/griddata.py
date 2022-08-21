@@ -47,20 +47,21 @@ class GridData(unohelper.Base,
                XWeak,
                XAdapter,
                XMutableGridDataModel):
-    def __init__(self, ctx, roles, tables, privileges):
+    def __init__(self, ctx, grantees, tables, flags, inherited):
         self._ctx = ctx
         self._events = []
         self._listeners = []
-        self._role = None
-        self._roles = roles
+        self._grantee = None
+        self._grantees = grantees
         self._tables = tables
-        self._privileges = privileges
+        self._flags = flags
+        self._inherited = inherited
         self._rows = {}
         self.RowCount = len(tables)
-        self.ColumnCount = len(privileges) + 1
+        self.ColumnCount = len(flags) + 1
 
-    def setRole(self, role):
-        self._role = role
+    def setGrantee(self, grantee):
+        self._grantee = self._grantees.getByName(grantee)
         self._rows = {}
         self._dataChanged()
 
@@ -84,8 +85,7 @@ class GridData(unohelper.Base,
 
     # com.sun.star.util.XCloneable
     def createClone(self):
-        print("GridData.createClone()")
-        return GridData(self._roles, self._tables, self._privileges)
+        return GridData(self._ctx, self._grantees, self._tables, self._flags, self._inherited)
 
     # com.sun.star.lang.XComponent
     def dispose(self):
@@ -104,7 +104,7 @@ class GridData(unohelper.Base,
         table = self._tables[row]
         if column == 0:
             return table
-        return self._getPrivilegeData(table, row, column)
+        return self._getDataPrivileges(table, row, column)
 
     def getCellToolTip(self, column, row):
         return ""
@@ -116,7 +116,7 @@ class GridData(unohelper.Base,
         table = self._tables[row]
         values = [table]
         for index in range(0, self.ColumnCount):
-            values.append(self._getPrivilegeData(table, row, index +1))
+            values.append(self._getDataPrivileges(table, row, index +1))
         return tuple(values)
 
     # FIXME: We need this interface to be able to broadcast the data change to all listener
@@ -149,17 +149,36 @@ class GridData(unohelper.Base,
         if listener in self._listeners:
             self._listeners.remove(listener)
 
-    def _getPrivilegeData(self, table, row, column):
+    def _getDataPrivileges(self, table, row, column):
         privileges = 0
-        privilege = self._privileges[column]
-        if self._role is not None:
-            privileges = self._getTablePrivilege(table, row)
-        return privilege == privileges & privilege
+        flag = self._flags[column]
+        if self._grantee is not None:
+            privileges = self._getRowPrivileges(table, row)
+        return flag == privileges & flag
 
-    def _getTablePrivilege(self, table, row):
+    def _getRowPrivileges(self, table, row):
         if row not in self._rows:
-            self._rows[row] = self._roles.getByName(self._role).getPrivileges(table, TABLE)
+            self._rows[row] = self.getGranteePrivileges(table, self._inherited)
         return self._rows[row]
+
+    def getGranteePrivileges(self, table, inherited=False):
+        privileges = self._grantee.getPrivileges(table, TABLE)
+        if inherited:
+            print("GridData.getGranteePrivileges() 1 %s" % privileges)
+            privileges |= self.getInheritedPrivileges(table)
+        print("GridData.getGranteePrivileges() 2 %s" % privileges)
+        return privileges
+
+    def getInheritedPrivileges(self, table):
+        privileges = 0
+        groups = self._grantee.getGroups().createEnumeration()
+        while groups.hasMoreElements():
+            group = groups.nextElement()
+            name = group.getPropertyValue('Name')
+            privileges |= group.getPrivileges(table, TABLE)
+            print("GridData.getInheritedPrivileges() %s - %s" % (name, privileges))
+        return privileges
+
 
     # FIXME: Broadcast the data change to all listener
     def _dataChanged(self, row=None):

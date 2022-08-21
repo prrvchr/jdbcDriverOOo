@@ -132,7 +132,7 @@ public abstract class DriverProviderMain
     @Override
     public String getGroupQuery()
     {
-        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS GROUP BY ROLE_NAME;";
+        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ADMINISTRABLE_ROLE_AUTHORIZATIONS;";
     }
 
     @Override
@@ -219,13 +219,6 @@ public abstract class DriverProviderMain
         return flags;
     }
 
-    public List<String> getDefaultGrantees(List<String> names)
-    {
-        List<String> grantees = new ArrayList<>(List.of("PUBLIC"));
-        grantees.addAll(names);
-        return grantees;
-    }
-    
     @Override
     public String getDropTableQuery(ConnectionBase connection,
                                     String catalog,
