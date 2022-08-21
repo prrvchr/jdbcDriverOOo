@@ -238,6 +238,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
     - La **gestion des utilisateurs** et de leurs privilèges.
     - La **gestion des rôles** (groupes) et de leurs privilèges.
 
+    Ces nouvelles fonctionnalités n'ont étés testées pour l'instant qu'avec le pilote HsqlDB.
+
 - Beaucoup d'autres correctifs...
 
 ### Que reste-t-il à faire pour la version 0.0.4:

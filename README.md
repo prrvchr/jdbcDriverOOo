@@ -238,6 +238,8 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
     - **Management of users** and their privileges.
     - **Management of roles** (groups) and their privileges.
 
+    These new features have only been tested with the HsqlDB driver so far.
+
 - Many other fix...
 
 ### What remains to be done for version 0.0.4:
