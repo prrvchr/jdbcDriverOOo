@@ -56,14 +56,14 @@ Ce mode d'utilisation utilise une base de données HsqlDB.
 
 Dans LibreOffice / OpenOffice aller à: Fichier -> Nouveau -> Base de données...:
 
-![jdbcDriverOOo screenshot 1](img/jdbcDriverOOo-1.png)
+![jdbcDriverOOo screenshot 1](img/jdbcDriverOOo-1_fr.png)
 
 A l'étape: Sélectionner une base de données:
 - selectionner: Connecter une base de données existante
 - choisir: Pilote HsqlDB
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 2](img/jdbcDriverOOo-2.png)
+![jdbcDriverOOo screenshot 2](img/jdbcDriverOOo-2_fr.png)
 
 A l'étape: Paramètres de connexion:
 
@@ -80,16 +80,16 @@ A l'étape: Paramètres de connexion:
 
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 3](img/jdbcDriverOOo-3.png)
+![jdbcDriverOOo screenshot 3](img/jdbcDriverOOo-3_fr.png)
 
 A l'étape: Paramétrer l'authentification de l'utilisateur:
 - cliquer sur le bouton: Tester la connexion
 
-![jdbcDriverOOo screenshot 4](img/jdbcDriverOOo-4.png)
+![jdbcDriverOOo screenshot 4](img/jdbcDriverOOo-4_fr.png)
 
 Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
-![jdbcDriverOOo screenshot 5](img/jdbcDriverOOo-5.png)
+![jdbcDriverOOo screenshot 5](img/jdbcDriverOOo-5_fr.png)
 
 Maintenant à vous d'en profiter...
 
