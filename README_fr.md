@@ -233,7 +233,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
     - La mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
     - L'activation de la journalisation du pilote de la base de la données sous-jacente.
 
-- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) des utilisateurs et des rôles (groupes) et de leurs privileges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
+- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration](https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/pythonpath/jdbcdriver/admin) des utilisateurs et des rôles (groupes) et de leurs privilèges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
 
     - La **gestion des utilisateurs** et de leurs privilèges.
     - La **gestion des rôles** (groupes) et de leurs privilèges.
