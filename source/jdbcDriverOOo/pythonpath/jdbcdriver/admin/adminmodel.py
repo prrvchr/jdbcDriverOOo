@@ -172,7 +172,6 @@ class AdminModel(unohelper.Base):
         name = self._getTable(index)
         privileges, grantables = self._getPrivilegesData(index, name)
         inherited = self._data.getInheritedPrivileges(name) if isuser else 0
-        print("AdminModel.getPrivilegesData() %s" % inherited)
         return name, privileges, grantables, inherited
 
     def setPrivileges(self, name, index, grant, revoke):

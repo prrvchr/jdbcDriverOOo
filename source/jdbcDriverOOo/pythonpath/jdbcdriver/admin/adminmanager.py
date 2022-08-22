@@ -223,17 +223,14 @@ class AdminManager(unohelper.Base):
 
     def _getPrivileges(self, privileges, flags):
         grant = revoke = 0
-        for flag in self._flags:
+        for flag in self._flags.values():
             old = flag == privileges & flag
             new = flag == flags & flag
             if old == new:
                 continue
             if new:
-                grant += flag
-                print("AdminManager.setPrivileges(): 1 ADD %s - %s - %s - %s" % (privileges, flags, flag, grant))
+                grant |= flag
             else:
-                revoke += flag
-                print("AdminManager.setPrivileges(): 1 REVOKE %s - %s - %s - %s" % (privileges, flags, flag, revoke))
-        print("AdminManager._getPrivileges(): GRANT / REVOKE: %s / %s" % (grant, revoke))
+                revoke |= flag
         return grant, revoke
 
