@@ -54,18 +54,18 @@ This mode of use uses an HsqlDB database.
 
 ### How to create a new database:
 
-In LibreOffice / OpenOffice go to File -> New -> Database...:
+In LibreOffice / OpenOffice go to menu: **File -> New -> Database**
 
 ![jdbcDriverOOo screenshot 1](img/jdbcDriverOOo-1.png)
 
-In step: Select database:
+In step: **Select database**
 - select: Connect to an existing database
 - choose: HsqlDB Driver
 - click on button: Next
 
 ![jdbcDriverOOo screenshot 2](img/jdbcDriverOOo-2.png)
 
-In step: Connection settings:
+In step: **Connection settings**
 
 - for the protocol: **file://**
     - in Datasource URL put:
@@ -82,7 +82,7 @@ In step: Connection settings:
 
 ![jdbcDriverOOo screenshot 3](img/jdbcDriverOOo-3.png)
 
-In step: Set up user authentication:
+In step: **Set up user authentication**
 - click on button: Test connection
 
 ![jdbcDriverOOo screenshot 4](img/jdbcDriverOOo-4.png)
