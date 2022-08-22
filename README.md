@@ -69,14 +69,14 @@ In step: Connection settings:
 
 - for the protocol: **file://**
     - in Datasource URL put:
-        - for **Linux**: `file:///tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false`
-        - for **Windows**: `file:///c:/tmp/testdb;default_schema=true;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false`
+        - for **Linux**: `file:///tmp/testdb;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false`
+        - for **Windows**: `file:///c:/tmp/testdb;shutdown=true;hsqldb.default_table_type=cached;get_column_name=false`
 
 - for the protocol: **hsql://**
     - In a terminal, go to a folder containing the hsqldb.jar archive and run:
         - for **Linux**: `java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///tmp/testdb --silent false`
         - for **Windows**: `java -cp hsqldb.jar org.hsqldb.server.Server --database.0 file:///c:/tmp/testdb --silent false`
-    - in Datasource URL put: `hsql://localhost/;default_schema=true`
+    - in Datasource URL put: `hsql://localhost/`
 
 - click on button: Next
 
