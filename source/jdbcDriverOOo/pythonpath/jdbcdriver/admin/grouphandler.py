@@ -93,27 +93,6 @@ class NewGroupHandler(unohelper.Base,
         return ('SetGroup', )
 
 
-class SetGroupHandler(unohelper.Base,
-                      XDialogEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # com.sun.star.awt.XDialogEventHandler
-    def callHandlerMethod(self, dialog, event, method):
-        try:
-            handled = False
-            if method == 'SetGroup':
-                self._manager.setGroup(event.Source.Text)
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ('SetGroup', )
-
-
 class GroupHandler(unohelper.Base,
                     XDialogEventHandler):
     def __init__(self, manager):

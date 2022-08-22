@@ -53,7 +53,6 @@ from .granteeview import GranteeView
 from .memberview import MemberView
 from .grouphandler import GroupHandler
 from .grouphandler import NewGroupHandler
-from .grouphandler import SetGroupHandler
 from .userhandler import UserHandler
 from .userhandler import NewUserHandler
 from .userhandler import PasswordHandler
