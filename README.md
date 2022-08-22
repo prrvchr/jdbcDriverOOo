@@ -98,9 +98,9 @@ Have fun...
 It is possible to update the JDBC driver (hsqldb.jar, h2.jar, derbytools.jar) to a newer version.  
 If you use HsqlDB as database, follow these steps:
 1. Make a copy (backup) of the folder containing your database.
-2. Start LibreOffice / OpenOffice and change the version of the HsqlDB driver in: **Tools -> Options -> Base drivers -> JDBC Driver**, by a more recent version.
+2. Start LibreOffice / OpenOffice and change the version of the HsqlDB driver via menu: **Tools -> Options -> Base drivers -> JDBC Driver**, by a more recent version.
 3. Restart LibreOffice / OpenOffice after changing the driver (hsqldb.jar).
-4. In Base, after opening your database, go to: **Tools -> SQL** and type the SQL command: `SHUTDOWN COMPACT` or `SHUTDOWN SCRIPT`.
+4. In Base, after opening your database, go to menu: **Tools -> SQL** and type the SQL command: `SHUTDOWN COMPACT` or `SHUTDOWN SCRIPT`.
 
 Now your database is up to date.
 
