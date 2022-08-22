@@ -62,11 +62,13 @@ class GridData(unohelper.Base,
 
     def setGrantee(self, grantee):
         self._grantee = self._grantees.getByName(grantee)
-        self._rows = {}
-        self._dataChanged()
+        self.refresh()
 
-    def refresh(self, row):
-        del self._rows[row]
+    def refresh(self, row=None):
+        if row is None:
+            self._rows = {}
+        else:
+            del self._rows[row]
         self._dataChanged(row)
 
     # FIXME: We can't use XMutableGridDataModel without this interface XWeak

@@ -31,6 +31,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
 
@@ -61,10 +63,18 @@ public class GroupContainer
     }
 
     protected void _createGroup(XPropertySet descriptor,
-                              String name)
+                                String name)
         throws SQLException
     {
-        System.out.println("sdbcx.GroupContainer._createGroup()");
+        String sql = DataBaseTools.getCreateGroupQuery(m_connection, descriptor, name, isCaseSensitive());
+        System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + sql);
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+
     }
 
     @Override
@@ -80,7 +90,15 @@ public class GroupContainer
                                   String name)
         throws SQLException
     {
-        System.out.println("sdbcx.GroupContainer._removeElement() ********************");
+        String sql = DataBaseTools.getDropGroupQuery(m_connection, name, isCaseSensitive());
+        System.out.println("sdbcx.GroupContainer._removeElement() SQL: " + sql);
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+
     }
 
     @Override

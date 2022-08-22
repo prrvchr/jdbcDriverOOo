@@ -51,13 +51,13 @@ class DialogHandler(unohelper.Base,
                 self._manager.createGroup()
                 handled = True
             elif method == 'SetUsers':
-                self._manager.setUsers()
+                self._manager.setGroupMembers()
                 handled = True
             elif method == 'DropGroup':
                 self._manager.dropGroup()
                 handled = True
             elif method == 'SetPrivileges':
-                self._manager.setGroupPrivileges()
+                self._manager.setPrivileges(False)
                 handled = True
             return handled
         except Exception as e:
@@ -112,5 +112,40 @@ class SetGroupHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('SetGroup', )
+
+
+class GroupHandler(unohelper.Base,
+                    XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ToogleRemove':
+                enabled = event.Source.getSelectedItemPos() != -1
+                self._manager.toogleRemove(enabled)
+                handled = True
+            elif method == 'RemoveMember':
+                self._manager.removeMember(False)
+                handled = True
+            elif method == 'ToogleAdd':
+                enabled = event.Source.getSelectedItemPos() != -1
+                self._manager.toogleAdd(enabled)
+                handled = True
+            elif method == 'AddMember':
+                self._manager.addMember(False)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('ToogleRemove',
+                'RemoveMember',
+                'ToogleAdd',
+                'AddMember')
 
 

@@ -48,31 +48,33 @@ import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, ctx, user, users, grantees, tables, data, flags):
+    def __init__(self, ctx, user, members, grantees, tables, data, flags):
         self._user = user
-        self._users = users
+        self._members = members
         self._grantees = grantees
         self._tables = tables
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._resources = {'TableHeader'      : 'GroupsDialog.Label2.Label',
+        self._resources = {'TableHeader'      : 'GranteeDialog.Grid1.Column1',
                            'PrivilegeHeader'  : 'PrivilegesDialog.CheckBox%s.Label',
                            'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
                            'DropGroupMessage' : 'MessageBox.DropGroup.Message',
                            'DropUserTitle'    : 'MessageBox.DropUser.Title',
                            'DropUserMessage'  : 'MessageBox.DropUser.Message',
-                           'AddUserTitle'     : 'AddUserDialog.Title'}
+                           'UserTitle'        : 'UserMembersDialog.Title',
+                           'GroupTitle'       : 'GroupMembersDialog.Title',}
         self._data = data
         self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
-        self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, True, LEFT))
+        self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
         for index in flags:
             title = self._getPrivilegeHeader(index)
             self._column.addColumn(self._getColumn(self._column.createColumn(), title))
 
-    def _getColumn(self, column, title, width=70, resize=False, align=CENTER):
+    def _getColumn(self, column, title, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width
         column.MinWidth = width
         column.HorizontalAlign = align
-        column.Resizeable = resize
+        column.Resizeable = True
+        column.Flexibility = flex
         column.Title = title
         return column
 
@@ -109,41 +111,46 @@ class AdminModel(unohelper.Base):
     def _createGrantee(self, descriptor, grantee):
         descriptor.setPropertyValue('Name', grantee)
         self._grantees.appendByDescriptor(descriptor)
-        print("AdminModel._createGrantee() %s" % grantee)
         return self._grantees.getElementNames()
 
-    def getMembers(self, name):
-        group = self._grantees.getByName(name)
-        return group.getUsers().getElementNames()
+    def getMembers(self, name, isuser):
+        members = self._getMembers(name, isuser)
+        availables = self._getAvailables(members)
+        return members, availables
 
-    def getTitle(self, group):
-        return self._getAddUserTitle(group)
+    def getUserTitle(self, user):
+        return self._getUserTitle(user)
 
-    def isMemberModified(self, name, users):
-        members = self.getMembers(name)
-        for user in users:
-            if user not in members:
+    def getGroupTitle(self, group):
+        return self._getGroupTitle(group)
+
+    def isMemberModified(self, name, grantees, isuser):
+        members = self._getMembers(name, isuser)
+        for grantee in grantees:
+            if grantee not in members:
                 return True
         for member in members:
-            if member not in users:
+            if member not in grantees:
                 return True
         return False
 
-    def getUsers(self, members):
-        users = self._users.getElementNames()
-        return tuple(user for user in users if user not in members)
-
-    def setUsers(self, group, elements):
-        users = self._grantees.getByName(group).getUsers()
-        members = users.getElementNames()
+    def setMembers(self, name, elements, isuser):
+        grantee = self._grantees.getByName(name)
+        grantees = grantee.getGroups() if isuser else grantee.getUsers()
+        members = grantees.getElementNames()
         for element in elements:
             if element not in members:
-                descriptor = users.createDataDescriptor()
+                descriptor = grantees.createDataDescriptor()
                 descriptor.setPropertyValue('Name', element)
-                users.appendByDescriptor(descriptor)
+                grantees.appendByDescriptor(descriptor)
         for member in members:
             if member not in elements:
-                users.dropByName(member)
+                grantees.dropByName(member)
+        # TODO: We need to refresh the members of members
+        self._members.refresh()
+        # TODO: If it's a user we need to refresh the grid privileges
+        if isuser:
+            self._data.refresh()
 
     def dropGrantee(self, grantee):
         self._grantees.dropByName(grantee)
@@ -161,17 +168,12 @@ class AdminModel(unohelper.Base):
             privileges = self._user.getGrantablePrivileges(self._getTable(index), TABLE)
         return privileges
 
-    def getUserPrivilegesData(self, index):
+    def getPrivilegesData(self, index, isuser):
         name = self._getTable(index)
         privileges, grantables = self._getPrivilegesData(index, name)
-        inherited = self._data.getInheritedPrivileges(name)
-        print("AdminModel.getUserPrivilegesData() %s" % inherited)
+        inherited = self._data.getInheritedPrivileges(name) if isuser else 0
+        print("AdminModel.getPrivilegesData() %s" % inherited)
         return name, privileges, grantables, inherited
-
-    def getGroupPrivilegesData(self, index):
-        name = self._getTable(index)
-        privileges, grantables = self._getPrivilegesData(index, name)
-        return name, privileges, grantables
 
     def setPrivileges(self, name, index, grant, revoke):
         table = self._getTable(index)
@@ -181,6 +183,14 @@ class AdminModel(unohelper.Base):
         if revoke != 0:
             grantee.revokePrivileges(table, TABLE, revoke)
         self._data.refresh(index)
+
+    def _getMembers(self, name, isuser):
+        grantee = self._grantees.getByName(name)
+        return grantee.getGroups().getElementNames() if isuser else grantee.getUsers().getElementNames()
+
+    def _getAvailables(self, grantees):
+        members = self._members.getElementNames()
+        return tuple(member for member in members if member not in grantees)
 
     def _getPrivilegesData(self, index, name):
         privileges = self._data.getGranteePrivileges(name)
@@ -215,7 +225,12 @@ class AdminModel(unohelper.Base):
         resource = self._resources.get('DropUserMessage')
         return self._resolver.resolveString(resource) % user
 
-    def _getAddUserTitle(self, group):
-        resource = self._resources.get('AddUserTitle')
+    def _getUserTitle(self, user):
+        resource = self._resources.get('UserTitle')
+        return self._resolver.resolveString(resource) % user
+
+    def _getGroupTitle(self, group):
+        resource = self._resources.get('GroupTitle')
         return self._resolver.resolveString(resource) % group
+
 

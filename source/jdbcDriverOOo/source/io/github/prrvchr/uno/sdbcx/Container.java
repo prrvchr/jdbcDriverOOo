@@ -135,7 +135,6 @@ public abstract class Container
 
 
     // Would be from com.sun.star.lang.XComponent ;)
-    
     public void dispose() {
         System.out.println("sdbcx.Container.dispose() 1 Class: " + this.getClass().getName());
         EventObject event = new EventObject(this);

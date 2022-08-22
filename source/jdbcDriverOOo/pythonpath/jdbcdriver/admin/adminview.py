@@ -58,9 +58,9 @@ class AdminView(unohelper.Base):
     def dispose(self):
         return self._dialog.dispose()
 
-    def enableButton(self):
-        self._getSetGrantee().Model.Enabled = True
-        self._getDropGrantee().Model.Enabled = True
+    def enableButton(self, enabled):
+        self._getSetGrantee().Model.Enabled = enabled
+        self._getDropGrantee().Model.Enabled = enabled
 
     def enableSetPrivileges(self, enabled):
         self._getSetPrivileges().Model.Enabled = enabled
@@ -83,7 +83,7 @@ class AdminView(unohelper.Base):
         grid.Name = "Grid1"
         grid.PositionX = 10
         grid.PositionY = 82
-        grid.Width = 265
+        grid.Width = 350
         grid.Height = 150
         grid.GridDataModel = model
         grid.ColumnModel = columns

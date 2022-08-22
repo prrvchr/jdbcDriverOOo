@@ -63,7 +63,7 @@ public class UserContainer
     }
 
     protected void _createUser(XPropertySet descriptor,
-                             String name)
+                               String name)
         throws SQLException
     {
         String sql = DataBaseTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());

@@ -29,6 +29,7 @@
 
 from .adminmanager import AdminManager
 
+from .userview import UserView
 from .userhandler import DialogHandler
 
 import traceback
@@ -36,6 +37,8 @@ import traceback
 
 class UserManager(AdminManager):
     def __init__(self, ctx, connection, parent):
+        groups = connection.getGroups()
         users = connection.getUsers()
-        super(UserManager, self).__init__(ctx, connection, users, 'UsersDialog', DialogHandler(self), parent, True)
+        view = UserView(ctx, DialogHandler(self), parent)
+        super(UserManager, self).__init__(ctx, view, connection, groups, users, True)
 

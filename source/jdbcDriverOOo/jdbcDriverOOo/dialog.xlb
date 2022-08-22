@@ -8,7 +8,8 @@
   <library:element library:name="GroupsDialog"/>
   <library:element library:name="NewUserDialog"/>
   <library:element library:name="NewGroupDialog"/>
-  <library:element library:name="SetUserDialog"/>
-  <library:element library:name="AddUserDialog"/>
+  <library:element library:name="PasswordDialog"/>
+  <library:element library:name="UserMembersDialog"/>
+  <library:element library:name="GroupMembersDialog"/>
   <library:element library:name="PrivilegesDialog"/>
 </library:library>

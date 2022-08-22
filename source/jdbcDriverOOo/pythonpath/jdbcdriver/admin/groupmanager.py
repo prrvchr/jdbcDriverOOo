@@ -28,7 +28,7 @@
 """
 
 from .adminmanager import AdminManager
-
+from .groupview import GroupView
 from .grouphandler import DialogHandler
 
 import traceback
@@ -36,6 +36,8 @@ import traceback
 
 class GroupManager(AdminManager):
     def __init__(self, ctx, connection, parent):
+        users = connection.getUsers()
         groups = connection.getGroups()
-        super(GroupManager, self).__init__(ctx, connection, groups, 'GroupsDialog', DialogHandler(self), parent, False)
+        view = GroupView(ctx, DialogHandler(self), parent)
+        super(GroupManager, self).__init__(ctx, view, connection, users, groups, False)
 

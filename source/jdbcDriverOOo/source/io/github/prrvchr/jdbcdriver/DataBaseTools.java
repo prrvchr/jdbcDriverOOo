@@ -801,7 +801,7 @@ public class DataBaseTools {
      * @param connection
      *    The connection.
      * @param name
-     *    The name of the new user.
+     *    The name of the user.
      * @param sensitive
      *    Is the name case sensitive.
      *   
@@ -869,6 +869,74 @@ public class DataBaseTools {
         return sql;
     }
 
+    /** creates a SQL CREATE ROLE statement
+     *
+     * @param connection
+     *    The connection.
+     * @param descriptor
+     *    The descriptor of the new group.
+     * @param name
+     *    The name of the new group.
+     * @param sensitive
+     *    Is the name case sensitive.
+     *   
+     * @return
+     *   The CREATE ROLE statement.
+     * @throws SQLException
+     */
+    public static String getCreateGroupQuery(Connection connection,
+                                             XPropertySet descriptor,
+                                             String name,
+                                             boolean sensitive)
+        throws SQLException
+    {
+        String sql;
+        try {
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                name = quoteName(quote, name);
+            }
+            sql = String.format("CREATE ROLE %s", name);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
+    }
+
+    /** creates a SQL DROP ROLE statement
+     *
+     * @param connection
+     *    The connection.
+     * @param name
+     *    The name of the role.
+     * @param sensitive
+     *    Is the name case sensitive.
+     *   
+     * @return
+     *   The DROP ROLE statement.
+     * @throws SQLException
+     */
+    public static String getDropGroupQuery(Connection connection,
+                                           String name,
+                                           boolean sensitive)
+        throws SQLException
+    {
+        String sql;
+        try {
+            if (sensitive) {
+                java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+                String quote = metadata.getIdentifierQuoteString();
+                name = quoteName(quote, name);
+            }
+            sql = String.format("DROP ROLE %s", name);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, connection);
+        }
+        return sql;
+    }
 
     /** creates a SQL GRANT ROLE statement
      *

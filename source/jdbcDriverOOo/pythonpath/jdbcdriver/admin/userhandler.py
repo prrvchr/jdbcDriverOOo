@@ -53,11 +53,14 @@ class DialogHandler(unohelper.Base,
             elif method == 'ChangePassword':
                 self._manager.changePassword()
                 handled = True
+            elif method == 'SetGroups':
+                self._manager.setUserMembers()
+                handled = True
             elif method == 'DropUser':
                 self._manager.dropUser()
                 handled = True
             elif method == 'SetPrivileges':
-                self._manager.setUserPrivileges()
+                self._manager.setPrivileges(True)
                 handled = True
             return handled
         except Exception as e:
@@ -68,6 +71,7 @@ class DialogHandler(unohelper.Base,
         return ('SetGrantee',
                 'NewUser',
                 'ChangePassword',
+                'SetGroups',
                 'DropUser',
                 'SetPrivileges')
 
@@ -101,8 +105,8 @@ class NewUserHandler(unohelper.Base,
                 'SetConfirmation')
 
 
-class ChangePasswordHandler(unohelper.Base,
-                            XDialogEventHandler):
+class PasswordHandler(unohelper.Base,
+                      XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -126,8 +130,8 @@ class ChangePasswordHandler(unohelper.Base,
                 'SetConfirmation')
 
 
-class AddUserHandler(unohelper.Base,
-                     XDialogEventHandler):
+class UserHandler(unohelper.Base,
+                    XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -137,17 +141,17 @@ class AddUserHandler(unohelper.Base,
             handled = False
             if method == 'ToogleRemove':
                 enabled = event.Source.getSelectedItemPos() != -1
-                self._manager.toogleRemoveUser(enabled)
+                self._manager.toogleRemove(enabled)
                 handled = True
-            elif method == 'RemoveUser':
-                self._manager.removeUser()
+            elif method == 'RemoveMember':
+                self._manager.removeMember(True)
                 handled = True
             elif method == 'ToogleAdd':
                 enabled = event.Source.getSelectedItemPos() != -1
-                self._manager.toogleAddUser(enabled)
+                self._manager.toogleAdd(enabled)
                 handled = True
-            elif method == 'AddUser':
-                self._manager.addUser()
+            elif method == 'AddMember':
+                self._manager.addMember(True)
                 handled = True
             return handled
         except Exception as e:
@@ -156,8 +160,8 @@ class AddUserHandler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('ToogleRemove',
-                'RemoveUser',
+                'RemoveMember',
                 'ToogleAdd',
-                'AddUser')
+                'AddMember')
 
 

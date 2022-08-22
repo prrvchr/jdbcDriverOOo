@@ -27,43 +27,20 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
+from .adminview import AdminView
 
-from jdbcdriver import getDialog
-from jdbcdriver import g_extension
+import traceback
 
 
-class UserView(unohelper.Base):
+class UserView(AdminView):
     def __init__(self, ctx, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, 'SetUserDialog.xdl', handler, parent)
+        super(UserView, self).__init__(ctx, 'UsersDialog', handler, parent)
 
-    def execute(self):
-        return self._dialog.execute()
+    def enableButton(self, enabled):
+        self._getSetPassword().Model.Enabled = enabled
+        super(UserView, self).enableButton(enabled)
 
-    def dispose(self):
-        return self._dialog.dispose()
+    def _getSetPassword(self):
+        return self._dialog.getControl('CommandButton6')
 
-    def getPassword(self):
-        return self._getPassword().Text
-
-    def getConfirmation(self):
-        return self._getConfirmation().Text
-
-    def enableOk(self, enabled):
-        self._getOk().Model.Enabled = enabled
-
-    def enableConfirmation(self, enabled):
-        control = self._getConfirmation()
-        control.Model.Enabled = enabled
-        if not enabled:
-            control.Text = ""
-
-    def _getPassword(self):
-        return self._dialog.getControl('TextField1')
-
-    def _getConfirmation(self):
-        return self._dialog.getControl('TextField2')
-
-    def _getOk(self):
-        return self._dialog.getControl('CommandButton2')
 

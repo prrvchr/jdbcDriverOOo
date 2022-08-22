@@ -27,16 +27,11 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.List;
 
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.lang.IllegalArgumentException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -63,15 +58,10 @@ public class UserGroupContainer
                                 String name)
         throws SQLException
     {
+        String sql = DataBaseTools.getGrantRoleQuery(m_connection, name, m_user, isCaseSensitive());
+        System.out.println("sdbcx.GroupUserContainer._createUser() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            String group = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.NAME.name));
-            String sql = DataBaseTools.getGrantRoleQuery(m_connection, group, m_user, isCaseSensitive());
-            System.out.println("sdbcx.GroupUserContainer._createUser() SQL: " + sql);
             statement.execute(sql);
-        }
-        catch (IllegalArgumentException | UnknownPropertyException | WrappedTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
         catch (java.sql.SQLException e) {
             UnoHelper.getSQLException(e, m_connection);
