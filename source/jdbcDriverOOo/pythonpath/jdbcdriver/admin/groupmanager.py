@@ -38,7 +38,7 @@ import traceback
 class GroupManager(AdminManager):
     def __init__(self, ctx, connection, groups, parent, recursive):
         users = connection.getUsers()
-        view = GroupView(ctx, DialogHandler(self), parent, recursive)
+        view = GroupView(ctx, DialogHandler(self), parent)
         super(GroupManager, self).__init__(ctx, view, connection, users, groups, recursive, False)
 
 

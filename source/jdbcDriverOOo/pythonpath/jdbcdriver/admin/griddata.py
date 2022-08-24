@@ -64,6 +64,7 @@ class GridData(unohelper.Base,
     def setGrantee(self, grantee):
         self._grantee = self._grantees.getByName(grantee)
         self.refresh()
+        return self._recursive
 
     def refresh(self, row=None):
         if row is None:

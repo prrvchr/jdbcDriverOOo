@@ -33,12 +33,11 @@ import traceback
 
 
 class GroupView(AdminView):
-    def __init__(self, ctx, handler, parent, recursive):
+    def __init__(self, ctx, handler, parent):
         super(GroupView, self).__init__(ctx, 'GroupDialog', handler, parent)
-        self._recursive = recursive
 
-    def enableButton(self, enabled):
-        self._getSetRole().Model.Enabled = self._recursive and enabled
+    def enableButton(self, enabled, recursive=True):
+        self._getSetRole().Model.Enabled = enabled and recursive
         super(GroupView, self).enableButton(enabled)
 
     def _getSetRole(self):

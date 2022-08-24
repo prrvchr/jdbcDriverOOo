@@ -178,7 +178,7 @@ class AdminModel(unohelper.Base):
         self._grantees.getByName(name).changePassword(pwd, pwd)
 
     def setGrantee(self, grantee):
-        self._data.setGrantee(grantee)
+        return self._data.setGrantee(grantee)
 
     def getGrantablePrivileges(self, index):
         privileges = 0

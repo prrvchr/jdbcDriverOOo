@@ -93,8 +93,7 @@ class AdminManager(unohelper.Base):
         self._view.dispose()
 
     def setGrantee(self, grantee):
-        self._model.setGrantee(grantee)
-        self._view.enableButton(True)
+        self._view.enableButton(self._model.setGrantee(grantee))
         index = self._view.getSelectedGridIndex()
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
