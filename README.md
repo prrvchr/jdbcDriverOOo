@@ -128,6 +128,11 @@ The management of users who are members of the group of the underlying database 
 
 ![jdbcDriverOOo screenshot 9](img/jdbcDriverOOo-9.png)
 
+The management of roles assigned to the group of the underlying database is accessible in this window via the button: **Group roles**  
+This feature, which is an extension of the UNO API, will only be available if the underlying LibreOffice / OpenOffice driver allows it.
+
+![jdbcDriverOOo screenshot 10](img/jdbcDriverOOo-10.png)
+
 ## Has been tested with:
 
 * LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1

@@ -33,6 +33,7 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
+import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
@@ -44,6 +45,7 @@ import io.github.prrvchr.uno.sdb.Connection;
 public class Group
     extends Descriptor
     implements XUsersSupplier,
+               XGroupsSupplier,
                XAuthorizable
 {
 
@@ -52,6 +54,8 @@ public class Group
 
     private Connection m_connection;
     private UserContainer m_users;
+    private GroupContainer m_groups;
+
 
     // The constructor method:
     public Group(Connection connection,
@@ -137,5 +141,43 @@ public class Group
         return new GroupUserContainer(m_connection, isCaseSensitive(), users, getName());
     }
 
+
+    // com.sun.star.sdbcx.XGroupsSupplier:
+    @Override
+    public XNameAccess getGroups() {
+        try {
+            System.out.println("sdbcx.Group.getGroups() 1");
+            if (m_groups == null) {
+                m_groups = _refreshGroups();
+            }
+            System.out.println("sdbcx.Group.getGroups() 2");
+            return m_groups;
+        }
+        catch (java.lang.Exception e) {
+            System.out.println("sdbcx.Group.getGroups() 3" + UnoHelper.getStackTrace(e));
+        }
+        return null;
+    }
+
+
+    private GroupContainer _refreshGroups()
+        throws ElementExistException
+    {
+        ArrayList<String> groups = new ArrayList<>();
+        String sql = m_connection.getProvider().getUserGroupsQuery();
+        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
+            statement.setString(1, getName());
+            java.sql.ResultSet result = statement.executeQuery();
+            while(result.next()) {
+                String group = result.getString(1);
+                groups.add(group);
+            }
+            result.close();
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e, m_connection);
+        }
+        return new UserGroupContainer(m_connection, isCaseSensitive(), groups, getName());
+    }
 
 }

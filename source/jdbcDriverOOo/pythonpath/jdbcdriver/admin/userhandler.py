@@ -54,13 +54,13 @@ class DialogHandler(unohelper.Base,
                 self._manager.changePassword()
                 handled = True
             elif method == 'SetGroups':
-                self._manager.setUserMembers()
+                self._manager.setGroups()
                 handled = True
             elif method == 'DropUser':
                 self._manager.dropUser()
                 handled = True
             elif method == 'SetPrivileges':
-                self._manager.setPrivileges(True)
+                self._manager.setPrivileges()
                 handled = True
             return handled
         except Exception as e:
@@ -130,8 +130,8 @@ class PasswordHandler(unohelper.Base,
                 'SetConfirmation')
 
 
-class UserHandler(unohelper.Base,
-                    XDialogEventHandler):
+class UsersHandler(unohelper.Base,
+                   XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -144,14 +144,14 @@ class UserHandler(unohelper.Base,
                 self._manager.toogleRemove(enabled)
                 handled = True
             elif method == 'RemoveMember':
-                self._manager.removeMember(True)
+                self._manager.removeUser()
                 handled = True
             elif method == 'ToogleAdd':
                 enabled = event.Source.getSelectedItemPos() != -1
                 self._manager.toogleAdd(enabled)
                 handled = True
             elif method == 'AddMember':
-                self._manager.addMember(True)
+                self._manager.addUser()
                 handled = True
             return handled
         except Exception as e:

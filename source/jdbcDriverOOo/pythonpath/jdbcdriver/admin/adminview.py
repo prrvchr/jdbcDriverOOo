@@ -51,6 +51,8 @@ class AdminView(unohelper.Base):
             control.selectItem(grantee, True)
         elif control.ItemCount > 0:
             control.selectItemPos(0, True)
+        else:
+            self.enableButton(False)
 
     def execute(self):
         return self._dialog.execute()

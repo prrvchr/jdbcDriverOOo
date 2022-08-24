@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="GroupDialog" dlg:left="5" dlg:top="5" dlg:width="365" dlg:height="260" dlg:help-text="&amp;GroupDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;GroupDialog.Title">
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="5" dlg:top="3" dlg:width="355" dlg:height="14" dlg:help-text="&amp;GroupDialog.FixedLine1.HelpText" dlg:value="&amp;GroupDialog.FixedLine1.Label"/>
+    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="50" dlg:height="15" dlg:help-text="&amp;GroupDialog.Label1.HelpText" dlg:value="&amp;GroupDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="240" dlg:top="20" dlg:width="120" dlg:height="13" dlg:help-text="&amp;GroupDialog.ListBox1.HelpText" dlg:value="&amp;GroupDialog.ListBox1.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGrantee" script:language="UNO"/>
+    </dlg:menulist>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:left="10" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton1.HelpText" dlg:value="&amp;GroupDialog.CommandButton1.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:NewGroup" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:disabled="true" dlg:left="100" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton2.HelpText" dlg:value="&amp;GroupDialog.CommandButton2.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetUsers" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton6" dlg:tab-index="5" dlg:disabled="true" dlg:left="190" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton6.HelpText" dlg:value="&amp;GroupDialog.CommandButton6.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetRoles" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="6" dlg:disabled="true" dlg:left="280" dlg:top="42" dlg:width="80" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton3.HelpText" dlg:value="&amp;GroupDialog.CommandButton3.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:DropGroup" script:language="UNO"/>
+    </dlg:button>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="7" dlg:left="5" dlg:top="62" dlg:width="355" dlg:height="14" dlg:help-text="&amp;GroupDialog.FixedLine2.HelpText" dlg:value="&amp;GroupDialog.FixedLine2.Label"/>
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="8" dlg:disabled="true" dlg:left="10" dlg:top="240" dlg:width="90" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton4.HelpText" dlg:value="&amp;GroupDialog.CommandButton4.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetPrivileges" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton5" dlg:tab-index="9" dlg:left="315" dlg:top="240" dlg:width="45" dlg:height="15" dlg:help-text="&amp;GroupDialog.CommandButton5.HelpText" dlg:value="&amp;GroupDialog.CommandButton5.Label" dlg:button-type="ok"/>
+  </dlg:bulletinboard>
+</dlg:window>

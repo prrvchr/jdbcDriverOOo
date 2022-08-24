@@ -28,6 +28,7 @@
 """
 
 from .adminmanager import AdminManager
+
 from .groupview import GroupView
 from .grouphandler import DialogHandler
 
@@ -35,9 +36,9 @@ import traceback
 
 
 class GroupManager(AdminManager):
-    def __init__(self, ctx, connection, parent):
+    def __init__(self, ctx, connection, groups, parent, recursive):
         users = connection.getUsers()
-        groups = connection.getGroups()
-        view = GroupView(ctx, DialogHandler(self), parent)
-        super(GroupManager, self).__init__(ctx, view, connection, users, groups, False)
+        view = GroupView(ctx, DialogHandler(self), parent, recursive)
+        super(GroupManager, self).__init__(ctx, view, connection, users, groups, recursive, False)
+
 

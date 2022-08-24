@@ -34,7 +34,7 @@ import traceback
 
 class UserView(AdminView):
     def __init__(self, ctx, handler, parent):
-        super(UserView, self).__init__(ctx, 'UsersDialog', handler, parent)
+        super(UserView, self).__init__(ctx, 'UserDialog', handler, parent)
 
     def enableButton(self, enabled):
         self._getSetPassword().Model.Enabled = enabled

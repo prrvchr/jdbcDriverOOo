@@ -51,13 +51,16 @@ class DialogHandler(unohelper.Base,
                 self._manager.createGroup()
                 handled = True
             elif method == 'SetUsers':
-                self._manager.setGroupMembers()
+                self._manager.setUsers()
+                handled = True
+            elif method == 'SetRoles':
+                self._manager.setRoles()
                 handled = True
             elif method == 'DropGroup':
                 self._manager.dropGroup()
                 handled = True
             elif method == 'SetPrivileges':
-                self._manager.setPrivileges(False)
+                self._manager.setPrivileges()
                 handled = True
             return handled
         except Exception as e:
@@ -68,6 +71,7 @@ class DialogHandler(unohelper.Base,
         return ('SetGrantee',
                 'NewGroup',
                 'SetUsers',
+                'SetRoles',
                 'DropGroup',
                 'SetPrivileges')
 
@@ -93,7 +97,7 @@ class NewGroupHandler(unohelper.Base,
         return ('SetGroup', )
 
 
-class GroupHandler(unohelper.Base,
+class GroupsHandler(unohelper.Base,
                     XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
@@ -107,14 +111,14 @@ class GroupHandler(unohelper.Base,
                 self._manager.toogleRemove(enabled)
                 handled = True
             elif method == 'RemoveMember':
-                self._manager.removeMember(False)
+                self._manager.removeGroup()
                 handled = True
             elif method == 'ToogleAdd':
                 enabled = event.Source.getSelectedItemPos() != -1
                 self._manager.toogleAdd(enabled)
                 handled = True
             elif method == 'AddMember':
-                self._manager.addMember(False)
+                self._manager.addGroup()
                 handled = True
             return handled
         except Exception as e:

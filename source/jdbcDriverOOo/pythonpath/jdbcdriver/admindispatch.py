@@ -72,19 +72,21 @@ class AdminDispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        users = "com.sun.star.sdbcx.XUsersSupplier"
-        groups = "com.sun.star.sdbcx.XGroupsSupplier"
+        xusers = "com.sun.star.sdbcx.XUsersSupplier"
+        xgroups = "com.sun.star.sdbcx.XGroupsSupplier"
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
-        if not hasInterface(connection, users) or not hasInterface(connection, groups):
+        if not hasInterface(connection, xusers) or not hasInterface(connection, xgroups):
             resolver = getStringResource(self._ctx, g_identifier, g_extension)
             dialog = createMessageBox(parent, self._getAdminMessage(resolver), self._getAdminTitle(resolver), 'error')
             dialog.execute()
             dialog.dispose()
-        elif url.Path == 'users':
-            state, result = self._showUser(connection, parent)
-        elif url.Path == 'groups':
-            state, result = self._showGroup(connection, parent)
+        else:
+            groups, recursive = self._getGroups(connection, xgroups)
+            if url.Path == 'users':
+                state, result = self._showUser(connection, groups, parent, recursive)
+            elif url.Path == 'groups':
+                state, result = self._showGroup(connection, groups, parent, recursive)
         if close:
             connection.close()
         return state, result
@@ -102,10 +104,18 @@ class AdminDispatch(unohelper.Base,
             self._listeners.remove(listener)
 
 # AdminDispatch private methods
-    def _showUser(self, connection, parent):
+    def _getGroups(self, connection, interface):
+        groups = connection.getGroups()
+        recursive = False
+        if groups.hasElements():
+            recursive = hasInterface(groups.getByIndex(0), interface)
+        return groups, recursive
+
+
+    def _showUser(self, connection, groups, parent, recursive):
         state = FAILURE
         try:
-            manager = UserManager(self._ctx, connection, parent)
+            manager = UserManager(self._ctx, connection, groups, parent, recursive)
             manager.execute()
             state = SUCCESS
             manager.dispose()
@@ -114,10 +124,10 @@ class AdminDispatch(unohelper.Base,
             print(msg)
         return state, None
 
-    def _showGroup(self, connection, parent):
+    def _showGroup(self, connection, groups, parent, recursive):
         state = FAILURE
         try:
-            manager = GroupManager(self._ctx, connection, parent)
+            manager = GroupManager(self._ctx, connection, groups, parent, recursive)
             manager.execute()
             state = SUCCESS
             manager.dispose()

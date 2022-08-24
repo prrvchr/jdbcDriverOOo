@@ -51,9 +51,9 @@ from .gridlistener import GridListener
 from .privilegeview import PrivilegeView
 from .granteeview import GranteeView
 from .memberview import MemberView
-from .grouphandler import GroupHandler
+from .grouphandler import GroupsHandler
 from .grouphandler import NewGroupHandler
-from .userhandler import UserHandler
+from .userhandler import UsersHandler
 from .userhandler import NewUserHandler
 from .userhandler import PasswordHandler
 from .passwordview import PasswordView
@@ -64,13 +64,13 @@ import traceback
 
 
 class AdminManager(unohelper.Base):
-    def __init__(self, ctx, view, connection, members, grantees, isuser):
+    def __init__(self, ctx, view, connection, members, grantees, recursive, isuser):
         self._ctx = ctx
         tables = connection.getTables()
         users = connection.getUsers()
         user = users.getByName(connection.getMetaData().getUserName())
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
-        data = GridData(ctx, grantees, tables.getElementNames(), self._flags, isuser)
+        data = GridData(ctx, grantees, tables.getElementNames(), self._flags, recursive, isuser)
         self._model = AdminModel(ctx, user, members, grantees, tables, data, self._flags)
         self._dialog = None
         self._disabled = True
@@ -136,37 +136,52 @@ class AdminManager(unohelper.Base):
         pwd = self._dialog.getPassword()
         self._dialog.enableOk(self._model.isUserValid(user, pwd, confirmation))
 
-    def setUserMembers(self):
-        user = self._view.getSelectedGrantee()
-        title = self._model.getUserTitle(user)
-        self._setMembers(user, title, 'UserMembersDialog', UserHandler(self), True)
+    def setUsers(self):
+        grantee = self._view.getSelectedGrantee()
+        title = self._model.getUsersTitle(grantee)
+        members = self._model.getUsers(grantee)
+        self._setMembers(grantee, title, members, 'UsersDialog', UsersHandler(self), False)
 
-    def setGroupMembers(self):
-        group = self._view.getSelectedGrantee()
-        title = self._model.getGroupTitle(group)
-        self._setMembers(group, title, 'GroupMembersDialog', GroupHandler(self), False)
+    def setGroups(self):
+        grantee = self._view.getSelectedGrantee()
+        title = self._model.getGroupsTitle(grantee)
+        members = self._model.getGroups(grantee)
+        self._setMembers(grantee, title, members, 'GroupsDialog', GroupsHandler(self), True)
 
-    def _setMembers(self, grantee, title, xdl, handler, isuser):
-        members = self._model.getMembers(grantee, isuser)
+    def setRoles(self):
+        grantee = self._view.getSelectedGrantee()
+        title = self._model.getRolesTitle(grantee)
+        members = self._model.getRoles(grantee)
+        self._setMembers(grantee, title, members, 'RolesDialog', GroupsHandler(self), True)
+
+    def _setMembers(self, grantee, title, members, xdl, handler, isgroup):
         self._dialog = MemberView(self._ctx, xdl, handler, self._view.getPeer(), title, *members)
         if self._dialog.execute() == OK:
-            self._model.setMembers(grantee, self._dialog.getMembers(), isuser)
+            self._model.setMembers(grantee, self._dialog.getMembers(), isgroup)
         self._dialog.dispose()
         self._dialog = None
 
     def toogleRemove(self, enabled):
         self._dialog.toogleRemove(enabled)
 
-    def removeMember(self, isuser):
+    def removeUser(self):
         self._dialog.removeMember()
-        self._toogleOk(isuser)
+        self._toogleOk(False)
+
+    def removeGroup(self):
+        self._dialog.removeMember()
+        self._toogleOk(True)
 
     def toogleAdd(self, enabled):
         self._dialog.toogleAdd(enabled)
 
-    def addMember(self, isuser):
+    def addUser(self):
         self._dialog.addMember()
-        self._toogleOk(isuser)
+        self._toogleOk(False)
+
+    def addGroup(self):
+        self._dialog.addMember()
+        self._toogleOk(True)
 
     def changePassword(self):
         self._dialog = PasswordView(self._ctx, PasswordHandler(self), self._view.getPeer())
@@ -195,9 +210,9 @@ class AdminManager(unohelper.Base):
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
 
-    def setPrivileges(self, isuser):
+    def setPrivileges(self):
         index = self._view.getSelectedGridIndex()
-        table, privileges, grantables, inherited = self._model.getPrivilegesData(index, isuser)
+        table, privileges, grantables, inherited = self._model.getPrivileges(index)
         dialog = PrivilegeView(self._ctx, self._flags, table, privileges, grantables, inherited)
         if dialog.execute() == OK:
             flags = dialog.getPrivileges(self._flags)
@@ -205,9 +220,9 @@ class AdminManager(unohelper.Base):
                 self._model.setPrivileges(self._view.getSelectedGrantee(), index, *self._getPrivileges(privileges, flags))
         dialog.dispose()
 
-    def _toogleOk(self, isuser):
+    def _toogleOk(self, isgroup):
         name = self._view.getSelectedGrantee()
-        enabled = self._model.isMemberModified(name, self._dialog.getMembers(), isuser)
+        enabled = self._model.isMemberModified(name, self._dialog.getMembers(), isgroup)
         self._dialog.enableOk(enabled)
 
     def _dropGrantee(self, grantee, message, title):

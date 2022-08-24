@@ -4,12 +4,13 @@
   <library:element library:name="LogWindow"/>
   <library:element library:name="LogDialog"/>
   <library:element library:name="OptionsDialog"/>
-  <library:element library:name="UsersDialog"/>
-  <library:element library:name="GroupsDialog"/>
+  <library:element library:name="UserDialog"/>
+  <library:element library:name="GroupDialog"/>
   <library:element library:name="NewUserDialog"/>
   <library:element library:name="NewGroupDialog"/>
   <library:element library:name="PasswordDialog"/>
-  <library:element library:name="UserMembersDialog"/>
-  <library:element library:name="GroupMembersDialog"/>
+  <library:element library:name="UsersDialog"/>
+  <library:element library:name="GroupsDialog"/>
+  <library:element library:name="RolesDialog"/>
   <library:element library:name="PrivilegesDialog"/>
 </library:library>

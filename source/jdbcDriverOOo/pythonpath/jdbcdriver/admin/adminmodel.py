@@ -60,8 +60,9 @@ class AdminModel(unohelper.Base):
                            'DropGroupMessage' : 'MessageBox.DropGroup.Message',
                            'DropUserTitle'    : 'MessageBox.DropUser.Title',
                            'DropUserMessage'  : 'MessageBox.DropUser.Message',
-                           'UserTitle'        : 'UserMembersDialog.Title',
-                           'GroupTitle'       : 'GroupMembersDialog.Title',}
+                           'UsersTitle'       : 'UsersDialog.Title',
+                           'GroupsTitle'      : 'GroupsDialog.Title',
+                           'RolesTitle'       : 'RolesDialog.Title'}
         self._data = data
         self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
         self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
@@ -113,19 +114,36 @@ class AdminModel(unohelper.Base):
         self._grantees.appendByDescriptor(descriptor)
         return self._grantees.getElementNames()
 
-    def getMembers(self, name, isuser):
-        members = self._getMembers(name, isuser)
-        availables = self._getAvailables(members)
+    def getUsers(self, name):
+        grantee = self._grantees.getByName(name)
+        members = grantee.getUsers().getElementNames()
+        if self._data.isRecursive():
+            members = self._getFilteredMembers(members, self._grantees.getElementNames())
+        availables = self._getFilteredMembers(self._members.getElementNames(), members)
         return members, availables
 
-    def getUserTitle(self, user):
-        return self._getUserTitle(user)
+    def getGroups(self, name):
+        members = self._grantees.getByName(name).getGroups().getElementNames()
+        availables = self._getFilteredMembers(self._members.getElementNames(), members)
+        return members, availables
 
-    def getGroupTitle(self, group):
-        return self._getGroupTitle(group)
+    def getRoles(self, name):
+        members = self._grantees.getByName(name).getGroups().getElementNames()
+        #TODO: We need to avoid recursive assignment and hence filter the name
+        availables = self._getFilteredMembers(self._grantees.getElementNames(), members, name)
+        return members, availables
 
-    def isMemberModified(self, name, grantees, isuser):
-        members = self._getMembers(name, isuser)
+    def getUsersTitle(self, user):
+        return self._getUsersTitle(user)
+
+    def getGroupsTitle(self, group):
+        return self._getGroupsTitle(group)
+
+    def getRolesTitle(self, group):
+        return self._getRolesTitle(group)
+
+    def isMemberModified(self, name, grantees, isgroup):
+        members = self._getMembers(name, isgroup)
         for grantee in grantees:
             if grantee not in members:
                 return True
@@ -134,9 +152,9 @@ class AdminModel(unohelper.Base):
                 return True
         return False
 
-    def setMembers(self, name, elements, isuser):
+    def setMembers(self, name, elements, isgroup):
         grantee = self._grantees.getByName(name)
-        grantees = grantee.getGroups() if isuser else grantee.getUsers()
+        grantees = grantee.getGroups() if isgroup else grantee.getUsers()
         members = grantees.getElementNames()
         for element in elements:
             if element not in members:
@@ -149,7 +167,7 @@ class AdminModel(unohelper.Base):
         # TODO: We need to refresh the members of members
         self._members.refresh()
         # TODO: If it's a user we need to refresh the grid privileges
-        if isuser:
+        if isgroup:
             self._data.refresh()
 
     def dropGrantee(self, grantee):
@@ -168,10 +186,10 @@ class AdminModel(unohelper.Base):
             privileges = self._user.getGrantablePrivileges(self._getTable(index), TABLE)
         return privileges
 
-    def getPrivilegesData(self, index, isuser):
+    def getPrivileges(self, index):
         name = self._getTable(index)
-        privileges, grantables = self._getPrivilegesData(index, name)
-        inherited = self._data.getInheritedPrivileges(name) if isuser else 0
+        privileges, grantables = self._getPrivileges(index, name)
+        inherited = self._data.getInheritedPrivileges(name) if self._data.needRecursion() else 0
         return name, privileges, grantables, inherited
 
     def setPrivileges(self, name, index, grant, revoke):
@@ -183,15 +201,14 @@ class AdminModel(unohelper.Base):
             grantee.revokePrivileges(table, TABLE, revoke)
         self._data.refresh(index)
 
-    def _getMembers(self, name, isuser):
+    def _getMembers(self, name, isgroup):
         grantee = self._grantees.getByName(name)
-        return grantee.getGroups().getElementNames() if isuser else grantee.getUsers().getElementNames()
+        return grantee.getGroups().getElementNames() if isgroup else grantee.getUsers().getElementNames()
 
-    def _getAvailables(self, grantees):
-        members = self._members.getElementNames()
-        return tuple(member for member in members if member not in grantees)
+    def _getFilteredMembers(self, members, filters, filter=None):
+        return tuple(member for member in members if member not in filters and member != filter)
 
-    def _getPrivilegesData(self, index, name):
+    def _getPrivileges(self, index, name):
         privileges = self._data.getGranteePrivileges(name)
         grantables = self.getGrantablePrivileges(index)
         return privileges, grantables
@@ -224,12 +241,16 @@ class AdminModel(unohelper.Base):
         resource = self._resources.get('DropUserMessage')
         return self._resolver.resolveString(resource) % user
 
-    def _getUserTitle(self, user):
-        resource = self._resources.get('UserTitle')
+    def _getUsersTitle(self, user):
+        resource = self._resources.get('UsersTitle')
         return self._resolver.resolveString(resource) % user
 
-    def _getGroupTitle(self, group):
-        resource = self._resources.get('GroupTitle')
+    def _getGroupsTitle(self, group):
+        resource = self._resources.get('GroupsTitle')
+        return self._resolver.resolveString(resource) % group
+
+    def _getRolesTitle(self, group):
+        resource = self._resources.get('RolesTitle')
         return self._resolver.resolveString(resource) % group
 
 

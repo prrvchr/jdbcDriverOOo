@@ -36,9 +36,9 @@ import traceback
 
 
 class UserManager(AdminManager):
-    def __init__(self, ctx, connection, parent):
-        groups = connection.getGroups()
+    def __init__(self, ctx, connection, groups, parent, recursive):
         users = connection.getUsers()
         view = UserView(ctx, DialogHandler(self), parent)
-        super(UserManager, self).__init__(ctx, view, connection, groups, users, True)
+        super(UserManager, self).__init__(ctx, view, connection, groups, users, recursive, True)
+
 

@@ -144,7 +144,9 @@ public abstract class DriverProviderMain
     @Override
     public String getUserGroupsQuery()
     {
-        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE GRANTEE=?;";
+        //TODO: We use recursion to find privileges inherited from roles,
+        //TODO: we need to filter recursive entries (even ROLE_NAME and GRANTEE)
+        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE GRANTEE=? AND ROLE_NAME!=GRANTEE;";
     }
 
 

@@ -47,7 +47,7 @@ class GridData(unohelper.Base,
                XWeak,
                XAdapter,
                XMutableGridDataModel):
-    def __init__(self, ctx, grantees, tables, flags, inherited):
+    def __init__(self, ctx, grantees, tables, flags, recursive, isuser):
         self._ctx = ctx
         self._events = []
         self._listeners = []
@@ -55,7 +55,8 @@ class GridData(unohelper.Base,
         self._grantees = grantees
         self._tables = tables
         self._flags = flags
-        self._inherited = inherited
+        self._recursive = recursive
+        self._isuser = isuser
         self._rows = {}
         self.RowCount = len(tables)
         self.ColumnCount = len(flags) + 1
@@ -87,7 +88,7 @@ class GridData(unohelper.Base,
 
     # com.sun.star.util.XCloneable
     def createClone(self):
-        return GridData(self._ctx, self._grantees, self._tables, self._flags, self._inherited)
+        return GridData(self._ctx, self._grantees, self._tables, self._flags, self._recursive, self._isuser)
 
     # com.sun.star.lang.XComponent
     def dispose(self):
@@ -160,27 +161,36 @@ class GridData(unohelper.Base,
 
     def _getRowPrivileges(self, table, row):
         if row not in self._rows:
-            self._rows[row] = self.getGranteePrivileges(table, self._inherited)
+            self._rows[row] = self.getGranteePrivileges(table, self._isuser or self._recursive)
         return self._rows[row]
 
-    def getGranteePrivileges(self, table, inherited=False):
+    def isRecursive(self):
+        return self._recursive
+
+    def needRecursion(self):
+        return self._isuser or self._recursive
+
+    def getGranteePrivileges(self, table, recursive=False):
         privileges = self._grantee.getPrivileges(table, TABLE)
-        if inherited:
+        if recursive:
             print("GridData.getGranteePrivileges() 1 %s" % privileges)
             privileges |= self.getInheritedPrivileges(table)
         print("GridData.getGranteePrivileges() 2 %s" % privileges)
         return privileges
 
     def getInheritedPrivileges(self, table):
-        privileges = 0
-        groups = self._grantee.getGroups().createEnumeration()
+        return self._getInheritedPrivileges(table, self._grantee, 0)
+
+    def _getInheritedPrivileges(self, table, role, privileges):
+        groups = role.getGroups().createEnumeration()
         while groups.hasMoreElements():
             group = groups.nextElement()
             name = group.getPropertyValue('Name')
             privileges |= group.getPrivileges(table, TABLE)
-            print("GridData.getInheritedPrivileges() %s - %s" % (name, privileges))
+            print("GridData._getInheritedPrivileges() %s - %s" % (name, privileges))
+            if self._recursive:
+                privileges |= self._getInheritedPrivileges(table, group, privileges)
         return privileges
-
 
     # FIXME: Broadcast the data change to all listener
     def _dataChanged(self, row=None):
