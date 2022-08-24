@@ -129,7 +129,7 @@ La gestion des utilisateurs membres du groupe de la base de données sous jacent
 ![jdbcDriverOOo screenshot 9](img/jdbcDriverOOo-9_fr.png)
 
 La gestion des roles assignés au groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Roles du groupe**  
-Cette fonctionnalité, qui est une extension de L'API UNO, ne sera disponible que si le pilote LibreOffice / OpenOffice sous jacent le permet.
+Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que si le pilote LibreOffice / OpenOffice sous jacent le permet.
 
 ![jdbcDriverOOo screenshot 10](img/jdbcDriverOOo-10_fr.png)
 
