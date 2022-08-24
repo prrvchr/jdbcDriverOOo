@@ -114,7 +114,8 @@ User management of the underlying database is accessible in Base via the menu: *
 
 ![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6.png)
 
-The privileges management of the users of the underlying database is accessible in this window by the button: **Change privileges**
+The privileges management of the users of the underlying database is accessible in this window by the button: **Change privileges**  
+If the privilege is inherited from an assigned role, the checkbox is a three-state type.
 
 ![jdbcDriverOOo screenshot 7](img/jdbcDriverOOo-7.png)
 

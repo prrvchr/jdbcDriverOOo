@@ -114,7 +114,8 @@ La gestion des utilisateurs de la base de données sous jacente est accessible d
 
 ![jdbcDriverOOo screenshot 6](img/jdbcDriverOOo-6_fr.png)
 
-La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**
+La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**  
+Si le privilège est hérité d'un rôle assigné, la case à cocher est de type à trois états.
 
 ![jdbcDriverOOo screenshot 7](img/jdbcDriverOOo-7_fr.png)
 
