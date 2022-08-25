@@ -75,7 +75,7 @@ class AdminManager(unohelper.Base):
         self._dialog = None
         self._disabled = True
         self._view = view
-        self._view.init(*self._model.getGridModels(), GridListener(self))
+        self._view.init(GridListener(self), *self._model.getGridModels())
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):

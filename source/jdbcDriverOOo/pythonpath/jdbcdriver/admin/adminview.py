@@ -39,7 +39,7 @@ class AdminView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
 
-    def init(self, model, columns, listener):
+    def init(self, listener, model, columns):
         self._createGrid(model, columns)
         self._getGrid().addSelectionListener(listener)
         self.initGrantees(model.getGrantees().getElementNames())

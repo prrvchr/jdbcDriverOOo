@@ -77,7 +77,7 @@ class AdminDispatch(unohelper.Base,
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
         if not hasInterface(connection, xusers) or not hasInterface(connection, xgroups):
-            dialog = createMessageBox(parent, *self._getDialogData(), 'error')
+            dialog = createMessageBox(parent, *self._getDialogData())
             dialog.execute()
             dialog.dispose()
         else:
@@ -146,6 +146,6 @@ class AdminDispatch(unohelper.Base,
         resolver = getStringResource(self._ctx, g_identifier, g_extension)
         message = resolver.resolveString('MessageBox.Admin.Message')
         title = resolver.resolveString('MessageBox.Admin.Title')
-        return message, title
+        return message, title, 'error'
 
 

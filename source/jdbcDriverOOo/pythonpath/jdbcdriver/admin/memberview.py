@@ -74,12 +74,12 @@ class MemberView(unohelper.Base):
         self._getOkButton().Model.Enabled = enabled
 
     def _addMember(self, control, member):
-        members = list(control.Model.StringItemList)
+        members = list(control.Model.StringItemList) if control.ItemCount else []
         members.append(member)
         control.Model.StringItemList = tuple(members)
 
     def _removeMember(self, control, member):
-        members = control.Model.StringItemList
+        members = control.Model.StringItemList if control.ItemCount else ()
         control.Model.StringItemList = tuple(m for m in members if m != member)
 
     def _getSelectedMembers(self):
