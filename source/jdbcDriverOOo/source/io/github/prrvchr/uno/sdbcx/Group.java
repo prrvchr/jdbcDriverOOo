@@ -107,15 +107,13 @@ public class Group
     @Override
     public XNameAccess getUsers() {
         try {
-            System.out.println("sdbcx.Group.getUsers() 1");
             if (m_users == null) {
                 m_users = _refreshUsers();
             }
-            System.out.println("sdbcx.Group.getUsers() 2");
             return m_users;
         }
         catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Group.getUsers() 3" + UnoHelper.getStackTrace(e));
+            System.out.println("sdbcx.Group.getUsers() ERROR: " + UnoHelper.getStackTrace(e));
         }
         return null;
     }
@@ -126,7 +124,6 @@ public class Group
     {
         ArrayList<String> users = new ArrayList<>();
         String sql = m_connection.getProvider().getGroupUsersQuery();
-        System.out.println("sdbcx.Group._refreshUsers() SQL: " + sql);
         try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
             statement.setString(1, getName());
             java.sql.ResultSet result = statement.executeQuery();
@@ -152,7 +149,7 @@ public class Group
             return m_groups;
         }
         catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Group.getGroups() ERROR" + UnoHelper.getStackTrace(e));
+            System.out.println("sdbcx.Group.getGroups() ERROR: " + UnoHelper.getStackTrace(e));
         }
         return null;
     }

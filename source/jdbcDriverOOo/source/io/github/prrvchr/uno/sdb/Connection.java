@@ -199,12 +199,10 @@ public final class Connection
     @Override
     public synchronized XNameAccess getUsers()
     {
-        System.out.println("sdb.Connection.getUsers() 1");
         checkDisposed();
         if (m_Users == null) {
             _refreshUsers();
         }
-        System.out.println("sdb.Connection.getUsers() 2");
         return m_Users;
     }
 
@@ -212,12 +210,10 @@ public final class Connection
     @Override
     public synchronized XNameAccess getViews()
     {
-        System.out.println("sdb.Connection.getViews() 1");
         checkDisposed();
         if (m_Views == null) {
             _refreshViews();
         }
-        System.out.println("sdb.Connection.getViews() 2");
         return m_Views;
     }
 
@@ -225,12 +221,10 @@ public final class Connection
     @Override
     public XNameAccess getGroups()
     {
-        System.out.println("sdb.Connection.getGroups() *********************************************");
         checkDisposed();
         if (m_Groups == null) {
             _refreshGroups();
         }
-        System.out.println("sdb.Connection.getViews() 2");
         return m_Groups;
     }
 
@@ -248,7 +242,6 @@ public final class Connection
 
     protected XStatement _getStatement()
     {
-        System.out.println("sdb.Connection._getStatement() *****************************");
         Statement statement = new Statement(this);
         //m_statements.put(statement, statement);
         return statement;
@@ -256,7 +249,6 @@ public final class Connection
 
     protected XPreparedStatement _getPreparedStatement(String sql)
     {
-        System.out.println("sdb.Connection._getPreparedStatement() *****************************: '" + sql + "'");
         PreparedStatement statement = new PreparedStatement(this, sql);
         //m_statements.put(statement, statement);
         return statement;
@@ -264,7 +256,6 @@ public final class Connection
 
     protected XPreparedStatement _getCallableStatement(String sql)
     {
-        System.out.println("sdb.Connection._getCallableStatement() *****************************: '" + sql + "'");
         CallableStatement statement = new CallableStatement(this, sql);
         //m_statements.put(statement, statement);
         return statement;
@@ -308,13 +299,12 @@ public final class Connection
 
     public void _refreshViews() {
         try {
-            System.out.println("sdb.Connection._refreshViews() 1");
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
             java.sql.ResultSet result = metadata.getTables(null, null, "%", new String[] { "VIEW" });
             List<String> names = new ArrayList<>();
             while (result.next()) {
                 String name = _buildName(result);
-                System.out.println("sdb.Connection._refreshViews() 2 View Name: " + name);
+                System.out.println("sdb.Connection._refreshViews() View Name: " + name);
                 names.add(name);
             }
             result.close();
@@ -328,18 +318,16 @@ public final class Connection
         catch (ElementExistException | SQLException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
-        System.out.println("sdb.Connection._refreshViews() 3");
     }
 
     public void _refreshGroups()
     {
-        System.out.println("sdb.Connection._refreshGroups() 1");
         try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
             java.sql.ResultSet result = statement.executeQuery(getProvider().getGroupQuery());
             List<String> names = new ArrayList<>();
             while (result.next()) {
                 String name = result.getString(1);
-                System.out.println("sdb.Connection._refreshGroups() 2 Group Name: " + name);
+                System.out.println("sdb.Connection._refreshGroups() Group Name: " + name);
                 names.add(name);
             }
             result.close();
@@ -353,18 +341,16 @@ public final class Connection
         catch (ElementExistException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
-        System.out.println("sdb.Connection._refreshGroups() 3");
     }
 
     public void _refreshUsers()
     {
-        System.out.println("sdb.Connection._refreshUsers() 1");
         try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
             java.sql.ResultSet result = statement.executeQuery(getProvider().getUserQuery());
             List<String> names = new ArrayList<>();
             while (result.next()) {
                 String name = result.getString(1);
-                System.out.println("sdb.Connection._refreshUsers() 2 User Name: " + name);
+                System.out.println("sdb.Connection._refreshUsers() User Name: " + name);
                 names.add(name);
             }
             result.close();
@@ -378,7 +364,6 @@ public final class Connection
         catch (ElementExistException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
-        System.out.println("sdb.Connection._refreshUsers() 3");
     }
 
     protected String _buildName(java.sql.ResultSet result)

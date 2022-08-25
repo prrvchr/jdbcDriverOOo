@@ -123,15 +123,13 @@ public class User
     @Override
     public XNameAccess getGroups() {
         try {
-            System.out.println("sdbcx.User.getGroups() 1");
             if (m_groups == null) {
                 m_groups = _refreshGroups();
             }
-            System.out.println("sdbcx.User.getGroups() 2");
             return m_groups;
         }
         catch (java.lang.Exception e) {
-            System.out.println("sdbcx.User.getGroups() 3" + UnoHelper.getStackTrace(e));
+            System.out.println("sdbcx.User.getGroups() ERROR: " + UnoHelper.getStackTrace(e));
         }
         return null;
     }
