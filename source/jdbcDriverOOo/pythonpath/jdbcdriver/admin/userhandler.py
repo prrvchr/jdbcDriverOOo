@@ -85,8 +85,8 @@ class NewUserHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'SetUser':
-                self._manager.setUser(event.Source.Text)
+            if method == 'SetName':
+                self._manager.setUserName(event.Source.Text)
                 handled = True
             elif method == 'SetPassword':
                 self._manager.setUserPassword(event.Source.Text)
@@ -100,7 +100,7 @@ class NewUserHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetUser',
+        return ('SetName',
                 'SetPassword',
                 'SetConfirmation')
 

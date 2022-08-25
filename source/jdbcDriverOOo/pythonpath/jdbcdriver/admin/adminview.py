@@ -39,10 +39,10 @@ class AdminView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
 
-    def init(self, model, columns, grantees, listener):
+    def init(self, model, columns, listener):
         self._createGrid(model, columns)
         self._getGrid().addSelectionListener(listener)
-        self.initGrantees(grantees)
+        self.initGrantees(model.getGrantees().getElementNames())
 
     def initGrantees(self, grantees, grantee=None):
         control = self._getGrantees()
@@ -52,7 +52,7 @@ class AdminView(unohelper.Base):
         elif control.ItemCount > 0:
             control.selectItemPos(0, True)
         else:
-            self.enableButton(False)
+            self.enableButton(False, False, False)
 
     def execute(self):
         return self._dialog.execute()
@@ -60,9 +60,9 @@ class AdminView(unohelper.Base):
     def dispose(self):
         return self._dialog.dispose()
 
-    def enableButton(self, enabled):
+    def enableButton(self, enabled, recursive, removable):
         self._getSetGrantee().Model.Enabled = enabled
-        self._getDropGrantee().Model.Enabled = enabled
+        self._getDropGrantee().Model.Enabled = enabled and removable
 
     def enableSetPrivileges(self, enabled):
         self._getSetPrivileges().Model.Enabled = enabled
@@ -73,9 +73,6 @@ class AdminView(unohelper.Base):
         if grid.hasSelectedRows():
             index = grid.getSelectedRows()[0]
         return index
-
-    def getSelectedGrantee(self):
-        return self._getGrantees().getSelectedItem()
 
     def getPeer(self):
         return self._dialog.getPeer()

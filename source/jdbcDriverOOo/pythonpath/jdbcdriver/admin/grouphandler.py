@@ -85,8 +85,8 @@ class NewGroupHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'SetGroup':
-                self._manager.setGroup(event.Source.Text)
+            if method == 'SetName':
+                self._manager.setGroupName(event.Source.Text)
                 handled = True
             return handled
         except Exception as e:
@@ -94,7 +94,7 @@ class NewGroupHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetGroup', )
+        return ('SetName', )
 
 
 class GroupsHandler(unohelper.Base,

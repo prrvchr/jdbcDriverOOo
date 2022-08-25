@@ -70,12 +70,12 @@ class AdminManager(unohelper.Base):
         users = connection.getUsers()
         user = users.getByName(connection.getMetaData().getUserName())
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
-        data = GridData(ctx, grantees, tables.getElementNames(), self._flags, recursive, isuser)
-        self._model = AdminModel(ctx, user, members, grantees, tables, data, self._flags)
+        data = GridData(grantees, tables.getElementNames(), self._flags, recursive, isuser)
+        self._model = AdminModel(ctx, user, members, tables, data, self._flags)
         self._dialog = None
         self._disabled = True
         self._view = view
-        self._view.init(*self._model.getInitData(), GridListener(self))
+        self._view.init(*self._model.getGridModels(), GridListener(self))
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -93,7 +93,7 @@ class AdminManager(unohelper.Base):
         self._view.dispose()
 
     def setGrantee(self, grantee):
-        self._view.enableButton(self._model.setGrantee(grantee))
+        self._view.enableButton(*self._model.setGrantee(grantee))
         index = self._view.getSelectedGridIndex()
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
@@ -116,10 +116,10 @@ class AdminManager(unohelper.Base):
         self._dialog.dispose()
         self._dialog = None
 
-    def setGroup(self, group):
+    def setGroupName(self, group):
         self._dialog.enableOk(self._model.isNameValid(group))
 
-    def setUser(self, user):
+    def setUserName(self, user):
         pwd = self._dialog.getPassword()
         confirmation = self._dialog.getConfirmation()
         self._dialog.enableOk(self._model.isUserValid(user, pwd, confirmation))
@@ -136,29 +136,23 @@ class AdminManager(unohelper.Base):
         self._dialog.enableOk(self._model.isUserValid(user, pwd, confirmation))
 
     def setUsers(self):
-        grantee = self._view.getSelectedGrantee()
-        title = self._model.getUsersTitle(grantee)
-        members = self._model.getUsers(grantee)
-        self._setMembers(grantee, title, members, 'UsersDialog', UsersHandler(self), False)
+        self._setMembers('UsersDialog', UsersHandler(self), self._model.getUsers(), False)
 
     def setGroups(self):
-        grantee = self._view.getSelectedGrantee()
-        title = self._model.getGroupsTitle(grantee)
-        members = self._model.getGroups(grantee)
-        self._setMembers(grantee, title, members, 'GroupsDialog', GroupsHandler(self), True)
+        self._setMembers('GroupsDialog', GroupsHandler(self), self._model.getGroups(), True)
 
     def setRoles(self):
-        grantee = self._view.getSelectedGrantee()
-        title = self._model.getRolesTitle(grantee)
-        members = self._model.getRoles(grantee)
-        self._setMembers(grantee, title, members, 'RolesDialog', GroupsHandler(self), True)
+        self._setMembers('RolesDialog', GroupsHandler(self), self._model.getRoles(), True)
 
-    def _setMembers(self, grantee, title, members, xdl, handler, isgroup):
-        self._dialog = MemberView(self._ctx, xdl, handler, self._view.getPeer(), title, *members)
+    def _setMembers(self, xdl, handler, data, isgroup):
+        self._dialog = MemberView(self._ctx, xdl, handler, self._view.getPeer(), *data)
         if self._dialog.execute() == OK:
-            self._model.setMembers(grantee, self._dialog.getMembers(), isgroup)
+            self._model.setMembers(self._dialog.getMembers(), isgroup)
         self._dialog.dispose()
         self._dialog = None
+
+    def toogleRemoveUser(self, enabled, user):
+        self._dialog.toogleRemove(self._model.isRemovableUser(enabled, user))
 
     def toogleRemove(self, enabled):
         self._dialog.toogleRemove(enabled)
@@ -185,7 +179,7 @@ class AdminManager(unohelper.Base):
     def changePassword(self):
         self._dialog = PasswordView(self._ctx, PasswordHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            self._model.setUserPassword(self._view.getSelectedGrantee(), self._dialog.getPassword())
+            self._model.setUserPassword(self._dialog.getPassword())
         self._dialog.dispose()
         self._dialog = None
 
@@ -198,12 +192,10 @@ class AdminManager(unohelper.Base):
         self._dialog.enableOk(self._model.isPasswordConfirmed(pwd, confirmation))
 
     def dropGroup(self):
-        grantee = self._view.getSelectedGrantee()
-        self._dropGrantee(grantee, *self._model.getDropGroupInfo(grantee))
+        self._dropGrantee(*self._model.getDropGroupInfo())
 
     def dropUser(self):
-        grantee = self._view.getSelectedGrantee()
-        self._dropGrantee(grantee, *self._model.getDropUserInfo(grantee))
+        self._dropGrantee(*self._model.getDropUserInfo())
 
     def changeGridSelection(self, index):
         enabled = self._model.getGrantablePrivileges(index) != 0
@@ -216,18 +208,17 @@ class AdminManager(unohelper.Base):
         if dialog.execute() == OK:
             flags = dialog.getPrivileges(self._flags)
             if flags != privileges:
-                self._model.setPrivileges(self._view.getSelectedGrantee(), index, *self._getPrivileges(privileges, flags))
+                self._model.setPrivileges(index, *self._getPrivileges(privileges, flags))
         dialog.dispose()
 
     def _toogleOk(self, isgroup):
-        name = self._view.getSelectedGrantee()
-        enabled = self._model.isMemberModified(name, self._dialog.getMembers(), isgroup)
+        enabled = self._model.isMemberModified(self._dialog.getMembers(), isgroup)
         self._dialog.enableOk(enabled)
 
-    def _dropGrantee(self, grantee, message, title):
+    def _dropGrantee(self, message, title):
         dialog = createMessageBox(self._view.getPeer(), message, title, 'query')
         if dialog.execute() == OK:
-            grantees = self._model.dropGrantee(grantee)
+            grantees = self._model.dropGrantee()
             self._updateGrantee(grantees)
         dialog.dispose()
 

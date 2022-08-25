@@ -7,7 +7,7 @@
   <dlg:bulletinboard>
     <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="45" dlg:height="12" dlg:help-text="&amp;NewUserDialog.Label1.HelpText" dlg:value="&amp;NewUserDialog.Label1.Label" dlg:valign="center"/>
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="1" dlg:left="65" dlg:top="10" dlg:width="70" dlg:height="15" dlg:help-text="&amp;NewUserDialog.TextField1.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:SetUser" script:language="UNO"/>
+      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:SetName" script:language="UNO"/>
     </dlg:textfield>
     <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="30" dlg:width="45" dlg:height="12" dlg:help-text="&amp;NewUserDialog.Label2.HelpText" dlg:value="&amp;NewUserDialog.Label2.Label" dlg:valign="center"/>
     <dlg:textfield dlg:id="TextField2" dlg:tab-index="3" dlg:left="65" dlg:top="30" dlg:width="70" dlg:height="15" dlg:help-text="&amp;NewUserDialog.TextField2.HelpText" dlg:echochar="*">

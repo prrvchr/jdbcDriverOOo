@@ -47,8 +47,7 @@ class GridData(unohelper.Base,
                XWeak,
                XAdapter,
                XMutableGridDataModel):
-    def __init__(self, ctx, grantees, tables, flags, recursive, isuser):
-        self._ctx = ctx
+    def __init__(self, grantees, tables, flags, recursive, isuser):
         self._events = []
         self._listeners = []
         self._grantee = None
@@ -62,9 +61,15 @@ class GridData(unohelper.Base,
         self.ColumnCount = len(flags) + 1
 
     def setGrantee(self, grantee):
-        self._grantee = self._grantees.getByName(grantee)
+        self._grantee = None if grantee is None else self._grantees.getByName(grantee)
         self.refresh()
         return self._recursive
+
+    def getGrantee(self):
+        return self._grantee
+
+    def getGrantees(self):
+        return self._grantees
 
     def refresh(self, row=None):
         if row is None:
@@ -89,7 +94,7 @@ class GridData(unohelper.Base,
 
     # com.sun.star.util.XCloneable
     def createClone(self):
-        return GridData(self._ctx, self._grantees, self._tables, self._flags, self._recursive, self._isuser)
+        return GridData(self._grantees, self._tables, self._flags, self._recursive, self._isuser)
 
     # com.sun.star.lang.XComponent
     def dispose(self):
@@ -168,27 +173,26 @@ class GridData(unohelper.Base,
     def isRecursive(self):
         return self._recursive
 
-    def needRecursion(self):
-        return self._isuser or self._recursive
+    def isGroup(self):
+        return not self._isuser
 
     def getGranteePrivileges(self, table, recursive=False):
-        privileges = self._grantee.getPrivileges(table, TABLE)
+        privileges = self.getGrantee().getPrivileges(table, TABLE)
         if recursive:
-            print("GridData.getGranteePrivileges() 1 %s" % privileges)
-            privileges |= self.getInheritedPrivileges(table)
-        print("GridData.getGranteePrivileges() 2 %s" % privileges)
+            privileges |= self._getInheritedPrivileges(table, self.getGrantee(), 0)
         return privileges
 
     def getInheritedPrivileges(self, table):
-        return self._getInheritedPrivileges(table, self._grantee, 0)
+        return self._getInheritedPrivileges(table, self.getGrantee(), 0) if self._needInherited() else 0
+
+    def _needInherited(self):
+        return self._isuser or self._recursive
 
     def _getInheritedPrivileges(self, table, role, privileges):
         groups = role.getGroups().createEnumeration()
         while groups.hasMoreElements():
             group = groups.nextElement()
-            name = group.getPropertyValue('Name')
             privileges |= group.getPrivileges(table, TABLE)
-            print("GridData._getInheritedPrivileges() %s - %s" % (name, privileges))
             if self._recursive:
                 privileges |= self._getInheritedPrivileges(table, group, privileges)
         return privileges

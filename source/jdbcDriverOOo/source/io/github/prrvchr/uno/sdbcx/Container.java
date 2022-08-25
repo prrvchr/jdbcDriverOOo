@@ -417,7 +417,6 @@ public abstract class Container
     protected Object _getElement(int index)
         throws WrappedTargetException
     {
-        System.out.println("sdbcx.Container._getElement() 1 Class: " + this.getClass().getName());
         String name = m_Names.get(index);
         XPropertySet element = m_Elements.get(name);
         if (element == null) {
@@ -434,7 +433,6 @@ public abstract class Container
             }
             m_Elements.put(name, element);
         }
-        System.out.println("sdbcx.Container._getElement() 2 Class: " + this.getClass().getName());
         return element;
     }
 

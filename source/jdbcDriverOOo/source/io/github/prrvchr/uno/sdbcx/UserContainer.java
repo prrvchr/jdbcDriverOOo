@@ -80,7 +80,6 @@ public class UserContainer
     protected XPropertySet _createElement(String name)
         throws SQLException
     {
-        System.out.println("sdbcx.UserContainer._createElement()");
         return new User(m_connection, isCaseSensitive(), name);
     }
 
@@ -102,14 +101,12 @@ public class UserContainer
     @Override
     protected void _refresh()
     {
-        System.out.println("sdbcx.UserContainer._refresh()");
         m_connection._refresh();
     }
 
     @Override
     protected XPropertySet _createDescriptor()
     {
-        System.out.println("sdbcx.UserContainer._createDescriptor()");
         return new UserDescriptor(isCaseSensitive());
     }
 

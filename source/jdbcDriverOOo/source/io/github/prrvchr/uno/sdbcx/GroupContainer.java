@@ -81,7 +81,6 @@ public class GroupContainer
     protected XPropertySet _createElement(String name)
         throws SQLException
     {
-        System.out.println("sdbcx.GroupContainer._createElement()");
         return new Group(m_connection, isCaseSensitive(), name);
     }
 
@@ -104,14 +103,12 @@ public class GroupContainer
     @Override
     protected void _refresh()
     {
-        System.out.println("sdbcx.GroupContainer._refresh()");
         m_connection._refresh();
     }
 
     @Override
     protected XPropertySet _createDescriptor()
     {
-        System.out.println("sdbcx.GroupContainer._createDescriptor()");
         return new GroupDescriptor(isCaseSensitive());
     }
 

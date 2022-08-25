@@ -36,9 +36,9 @@ class UserView(AdminView):
     def __init__(self, ctx, handler, parent):
         super(UserView, self).__init__(ctx, 'UserDialog', handler, parent)
 
-    def enableButton(self, enabled, recursive=True):
+    def enableButton(self, enabled, recursive, removable):
         self._getSetPassword().Model.Enabled = enabled
-        super(UserView, self).enableButton(enabled)
+        super(UserView, self).enableButton(enabled, recursive, removable)
 
     def _getSetPassword(self):
         return self._dialog.getControl('CommandButton6')
