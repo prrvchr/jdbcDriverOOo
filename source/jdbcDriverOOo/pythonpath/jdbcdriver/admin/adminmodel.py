@@ -115,21 +115,23 @@ class AdminModel(unohelper.Base):
         return self._data.getGrantees().getElementNames()
 
     def getUsers(self):
-        members = self._data.getGrantee().getUsers().getElementNames()
+        users = self._data.getGrantee().getUsers()
+        members = users.getElementNames()
         if self._data.isRecursive():
-            members = self._getFilteredMembers(members, self._data.getGrantees().getElementNames())
-        availables = self._getFilteredMembers(self._members.getElementNames(), members)
+            members = self._getFilteredMembers(users, self._data.getGrantees().getElementNames())
+        availables = self._getFilteredMembers(self._members, members)
         return self._getUsersTitle(), members, availables
 
     def getGroups(self):
         members = self._data.getGrantee().getGroups().getElementNames()
-        availables = self._getFilteredMembers(self._members.getElementNames(), members)
+        availables = self._getFilteredMembers(self._members, members)
         return self._getGroupsTitle(), members, availables
 
     def getRoles(self):
         members = self._data.getGrantee().getGroups().getElementNames()
-        #TODO: We need to avoid recursive assignment and hence filter the current Grantee
-        availables = self._getFilteredMembers(self._data.getGrantees().getElementNames(), members, self._grantee)
+        #TODO: We must avoid recursive assignments and therefore filter the current Grantee
+        #TODO: as well as the groups having the current Grantee in assigned roles
+        availables = self._getFilteredMembers(self._data.getGrantees(), members, True)
         return self._getRolesTitle(), members, availables
 
     def isMemberModified(self, grantees, isgroup):
@@ -197,8 +199,14 @@ class AdminModel(unohelper.Base):
         grantee = self._data.getGrantee()
         return grantee.getGroups().getElementNames() if isgroup else grantee.getUsers().getElementNames()
 
-    def _getFilteredMembers(self, members, filters, filter=None):
-        return tuple(member for member in members if member not in filters and member != filter)
+    def _getFilteredMembers(self, grantees, filters, recursive=False):
+        members = grantees.getElementNames()
+        return tuple(member for member in members if member not in filters and self._isValidMember(grantees, member, recursive))
+
+    def _isValidMember(self, grantees, grantee, recursive):
+        if recursive:
+            return grantee != self._grantee and self._grantee not in grantees.getByName(grantee).getGroups().getElementNames()
+        return True
 
     def _getPrivileges(self, index, name):
         privileges = self._data.getGranteePrivileges(name)

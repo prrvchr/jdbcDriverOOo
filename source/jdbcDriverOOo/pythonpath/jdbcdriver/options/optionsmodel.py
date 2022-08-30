@@ -37,10 +37,12 @@ from com.sun.star.uno import Exception as UnoException
 from ..unotool import createService
 from ..unotool import getConfiguration
 from ..unotool import getPathSettings
+from ..unotool import getStringResource
 from ..unotool import getResourceLocation
 from ..unotool import getUrl
 
 from ..configuration import g_identifier
+from ..configuration import g_extension
 
 from ..dbconfig import g_folder
 
@@ -76,6 +78,11 @@ class OptionsModel(unohelper.Base):
                           'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
+        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resources = {'TabTitle1' : 'OptionsDialog.Tab1.Title',
+                           'TabTitle2' : 'OptionsDialog.Tab2.Title',
+                           'TabTitle3' : 'OptionsDialog.Tab3.Title'}
+
 
     def loadConfiguration(self, *args):
         with self._lock:
@@ -90,6 +97,9 @@ class OptionsModel(unohelper.Base):
             Thread(target=self._setDriverVersions, args=args).start()
 
 # OptionsModel getter methods
+    def getTabData(self):
+        return self._getTabTitle(1), self._getTabTitle(2), self._getTabTitle(3), OptionsModel._reboot
+
     def getLoggerNames(self, *args):
         service = 'io.github.prrvchr.jdbcdriver.logging.DBLoggerPool'
         loggers = args + createService(self._ctx, service).getLoggerNames()
@@ -325,4 +335,9 @@ class OptionsModel(unohelper.Base):
             property.insertByName('Value', property.createInstance())
         if value is not None:
             property.replaceByName('Value', value)
+
+    def _getTabTitle(self, tab):
+        resource = self._resources.get('TabTitle%s' % tab)
+        return self._resolver.resolveString(resource)
+
 

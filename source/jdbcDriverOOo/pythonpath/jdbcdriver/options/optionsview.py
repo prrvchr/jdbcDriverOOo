@@ -27,19 +27,27 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
-from ..unotool import createService
+from ..unotool import getContainerWindow
+
+from ..configuration import g_extension
+
 import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, window, reboot):
+    def __init__(self, ctx, window, parent1, handler1, parent2, handler2, reboot):
         self._window = window
-        self._window.Model.Step = 1
+        self._tab1 = getContainerWindow(ctx, parent1, handler1, g_extension, 'UnoDriverDialog')
+        self._tab1.setVisible(True)
+        self._tab2 = getContainerWindow(ctx, parent2, handler2, g_extension, 'JdbcDriverDialog')
+        self._tab2.setVisible(True)
+        self._setStep(1)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self._getReboot().setVisible(reboot)
+        self.setReboot(reboot)
 
 # OptionsView getter methods
     def getSelectedProtocol(self):
@@ -124,10 +132,10 @@ class OptionsView(unohelper.Base):
         self._getUpdate().Model.Enabled = enabled
 
     def enableAdd(self, reboot):
-        self._window.Model.Step = 2
+        self._setStep(2)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self._getReboot().setVisible(reboot)
+        self.setReboot(reboot)
         self._getNew().Model.Enabled = False
         self._getRemove().Model.Enabled = False
         self._getUpdate().Model.Enabled = True
@@ -135,19 +143,19 @@ class OptionsView(unohelper.Base):
         self._getNewSubProtocol().setFocus()
 
     def disableAdd(self, enabled, reboot):
-        self._window.Model.Step = 1
+        self._setStep(1)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self._getReboot().setVisible(reboot)
+        self.setReboot(reboot)
         self._getNew().Model.Enabled = True
         self._getRemove().Model.Enabled = enabled
         self._getUpdate().Model.Enabled = enabled
 
     def exitAdd(self, reboot):
-        self._window.Model.Step = 1
+        self._setStep(1)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self._getReboot().setVisible(reboot)
+        self.setReboot(reboot)
         self._getNew().Model.Enabled = True
 
     def clearAdd(self, reboot):
@@ -168,7 +176,8 @@ class OptionsView(unohelper.Base):
         self._getNewArchive().Text = archive
 
     def setReboot(self, state):
-        self._getReboot().setVisible(state)
+        self._getReboot1().setVisible(state)
+        self._getReboot2().setVisible(state)
 
 # OptionsView private methods
     def _setLogger(self, enabled, selected):
@@ -194,61 +203,67 @@ class OptionsView(unohelper.Base):
             if position != -1:
                 control.selectItemPos(position, False)
 
+    def _setStep(self, step):
+        self._tab2.Model.Step = step
+
 # OptionsView private control methods
     def _getLevel(self, index):
-        return self._window.getControl('OptionButton%s' % index)
+        return self._tab1.getControl('OptionButton%s' % index)
+
+    def _getReboot1(self):
+        return self._tab1.getControl('Label2')
+
+    def _getReboot2(self):
+        return self._tab2.getControl('Label10')
 
     def _getProtocols(self):
-        return self._window.getControl('ListBox1')
+        return self._tab2.getControl('ListBox1')
 
     def _getLevels(self):
-        return self._window.getControl('ListBox2')
+        return self._tab2.getControl('ListBox2')
 
     def _getVersion(self):
-        return self._window.getControl('Label5')
+        return self._tab2.getControl('Label4')
 
     def _getLogger(self):
-        return self._window.getControl('CheckBox1')
+        return self._tab2.getControl('CheckBox1')
 
     def _getLevelLabel(self):
-        return self._window.getControl('Label10')
-
-    def _getReboot(self):
-        return self._window.getControl('Label11')
+        return self._tab2.getControl('Label9')
 
     def _getSubProtocol(self):
-        return self._window.getControl('TextField1')
+        return self._tab2.getControl('TextField1')
 
     def _getName(self):
-        return self._window.getControl('TextField3')
+        return self._tab2.getControl('TextField3')
 
     def _getClass(self):
-        return self._window.getControl('TextField5')
+        return self._tab2.getControl('TextField5')
 
     def _getArchive(self):
-        return self._window.getControl('TextField7')
+        return self._tab2.getControl('TextField7')
 
     def _getNewSubProtocol(self):
-        return self._window.getControl('TextField2')
+        return self._tab2.getControl('TextField2')
 
     def _getNewName(self):
-        return self._window.getControl('TextField4')
+        return self._tab2.getControl('TextField4')
 
     def _getNewClass(self):
-        return self._window.getControl('TextField6')
+        return self._tab2.getControl('TextField6')
 
     def _getNewArchive(self):
-        return self._window.getControl('TextField8')
+        return self._tab2.getControl('TextField8')
 
     def _getNew(self):
-        return self._window.getControl('CommandButton1')
+        return self._tab2.getControl('CommandButton1')
 
     def _getRemove(self):
-        return self._window.getControl('CommandButton2')
+        return self._tab2.getControl('CommandButton2')
 
     def _getSave(self):
-        return self._window.getControl('CommandButton3')
+        return self._tab2.getControl('CommandButton3')
 
     def _getUpdate(self):
-        return self._window.getControl('CommandButton5')
+        return self._tab2.getControl('CommandButton5')
 

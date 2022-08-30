@@ -54,8 +54,7 @@ class LogManager(unohelper.Base):
         self._infos = infos
         self._model = None
         self._dialog = None
-        handler = WindowHandler(self)
-        self._view = LogWindow(ctx, handler, parent, extension)
+        self._view = LogWindow(ctx, WindowHandler(self), parent, extension)
         self._view.initLogger(self._getLoggerNames())
 
 # LogManager setter methods

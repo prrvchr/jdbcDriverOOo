@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
@@ -37,6 +38,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 from .optionshandler import OptionsHandler
+from .optionshandler import Tab1Handler
+from .optionshandler import Tab2Handler
 
 from ..unotool import getFilePicker
 from ..unotool import getSimpleFile
@@ -92,16 +95,20 @@ class OptionsManager(unohelper.Base):
                 self._view.setVersion(versions[protocol])
 
     def initialize(self, window):
+        print("OptionsManager.() 1")
         window.addEventListener(OptionsHandler(self))
-        reboot = self._model.needReboot()
-        self._view = OptionsView(window, reboot)
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 180)
+        title1, title2, title3, rebbot = self._model.getTabData()
+        tab, tab1, tab2 = self._getTabPages(window, 'Tab1', rectangle, title1, title2, title3)
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
         loggers = self._model.getLoggerNames('Driver')
         infos = {111: version, 112: path}
-        self._logger = LogManager(self._ctx, window.Peer, g_extension, loggers, infos)
+        self._logger = LogManager(self._ctx, tab.getPeer(), g_extension, loggers, infos)
+        self._view = OptionsView(self._ctx, window, tab1.getPeer(), Tab1Handler(self), tab2.getPeer(), Tab2Handler(self), rebbot)
         self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
+        print("OptionsManager.() 2")
 
     def saveSetting(self):
         self._logger.saveLoggerSetting()
@@ -220,4 +227,31 @@ class OptionsManager(unohelper.Base):
         reboot = self._model.needReboot()
         self._view.enableAdd(reboot)
         self.checkDriver()
+
+    def _getTabPages(self, window, name, rectangle, title1, title2, title3, i=1):
+        model = self._getTabModel(window, rectangle)
+        window.Model.insertByName(name, model)
+        tab = window.getControl(name)
+        tab1 = self._getTabPage(model, tab, title1)
+        tab2 = self._getTabPage(model, tab, title2)
+        tab3 = self._getTabPage(model, tab, title3)
+        tab.ActiveTabPageID = i
+        return tab1, tab2, tab3
+
+    def _getTabModel(self, window, rectangle):
+        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
+        model = window.Model.createInstance(service)
+        model.PositionX = rectangle.X
+        model.PositionY = rectangle.Y
+        model.Width = rectangle.Width
+        model.Height = rectangle.Height
+        return model
+
+    def _getTabPage(self, model, tab, title):
+        index = model.getCount()
+        page = model.createTabPage(index +1)
+        page.Title = title
+        model.insertByIndex(index, page)
+        return tab.getControls()[index]
+
 

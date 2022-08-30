@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="UnoDriverDialog" dlg:left="0" dlg:top="0" dlg:width="260" dlg:height="225" dlg:help-text="&amp;UnoDriverDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;UnoDriverDialog.Title" dlg:withtitlebar="false">
+  <dlg:styles>
+    <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
+  </dlg:styles>
+  <dlg:bulletinboard>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="6" dlg:top="3" dlg:width="244" dlg:height="14" dlg:help-text="&amp;UnoDriverDialog.FixedLine1.HelpText" dlg:value="&amp;UnoDriverDialog.FixedLine1.Label"/>
+    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="50" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.Label1.HelpText" dlg:value="&amp;UnoDriverDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:radiogroup>
+      <dlg:radio dlg:id="OptionButton1" dlg:tab-index="2" dlg:left="65" dlg:top="20" dlg:width="90" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.OptionButton1.HelpText" dlg:value="&amp;UnoDriverDialog.OptionButton1.Label" dlg:valign="center">
+        <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:Base" script:language="UNO"/>
+      </dlg:radio>
+      <dlg:radio dlg:id="OptionButton2" dlg:tab-index="3" dlg:left="160" dlg:top="20" dlg:width="90" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.OptionButton2.HelpText" dlg:value="&amp;UnoDriverDialog.OptionButton2.Label" dlg:valign="center">
+        <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:Enhanced" script:language="UNO"/>
+      </dlg:radio>
+    </dlg:radiogroup>
+    <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="4" dlg:left="10" dlg:top="40" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:align="center" dlg:valign="center"/>
+  </dlg:bulletinboard>
+</dlg:window>

@@ -4,6 +4,8 @@
   <library:element library:name="LogWindow"/>
   <library:element library:name="LogDialog"/>
   <library:element library:name="OptionsDialog"/>
+  <library:element library:name="UnoDriverDialog"/>
+  <library:element library:name="JdbcDriverDialog"/>
   <library:element library:name="UserDialog"/>
   <library:element library:name="GroupDialog"/>
   <library:element library:name="NewUserDialog"/>
