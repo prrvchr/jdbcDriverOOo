@@ -140,6 +140,8 @@ Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que s
 
 * LibreOffice 6.4.4.2 - Windows 7 SP1
 
+* Apache OpenOffice 4.1.13 - Lubuntu 22.04
+
 Je vous encourage en cas de problème :-(  
 de créer un [dysfonctionnement](https://github.com/prrvchr/jdbcDriverOOo/issues/new)  
 J'essaierai de le résoudre ;-)
