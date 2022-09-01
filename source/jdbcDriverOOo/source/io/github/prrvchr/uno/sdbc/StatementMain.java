@@ -33,6 +33,7 @@ import com.sun.star.sdbc.XCloseable;
 import com.sun.star.sdbc.XGeneratedResultSet;
 import com.sun.star.sdbc.XMultipleResults;
 import com.sun.star.sdbc.XResultSet;
+import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
@@ -60,6 +61,7 @@ public abstract class StatementMain
     private final String[] m_services;
     protected ConnectionBase m_Connection;
     protected java.sql.Statement m_Statement = null;
+    protected XStatement m_GeneratedStatement;
     protected String m_Sql;
 
     private String m_CursorName = "";
@@ -221,7 +223,8 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 m_Statement.setCursorName(cursor);
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -239,7 +242,8 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 m_Statement.setFetchDirection(value);
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -256,7 +260,8 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 m_Statement.setFetchSize(value);
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -273,7 +278,8 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 m_Statement.setMaxFieldSize(value);
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -290,7 +296,8 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 m_Statement.setMaxRows(value);
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -426,7 +433,8 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 m_Statement.close();
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 System.out.println("StatementMain.postDisposing() ERROR");
             }
             m_Statement = null;
@@ -464,13 +472,25 @@ public abstract class StatementMain
     public XResultSet getGeneratedValues()
             throws SQLException
     {
+        _createStatement();
+        XResultSet result = null;
         try {
-            _createStatement();
-            return _getResultSet(m_Statement.getGeneratedKeys());
+            result = _getResultSet(m_Statement.getGeneratedKeys());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        if (result == null) {
+            if (m_Connection.getProvider().isAutoRetrievingEnabled()) {
+                String statement = m_Connection.getProvider().getTransformedGeneratedStatement(m_Sql);
+                if (!statement.isEmpty()) {
+                    UnoHelper.disposeComponent(m_GeneratedStatement);
+                    m_GeneratedStatement = m_Connection.createStatement();
+                    result = m_GeneratedStatement.executeQuery(statement);
+                }
+            }
+        }
+        return result;
     }
 
 
@@ -478,12 +498,11 @@ public abstract class StatementMain
     @Override
     public boolean getMoreResults() throws SQLException
     {
-        try
-        {
+        try {
             _createStatement();
             return m_Statement.getMoreResults();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -503,12 +522,11 @@ public abstract class StatementMain
     @Override
     public int getUpdateCount() throws SQLException
     {
-        try
-        {
+        try {
             _createStatement();
             return m_Statement.getUpdateCount();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }

@@ -18,13 +18,18 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.deployment.XPackageInformationProvider;
+import com.sun.star.i18n.XLocaleData;
 import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.lang.Locale;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.resource.XStringResourceResolver;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
@@ -109,12 +114,27 @@ public class UnoHelper
     }
 
     public static Object createService(XComponentContext context,
-                                       String identifier)
+                                       String name)
     {
         Object service = null;
         try {
             XMultiComponentFactory manager = context.getServiceManager();
-            service = manager.createInstanceWithContext(identifier, context);
+            service = manager.createInstanceWithContext(name, context);
+        }
+        catch (java.lang.Exception e) {
+            e.printStackTrace();
+        }
+        return service;
+    }
+
+    public static Object createService(XComponentContext context,
+                                       String name,
+                                       Object[] arguments)
+    {
+        Object service = null;
+        try {
+            XMultiComponentFactory manager = context.getServiceManager();
+            service = manager.createInstanceWithArgumentsAndContext(name, arguments, context);
         }
         catch (java.lang.Exception e) {
             e.printStackTrace();
@@ -128,34 +148,36 @@ public class UnoHelper
         return (XMultiServiceFactory) UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
     }
 
-    public static Object getConfiguration(final XComponentContext context,
-                                          final String path)
+    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
+                                                           final String path)
         throws Exception
     {
         return getConfiguration(context, path, false, null);
     }
 
-    public static Object getConfiguration(final XComponentContext context,
-                                          final String path,
-                                          final boolean update)
+    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
+                                                           final String path,
+                                                           final boolean update)
         throws Exception
     {
         return getConfiguration(context, path, update, null);
     }
 
-    public static Object getConfiguration(final XComponentContext context,
-                                          final String path,
-                                          final boolean update,
-                                          final String language)
+    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
+                                                           final String path,
+                                                           final boolean update,
+                                                           final String language)
         throws Exception
     {
-        final String service = "com.sun.star.configuration.Configuration";
+        String service = "com.sun.star.configuration.Configuration";
         final XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
         ArrayList<NamedValue> arguments = new ArrayList<>(Arrays.asList(new NamedValue("nodepath", path)));
         if (language != null) {
             arguments.add(new NamedValue("Locale", language));
         }
-        return provider.createInstanceWithArguments(service + (update ? "UpdateAccess" : "Access"), arguments.toArray());
+        service += update ? "UpdateAccess" : "Access";
+        Object config = provider.createInstanceWithArguments(service, arguments.toArray());
+        return (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
     }
 
     public static String getPackageLocation(XComponentContext context, String identifier, String path)
@@ -179,6 +201,63 @@ public class UnoHelper
             location = provider.getPackageLocation(identifier);
         }
         return location;
+    }
+
+    public static Locale getCurrentLocale(XComponentContext context)
+    {
+        String nodepath = "/org.openoffice.Setup/L10N";
+        String config = "";
+        try {
+            config = (String) getConfiguration(context, nodepath).getByHierarchicalName("ooLocale");
+        }
+        catch (NoSuchElementException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        String[] parts = config.split("-");
+        Locale locale = new Locale(parts[0], "", "");
+        if (parts.length > 1) {
+            locale.Country = parts[1];
+        }
+        else {
+            Object service = createService(context, "com.sun.star.i18n.LocaleData");
+            XLocaleData data = (XLocaleData) UnoRuntime.queryInterface(XLocaleData.class, service);
+            locale.Country = data.getLanguageCountryInfo(locale).Country;
+        }
+        return locale;
+    }
+
+    public static XStringResourceResolver getResourceResolver(XComponentContext ctx,
+                                                              String identifier,
+                                                              String filename)
+    {
+        String path = "resource";
+        return getResourceResolver(ctx, identifier, path, filename);
+    }
+
+    public static XStringResourceResolver getResourceResolver(XComponentContext ctx,
+                                                              String identifier,
+                                                              String path,
+                                                              String filename)
+    {
+        Locale locale = getCurrentLocale(ctx);
+        return getResourceResolver(ctx, identifier, path, filename, locale);
+    }
+
+    public static XStringResourceResolver getResourceResolver(XComponentContext ctx,
+                                                              String identifier,
+                                                              String path,
+                                                              String filename,
+                                                              Locale locale)
+    {
+        String location = getPackageLocation(ctx, identifier, path);
+        Object[] arguments = {location, true, locale, filename, "", null};
+        Object service = createService(ctx, "com.sun.star.resource.StringResourceWithLocation", arguments);
+        return (XStringResourceResolver) UnoRuntime.queryInterface(XStringResourceResolver.class, service);
     }
 
     public static URL getDriverURL(String location)

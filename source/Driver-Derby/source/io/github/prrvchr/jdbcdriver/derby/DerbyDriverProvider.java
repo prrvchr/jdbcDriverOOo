@@ -28,6 +28,7 @@ package io.github.prrvchr.jdbcdriver.derby;
 import java.sql.SQLException;
 import java.util.Map;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
@@ -59,9 +60,10 @@ public final class DerbyDriverProvider
     }
 
     @Override
-    public final boolean acceptsURL(final String url)
+    public final boolean acceptsURL(final String url,
+                                    final PropertyValue[] info)
     {
-        return url.startsWith(getProtocol(m_subProtocol));
+        return super.acceptsURL(url, info, m_subProtocol);
     }
 
     @Override

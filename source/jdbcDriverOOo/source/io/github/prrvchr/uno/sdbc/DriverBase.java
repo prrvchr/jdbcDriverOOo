@@ -38,6 +38,7 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
@@ -54,6 +55,8 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.SharedResources;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
 
@@ -64,7 +67,7 @@ public abstract class DriverBase
 {
     private final String m_service;
     private final String[] m_services;
-    private final XComponentContext m_xContext;
+    private XComponentContext m_xContext;
     private static final String m_connectProtocol = "jdbc:";
     private static final String m_registredProtocol = "xdbc:";
     private static final String m_rootDriver = m_registredProtocol + "*";
@@ -74,6 +77,7 @@ public abstract class DriverBase
     private static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
     private final boolean m_registered;
+    private final ResourceBasedEventLogger m_logger;
 
     // The constructor method:
     public DriverBase(final XComponentContext context,
@@ -85,6 +89,8 @@ public abstract class DriverBase
         m_xContext = context;
         m_service = service;
         m_services = services;
+        SharedResources.registerClient(context, m_identifier, "Driver");
+        m_logger = new ResourceBasedEventLogger(context, m_identifier, "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.getInstance().setContext(context, m_identifier);
         String driver =  _getRegistredDriver();
         m_enhanced = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
@@ -96,7 +102,9 @@ public abstract class DriverBase
     {
         String service = null;
         try {
-            service = (String) _getDriverConfiguration().getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
+            XHierarchicalNameAccess config = _getDriverConfiguration();
+            service = (String) config.getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
+            UnoHelper.disposeComponent(config);
         }
         catch (java.lang.Exception e) {}
         return service;
@@ -105,8 +113,7 @@ public abstract class DriverBase
     private XHierarchicalNameAccess _getDriverConfiguration()
         throws Exception
     {
-        final Object config = UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
-        return (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
+        return UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
     }
 
     public final XComponentContext getComponentContext() {
@@ -129,6 +136,13 @@ public abstract class DriverBase
         return registred;
     }
 
+    // com.sun.star.lang.XComponent:
+    
+    @Override
+    protected synchronized void postDisposing() {
+        m_xContext = null;
+        SharedResources.revokeClient();
+    }
 
     // com.sun.star.lang.XServiceInfo:
     @Override
@@ -155,12 +169,13 @@ public abstract class DriverBase
                                PropertyValue[] info)
         throws SQLException
     {
+        m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
         System.out.println("sdbc.DriverBase.connect() 1 : " + this.getClass().getName());
         if (!acceptsURL(url)) {
             String message = "ERROR sdbc.Driver.connect() can't accepts URL: " + url;
             throw new SQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
-        DriverProvider provider = _getDriverProvider(url);
+        DriverProvider provider = _getDriverProvider(url, info);
         String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
         final XHierarchicalNameAccess config;
         try {
@@ -174,6 +189,7 @@ public abstract class DriverBase
             provider.setSystemProperties(level);
             _registerDriver(config, _getUrlProtocol(url), info);
         }
+        UnoHelper.disposeComponent(config);
         System.out.println("sdbc.DriverBase.connect() 2");
         try {
             System.out.println("sdbc.DriverBase.connect() 3");
@@ -185,7 +201,8 @@ public abstract class DriverBase
         System.out.println(url);
         System.out.println(location);
         System.out.println("sdbc.DriverBase.connect() 4 **************************************************************");
-        return _getConnection(m_xContext, provider, url, info, m_enhanced);
+        m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS);
+        return _getConnection(m_xContext, provider, m_logger, m_enhanced);
     }
 
     private String _getUrlProtocol(final String url)
@@ -207,15 +224,15 @@ public abstract class DriverBase
         return false;
     }
 
-    private void _registerDriver(final XHierarchicalNameAccess driver,
+    private void _registerDriver(final XHierarchicalNameAccess config,
                                  final String protocol,
                                  final PropertyValue[] info)
         throws SQLException
     {
         try {
             System.out.println("sdbc.DriverBase._registerDriver() 1");
-            final String clazz = _getDriverClass(driver, protocol, info);
-            final URL path = _getDriverClassPath(driver, protocol, info);
+            final String clazz = _getDriverClass(config, protocol, info);
+            final URL path = _getDriverClassPath(config, protocol, info);
             System.out.println("sdbc.DriverBase._registerDriver() 2 url: '" + path + "' name: '" + clazz + "'");
             if (path != null && !clazz.isBlank()) {
                 System.out.println("sdbc.DriverBase._registerDriver() 3");
@@ -351,7 +368,7 @@ public abstract class DriverBase
     throws SQLException
     {
         if (!acceptsURL(url)) {
-            String message = "ERROR sdbc.Driver.getPropertyInfo() can't accepts URL: " + url;
+            String message = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_URI_SYNTAX_ERROR, url);
             throw new SQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         String[] boolchoices = {"false", "true"};
@@ -387,13 +404,14 @@ public abstract class DriverBase
     }
 
 
-    private DriverProvider _getDriverProvider(String url)
+    private DriverProvider _getDriverProvider(String url,
+                                              PropertyValue[] info)
     {
         System.out.println("sdbc.DriverBase._getDriverProvider() 1");
         ServiceLoader<DriverProvider> loader = ServiceLoader.load(DriverProvider.class, ConnectionBase.class.getClassLoader());
         System.out.println("sdbc.DriverBase._getDriverProvider() 2");
         for (final DriverProvider provider : loader) {
-            if (provider.acceptsURL(url)) {
+            if (provider.acceptsURL(url, info)) {
                 System.out.println("sdbc.DriverBase._getDriverProvider() 3: " + provider.getClass().getName());
                 return provider;
             }
@@ -403,8 +421,7 @@ public abstract class DriverBase
 
     abstract protected XConnection _getConnection(XComponentContext ctx,
                                                   DriverProvider provider,
-                                                  String url,
-                                                  PropertyValue[] info,
+                                                  ResourceBasedEventLogger logger,
                                                   boolean enhanced);
 
 

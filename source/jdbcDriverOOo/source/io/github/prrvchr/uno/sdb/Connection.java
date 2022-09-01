@@ -28,12 +28,12 @@ package io.github.prrvchr.uno.sdb;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XChild;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.NoSupportException;
 import com.sun.star.lang.XMultiServiceFactory;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdb.XCommandPreparation;
 import com.sun.star.sdb.XQueriesSupplier;
 import com.sun.star.sdb.XSQLQueryComposer;
@@ -51,12 +51,11 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbcx.GroupContainer;
 import io.github.prrvchr.uno.sdbcx.Statement;
-//import io.github.prrvchr.uno.sdbcx.Column;
-//import io.github.prrvchr.uno.sdbcx.Table;
-//import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 import io.github.prrvchr.uno.sdbcx.TableContainer;
 import io.github.prrvchr.uno.sdbcx.UserContainer;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
@@ -88,11 +87,11 @@ public final class Connection
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
-                      String url,
-                      PropertyValue[] info,
+                      ResourceBasedEventLogger logger,
                       boolean enhanced)
     {
-        super(ctx, m_service, m_services, provider, url, info, enhanced, m_crawler);
+        super(ctx, m_service, m_services, provider, logger, enhanced, m_crawler);
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
         System.out.println("sdb.Connection() 1");
     }
 
@@ -112,6 +111,7 @@ public final class Connection
             m_Groups.dispose();
         }
         super.postDisposing();
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
     }
  
     // com.sun.star.container.XChild:

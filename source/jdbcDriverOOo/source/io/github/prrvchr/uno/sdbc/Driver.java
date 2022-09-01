@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.registry.XRegistryKey;
@@ -51,11 +50,10 @@ public final class Driver
 
     protected XConnection _getConnection(XComponentContext ctx,
                                          DriverProvider provider,
-                                         String url,
-                                         PropertyValue[] info,
+                                         ResourceBasedEventLogger logger,
                                          boolean enhanced)
     {
-        return new Connection(ctx, provider, url, info, enhanced);
+        return new Connection(ctx, provider, logger, enhanced);
     }
 
 

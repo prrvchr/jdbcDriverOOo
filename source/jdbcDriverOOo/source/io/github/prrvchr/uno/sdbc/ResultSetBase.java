@@ -56,7 +56,10 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.SharedResources;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
@@ -156,7 +159,6 @@ public abstract class ResultSetBase
     {
         try {
             String cursor = m_ResultSet.getCursorName();
-            System.out.println("ResultSetBase._getCursorName() Value: " + cursor);
             return cursor != null ? cursor : "";
         }
         catch (java.sql.SQLException e) {
@@ -211,7 +213,6 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            System.out.println("ResultSetBase.getResultSetConcurrency() Value: " + m_ResultSet.getConcurrency());
             return m_ResultSet.getConcurrency();
         }
         catch (java.sql.SQLException e) {
@@ -223,7 +224,6 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            System.out.println("ResultSetBase.getResultSetType() Value: " + m_ResultSet.getType());
             return m_ResultSet.getType();
         }
         catch (java.sql.SQLException e) {
@@ -236,18 +236,14 @@ public abstract class ResultSetBase
     @Override
     public synchronized void postDisposing() {
         super.postDisposing();
-        System.out.println("ResultSetBase.postDisposing() 1 **************************************");
         if (m_ResultSet != null) {
             try {
-                System.out.println("ResultSetBase.postDisposing() 2: Address: " + String.valueOf(m_ResultSet));
                 m_ResultSet.close();
             }
             catch (java.sql.SQLException e) {
                 System.out.println("ResultSetBase.postDisposing()");
             }
             m_ResultSet = null;
-            //m_xStatement = null;
-            //m_Connection = null;
         }
     }
 
@@ -256,7 +252,6 @@ public abstract class ResultSetBase
     @Override
     public void close() throws SQLException
     {
-        System.out.println("ResultSetBase.close() **************************************");
         dispose();
     }
 
@@ -279,9 +274,7 @@ public abstract class ResultSetBase
     public boolean absolute(int row) throws SQLException
     {
         try {
-            boolean value = m_ResultSet.absolute(row);
-            System.out.println("ResultSetBase.absolute() Row: " + row + " - Value: " + value);
-            return value;
+            return m_ResultSet.absolute(row);
         }
         catch (java.sql.SQLException e) {
             System.out.println("ResultSetBase.absolute() ERROR:\n" + UnoHelper.getStackTrace(e));
@@ -297,7 +290,6 @@ public abstract class ResultSetBase
     public void afterLast() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.afterLast()");
             m_ResultSet.afterLast();
         }
         catch (java.sql.SQLException e) {
@@ -309,7 +301,6 @@ public abstract class ResultSetBase
     public void beforeFirst() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.beforeFirst()");
             m_ResultSet.beforeFirst();
         }
         catch (java.sql.SQLException e) {
@@ -322,7 +313,6 @@ public abstract class ResultSetBase
     public boolean first() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.first()");
             return m_ResultSet.first();
         }
         catch (java.sql.SQLException e) {
@@ -334,7 +324,6 @@ public abstract class ResultSetBase
     public int getRow() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.getRow()");
             return m_ResultSet.getRow();
         }
         catch (java.sql.SQLException e) {
@@ -524,10 +513,8 @@ public abstract class ResultSetBase
     public void insertRow() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.insertRow() 1");
             m_ResultSet.insertRow();
             m_ResultSet.moveToCurrentRow();
-            System.out.println("ResultSetBase.insertRow() 2");
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -538,7 +525,6 @@ public abstract class ResultSetBase
     public void updateRow() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateRow()");
             m_ResultSet.updateRow();
         }
         catch (java.sql.SQLException e) {
@@ -550,7 +536,6 @@ public abstract class ResultSetBase
     public void deleteRow() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.deleteRow()");
             m_ResultSet.deleteRow();
         }
         catch (java.sql.SQLException e) {
@@ -562,13 +547,12 @@ public abstract class ResultSetBase
     public void cancelRowUpdates() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.cancelRowUpdates()");
             m_ResultSet.moveToCurrentRow();
             m_ResultSet.cancelRowUpdates();
         }
         catch (java.sql.SQLException e) {
             System.out.println("ResultSetBase.cancelRowUpdates() ERROR\n" + UnoHelper.getStackTrace(e));
-            //throw UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
@@ -576,7 +560,6 @@ public abstract class ResultSetBase
     public void moveToInsertRow() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.moveToInsertRow()");
             m_ResultSet.moveToInsertRow();
         }
         catch (java.sql.SQLException e) {
@@ -588,7 +571,6 @@ public abstract class ResultSetBase
     public void moveToCurrentRow() throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.moveToCurrentRow()");
             m_ResultSet.moveToCurrentRow();
         }
         catch (java.sql.SQLException e) {
@@ -634,7 +616,6 @@ public abstract class ResultSetBase
     public boolean getBoolean(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getBoolean() 1");
             return m_ResultSet.getBoolean(index);
         }
         catch (java.sql.SQLException e) {
@@ -646,7 +627,6 @@ public abstract class ResultSetBase
     public byte getByte(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getByte() 1");
             return m_ResultSet.getByte(index);
         }
         catch (java.sql.SQLException e) {
@@ -703,7 +683,6 @@ public abstract class ResultSetBase
     public double getDouble(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getDouble() 1");
             return m_ResultSet.getDouble(index);
         }
         catch (java.sql.SQLException e) {
@@ -715,7 +694,6 @@ public abstract class ResultSetBase
     public float getFloat(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getFloat() 1");
             return m_ResultSet.getFloat(index);
         }
         catch (java.sql.SQLException e) {
@@ -727,7 +705,6 @@ public abstract class ResultSetBase
     public int getInt(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getInt() 1");
             return m_ResultSet.getInt(index);
         }
         catch (java.sql.SQLException e) {
@@ -739,7 +716,6 @@ public abstract class ResultSetBase
     public long getLong(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getLong() 1");
             return m_ResultSet.getLong(index);
         }
         catch (java.sql.SQLException e) {
@@ -791,7 +767,6 @@ public abstract class ResultSetBase
     public short getShort(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getShort() 1");
             return m_ResultSet.getShort(index);
         }
         catch (java.sql.SQLException e) {
@@ -803,7 +778,6 @@ public abstract class ResultSetBase
     public String getString(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getString() 1");
             String value = m_ResultSet.getString(index);
             return value != null ? value : "";
         }
@@ -816,7 +790,6 @@ public abstract class ResultSetBase
     public Time getTime(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getTime() 1");
             java.sql.Time value = m_ResultSet.getTime(index);
             return value != null ? UnoHelper.getUnoTime(value) : new Time();
         }
@@ -829,7 +802,6 @@ public abstract class ResultSetBase
     public DateTime getTimestamp(int index) throws SQLException
     {
         try {
-            //System.out.println("sdbc.BaseResultSet.getTimestamp() 1");
             java.sql.Timestamp value = m_ResultSet.getTimestamp(index);
             return value != null ? UnoHelper.getUnoDateTime(value) : new DateTime();
         }
@@ -842,7 +814,6 @@ public abstract class ResultSetBase
     public boolean wasNull() throws SQLException
     {
         try {
-            System.out.println("sdbc.BaseResultSet.wasNull() 1");
             return m_ResultSet.wasNull();
         }
         catch (java.sql.SQLException e) {
@@ -856,7 +827,6 @@ public abstract class ResultSetBase
     public void updateNull(int index) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateNull() Index: " + index);
             m_ResultSet.updateNull(index);
         }
         catch (java.sql.SQLException e) {
@@ -869,7 +839,6 @@ public abstract class ResultSetBase
     throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateBoolean() Index: " + index + " - Value: " + value);
             m_ResultSet.updateBoolean(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -881,7 +850,6 @@ public abstract class ResultSetBase
     public void updateByte(int index, byte value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateByte() Index: " + index + " - Value: " + value);
             m_ResultSet.updateByte(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -893,7 +861,6 @@ public abstract class ResultSetBase
     public void updateShort(int index, short value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateShort() Index: " + index + " - Value: " + value);
             m_ResultSet.updateShort(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -905,7 +872,6 @@ public abstract class ResultSetBase
     public void updateInt(int index, int value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateInt() Index: " + index + " - Value: " + value);
             m_ResultSet.updateInt(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -917,7 +883,6 @@ public abstract class ResultSetBase
     public void updateLong(int index, long value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateLong() Index: " + index + " - Value: " + value);
             m_ResultSet.updateLong(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -929,7 +894,6 @@ public abstract class ResultSetBase
     public void updateFloat(int index, float value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateFloat() Index: " + index + " - Value: " + value);
             m_ResultSet.updateFloat(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -941,7 +905,6 @@ public abstract class ResultSetBase
     public void updateDouble(int index, double value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateDouble() Index: " + index + " - Value: " + value);
             m_ResultSet.updateDouble(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -953,7 +916,6 @@ public abstract class ResultSetBase
     public void updateString(int index, String value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateString() Index: " + index + " - Value: " + value);
             m_ResultSet.updateString(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -965,7 +927,6 @@ public abstract class ResultSetBase
     public void updateBytes(int index, byte[] value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateBytes() Index: " + index + " - Value: " + value);
             m_ResultSet.updateBytes(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -977,7 +938,6 @@ public abstract class ResultSetBase
     public void updateDate(int index, Date value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateDate() Index: " + index + " - Value: " + value);
             m_ResultSet.updateDate(index, UnoHelper.getJavaDate(value));
         }
         catch (java.sql.SQLException e) {
@@ -989,7 +949,6 @@ public abstract class ResultSetBase
     public void updateTime(int index, Time value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateTime() Index: " + index + " - Value: " + value);
             m_ResultSet.updateTime(index, UnoHelper.getJavaTime(value));
         }
         catch (java.sql.SQLException e) {
@@ -1001,7 +960,6 @@ public abstract class ResultSetBase
     public void updateTimestamp(int index, DateTime value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateTimestamp() Index: " + index + " - Value: " + value);
             m_ResultSet.updateTimestamp(index, UnoHelper.getJavaDateTime(value));
         }
         catch (java.sql.SQLException e) {
@@ -1013,7 +971,6 @@ public abstract class ResultSetBase
     public void updateBinaryStream(int index, XInputStream value, int lenght) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateBinaryStream() Index: " + index + " - Value: " + value);
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             m_ResultSet.updateBinaryStream(index, input, lenght);
         }
@@ -1026,7 +983,6 @@ public abstract class ResultSetBase
     public void updateCharacterStream(int index, XInputStream value, int lenght) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateCharacterStream() Index: " + index + " - Value: " + value);
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             Reader reader = new java.io.InputStreamReader(input);
             m_ResultSet.updateCharacterStream(index, reader, lenght);
@@ -1040,7 +996,14 @@ public abstract class ResultSetBase
     public void updateObject(int index, Object value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateObject() Index: " + index + " - Value: " + value);
+            if (!DataBaseTools.updateObject(this, index, value)) {
+                String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_COLUMN_TYPE,
+                                                                                         this.getClass().getName(),
+                                                                                         "updateObject()",
+                                                                                         Integer.toString(index));
+                throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
+
             m_ResultSet.updateObject(index, value);
         }
         catch (java.sql.SQLException e) {
@@ -1052,7 +1015,6 @@ public abstract class ResultSetBase
     public void updateNumericObject(int index, Object value, int scale) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateNumericObject() Index: " + index + " - Value: " + value);
             m_ResultSet.updateObject(index, value, scale);
         }
         catch (java.sql.SQLException e) {
@@ -1075,5 +1037,4 @@ public abstract class ResultSetBase
     }
 
 
-    
 }

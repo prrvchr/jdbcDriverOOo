@@ -31,6 +31,7 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDatabaseMetaData;
@@ -46,6 +47,7 @@ import com.sun.star.lib.uno.helper.ComponentBase;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
 
 
 public abstract class ConnectionBase
@@ -59,8 +61,7 @@ public abstract class ConnectionBase
     private final String m_service;
     private final String[] m_services;
     protected final DriverProvider m_provider;
-    protected final PropertyValue[] m_info;
-    private final String m_url;
+    protected final ConnectionLog m_logger; 
     public final boolean m_enhanced;
     private boolean m_crawler;
     //protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
@@ -70,18 +71,16 @@ public abstract class ConnectionBase
                           String service,
                           String[] services,
                           DriverProvider provider,
-                          String url,
-                          PropertyValue[] info,
+                          ResourceBasedEventLogger logger,
                           boolean enhanced)
     {
-        this(ctx, service, services, provider, url, info, enhanced, false);
+        this(ctx, service, services, provider, logger, enhanced, false);
     }
     public ConnectionBase(XComponentContext ctx,
                           String service,
                           String[] services,
                           DriverProvider provider,
-                          String url,
-                          PropertyValue[] info,
+                          ResourceBasedEventLogger logger,
                           boolean enhanced,
                           boolean crawler)
     {
@@ -90,12 +89,12 @@ public abstract class ConnectionBase
         m_xContext = ctx;
         m_service = service;
         m_services = services;
-        m_url = url;
-        m_info = info;
         m_enhanced = enhanced;
         m_provider = provider;
         m_crawler = crawler;
+        m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
         System.out.println("Connection.Connection() 2");
+        System.out.println("Connection.Connection() 3");
     }
 
     // com.sun.star.lang.XComponent
@@ -113,9 +112,7 @@ public abstract class ConnectionBase
             }
         }
         catch (java.sql.SQLException e) {
-            System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
-        }
-        catch (java.lang.Exception e) {
+            m_logger.logp(LogLevel.WARNING, e);
             System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
     }
@@ -359,11 +356,11 @@ public abstract class ConnectionBase
     }
     public String getUrl()
     {
-        return m_url;
+        return m_provider.getUrl();
     }
     public PropertyValue[] getInfo()
     {
-        return m_info;
+        return m_provider.getInfo();
     }
     public boolean isEnhanced()
     {

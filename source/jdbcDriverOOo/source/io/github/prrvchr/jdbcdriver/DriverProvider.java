@@ -200,7 +200,16 @@ public interface DriverProvider
 
     public boolean supportWarningsSupplier();
 
-    public boolean acceptsURL(String url);
+    public boolean acceptsURL(String url,
+                              PropertyValue[] info);
+
+    public boolean acceptsURL(String url,
+                              PropertyValue[] info,
+                              String protocol);
+
+    public String getUrl();
+
+    public PropertyValue[] getInfo();
 
     public String getLoggingLevel(XHierarchicalNameAccess driver);
 
@@ -228,5 +237,10 @@ public interface DriverProvider
                                       boolean bookmark)
         throws SQLException;
 
+    public boolean isAutoRetrievingEnabled();
+
+    public String getAutoRetrievingStatement();
+
+    public String getTransformedGeneratedStatement(String sql);
 
 }

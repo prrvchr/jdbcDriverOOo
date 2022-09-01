@@ -69,9 +69,7 @@ public final class ResultSetMetaData
     public int getColumnCount() throws SQLException
     {
         try {
-            int value = m_Metadata.getColumnCount();
-            System.out.println("sdbc.ResultSetMetaData.getColumnCount(): " + value);
-            return value;
+            return m_Metadata.getColumnCount();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

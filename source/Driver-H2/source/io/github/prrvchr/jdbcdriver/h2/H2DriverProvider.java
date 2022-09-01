@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.h2;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
@@ -49,9 +50,10 @@ public final class H2DriverProvider
     }
 
     @Override
-    public final boolean acceptsURL(final String url)
+    public final boolean acceptsURL(final String url,
+                                    final PropertyValue[] info)
     {
-        return url.startsWith(getProtocol(m_subProtocol));
+        return super.acceptsURL(url, info, m_subProtocol);
     }
 
     @Override

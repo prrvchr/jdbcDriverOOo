@@ -40,6 +40,7 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.DriverBase;
+import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 
 
 public final class Driver
@@ -61,11 +62,10 @@ public final class Driver
 
     protected XConnection _getConnection(XComponentContext ctx,
                                          DriverProvider provider,
-                                         String url,
-                                         PropertyValue[] info,
+                                         ResourceBasedEventLogger logger,
                                          boolean enhanced)
     {
-        return new Connection(ctx, provider, url, info, enhanced);
+        return new Connection(ctx, provider, logger, enhanced);
     }
 
 

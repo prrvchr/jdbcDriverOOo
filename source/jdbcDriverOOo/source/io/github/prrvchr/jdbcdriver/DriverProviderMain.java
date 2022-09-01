@@ -66,6 +66,8 @@ public abstract class DriverProviderMain
     static final String m_protocol = "xdbc:";
     static final boolean m_warnings = true;
     private java.sql.Connection m_connection = null;
+    private String m_url;
+    private PropertyValue[] m_info;
     protected List<String> m_properties = List.of("user", "password");
 
     // The constructor method:
@@ -90,6 +92,49 @@ public abstract class DriverProviderMain
     public boolean isCaseSensitive()
     {
         return true;
+    }
+
+    @Override
+    public boolean isAutoRetrievingEnabled()
+    {
+        return UnoHelper.getDefaultPropertyValue(m_info, "IsAutoRetrievingEnabled", false);
+    }
+
+    @Override
+    public String getAutoRetrievingStatement()
+    {
+        return UnoHelper.getDefaultPropertyValue(m_info, "AutoRetrievingStatement", "");
+    }
+
+    @Override
+    public String getTransformedGeneratedStatement(String insert)
+    {
+        UnoHelper.ensure(isAutoRetrievingEnabled(), "Illegal call here. isAutoRetrievingEnabled() is false!");
+        String query = "";
+        if (insert.startsWith("INSERT ")) {
+            query = getAutoRetrievingStatement();
+            int index = 0;
+            index = query.indexOf("$column");
+            if (index != -1) {
+                //XXX: we need a column
+                //FIXME: do something?
+            }
+            index = query.indexOf("$table");
+            if (index != -1) {
+                //XXX: we need a table
+                int start = insert.indexOf(" INTO");
+                if (start != -1) {
+                    String table = "";
+                    insert = insert.substring(start + 5);
+                    int end = insert.indexOf("(");
+                    if (end != -1) {
+                        table = insert.substring(0, end).strip();
+                    }
+                    query = query.substring(0, index) + table + query.substring(index + 6);
+                }
+            }
+        }
+        return query;
     }
 
     @Override
@@ -628,9 +673,41 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean acceptsURL(final String url)
+    public boolean acceptsURL(final String url,
+                              final PropertyValue[] info)
     {
-        return url.startsWith(getProtocol());
+        if (url.startsWith(getProtocol())) {
+            m_url = url;
+            m_info = info;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean acceptsURL(final String url,
+                              final PropertyValue[] info,
+                              String protocol)
+    {
+        if (url.startsWith(getProtocol(protocol))) {
+            m_url = url;
+            m_info = info;
+            return true;
+        }
+        return false;
+    }
+
+
+    @Override
+    public String getUrl()
+    {
+        return m_url;
+    }
+
+    @Override
+    public PropertyValue[] getInfo()
+    {
+        return m_info;
     }
 
     @Override

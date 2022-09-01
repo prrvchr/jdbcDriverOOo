@@ -58,13 +58,11 @@ class AdminDispatcher(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
-        print("AdminDispatcher.__init__() **************************************")
         #logMessage(self._ctx, INFO, "Loading ... Done", 'AdminDispatcher', '__init__()')
 
 # XInitialization
     def initialize(self, args):
         if len(args) > 0:
-            print("AdminDispatcher.initialize() **************************************")
             self._frame = args[0]
 
 # XDispatchProvider
@@ -93,3 +91,4 @@ class AdminDispatcher(unohelper.Base,
 g_ImplementationHelper.addImplementation(AdminDispatcher,                            # UNO object class
                                          g_ImplementationName,                       # Implementation name
                                         (g_ImplementationName,))                     # List of implemented services
+

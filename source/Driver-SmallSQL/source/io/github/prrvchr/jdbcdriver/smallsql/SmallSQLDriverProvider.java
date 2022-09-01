@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver.smallsql;
 
+import com.sun.star.beans.PropertyValue;
+
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -46,9 +48,10 @@ public final class SmallSQLDriverProvider
     }
 
     @Override
-    public final boolean acceptsURL(final String url)
+    public final boolean acceptsURL(final String url,
+                                    final PropertyValue[] info)
     {
-        return url.startsWith(getProtocol(m_subProtocol));
+        return super.acceptsURL(url, info, m_subProtocol);
     }
 
     @Override

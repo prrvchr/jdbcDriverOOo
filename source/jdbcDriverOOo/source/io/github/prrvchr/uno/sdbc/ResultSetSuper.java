@@ -65,7 +65,6 @@ public abstract class ResultSetSuper
         super(service, services, connection, resultset, statement);
         m_IsBookmarkable = bookmark;
         registerProperties();
-        System.out.println("sdbc.ResultSetSuper(): " + m_IsBookmarkable);
     }
 
     private void registerProperties() {
@@ -74,7 +73,6 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdbc.ResultSetSuper.getIsBookmarkable(): " + m_IsBookmarkable);
                     return m_IsBookmarkable;
                 }
             }, null);
@@ -86,12 +84,10 @@ public abstract class ResultSetSuper
     public int compareBookmarks(Object bookmark1, Object bookmark2)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.compareBookmarks() *****************************************");
         int row1, row2;
         try {
             row1 = AnyConverter.toInt(bookmark1);
             row2 = AnyConverter.toInt(bookmark2);
-            System.out.println("ResultSet.compareBookmarks() 2 id1: " + row1 + " id2: " + row2);
         }
         catch (IllegalArgumentException e) {
             return CompareBookmark.NOT_COMPARABLE;
@@ -105,14 +101,12 @@ public abstract class ResultSetSuper
         else {
             return CompareBookmark.EQUAL;
         }
-        
     }
 
     @Override
     public Object getBookmark()
     throws SQLException
     {
-        System.out.println("ResultSetSuper.getBookmark() *****************************************");
         return AnyConverter.toObject(new Type(Integer.class), getRow());
     }
 
@@ -120,7 +114,6 @@ public abstract class ResultSetSuper
     public boolean hasOrderedBookmarks()
     throws SQLException
     {
-        System.out.println("ResultSetSuper.hasOrderedBookmarks() *****************************************");
         return true;
     }
 
@@ -128,7 +121,6 @@ public abstract class ResultSetSuper
     public int hashBookmark(Object bookmark)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.hashBookmark() *****************************************");
         return AnyConverter.toInt(bookmark);
     }
 
@@ -136,7 +128,6 @@ public abstract class ResultSetSuper
     public boolean moveRelativeToBookmark(Object bookmark, int count)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.moveRelativeToBookmark() *****************************************");
         return absolute(AnyConverter.toInt(bookmark) + count);
     }
 
@@ -144,7 +135,6 @@ public abstract class ResultSetSuper
     public boolean moveToBookmark(Object bookmark)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.moveToBookmark() *****************************************");
         return absolute(AnyConverter.toInt(bookmark));
     }
 
@@ -154,7 +144,6 @@ public abstract class ResultSetSuper
     public int[] deleteRows(Object[] bookmarks)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.deleteRows()");
         List<Integer> rows = new ArrayList<Integer>();
         for (Object bookmark: bookmarks) {
             moveToBookmark(bookmark);
@@ -168,7 +157,6 @@ public abstract class ResultSetSuper
     // com.sun.star.util.XCancellable:
     @Override
     public void cancel() {
-        System.out.println("ResultSetSuper.cancel()");
         try {
             m_ResultSet.cancelRowUpdates();
         }

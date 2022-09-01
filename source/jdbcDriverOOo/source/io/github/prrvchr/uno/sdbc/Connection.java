@@ -25,15 +25,13 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.beans.PropertyValue;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.sdbcx.CallableStatement;
-import io.github.prrvchr.uno.sdbcx.PreparedStatement;
-import io.github.prrvchr.uno.sdbcx.Statement;
+import io.github.prrvchr.jdbcdriver.Resources;
 
 
 public class Connection
@@ -47,14 +45,20 @@ public class Connection
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
-                      String url,
-                      PropertyValue[] info,
+                      ResourceBasedEventLogger logger,
                       boolean enhanced)
     {
-        super(ctx, m_service, m_services, provider, url, info, enhanced, m_crawler);
+        super(ctx, m_service, m_services, provider, logger, enhanced, m_crawler);
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
         System.out.println("sdbc.Connection() 1");
     }
 
+    // com.sun.star.lang.XComponent
+    @Override
+    protected synchronized void postDisposing() {
+        super.postDisposing();
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
+    }
 
     protected XStatement _getStatement()
     {
