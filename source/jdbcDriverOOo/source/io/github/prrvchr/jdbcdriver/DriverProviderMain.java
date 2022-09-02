@@ -171,7 +171,7 @@ public abstract class DriverProviderMain
     @Override
     public String getUserQuery()
     {
-        return null;
+        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS";
     }
 
     @Override

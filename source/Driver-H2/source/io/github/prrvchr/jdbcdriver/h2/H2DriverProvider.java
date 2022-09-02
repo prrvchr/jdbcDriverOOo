@@ -91,6 +91,12 @@ public final class H2DriverProvider
     }
 
     @Override
+    public String getGroupQuery()
+    {
+        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLES";
+    }
+
+    @Override
     public String getDropTableQuery(ConnectionBase connection,
                                     String catalog,
                                     String schema,

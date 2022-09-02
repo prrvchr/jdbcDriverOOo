@@ -129,7 +129,7 @@ public class UnoHelper
 
     public static Object createService(XComponentContext context,
                                        String name,
-                                       Object[] arguments)
+                                       Object... arguments)
     {
         Object service = null;
         try {
@@ -254,9 +254,9 @@ public class UnoHelper
                                                               String filename,
                                                               Locale locale)
     {
+        String name = "com.sun.star.resource.StringResourceWithLocation";
         String location = getPackageLocation(ctx, identifier, path);
-        Object[] arguments = {location, true, locale, filename, "", null};
-        Object service = createService(ctx, "com.sun.star.resource.StringResourceWithLocation", arguments);
+        Object service = createService(ctx, name, location, true, locale, filename, "", null);
         return (XStringResourceResolver) UnoRuntime.queryInterface(XStringResourceResolver.class, service);
     }
 
