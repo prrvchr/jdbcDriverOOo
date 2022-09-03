@@ -105,10 +105,7 @@ public class SharedResources
      */
     public String getResource(int id)
     {
-        if (m_bundle == null) {
-            return "";
-        }
-        return m_bundle.loadString(id);
+        return loadStringMessage(id);
     }
 
     /** loads a string from the shared resource file, and replaces all substitutes
@@ -124,7 +121,23 @@ public class SharedResources
     public String getResourceWithSubstitution(int id,
                                               Object... substitutes)
     {
-        return String.format(getResource(id), substitutes);
+        return loadStringMessage(id, substitutes);
+    }
+
+    private String loadStringMessage(int id,
+                                     Object... substitutes)
+    {
+        String message = "";
+        try {
+            message = m_bundle.loadString(id);
+            if (substitutes.length > 0) {
+                message = String.format(message, substitutes);
+            }
+        }
+        catch (java.lang.Exception e) {
+            message = String.format("<invalid event resource: '%s:%d'>", m_bundle.getBaseName(), id);
+        }
+        return message;
     }
 
 }

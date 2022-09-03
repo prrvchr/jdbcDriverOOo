@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbc;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XCloseable;
 import com.sun.star.sdbc.XGeneratedResultSet;
@@ -40,11 +41,13 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
 
 
 public abstract class StatementMain
@@ -60,6 +63,7 @@ public abstract class StatementMain
     private final String m_service;
     private final String[] m_services;
     protected ConnectionBase m_Connection;
+    protected final ConnectionLog m_logger;
     protected java.sql.Statement m_Statement = null;
     protected XStatement m_GeneratedStatement;
     protected String m_Sql;
@@ -86,9 +90,14 @@ public abstract class StatementMain
         m_service = service;
         m_services = services;
         m_Connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.STATEMENT);
         registerProperties();
     }
 
+    public int getObjectId()
+    {
+        return m_logger.getObjectId();
+    }
 
     private void registerProperties() {
         registerProperty(PropertyIds.CURSORNAME.name, PropertyIds.CURSORNAME.id, Type.STRING,
@@ -429,7 +438,7 @@ public abstract class StatementMain
     @Override
     protected synchronized void postDisposing() {
         super.postDisposing();
-        System.out.println("StatementMain.postDisposing() **************************************");
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_STATEMENT);
         if (m_Statement != null) {
             try {
                 m_Statement.close();

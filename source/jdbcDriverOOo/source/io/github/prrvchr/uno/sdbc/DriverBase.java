@@ -85,7 +85,6 @@ public abstract class DriverBase
                       final String[] services)
     {
         super();
-        System.out.println("sdbc.DriverBase() 1");
         m_xContext = context;
         m_service = service;
         m_services = services;
@@ -95,7 +94,6 @@ public abstract class DriverBase
         String driver =  _getRegistredDriver();
         m_enhanced = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
         m_registered = _isDriverRegistred(services, driver);
-        System.out.println("sdbc.DriverBase() 2");
     }
 
     private String _getRegistredDriver()
@@ -170,7 +168,6 @@ public abstract class DriverBase
         throws SQLException
     {
         m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
-        System.out.println("sdbc.DriverBase.connect() 1 : " + this.getClass().getName());
         if (!acceptsURL(url)) {
             String message = "ERROR sdbc.Driver.connect() can't accepts URL: " + url;
             throw new SQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -190,19 +187,15 @@ public abstract class DriverBase
             _registerDriver(config, _getUrlProtocol(url), info);
         }
         UnoHelper.disposeComponent(config);
-        System.out.println("sdbc.DriverBase.connect() 2");
         try {
-            System.out.println("sdbc.DriverBase.connect() 3");
             provider.setConnection(location, info, level);
         }
         catch(java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
-        System.out.println(url);
-        System.out.println(location);
-        System.out.println("sdbc.DriverBase.connect() 4 **************************************************************");
-        m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS);
-        return _getConnection(m_xContext, provider, m_logger, m_enhanced);
+        ConnectionBase connection = _getConnection(m_xContext, provider, m_logger, m_enhanced);
+        m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
+        return connection;
     }
 
     private String _getUrlProtocol(final String url)
@@ -214,13 +207,10 @@ public abstract class DriverBase
     private boolean _isDriverRegistered(String url)
     {
         try {
-            System.out.println("sdbc.DriverBase._isDriverRegistered() 1");
             java.sql.DriverManager.getDriver(url);
-            System.out.println("sdbc.DriverBase._isDriverRegistered() 2");
             return true;
         }
         catch (java.sql.SQLException e) {}
-        System.out.println("sdbc.DriverBase._isDriverRegistered() 3");
         return false;
     }
 
@@ -407,22 +397,19 @@ public abstract class DriverBase
     private DriverProvider _getDriverProvider(String url,
                                               PropertyValue[] info)
     {
-        System.out.println("sdbc.DriverBase._getDriverProvider() 1");
         ServiceLoader<DriverProvider> loader = ServiceLoader.load(DriverProvider.class, ConnectionBase.class.getClassLoader());
-        System.out.println("sdbc.DriverBase._getDriverProvider() 2");
         for (final DriverProvider provider : loader) {
             if (provider.acceptsURL(url, info)) {
-                System.out.println("sdbc.DriverBase._getDriverProvider() 3: " + provider.getClass().getName());
                 return provider;
             }
         }
         return new DriverProviderDefault();
     }
 
-    abstract protected XConnection _getConnection(XComponentContext ctx,
-                                                  DriverProvider provider,
-                                                  ResourceBasedEventLogger logger,
-                                                  boolean enhanced);
+    abstract protected ConnectionBase _getConnection(XComponentContext ctx,
+                                                     DriverProvider provider,
+                                                     ResourceBasedEventLogger logger,
+                                                     boolean enhanced);
 
 
 }

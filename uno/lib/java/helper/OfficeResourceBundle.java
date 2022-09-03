@@ -45,8 +45,11 @@
  *************************************************************/
 package io.github.prrvchr.uno.helper;
 
+import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.NullPointerException;
+import com.sun.star.resource.MissingResourceException;
 import com.sun.star.resource.XStringResourceResolver;
+import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
 
@@ -107,8 +110,15 @@ public class OfficeResourceBundle
         @return
             the requested resource string. If no string with the given id exists in the resource bundle,
             an empty string is returned.
+     * @throws Exception 
+     * @throws NoSuchElementException 
+     * @throws MissingResourceException 
     */
-    public String loadString( int id ) {
+    public String loadString( int id )
+        throws MissingResourceException,
+               NoSuchElementException,
+               Exception
+    {
         synchronized (this) {
             String string = "";
             if (loadResolver()) {
@@ -124,8 +134,13 @@ public class OfficeResourceBundle
         @return
             true if and only if a string with the given ID exists in the resource
             bundle.
+     * @throws Exception 
+     * @throws NoSuchElementException 
     */
-    public boolean hasString( int id ) {
+    public boolean hasString( int id )
+        throws NoSuchElementException,
+               Exception
+    {
         synchronized (this) {
             boolean has = false;
             if (loadResolver()) {
@@ -135,24 +150,23 @@ public class OfficeResourceBundle
         }
     }
 
-    private String getStringResourceKey(int id) {
+    private String getStringResourceKey(int id)
+    {
         return Integer.toString(id);
     }
 
-    private boolean loadResolver() {
+    private boolean loadResolver()
+        throws NoSuchElementException,
+               Exception
+    {
         if (m_attempted) {
             return m_xResolver != null;
         }
         m_attempted = true;
-        try {
-            XStringResourceResolver resolver = UnoHelper.getResourceResolver(m_xContext, m_identifier, m_basename);
-            if (resolver == null) {
-                return false;
-            }
+        XStringResourceResolver resolver = UnoHelper.getResourceResolver(m_xContext, m_identifier, m_basename);
+        if (resolver != null) {
             m_xResolver = resolver;
-            return m_xResolver != null;
-        }
-        catch (Exception exception) {
+            return true;
         }
         return false;
     }

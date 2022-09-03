@@ -65,6 +65,7 @@ import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
 
 public abstract class ResultSetBase
     extends PropertySet
@@ -82,6 +83,7 @@ public abstract class ResultSetBase
     private final String m_service;
     private final String[] m_services;
     protected ConnectionBase m_Connection;
+    protected final ConnectionLog m_logger;
     private XInterface m_xStatement;
     protected java.sql.ResultSet m_ResultSet;
 
@@ -97,6 +99,7 @@ public abstract class ResultSetBase
         m_service = service;
         m_services = services;
         m_Connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.RESULT);
         m_xStatement = statement;
         m_ResultSet = resultset;
         registerProperties();

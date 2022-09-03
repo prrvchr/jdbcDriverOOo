@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbc;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.registry.XRegistryKey;
-import com.sun.star.sdbc.XConnection;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -48,10 +47,10 @@ public final class Driver
         System.out.println("sdbc.Driver() 1");
     }
 
-    protected XConnection _getConnection(XComponentContext ctx,
-                                         DriverProvider provider,
-                                         ResourceBasedEventLogger logger,
-                                         boolean enhanced)
+    protected ConnectionBase _getConnection(XComponentContext ctx,
+                                            DriverProvider provider,
+                                            ResourceBasedEventLogger logger,
+                                            boolean enhanced)
     {
         return new Connection(ctx, provider, logger, enhanced);
     }

@@ -45,6 +45,7 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
@@ -85,7 +86,6 @@ public abstract class ConnectionBase
                           boolean crawler)
     {
         super();
-        System.out.println("Connection.Connection() 1");
         m_xContext = ctx;
         m_service = service;
         m_services = services;
@@ -93,14 +93,14 @@ public abstract class ConnectionBase
         m_provider = provider;
         m_crawler = crawler;
         m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
-        System.out.println("Connection.Connection() 2");
-        System.out.println("Connection.Connection() 3");
+        m_logger.log(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing()
     {
+        m_logger.log(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
             /*for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
@@ -349,11 +349,21 @@ public abstract class ConnectionBase
 
     }
 
-
     public DriverProvider getProvider()
     {
         return m_provider;
     }
+
+    public ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+
+    public int getObjectId()
+    {
+        return m_logger.getObjectId();
+    }
+
     public String getUrl()
     {
         return m_provider.getUrl();

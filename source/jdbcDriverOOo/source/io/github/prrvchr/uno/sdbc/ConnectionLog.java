@@ -68,17 +68,17 @@ public class ConnectionLog
         }
     }
 
-    private final int objectId;
+    private final int m_id;
 
     public ConnectionLog(ResourceBasedEventLogger logger,
                          ObjectType type)
     {
         super(logger);
-        objectId = uniqueIds[type.ordinal()].getAndIncrement();
+        m_id = uniqueIds[type.ordinal()].getAndIncrement();
     }
 
     public int getObjectId() {
-        return objectId;
+        return m_id;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ConnectionLog
                        Object... arguments)
     {
         Object[] args = new Object[arguments.length + 1];
-        args[0] = objectId;
+        args[0] = m_id;
         System.arraycopy(arguments, 0, args, 1, arguments.length);
         return super.log(level, id, args);
     }
@@ -98,7 +98,7 @@ public class ConnectionLog
                         Object... arguments)
     {
         Object[] args = new Object[arguments.length + 1];
-        args[0] = objectId;
+        args[0] = m_id;
         System.arraycopy(arguments, 0, args, 1, arguments.length);
         StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
         return super.logp(level, caller, id, args);

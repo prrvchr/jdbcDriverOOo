@@ -91,8 +91,6 @@ public final class Connection
                       boolean enhanced)
     {
         super(ctx, m_service, m_services, provider, logger, enhanced, m_crawler);
-        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
-        System.out.println("sdb.Connection() 1");
     }
 
     // com.sun.star.lang.XComponent
@@ -111,7 +109,6 @@ public final class Connection
             m_Groups.dispose();
         }
         super.postDisposing();
-        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
     }
  
     // com.sun.star.container.XChild:
@@ -239,25 +236,30 @@ public final class Connection
         return m_Users;
     }
 
-
     protected XStatement _getStatement()
     {
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         //m_statements.put(statement, statement);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
     {
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         //m_statements.put(statement, statement);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
     {
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         //m_statements.put(statement, statement);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getObjectId());
         return statement;
     }
 

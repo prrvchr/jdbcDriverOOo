@@ -135,5 +135,4 @@ public final class H2DriverProvider
         return new H2DatabaseMetaData(connection);
     }
 
-
 }

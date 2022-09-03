@@ -45,7 +45,12 @@
  *************************************************************/
 package io.github.prrvchr.uno.sdbc;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import com.sun.star.lang.NullPointerException;
+import com.sun.star.resource.MissingResourceException;
+import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.OfficeResourceBundle;
@@ -77,6 +82,7 @@ public class ResourceBasedEventLogger
     public ResourceBasedEventLogger(ResourceBasedEventLogger logger)
     {
         super(logger.m_xContext, logger.getName());
+        m_identifier = logger.m_identifier;
         m_basename = logger.m_basename;
         try {
             m_Bundle = new OfficeResourceBundle(logger.m_xContext, logger.m_identifier, logger.m_basename);
@@ -134,9 +140,14 @@ public class ResourceBasedEventLogger
 
     private String loadStringMessage(int id)
     {
-        String message = m_Bundle.loadString(id);
-        if (message.isEmpty()) {
-            message = String.format("<invalid event resource: '%s:%d'>", m_basename, id);
+        String message;
+        try {
+            message = m_Bundle.loadString(id);
+        }
+        catch (MissingResourceException | Exception e) {
+            StringWriter error = new StringWriter();
+            e.printStackTrace(new PrintWriter(error));
+            message = String.format("<invalid event resource: '%s:%d'>\n%s", m_basename, id, error.getBuffer().toString());
         }
         return message;
     }

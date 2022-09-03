@@ -222,11 +222,11 @@ public interface DriverProvider
     public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
 
-    public ResultSetBase getResultSet(ConnectionBase connection, 
+    public ResultSetBase getResultSet(ConnectionBase connection,
                                       java.sql.ResultSet resultset)
         throws SQLException;
 
-    public ResultSetBase getResultSet(ConnectionBase connection, 
+    public ResultSetBase getResultSet(ConnectionBase connection,
                                       java.sql.ResultSet resultset,
                                       StatementMain statement)
         throws SQLException;

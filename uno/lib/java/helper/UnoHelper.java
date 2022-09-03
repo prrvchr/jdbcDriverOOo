@@ -191,12 +191,7 @@ public class UnoHelper
         String location = "";
         XPackageInformationProvider provider = null;
         String service = "/singletons/com.sun.star.deployment.PackageInformationProvider";
-        try {
-            provider = (XPackageInformationProvider) UnoRuntime.queryInterface(XPackageInformationProvider.class, context.getValueByName(service));
-        }
-        catch (java.lang.Exception e) {
-            e.printStackTrace();
-        }
+        provider = (XPackageInformationProvider) UnoRuntime.queryInterface(XPackageInformationProvider.class, context.getValueByName(service));
         if (provider != null) {
             location = provider.getPackageLocation(identifier);
         }
@@ -204,20 +199,12 @@ public class UnoHelper
     }
 
     public static Locale getCurrentLocale(XComponentContext context)
+        throws NoSuchElementException,
+               Exception
     {
         String nodepath = "/org.openoffice.Setup/L10N";
         String config = "";
-        try {
-            config = (String) getConfiguration(context, nodepath).getByHierarchicalName("ooLocale");
-        }
-        catch (NoSuchElementException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        config = (String) getConfiguration(context, nodepath).getByHierarchicalName("ooLocale");
         String[] parts = config.split("-");
         Locale locale = new Locale(parts[0], "", "");
         if (parts.length > 1) {
@@ -234,6 +221,8 @@ public class UnoHelper
     public static XStringResourceResolver getResourceResolver(XComponentContext ctx,
                                                               String identifier,
                                                               String filename)
+        throws NoSuchElementException,
+               Exception
     {
         String path = "resource";
         return getResourceResolver(ctx, identifier, path, filename);
@@ -243,6 +232,8 @@ public class UnoHelper
                                                               String identifier,
                                                               String path,
                                                               String filename)
+        throws NoSuchElementException,
+               Exception
     {
         Locale locale = getCurrentLocale(ctx);
         return getResourceResolver(ctx, identifier, path, filename, locale);

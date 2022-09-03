@@ -94,6 +94,12 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
+    public String getGroupQuery()
+    {
+        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ADMINISTRABLE_ROLE_AUTHORIZATIONS;";
+    }
+
+    @Override
     public String getDropTableQuery(ConnectionBase connection,
                                     String catalog,
                                     String schema,
