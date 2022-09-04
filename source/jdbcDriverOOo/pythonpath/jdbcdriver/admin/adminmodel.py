@@ -33,6 +33,7 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.container import ElementExistException
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
 from com.sun.star.style.HorizontalAlignment import CENTER
@@ -112,13 +113,16 @@ class AdminModel(unohelper.Base):
     def _createGrantee(self, descriptor, grantee):
         grantees = self._data.getGrantees().getElementNames()
         descriptor.setPropertyValue('Name', grantee)
-        self._data.getGrantees().appendByDescriptor(descriptor)
-        self._data.getGrantees().refresh()
-        return self._getNewGrantees(grantees)
+        try:
+            self._data.getGrantees().appendByDescriptor(descriptor)
+        except ElementExistException as e:
+            return None
+        return grantees
 
-    def _getNewGrantees(self, olds):
+    def getNewGrantees(self, olds):
         grantee = None
         grantees = self._data.getGrantees()
+        grantees.refresh()
         elements = grantees.getElementNames()
         for element in elements:
             if element not in olds:

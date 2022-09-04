@@ -101,14 +101,18 @@ class AdminManager(unohelper.Base):
     def createGroup(self):
         self._dialog = GranteeView(self._ctx, 'NewGroupDialog', NewGroupHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            self._updateGrantee(*self._model.createGroup(self._dialog.getGrantee()))
+            grantees = self._model.createGroup(self._dialog.getGrantee())
+            if grantees is not None:
+                self._updateGrantee(*self._model.getNewGrantees(grantees))
         self._dialog.dispose()
         self._dialog = None
 
     def createUser(self):
         self._dialog = GranteeView(self._ctx, 'NewUserDialog', NewUserHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            self._updateGrantee(*self._model.createUser(self._dialog.getGrantee(), self._dialog.getPassword()))
+            grantees = self._model.createUser(self._dialog.getGrantee(), self._dialog.getPassword())
+            if grantees is not None:
+                self._updateGrantee(*self._model.getNewGrantees(grantees))
         self._dialog.dispose()
         self._dialog = None
 
