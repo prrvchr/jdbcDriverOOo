@@ -28,7 +28,6 @@ package io.github.prrvchr.jdbcdriver.derby;
 import java.sql.SQLException;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
@@ -43,7 +42,6 @@ public final class DerbyDriverProvider
     implements DriverProvider
 {
 
-    private static final String m_subProtocol = "derby";
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "50000"),
                                                                   Map.entry("1", "40000"),
                                                                   Map.entry("2", "40000"),
@@ -56,21 +54,15 @@ public final class DerbyDriverProvider
     // The constructor method:
     public DerbyDriverProvider()
     {
+        super("derby");
         System.out.println("derby.DerbyDriverProvider() 1");
-    }
-
-    @Override
-    public final boolean acceptsURL(final String url,
-                                    final PropertyValue[] info)
-    {
-        return super.acceptsURL(url, info, m_subProtocol);
     }
 
     @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
         String level = "-1";
-        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        String property = "Installed/" + getSubProtocol() + ":*/Properties/DriverLoggerLevel/Value";
         try {
             level = (String) driver.getByHierarchicalName(property);
         } catch (NoSuchElementException e) { }

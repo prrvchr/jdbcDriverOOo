@@ -43,7 +43,7 @@ import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class ColumnContainer
@@ -201,9 +201,9 @@ public class ColumnContainer
         m_table._refreshColumns();
     }
 
-    public Connection _getConnection()
+    public ConnectionSuper _getConnection()
     {
-        return m_table.getTables().getConnection();
+        return m_table.getConnection();
     }
 
     @Override

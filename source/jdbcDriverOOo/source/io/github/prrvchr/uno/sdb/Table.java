@@ -45,7 +45,6 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.TableBase;
-import io.github.prrvchr.uno.sdbcx.TableContainer;
 
 
 public final class Table
@@ -55,6 +54,7 @@ public final class Table
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
+    private final Connection m_connection;
     //private int m_Privileges = 0;
     //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
     /*protected String m_Filter = "";
@@ -67,17 +67,17 @@ public final class Table
     protected String m_GroupBy = "";*/
 
     // The constructor method:
-    public Table(TableContainer container,
+    public Table(Connection connection,
                  boolean sensitive,
                  String catalog,
                  String schema,
                  String name,
                  String type,
                  String remarks)
-        throws SQLException
     {
-        super(m_service, m_services, container, sensitive, name);
+        super(m_service, m_services, sensitive, name);
         System.out.println("sdbc.Table() 1");
+        m_connection = connection;
         super.m_CatalogName = catalog;
         super.m_SchemaName= schema;
         super.m_Type = type;
@@ -248,6 +248,12 @@ public final class Table
             break;
         }
         return value;
+    }
+
+
+    public Connection getConnection()
+    {
+        return m_connection;
     }
 
 

@@ -25,16 +25,19 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
+import com.sun.star.beans.PropertyValue;
 
 public final class DriverProviderDefault
     extends DriverProviderMain
     implements DriverProvider
 {
 
+
     // The constructor method:
-    public DriverProviderDefault()
+    public DriverProviderDefault(String url,
+                                 PropertyValue[] info)
     {
-        super();
+        super(url.split(":")[1]);
         System.out.println("jdbcdriver.DriverProviderDefault() 1");
     }
 

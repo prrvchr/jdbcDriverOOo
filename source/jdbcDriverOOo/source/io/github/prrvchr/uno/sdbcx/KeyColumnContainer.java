@@ -32,7 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class KeyColumnContainer
@@ -135,7 +135,7 @@ public class KeyColumnContainer
     }
     
 
-    public Connection getConnection()
+    public ConnectionSuper getConnection()
     {
         return m_key.getTable().getConnection();
     }

@@ -35,9 +35,11 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnMain;
@@ -47,7 +49,7 @@ public interface DriverProvider
 
     public String getProtocol();
 
-    public String getProtocol(String subprotocol);
+    public String getSubProtocol();
 
     public java.sql.Connection getConnection();
 
@@ -59,7 +61,7 @@ public interface DriverProvider
                               String level)
         throws java.sql.SQLException;
 
-    public boolean isCaseSensitive();
+    public boolean isCaseSensitive(String string);
 
     public String getAlterViewQuery();
 
@@ -203,9 +205,9 @@ public interface DriverProvider
     public boolean acceptsURL(String url,
                               PropertyValue[] info);
 
-    public boolean acceptsURL(String url,
-                              PropertyValue[] info,
-                              String protocol);
+    public ConnectionBase getConnection(XComponentContext ctx,
+                                        ResourceBasedEventLogger logger,
+                                        boolean enhanced);
 
     public String getUrl();
 
@@ -242,5 +244,12 @@ public interface DriverProvider
     public String getAutoRetrievingStatement();
 
     public String getTransformedGeneratedStatement(String sql);
+
+    void registerURL(String url,
+                     PropertyValue[] info);
+
+    public String getRevokeTableOrViewPrivileges();
+
+    public String getRevokeRoleQuery();
 
 }

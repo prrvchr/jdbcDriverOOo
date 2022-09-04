@@ -49,7 +49,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public abstract class TableBase
@@ -63,7 +63,6 @@ public abstract class TableBase
     private ColumnContainer m_columns = null;
     private KeyContainer m_keys = null;
     private IndexContainer m_indexes = null;
-    protected TableContainer m_tables;
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
     protected String m_Description = "";
@@ -72,13 +71,11 @@ public abstract class TableBase
     // The constructor method:
     public TableBase(String service,
                      String[] services,
-                     TableContainer tables,
                      boolean sensitive,
                      String name)
     {
         super(service, services, sensitive, name);
         System.out.println("sdbcx.TableBase() 1");
-        m_tables = tables;
         registerProperties();
         System.out.println("sdbcx.TableBase() 1");
     }
@@ -129,7 +126,6 @@ public abstract class TableBase
         if (m_indexes != null) {
             m_indexes.dispose();
         }
-        m_tables = null;
     }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
@@ -238,11 +234,6 @@ public abstract class TableBase
         }
     }
 
-    public TableContainer getTables()
-    {
-        return m_tables;
-    }
-
     public String getCatalogName()
     {
         return m_CatalogName.isBlank() ? null : m_CatalogName;
@@ -257,10 +248,7 @@ public abstract class TableBase
         return "";
     }
 
-    public Connection getConnection()
-    {
-        return m_tables.getConnection();
-    }
+    public abstract ConnectionSuper getConnection();
 
     /*    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.Table()

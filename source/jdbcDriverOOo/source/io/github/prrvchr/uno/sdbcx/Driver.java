@@ -38,7 +38,6 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DriverBase;
 import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
@@ -66,7 +65,7 @@ public final class Driver
                                             ResourceBasedEventLogger logger,
                                             boolean enhanced)
     {
-        return new Connection(ctx, provider, logger, enhanced);
+        return provider.getConnection(ctx, logger, enhanced);
     }
 
 

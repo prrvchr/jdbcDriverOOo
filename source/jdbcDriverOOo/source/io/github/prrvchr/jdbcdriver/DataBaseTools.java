@@ -1,23 +1,3 @@
-/**************************************************************
- * 
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- *************************************************************/
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -43,6 +23,26 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
+/**************************************************************
+ * 
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ *************************************************************/
 package io.github.prrvchr.jdbcdriver;
 
 import java.util.ArrayList;
@@ -85,6 +85,7 @@ import com.sun.star.util.Time;
 import io.github.prrvchr.uno.sdbcx.ColumnContainer.ExtraColumnInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
@@ -138,11 +139,11 @@ public class DataBaseTools {
         }
     }
 
-    private static NameComponentSupport getNameComponentSupport(Connection connection,
+    private static NameComponentSupport getNameComponentSupport(ConnectionSuper m_connection,
                                                                 ComposeRule composeRule)
         throws SQLException
     {
-        XDatabaseMetaData metadata = connection.getMetaData();
+        XDatabaseMetaData metadata = m_connection.getMetaData();
         switch (composeRule) {
         case InTableDefinitions:
             return new NameComponentSupport(
@@ -169,7 +170,7 @@ public class DataBaseTools {
 
     /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules
      */
-    public static String composeTableName(Connection connection,
+    public static String composeTableName(ConnectionSuper m_connection,
                                           String catalog,
                                           String schema,
                                           String table,
@@ -177,13 +178,13 @@ public class DataBaseTools {
                                           ComposeRule composeRule)
         throws SQLException
     {
-        if (connection == null) {
+        if (m_connection == null) {
             return "";
         }
         StringBuilder composedName = new StringBuilder();
-        NameComponentSupport nameComponentSupport = getNameComponentSupport(connection, composeRule);
+        NameComponentSupport nameComponentSupport = getNameComponentSupport(m_connection, composeRule);
         try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+            java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             
             
@@ -208,12 +209,12 @@ public class DataBaseTools {
             }
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
         return composedName.toString();
     }
 
-    public static String composeTableName(Connection connection,
+    public static String composeTableName(ConnectionSuper connection,
                                           XPropertySet table,
                                           ComposeRule rule,
                                           boolean catalog,
@@ -227,7 +228,7 @@ public class DataBaseTools {
     }
 
 
-    public static String doComposeTableName(Connection connection,
+    public static String doComposeTableName(ConnectionSuper connection,
                                             String catalog,
                                             String schema,
                                             String table,
@@ -279,7 +280,7 @@ public class DataBaseTools {
      * in the data source which the connection belongs to.
      * @throws java.sql.SQLException 
      */
-    public static String composeTableNameForSelect(Connection connection,
+    public static String composeTableNameForSelect(ConnectionSuper connection,
                                                    String catalog,
                                                    String schema,
                                                    String table)
@@ -297,7 +298,7 @@ public class DataBaseTools {
      * in the data source which the connection belongs to.
      * @throws java.sql.SQLException 
      */
-    public static String composeTableNameForSelect(Connection connection,
+    public static String composeTableNameForSelect(ConnectionSuper connection,
                                                    XPropertySet table)
         throws SQLException
     {
@@ -305,7 +306,7 @@ public class DataBaseTools {
         return composeTableNameForSelect(connection, component.getCatalog(), component.getSchema(), component.getTable());
     }
 
-    public static NameComponents getTableNameComponents(Connection connection,
+    public static NameComponents getTableNameComponents(ConnectionSuper m_connection,
                                                         XPropertySet table)
         throws SQLException
     {
@@ -326,7 +327,7 @@ public class DataBaseTools {
             return component;
         }
         catch (IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), m_connection);
         }
     }
 
@@ -343,7 +344,7 @@ public class DataBaseTools {
 
     /** quote the given table name (which may contain a catalog and a schema) according to the rules provided by the meta data
      */
-    public static String quoteTableName(Connection connection,
+    public static String quoteTableName(ConnectionSuper connection,
                                         String name,
                                         ComposeRule rule)
         throws SQLException
@@ -358,7 +359,7 @@ public class DataBaseTools {
      * @param rule       where do you need the name for
      * @return the NameComponents object with the catalog, schema and table
      */
-    public static NameComponents qualifiedNameComponents(Connection connection,
+    public static NameComponents qualifiedNameComponents(ConnectionSuper connection,
                                                          String name,
                                                          ComposeRule rule)
         throws SQLException
@@ -414,7 +415,7 @@ public class DataBaseTools {
      *   The CREATE TABLE statement.
      * @throws SQLException
      */
-    public static String getCreateTableQuery(Connection connection,
+    public static String getCreateTableQuery(ConnectionSuper connection,
                                              XPropertySet descriptor,
                                              ISQLStatementHelper helper,
                                              String pattern)
@@ -439,7 +440,7 @@ public class DataBaseTools {
      *   The columns parts.
      * @throws SQLException
      */
-    public static List<String> getCreateTableColumnParts(Connection connection,
+    public static List<String> getCreateTableColumnParts(ConnectionSuper connection,
                                                          XPropertySet descriptor,
                                                          ISQLStatementHelper helper,
                                                          String createPattern,
@@ -483,7 +484,7 @@ public class DataBaseTools {
      *      
      * @throws SQLException
      */
-    public static String getStandardColumnPartQuery(Connection connection,
+    public static String getStandardColumnPartQuery(ConnectionSuper connection,
                                                     XPropertySet columnProperties,
                                                     ISQLStatementHelper helper,
                                                     String createPattern)
@@ -608,7 +609,7 @@ public class DataBaseTools {
      *      The keys parts.
      * @throws SQLException
      */
-    public static List<String> getCreateTableKeyParts(Connection connection,
+    public static List<String> getCreateTableKeyParts(ConnectionSuper connection,
                                                       XPropertySet descriptor)
         throws SQLException
     {
@@ -719,7 +720,7 @@ public class DataBaseTools {
      * @return
      *   The CREATE VIEW statement.
      */
-    public static String getCreateViewQuery(Connection connection,
+    public static String getCreateViewQuery(ConnectionSuper connection,
                                             XPropertySet descriptor)
         throws SQLException
     {
@@ -745,7 +746,7 @@ public class DataBaseTools {
      * @return
      *   The ALTER VIEW statement.
      */
-    public static String getAlterViewQuery(Connection connection,
+    public static String getAlterViewQuery(ConnectionSuper connection,
                                            XPropertySet descriptor,
                                            String command)
         throws SQLException
@@ -784,6 +785,9 @@ public class DataBaseTools {
                 java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
                 String quote = metadata.getIdentifierQuoteString();
                 name = quoteName(quote, name);
+            }
+            else {
+                name = name.toUpperCase();
             }
             sql = String.format("CREATE USER %s PASSWORD '%s'", name, password);
         }
@@ -897,6 +901,9 @@ public class DataBaseTools {
                 String quote = metadata.getIdentifierQuoteString();
                 name = quoteName(quote, name);
             }
+            else {
+                name = name.toUpperCase();
+            }
             sql = String.format("CREATE ROLE %s", name);
         }
         catch (java.sql.SQLException e) {
@@ -1005,7 +1012,8 @@ public class DataBaseTools {
                 group = quoteName(quote, group);
                 user = quoteName(quote, user);
             }
-            sql = String.format("REVOKE %s FROM %s RESTRICT", group, user);
+            String query = connection.getProvider().getRevokeRoleQuery();
+            sql = String.format(query, group, user);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
@@ -1014,7 +1022,7 @@ public class DataBaseTools {
     }
 
 
-    public static int getTableOrViewPrivileges(Connection connection,
+    public static int getTableOrViewPrivileges(ConnectionSuper connection,
                                                List<String> grantees,
                                                String catalog,
                                                String schema,
@@ -1026,7 +1034,7 @@ public class DataBaseTools {
     }
 
 
-    public static int getTableOrViewPrivileges(Connection connection,
+    public static int getTableOrViewPrivileges(ConnectionSuper connection,
                                                List<String> grantees,
                                                String name)
     throws SQLException
@@ -1035,7 +1043,7 @@ public class DataBaseTools {
         return getTableOrViewPrivileges(connection, grantees, component);
     }
 
-    public static int getTableOrViewPrivileges(Connection connection,
+    public static int getTableOrViewPrivileges(ConnectionSuper connection,
                                                List<String> grantees,
                                                NameComponents component)
     throws SQLException
@@ -1044,7 +1052,7 @@ public class DataBaseTools {
         return _getTableOrViewPrivileges(connection, grantees, component, sql);
     }
 
-    public static int getTableOrViewGrantablePrivileges(Connection connection,
+    public static int getTableOrViewGrantablePrivileges(ConnectionSuper connection,
                                                         List<String> grantees,
                                                         String name)
     throws SQLException
@@ -1054,7 +1062,7 @@ public class DataBaseTools {
         return _getTableOrViewPrivileges(connection, grantees, component, sql);
     }
 
-    private static int _getTableOrViewPrivileges(Connection connection,
+    private static int _getTableOrViewPrivileges(ConnectionSuper connection,
                                                  List<String> grantees,
                                                  NameComponents component,
                                                  String sql)
@@ -1092,7 +1100,7 @@ public class DataBaseTools {
         return privilege;
     }
 
-    public static void grantTableOrViewPrivileges(Connection connection,
+    public static void grantTableOrViewPrivileges(ConnectionSuper connection,
                                                   String grantee,
                                                   String name,
                                                   int privilege,
@@ -1112,7 +1120,7 @@ public class DataBaseTools {
         }
     }
 
-    public static void revokeTableOrViewPrivileges(Connection connection,
+    public static void revokeTableOrViewPrivileges(ConnectionSuper connection,
                                                    String grantee,
                                                    String name,
                                                    int privilege,
@@ -1122,7 +1130,8 @@ public class DataBaseTools {
     {
         List<String> values = connection.getProvider().getPrivileges(privilege);
         grantee = sensitive ? quoteName(connection.getMetaData().getIdentifierQuoteString(), grantee) : grantee;
-        String sql = String.format("REVOKE %s ON %s FROM %s CASCADE", String.join(",", values), quoteTableName(connection, name, rule), grantee);
+        String query = connection.getProvider().getRevokeTableOrViewPrivileges();
+        String sql = String.format(query, String.join(",", values), quoteTableName(connection, name, rule), grantee);
         System.out.println("DataBaseTools.revokeTableOrViewPrivileges() SQL: " + sql);
         try (java.sql.Statement statement = connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);
@@ -1143,7 +1152,7 @@ public class DataBaseTools {
      * @return
      *    The information about the column(s).
      */
-    public static Map<String,ExtraColumnInfo> collectColumnInformation(Connection connection,
+    public static Map<String,ExtraColumnInfo> collectColumnInformation(ConnectionSuper connection,
                                                                        String composedName,
                                                                        String columnName)
         throws java.sql.SQLException
@@ -1411,7 +1420,7 @@ public class DataBaseTools {
         }
     }
 
-    public static String buildName(Connection connection,
+    public static String buildName(ConnectionSuper connection,
                                    java.sql.ResultSet result,
                                    ComposeRule rule)
         throws SQLException

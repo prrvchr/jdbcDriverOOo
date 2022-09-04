@@ -36,9 +36,10 @@ public final class Table
 
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
+    private final Connection m_connection;
 
     // The constructor method:
-    public Table(TableContainer container,
+    public Table(Connection connection,
                  boolean sensitive,
                  String catalog,
                  String schema,
@@ -46,7 +47,8 @@ public final class Table
                  String type,
                  String remarks)
     {
-        super(m_service, m_services, container, sensitive, name);
+        super(m_service, m_services, sensitive, name);
+        m_connection = connection;
         super.m_CatalogName = catalog;
         super.m_SchemaName= schema;
         super.m_Type = type;
@@ -63,6 +65,12 @@ public final class Table
             UnoHelper.copyProperties(this, descriptor);
         }
         return descriptor;
+    }
+
+
+    public Connection getConnection()
+    {
+        return m_connection;
     }
 
 

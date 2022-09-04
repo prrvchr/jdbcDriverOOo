@@ -29,18 +29,20 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XComponentContext;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 
 
 public final class HsqlDBDriverProvider
@@ -48,7 +50,6 @@ public final class HsqlDBDriverProvider
     implements DriverProvider
 {
 
-    private static final String m_subProtocol = "hsqldb";
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "1"),
                                                                   Map.entry("1", "1"),
                                                                   Map.entry("2", "1"),
@@ -69,14 +70,16 @@ public final class HsqlDBDriverProvider
     // The constructor method:
     public HsqlDBDriverProvider()
     {
+        super("hsqldb");
         System.out.println("hsqldb.HsqlDBDriverProvider() 1");
     }
 
     @Override
-    public final boolean acceptsURL(final String url,
-                                    final PropertyValue[] info)
+    public ConnectionBase getConnection(XComponentContext ctx,
+                                        ResourceBasedEventLogger logger,
+                                        boolean enhanced)
     {
-        return super.acceptsURL(url, info, m_subProtocol);
+        return new Connection(ctx, this, logger, enhanced);
     }
 
     @Override
@@ -87,6 +90,19 @@ public final class HsqlDBDriverProvider
         return type;
     }
 
+    @Override
+    public String getRevokeTableOrViewPrivileges()
+    {
+        return "REVOKE %s ON %s FROM %s CASCADE";
+    }
+
+    @Override
+    public String getRevokeRoleQuery()
+    {
+        return "REVOKE %s FROM %s RESTRICT";
+    }
+
+    
     @Override
     public String getUserQuery()
     {
@@ -181,7 +197,7 @@ public final class HsqlDBDriverProvider
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
         String level = "-1";
-        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        String property = "Installed/" + getSubProtocol() + ":*/Properties/DriverLoggerLevel/Value";
         try {
             level = (String) driver.getByHierarchicalName(property);
         } catch (NoSuchElementException e) { }

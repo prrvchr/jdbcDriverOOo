@@ -38,7 +38,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
@@ -46,16 +46,16 @@ public class ViewContainer
     extends Container
 {
 
-    private Connection m_connection;
+    private ConnectionSuper m_connection;
 
     // The constructor method:
-    public ViewContainer(Connection connection,
+    public ViewContainer(ConnectionSuper connectionSuper,
                          boolean sensitive,
                          List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
-        m_connection = connection;
+        super(connectionSuper, sensitive, names);
+        m_connection = connectionSuper;
     }
 
 
@@ -178,7 +178,7 @@ public class ViewContainer
     }
     
 
-    private Connection getConnection()
+    private ConnectionSuper getConnection()
     {
         return m_connection;
     }

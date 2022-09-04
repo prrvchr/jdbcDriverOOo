@@ -50,20 +50,25 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
+import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnMain;
+import io.github.prrvchr.uno.sdbcx.Connection;
 
 public abstract class DriverProviderMain
     implements DriverProvider
 {
 
     static final String m_protocol = "xdbc:";
+    private static String m_subprotocol;
+
     static final boolean m_warnings = true;
     private java.sql.Connection m_connection = null;
     private String m_url;
@@ -71,9 +76,10 @@ public abstract class DriverProviderMain
     protected List<String> m_properties = List.of("user", "password");
 
     // The constructor method:
-    public DriverProviderMain()
+    public DriverProviderMain(String subprotocol)
     {
         System.out.println("jdbcdriver.DriverProviderMain() 1");
+        m_subprotocol = subprotocol;
     }
 
     @Override
@@ -83,13 +89,13 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getProtocol(String subprotocol)
+    public String getSubProtocol()
     {
-        return m_protocol + subprotocol;
+        return m_protocol + m_subprotocol;
     }
 
     @Override
-    public boolean isCaseSensitive()
+    public boolean isCaseSensitive(String clazz)
     {
         return true;
     }
@@ -465,6 +471,18 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public String getRevokeTableOrViewPrivileges()
+    {
+        return "REVOKE %s ON %s FROM %s";
+    }
+
+    @Override
+    public String getRevokeRoleQuery()
+    {
+        return "REVOKE %s FROM %s";
+    }
+
+    @Override
     public String getCreateTableQuery(String identifier,
                                       String columns)
     {
@@ -676,28 +694,22 @@ public abstract class DriverProviderMain
     public boolean acceptsURL(final String url,
                               final PropertyValue[] info)
     {
-        if (url.startsWith(getProtocol())) {
-            m_url = url;
-            m_info = info;
+        if (url.startsWith(getSubProtocol())) {
+            registerURL(url, info);
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean acceptsURL(final String url,
-                              final PropertyValue[] info,
-                              String protocol)
+    public void registerURL(final String url,
+                            final PropertyValue[] info)
     {
-        if (url.startsWith(getProtocol(protocol))) {
-            m_url = url;
-            m_info = info;
-            return true;
-        }
-        return false;
+        m_url = url;
+        m_info = info;
     }
 
-
+    
     @Override
     public String getUrl()
     {
@@ -736,6 +748,13 @@ public abstract class DriverProviderMain
     public java.sql.Connection getConnection()
     {
         return m_connection;
+    }
+
+    public ConnectionBase getConnection(XComponentContext ctx,
+                                        ResourceBasedEventLogger logger,
+                                        boolean enhanced)
+    {
+        return new Connection(ctx, this, logger, enhanced);
     }
 
     @Override

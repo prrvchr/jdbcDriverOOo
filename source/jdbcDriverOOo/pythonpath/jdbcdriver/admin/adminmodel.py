@@ -110,9 +110,21 @@ class AdminModel(unohelper.Base):
         return self._createGrantee(descriptor, group)
 
     def _createGrantee(self, descriptor, grantee):
+        grantees = self._data.getGrantees().getElementNames()
         descriptor.setPropertyValue('Name', grantee)
         self._data.getGrantees().appendByDescriptor(descriptor)
-        return self._data.getGrantees().getElementNames()
+        self._data.getGrantees().refresh()
+        return self._getNewGrantees(grantees)
+
+    def _getNewGrantees(self, olds):
+        grantee = None
+        grantees = self._data.getGrantees()
+        elements = grantees.getElementNames()
+        for element in elements:
+            if element not in olds:
+                grantee = element
+                break
+        return elements, grantee
 
     def getUsers(self):
         users = self._data.getGrantee().getUsers()

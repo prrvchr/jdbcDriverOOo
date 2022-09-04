@@ -42,35 +42,29 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XGroupsSupplier;
-import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
-import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.sdbcx.Group;
 import io.github.prrvchr.uno.sdbcx.GroupContainer;
 import io.github.prrvchr.uno.sdbcx.Statement;
-import io.github.prrvchr.uno.sdbcx.TableContainer;
+import io.github.prrvchr.uno.sdbcx.User;
 import io.github.prrvchr.uno.sdbcx.UserContainer;
-import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
 
 public final class Connection
-    extends ConnectionBase
+    extends ConnectionSuper
     implements XChild,
                XCommandPreparation,
                XQueriesSupplier,
                XSQLQueryComposerFactory,
                XMultiServiceFactory,
-               XTablesSupplier,
                XUsersSupplier,
-               XViewsSupplier,
                XGroupsSupplier
 {
 
@@ -78,8 +72,6 @@ public final class Connection
     private static final String[] m_services = {"com.sun.star.sdb.Connection",
                                                 "com.sun.star.sdbc.Connection",
                                                 "com.sun.star.sdbcx.DatabaseDefinition"};
-    private TableContainer m_Tables = null;
-    private ViewContainer m_Views = null;
     private UserContainer m_Users = null;
     private GroupContainer m_Groups = null;
     private static final boolean m_crawler = false;
@@ -96,12 +88,6 @@ public final class Connection
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        if (m_Tables != null) {
-            m_Tables.dispose();
-        }
-        if (m_Views != null) {
-            m_Views.dispose();
-        }
         if (m_Users != null) {
             m_Users.dispose();
         }
@@ -181,17 +167,6 @@ public final class Connection
     }
 
 
-    // com.sun.star.sdbcx.XTablesSupplier:
-    @Override
-    public synchronized XNameAccess getTables()
-    {
-        checkDisposed();
-        if (m_Tables == null) {
-            _refreshTables();
-        }
-        return m_Tables;
-    }
-
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public synchronized XNameAccess getUsers()
@@ -201,17 +176,6 @@ public final class Connection
             _refreshUsers();
         }
         return m_Users;
-    }
-
-    // com.sun.star.sdbcx.XViewsSupplier:
-    @Override
-    public synchronized XNameAccess getViews()
-    {
-        checkDisposed();
-        if (m_Views == null) {
-            _refreshViews();
-        }
-        return m_Views;
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
@@ -225,11 +189,6 @@ public final class Connection
         return m_Groups;
     }
 
-
-    public synchronized TableContainer getTablesInternal()
-    {
-        return m_Tables;
-    }
 
     public synchronized UserContainer getUsersInternal()
     {
@@ -265,59 +224,33 @@ public final class Connection
 
     public synchronized void _refresh()
     {
-        checkDisposed();
-        _refreshTables();
-        _refreshViews();
+        super._refresh();
         _refreshUsers();
         _refreshGroups();
     }
 
-    private void _refreshTables()
-    {
-        try {
-            // FIXME: It is preferable to display all the entities of the underlying database.
-            // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
-            //String[] types = getProvider().getTableTypes();
-            String[] types = null;
-            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
-            List<String> names = new ArrayList<>();
-            while (result.next()) {
-                String name = _buildName(result);
-                names.add(name);
-            }
-            result.close();
-            if (m_Tables == null) {
-                m_Tables = new TableContainer(this, getProvider().isCaseSensitive(), names);
-            }
-            else {
-                m_Tables.refill(names);
-            }
-        }
-        catch (ElementExistException | java.sql.SQLException | SQLException e) {
-            throw new com.sun.star.uno.RuntimeException("Error", e);
-        }
-    }
 
-    public void _refreshViews() {
-        try {
-            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getTables(null, null, "%", new String[] { "VIEW" });
+    public void _refreshUsers()
+    {
+        try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
+            java.sql.ResultSet result = statement.executeQuery(getProvider().getUserQuery());
             List<String> names = new ArrayList<>();
+            System.out.println("sdb.Connection._refreshUsers() 1");
             while (result.next()) {
-                String name = _buildName(result);
-                System.out.println("sdb.Connection._refreshViews() View Name: " + name);
+                String name = result.getString(1);
+                System.out.println("sdb.Connection._refreshUsers() User Name: " + name);
                 names.add(name);
             }
+            System.out.println("sdb.Connection._refreshUsers() 2");
             result.close();
-            if (m_Views == null) {
-                m_Views = new ViewContainer(this, getProvider().isCaseSensitive(), names);
+            if (m_Users == null) {
+                m_Users = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
             }
             else {
-                m_Views.refill(names);
+                m_Users.refill(names);
             }
         }
-        catch (ElementExistException | SQLException | java.sql.SQLException e) {
+        catch (ElementExistException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
@@ -334,7 +267,7 @@ public final class Connection
             }
             result.close();
             if (m_Groups == null) {
-                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
+                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
             }
             else {
                 m_Groups.refill(names);
@@ -345,33 +278,14 @@ public final class Connection
         }
     }
 
-    public void _refreshUsers()
+    public Table getTable(boolean sensitive,
+                          String catalog,
+                          String schema,
+                          String name,
+                          String type,
+                          String remarks)
     {
-        try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-            java.sql.ResultSet result = statement.executeQuery(getProvider().getUserQuery());
-            List<String> names = new ArrayList<>();
-            while (result.next()) {
-                String name = result.getString(1);
-                System.out.println("sdb.Connection._refreshUsers() User Name: " + name);
-                names.add(name);
-            }
-            result.close();
-            if (m_Users == null) {
-                m_Users = new UserContainer(this, getProvider().isCaseSensitive(), names);
-            }
-            else {
-                m_Users.refill(names);
-            }
-        }
-        catch (ElementExistException | java.sql.SQLException e) {
-            throw new com.sun.star.uno.RuntimeException("Error", e);
-        }
-    }
-
-    protected String _buildName(java.sql.ResultSet result)
-        throws SQLException
-    {
-        return DataBaseTools.buildName(this, result, ComposeRule.InDataManipulation);
+        return new Table(this, sensitive, catalog, schema, name, type, remarks);
     }
 
 

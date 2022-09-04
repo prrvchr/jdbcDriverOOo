@@ -49,7 +49,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class KeyContainer
@@ -225,7 +225,7 @@ public class KeyContainer
                                   String name)
         throws SQLException
     {
-        Connection connection = m_table.getTables().getConnection();
+        ConnectionSuper connection = m_table.getConnection();
         if (connection == null) {
             return;
         }
@@ -262,7 +262,7 @@ public class KeyContainer
     {
         return "DROP CONSTRAINT";
     }
-    private String getForeignKeyName(Connection connection,
+    private String getForeignKeyName(ConnectionSuper connection,
                                      String name)
         throws SQLException
     {
@@ -275,9 +275,9 @@ public class KeyContainer
     }
     
 
-    public Connection _getConnection()
+    public ConnectionSuper _getConnection()
     {
-        return m_table.getTables().getConnection();
+        return m_table.getConnection();
     }
 
     @Override

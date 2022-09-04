@@ -32,7 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class IndexColumnContainer
@@ -132,9 +132,9 @@ public class IndexColumnContainer
         throw new SQLException("Unsupported");
     }
 
-    protected Connection _getConnection()
+    protected ConnectionSuper _getConnection()
     {
-        return m_index.getTable().getTables().getConnection();
+        return m_index.getTable().getConnection();
     }
 
 

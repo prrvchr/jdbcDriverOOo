@@ -57,7 +57,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Key;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 
@@ -94,7 +94,7 @@ public class DataBaseTableHelper
         }
     }
 
-    public static List<ColumnDescription> readColumns(Connection connection,
+    public static List<ColumnDescription> readColumns(ConnectionSuper connection,
                                                       TableBase table)
         throws java.sql.SQLException
     {
@@ -107,7 +107,7 @@ public class DataBaseTableHelper
         return columnsByOrdinal;
     }
 
-    private static List<ColumnDescription> collectColumnDescriptions(Connection connection,
+    private static List<ColumnDescription> collectColumnDescriptions(ConnectionSuper connection,
                                                                      TableBase table)
         throws java.sql.SQLException
     {
@@ -157,7 +157,7 @@ public class DataBaseTableHelper
         }
     }
 
-    public static Map<String, Key> readKeys(Connection connection,
+    public static Map<String, Key> readKeys(ConnectionSuper connection,
                                             boolean sensitive,
                                             TableBase table)
         throws SQLException,
@@ -169,7 +169,7 @@ public class DataBaseTableHelper
         return keys;
     }
 
-    private static void readPrimaryKey(Connection connection,
+    private static void readPrimaryKey(ConnectionSuper connection,
                                        TableBase table,
                                        boolean sensitive,
                                        Map<String, Key> keys)
@@ -202,7 +202,7 @@ public class DataBaseTableHelper
         }
     }
 
-    private static void readForeignKeys(Connection connection,
+    private static void readForeignKeys(ConnectionSuper connection,
                                         TableBase table,
                                         boolean sensitive,
                                         Map<String, Key> keys)
@@ -260,7 +260,7 @@ public class DataBaseTableHelper
         }
     }
 
-    public static ArrayList<String> readIndexes(Connection connection,
+    public static ArrayList<String> readIndexes(ConnectionSuper connection,
                                                 TableBase table)
         throws SQLException
     {

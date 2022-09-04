@@ -25,14 +25,18 @@
 */
 package io.github.prrvchr.jdbcdriver.h2;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
+import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.sdbcx.Group;
+import io.github.prrvchr.uno.sdbcx.User;
 
 
 public final class H2DriverProvider
@@ -40,20 +44,21 @@ public final class H2DriverProvider
     implements DriverProvider
 {
 
-    private static final String m_subProtocol = "h2";
     private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
     // The constructor method:
     public H2DriverProvider()
     {
+        super("h2");
         System.out.println("h2.H2DriverProvider() 1");
     }
 
     @Override
-    public final boolean acceptsURL(final String url,
-                                    final PropertyValue[] info)
+    public ConnectionBase getConnection(XComponentContext ctx,
+                                        ResourceBasedEventLogger logger,
+                                        boolean enhanced)
     {
-        return super.acceptsURL(url, info, m_subProtocol);
+        return new Connection(ctx, this, logger, enhanced);
     }
 
     @Override
@@ -63,6 +68,17 @@ public final class H2DriverProvider
         }
         return type;
     }
+
+
+    @Override
+    public boolean isCaseSensitive(String clazz)
+    {
+        if (clazz == User.class.getName() || clazz == Group.class.getName()) {
+            return false;
+        }
+        return true;
+    }
+
 
     @Override
     public String getAlterViewQuery()
@@ -87,7 +103,7 @@ public final class H2DriverProvider
     @Override
     public String getUserQuery()
     {
-        return "SELECT USER FROM INFORMATION_SCHEMA.USERS";
+        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.USERS";
     }
 
     @Override
@@ -110,7 +126,7 @@ public final class H2DriverProvider
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
         String level = "-1";
-        String property = "Installed/" + getProtocol(m_subProtocol) + ":*/Properties/DriverLoggerLevel/Value";
+        String property = "Installed/" + getSubProtocol() + ":*/Properties/DriverLoggerLevel/Value";
         try {
             level = (String) driver.getByHierarchicalName(property);
         } catch (NoSuchElementException e) { }

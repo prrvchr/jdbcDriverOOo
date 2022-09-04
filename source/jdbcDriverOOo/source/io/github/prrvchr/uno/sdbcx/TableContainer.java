@@ -42,25 +42,23 @@ import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
-import io.github.prrvchr.uno.sdb.Table;
-import io.github.prrvchr.uno.sdb.TableDescriptor;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class TableContainer
     extends Container
 {
 
-    private final Connection m_connection;
+    private final ConnectionSuper m_connection;
 
     // The constructor method:
-    public TableContainer(Connection connection,
+    public TableContainer(ConnectionSuper connectionSuper,
                           boolean sensitive,
                           List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
-        m_connection = connection;
+        super(connectionSuper, sensitive, names);
+        m_connection = connectionSuper;
     }
 
     // com.sun.star.sdbcx.XDrop method of Container:
@@ -105,7 +103,7 @@ public class TableContainer
     public XPropertySet _createElement(String name)
         throws SQLException
     {
-        Table table = null;
+        TableBase table = null;
         NameComponents component = DataBaseTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
         try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
             if (result.next()) {
@@ -113,8 +111,8 @@ public class TableContainer
                 type = result.wasNull() ? "" : m_connection.getProvider().getTableType(type);
                 String remarks = result.getString(5);
                 remarks = result.wasNull() ? "" : remarks;
-                table = new Table(this, isCaseSensitive(), component.getCatalog(), component.getSchema(),
-                                  component.getTable(), type, remarks);
+                table = m_connection.getTable(isCaseSensitive(), component.getCatalog(), component.getSchema(),
+                                              component.getTable(), type, remarks);
             }
         }
         catch (java.sql.SQLException e) {
@@ -175,7 +173,7 @@ public class TableContainer
         m_connection._refresh();
     }
 
-    public Connection getConnection()
+    public ConnectionSuper getConnection()
     {
         return m_connection;
     }

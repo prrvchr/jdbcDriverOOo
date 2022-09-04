@@ -37,7 +37,7 @@ import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class View
@@ -48,7 +48,7 @@ public class View
     private static final String m_service = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
 
-    private Connection m_connection;
+    private ConnectionSuper m_connection;
 
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
@@ -56,7 +56,7 @@ public class View
     private int m_CheckOption;
 
     // The constructor method:
-    public View(Connection connection,
+    public View(ConnectionSuper connectionSuper,
                 boolean sensitive,
                 String catalog,
                 String schema,
@@ -65,7 +65,7 @@ public class View
                 int option)
     {
         super(m_service, m_services, sensitive, name);
-        m_connection = connection;
+        m_connection = connectionSuper;
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Command = command;

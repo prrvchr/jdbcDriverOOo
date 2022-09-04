@@ -351,7 +351,14 @@ public abstract class DriverBase
     {
         // FIXME: To be able to load 2 different drivers (sdbc and sdbcx) that accept the same URLs,
         // FIXME: We have to check if it is the driver that is currently registered (ie: m_registered is true)
-        return m_registered && url.startsWith(m_registredProtocol);
+        boolean accept = m_registered && url.startsWith(m_registredProtocol) && _hasSubProtocol(url);
+        System.out.println(String.format("sdbc.DriverBase.acceptsURL() Url: %s - Accept: %s - Enhanced: %s- Registred: %s", url, accept, m_enhanced, m_registered));
+        return accept;
+    }
+
+    private boolean _hasSubProtocol(String url)
+    {
+        return !url.split(":")[1].isBlank();
     }
 
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] info)
@@ -403,7 +410,7 @@ public abstract class DriverBase
                 return provider;
             }
         }
-        return new DriverProviderDefault();
+        return new DriverProviderDefault(url, info);
     }
 
     abstract protected ConnectionBase _getConnection(XComponentContext ctx,

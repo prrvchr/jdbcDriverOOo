@@ -44,7 +44,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class IndexContainer
@@ -72,7 +72,7 @@ public class IndexContainer
         Index index = null;
         try {
             System.out.println("sdbcx.IndexContainer._createElement() 1: " + name);
-            Connection connection = m_Table.getTables().getConnection();
+            ConnectionSuper connection = m_Table.getConnection();
             if (connection == null) {
                 return null;
             }
@@ -213,9 +213,9 @@ public class IndexContainer
         }
     }
 
-    public Connection _getConnection()
+    public ConnectionSuper _getConnection()
     {
-        return m_Table.getTables().getConnection();
+        return m_Table.getConnection();
     }
 
     @Override
