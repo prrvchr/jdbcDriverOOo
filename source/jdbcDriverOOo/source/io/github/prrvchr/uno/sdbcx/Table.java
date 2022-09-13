@@ -36,7 +36,7 @@ public final class Table
 
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
-    private final Connection m_connection;
+    protected final Connection m_connection;
 
     // The constructor method:
     public Table(Connection connection,
@@ -55,6 +55,13 @@ public final class Table
         super.m_Description = remarks;
     }
 
+
+    public Connection getConnection()
+    {
+        return m_connection;
+    }
+
+
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor()
@@ -66,13 +73,6 @@ public final class Table
         }
         return descriptor;
     }
-
-
-    public Connection getConnection()
-    {
-        return m_connection;
-    }
-
 
 /*    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer()

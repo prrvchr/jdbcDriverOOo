@@ -34,6 +34,7 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
@@ -51,7 +52,6 @@ import com.sun.star.sdbc.XRowUpdate;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
-import com.sun.star.uno.XInterface;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
@@ -84,23 +84,23 @@ public abstract class ResultSetBase
     private final String[] m_services;
     protected ConnectionBase m_Connection;
     protected final ConnectionLog m_logger;
-    private XInterface m_xStatement;
+    private StatementMain m_Statement;
     protected java.sql.ResultSet m_ResultSet;
+    
 
     // The constructor method:
     public ResultSetBase(String service,
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet resultset,
-                         XInterface statement)
+                         StatementMain statement)
         throws SQLException
     {
-        super();
         m_service = service;
         m_services = services;
         m_Connection = connection;
         m_logger = new ConnectionLog(connection.getLogger(), ObjectType.RESULT);
-        m_xStatement = statement;
+        m_Statement = statement;
         m_ResultSet = resultset;
         registerProperties();
     }
@@ -244,7 +244,7 @@ public abstract class ResultSetBase
                 m_ResultSet.close();
             }
             catch (java.sql.SQLException e) {
-                System.out.println("ResultSetBase.postDisposing()");
+                m_logger.log(LogLevel.WARNING, e);
             }
             m_ResultSet = null;
         }
@@ -337,7 +337,7 @@ public abstract class ResultSetBase
     @Override
     public com.sun.star.uno.XInterface getStatement() throws SQLException
     {
-        return m_xStatement;
+        return m_Statement;
     }
 
     @Override
@@ -588,7 +588,7 @@ public abstract class ResultSetBase
     {
         try {
             java.sql.Array array = m_ResultSet.getArray(index);
-            return (array != null) ? new Array(array) : null;
+            return (array != null) ? new Array(m_Connection, array) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -607,10 +607,9 @@ public abstract class ResultSetBase
     {
         try {
             java.sql.Blob blob = m_ResultSet.getBlob(index);
-            return (blob != null) ? new Blob(blob) : null;
+            return (blob != null) ? new Blob(m_Connection, blob) : null;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -643,8 +642,7 @@ public abstract class ResultSetBase
         try {
             return m_ResultSet.getBytes(index);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -660,11 +658,10 @@ public abstract class ResultSetBase
     public XClob getClob(int index) throws SQLException
     {
         try {
-            java.sql.Clob value = m_ResultSet.getClob(index);
-            return value != null ? new Clob(value) : null;
+            java.sql.Clob clob = m_ResultSet.getClob(index);
+            return clob != null ? new Clob(m_Connection, clob) : null;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -676,8 +673,7 @@ public abstract class ResultSetBase
             java.sql.Date value = m_ResultSet.getDate(index);
             return value != null ? UnoHelper.getUnoDate(value) : new Date();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -750,7 +746,7 @@ public abstract class ResultSetBase
             return value;
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getLoggedSQLException(this, m_logger, e);
         }
     }
 
@@ -1032,7 +1028,7 @@ public abstract class ResultSetBase
     {
         try {
             java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
-            return (metadata != null) ? new ResultSetMetaData(metadata, m_Connection.getInfo()) : null;
+            return (metadata != null) ? new ResultSetMetaData(m_Connection, metadata) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

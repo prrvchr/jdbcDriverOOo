@@ -25,12 +25,15 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.Iterator;
+
 //import java.util.Iterator;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lib.util.WeakMap;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
@@ -65,7 +68,7 @@ public abstract class ConnectionBase
     protected final ConnectionLog m_logger; 
     public final boolean m_enhanced;
     private boolean m_crawler;
-    //protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
+    protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
@@ -85,7 +88,6 @@ public abstract class ConnectionBase
                           boolean enhanced,
                           boolean crawler)
     {
-        super();
         m_xContext = ctx;
         m_service = service;
         m_services = services;
@@ -102,11 +104,11 @@ public abstract class ConnectionBase
     {
         m_logger.log(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
-            /*for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
+            for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
                 it.remove();
                 statement.dispose();
-            }*/
+            }
             if (getProvider().getConnection() != null) {
                 getProvider().getConnection().close();
             }
@@ -386,7 +388,7 @@ public abstract class ConnectionBase
     abstract protected XPreparedStatement _getCallableStatement(String sql);
 
 
-    /** Checks whether this component (which you should have locked, prior to this call, and until you are done using) is disposed, throwing DisposedException if it is. */
+    //XXX: Checks whether this component (which you should have locked, prior to this call, and until you are done using) is disposed, throwing DisposedException if it is.
     protected synchronized final void checkDisposed()
     {
         if (bInDispose || bDisposed) {

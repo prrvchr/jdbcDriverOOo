@@ -252,4 +252,6 @@ public interface DriverProvider
 
     public String getRevokeRoleQuery();
 
+    public boolean isIgnoreCurrencyEnabled();
+
 }

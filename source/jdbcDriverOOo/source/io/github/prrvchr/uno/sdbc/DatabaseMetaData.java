@@ -37,12 +37,6 @@ public final class DatabaseMetaData
         super(connection);
     }
 
-
-    @Override
-    protected final int _getDataType(final int type) {
-        return type;
-    }
-
     @Override
     protected final String _mapDatabaseTableTypes(final String type) {
         return type;

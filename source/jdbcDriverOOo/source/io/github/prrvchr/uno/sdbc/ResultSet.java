@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XInterface;
 
 
 public class ResultSet
@@ -39,14 +38,14 @@ public class ResultSet
     // The constructor method:
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     XInterface statement)
+                     StatementMain statement)
         throws SQLException
     {
         this(connection, resultset, statement, false);
     }
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     XInterface statement,
+                     StatementMain statement,
                      boolean bookmark)
         throws SQLException
     {

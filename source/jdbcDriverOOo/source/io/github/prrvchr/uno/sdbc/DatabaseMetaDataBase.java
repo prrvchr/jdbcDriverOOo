@@ -3300,7 +3300,7 @@ implements XDatabaseMetaData2
     {
         CustomRowSet[] row = new CustomRowSet[18];
         row[0] = new CustomRowSet(result.getString(1), result.wasNull());
-        row[1] = new CustomRowSet(_getDataType(result.getInt(2)));
+        row[1] = new CustomRowSet(m_Connection.getProvider().getDataType(result.getInt(2)));
         row[2] = new CustomRowSet(result.getLong(3));
         row[3] = new CustomRowSet(result.getString(4), result.wasNull());
         row[4] = new CustomRowSet(result.getString(5), result.wasNull());
@@ -3587,7 +3587,7 @@ implements XDatabaseMetaData2
             row[1] =  new CustomRowSet(result.getString(2), result.wasNull());
             row[2] =  new CustomRowSet(result.getString(3), result.wasNull());
             row[3] =  new CustomRowSet(result.getString(4), result.wasNull());
-            row[4] =  new CustomRowSet(_getDataType(result.getShort(5)));
+            row[4] =  new CustomRowSet(m_Connection.getProvider().getDataType(result.getShort(5)));
             row[5] =  new CustomRowSet(result.getString(6), result.wasNull());
             row[6] =  new CustomRowSet(result.getLong(7));
             row[7] =  new CustomRowSet(result.getString(8), result.wasNull());
@@ -3859,7 +3859,6 @@ implements XDatabaseMetaData2
 
     abstract protected String _mapDatabaseTableTypes(String type);
     abstract protected String _mapDatabaseTableType(String schema, String type);
-    abstract protected int _getDataType(int type);
 
 
 }

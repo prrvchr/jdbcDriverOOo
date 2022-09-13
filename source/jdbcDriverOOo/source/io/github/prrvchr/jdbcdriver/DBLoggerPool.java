@@ -51,7 +51,6 @@ public final class DBLoggerPool
     // The constructor method:
     public DBLoggerPool(XComponentContext context)
     {
-        super();
         m_xContext = context;
         System.out.println("logging.DBLoggerPool() 1: ");
     }

@@ -27,7 +27,8 @@ package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
-import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.lib.uno.helper.ComponentBase;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XBlob;
 
@@ -35,16 +36,30 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class Blob
-    extends WeakBase
+    extends ComponentBase
     implements XBlob
 {
 
+    private final ConnectionBase m_Connection;
     private java.sql.Blob m_Blob;
 
     // The constructor method:
-    public Blob(java.sql.Blob blob)
+    public Blob(ConnectionBase connection,
+                java.sql.Blob blob)
     {
+        m_Connection = connection;
         m_Blob = blob;
+    }
+
+    // com.sun.star.lang.XComponent
+    @Override
+    protected void postDisposing() {
+        try {
+            m_Blob.free();
+        }
+        catch (java.sql.SQLException e) {
+            m_Connection.getLogger().log(LogLevel.WARNING, e);
+        }
     }
 
     // com.sun.star.sdbc.XBlob:
@@ -52,12 +67,10 @@ public class Blob
     public XInputStream getBinaryStream()
         throws SQLException
     {
-        try
-        {
+        try {
             return new InputStreamToXInputStreamAdapter(m_Blob.getBinaryStream());
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -66,12 +79,10 @@ public class Blob
     public byte[] getBytes(long position, int length)
         throws SQLException
     {
-        try
-        {
+        try {
             return m_Blob.getBytes(position, length);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -80,12 +91,10 @@ public class Blob
     public long length()
         throws SQLException
     {
-        try
-        {
+        try {
             return m_Blob.length();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -94,12 +103,10 @@ public class Blob
     public long position(byte[] pattern, long start)
         throws SQLException
     {
-        try
-        {
+        try {
             return m_Blob.position(pattern, start);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }

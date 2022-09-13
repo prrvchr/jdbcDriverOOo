@@ -103,7 +103,6 @@ public class CustomResultSet
     public CustomResultSet(XResultSetMetaData metadata,
                            ArrayList<CustomRowSet[]> rows)
     {
-        super();
         m_xMetaData = metadata;
         m_rows = rows;
         m_IsBookmarkable = true;

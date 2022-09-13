@@ -27,7 +27,6 @@ package io.github.prrvchr.jdbcdriver.smallsql;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Map;
 
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
@@ -47,18 +46,6 @@ import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 public final class SmallSQLDatabaseMetaData
     extends DatabaseMetaDataBase
 {
-
-
-    protected static final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
-                                                                            Map.entry(-15, 1),
-                                                                            Map.entry(-9, 12),
-                                                                            Map.entry(-8, 4),
-                                                                            Map.entry(70, 1111),
-                                                                            Map.entry(2009, 1111),
-                                                                            Map.entry(2011, 2005),
-                                                                            Map.entry(2012, 2006),
-                                                                            Map.entry(2013, 12),
-                                                                            Map.entry(2014, 12));
 
     // The constructor method:
     public SmallSQLDatabaseMetaData(final ConnectionBase connection)
@@ -211,21 +198,6 @@ public final class SmallSQLDatabaseMetaData
     {
         System.out.println("smallsql.SmallSQLDatabaseMetaData.supportsAlterTableWithDropColumn()");
         return false;
-    }
-
-
-    protected final short _mapDatabaseDataType(final short type)
-    {
-        return (short)_getDataType((int) type);
-    }
-    protected final int _getDataType(final int type)
-    {
-        if (m_dataType.containsKey(type))
-        {
-            System.out.println("smallsql.SmallSQLDatabaseProvider._mapDatabaseDataType() Type: " + type);
-            return m_dataType.get(type);
-        }
-        return type;
     }
 
     @Override

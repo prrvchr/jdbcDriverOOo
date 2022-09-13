@@ -137,7 +137,7 @@ public class PropertySetAdapter
         {
             Property[] properties = new Property[propertiesByName.size()];
             int next = 0;
-            for (Map.Entry<String,PropertyData> entry : propertiesByName.entrySet()) {
+            for (Map.Entry<String, PropertyData> entry : propertiesByName.entrySet()) {
                 properties[next++] = entry.getValue().property;
             }
             Arrays.sort(properties, propertyNameComparator);

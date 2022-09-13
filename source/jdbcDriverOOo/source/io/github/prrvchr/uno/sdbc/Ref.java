@@ -42,7 +42,6 @@ public class Ref
     // The constructor method:
     public Ref(java.sql.Ref ref)
     {
-        super();
         m_Ref = ref;
     }
 

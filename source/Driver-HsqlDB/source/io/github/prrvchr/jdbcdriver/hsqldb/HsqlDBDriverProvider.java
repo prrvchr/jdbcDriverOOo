@@ -50,6 +50,17 @@ public final class HsqlDBDriverProvider
     implements DriverProvider
 {
 
+    protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(-16, -1),
+                                                                            Map.entry(-15, 1),
+                                                                            Map.entry(-9, 12),
+                                                                            Map.entry(-8, 4),
+                                                                            Map.entry(70, 1111),
+                                                                            Map.entry(2009, 1111),
+                                                                            Map.entry(2011, 2005),
+                                                                            Map.entry(2012, 2006),
+                                                                            Map.entry(2013, 12),
+                                                                            Map.entry(2014, 12));
+
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "1"),
                                                                   Map.entry("1", "1"),
                                                                   Map.entry("2", "1"),
@@ -58,6 +69,7 @@ public final class HsqlDBDriverProvider
                                                                   Map.entry("5", "3"),
                                                                   Map.entry("6", "3"),
                                                                   Map.entry("7", "3"));
+
     private final Map<String, Level> m_sqllevel = Map.ofEntries(Map.entry("0", Level.SEVERE),
                                                                 Map.entry("1", Level.WARNING),
                                                                 Map.entry("2", Level.INFO),
@@ -84,8 +96,8 @@ public final class HsqlDBDriverProvider
 
     @Override
     public int getDataType(int type) {
-        if (HsqlDBDatabaseMetaData.m_dataType.containsKey(type)) {
-            return HsqlDBDatabaseMetaData.m_dataType.get(type);
+        if (m_datatype.containsKey(type)) {
+            return m_datatype.get(type);
         }
         return type;
     }

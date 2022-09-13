@@ -25,43 +25,55 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.nio.charset.Charset;
+import java.io.Reader;
 
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
-import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.lib.uno.helper.ComponentBase;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XClob;
 
-import org.apache.commons.io.input.ReaderInputStream;
+//import org.apache.commons.io.input.ReaderInputStream;
 
 
 public class Clob
-    extends WeakBase
+    extends ComponentBase
     implements XClob
 {
 
+    private final ConnectionBase m_Connection;
     private java.sql.Clob m_Clob;
 
     // The constructor method:
-    public Clob(java.sql.Clob clob)
+    public Clob(ConnectionBase connection,
+                java.sql.Clob clob)
     {
+        m_Connection = connection;
         m_Clob = clob;
     }
 
-    
+    // com.sun.star.lang.XComponent
+    @Override
+    protected void postDisposing() {
+        try {
+            m_Clob.free();
+        }
+        catch (java.sql.SQLException e) {
+            m_Connection.getLogger().log(LogLevel.WARNING, e);
+        }
+    }
+
     // com.sun.star.sdbc.XClob:
     @Override
     public XInputStream getCharacterStream()
         throws SQLException
     {
-        try
-        {
-            
-            return new InputStreamToXInputStreamAdapter(new ReaderInputStream(m_Clob.getCharacterStream(), Charset.forName("UTF-8")));
+        try {
+            Reader reader = m_Clob.getCharacterStream();
+            return reader != null ? new InputStreamToXInputStreamAdapter(new ReaderInputStream(reader)) : null;
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage());
         }
     }
@@ -70,12 +82,10 @@ public class Clob
     public String getSubString(long position, int lenght)
         throws SQLException
     {
-        try
-        {
+        try {
             return m_Clob.getSubString(position, lenght);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage());
         }
     }
@@ -84,12 +94,10 @@ public class Clob
     public long length()
         throws SQLException
     {
-        try
-        {
+        try {
             return m_Clob.length();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage());
         }
     }
@@ -98,12 +106,10 @@ public class Clob
     public long position(String str, int start)
         throws SQLException
     {
-        try
-        {
+        try {
             return m_Clob.position(str, start);
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage());
         }
     }

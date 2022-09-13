@@ -110,11 +110,4 @@ public final class DerbyDatabaseMetaData
         return type;
     }
 
-    @Override
-    protected int _getDataType(int type)
-    {
-        return type;
-    }
-
-
 }

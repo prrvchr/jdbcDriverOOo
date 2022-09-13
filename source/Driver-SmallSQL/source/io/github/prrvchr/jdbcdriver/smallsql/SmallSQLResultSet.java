@@ -26,10 +26,10 @@
 package io.github.prrvchr.jdbcdriver.smallsql;
 
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public class SmallSQLResultSet
@@ -49,7 +49,7 @@ public class SmallSQLResultSet
     }
     public SmallSQLResultSet(final ConnectionBase connection,
                              final java.sql.ResultSet resultset,
-                             final XInterface statement)
+                             final StatementMain statement)
         throws SQLException
     {
         super(m_name, m_services, connection, resultset, statement);

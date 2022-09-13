@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSetMetaData;
@@ -39,15 +38,14 @@ public final class ResultSetMetaData
 {
 
     private final java.sql.ResultSetMetaData m_Metadata;
-    private final PropertyValue[] m_info;
+    private final ConnectionBase m_Connection;
 
     // The constructor method:
-    public ResultSetMetaData(java.sql.ResultSetMetaData metadata,
-                             PropertyValue[] info)
+    public ResultSetMetaData(ConnectionBase connection,
+                             java.sql.ResultSetMetaData metadata)
     {
-        super();
+        m_Connection = connection;
         m_Metadata = metadata;
-        m_info = info;
     }
 
 
@@ -132,7 +130,7 @@ public final class ResultSetMetaData
     public int getColumnType(int index) throws SQLException
     {
         try {
-            int value = UnoHelper.mapSQLDataType(m_Metadata.getColumnType(index));
+            int value = m_Connection.getProvider().getDataType(m_Metadata.getColumnType(index));
             System.out.println("sdbc.ResultSetMetaData.getColumnType(): " + value);
             return value;
         }
@@ -236,21 +234,14 @@ public final class ResultSetMetaData
     public boolean isCurrency(int index) throws SQLException
     {
         try {
-            boolean value = m_Metadata.isCurrency(index);
-            if (_isIgnoreCurrencyEnabled()) {
-                value = false;
+            if (m_Connection.getProvider().isIgnoreCurrencyEnabled()) {
+                return false;
             }
-            System.out.println("sdbc.ResultSetMetaData.isCurrency(): " + value);
-            return value;
+            return m_Metadata.isCurrency(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
-    }
-
-    private final boolean _isIgnoreCurrencyEnabled()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreCurrency", false);
     }
 
     @Override

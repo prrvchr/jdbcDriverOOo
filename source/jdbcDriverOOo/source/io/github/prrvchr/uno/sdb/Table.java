@@ -54,7 +54,8 @@ public final class Table
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
-    private final Connection m_connection;
+    protected final Connection m_connection;
+
     //private int m_Privileges = 0;
     //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
     /*protected String m_Filter = "";
@@ -76,8 +77,8 @@ public final class Table
                  String remarks)
     {
         super(m_service, m_services, sensitive, name);
-        System.out.println("sdbc.Table() 1");
         m_connection = connection;
+        System.out.println("sdbc.Table() 1");
         super.m_CatalogName = catalog;
         super.m_SchemaName= schema;
         super.m_Type = type;

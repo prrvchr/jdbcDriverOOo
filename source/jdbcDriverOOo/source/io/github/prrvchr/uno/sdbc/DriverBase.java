@@ -84,7 +84,6 @@ public abstract class DriverBase
                       final String service, 
                       final String[] services)
     {
-        super();
         m_xContext = context;
         m_service = service;
         m_services = services;
@@ -382,7 +381,7 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, "", new String[0]));
         if (!m_enhanced) {
             properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices));
         }

@@ -343,7 +343,7 @@ public abstract class Container
             XPropertySet value = m_Elements.get(name);
             if (value == null) {
                 System.out.println("sdbcx.Container.appendByDescriptor() ***************************" + name);
-                // this may happen when the derived class included it itself
+                // XXX: This can happen when the derived class does not include it itself
                 m_Elements.put(name, element);
                 m_Names.add(name);
             }

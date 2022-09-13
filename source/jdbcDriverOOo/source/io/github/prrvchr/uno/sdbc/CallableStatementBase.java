@@ -98,8 +98,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             _getCallableStatement().registerOutParameter(index, type, scale);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -111,8 +111,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             _getCallableStatement().registerOutParameter(index, type, name);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -126,9 +126,9 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             java.sql.Array array = _getCallableStatement().getArray(index);
-            return (array != null) ? new Array(array) : null;
-        } catch (java.sql.SQLException e)
-        {
+            return (array != null) ? new Array(m_Connection, array) : null;
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -148,9 +148,9 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             java.sql.Blob blob = _getCallableStatement().getBlob(index);
-            return (blob != null) ? new Blob(blob) : null;
-        } catch (java.sql.SQLException e)
-        {
+            return (blob != null) ? new Blob(m_Connection, blob) : null;
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -162,8 +162,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getBoolean(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -175,8 +175,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getByte(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -188,8 +188,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
            return _getCallableStatement().getBytes(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -208,10 +208,10 @@ public abstract class CallableStatementBase
         try
         {
             _createStatement();
-            java.sql.Clob value = _getCallableStatement().getClob(index);
-            return (value != null) ? new Clob(value) : null;
-        } catch (java.sql.SQLException e)
-        {
+            java.sql.Clob clob = _getCallableStatement().getClob(index);
+            return (clob != null) ? new Clob(m_Connection, clob) : null;
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -224,8 +224,8 @@ public abstract class CallableStatementBase
             _createStatement();
             java.sql.Date value = _getCallableStatement().getDate(index);
             return (value != null) ? UnoHelper.getUnoDate(value) : new Date();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -237,8 +237,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getDouble(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -250,8 +250,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getFloat(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -263,8 +263,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getInt(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -276,8 +276,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getLong(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -302,8 +302,8 @@ public abstract class CallableStatementBase
                 value = UnoHelper.getUnoDateTime((java.sql.Timestamp) object);
             }
             return value;
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -316,8 +316,8 @@ public abstract class CallableStatementBase
             _createStatement();
             java.sql.Ref ref = _getCallableStatement().getRef(index);
             return ref != null ? new Ref(ref) : null;
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -329,8 +329,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().getShort(index);
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -343,8 +343,8 @@ public abstract class CallableStatementBase
             _createStatement();
             String value = _getCallableStatement().getString(index);
             return (value != null) ? value : "";
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -357,8 +357,8 @@ public abstract class CallableStatementBase
             _createStatement();
             java.sql.Time value = _getCallableStatement().getTime(index);
             return (value != null) ? UnoHelper.getUnoTime(value) : new Time();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -371,8 +371,8 @@ public abstract class CallableStatementBase
             _createStatement();
             java.sql.Timestamp value = _getCallableStatement().getTimestamp(index);
             return (value != null) ? UnoHelper.getUnoDateTime(value) : new DateTime();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -384,8 +384,8 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             return _getCallableStatement().wasNull();
-        } catch (java.sql.SQLException e)
-        {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }

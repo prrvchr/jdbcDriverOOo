@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
-import java.util.Map;
-
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
@@ -40,17 +38,6 @@ public final class HsqlDBDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
-    protected static final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
-                                                                            Map.entry(-15, 1),
-                                                                            Map.entry(-9, 12),
-                                                                            Map.entry(-8, 4),
-                                                                            Map.entry(70, 1111),
-                                                                            Map.entry(2009, 1111),
-                                                                            Map.entry(2011, 2005),
-                                                                            Map.entry(2012, 2006),
-                                                                            Map.entry(2013, 12),
-                                                                            Map.entry(2014, 12));
-
     // The constructor method:
     public HsqlDBDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
@@ -58,7 +45,7 @@ public final class HsqlDBDatabaseMetaData
         super(connection);
     }
 
-    //@Override
+    /*//@Override
     public boolean supportsCatalogsInDataManipulation()
         throws SQLException
     {
@@ -66,7 +53,7 @@ public final class HsqlDBDatabaseMetaData
         // FIXME: schemas correctly in Base, we need to disable the catalog in Data Manipulation.
         // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL
         return false;
-    }
+    }*/
 
 
     @Override
@@ -180,22 +167,6 @@ public final class HsqlDBDatabaseMetaData
             }
             return null;
         }
-    }
-
-
-    protected final short _getDataType(final short type)
-    {
-        return (short)_getDataType((int) type);
-    }
-
-    protected final int _getDataType(final int type)
-    {
-        if (m_dataType.containsKey(type))
-        {
-            System.out.println("hsqldb.DatabaseMetaData._mapDatabaseDataType() Type: " + type);
-            return m_dataType.get(type);
-        }
-        return type;
     }
 
     @Override

@@ -25,11 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.util.Arrays;
-
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.sdbc.DataType;
+import com.sun.star.lib.uno.helper.ComponentBase;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XArray;
 import com.sun.star.sdbc.XResultSet;
@@ -37,87 +35,106 @@ import com.sun.star.sdbc.XResultSet;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public class Array
-extends WeakBase
-implements XArray
+    extends ComponentBase
+    implements XArray
 {
-    private Object[] m_Array = new Object[0];
-    private int m_Type = 0;
-    private String m_TypeName;
+
+    private final ConnectionBase m_Connection;
+    private final java.sql.Array m_Array;
 
     // The constructor method:
-    public Array(java.sql.Array array)
-    throws SQLException
+    public Array(ConnectionBase connection,
+                 java.sql.Array array)
     {
-        try
-        {
-            m_Array = (Object[]) array.getArray();
-            m_Type = UnoHelper.mapSQLDataType(array.getBaseType());
-            m_TypeName = UnoHelper.mapSQLDataTypeName(array.getBaseTypeName(), m_Type);
-        } 
-        catch (java.sql.SQLException e)
-        {
-            throw UnoHelper.getSQLException(e, this);
+            m_Connection = connection;
+            m_Array = array;
+    }
+
+    // com.sun.star.lang.XComponent
+    @Override
+    protected void postDisposing() {
+        try {
+            m_Array.free();
+        }
+        catch (java.sql.SQLException e) {
+            m_Connection.getLogger().log(LogLevel.WARNING, e);
         }
     }
-    public Array(Object[] array,
-                 String typename)
+    
+
+    // com.sun.star.sdbc.XArray
+    @Override
+    public Object[] getArray(XNameAccess map)
         throws SQLException
     {
-        try
-        {
-            m_Array = array;
-            m_Type = UnoHelper.getConstantValue(DataType.class, typename);
-            m_TypeName = typename;
+        try {
+            return (Object[]) m_Array.getArray();
         }
-        catch (java.sql.SQLException e)
-        {
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
-    }
-
-
-    @Override
-    public Object[] getArray(XNameAccess arg0)
-    throws SQLException
-    {
-        return m_Array;
     }
 
     @Override
     public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
     throws SQLException
     {
-        return Arrays.copyOfRange(m_Array, index, index + count);
+        try {
+            return (Object[]) m_Array.getArray(index, count);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
     public int getBaseType()
-    throws SQLException
+        throws SQLException
     {
-        return m_Type;
+        try {
+            return m_Connection.getProvider().getDataType(m_Array.getBaseType());
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
     public String getBaseTypeName()
     throws SQLException
     {
-        return m_TypeName;
+        try {
+            return m_Array.getBaseTypeName();
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    public XResultSet getResultSet(XNameAccess arg0)
+    public XResultSet getResultSet(XNameAccess map)
     throws SQLException
     {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+            java.sql.ResultSet result = m_Array.getResultSet();
+            return result != null ? m_Connection.getProvider().getResultSet(m_Connection, result) : null;
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    public XResultSet getResultSetAtIndex(int arg0, int arg1, XNameAccess arg2)
+    public XResultSet getResultSetAtIndex(int index, int count, XNameAccess map)
     throws SQLException
     {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+            java.sql.ResultSet result = m_Array.getResultSet(index, count);
+            return result != null ? m_Connection.getProvider().getResultSet(m_Connection, result) : null;
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
 

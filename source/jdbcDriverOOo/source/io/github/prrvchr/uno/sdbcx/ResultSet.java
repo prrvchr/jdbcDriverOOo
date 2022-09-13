@@ -25,11 +25,11 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.uno.XInterface;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ResultSetSuper;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class ResultSet
@@ -42,7 +42,7 @@ public final class ResultSet
     // The constructor method:
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     XInterface statement,
+                     StatementMain statement,
                      boolean bookmark)
     throws SQLException
     {

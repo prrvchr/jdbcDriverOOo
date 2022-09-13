@@ -86,7 +86,6 @@ public abstract class StatementMain
                          String[] services,
                          ConnectionBase connection)
     {
-        super();
         m_service = service;
         m_services = services;
         m_Connection = connection;
@@ -226,6 +225,7 @@ public abstract class StatementMain
 
 
     private synchronized void _setCursorName(String cursor)
+        throws WrappedTargetException
     {
         System.out.println("StatementMain._setCursorName() Value: " + cursor);
         m_CursorName = cursor;
@@ -234,8 +234,7 @@ public abstract class StatementMain
                 m_Statement.setCursorName(cursor);
             }
             catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
@@ -246,6 +245,7 @@ public abstract class StatementMain
     }
 
     private synchronized void _setFetchDirection(int value)
+        throws WrappedTargetException
     {
         m_FetchDirection = value;
         if (m_Statement != null) {
@@ -253,8 +253,7 @@ public abstract class StatementMain
                 m_Statement.setFetchDirection(value);
             }
             catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
@@ -264,6 +263,7 @@ public abstract class StatementMain
     }
 
     private synchronized void _setFetchSize(int value)
+        throws WrappedTargetException
     {
         m_FetchSize = value;
         if (m_Statement != null) {
@@ -271,8 +271,7 @@ public abstract class StatementMain
                 m_Statement.setFetchSize(value);
             }
             catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
@@ -282,6 +281,7 @@ public abstract class StatementMain
     }
 
     private synchronized void _setMaxFieldSize(int value)
+        throws WrappedTargetException
     {
         m_MaxFieldSize = value;
         if (m_Statement != null) {
@@ -289,8 +289,7 @@ public abstract class StatementMain
                 m_Statement.setMaxFieldSize(value);
             }
             catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
@@ -300,6 +299,7 @@ public abstract class StatementMain
     }
 
     private synchronized void _setMaxRows(int value)
+        throws WrappedTargetException
     {
         m_MaxRows = value;
         if (m_Statement != null) {
@@ -307,8 +307,7 @@ public abstract class StatementMain
                 m_Statement.setMaxRows(value);
             }
             catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
@@ -318,6 +317,7 @@ public abstract class StatementMain
     }
 
     private synchronized void _setQueryTimeout(int value)
+        throws WrappedTargetException
     {
         m_QueryTimeout = value;
         if (m_Statement != null) {
@@ -325,8 +325,7 @@ public abstract class StatementMain
                 m_Statement.setQueryTimeout(value);
             }
             catch (java.sql.SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
@@ -338,7 +337,7 @@ public abstract class StatementMain
     private synchronized void _setResultSetConcurrency(int value)
     {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        System.out.println("sdbc.StatementMain._setResultSetConcurrency() ***********************************");
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULT_SET_CONCURRENCY, value);
         m_ResultSetConcurrency = value;
         if (m_Statement != null) {
             try {
@@ -368,7 +367,7 @@ public abstract class StatementMain
     private synchronized void _setResultSetType(int value)
     {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        System.out.println("sdbc.StatementMain._setResultSetType() ***********************************");
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULT_SET_TYPE, value);
         m_ResultSetType = value;
         if (m_Statement != null) {
             try {
@@ -444,12 +443,11 @@ public abstract class StatementMain
                 m_Statement.close();
             }
             catch (java.sql.SQLException e) {
-                System.out.println("StatementMain.postDisposing() ERROR");
+                m_logger.logp(LogLevel.WARNING, e);
             }
             m_Statement = null;
-            //m_Connection = null;
         }
-        //CompHelper.disposeComponent(generatedStatement);
+        UnoHelper.disposeComponent(m_GeneratedStatement);
     }
 
     // com.sun.star.sdbc.XCloseable

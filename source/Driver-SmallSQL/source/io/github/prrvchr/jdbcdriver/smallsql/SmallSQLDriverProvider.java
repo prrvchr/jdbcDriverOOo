@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver.smallsql;
 
+import java.util.Map;
+
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -35,6 +37,17 @@ public final class SmallSQLDriverProvider
     extends DriverProviderMain
     implements DriverProvider
 {
+
+    protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(-16, -1),
+                                                                            Map.entry(-15, 1),
+                                                                            Map.entry(-9, 12),
+                                                                            Map.entry(-8, 4),
+                                                                            Map.entry(70, 1111),
+                                                                            Map.entry(2009, 1111),
+                                                                            Map.entry(2011, 2005),
+                                                                            Map.entry(2012, 2006),
+                                                                            Map.entry(2013, 12),
+                                                                            Map.entry(2014, 12));
 
     private static final boolean m_warnings = false;
 
@@ -47,8 +60,8 @@ public final class SmallSQLDriverProvider
 
     @Override
     public int getDataType(int type) {
-        if (SmallSQLDatabaseMetaData.m_dataType.containsKey(type)) {
-            return SmallSQLDatabaseMetaData.m_dataType.get(type);
+        if (m_datatype.containsKey(type)) {
+            return m_datatype.get(type);
         }
         return type;
     }

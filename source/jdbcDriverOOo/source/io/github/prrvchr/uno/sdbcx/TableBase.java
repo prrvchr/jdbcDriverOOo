@@ -60,6 +60,7 @@ public abstract class TableBase
                XAlterTable,
                XDataDescriptorFactory
 {
+
     private ColumnContainer m_columns = null;
     private KeyContainer m_keys = null;
     private IndexContainer m_indexes = null;
@@ -79,7 +80,6 @@ public abstract class TableBase
         registerProperties();
         System.out.println("sdbcx.TableBase() 1");
     }
-
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;

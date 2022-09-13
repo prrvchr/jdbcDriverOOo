@@ -446,7 +446,7 @@ public abstract class PreparedStatementMain
         try {
             _createStatement();
             java.sql.ResultSetMetaData metadata = _getPreparedStatement().getMetaData();
-            return metadata != null ? new ResultSetMetaData(metadata, m_Connection.getInfo()) : null;
+            return metadata != null ? new ResultSetMetaData(m_Connection, metadata) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

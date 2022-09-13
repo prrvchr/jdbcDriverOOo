@@ -36,7 +36,6 @@ import com.sun.star.sdbcx.XDeleteRows;
 import com.sun.star.sdbcx.XRowLocate;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
-import com.sun.star.uno.XInterface;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -58,7 +57,7 @@ public abstract class ResultSetSuper
                           String[] services,
                           ConnectionBase connection,
                           java.sql.ResultSet resultset,
-                          XInterface statement,
+                          StatementMain statement,
                           boolean bookmark)
     throws SQLException
     {

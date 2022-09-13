@@ -41,23 +41,12 @@ public final class H2DatabaseMetaData
 {
 
     private final Map<String, String> m_tableType = Map.ofEntries(Map.entry("BASE TABLE", "TABLE"));
-    protected static final Map<Integer, Integer> m_dataType = Map.ofEntries(Map.entry(-16, -1),
-                                                                            Map.entry(-15, 1),
-                                                                            Map.entry(-9, 12),
-                                                                            Map.entry(-8, 4),
-                                                                            Map.entry(70, 1111),
-                                                                            Map.entry(2009, 1111),
-                                                                            Map.entry(2011, 2005),
-                                                                            Map.entry(2012, 2006),
-                                                                            Map.entry(2013, 12),
-                                                                            Map.entry(2014, 12));
 
     // The constructor method:
     public H2DatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("h2.DatabaseMetaData() 1");
     }
 
     //@Override
@@ -66,7 +55,7 @@ public final class H2DatabaseMetaData
         boolean value = false;
         try {
             if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsSchemasInDataManipulation();
+                value = m_Metadata.supportsCatalogsInDataManipulation();
             }
         }
         catch (java.sql.SQLException e) {
@@ -187,21 +176,6 @@ public final class H2DatabaseMetaData
             }
             return null;
         }
-    }
-
-
-    protected final short _mapDatabaseDataType(final short type)
-    {
-        return (short)_getDataType((int) type);
-    }
-    protected final int _getDataType(final int type)
-    {
-        if (m_dataType.containsKey(type))
-        {
-            System.out.println("h2.DatabaseMetaData._mapDatabaseDataType() Type: " + type);
-            return m_dataType.get(type);
-        }
-        return type;
     }
 
     @Override

@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 public class Column
     extends ColumnSuper
@@ -33,14 +34,16 @@ public class Column
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
 
     // The constructor method:
-    public Column(final boolean sensitive,
+    public Column(final ConnectionBase connection,
+                  final boolean sensitive,
                   final String catalog,
                   final String schema,
                   final String table)
     {
-        super(m_service, m_services, sensitive, catalog, schema, table);
+        super(m_service, m_services, connection, sensitive, catalog, schema, table);
     }
-    public Column(final boolean sensitive,
+    public Column(final ConnectionBase connection,
+                  final boolean sensitive,
                   final String catalog,
                   final String schema,
                   final String table,
@@ -56,7 +59,7 @@ public class Column
                   final boolean rowversion,
                   final boolean currency)
     {
-        super(m_service, m_services, sensitive, catalog, schema, table, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        super(m_service, m_services, connection, sensitive, catalog, schema, table, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
 

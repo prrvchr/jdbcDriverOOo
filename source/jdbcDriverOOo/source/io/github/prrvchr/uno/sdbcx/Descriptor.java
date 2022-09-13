@@ -68,7 +68,6 @@ public abstract class Descriptor
                       String name,
                       boolean readonly)
     {
-        super();
         m_service = service;
         m_services = services;
         m_sensitive = sensitive;

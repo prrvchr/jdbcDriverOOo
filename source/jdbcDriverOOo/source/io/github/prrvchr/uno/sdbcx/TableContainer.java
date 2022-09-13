@@ -52,13 +52,13 @@ public class TableContainer
     private final ConnectionSuper m_connection;
 
     // The constructor method:
-    public TableContainer(ConnectionSuper connectionSuper,
+    public TableContainer(ConnectionSuper connection,
                           boolean sensitive,
                           List<String> names)
         throws ElementExistException
     {
-        super(connectionSuper, sensitive, names);
-        m_connection = connectionSuper;
+        super(connection, sensitive, names);
+        m_connection = connection;
     }
 
     // com.sun.star.sdbcx.XDrop method of Container:
