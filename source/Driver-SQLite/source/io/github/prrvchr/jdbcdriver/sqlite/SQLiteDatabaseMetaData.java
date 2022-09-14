@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver.sqlite;
 
-import java.util.Map;
-
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
@@ -40,19 +38,40 @@ public final class SQLiteDatabaseMetaData
     extends DatabaseMetaDataBase
 {
 
-    private final Map<String, String> m_tableType = Map.ofEntries(Map.entry("BASE TABLE", "TABLE"));
-
     // The constructor method:
     public SQLiteDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("mariadb.DatabaseMetaData() 1");
+        System.out.println("sqlite.DatabaseMetaData() 1");
+    }
+
+    @Override
+    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
+    {
+        try {
+            boolean value = m_Metadata.supportsMixedCaseQuotedIdentifiers();
+            System.out.println("sqlite.DatabaseMetaData.supportsMixedCaseQuotedIdentifiers(): " + value);
+            return true;
+        }
+        catch (java.sql.SQLException e) {
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
+            throw UnoHelper.getSQLException(e, this);
+        }
+        catch (java.lang.Exception e) {
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
+            for (StackTraceElement trace : e.getStackTrace())
+            {
+                System.out.println(trace);
+            }
+            return false;
+        }
     }
 
     //@Override
     public boolean supportsSchemasInDataManipulation() throws SQLException
     {
+        System.out.println("sqlite.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
         boolean value = false;
         try {
             if (m_Connection.isEnhanced()) {
@@ -60,10 +79,10 @@ public final class SQLiteDatabaseMetaData
             }
         }
         catch (java.sql.SQLException e) {
-            System.out.println("mariadb.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
-        System.out.println("mariadb.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
+        System.out.println("sqlite.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
         return value;
     }
 
@@ -71,6 +90,7 @@ public final class SQLiteDatabaseMetaData
     //@Override
     public boolean supportsCatalogsInDataManipulation() throws SQLException
     {
+        System.out.println("sqlite.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
         boolean value = false;
         try {
             if (m_Connection.isEnhanced()) {
@@ -78,10 +98,10 @@ public final class SQLiteDatabaseMetaData
             }
         }
         catch (java.sql.SQLException e) {
-            System.out.println("mariadb.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
-        System.out.println("mariadb.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
+        System.out.println("sqlite.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
         return value;
     }
 
@@ -200,13 +220,9 @@ public final class SQLiteDatabaseMetaData
     @Override
     protected final String _mapDatabaseTableTypes(final String type)
     {
-        if (m_tableType.containsKey(type))
-        {
-            System.out.println("h2.DatabaseMetaData._mapDatabaseTableTypes() Type: " + type);
-            return m_tableType.get(type);
-        }
         return type;
     }
+
     @Override
     protected final String _mapDatabaseTableType(final String schema, String type)
     {

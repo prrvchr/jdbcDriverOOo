@@ -27,14 +27,10 @@ package io.github.prrvchr.jdbcdriver.sqlite;
 
 import java.util.Map;
 
-import com.sun.star.uno.XComponentContext;
-
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 
 
 public final class SQLiteDriverProvider
@@ -56,16 +52,8 @@ public final class SQLiteDriverProvider
     // The constructor method:
     public SQLiteDriverProvider()
     {
-        super("mariadb");
-        System.out.println("mariadb.MariaDBDriverProvider() 1");
-    }
-
-    @Override
-    public ConnectionBase getConnection(XComponentContext ctx,
-                                        ResourceBasedEventLogger logger,
-                                        boolean enhanced)
-    {
-        return new Connection(ctx, this, logger, enhanced);
+        super("sqlite");
+        System.out.println("sqlite.SQLiteDriverProvider() 1");
     }
 
     @Override
@@ -85,7 +73,7 @@ public final class SQLiteDriverProvider
 
     public String[] getTableTypes()
     {
-        String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
+        String[] types = {"GLOBAL TEMPORARY", "SYSTEM TABLE", "TABLE", "VIEW"};
         return types;
     }
 
@@ -94,31 +82,6 @@ public final class SQLiteDriverProvider
         return type;
     }
 
-    @Override
-    public String getUserQuery()
-    {
-        return "SELECT user FROM mysql.user WHERE is_role='N';";
-    }
-
-    @Override
-    public String getGroupQuery()
-    {
-        return "SELECT user FROM mysql.user WHERE is_role='Y';";
-    }
-
-    @Override
-    public String getGroupUsersQuery()
-    {
-        return "SELECT user FROM mysql.roles_mapping WHERE role=?;";
-    }
-
-    @Override
-    public String getUserGroupsQuery()
-    {
-        //TODO: We use recursion to find privileges inherited from roles,
-        //TODO: we need to filter recursive entries (even role and user)
-        return "SELECT role FROM mysql.roles_mapping WHERE user=? AND user!=role;";
-    }
 
     @Override
     public String getDropTableQuery(ConnectionBase connection,
@@ -126,8 +89,11 @@ public final class SQLiteDriverProvider
                                     String schema,
                                     String table)
     {
-        String query = "DROP TABLE \"%s\".\"%s\";";
-        return String.format(query, schema, table);
+        System.out.println("sqlite.getDropTableQuery() 1");
+        String sql = "DROP TABLE \"%s\".\"%s\";";
+        String query = String.format(sql, schema, table);
+        System.out.println("sqlite.getDropTableQuery() : " + query);
+        return query;
     }
 
     @Override

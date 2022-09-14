@@ -156,6 +156,7 @@ public class TableContainer
                 return;
             }
             String sql = "DROP TABLE " + composedName;
+            System.out.println("TableContainer._removeElement() Query: " + sql);
             java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement();
             statement.execute(sql);
             statement.close();

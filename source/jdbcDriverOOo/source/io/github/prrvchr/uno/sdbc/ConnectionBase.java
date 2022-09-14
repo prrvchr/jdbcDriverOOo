@@ -204,8 +204,9 @@ public abstract class ConnectionBase
     public String getCatalog() throws SQLException
     {
         try {
+            System.out.println("Connection.getCatalog() 1");
             String value = getProvider().getConnection().getCatalog();
-            System.out.println("Connection.getCatalog() 1 Catalog: " + value);
+            System.out.println("Connection.getCatalog() 2 Catalog: " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {

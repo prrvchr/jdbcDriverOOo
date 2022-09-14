@@ -29,14 +29,11 @@ import java.util.Map;
 
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
-import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbcx.Group;
 import io.github.prrvchr.uno.sdbcx.User;
 
@@ -67,14 +64,6 @@ public final class H2DriverProvider
     }
 
     @Override
-    public ConnectionBase getConnection(XComponentContext ctx,
-                                        ResourceBasedEventLogger logger,
-                                        boolean enhanced)
-    {
-        return new Connection(ctx, this, logger, enhanced);
-    }
-
-    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
@@ -97,12 +86,6 @@ public final class H2DriverProvider
     public String getAlterViewQuery()
     {
         return "CREATE OR REPLACE VIEW %s AS %s";
-    }
-
-    public String[] getTableTypes()
-    {
-        String[] types = {"BASE TABLE", "VIEW", "ALIAS", "SYNONYM"};
-        return types;
     }
 
     public String getTableType(String type)

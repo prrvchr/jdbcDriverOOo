@@ -27,14 +27,10 @@ package io.github.prrvchr.jdbcdriver.mariadb;
 
 import java.util.Map;
 
-import com.sun.star.uno.XComponentContext;
-
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 
 
 public final class MariaDBDriverProvider
@@ -61,14 +57,6 @@ public final class MariaDBDriverProvider
     }
 
     @Override
-    public ConnectionBase getConnection(XComponentContext ctx,
-                                        ResourceBasedEventLogger logger,
-                                        boolean enhanced)
-    {
-        return new Connection(ctx, this, logger, enhanced);
-    }
-
-    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
@@ -81,12 +69,6 @@ public final class MariaDBDriverProvider
     public String getAlterViewQuery()
     {
         return "CREATE OR REPLACE VIEW %s AS %s";
-    }
-
-    public String[] getTableTypes()
-    {
-        String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
-        return types;
     }
 
     public String getTableType(String type)

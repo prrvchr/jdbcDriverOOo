@@ -47,8 +47,8 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class DatabaseMetaDataBase
-extends WeakBase
-implements XDatabaseMetaData2
+    extends WeakBase
+    implements XDatabaseMetaData2
 {
     protected final ConnectionBase m_Connection;
     protected final java.sql.DatabaseMetaData m_Metadata;
@@ -57,8 +57,7 @@ implements XDatabaseMetaData2
     public DatabaseMetaDataBase(final ConnectionBase connection)
         throws java.sql.SQLException
     {
-        m_Connection = connection;
-        m_Metadata = connection.getProvider().getConnection().getMetaData();
+        this(connection, connection.getProvider().getConnection().getMetaData());
     }
 
     public DatabaseMetaDataBase(final ConnectionBase connection,
@@ -235,8 +234,9 @@ implements XDatabaseMetaData2
     public String getCatalogSeparator() throws SQLException
     {
         try {
+            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator() 1");
             String value = m_Metadata.getCatalogSeparator();
-            //System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator(): " + value);
+            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -1389,13 +1389,14 @@ implements XDatabaseMetaData2
     @Override
     public XResultSet getTables(Object catalog, String schema, String table, String[] types) throws SQLException
     {
+        System.out.println("sdbc.DatabaseMetaData.getTables() 1");
         try {
             System.out.println("sdbc.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
             java.sql.ResultSet resultset = m_Metadata.getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
             return _getResultSet(resultset);
         }
         catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sdbc.DatabaseMetaData.getTables() ********************************* ERROR");
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -2545,8 +2546,9 @@ implements XDatabaseMetaData2
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsMixedCaseQuotedIdentifiers()");
-            return m_Metadata.supportsMixedCaseQuotedIdentifiers();
+            boolean value = m_Metadata.supportsMixedCaseQuotedIdentifiers();
+            System.out.println("sdbc.DatabaseMetaData.supportsMixedCaseQuotedIdentifiers(): " + value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);

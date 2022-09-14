@@ -348,6 +348,7 @@ public abstract class DriverBase
     public boolean acceptsURL(String url)
     throws SQLException
     {
+        System.out.println("sdbc.DriverBase.acceptsURL() 1");
         // FIXME: To be able to load 2 different drivers (sdbc and sdbcx) that accept the same URLs,
         // FIXME: We have to check if it is the driver that is currently registered (ie: m_registered is true)
         boolean accept = m_registered && url.startsWith(m_registredProtocol) && _hasSubProtocol(url);

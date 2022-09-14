@@ -371,7 +371,7 @@ public abstract class Container
     // com.sun.star.container.XContainer:
     @Override
     public void addContainerListener(XContainerListener listener) {
-        System.out.println("sdbcx.Container.addContainerListener() Class: " + this.getClass().getName());
+        System.out.println("sdbcx.Container.addContainerListener() Class: " + this.getClass().getName() + " - Count: " + getCount());
         m_container.add(listener);
     }
 

@@ -158,8 +158,7 @@ public abstract class DriverProviderMain
     @Override
     public String[] getTableTypes()
     {
-        String[] types = {"TABLE", "VIEW", "ALIAS", "SYNONYM"};
-        return types;
+        return null;
     }
 
     @Override

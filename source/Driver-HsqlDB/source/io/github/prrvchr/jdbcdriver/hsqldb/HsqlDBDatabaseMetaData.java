@@ -45,7 +45,7 @@ public final class HsqlDBDatabaseMetaData
         super(connection);
     }
 
-    /*//@Override
+    //@Override
     public boolean supportsCatalogsInDataManipulation()
         throws SQLException
     {
@@ -53,7 +53,7 @@ public final class HsqlDBDatabaseMetaData
         // FIXME: schemas correctly in Base, we need to disable the catalog in Data Manipulation.
         // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL
         return false;
-    }*/
+    }
 
 
     @Override
