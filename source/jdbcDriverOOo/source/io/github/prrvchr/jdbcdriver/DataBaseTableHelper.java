@@ -183,13 +183,18 @@ public class DataBaseTableHelper
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             java.sql.ResultSet result  = metadata.getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName());
             while (result.next()) {
-                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + result.getString(4) + " - Primary Key: " + result.getString(6));
                 String columnName = result.getString(4);
+                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + result.getString(4) + " - Primary Key: " + result.getString(6));
                 columns.add(columnName);
-                String previous = result.getString(6);
-                if (!fetched && !result.wasNull()) {
+                if (!fetched) {
                     fetched = true;
-                    name = previous;
+                    String pk = result.getString(6);
+                    if (result.wasNull()) {
+                        name = String.format("PK_%s_%s", table.getName(), columnName);
+                    }
+                    else {
+                        name = pk;
+                    }
                 }
             }
             result.close();
@@ -265,24 +270,25 @@ public class DataBaseTableHelper
         throws SQLException
     {
         ArrayList<String> names = new ArrayList<>();
-        String catalogSep = connection.getMetaData().getCatalogSeparator();
+        String separator = connection.getMetaData().getCatalogSeparator();
         try {
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalogName(), table.getSchemaName(), table.getName(), false, false);
-            String previousRoundName = "";
+            String previous = "";
+            System.out.println("sdbcx.IndexContainer.readIndexes() 1");
             while (result.next()) {
                 System.out.println("sdbcx.IndexContainer.readIndexes() Qualifier: " + result.getString(5) + " - Name: " + result.getString(6));
                 String name = result.getString(5);
                 if (!result.wasNull() && !name.isEmpty()) {
-                    name += catalogSep;
+                    name += separator;
                 }
                 name += result.getString(6);
                 if (!name.isEmpty()) {
                     // don't insert the name if the last one we inserted was the same
-                    if (!previousRoundName.equals(name)) {
+                    if (!previous.equals(name)) {
                         System.out.println("sdbcx.IndexContainer.readIndexes() add Name: " + name);
                         names.add(name);
-                        previousRoundName = name;
+                        previous = name;
                     }
                 }
             }

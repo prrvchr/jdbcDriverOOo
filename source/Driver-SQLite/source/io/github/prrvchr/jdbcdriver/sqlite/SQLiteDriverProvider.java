@@ -29,6 +29,7 @@ import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -64,11 +65,31 @@ public final class SQLiteDriverProvider
         return type;
     }
 
+    @Override
+    public String getViewQuery(NameComponents component)
+    {
+        String sql = "SELECT sql, 'NONE' FROM sqlite_master WHERE type='view' AND name=?";
+        return sql;
+    }
 
     @Override
-    public String getAlterViewQuery()
+    public String getViewCommand(String sql)
     {
-        return "CREATE OR REPLACE VIEW %s AS %s";
+        int position = sql.indexOf(" AS ");
+        if (position >= 0) {
+            sql = sql.substring(position+ 4, sql.length());
+        }
+        return sql;
+    }
+
+    @Override
+    public String[] getAlterViewQueries(String view,
+                                        String command)
+    {
+        String drop = String.format("DROP VIEW %s", view);
+        String create = String.format("CREATE VIEW %s AS %s", view, command);
+        String[] queries = {drop, create};
+        return queries;
     }
 
     public String[] getTableTypes()
@@ -102,5 +123,12 @@ public final class SQLiteDriverProvider
     {
         return new SQLiteDatabaseMetaData(connection);
     }
+
+    @Override
+    public boolean supportCreateTableKeyParts()
+    {
+        return false;
+    }
+
 
 }

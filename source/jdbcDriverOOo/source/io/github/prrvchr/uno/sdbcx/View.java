@@ -33,6 +33,7 @@ import com.sun.star.sdbcx.XAlterView;
 import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
@@ -48,7 +49,7 @@ public class View
     private static final String m_service = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
 
-    private ConnectionSuper m_connection;
+    private ConnectionSuper m_Connection;
 
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
@@ -56,7 +57,7 @@ public class View
     private int m_CheckOption;
 
     // The constructor method:
-    public View(ConnectionSuper connectionSuper,
+    public View(ConnectionSuper connection,
                 boolean sensitive,
                 String catalog,
                 String schema,
@@ -65,7 +66,7 @@ public class View
                 int option)
     {
         super(m_service, m_services, sensitive, name);
-        m_connection = connectionSuper;
+        m_Connection = connection;
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Command = command;
@@ -110,14 +111,16 @@ public class View
     public void alterCommand(String command)
         throws SQLException
     {
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+        try (java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement()){
             System.out.println("sdbcx.View.alterCommand() 1 : " + command);
-            String sql = DataBaseTools.getAlterViewQuery(m_connection, this, command);
-            statement.execute(sql);
+            String view = DataBaseTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, false, false, true);
+            for (String sql : m_Connection.getProvider().getAlterViewQueries(view, command)) {
+                statement.execute(sql);
+            }
             m_Command = command;
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_Connection);
         }
     }
 

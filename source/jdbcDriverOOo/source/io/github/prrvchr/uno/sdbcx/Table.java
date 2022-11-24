@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public final class Table
@@ -36,10 +37,10 @@ public final class Table
 
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
-    protected final Connection m_connection;
+    protected final ConnectionSuper m_connection;
 
     // The constructor method:
-    public Table(Connection connection,
+    public Table(ConnectionSuper connection,
                  boolean sensitive,
                  String catalog,
                  String schema,
@@ -49,14 +50,14 @@ public final class Table
     {
         super(m_service, m_services, sensitive, name);
         m_connection = connection;
-        super.m_CatalogName = catalog;
-        super.m_SchemaName= schema;
-        super.m_Type = type;
-        super.m_Description = remarks;
+        m_CatalogName = catalog;
+        m_SchemaName= schema;
+        m_Type = type;
+        m_Description = remarks;
     }
 
 
-    public Connection getConnection()
+    public ConnectionSuper getConnection()
     {
         return m_connection;
     }

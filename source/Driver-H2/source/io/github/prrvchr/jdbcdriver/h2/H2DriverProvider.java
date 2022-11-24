@@ -81,11 +81,12 @@ public final class H2DriverProvider
         return true;
     }
 
-
     @Override
-    public String getAlterViewQuery()
+    public String[] getAlterViewQueries(String view,
+                                        String command)
     {
-        return "CREATE OR REPLACE VIEW %s AS %s";
+        String[] queries = {String.format("CREATE OR REPLACE VIEW %s AS %s", view, command)};
+        return queries;
     }
 
     public String getTableType(String type)

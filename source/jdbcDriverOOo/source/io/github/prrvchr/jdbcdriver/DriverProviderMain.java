@@ -52,6 +52,7 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
@@ -144,9 +145,11 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getAlterViewQuery()
+    public String[] getAlterViewQueries(String view,
+                                        String command)
     {
-        return "ALTER VIEW %s AS %s";
+        String[] queries = {String.format("ALTER VIEW %s AS %s", view, command)};
+        return queries;
     }
 
 
@@ -168,9 +171,23 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getViewQuery()
+    public String getViewQuery(NameComponents component)
     {
-        return "SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;";
+        String sql = "SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ";
+        if (!component.getCatalog().isEmpty()) {
+            sql += "TABLE_CATALOG = ? AND ";
+        }
+        if (!component.getSchema().isEmpty()) {
+            sql += "TABLE_SCHEMA = ? AND ";
+        }
+        sql += "TABLE_NAME = ?";
+        return sql;
+    }
+
+    @Override
+    public String getViewCommand(String sql)
+    {
+        return sql;
     }
 
     @Override
@@ -827,8 +844,16 @@ public abstract class DriverProviderMain
         return new io.github.prrvchr.uno.sdbcx.ResultSet(connection, resultset, statement, bookmark);
     }
 
+    @Override
     public boolean isIgnoreCurrencyEnabled()
     {
         return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreCurrency", false);
     }
+
+    @Override
+    public boolean supportCreateTableKeyParts()
+    {
+        return true;
+    }
+
 }

@@ -44,6 +44,7 @@ import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
@@ -54,10 +55,10 @@ public final class Table
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
-    protected final Connection m_connection;
+    protected final ConnectionSuper m_connection;
 
     //private int m_Privileges = 0;
-    //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
+    private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
     /*protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
@@ -68,7 +69,7 @@ public final class Table
     protected String m_GroupBy = "";*/
 
     // The constructor method:
-    public Table(Connection connection,
+    public Table(ConnectionSuper connection,
                  boolean sensitive,
                  String catalog,
                  String schema,
@@ -78,13 +79,13 @@ public final class Table
     {
         super(m_service, m_services, sensitive, name);
         m_connection = connection;
-        System.out.println("sdbc.Table() 1");
+        System.out.println("sdb.Table() 1");
         super.m_CatalogName = catalog;
         super.m_SchemaName= schema;
         super.m_Type = type;
         super.m_Description = remarks;
         registerProperties();
-        System.out.println("sdbc.Table() 2");
+        System.out.println("sdb.Table() 2");
     }
 
     private void registerProperties() {
@@ -93,7 +94,8 @@ public final class Table
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return _getPrivileges();
+                    //return _getPrivileges();
+                    return m_Privileges;
                 }
             }, null);
         /*registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
@@ -214,6 +216,7 @@ public final class Table
         return descriptor;
     }
 
+    @SuppressWarnings("unused")
     private int _getPrivileges()
         throws WrappedTargetException
     {
@@ -254,7 +257,7 @@ public final class Table
 
     public Connection getConnection()
     {
-        return m_connection;
+        return (Connection) m_connection;
     }
 
 

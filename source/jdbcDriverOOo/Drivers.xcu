@@ -403,7 +403,7 @@
 
 
 
-     <!--   <node oor:name="xdbc:mariadb:*" oor:op="replace">
+        <node oor:name="xdbc:mariadb:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
                 <value>xdbc:*</value>
             </prop>
@@ -443,7 +443,7 @@
                     </prop>
                 </node>
             </node>
-        </node> -->
+        </node>
 
 
         <node oor:name="xdbc:smallsql:*" oor:op="replace">
@@ -495,7 +495,7 @@
             <node oor:name="Properties">
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/sqlite-jdbc-3.39.3.0.jar</value>
+                        <value>%origin%/driver/sqlite-jdbc-3.39.3.1-20220916.082601-2.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -505,7 +505,7 @@
                 </node>
                 <node oor:name="AutoIncrementCreation" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>AUTOINCREMENT</value>
+                        <value>PRIMARY KEY AUTOINCREMENT</value>
                     </prop>
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">

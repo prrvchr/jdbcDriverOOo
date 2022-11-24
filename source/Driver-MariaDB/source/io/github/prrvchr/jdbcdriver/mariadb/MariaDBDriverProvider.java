@@ -64,13 +64,6 @@ public final class MariaDBDriverProvider
         return type;
     }
 
-
-    @Override
-    public String getAlterViewQuery()
-    {
-        return "CREATE OR REPLACE VIEW %s AS %s";
-    }
-
     public String getTableType(String type)
     {
         return type;

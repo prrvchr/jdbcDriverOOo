@@ -46,16 +46,16 @@ public class ViewContainer
     extends Container
 {
 
-    private ConnectionSuper m_connection;
+    private ConnectionSuper m_Connection;
 
     // The constructor method:
-    public ViewContainer(ConnectionSuper connectionSuper,
+    public ViewContainer(ConnectionSuper connection,
                          boolean sensitive,
                          List<String> names)
         throws ElementExistException
     {
-        super(connectionSuper, sensitive, names);
-        m_connection = connectionSuper;
+        super(connection, sensitive, names);
+        m_Connection = connection;
     }
 
 
@@ -66,9 +66,9 @@ public class ViewContainer
     {
         try {
             System.out.println("sdbcx.ViewContainer._appendElement() 1");
-            String sql = DataBaseTools.getCreateViewQuery(getConnection(), descriptor);
+            String sql = DataBaseTools.getCreateViewQuery(m_Connection, descriptor);
             System.out.println("sdbcx.ViewContainer._appendElement() 2 SQL: '" + sql + "'");
-            java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement();
+            java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement();
             statement.execute(sql);
             statement.close();
         }
@@ -76,8 +76,8 @@ public class ViewContainer
             UnoHelper.getSQLException(e, this);
         }
         // Append it to the tables container too:
-        m_connection.getTablesInternal().insertElement(name, null);
-        System.out.println("sdbcx.ViewContainer._appendElement() 2");
+        m_Connection.getTablesInternal().insertElement(name, null);
+        System.out.println("sdbcx.ViewContainer._appendElement() 3");
         return _createElement(name);
     }
 
@@ -85,20 +85,14 @@ public class ViewContainer
     protected XPropertySet _createElement(String name)
         throws SQLException
     {
+        System.out.println("sdbcx.ViewContainer._createElement() 1 Name: " + name);
         View view = null;
-        NameComponents component = DataBaseTools.qualifiedNameComponents(getConnection(), name, ComposeRule.InDataManipulation);
-        String sql = "SELECT VIEW_DEFINITION,CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ";
-        if (!component.getCatalog().isEmpty()) {
-            sql += "TABLE_CATALOG = ? AND ";
-        }
-        if (!component.getSchema().isEmpty()) {
-            sql += "TABLE_SCHEMA = ? AND ";
-        }
-        sql += "TABLE_NAME = ?";
+        NameComponents component = DataBaseTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
+        final String sql = m_Connection.getProvider().getViewQuery(component);
         final String command;
         final String option;
-        try (java.sql.PreparedStatement statement = getConnection().getProvider().getConnection().prepareStatement(sql)){
-            System.out.println("sdbcx.ViewContainer._createElement() 1 Name: " + name);
+        try (java.sql.PreparedStatement statement = m_Connection.getProvider().getConnection().prepareStatement(sql)){
+            System.out.println("sdbcx.ViewContainer._createElement() 2 Name: " + name);
             int next = 1;
             if (!component.getCatalog().isEmpty()) {
                 statement.setString(next++, component.getCatalog());
@@ -109,7 +103,7 @@ public class ViewContainer
             statement.setString(next, component.getTable());
             java.sql.ResultSet result = statement.executeQuery();
             if (result.next()) {
-                command = result.getString(1);
+                command = m_Connection.getProvider().getViewCommand(result.getString(1));
                 option = result.getString(2);
             }
             else {
@@ -131,7 +125,7 @@ public class ViewContainer
                         StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, null);
             }
             
-            view = new View(getConnection(), isCaseSensitive(), component.getCatalog(),
+            view = new View(m_Connection, isCaseSensitive(), component.getCatalog(),
                             component.getSchema(), component.getTable(), command, value);
         }
         catch (java.sql.SQLException e) {
@@ -151,10 +145,10 @@ public class ViewContainer
             Object object = _getElement(index);
             XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
             UnoHelper.ensure(propertySet != null, "Object returned from view collection isn't an XPropertySet");
-            String sql = String.format("DROP VIEW %s", DataBaseTools.composeTableName(getConnection(), propertySet, ComposeRule.InTableDefinitions,
+            String sql = String.format("DROP VIEW %s", DataBaseTools.composeTableName(m_Connection, propertySet, ComposeRule.InTableDefinitions,
                     false, false, true));
             
-            java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement();
+            java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement();
             statement.execute(sql);
             statement.close();
         }
@@ -168,19 +162,13 @@ public class ViewContainer
 
     @Override
     protected void _refresh() {
-        m_connection._refresh();
+        m_Connection._refresh();
     }
 
     @Override
     protected XPropertySet _createDescriptor() {
         System.out.println("sdbcx.ViewContainer._createDescriptor()");
         return new ViewDescriptor(isCaseSensitive());
-    }
-    
-
-    private ConnectionSuper getConnection()
-    {
-        return m_connection;
     }
 
 

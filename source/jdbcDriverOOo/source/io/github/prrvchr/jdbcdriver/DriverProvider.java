@@ -37,6 +37,7 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
@@ -63,7 +64,7 @@ public interface DriverProvider
 
     public boolean isCaseSensitive(String string);
 
-    public String getAlterViewQuery();
+    public String[] getAlterViewQueries(String view, String command);
 
     public int getDataType(int type);
 
@@ -71,7 +72,9 @@ public interface DriverProvider
 
     public String getTableType(String type);
 
-    public String getViewQuery();
+    public String getViewQuery(NameComponents component);
+
+    public String getViewCommand(String string);
 
     public String getUserQuery();
 
@@ -253,5 +256,7 @@ public interface DriverProvider
     public String getRevokeRoleQuery();
 
     public boolean isIgnoreCurrencyEnabled();
+
+    public boolean supportCreateTableKeyParts();
 
 }

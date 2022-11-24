@@ -89,44 +89,54 @@ import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
-public class DataBaseTools {
-    private static class NameComponentSupport {
+public class DataBaseTools
+{
+
+    private static class NameComponentSupport
+    {
         boolean useCatalogs;
         boolean useSchemas;
         
-        NameComponentSupport(boolean useCatalogs, boolean useSchemas) {
+        NameComponentSupport(boolean useCatalogs, boolean useSchemas)
+        {
             this.useCatalogs = useCatalogs;
             this.useSchemas = useSchemas;
         }
     }
-    
-    public static class NameComponents {
+
+    public static class NameComponents
+    {
         private String catalog = "";
         private String schema = "";
         private String table = "";
-        
-        public NameComponents(String catalog, String schema, String table) {
+
+        public NameComponents(String catalog, String schema, String table)
+        {
             this.catalog = catalog;
             this.schema = schema;
             this.table = table;
         }
-        
+
         public NameComponents() {
         }
-        
-        public String getCatalog() {
+
+        public String getCatalog()
+        {
             return catalog;
         }
-        
-        public void setCatalog(String catalog) {
+
+        public void setCatalog(String catalog)
+        {
             this.catalog = catalog;
         }
         
-        public String getSchema() {
+        public String getSchema()
+        {
             return schema;
         }
         
-        public void setSchema(String schema) {
+        public void setSchema(String schema)
+        {
             this.schema = schema;
         }
         
@@ -134,35 +144,36 @@ public class DataBaseTools {
             return table;
         }
         
-        public void setTable(String table) {
+        public void setTable(String table)
+        {
             this.table = table;
         }
     }
 
     private static NameComponentSupport getNameComponentSupport(ConnectionSuper m_connection,
-                                                                ComposeRule composeRule)
+                                                                ComposeRule rule)
         throws SQLException
     {
         XDatabaseMetaData metadata = m_connection.getMetaData();
-        switch (composeRule) {
+        switch (rule) {
         case InTableDefinitions:
-            return new NameComponentSupport(
-                    metadata.supportsCatalogsInTableDefinitions(), metadata.supportsSchemasInTableDefinitions());
+            return new NameComponentSupport(metadata.supportsCatalogsInTableDefinitions(),
+                                            metadata.supportsSchemasInTableDefinitions());
         case InIndexDefinitions:
-            return new NameComponentSupport(
-                    metadata.supportsCatalogsInIndexDefinitions(), metadata.supportsSchemasInIndexDefinitions());
+            return new NameComponentSupport(metadata.supportsCatalogsInIndexDefinitions(),
+                                            metadata.supportsSchemasInIndexDefinitions());
         case InDataManipulation:
-            return new NameComponentSupport(
-                    metadata.supportsCatalogsInDataManipulation(), metadata.supportsSchemasInDataManipulation());
+            return new NameComponentSupport(metadata.supportsCatalogsInDataManipulation(),
+                                            metadata.supportsSchemasInDataManipulation());
         case InProcedureCalls:
-            return new NameComponentSupport(
-                    metadata.supportsCatalogsInProcedureCalls(), metadata.supportsSchemasInProcedureCalls());
+            return new NameComponentSupport(metadata.supportsCatalogsInProcedureCalls(),
+                                            metadata.supportsSchemasInProcedureCalls());
         case InPrivilegeDefinitions:
-            return new NameComponentSupport(
-                    metadata.supportsCatalogsInPrivilegeDefinitions(), metadata.supportsSchemasInPrivilegeDefinitions());
+            return new NameComponentSupport(metadata.supportsCatalogsInPrivilegeDefinitions(),
+                                            metadata.supportsSchemasInPrivilegeDefinitions());
         case Complete:
-            return new NameComponentSupport(
-                    true, true);
+            return new NameComponentSupport(true,
+                                            true);
         default:
             throw new UnsupportedOperationException("Invalid/unknown enum value");
         }
@@ -374,28 +385,28 @@ public class DataBaseTools {
         if (support.useCatalogs) {
             if (metadata.isCatalogAtStart()) {
                 // search for the catalog name at the beginning
-                int nIndex = buffer.indexOf(separator);
-                if (-1 != nIndex) {
-                    component.setCatalog(buffer.substring(0, nIndex));
-                    buffer = buffer.substring(nIndex + 1);
+                int index = buffer.indexOf(separator);
+                if (-1 != index) {
+                    component.setCatalog(buffer.substring(0, index));
+                    buffer = buffer.substring(index + 1);
                 }
             }
             else {
                 // catalog name at end
-                int nIndex = buffer.lastIndexOf(separator);
-                if (-1 != nIndex) {
-                    component.setCatalog(buffer.substring(nIndex + 1));
-                    buffer = buffer.substring(0, nIndex);
+                int index = buffer.lastIndexOf(separator);
+                if (-1 != index) {
+                    component.setCatalog(buffer.substring(index + 1));
+                    buffer = buffer.substring(0, index);
                 }
             }
         }
         if (support.useSchemas) {
-            int nIndex = buffer.indexOf(".");
+            int index = buffer.indexOf(".");
             //UnoHelper.ensure(-1 != nIndex, "QualifiedNameComponents : no schema separator!");
-            if (nIndex != -1) {
-                component.setSchema(buffer.substring(0, nIndex));
+            if (index != -1) {
+                component.setSchema(buffer.substring(0, index));
             }
-            buffer = buffer.substring(nIndex + 1);
+            buffer = buffer.substring(index + 1);
         }
         component.setTable(buffer);
         return component;
@@ -423,7 +434,9 @@ public class DataBaseTools {
     {
         String table = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
         List<String> parts = getCreateTableColumnParts(connection, descriptor, helper, pattern, table);
-        parts.addAll(getCreateTableKeyParts(connection, descriptor));
+        if (connection.getProvider().supportCreateTableKeyParts()) {
+            parts.addAll(getCreateTableKeyParts(connection, descriptor));
+        }
         return String.format("CREATE TABLE %s (%s)", table, String.join(",", parts));
     }
 
@@ -732,28 +745,6 @@ public class DataBaseTools {
         catch (IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
-    }
-
-    /** creates a SQL ALTER VIEW statement
-     *
-     * @param connection
-     *    The connection.
-     * @param descriptor
-     *    The descriptor of the view.
-     * @param command
-     *    The new command of the view.
-     *
-     * @return
-     *   The ALTER VIEW statement.
-     */
-    public static String getAlterViewQuery(ConnectionSuper connection,
-                                           XPropertySet descriptor,
-                                           String command)
-        throws SQLException
-    {
-        String query = connection.getProvider().getAlterViewQuery();
-        String view = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
-        return String.format(query, view, command);
     }
 
     /** creates a SQL CREATE USER statement
