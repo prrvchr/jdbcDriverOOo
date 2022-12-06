@@ -1,7 +1,7 @@
 #ifndef __com_sun_star_auth_XOAuth2Service_idl__
 #define __com_sun_star_auth_XOAuth2Service_idl__
 
-#include <com/sun/star/uno/XInterface.idl>
+#include <com/sun/star/lang/XComponent.idl>
 #include <com/sun/star/auth/RestRequestParameter.idl>
 #include <com/sun/star/auth/XRestKeyMap.idl>
 #include <com/sun/star/rest/XRequestResponse.idl>
@@ -17,7 +17,7 @@
 
 module com { module sun { module star { module auth {
 
-interface XOAuth2Service: com::sun::star::uno::XInterface
+interface XOAuth2Service: com::sun::star::lang::XComponent
 {
 
     any getWarnings();
