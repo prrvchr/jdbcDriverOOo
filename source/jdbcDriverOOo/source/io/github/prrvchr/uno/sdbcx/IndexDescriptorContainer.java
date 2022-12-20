@@ -28,7 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.helper.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
 
 
 public class IndexDescriptorContainer

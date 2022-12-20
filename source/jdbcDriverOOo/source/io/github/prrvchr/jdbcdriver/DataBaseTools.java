@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.jdbcdriver;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,6 +83,7 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.uno.sdbcx.ColumnContainer.ExtraColumnInfo;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;

@@ -37,7 +37,7 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.helper.DriverProvider;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DriverBase;
 import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;

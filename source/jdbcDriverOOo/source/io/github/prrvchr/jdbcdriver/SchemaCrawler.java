@@ -37,7 +37,6 @@ import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
 import schemacrawler.schemacrawler.SchemaRetrievalOptions;
 import schemacrawler.tools.utility.SchemaCrawlerUtility;
 import us.fatehi.utility.LoggingConfig;
-import io.github.prrvchr.uno.helper.DriverProvider;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbcx.TableContainer;
 

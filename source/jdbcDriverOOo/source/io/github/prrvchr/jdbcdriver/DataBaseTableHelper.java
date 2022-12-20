@@ -43,7 +43,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.helper;
+package io.github.prrvchr.jdbcdriver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +56,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Key;
 import io.github.prrvchr.uno.sdbcx.TableBase;

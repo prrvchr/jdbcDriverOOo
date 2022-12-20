@@ -1,3 +1,23 @@
+/**************************************************************
+ * 
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ *************************************************************/
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -23,54 +43,13 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.jdbcdriver;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.uno.Type;
-
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.helper.PropertyIds;
-
-
-public abstract class CallableStatementSuper
-    extends CallableStatementBase
-{
-
-    protected boolean m_UseBookmarks = false;
-
-
-    // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdb.CallableStatement()
-    // XXX: - io.github.prrvchr.uno.sdbcx.CallableStatement()
-    public CallableStatementSuper(String service,
-                                  String[] services,
-                                  ConnectionBase connection,
-                                  String sql)
-    {
-        super(service, services, connection, sql);
-        registerProperties();
-    }
-
-    private void registerProperties() {
-        registerProperty(PropertyIds.USEBOOKMARKS.name, PropertyIds.USEBOOKMARKS.id, Type.BOOLEAN,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdbc.CallableStatementSuper._getUseBookmarks():" + m_UseBookmarks);
-                    return m_UseBookmarks;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    System.out.println("sdbc.CallableStatementSuper._setUseBookmarks():" + (boolean) value);
-                    m_UseBookmarks = (boolean) value;
-                }
-            });
-    }
-
-
+public enum ComposeRule {
+    InTableDefinitions,
+    InIndexDefinitions,
+    InDataManipulation,
+    InProcedureCalls,
+    InPrivilegeDefinitions,
+    Complete
 }

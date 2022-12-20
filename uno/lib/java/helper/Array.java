@@ -23,85 +23,92 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-/**************************************************************
- * 
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- *************************************************************/
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.uno.helper;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Arrays;
+
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.DataType;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XArray;
+import com.sun.star.sdbc.XResultSet;
 
 
-public class ConnectionLog
-    extends ResourceBasedEventLogger
+public class Array
+    extends WeakBase
+    implements XArray
 {
-    public static enum ObjectType
+
+    private Object[] m_Array = null;
+    private String m_Type = null;
+
+    // The constructor method:
+    public Array(java.sql.Array array)
+        throws SQLException
     {
-        CONNECTION,
-        STATEMENT,
-        RESULT
+        try {
+            m_Array = (Object[]) array.getArray();
+            m_Type = array.getBaseTypeName();
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+        
+    }
+    public Array(Object[] array,
+                 String type)
+    {
+        m_Array = array;
+        m_Type = type;
     }
 
-    private static final AtomicInteger[] uniqueIds;
-
-    static
+    @Override
+    public Object[] getArray(XNameAccess map)
+        throws SQLException
     {
-        uniqueIds = new AtomicInteger[ObjectType.values().length];
-        for (int i = 0; i < uniqueIds.length; i++) {
-            uniqueIds[i] = new AtomicInteger(0);
+        return m_Array;
+    }
+
+    @Override
+    public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
+        throws SQLException
+    {
+        return Arrays.copyOfRange(m_Array, index, index + count);
+    }
+
+    @Override
+    public int getBaseType()
+        throws SQLException
+    {
+        try {
+            return UnoHelper.getConstantValue(DataType.class, m_Type);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
-    private final int m_id;
-
-    public ConnectionLog(ResourceBasedEventLogger logger,
-                         ObjectType type)
+    @Override
+    public String getBaseTypeName()
+        throws SQLException
     {
-        super(logger);
-        m_id = uniqueIds[type.ordinal()].getAndIncrement();
-    }
-
-    public int getObjectId() {
-        return m_id;
+        return m_Type;
     }
 
     @Override
-    public boolean log(int level,
-                       int id,
-                       Object... arguments)
+    public XResultSet getResultSet(XNameAccess map)
+        throws SQLException
     {
-        Object[] args = new Object[arguments.length + 1];
-        args[0] = m_id;
-        System.arraycopy(arguments, 0, args, 1, arguments.length);
-        return super.log(level, id, args);
+        return null;
     }
 
     @Override
-    public boolean logp(int level,
-                        int id,
-                        Object... arguments)
+    public XResultSet getResultSetAtIndex(int index, int count, XNameAccess map)
+        throws SQLException
     {
-        Object[] args = new Object[arguments.length + 1];
-        args[0] = m_id;
-        System.arraycopy(arguments, 0, args, 1, arguments.length);
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-        return super.logp(level, caller, id, args);
+        return null;
     }
+
 
 }
