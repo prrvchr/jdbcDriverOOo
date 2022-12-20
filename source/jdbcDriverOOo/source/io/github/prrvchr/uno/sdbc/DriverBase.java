@@ -53,10 +53,10 @@ import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.uno.helper.DriverProvider;
 import io.github.prrvchr.uno.helper.Resources;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
-import io.github.prrvchr.jdbcdriver.SharedResources;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
 
