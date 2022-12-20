@@ -104,7 +104,7 @@ class OptionsManager(unohelper.Base):
         path = os.pathsep.join(sys.path)
         loggers = self._model.getLoggerNames('Driver')
         infos = {111: version, 112: path}
-        self._logger = LogManager(self._ctx, tab.getPeer(), g_extension, loggers, infos)
+        self._logger = LogManager(self._ctx, tab.getPeer(), loggers, infos)
         self._view = OptionsView(self._ctx, window, tab1.getPeer(), Tab1Handler(self), tab2.getPeer(), Tab2Handler(self), rebbot)
         self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
