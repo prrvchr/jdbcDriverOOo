@@ -33,9 +33,9 @@ import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
 
 
 public abstract class TableDescriptorBase

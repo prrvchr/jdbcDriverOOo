@@ -33,10 +33,10 @@ import com.sun.star.sdbcx.XAlterView;
 import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.ComposeRule;
+import io.github.prrvchr.uno.helper.DataBaseTools;
+import io.github.prrvchr.uno.helper.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 

@@ -43,13 +43,12 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
 
-public enum ComposeRule {
-    InTableDefinitions,
-    InIndexDefinitions,
-    InDataManipulation,
-    InProcedureCalls,
-    InPrivilegeDefinitions,
-    Complete
+package io.github.prrvchr.uno.helper;
+
+import com.sun.star.beans.XPropertySet;
+
+
+public interface ISQLStatementHelper {
+    void addComment(XPropertySet descriptor, StringBuilder sql);
 }

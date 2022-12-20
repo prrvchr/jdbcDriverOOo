@@ -40,11 +40,11 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
+import io.github.prrvchr.uno.helper.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;

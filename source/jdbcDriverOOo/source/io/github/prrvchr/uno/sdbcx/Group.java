@@ -36,8 +36,8 @@ import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.uno.helper.ComposeRule;
+import io.github.prrvchr.uno.helper.DataBaseTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 

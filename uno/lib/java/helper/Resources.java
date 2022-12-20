@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.uno.helper;
 
 public class Resources {
     public static final int STR_COMMON_BASE                    = 1200;

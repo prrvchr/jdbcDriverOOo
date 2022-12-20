@@ -37,9 +37,9 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.DataBaseTools;
+import io.github.prrvchr.uno.helper.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 

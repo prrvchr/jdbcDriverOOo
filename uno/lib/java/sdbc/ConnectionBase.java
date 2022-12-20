@@ -47,8 +47,8 @@ import com.sun.star.uno.XComponentContext;
 
 import com.sun.star.lib.uno.helper.ComponentBase;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.DriverProvider;
+import io.github.prrvchr.uno.helper.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;

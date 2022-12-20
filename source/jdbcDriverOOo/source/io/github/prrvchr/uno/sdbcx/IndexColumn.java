@@ -30,8 +30,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 

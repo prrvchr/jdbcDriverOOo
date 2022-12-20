@@ -27,6 +27,8 @@ package io.github.prrvchr.jdbcdriver;
 
 import com.sun.star.beans.PropertyValue;
 
+import io.github.prrvchr.uno.helper.DriverProvider;
+
 public final class DriverProviderDefault
     extends DriverProviderMain
     implements DriverProvider

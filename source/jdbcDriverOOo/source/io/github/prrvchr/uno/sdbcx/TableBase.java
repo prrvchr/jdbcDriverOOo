@@ -45,9 +45,9 @@ import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 

@@ -40,9 +40,9 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.ComposeRule;
+import io.github.prrvchr.uno.helper.DataBaseTools;
+import io.github.prrvchr.uno.helper.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 

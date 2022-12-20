@@ -30,9 +30,9 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
 
 
 public class IndexDescriptor

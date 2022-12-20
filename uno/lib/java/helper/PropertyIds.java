@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.uno.helper;
 
 public enum PropertyIds {
     // Statement

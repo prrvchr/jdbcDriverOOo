@@ -31,7 +31,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.uno.helper.DataBaseTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 

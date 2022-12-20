@@ -38,8 +38,8 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
 
 
 public abstract class ResultSetSuper

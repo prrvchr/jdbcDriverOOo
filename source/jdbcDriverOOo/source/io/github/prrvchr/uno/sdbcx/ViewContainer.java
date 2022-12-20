@@ -34,10 +34,10 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.uno.helper.ComposeRule;
+import io.github.prrvchr.uno.helper.DataBaseTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.helper.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
 

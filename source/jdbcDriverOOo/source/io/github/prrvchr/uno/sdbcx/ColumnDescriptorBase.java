@@ -27,9 +27,9 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.helper.PropertyIds;
 
 
 public abstract class ColumnDescriptorBase

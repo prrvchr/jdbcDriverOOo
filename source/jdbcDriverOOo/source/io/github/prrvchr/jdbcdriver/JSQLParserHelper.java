@@ -35,7 +35,7 @@ import com.sun.star.uno.AnyConverter;
 import net.sf.jsqlparser.schema.Database;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
-
+import io.github.prrvchr.uno.helper.PropertyIds;
 import io.github.prrvchr.uno.sdb.Connection;
 
 
