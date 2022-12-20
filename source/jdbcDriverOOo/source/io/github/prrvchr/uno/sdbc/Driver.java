@@ -31,6 +31,7 @@ import com.sun.star.registry.XRegistryKey;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 
 
 public final class Driver

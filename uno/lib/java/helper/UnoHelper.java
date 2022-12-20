@@ -43,9 +43,6 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
-import io.github.prrvchr.uno.sdbcx.ColumnMain;
-
 
 public class UnoHelper
 {
@@ -69,11 +66,6 @@ public class UnoHelper
         }
     }
 
-    public static void copyProperties(final XPropertySet src,
-                                      final ColumnMain dst)
-    {
-        copyProperties(src, dst);
-    }
     public static void copyProperties(final XPropertySet src,
                                       final XPropertySet dst)
     {

@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.uno.helper;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -52,8 +52,6 @@ import com.sun.star.lang.NullPointerException;
 import com.sun.star.resource.MissingResourceException;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
-
-import io.github.prrvchr.uno.helper.OfficeResourceBundle;
 
 
 public class ResourceBasedEventLogger

@@ -49,6 +49,7 @@ import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;

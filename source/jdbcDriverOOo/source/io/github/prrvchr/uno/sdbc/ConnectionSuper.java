@@ -38,6 +38,7 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 import io.github.prrvchr.uno.sdbcx.TableContainer;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;

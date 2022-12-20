@@ -32,9 +32,9 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdb.Table;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
-import io.github.prrvchr.uno.sdbc.ResourceBasedEventLogger;
 
 
 public class Connection

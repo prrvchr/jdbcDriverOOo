@@ -47,6 +47,8 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+
 
 public class ConnectionLog
     extends ResourceBasedEventLogger

@@ -51,6 +51,7 @@ import com.sun.star.util.XMacroExpander;
 
 import com.sun.star.lib.uno.helper.ComponentBase;
 
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
