@@ -87,36 +87,6 @@ def getDataSource(ctx, url):
     datasource = dbcontext.getByName(location)
     return datasource
 
-def getTablesInfos(connection):
-    tables = connection.getTables()
-    similar = _isSimilar(connection, tables)
-    return similar, tables.getElementNames()
-
-def isSimilar(connection):
-    return _isSimilar(connection, connection.getTables())
-
-def getTableColumns(connection, table):
-    # FIXME Needed for gContactOOo. We can't use:
-    # FIXME table = connection.getTables().getByName(table)
-    # FIXME colums = table.getColumns().getElementNames()
-    # FIXME It does not work with any schema other than PUBLIC in the database!!!
-    # FIXME It returns an empty list of columns...
-    composer = connection.getComposer(TABLE, table)
-    return composer.getColumns().getElementNames()
-
-def _isSimilar(connection, tables):
-    similar = True
-    count = tables.getCount()
-    if count > 1:
-        table = tables.getByIndex(0).Name
-        columns = getTableColumns(connection, table)
-        for index in range(1, count):
-            table = tables.getByIndex(index).Name
-            if columns != getTableColumns(connection, table):
-                similar = False
-                break
-    return similar
-
 def getDataBaseConnection(ctx, url, info):
     service = 'com.sun.star.sdbc.DriverManager'
     manager = createService(ctx, service)

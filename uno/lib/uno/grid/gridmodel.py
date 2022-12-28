@@ -35,9 +35,12 @@ from com.sun.star.uno import XAdapter
 
 from com.sun.star.awt.grid import XMutableGridDataModel
 
+from ..unotool import createService
+from ..unotool import hasInterface
+
 from ..dbtool import getValueFromResult
 
-from .gridhandler import GridHandler
+from .gridhandler import RowSetListener
 
 import traceback
 
@@ -46,15 +49,23 @@ class GridModel(unohelper.Base,
                 XWeak,
                 XAdapter,
                 XMutableGridDataModel):
-    def __init__(self, rowset=None):
+    def __init__(self, ctx, sort):
+        self._ctx = ctx
+        self._sort = sort
+        #mri = createService(ctx, 'mytools.Mri')
+        #mri.inspect(sort)
         self._events = []
         self._listeners = []
         self._resultset = None
-        self.RowCount = 0
-        self.ColumnCount = 0
-        if rowset is not None:
-            handler = GridHandler(self)
-            rowset.addRowSetListener(handler)
+        self._row = 0
+        self._column = 0
+
+    @property
+    def RowCount(self):
+        return self._row
+    @property
+    def ColumnCount(self):
+        return self._column
 
 # XWeak
     def queryAdapter(self):
@@ -75,7 +86,7 @@ class GridModel(unohelper.Base,
 # XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row +1)
-        return getValueFromResult(self._resultset, column +1)
+        return  getValueFromResult(self._resultset, column +1)
     def getCellToolTip(self, column, row):
         return self.getCellData(column, row)
     def getRowHeading(self, row):
@@ -83,7 +94,7 @@ class GridModel(unohelper.Base,
     def getRowData(self, row):
         data = []
         self._resultset.absolute(row +1)
-        for index in range(self.ColumnCount):
+        for index in range(self._column):
             data.append(getValueFromResult(self._resultset, index +1))
         return tuple(data)
 
@@ -92,14 +103,17 @@ class GridModel(unohelper.Base,
         pass
     def addRows(self, headings, data):
         pass
+
     def insertRow(self, index, heading, data):
         pass
     def insertRows(self, index, headings, data):
         pass
+
     def removeRow(self, index):
         pass
     def removeAllRows(self):
         pass
+
     def updateCellData(self, column, row, value):
         pass
     def updateRowData(self, indexes, rows, values):
@@ -110,8 +124,16 @@ class GridModel(unohelper.Base,
         pass
     def updateRowToolTip(self, row, value):
         pass
+
     def addGridDataListener(self, listener):
-        self._listeners.append(listener)
+        # FIXME: The service 'com.sun.star.awt.grid.SortableGridDataModel' packaging
+        # FIXME: this interface seems to want to register as an XGridDataListener when
+        # FIXME: initialized, so it is necessary to filter the listener's interfaces
+        if hasInterface(listener, 'com.sun.star.awt.grid.XGridDataListener'):
+            self._listeners.append(listener)
+        #elif hasInterface(listener, 'com.sun.star.awt.grid.XSortableMutableGridDataModel'):
+        #    self._sort = listener
+
     def removeGridDataListener(self, listener):
         if listener in self._listeners:
             self._listeners.remove(listener)
@@ -128,53 +150,73 @@ class GridModel(unohelper.Base,
         if listener in self._events:
             self._events.remove(listener)
 
+# GridModel getter methods
+    def getCurrentSortOrder(self):
+        return self._sort.getCurrentSortOrder()
+
 # GridModel setter methods
+    def sortByColumn(self, index, ascending):
+        print("GridModel.sortByColumn() %s - %s" % (index, ascending))
+        if index != -1:
+            self._sort.sortByColumn(index, ascending)
+        else:
+            self._sort.removeColumnSort()
+
+    def resetRowSetData(self):
+        row = self._row
+        self._row = 0
+        if self._row < row:
+            self._removeRow(self._row, row -1)
+
     def setRowSetData(self, rowset):
         self._resultset = rowset.createResultSet()
-        rowcount = self.RowCount
-        self.RowCount = rowset.RowCount
-        self.ColumnCount = rowset.getMetaData().getColumnCount()
-        if self.RowCount < rowcount:
-            self._removeRow(self.RowCount, rowcount -1)
-            if self.RowCount > 0:
-                self._changeData(0, self.RowCount -1)
-        elif self.RowCount > rowcount:
-            self._insertRow(rowcount, self.RowCount -1)
-            if rowcount > 0:
-                self._changeData(0, rowcount -1)
-        elif self.RowCount > 0:
-            self._changeData(0, rowcount -1)
+        row = self._row
+        self._row = rowset.RowCount
+        self._column = rowset.getMetaData().getColumnCount()
+        if self._row < row:
+            sort = self._sort.getCurrentSortOrder()
+            self._removeRow(self._row, row -1)
+            if self._row > 0:
+                self._changeData(0, self._row -1)
+            self._sort.removeColumnSort()
+            if sort.First != -1:
+                self._sort.sortByColumn(sort.First, sort.Second)
+        elif self._row > row:
+            sort = self._sort.getCurrentSortOrder()
+            self._insertRow(row, self._row -1)
+            if row > 0:
+                self._changeData(0, row -1)
+            self._sort.removeColumnSort()
+            if sort.First != -1:
+                self._sort.sortByColumn(sort.First, sort.Second)
+        elif self._row > 0:
+            sort = self._sort.getCurrentSortOrder()
+            self._changeData(0, row -1)
+            self._sort.removeColumnSort()
+            if sort.First != -1:
+                self._sort.sortByColumn(sort.First, sort.Second)
 
 # GridModel private methods
-    def _removeRow(self, firstrow, lastrow):
-        event = self._getGridDataEvent(firstrow, lastrow)
-        previous = None
+    def _removeRow(self, first, last):
+        event = self._getGridDataEvent(first, last)
         for listener in self._listeners:
-            if previous != listener:
-                listener.rowsRemoved(event)
-                previous = listener
+            listener.rowsRemoved(event)
 
-    def _insertRow(self, firstrow, lastrow):
-        event = self._getGridDataEvent(firstrow, lastrow)
-        previous = None
+    def _insertRow(self, first, last):
+        event = self._getGridDataEvent(first, last)
         for listener in self._listeners:
-            if previous != listener:
-                listener.rowsInserted(event)
-                previous = listener
+            listener.rowsInserted(event)
 
-    def _changeData(self, firstrow, lastrow):
-        event = self._getGridDataEvent(firstrow, lastrow)
-        previous = None
+    def _changeData(self, first, last):
+        event = self._getGridDataEvent(first, last)
         for listener in self._listeners:
-            if previous != listener:
-                listener.dataChanged(event)
-                previous = listener
+            listener.dataChanged(event)
 
-    def _getGridDataEvent(self, firstrow, lastrow):
+    def _getGridDataEvent(self, first, last):
         event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
         event.Source = self
         event.FirstColumn = 0
-        event.LastColumn = self.ColumnCount -1
-        event.FirstRow = firstrow
-        event.LastRow = lastrow
+        event.LastColumn = self._column -1
+        event.FirstRow = first
+        event.LastRow = last
         return event
