@@ -38,6 +38,7 @@ from jdbcdriver import g_extension
 class AdminView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 82, 350, 150)
 
     def init(self, listener, model, columns):
         self._createGrid(model, columns)
@@ -58,7 +59,13 @@ class AdminView(unohelper.Base):
         return self._dialog.execute()
 
     def dispose(self):
-        return self._dialog.dispose()
+        self._dialog.dispose()
+
+    def getGridParent(self):
+        return self._dialog.getPeer()
+
+    def getGridPosSize(self):
+        return self._rectangle
 
     def enableButton(self, enabled, recursive, removable):
         self._getSetGrantee().Model.Enabled = enabled

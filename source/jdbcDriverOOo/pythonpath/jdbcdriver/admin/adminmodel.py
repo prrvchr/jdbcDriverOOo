@@ -49,7 +49,7 @@ import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, ctx, user, members, tables, data, flags):
+    def __init__(self, ctx, model, user, members, tables, flags, possize, parent, setting):
         self._grantee = '';
         self._user = user
         self._members = members
@@ -65,6 +65,8 @@ class AdminModel(unohelper.Base):
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
         self._data = data
+        self._grid = GridManager(ctx, model, parent, possize, setting, None, 8, True, 'Grid1')
+
         self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
         self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
         for index in flags:

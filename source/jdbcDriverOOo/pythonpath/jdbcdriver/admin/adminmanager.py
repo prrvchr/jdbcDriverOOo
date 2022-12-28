@@ -70,11 +70,16 @@ class AdminManager(unohelper.Base):
         users = connection.getUsers()
         user = users.getByName(connection.getMetaData().getUserName())
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
-        data = GridData(grantees, tables.getElementNames(), self._flags, recursive, isuser)
-        self._model = AdminModel(ctx, user, members, tables, data, self._flags)
+        self._view = view
+        possize = self._view.getGridPosSize()
+        parent = self._view.getGridParent()
+        setting = 'UserGrid' if isuser else 'GroupGrid'
+        model = GridModel(grantees, tables.getElementNames(), self._flags, recursive, isuser)
+        self._model = AdminModel(ctx, model, user, members, tables, self._flags, possize, parent, setting)
+
+        data = 
         self._dialog = None
         self._disabled = True
-        self._view = view
         self._view.init(GridListener(self), *self._model.getGridModels())
 
     # TODO: One shot disabler handler
