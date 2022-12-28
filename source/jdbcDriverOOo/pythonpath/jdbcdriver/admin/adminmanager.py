@@ -47,8 +47,6 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from .adminmodel import AdminModel
 
-from .gridlistener import GridListener
-
 from .privilegeview import PrivilegeView
 
 from .granteeview import GranteeView
@@ -65,6 +63,7 @@ from .adminhandler import NewUserHandler
 from .adminhandler import PasswordHandler
 
 from ..grid import GridModel
+from ..grid import GridListener
 
 from ..unotool import createMessageBox
 
@@ -74,6 +73,7 @@ import traceback
 class AdminManager(unohelper.Base):
     def __init__(self, ctx, view, connection, members, grantees, recursive, isuser):
         self._ctx = ctx
+        datasource = connection.getParent().Name
         tables = connection.getTables()
         users = connection.getUsers()
         user = users.getByName(connection.getMetaData().getUserName())
@@ -83,11 +83,10 @@ class AdminManager(unohelper.Base):
         parent = self._view.getGridParent()
         setting = 'UserGrid' if isuser else 'GroupGrid'
         model = GridModel(grantees, tables.getElementNames(), self._flags, recursive, isuser)
-        listener = GridListener(self)
-        self._model = AdminModel(ctx, model, listener, user, members, tables, self._flags, possize, parent, setting)
+        self._model = AdminModel(ctx, datasource, model, GridListener(self), user, members, tables, self._flags, possize, parent, setting)
         self._dialog = None
         self._disabled = True
-        self._view.init(GridListener(self), *self._model.getGridModels())
+        #self._view.init(GridListener(self), *self._model.getGridModels())
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -209,7 +208,7 @@ class AdminManager(unohelper.Base):
     def dropUser(self):
         self._dropGrantee(*self._model.getDropUserInfo())
 
-    def changeGridSelection(self, index):
+    def changeGridSelection(self, index, grid):
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
 
