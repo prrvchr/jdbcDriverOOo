@@ -49,9 +49,9 @@ class GridModel(unohelper.Base,
                 XWeak,
                 XAdapter,
                 XMutableGridDataModel):
-    def __init__(self, ctx, sort):
+    def __init__(self, ctx):
         self._ctx = ctx
-        self._sort = sort
+        self._sort = None
         #mri = createService(ctx, 'mytools.Mri')
         #mri.inspect(sort)
         self._events = []
@@ -155,6 +155,9 @@ class GridModel(unohelper.Base,
         return self._sort.getCurrentSortOrder()
 
 # GridModel setter methods
+    def setSortableModel(self, sort):
+        self._sort = sort
+
     def sortByColumn(self, index, ascending):
         print("GridModel.sortByColumn() %s - %s" % (index, ascending))
         if index != -1:

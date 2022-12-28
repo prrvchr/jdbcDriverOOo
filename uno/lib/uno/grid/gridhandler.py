@@ -91,7 +91,7 @@ class RowSetListener(unohelper.Base,
     def rowSetChanged(self, event):
         try:
             rowset = event.Source
-            self._manager.setRowSetData(rowset)
+            self._manager.setDataModel(rowset)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
