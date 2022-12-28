@@ -106,13 +106,9 @@ class GridListener(unohelper.Base,
     # XGridSelectionListener
     def selectionChanged(self, event):
         try:
-            rows = event.SelectedRowIndexes
-            columns = event.SelectedColumnIndexes
-            print("GridListener.selectionChanged() %s - %s" % (rows, columns))
             control = event.Source
-            selected = control.hasSelectedRows()
-            index = control.getSelectedRows()[0] if selected else -1
-            self._manager.changeGridSelection(selected, index, self._grid)
+            index = control.getSelectedRows()[0] if control.hasSelectedRows() else -1
+            self._manager.changeGridSelection(index, self._grid)
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
