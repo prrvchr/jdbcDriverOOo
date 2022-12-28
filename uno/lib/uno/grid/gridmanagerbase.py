@@ -69,19 +69,23 @@ class GridManagerBase(unohelper.Base):
         self._index = -1
         self._type = -1
         self._url = getResourceLocation(ctx, g_identifier, g_extension)
-        self._columns = {}
-        self._grid = model
+        self._headers = {}
+        self._model = model
         grid = createService(ctx, 'com.sun.star.awt.grid.SortableGridDataModel')
         # TODO: We can use an XGridDataListener to be notified when the row display order is changed
         #model.addGridDataListener(GridDataListener(self))
         model.setSortableModel(grid)
         grid.initialize((model, ))
         self._view = GridView(ctx, name, grid, parent, WindowHandler(self), possize, selection)
-        self._model = self._view.getGridColumnModel()
+        self._column = self._view.getGridColumnModel()
+
+    @property
+    def Model(self):
+        return self._model
 
 # GridManager getter methods
     def getGridModels(self):
-        return self._grid, self._model
+        return self._model, self._column
 
     def getGridModel(self):
         return self._view.getGridDataModel()
@@ -106,8 +110,8 @@ class GridManagerBase(unohelper.Base):
 
 # GridManager setter methods
     def dispose(self):
+        self._column.dispose()
         self._model.dispose()
-        self._grid.dispose()
 
     def addSelectionListener(self, listener):
         self._view.getGrid().addSelectionListener(listener)
@@ -144,7 +148,7 @@ class GridManagerBase(unohelper.Base):
         if reset:
             modified, identifiers = self._resetColumn()
         else:
-            identifiers = [column.Identifier for column in self._model.getColumns()]
+            identifiers = [column.Identifier for column in self._column.getColumns()]
             if add:
                 modified = self._addColumn(identifiers, identifier)
             else:
@@ -261,40 +265,40 @@ class GridManagerBase(unohelper.Base):
     def _getIdentifiers(self, widths):
         identifiers = []
         for identifier in widths:
-            if identifier in self._columns:
+            if identifier in self._headers:
                 identifiers.append(identifier)
         if not identifiers:
             identifiers = self._getDefaultIdentifiers()
         return identifiers
 
     def _removeColumns(self):
-        for index in range(self._model.getColumnCount() -1, -1, -1):
-            self._model.removeColumn(index)
+        for index in range(self._column.getColumnCount() -1, -1, -1):
+            self._column.removeColumn(index)
 
     def _createColumn(self, identifier):
         created = False
-        if identifier in self._columns:
-            column = self._model.createColumn()
+        if identifier in self._headers:
+            column = self._column.createColumn()
             column.Identifier = identifier
-            column.Title = self._columns[identifier]
-            indexes = tuple(self._columns.keys())
+            column.Title = self._headers[identifier]
+            indexes = tuple(self._headers.keys())
             column.DataColumnIndex = indexes.index(identifier)
-            self._model.addColumn(column)
+            self._column.addColumn(column)
             created = True
         return created
 
     def _removeIdentifier(self, identifier):
         removed = False
-        for index in range(self._model.getColumnCount() -1, -1, -1):
-            column = self._model.getColumn(index)
+        for index in range(self._column.getColumnCount() -1, -1, -1):
+            column = self._column.getColumn(index)
             if column.Identifier == identifier:
-                self._model.removeColumn(index)
+                self._column.removeColumn(index)
                 removed = True
                 break
         return removed
 
     def _setSavedWidths(self, widths):
-        for column in self._model.getColumns():
+        for column in self._column.getColumns():
             identifier = column.Identifier
             flex = len(column.Title)
             column.MinWidth = flex * self._factor
@@ -305,7 +309,7 @@ class GridManagerBase(unohelper.Base):
                 column.ColumnWidth = flex * self._factor
 
     def _setDefaultWidths(self):
-        for column in self._model.getColumns():
+        for column in self._column.getColumns():
             flex = len(column.Title)
             width = flex * self._factor
             column.ColumnWidth = width
@@ -314,16 +318,16 @@ class GridManagerBase(unohelper.Base):
 
     def _getColumnWidths(self):
         widths = OrderedDict()
-        for column in self._model.getColumns():
+        for column in self._column.getColumns():
             widths[column.Identifier] = column.ColumnWidth
         return widths
 
     def _getColumnOrders(self):
-        pair = self._grid.getCurrentSortOrder()
+        pair = self._model.getCurrentSortOrder()
         return pair.First, pair.Second
 
     def _getDefaultIdentifiers(self):
-        identifiers = tuple(self._columns.keys())
+        identifiers = tuple(self._headers.keys())
         return identifiers[slice(self._max)]
 
     def _getColumnTitle(self, identifier):

@@ -49,19 +49,19 @@ class GridManager(GridManagerBase):
             # We can hide GridColumnHeader and reset GridDataModel
             # but after saving GridColumnModel Widths
             self._view.showGridColumnHeader(False)
-            #self._grid.resetRowSetData()
+            #self._model.resetRowSetData()
             self._identifier = identifier
-            self._columns, self._index, self._type = self._getColumns(rowset.getMetaData())
+            self._headers, self._index, self._type = self._getColumns(rowset.getMetaData())
             identifiers = self._initColumnModel(datasource, query)
-            self._view.initColumns(self._url, self._columns, identifiers)
+            self._view.initColumns(self._url, self._headers, identifiers)
             self._query = query
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
         self._view.setWindowVisible(False)
-        self._grid.setRowSetData(rowset)
+        self._model.setRowSetData(rowset)
         self._view.setWindowVisible(True)
         if changed:
-            self._grid.sortByColumn(*self._getSavedOrders(datasource, query))
+            self._model.sortByColumn(*self._getSavedOrders(datasource, query))
 
 # GridManager private methods
     def _getColumns(self, metadata):
