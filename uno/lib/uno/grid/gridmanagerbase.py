@@ -82,6 +82,9 @@ class GridManagerBase(unohelper.Base):
     @property
     def Model(self):
         return self._model
+    @property
+    def Column(self):
+        return self._column
 
 # GridManager getter methods
     def getGridModels(self):
