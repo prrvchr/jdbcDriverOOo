@@ -38,11 +38,11 @@ import traceback
 class GridManager(GridManagerBase):
     def __init__(self, ctx, model, listener, parent, possize, setting, selection, resource=None, maxi=None, multi=False, name='Grid1'):
         GridManagerBase.__init__(self, ctx, model, parent, possize, setting, selection, resource, maxi, multi, name)
-        self._view.addSelectionListener(listener)
         self._datasource = setting
         self._identifier = 'Table'
         self._index = 0
         self._type = VARCHAR
+        self._view.addSelectionListener(listener)
 
 
 # GridManager setter methods

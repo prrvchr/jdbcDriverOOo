@@ -52,7 +52,7 @@ import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, ctx, model, user, members, tables, flags, possize, parent, setting):
+    def __init__(self, ctx, model, listener, user, members, tables, flags, possize, parent, setting):
         self._grantee = '';
         self._user = user
         self._members = members

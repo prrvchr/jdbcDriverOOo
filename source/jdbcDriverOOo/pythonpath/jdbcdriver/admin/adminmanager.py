@@ -83,7 +83,8 @@ class AdminManager(unohelper.Base):
         parent = self._view.getGridParent()
         setting = 'UserGrid' if isuser else 'GroupGrid'
         model = GridModel(grantees, tables.getElementNames(), self._flags, recursive, isuser)
-        self._model = AdminModel(ctx, model, user, members, tables, self._flags, possize, parent, setting)
+        listener = GridListener(self)
+        self._model = AdminModel(ctx, model, listener, user, members, tables, self._flags, possize, parent, setting)
         self._dialog = None
         self._disabled = True
         self._view.init(GridListener(self), *self._model.getGridModels())
