@@ -37,12 +37,12 @@ from ..configuration import g_extension
 
 
 class GridView(unohelper.Base):
-    def __init__(self, ctx, name, model, parent, handler, possize, step=1):
+    def __init__(self, ctx, name, model, parent, handler, possize, selection, step=1):
         self._name = name
         self._up = 20
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'GridWindow')
         self._setWindow(possize, step)
-        self._createGrid(model)
+        self._createGrid(model, selection)
         self._window.setVisible(True)
 
 # GridView getter methods
@@ -130,8 +130,8 @@ class GridView(unohelper.Base):
     def _getMargin(self):
         return self._getToggle().Model.Width
 
-    def _createGrid(self, data):
-        model = self._getGridModel(data)
+    def _createGrid(self, data, selection):
+        model = self._getGridModel(data, selection)
         self._window.Model.insertByName(self._name, model)
 
 # GridView private getter methods
@@ -141,7 +141,7 @@ class GridView(unohelper.Base):
     def _getSelected(self, url):
         return '%s/%s' % (url,  self.getSelected())
 
-    def _getGridModel(self, data):
+    def _getGridModel(self, data, selection):
         margin = self._getToggle().Model.Width
         service = 'com.sun.star.awt.grid.UnoControlGridModel'
         model = self._window.Model.createInstance(service)
@@ -152,7 +152,7 @@ class GridView(unohelper.Base):
         model.Width = self._window.Model.Width - margin
         model.GridDataModel = data
         #model.ColumnModel = column
-        model.SelectionModel = MULTI
+        model.SelectionModel = selection
         model.HScroll = True
         model.VScroll = True
         model.ShowColumnHeader = False
