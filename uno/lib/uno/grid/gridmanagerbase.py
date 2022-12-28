@@ -172,11 +172,21 @@ class GridManagerBase(unohelper.Base):
         print("GridManager.setColumnOrder() First: %s Second: %s " % (pair.First, pair.Second))
 
 # GridManager private methods
-    def _isDataSourceChanged(self, name, query):
-        return self._datasource != name or self._query != query
-
-    def _isGridLoaded(self):
-        return self._datasource is not None
+    def _initColumnModel(self, datasource, query):
+        # TODO: ColumnWidth should be assigned after all columns have 
+        # TODO: been added to the GridColumnModel
+        self._removeColumns()
+        widths = self._getSavedWidths(datasource, query)
+        identifiers = self._getIdentifiers(widths)
+        if widths:
+            for identifier in widths:
+                self._createColumn(identifier)
+            self._setSavedWidths(widths)
+        else:
+            for identifier in identifiers:
+                self._createColumn(identifier)
+            self._setDefaultWidths()
+        return identifiers
 
     def _saveWidths(self):
         widths = self._getColumnWidths()
@@ -228,22 +238,6 @@ class GridManagerBase(unohelper.Base):
         name = self._getConfigOrderName()
         self._config.replaceByName(name, order)
         self._config.commitChanges()
-
-    def _initColumnModel(self, datasource, query):
-        # TODO: ColumnWidth should be assigned after all columns have 
-        # TODO: been added to the GridColumnModel
-        self._removeColumns()
-        widths = self._getSavedWidths(datasource, query)
-        identifiers = self._getIdentifiers(widths)
-        if widths:
-            for identifier in widths:
-                self._createColumn(identifier)
-            self._setSavedWidths(widths)
-        else:
-            for identifier in identifiers:
-                self._createColumn(identifier)
-            self._setDefaultWidths()
-        return identifiers
 
     def _getSavedWidths(self, datasource, query):
         widths = {}

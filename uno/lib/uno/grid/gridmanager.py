@@ -51,7 +51,7 @@ class GridManager(GridManagerBase):
             self._view.showGridColumnHeader(False)
             #self._model.resetRowSetData()
             self._identifier = identifier
-            self._headers, self._index, self._type = self._getColumns(rowset.getMetaData())
+            self._headers, self._index, self._type = self._getHeadersInfo(rowset.getMetaData())
             identifiers = self._initColumnModel(datasource, query)
             self._view.initColumns(self._url, self._headers, identifiers)
             self._query = query
@@ -64,15 +64,21 @@ class GridManager(GridManagerBase):
             self._model.sortByColumn(*self._getSavedOrders(datasource, query))
 
 # GridManager private methods
-    def _getColumns(self, metadata):
+    def _isDataSourceChanged(self, name, query):
+        return self._datasource != name or self._query != query
+
+    def _isGridLoaded(self):
+        return self._datasource is not None
+
+    def _getHeadersInfo(self, metadata):
         index = type = -1
-        columns = OrderedDict()
+        headers = OrderedDict()
         for i in range(metadata.getColumnCount()):
-            column = metadata.getColumnLabel(i +1)
-            title = self._getColumnTitle(column)
-            if self._identifier == column:
+            name = metadata.getColumnLabel(i +1)
+            title = self._getColumnTitle(name)
+            if self._identifier == name:
                 index = i
                 type = metadata.getColumnType(i +1)
-            columns[column] = title
-        return columns, index, type
+            headers[name] = title
+        return headers, index, type
 
