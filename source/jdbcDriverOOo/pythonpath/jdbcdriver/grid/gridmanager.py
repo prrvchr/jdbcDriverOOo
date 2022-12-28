@@ -42,11 +42,12 @@ class GridManager(GridManagerBase):
         self._identifier = 'Table'
         self._index = 0
         self._type = VARCHAR
-        self._view.addSelectionListener(listener)
+        self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
+        for index in flags:
+            title = self._getPrivilegeHeader(index)
+            self._column.addColumn(self._getColumn(self._column.createColumn(), title))
 
-    @property
-    def Model(self):
-        return self._grid
+        self._view.addSelectionListener(listener)
 
 # GridManager setter methods
     def setDataModel(self, rowset, identifier):
