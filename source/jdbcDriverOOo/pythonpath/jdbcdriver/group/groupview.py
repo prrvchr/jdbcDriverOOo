@@ -27,44 +27,20 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
+from ..admin import AdminView
 
-from ..unotool import getDialog
-
-from ..configuration import g_extension
+import traceback
 
 
-class PrivilegeView(unohelper.Base):
-    def __init__(self, ctx, flags, table, privileges, grantables, inherited):
-        self._dialog = getDialog(ctx, g_extension, 'PrivilegesDialog')
-        self._getTable().Text = table
-        self.setPrivileges(flags, privileges, grantables, inherited)
+class GroupView(AdminView):
+    def __init__(self, ctx, handler, parent):
+        super(GroupView, self).__init__(ctx, 'GroupDialog', handler, parent)
 
-    def setPrivileges(self, flags, privileges, grantables, inherited):
-        for index, flag in flags.items():
-            state = 1 if flag == privileges & flag else 0
-            tristate = state == 0 and flag == inherited & flag
-            control = self._getPrivilege(index)
-            control.Model.TriState = tristate
-            control.State = 2 if tristate else state
-            control.Model.Enabled = flag == grantables & flag
+    def enableButton(self, enabled, recursive, removable):
+        self._getSetRole().Model.Enabled = enabled and recursive
+        super(GroupView, self).enableButton(enabled, recursive, removable)
 
-    def execute(self):
-        return self._dialog.execute()
+    def _getSetRole(self):
+        return self._dialog.getControl('CommandButton6')
 
-    def getPrivileges(self, flags):
-        privileges = 0
-        for index, flag in flags.items():
-            control = self._getPrivilege(index)
-            privileges += flag if control.State == 1 else 0
-        return privileges
-
-    def dispose(self):
-        self._dialog.dispose()
-
-    def _getTable(self):
-        return self._dialog.getControl('Label2')
-
-    def _getPrivilege(self, index):
-        return self._dialog.getControl('CheckBox%s' % index)
 

@@ -30,35 +30,17 @@
 from .configuration import g_extension
 from .configuration import g_identifier
 
-from .dbconfig import g_class
-from .dbconfig import g_folder
-from .dbconfig import g_protocol
-from .dbconfig import g_jar
-
 from .unotool import createMessageBox
 from .unotool import createService
-from .unotool import getContainerWindow
-from .unotool import getDialog
-from .unotool import getFilePicker
-from .unotool import getFileSequence
-from .unotool import getFileUrl
-from .unotool import getPathSettings
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
-from .unotool import getStringResource
-from .unotool import getUrl
-from .unotool import getUrlTransformer
 from .unotool import hasInterface
-from .unotool import parseUrl
+from .unotool import getStringResource
 
-from .logger import clearLogger
-from .logger import getLoggerSetting
-from .logger import getLoggerUrl
 from .logger import getMessage
 from .logger import logMessage
-from .logger import setLoggerSetting
 
 from .options import OptionsManager
 
-from .admindispatch import AdminDispatch
+from .user import UserManager
+
+from .group import GroupManager
 

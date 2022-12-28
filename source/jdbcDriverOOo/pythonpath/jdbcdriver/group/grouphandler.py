@@ -27,20 +27,51 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .adminview import AdminView
+import unohelper
+
+from com.sun.star.awt import XDialogEventHandler
 
 import traceback
 
 
-class UserView(AdminView):
-    def __init__(self, ctx, handler, parent):
-        super(UserView, self).__init__(ctx, 'UserDialog', handler, parent)
+class DialogHandler(unohelper.Base,
+                    XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
 
-    def enableButton(self, enabled, recursive, removable):
-        self._getSetPassword().Model.Enabled = enabled
-        super(UserView, self).enableButton(enabled, recursive, removable)
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetGrantee':
+                if self._manager.isHandlerEnabled():
+                    self._manager.setGrantee(event.Source.getSelectedItem())
+                handled = True
+            elif method == 'NewGroup':
+                self._manager.createGroup()
+                handled = True
+            elif method == 'SetUsers':
+                self._manager.setUsers()
+                handled = True
+            elif method == 'SetRoles':
+                self._manager.setRoles()
+                handled = True
+            elif method == 'DropGroup':
+                self._manager.dropGroup()
+                handled = True
+            elif method == 'SetPrivileges':
+                self._manager.setPrivileges()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
-    def _getSetPassword(self):
-        return self._dialog.getControl('CommandButton6')
-
+    def getSupportedMethodNames(self):
+        return ('SetGrantee',
+                'NewGroup',
+                'SetUsers',
+                'SetRoles',
+                'DropGroup',
+                'SetPrivileges')
 

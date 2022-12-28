@@ -45,12 +45,13 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .admin import UserManager
 from .admin import GroupManager
 
-from jdbcdriver import createMessageBox
-from jdbcdriver import createService
-from jdbcdriver import hasInterface
-from jdbcdriver import getStringResource
-from jdbcdriver import g_extension
-from jdbcdriver import g_identifier
+from .unotool import createMessageBox
+from .unotool import createService
+from .unotool import hasInterface
+from .unotool import getStringResource
+
+from .configuration import g_extension
+from .configuration import g_identifier
 
 import traceback
 

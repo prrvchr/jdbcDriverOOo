@@ -27,18 +27,19 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .adminmanager import AdminManager
+from ..admin import AdminManager
 
-from .userview import UserView
-from .userhandler import DialogHandler
+from .groupview import GroupView
+
+from .grouphandler import DialogHandler
 
 import traceback
 
 
-class UserManager(AdminManager):
+class GroupManager(AdminManager):
     def __init__(self, ctx, connection, parent, groups, recursive):
         users = connection.getUsers()
-        view = UserView(ctx, DialogHandler(self), parent)
-        super(UserManager, self).__init__(ctx, view, connection, groups, users, recursive, True)
+        view = GroupView(ctx, DialogHandler(self), parent)
+        super(GroupManager, self).__init__(ctx, view, connection, users, groups, recursive, False)
 
 

@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .usermanager import UserManager
-from .groupmanager import GroupManager
+from .adminmanager import AdminManager
+
+from .adminview import AdminView
 

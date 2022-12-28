@@ -27,6 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .usermanager import UserManager
-from .groupmanager import GroupManager
+from .gridmanager import GridManager
+from .gridmodel import GridModel
 

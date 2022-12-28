@@ -34,8 +34,8 @@ from com.sun.star.awt import XDialogEventHandler
 import traceback
 
 
-class DialogHandler(unohelper.Base,
-                    XDialogEventHandler):
+class NewUserHandler(unohelper.Base,
+                     XDialogEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -43,24 +43,14 @@ class DialogHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'SetGrantee':
-                if self._manager.isHandlerEnabled():
-                    self._manager.setGrantee(event.Source.getSelectedItem())
+            if method == 'SetName':
+                self._manager.setUserName(event.Source.Text)
                 handled = True
-            elif method == 'NewGroup':
-                self._manager.createGroup()
+            elif method == 'SetPassword':
+                self._manager.setUserPassword(event.Source.Text)
                 handled = True
-            elif method == 'SetUsers':
-                self._manager.setUsers()
-                handled = True
-            elif method == 'SetRoles':
-                self._manager.setRoles()
-                handled = True
-            elif method == 'DropGroup':
-                self._manager.dropGroup()
-                handled = True
-            elif method == 'SetPrivileges':
-                self._manager.setPrivileges()
+            elif method == 'SetConfirmation':
+                self._manager.setUserPasswordConfirmation(event.Source.Text)
                 handled = True
             return handled
         except Exception as e:
@@ -68,12 +58,69 @@ class DialogHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetGrantee',
-                'NewGroup',
-                'SetUsers',
-                'SetRoles',
-                'DropGroup',
-                'SetPrivileges')
+        return ('SetName',
+                'SetPassword',
+                'SetConfirmation')
+
+
+class PasswordHandler(unohelper.Base,
+                      XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'SetPassword':
+                self._manager.setPassword(event.Source.Text)
+                handled = True
+            elif method == 'SetConfirmation':
+                self._manager.setPasswordConfirmation(event.Source.Text)
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('SetPassword',
+                'SetConfirmation')
+
+
+class UsersHandler(unohelper.Base,
+                   XDialogEventHandler):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # com.sun.star.awt.XDialogEventHandler
+    def callHandlerMethod(self, dialog, event, method):
+        try:
+            handled = False
+            if method == 'ToogleRemove':
+                enabled = event.Source.getSelectedItemPos() != -1
+                self._manager.toogleRemove(enabled)
+                handled = True
+            elif method == 'RemoveMember':
+                self._manager.removeUser()
+                handled = True
+            elif method == 'ToogleAdd':
+                enabled = event.Source.getSelectedItemPos() != -1
+                self._manager.toogleAdd(enabled)
+                handled = True
+            elif method == 'AddMember':
+                self._manager.addUser()
+                handled = True
+            return handled
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def getSupportedMethodNames(self):
+        return ('ToogleRemove',
+                'RemoveMember',
+                'ToogleAdd',
+                'AddMember')
 
 
 class NewGroupHandler(unohelper.Base,

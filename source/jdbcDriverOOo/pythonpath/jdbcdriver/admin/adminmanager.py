@@ -45,20 +45,28 @@ from com.sun.star.sdbcx.Privilege import DROP
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from .griddata import GridData
 from .adminmodel import AdminModel
+
 from .gridlistener import GridListener
+
 from .privilegeview import PrivilegeView
+
 from .granteeview import GranteeView
+
 from .memberview import MemberView
-from .grouphandler import GroupsHandler
-from .grouphandler import NewGroupHandler
-from .userhandler import UsersHandler
-from .userhandler import NewUserHandler
-from .userhandler import PasswordHandler
+
 from .passwordview import PasswordView
 
-from jdbcdriver import createMessageBox
+from .adminhandler import GroupsHandler
+from .adminhandler import NewGroupHandler
+
+from .adminhandler import UsersHandler
+from .adminhandler import NewUserHandler
+from .adminhandler import PasswordHandler
+
+from ..grid import GridModel
+
+from ..unotool import createMessageBox
 
 import traceback
 
@@ -76,8 +84,6 @@ class AdminManager(unohelper.Base):
         setting = 'UserGrid' if isuser else 'GroupGrid'
         model = GridModel(grantees, tables.getElementNames(), self._flags, recursive, isuser)
         self._model = AdminModel(ctx, model, user, members, tables, self._flags, possize, parent, setting)
-
-        data = 
         self._dialog = None
         self._disabled = True
         self._view.init(GridListener(self), *self._model.getGridModels())

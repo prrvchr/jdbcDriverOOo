@@ -35,6 +35,7 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.lang import XInitialization
 
 from jdbcdriver import createService
+
 from jdbcdriver import g_identifier
 
 import traceback

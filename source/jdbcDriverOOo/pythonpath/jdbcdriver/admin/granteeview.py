@@ -29,8 +29,9 @@
 
 import unohelper
 
-from jdbcdriver import getDialog
-from jdbcdriver import g_extension
+from ..unotool import getDialog
+
+from ..configuration import g_extension
 
 
 class GranteeView(unohelper.Base):

@@ -27,12 +27,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
 from com.sun.star.view.SelectionType import SINGLE
 
-from jdbcdriver import getDialog
-from jdbcdriver import g_extension
+from ..unotool import getDialog
+
+from ..configuration import g_extension
 
 
 class AdminView(unohelper.Base):
@@ -83,20 +85,6 @@ class AdminView(unohelper.Base):
 
     def getPeer(self):
         return self._dialog.getPeer()
-
-    def _createGrid(self, model, columns):
-        grid = self._dialog.Model.createInstance("com.sun.star.awt.grid.UnoControlGridModel")
-        grid.Name = "Grid1"
-        grid.PositionX = 10
-        grid.PositionY = 82
-        grid.Width = 350
-        grid.Height = 150
-        grid.GridDataModel = model
-        grid.ColumnModel = columns
-        model.SelectionModel = SINGLE
-        model.ShowColumnHeader = True
-        model.BackgroundColor = 16777215
-        self._dialog.Model.insertByName(grid.Name, grid)
 
     def _getGrantees(self):
         return self._dialog.getControl('ListBox1')

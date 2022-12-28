@@ -31,6 +31,11 @@ import uno
 import unohelper
 
 from com.sun.star.frame import XDispatchProvider
+from com.sun.star.frame import FeatureStateEvent
+from com.sun.star.frame import XNotifyingDispatch
+
+from com.sun.star.frame.DispatchResultState import SUCCESS
+from com.sun.star.frame.DispatchResultState import FAILURE
 
 from com.sun.star.lang import XInitialization
 from com.sun.star.lang import XServiceInfo
@@ -38,10 +43,17 @@ from com.sun.star.lang import XServiceInfo
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from jdbcdriver import AdminDispatch
+from jdbcdriver import UserManager
+from jdbcdriver import GroupManager
+
+from jdbcdriver import createMessageBox
+from jdbcdriver import createService
+from jdbcdriver import hasInterface
+from jdbcdriver import getStringResource
 
 from jdbcdriver import getMessage
 from jdbcdriver import logMessage
+
 from jdbcdriver import g_identifier
 
 import traceback
@@ -91,4 +103,98 @@ class AdminDispatcher(unohelper.Base,
 g_ImplementationHelper.addImplementation(AdminDispatcher,                            # UNO object class
                                          g_ImplementationName,                       # Implementation name
                                         (g_ImplementationName,))                     # List of implemented services
+
+
+class AdminDispatch(unohelper.Base,
+                    XNotifyingDispatch):
+    def __init__(self, ctx, frame):
+        self._ctx = ctx
+        self._frame = frame
+        self._listeners = []
+
+# XNotifyingDispatch
+    def dispatchWithNotification(self, url, arguments, listener):
+        state, result = self.dispatch(url, arguments)
+        struct = 'com.sun.star.frame.DispatchResultEvent'
+        notification = uno.createUnoStruct(struct, self, state, result)
+        listener.dispatchFinished(notification)
+
+    def dispatch(self, url, arguments):
+        state = FAILURE
+        result = None
+        xusers = "com.sun.star.sdbcx.XUsersSupplier"
+        xgroups = "com.sun.star.sdbcx.XGroupsSupplier"
+        parent = self._frame.getContainerWindow()
+        close, connection = self._getConnection()
+        if not hasInterface(connection, xusers) or not hasInterface(connection, xgroups):
+            dialog = createMessageBox(parent, *self._getDialogData())
+            dialog.execute()
+            dialog.dispose()
+        else:
+            if url.Path == 'users':
+                state, result = self._showUsers(connection, parent, self._getGroups(connection, xgroups))
+            elif url.Path == 'groups':
+                state, result = self._showGroups(connection, parent, self._getGroups(connection, xgroups))
+        if close:
+            connection.close()
+        return state, result
+
+    def addStatusListener(self, listener, url):
+        #state = FeatureStateEvent()
+        #state.FeatureURL = url
+        #state.IsEnabled = True
+        #state.State = True
+        #listener.statusChanged(state)
+        self._listeners.append(listener);
+
+    def removeStatusListener(self, listener, url):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
+# AdminDispatch private methods
+    def _getGroups(self, connection, interface):
+        groups = connection.getGroups()
+        recursive = False
+        if groups.hasElements():
+            recursive = hasInterface(groups.getByIndex(0), interface)
+        return groups, recursive
+
+    def _showUsers(self, connection, parent, groups):
+        state = FAILURE
+        try:
+            manager = UserManager(self._ctx, connection, parent, *groups)
+            manager.execute()
+            state = SUCCESS
+            manager.dispose()
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+        return state, None
+
+    def _showGroups(self, connection, parent, groups):
+        state = FAILURE
+        try:
+            manager = GroupManager(self._ctx, connection, parent, *groups)
+            manager.execute()
+            state = SUCCESS
+            manager.dispose()
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+        return state, None
+
+    def _getConnection(self):
+        close = False
+        connection = self._frame.Controller.ActiveConnection
+        if connection is None:
+            datasource = self._frame.Controller.DataSource
+            connection = datasource.getConnection(datasource.User, datasource.Password)
+            close = True
+        return close, connection
+
+    def _getDialogData(self):
+        resolver = getStringResource(self._ctx, g_identifier, g_extension)
+        message = resolver.resolveString('MessageBox.Admin.Message')
+        title = resolver.resolveString('MessageBox.Admin.Title')
+        return message, title, 'error'
 

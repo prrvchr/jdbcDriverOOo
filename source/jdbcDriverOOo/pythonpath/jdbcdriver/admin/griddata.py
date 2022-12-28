@@ -38,7 +38,7 @@ from com.sun.star.awt.grid import XSortableGridData
 
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
-from jdbcdriver import createService
+from ..unotool import createService
 
 import traceback
 

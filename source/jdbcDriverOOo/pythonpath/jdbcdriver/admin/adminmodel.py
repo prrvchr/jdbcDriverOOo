@@ -33,17 +33,20 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.container import ElementExistException
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
 from com.sun.star.style.HorizontalAlignment import CENTER
 from com.sun.star.style.HorizontalAlignment import LEFT
 
-from jdbcdriver import createService
-from jdbcdriver import getStringResource
+from com.sun.star.view.SelectionType import SINGLE
 
-from jdbcdriver import g_identifier
-from jdbcdriver import g_extension
+from com.sun.star.container import ElementExistException
+
+from ..unotool import createService
+from ..unotool import getStringResource
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
 
 import traceback
 
@@ -65,7 +68,7 @@ class AdminModel(unohelper.Base):
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
         self._data = data
-        self._grid = GridManager(ctx, model, parent, possize, setting, None, 8, True, 'Grid1')
+        self._grid = GridManager(ctx, model, listener, parent, possize, setting, SINGLE, None, 8, True, 'Grid1')
 
         self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
         self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
