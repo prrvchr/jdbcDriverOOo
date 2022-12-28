@@ -61,6 +61,13 @@ class GridView(unohelper.Base):
     def getSelectedRows(self):
         return self._getGrid().getSelectedRows()
 
+    def getSelectedRow(self):
+        index = -1
+        control = self._getGrid()
+        if control.hasSelectedRows():
+            index = control.getSelectedRows()[0]
+        return index
+
     def getUnSelected(self):
         return 'column-0.png'
 
@@ -74,6 +81,9 @@ class GridView(unohelper.Base):
     def setWindowPosSize(self, state):
         self._setGridPosSize(state)
         self._window.Model.Step = state +1
+
+    def addSelectionListener(self, listener):
+        self._getGrid().addSelectionListener(listener)
 
     def showGridColumnHeader(self, state):
         self._getGrid().Model.ShowColumnHeader = state
@@ -126,9 +136,6 @@ class GridView(unohelper.Base):
         model.Height = possize.Height
         model.Width = possize.Width
         model.Step = step
-
-    def _getMargin(self):
-        return self._getToggle().Model.Width
 
     def _createGrid(self, data, selection):
         model = self._getGridModel(data, selection)
