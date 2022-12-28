@@ -67,26 +67,26 @@ class AdminModel(unohelper.Base):
                            'UsersTitle'       : 'UsersDialog.Title',
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
-        self._data = data
         self._grid = GridManager(ctx, datasource, model, listener, parent, possize, setting, SINGLE, None, 8, True, 'Grid1')
-
-        self._column = createService(ctx, "com.sun.star.awt.grid.DefaultGridColumnModel")
-        self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
+        column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
+        self._grid.Column.addColumn(column)
         for index in flags:
             title = self._getPrivilegeHeader(index)
-            self._column.addColumn(self._getColumn(self._column.createColumn(), title))
+            column = self._getColumn(self._grid.Column.createColumn(), index, title)
+            self._grid.Column.addColumn(column)
 
-    def _getColumn(self, column, title, width=70, flex=1, align=CENTER):
+    def _getColumn(self, column, title, index, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width
         column.MinWidth = width
         column.HorizontalAlign = align
         column.Resizeable = True
         column.Flexibility = flex
         column.Title = title
+        column.Identifier = index
         return column
 
     def getGridModels(self):
-        return self._data, self._column
+        return self._grid.Model, self._grid.Column
 
     def getDropGroupInfo(self):
         return self._getDropGroupMessage(), self._getDropGroupTitle()
@@ -95,7 +95,7 @@ class AdminModel(unohelper.Base):
         return self._getDropUserMessage(), self._getDropUserTitle()
 
     def isNameValid(self, name):
-        return len(name) and name not in self._data.getGrantees().getElementNames()
+        return len(name) and name not in self._grid.Model.getGrantees().getElementNames()
 
     def isUserValid(self, user, pwd, confirmation):
         return self.isNameValid(user) and self.isPasswordConfirmed(pwd, confirmation)
@@ -107,26 +107,26 @@ class AdminModel(unohelper.Base):
         return pwd == confirmation
 
     def createUser(self, user, password):
-        descriptor = self._data.getGrantees().createDataDescriptor()
+        descriptor = self._grid.Model.getGrantees().createDataDescriptor()
         descriptor.setPropertyValue('Password', password)
         return self._createGrantee(descriptor, user)
 
     def createGroup(self, group):
-        descriptor = self._data.getGrantees().createDataDescriptor()
+        descriptor = self._grid.Model.getGrantees().createDataDescriptor()
         return self._createGrantee(descriptor, group)
 
     def _createGrantee(self, descriptor, grantee):
-        grantees = self._data.getGrantees().getElementNames()
+        grantees = self._grid.Model.getGrantees().getElementNames()
         descriptor.setPropertyValue('Name', grantee)
         try:
-            self._data.getGrantees().appendByDescriptor(descriptor)
+            self._grid.Model.getGrantees().appendByDescriptor(descriptor)
         except ElementExistException as e:
             return None
         return grantees
 
     def getNewGrantees(self, olds):
         grantee = None
-        grantees = self._data.getGrantees()
+        grantees = self._grid.Model.getGrantees()
         grantees.refresh()
         elements = grantees.getElementNames()
         for element in elements:
@@ -136,23 +136,23 @@ class AdminModel(unohelper.Base):
         return elements, grantee
 
     def getUsers(self):
-        users = self._data.getGrantee().getUsers()
+        users = self._grid.Model.getGrantee().getUsers()
         members = users.getElementNames()
-        if self._data.isRecursive():
-            members = self._getFilteredMembers(users, self._data.getGrantees().getElementNames())
+        if self._grid.Model.isRecursive():
+            members = self._getFilteredMembers(users, self._grid.Model.getGrantees().getElementNames())
         availables = self._getFilteredMembers(self._members, members)
         return self._getUsersTitle(), members, availables
 
     def getGroups(self):
-        members = self._data.getGrantee().getGroups().getElementNames()
+        members = self._grid.Model.getGrantee().getGroups().getElementNames()
         availables = self._getFilteredMembers(self._members, members)
         return self._getGroupsTitle(), members, availables
 
     def getRoles(self):
-        members = self._data.getGrantee().getGroups().getElementNames()
+        members = self._grid.Model.getGrantee().getGroups().getElementNames()
         #TODO: We must avoid recursive assignments and therefore filter the current Grantee
         #TODO: as well as the groups having the current Grantee in assigned roles
-        availables = self._getFilteredMembers(self._data.getGrantees(), members, True)
+        availables = self._getFilteredMembers(self._grid.Model.getGrantees(), members, True)
         return self._getRolesTitle(), members, availables
 
     def isMemberModified(self, grantees, isgroup):
@@ -166,7 +166,7 @@ class AdminModel(unohelper.Base):
         return False
 
     def setMembers(self, elements, isgroup):
-        grantees = self._data.getGrantee().getGroups() if isgroup else self._data.getGrantee().getUsers()
+        grantees = self._grid.Model.getGrantee().getGroups() if isgroup else self._grid.Model.getGrantee().getUsers()
         members = grantees.getElementNames()
         for element in elements:
             if element not in members:
@@ -180,18 +180,18 @@ class AdminModel(unohelper.Base):
         self._members.refresh()
         # TODO: If it is a group to update privilege inheritance, we need to refresh grid privileges
         if isgroup:
-            self._data.refresh()
+            self._grid.Model.refresh()
 
     def dropGrantee(self):
-        self._data.getGrantees().dropByName(self._grantee)
-        return self._data.getGrantees().getElementNames()
+        self._grid.Model.getGrantees().dropByName(self._grantee)
+        return self._grid.Model.getGrantees().getElementNames()
 
     def setUserPassword(self, pwd):
-        self._data.getGrantee().changePassword(pwd, pwd)
+        self._grid.Model.getGrantee().changePassword(pwd, pwd)
 
     def setGrantee(self, grantee):
         self._grantee = grantee
-        recursive = self._data.setGrantee(grantee)
+        recursive = self._grid.Model.setGrantee(grantee)
         enabled = grantee is not None
         return enabled, recursive, self._isRemovable(grantee)
 
@@ -204,20 +204,20 @@ class AdminModel(unohelper.Base):
     def getPrivileges(self, index):
         name = self._getTable(index)
         privileges, grantables = self._getPrivileges(index, name)
-        inherited = self._data.getInheritedPrivileges(name)
+        inherited = self._grid.Model.getInheritedPrivileges(name)
         return name, privileges, grantables, inherited
 
     def setPrivileges(self, index, grant, revoke):
         table = self._getTable(index)
-        grantee = self._data.getGrantee()
+        grantee = self._grid.Model.getGrantee()
         if grant != 0:
             grantee.grantPrivileges(table, TABLE, grant)
         if revoke != 0:
             grantee.revokePrivileges(table, TABLE, revoke)
-        self._data.refresh(index)
+        self._grid.Model.refresh(index)
 
     def _getMembers(self, isgroup):
-        grantee = self._data.getGrantee()
+        grantee = self._grid.Model.getGrantee()
         return grantee.getGroups().getElementNames() if isgroup else grantee.getUsers().getElementNames()
 
     def _getFilteredMembers(self, grantees, filters, recursive=False):
@@ -230,7 +230,7 @@ class AdminModel(unohelper.Base):
         return True
 
     def _getPrivileges(self, index, name):
-        privileges = self._data.getGranteePrivileges(name)
+        privileges = self._grid.Model.getGranteePrivileges(name)
         grantables = self.getGrantablePrivileges(index)
         return privileges, grantables
 
@@ -238,7 +238,7 @@ class AdminModel(unohelper.Base):
         return self._tables.getElementNames()[index]
 
     def _isRemovable(self, user):
-        return self._data.isGroup() or self._user.getPropertyValue('Name') != user
+        return self._grid.Model.isGroup() or self._user.getPropertyValue('Name') != user
 
 # GroupModel StringResource methods
     def _getTableHeader(self):
