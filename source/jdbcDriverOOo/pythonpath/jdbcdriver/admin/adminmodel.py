@@ -88,6 +88,9 @@ class AdminModel(unohelper.Base):
         column.Identifier = index
         return column
 
+    def dispose(self):
+        self._grid.dispose()
+
     def getGridModels(self):
         return self._grid.Model, self._grid.Column
 
