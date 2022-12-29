@@ -37,7 +37,6 @@ from .gridhandler import GridDataListener
 
 from ..unotool import createService
 from ..unotool import getConfiguration
-from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 
 from ..configuration import g_extension
@@ -49,7 +48,7 @@ import traceback
 
 
 class GridManagerBase(unohelper.Base):
-    def __init__(self, ctx, model, parent, possize, setting, selection, resource=None, maxi=None, multi=False, name='Grid1'):
+    def __init__(self, ctx, url, model, parent, possize, setting, selection, resource=None, maxi=None, multi=False, name='Grid1'):
         self._ctx = ctx
         self._factor = 5
         self._resource = resource
@@ -68,8 +67,9 @@ class GridManagerBase(unohelper.Base):
         self._identifier = None
         self._index = -1
         self._type = -1
-        self._url = getResourceLocation(ctx, g_identifier, g_extension)
+        self._url = url
         self._headers = {}
+        self._properties = {}
         self._model = model
         grid = createService(ctx, 'com.sun.star.awt.grid.SortableGridDataModel')
         # TODO: We can use an XGridDataListener to be notified when the row display order is changed
@@ -126,6 +126,9 @@ class GridManagerBase(unohelper.Base):
         self.saveColumnSettings()
         self._column.dispose()
         self._model.dispose()
+
+    def setGridVisible(self, enabled):
+        self._view.setWindowVisible(enabled)
 
     def addSelectionListener(self, listener):
         self._view.getGrid().addSelectionListener(listener)
@@ -293,6 +296,9 @@ class GridManagerBase(unohelper.Base):
             column.Title = self._headers[identifier]
             indexes = tuple(self._headers.keys())
             column.DataColumnIndex = indexes.index(identifier)
+            if identifier in self._properties:
+                for property in self._properties[identifier]:
+                    setattr(column, property.Name, property.Value)
             self._column.addColumn(column)
             created = True
         return created

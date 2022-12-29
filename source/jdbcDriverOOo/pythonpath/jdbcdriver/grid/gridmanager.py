@@ -29,19 +29,25 @@
 
 from com.sun.star.sdbc.DataType import VARCHAR
 
+from com.sun.star.style.HorizontalAlignment import CENTER
+
 from .gridmanagerbase import GridManagerBase
+
+from ..unotool import getNamedValue
 
 from collections import OrderedDict
 import traceback
 
 
 class GridManager(GridManagerBase):
-    def __init__(self, ctx, datasource, listener, flags, model, parent, possize, setting, selection, resource, maxi=None, multi=False, name='Grid1'):
-        GridManagerBase.__init__(self, ctx, model, parent, possize, setting, selection, resource, maxi, multi, name)
+    def __init__(self, ctx, datasource, listener, flags, url, model, parent, possize, setting, selection, resource, maxi=None, multi=False, name='Grid1'):
+        GridManagerBase.__init__(self, ctx, url, model, parent, possize, setting, selection, resource, maxi, multi, name)
         self._datasource = datasource
-        self._identifier = 'Table'
+        self._identifier = '0'
+        self._index = 0
+        self._type = VARCHAR
         self._view.showGridColumnHeader(False)
-        self._headers, self._index, self._type = self._getHeadersInfo(flags)
+        self._properties, self._headers = self._getGridInfos(flags)
         identifiers = self._initColumnModel(datasource)
         self._view.initColumns(self._url, self._headers, identifiers)
         self._model.sortByColumn(*self._getSavedOrders(datasource))
@@ -54,17 +60,16 @@ class GridManager(GridManagerBase):
         print("GridManager.refresh() *********************************************************")
         self._view.setWindowVisible(True)
 
-    def setGridVisible(self, enabled):
-        self._view.setWindowVisible(enabled)
-
 # GridManager private getter methods
-    def _getHeadersInfo(self, flags):
-        index = 0
-        type = VARCHAR
+    def _getGridInfos(self, flags):
+        properties = {}
         headers = OrderedDict()
+        property = getNamedValue('HorizontalAlign', CENTER)
         # FIXME: The key must be a String to be able to save in json format.
         headers['0'] = self._getColumnTitle(0)
-        for key in flags:
-            headers['%s' % key] = self._getColumnTitle(key)
-        return headers, index, type
+        for i in flags:
+            identifier = '%s' % i
+            properties[identifier] = (property, )
+            headers[identifier] = self._getColumnTitle(i)
+        return properties, headers
 

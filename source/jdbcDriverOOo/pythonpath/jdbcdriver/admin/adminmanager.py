@@ -63,6 +63,10 @@ from ..grid import GridModel
 from ..grid import GridListener
 
 from ..unotool import createMessageBox
+from ..unotool import getResourceLocation
+
+from ..configuration import g_extension
+from ..configuration import g_identifier
 
 import traceback
 
@@ -78,8 +82,9 @@ class AdminManager(unohelper.Base):
         self._view = view
         possize = self._view.getGridPosSize()
         parent = self._view.getGridParent()
-        model = GridModel(ctx, grantees, tables.getElementNames(), self._flags, recursive, isuser)
-        self._model = AdminModel(ctx, datasource, model, GridListener(self), user, members, tables, self._flags, possize, parent, 'AdminGrid')
+        url = getResourceLocation(ctx, g_identifier, g_extension)
+        model = GridModel(ctx, grantees, tables.getElementNames(), self._flags, recursive, isuser, url)
+        self._model = AdminModel(ctx, datasource, model, GridListener(self), url, user, members, tables, self._flags, possize, parent, 'AdminGrid')
         self._dialog = None
         self._disabled = True
         self._view.initGrantees(self._model.getGrantees())

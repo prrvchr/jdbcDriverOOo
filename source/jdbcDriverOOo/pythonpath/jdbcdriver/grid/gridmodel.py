@@ -31,11 +31,14 @@ from com.sun.star.sdbcx.PrivilegeObject import TABLE
 
 from .gridmodelbase import GridModelBase
 
+from ..unotool import createService
+from ..unotool import getPropertyValueSet
+
 import traceback
 
 
 class GridModel(GridModelBase):
-    def __init__(self, ctx, grantees, tables, flags, recursive, isuser):
+    def __init__(self, ctx, grantees, tables, flags, recursive, isuser, url):
         GridModelBase.__init__(self, ctx)
         self._grantee = None
         self._grantees = grantees
@@ -46,6 +49,12 @@ class GridModel(GridModelBase):
         self._rows = {}
         self._row = len(tables)
         self._column = len(flags) + 1
+        images = []
+        provider = createService(ctx, 'com.sun.star.graphic.GraphicProvider')
+        print("GridModel__init__() URL: %s" % url)
+        for i in range(3):
+            images.append(self._getImage(provider, url, i))
+        self._images = tuple(images)
 
 # com.sun.star.util.XCloneable
     def createClone(self):
@@ -56,7 +65,7 @@ class GridModel(GridModelBase):
         table = self._tables[row]
         if column == 0:
             return table
-        return self._getDataPrivileges(table, row, column)
+        return self._getPrivilegeImage(table, row, column)
 
     def getCellToolTip(self, column, row):
         return ""
@@ -68,7 +77,7 @@ class GridModel(GridModelBase):
         table = self._tables[row]
         values = [table]
         for index in range(0, self.ColumnCount):
-            values.append(self._getDataPrivileges(table, row, index +1))
+            values.append(self._getPrivilegeImage(table, row, index +1))
         return tuple(values)
 
 # GridModel getter methods
@@ -90,10 +99,11 @@ class GridModel(GridModelBase):
         return not self._isuser
 
     def getGranteePrivileges(self, table, recursive=False):
+        ascendants = 0
         privileges = self.getGrantee().getPrivileges(table, TABLE)
         if recursive:
-            privileges |= self._getInheritedPrivileges(table, self.getGrantee(), 0)
-        return privileges
+            ascendants = self._getInheritedPrivileges(table, self.getGrantee(), 0)
+        return privileges, ascendants
 
     def getInheritedPrivileges(self, table):
         return self._getInheritedPrivileges(table, self.getGrantee(), 0) if self._needInherited() else 0
@@ -109,16 +119,32 @@ class GridModel(GridModelBase):
         #self._changeData(first, last)
 
 # GridModel private getter methods
+    def _getImage(self, provider, path, index):
+        url = '%s/privilege-%s.png' % (path, index)
+        properties = getPropertyValueSet({'URL': url})
+        image = provider.queryGraphic(properties)
+        return image
+
+    def _getPrivilegeImage(self, table, row, column):
+        privilege, ascendant = self._getDataPrivileges(table, row, column)
+        if privilege:
+            index = 2
+        elif ascendant:
+            index = 1
+        else:
+            index = 0
+        return self._images[index]
+
     def _getDataPrivileges(self, table, row, column):
-        privileges = 0
+        privileges = ascendants = 0
         flag = self._flags[column]
         if self._grantee is not None:
-            privileges = self._getRowPrivileges(table, row)
-        return flag == privileges & flag
+            privileges, ascendants = self._getRowPrivileges(table, row)
+        return flag == privileges & flag, flag == ascendants & flag
 
     def _getRowPrivileges(self, table, row):
         if row not in self._rows:
-            self._rows[row] = self.getGranteePrivileges(table, self._isuser or self._recursive)
+            self._rows[row] = self.getGranteePrivileges(table, self._needInherited())
         return self._rows[row]
 
     def _needInherited(self):
