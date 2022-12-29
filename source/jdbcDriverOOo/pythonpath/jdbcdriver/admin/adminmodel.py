@@ -94,8 +94,8 @@ class AdminModel(unohelper.Base):
     def getGridModels(self):
         return self._grid.Model, self._grid.Column
 
-    def getSelectedGridIndex(self):
-        return self._grid.getSelectedRow()
+    def getSelectedIdentifier(self):
+        return self._grid.getSelectedIdentifier()
 
     def getGrantees(self):
         return self._grid.Model.getGrantees().getElementNames()
@@ -207,27 +207,25 @@ class AdminModel(unohelper.Base):
         enabled = grantee is not None
         return enabled, recursive, self._isRemovable(grantee)
 
-    def getGrantablePrivileges(self, index):
+    def hasGrantablePrivileges(self, table):
         privileges = 0
-        if index != -1:
-            print("AdminModel.getGrantablePrivileges() %s" % self._getTable(index))
-            privileges = self._user.getGrantablePrivileges(self._getTable(index), TABLE)
-        return privileges
+        if table is not None:
+            privileges = self._user.getGrantablePrivileges(table, TABLE)
+        return privileges != 0
 
-    def getPrivileges(self, index):
-        name = self._getTable(index)
-        privileges, grantables = self._getPrivileges(index, name)
-        inherited = self._grid.Model.getInheritedPrivileges(name)
-        return name, privileges, grantables, inherited
+    def getPrivileges(self):
+        table = self._grid.getSelectedIdentifier()
+        privileges, grantables = self._getPrivileges(table)
+        inherited = self._grid.Model.getInheritedPrivileges(table)
+        return table, privileges, grantables, inherited
 
-    def setPrivileges(self, index, grant, revoke):
-        table = self._getTable(index)
+    def setPrivileges(self, table, grant, revoke):
         grantee = self._grid.Model.getGrantee()
         if grant != 0:
             grantee.grantPrivileges(table, TABLE, grant)
         if revoke != 0:
             grantee.revokePrivileges(table, TABLE, revoke)
-        self._grid.Model.refresh(index)
+        self._grid.Model.refresh(self._grid.getSelectedRow())
 
     def _getMembers(self, isgroup):
         grantee = self._grid.Model.getGrantee()
@@ -242,9 +240,9 @@ class AdminModel(unohelper.Base):
             return grantee != self._grantee and self._grantee not in grantees.getByName(grantee).getGroups().getElementNames()
         return True
 
-    def _getPrivileges(self, index, name):
-        privileges = self._grid.Model.getGranteePrivileges(name)
-        grantables = self.getGrantablePrivileges(index)
+    def _getPrivileges(self, table):
+        privileges = self._grid.Model.getGranteePrivileges(table)
+        grantables = self._user.getGrantablePrivileges(table, TABLE)
         return privileges, grantables
 
     def _getTable(self, index):

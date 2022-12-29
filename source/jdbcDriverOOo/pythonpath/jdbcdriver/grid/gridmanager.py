@@ -55,8 +55,8 @@ class GridManager(GridManagerBase):
         headers = OrderedDict()
         title = self._resolver.resolveString('GranteeDialog.Grid1.Column1')
         headers[title] = title
-        for index in flags:
-            title = self._getColumnTitle(index)
+        for key in flags:
+            title = self._getColumnTitle(key)
             headers[title] = title
         return headers, index, type
 

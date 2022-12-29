@@ -106,8 +106,8 @@ class AdminManager(unohelper.Base):
 
     def setGrantee(self, grantee):
         self._view.enableButton(*self._model.setGrantee(grantee))
-        index = self._model.getSelectedGridIndex()
-        enabled = self._model.getGrantablePrivileges(index) != 0
+        table = self._model.getSelectedIdentifier()
+        enabled = self._model.hasGrantablePrivileges(table)
         self._view.enableSetPrivileges(enabled)
 
     def createGroup(self):
@@ -210,19 +210,19 @@ class AdminManager(unohelper.Base):
         self._dropGrantee(*self._model.getDropUserInfo())
 
     def changeGridSelection(self, index, grid):
+        table = self._model.getSelectedIdentifier()
         print("AdminManager.changeGridSelection() 1 Index: %s" % index)
-        enabled = self._model.getGrantablePrivileges(index) != 0
+        enabled = self._model.hasGrantablePrivileges(table)
         print("AdminManager.changeGridSelection() 2 Enabled: %s" % enabled)
         self._view.enableSetPrivileges(enabled)
 
     def setPrivileges(self):
-        index = self._view.getSelectedGridIndex()
-        table, privileges, grantables, inherited = self._model.getPrivileges(index)
+        table, privileges, grantables, inherited = self._model.getPrivileges()
         dialog = PrivilegeView(self._ctx, self._flags, table, privileges, grantables, inherited)
         if dialog.execute() == OK:
             flags = dialog.getPrivileges(self._flags)
             if flags != privileges:
-                self._model.setPrivileges(index, *self._getPrivileges(privileges, flags))
+                self._model.setPrivileges(table, *self._getPrivileges(privileges, flags))
         dialog.dispose()
 
     def _toogleOk(self, isgroup):

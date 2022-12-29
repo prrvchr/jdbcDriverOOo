@@ -40,7 +40,7 @@ from ..configuration import g_extension
 class AdminView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 82, 350, 150)
+        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 5, 82, 355, 150)
 
     def initGrantees(self, grantees, grantee=None):
         control = self._getGrantees()
@@ -71,13 +71,6 @@ class AdminView(unohelper.Base):
     def enableSetPrivileges(self, enabled):
         self._getSetPrivileges().Model.Enabled = enabled
 
-    def getSelectedGridIndex(self):
-        index = -1
-        grid = self._getGrid()
-        if grid.hasSelectedRows():
-            index = grid.getSelectedRows()[0]
-        return index
-
     def getPeer(self):
         return self._dialog.getPeer()
 
@@ -92,9 +85,6 @@ class AdminView(unohelper.Base):
 
     def _getDropGrantee(self):
         return self._dialog.getControl('CommandButton3')
-
-    def _getGrid(self):
-        return self._dialog.getControl('Grid1')
 
     def _getSetPrivileges(self):
         return self._dialog.getControl('CommandButton4')
