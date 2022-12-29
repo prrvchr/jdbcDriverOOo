@@ -42,6 +42,8 @@ from com.sun.star.view.SelectionType import SINGLE
 
 from com.sun.star.container import ElementExistException
 
+from ..grid import GridManager
+
 from ..unotool import createService
 from ..unotool import getStringResource
 
@@ -67,7 +69,8 @@ class AdminModel(unohelper.Base):
                            'UsersTitle'       : 'UsersDialog.Title',
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
-        self._grid = GridManager(ctx, datasource, model, listener, parent, possize, setting, SINGLE, None, 8, True, 'Grid1')
+        resource = 'PrivilegesDialog.CheckBox%s.Label'
+        self._grid = GridManager(ctx, datasource, listener, flags, model, parent, possize, setting, SINGLE, resource, 8, True, 'Grid1')
         column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
         self._grid.Column.addColumn(column)
         for index in flags:

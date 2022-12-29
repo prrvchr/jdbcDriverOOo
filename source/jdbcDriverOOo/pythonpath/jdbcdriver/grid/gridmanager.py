@@ -36,17 +36,16 @@ import traceback
 
 
 class GridManager(GridManagerBase):
-    def __init__(self, ctx, datasource, model, listener, parent, possize, setting, selection, resource=None, maxi=None, multi=False, name='Grid1'):
+    def __init__(self, ctx, datasource, listener, flags, model, parent, possize, setting, selection, resource, maxi=None, multi=False, name='Grid1'):
         GridManagerBase.__init__(self, ctx, model, parent, possize, setting, selection, resource, maxi, multi, name)
         self._datasource = datasource
         self._identifier = 'Table'
-        self._index = 0
-        self._type = VARCHAR
-        self._column.addColumn(self._getColumn(self._column.createColumn(), self._getTableHeader(), 120, 2, LEFT))
-        for index in flags:
-            title = self._getPrivilegeHeader(index)
-            self._column.addColumn(self._getColumn(self._column.createColumn(), title))
-
+        self._view.showGridColumnHeader(False)
+        self._headers, self._index, self._type = self._getHeadersInfo(flags)
+        identifiers = self._initColumnModel(datasource, '')
+        self._view.initColumns(self._url, self._headers, identifiers)
+        self._model.sortByColumn(*self._getSavedOrders(datasource, ''))
+        self._view.showGridColumnHeader(True)
         self._view.addSelectionListener(listener)
 
 # GridManager setter methods
@@ -76,15 +75,14 @@ class GridManager(GridManagerBase):
             self._grid.sortByColumn(*self._getSavedOrders(datasource, query))
 
 # GridManager private methods
-    def _getColumns(self, metadata):
-        index = type = -1
-        columns = OrderedDict()
-        for i in range(metadata.getColumnCount()):
-            column = metadata.getColumnLabel(i +1)
-            title = self._getColumnTitle(column)
-            if self._identifier == column:
-                index = i
-                type = metadata.getColumnType(i +1)
-            columns[column] = title
-        return columns, index, type
+    def _getHeadersInfo(self, flags):
+        index = 0
+        type = VARCHAR
+        headers = OrderedDict()
+        title = self._resolver.resolveString('GranteeDialog.Grid1.Column1')
+        headers[title] = title
+        for index in flags:
+            title = self._getColumnTitle(index)
+            headers[title] = title
+        return headers, index, type
 

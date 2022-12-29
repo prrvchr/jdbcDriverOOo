@@ -29,18 +29,18 @@
   xmlns:oor="http://openoffice.org/2001/registry"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  oor:package="com.gmail.prrvchr.extensions"
+  oor:package="io.github.prrvchr"
   oor:name="jdbcDriverOOo">
     <prop oor:name="UserGridColumns" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-    <prop oor:name="GroupGridColumns" oor:op="fuse">
         <value>{}</value>
     </prop>
     <prop oor:name="UserGridOrders" oor:op="fuse">
         <value>{}</value>
     </prop>
-    <prop oor:name="GrouoGridOrders" oor:op="fuse">
+    <prop oor:name="GroupGridColumns" oor:op="fuse">
+        <value>{}</value>
+    </prop>
+    <prop oor:name="GroupGridOrders" oor:op="fuse">
         <value>{}</value>
     </prop>
 </oor:component-data>
