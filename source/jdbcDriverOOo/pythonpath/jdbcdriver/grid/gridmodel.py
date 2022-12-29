@@ -47,32 +47,11 @@ class GridModel(GridModelBase):
         self._row = len(tables)
         self._column = len(flags) + 1
 
-    def setGrantee(self, grantee):
-        self._grantee = None if grantee is None else self._grantees.getByName(grantee)
-        self.refresh()
-        return self._recursive
-
-    def getGrantee(self):
-        return self._grantee
-
-    def getGrantees(self):
-        return self._grantees
-
-    def refresh(self, row=None):
-        if row is None:
-            self._rows = {}
-        else:
-            del self._rows[row]
-        first = 0 if row is None else row
-        last = self._row -1 if row is None else row
-        self._changeData(first, last)
-
-
-    # com.sun.star.util.XCloneable
+# com.sun.star.util.XCloneable
     def createClone(self):
-        return GridModel(self._grantees, self._tables, self._flags, self._recursive, self._isuser)
+        return GridModel(self._ctx, self._grantees, self._tables, self._flags, self._recursive, self._isuser)
 
-    # com.sun.star.awt.grid.XGridDataModel
+# com.sun.star.awt.grid.XGridDataModel
     def getCellData(self, column, row):
         table = self._tables[row]
         if column == 0:
@@ -93,6 +72,17 @@ class GridModel(GridModelBase):
         return tuple(values)
 
 # GridModel getter methods
+    def setGrantee(self, grantee):
+        self._grantee = None if grantee is None else self._grantees.getByName(grantee)
+        self.refresh()
+        return self._recursive
+
+    def getGrantee(self):
+        return self._grantee
+
+    def getGrantees(self):
+        return self._grantees
+
     def isRecursive(self):
         return self._recursive
 
@@ -107,6 +97,16 @@ class GridModel(GridModelBase):
 
     def getInheritedPrivileges(self, table):
         return self._getInheritedPrivileges(table, self.getGrantee(), 0) if self._needInherited() else 0
+
+# GridModel setter methods
+    def refresh(self, row=None):
+        if row is None:
+            self._rows = {}
+        else:
+            del self._rows[row]
+        first = 0 if row is None else row
+        last = self._row -1 if row is None else row
+        self._changeData(first, last)
 
 # GridModel private getter methods
     def _getDataPrivileges(self, table, row, column):

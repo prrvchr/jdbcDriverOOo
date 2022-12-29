@@ -42,11 +42,6 @@ class AdminView(unohelper.Base):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
         self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 82, 350, 150)
 
-    def init(self, listener, model, columns):
-        self._createGrid(model, columns)
-        self._getGrid().addSelectionListener(listener)
-        self.initGrantees(model.getGrantees().getElementNames())
-
     def initGrantees(self, grantees, grantee=None):
         control = self._getGrantees()
         control.Model.StringItemList = grantees

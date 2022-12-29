@@ -48,32 +48,6 @@ class GridManager(GridManagerBase):
         self._view.showGridColumnHeader(True)
         self._view.addSelectionListener(listener)
 
-# GridManager setter methods
-    def setDataModel(self, rowset, identifier):
-        datasource = rowset.ActiveConnection.Parent.Name
-        query = rowset.UpdateTableName
-        changed = self._isDataSourceChanged(datasource, query)
-        if changed:
-            if self._isGridLoaded():
-                self._saveWidths()
-                self._saveOrders()
-            # We can hide GridColumnHeader and reset GridDataModel
-            # but after saving GridColumnModel Widths
-            self._view.showGridColumnHeader(False)
-            #self._grid.resetRowSetData()
-            self._identifier = identifier
-            self._columns, self._index, self._type = self._getColumns(rowset.getMetaData())
-            identifiers = self._initColumnModel(datasource, query)
-            self._view.initColumns(self._url, self._columns, identifiers)
-            self._query = query
-            self._datasource = datasource
-            self._view.showGridColumnHeader(True)
-        self._view.setWindowVisible(False)
-        self._grid.setRowSetData(rowset)
-        self._view.setWindowVisible(True)
-        if changed:
-            self._grid.sortByColumn(*self._getSavedOrders(datasource, query))
-
 # GridManager private methods
     def _getHeadersInfo(self, flags):
         index = 0

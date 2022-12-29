@@ -86,7 +86,7 @@ class AdminManager(unohelper.Base):
         self._model = AdminModel(ctx, datasource, model, GridListener(self), user, members, tables, self._flags, possize, parent, setting)
         self._dialog = None
         self._disabled = True
-        #self._view.init(GridListener(self), *self._model.getGridModels())
+        self._view.initGrantees(self._model.getGrantees())
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -102,6 +102,7 @@ class AdminManager(unohelper.Base):
 
     def dispose(self):
         self._view.dispose()
+        self._model.dispose()
 
     def setGrantee(self, grantee):
         self._view.enableButton(*self._model.setGrantee(grantee))
@@ -209,7 +210,9 @@ class AdminManager(unohelper.Base):
         self._dropGrantee(*self._model.getDropUserInfo())
 
     def changeGridSelection(self, index, grid):
+        print("AdminManager.changeGridSelection() 1 Index: %s" % index)
         enabled = self._model.getGrantablePrivileges(index) != 0
+        print("AdminManager.changeGridSelection() 2 Enabled: %s" % enabled)
         self._view.enableSetPrivileges(enabled)
 
     def setPrivileges(self):

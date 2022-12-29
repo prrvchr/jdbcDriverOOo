@@ -71,12 +71,12 @@ class AdminModel(unohelper.Base):
                            'RolesTitle'       : 'RolesDialog.Title'}
         resource = 'PrivilegesDialog.CheckBox%s.Label'
         self._grid = GridManager(ctx, datasource, listener, flags, model, parent, possize, setting, SINGLE, resource, 8, True, 'Grid1')
-        column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
-        self._grid.Column.addColumn(column)
-        for index in flags:
-            title = self._getPrivilegeHeader(index)
-            column = self._getColumn(self._grid.Column.createColumn(), index, title)
-            self._grid.Column.addColumn(column)
+        #column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
+        #self._grid.Column.addColumn(column)
+        #for index in flags:
+        #    title = self._getPrivilegeHeader(index)
+        #    column = self._getColumn(self._grid.Column.createColumn(), index, title)
+        #    self._grid.Column.addColumn(column)
 
     def _getColumn(self, column, title, index, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width
@@ -90,6 +90,9 @@ class AdminModel(unohelper.Base):
 
     def getGridModels(self):
         return self._grid.Model, self._grid.Column
+
+    def getGrantees(self):
+        return self._grid.Model.getGrantees().getElementNames()
 
     def getDropGroupInfo(self):
         return self._getDropGroupMessage(), self._getDropGroupTitle()
@@ -201,6 +204,7 @@ class AdminModel(unohelper.Base):
     def getGrantablePrivileges(self, index):
         privileges = 0
         if index != -1:
+            print("AdminModel.getGrantablePrivileges() %s" % self._getTable(index))
             privileges = self._user.getGrantablePrivileges(self._getTable(index), TABLE)
         return privileges
 
@@ -238,7 +242,7 @@ class AdminModel(unohelper.Base):
         return privileges, grantables
 
     def _getTable(self, index):
-        return self._tables.getElementNames()[index]
+        return self._grid.getRowIdentifier(index)
 
     def _isRemovable(self, user):
         return self._grid.Model.isGroup() or self._user.getPropertyValue('Name') != user
