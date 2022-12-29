@@ -59,10 +59,12 @@ class GridModelBase(unohelper.Base,
     def ColumnCount(self):
         return self._column
 
+# FIXME: We can't use XMutableGridDataModel without this interface XWeak
 # XWeak
     def queryAdapter(self):
         return self
 
+# FIXME: We can't use XMutableGridDataModel without this interface XAdapter
 # XAdapter
     def queryAdapted(self):
         return self
@@ -73,7 +75,7 @@ class GridModelBase(unohelper.Base,
 
 # XCloneable
     def createClone(self):
-        return self
+         raise NotImplementedError('Need to be implemented!')
 
 # XGridDataModel
     def getCellData(self, column, row):
@@ -85,6 +87,7 @@ class GridModelBase(unohelper.Base,
     def getRowData(self, row):
         raise NotImplementedError('Need to be implemented!')
 
+# FIXME: We need this interface to be able to broadcast the data change to all listener
 # XMutableGridDataModel
     def addRow(self, heading, data):
         pass

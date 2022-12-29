@@ -39,6 +39,10 @@ class GridModel(GridModelBase):
         GridModelBase.__init__(self, ctx)
         self._resultset = None
 
+# XCloneable
+    def createClone(self):
+         return self
+
 # XGridDataModel
     def getCellData(self, column, row):
         self._resultset.absolute(row +1)
