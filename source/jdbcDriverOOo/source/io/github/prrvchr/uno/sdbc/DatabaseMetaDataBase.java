@@ -65,7 +65,6 @@ public abstract class DatabaseMetaDataBase
     {
         m_Connection = connection;
         m_Metadata = metadata;
-        System.out.println("sdbc.DatabaseMetaDataBase() 1");
     }
 
 
@@ -234,9 +233,7 @@ public abstract class DatabaseMetaDataBase
     public String getCatalogSeparator() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator() 1");
             String value = m_Metadata.getCatalogSeparator();
-            System.out.println("sdbc.DatabaseMetaData.getCatalogSeparator(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -546,9 +543,7 @@ public abstract class DatabaseMetaDataBase
     public String getIdentifierQuoteString() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getIdentifierQuoteString() 1");
             String value = m_Metadata.getIdentifierQuoteString();
-            System.out.println("sdbc.DatabaseMetaData.getIdentifierQuoteString() 2: " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {

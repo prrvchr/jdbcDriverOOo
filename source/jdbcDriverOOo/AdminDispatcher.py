@@ -74,7 +74,9 @@ class AdminDispatcher(unohelper.Base,
 
 # XInitialization
     def initialize(self, args):
-        if len(args) > 0:
+        service = 'com.sun.star.frame.Frame'
+        interface = 'com.sun.star.lang.XServiceInfo'
+        if len(args) > 0 and hasInterface(args[0], interface) and args[0].supportsService(service):
             self._frame = args[0]
 
 # XDispatchProvider
@@ -102,7 +104,7 @@ class AdminDispatcher(unohelper.Base,
 
 g_ImplementationHelper.addImplementation(AdminDispatcher,                            # UNO object class
                                          g_ImplementationName,                       # Implementation name
-                                        (g_ImplementationName,))                     # List of implemented services
+                                         (g_ImplementationName,))                    # List of implemented services
 
 
 class AdminDispatch(unohelper.Base,
@@ -186,6 +188,8 @@ class AdminDispatch(unohelper.Base,
     def _getConnection(self):
         close = False
         connection = self._frame.Controller.ActiveConnection
+        # FIXME: In Base the connection to the database is not necessarily open,
+        # FIXME: on the other hand if it is opened then it must be closed.
         if connection is None:
             datasource = self._frame.Controller.DataSource
             connection = datasource.getConnection(datasource.User, datasource.Password)

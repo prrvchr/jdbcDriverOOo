@@ -183,7 +183,7 @@ class GridManagerBase(unohelper.Base):
         print("GridManager.setColumnOrder() First: %s Second: %s " % (pair.First, pair.Second))
 
 # GridManager private methods
-    def _initColumnModel(self, datasource, query):
+    def _initColumnModel(self, datasource, query=None):
         # TODO: ColumnWidth should be assigned after all columns have 
         # TODO: been added to the GridColumnModel
         self._removeColumns()
@@ -217,7 +217,9 @@ class GridManagerBase(unohelper.Base):
 
     def _getDataSourceName(self, datasource, query):
         if self._multi:
-            name = '%s.%s' % (datasource, query)
+            name = '%s' % datasource
+            if query is not None:
+                name += '.%s' % query
         else:
             name = datasource
         return name
@@ -260,7 +262,7 @@ class GridManagerBase(unohelper.Base):
             widths = self._widths
         return widths
 
-    def _getSavedOrders(self, datasource, query):
+    def _getSavedOrders(self, datasource, query=None):
         orders = (-1, True)
         if self._multi:
             name = self._getDataSourceName(datasource, query)
@@ -322,7 +324,7 @@ class GridManagerBase(unohelper.Base):
             width = flex * self._factor
             column.ColumnWidth = width
             column.MinWidth = width
-            column.Flexibility = flex
+            column.Flexibility = 0
 
     def _getColumnWidths(self):
         widths = OrderedDict()

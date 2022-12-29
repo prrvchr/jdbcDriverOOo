@@ -104,9 +104,9 @@ class GridModel(GridModelBase):
             self._rows = {}
         else:
             del self._rows[row]
-        first = 0 if row is None else row
-        last = self._row -1 if row is None else row
-        self._changeData(first, last)
+        #first = 0 if row is None else row
+        #last = self._row -1 if row is None else row
+        #self._changeData(first, last)
 
 # GridModel private getter methods
     def _getDataPrivileges(self, table, row, column):

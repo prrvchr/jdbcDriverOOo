@@ -42,21 +42,29 @@ class GridManager(GridManagerBase):
         self._identifier = 'Table'
         self._view.showGridColumnHeader(False)
         self._headers, self._index, self._type = self._getHeadersInfo(flags)
-        identifiers = self._initColumnModel(datasource, '')
+        identifiers = self._initColumnModel(datasource)
         self._view.initColumns(self._url, self._headers, identifiers)
-        self._model.sortByColumn(*self._getSavedOrders(datasource, ''))
+        self._model.sortByColumn(*self._getSavedOrders(datasource))
         self._view.showGridColumnHeader(True)
         self._view.addSelectionListener(listener)
 
-# GridManager private methods
+# GridManager private getter methods
+    def refresh(self, row=None):
+        self._view.setWindowVisible(False)
+        print("GridManager.refresh() *********************************************************")
+        self._view.setWindowVisible(True)
+
+    def setGridVisible(self, enabled):
+        self._view.setWindowVisible(enabled)
+
+# GridManager private getter methods
     def _getHeadersInfo(self, flags):
         index = 0
         type = VARCHAR
         headers = OrderedDict()
-        title = self._resolver.resolveString('GranteeDialog.Grid1.Column1')
-        headers[title] = title
+        # FIXME: The key must be a String to be able to save in json format.
+        headers['0'] = self._getColumnTitle(0)
         for key in flags:
-            title = self._getColumnTitle(key)
-            headers[title] = title
+            headers['%s' % key] = self._getColumnTitle(key)
         return headers, index, type
 

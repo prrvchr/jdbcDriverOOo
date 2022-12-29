@@ -32,9 +32,7 @@
   oor:package="io.github.prrvchr"
   oor:name="jdbcDriverOOo">
     <component>
-        <prop oor:name="UserGridColumns" oor:type="xs:string"/>
-        <prop oor:name="UserGridOrders" oor:type="xs:string"/>
-        <prop oor:name="GroupGridColumns" oor:type="xs:string"/>
-        <prop oor:name="GroupGridOrders" oor:type="xs:string"/>
+        <prop oor:name="AdminGridColumns" oor:type="xs:string"/>
+        <prop oor:name="AdminGridOrders" oor:type="xs:string"/>
     </component>
 </oor:component-schema>

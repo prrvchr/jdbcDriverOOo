@@ -70,7 +70,7 @@ class AdminModel(unohelper.Base):
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
         resource = 'PrivilegesDialog.CheckBox%s.Label'
-        self._grid = GridManager(ctx, datasource, listener, flags, model, parent, possize, setting, SINGLE, resource, 8, True, 'Grid1')
+        self._grid = GridManager(ctx, datasource, listener, flags, model, parent, possize, setting, SINGLE, resource, None, True)
         #column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
         #self._grid.Column.addColumn(column)
         #for index in flags:
@@ -192,7 +192,7 @@ class AdminModel(unohelper.Base):
         self._members.refresh()
         # TODO: If it is a group to update privilege inheritance, we need to refresh grid privileges
         if isgroup:
-            self._grid.Model.refresh()
+            self._grid.refresh()
 
     def dropGrantee(self):
         self._grid.Model.getGrantees().dropByName(self._grantee)
@@ -203,7 +203,9 @@ class AdminModel(unohelper.Base):
 
     def setGrantee(self, grantee):
         self._grantee = grantee
+        self._grid.setGridVisible(False)
         recursive = self._grid.Model.setGrantee(grantee)
+        self._grid.setGridVisible(True)
         enabled = grantee is not None
         return enabled, recursive, self._isRemovable(grantee)
 
@@ -225,7 +227,7 @@ class AdminModel(unohelper.Base):
             grantee.grantPrivileges(table, TABLE, grant)
         if revoke != 0:
             grantee.revokePrivileges(table, TABLE, revoke)
-        self._grid.Model.refresh(self._grid.getSelectedRow())
+        self._grid.refresh(self._grid.getSelectedRow())
 
     def _getMembers(self, isgroup):
         grantee = self._grid.Model.getGrantee()
