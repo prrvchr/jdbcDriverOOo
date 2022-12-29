@@ -94,6 +94,9 @@ class AdminModel(unohelper.Base):
     def getGridModels(self):
         return self._grid.Model, self._grid.Column
 
+    def getSelectedGridIndex(self):
+        return self._grid.getSelectedRow()
+
     def getGrantees(self):
         return self._grid.Model.getGrantees().getElementNames()
 

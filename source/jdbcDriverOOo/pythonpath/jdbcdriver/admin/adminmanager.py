@@ -106,7 +106,7 @@ class AdminManager(unohelper.Base):
 
     def setGrantee(self, grantee):
         self._view.enableButton(*self._model.setGrantee(grantee))
-        index = self._view.getSelectedGridIndex()
+        index = self._model.getSelectedGridIndex()
         enabled = self._model.getGrantablePrivileges(index) != 0
         self._view.enableSetPrivileges(enabled)
 
