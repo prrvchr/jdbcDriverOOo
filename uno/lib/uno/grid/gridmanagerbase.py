@@ -93,13 +93,26 @@ class GridManagerBase(unohelper.Base):
     def getGridModel(self):
         return self._view.getGridDataModel()
 
+    def getSelectedRow(self):
+        index = -1
+        if self._view.hasSelectedRows():
+            index = self._view.getSelectedRows()[0]
+        return index
+
     def getSelectedRows(self):
         return self._view.getSelectedRows()
 
+    def getSelectedIdentifier(self):
+        identifier = None
+        if self._view.hasSelectedRows():
+            index = self._view.getSelectedRows()[0]
+            identifier = self.getRowIdentifier(index)
+        return identifier
+
     def getSelectedIdentifiers(self):
         identifiers = []
-        for row in self._view.getSelectedRows():
-            identifiers.append(self.getRowIdentifier(row))
+        for index in self._view.getSelectedRows():
+            identifiers.append(self.getRowIdentifier(index))
         return tuple(identifiers)
 
     def getRowIdentifier(self, row):
