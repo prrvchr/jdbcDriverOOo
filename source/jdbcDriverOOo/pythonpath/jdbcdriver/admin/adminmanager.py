@@ -47,13 +47,10 @@ from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from .adminmodel import AdminModel
 
-from .privilegeview import PrivilegeView
-
-from .granteeview import GranteeView
-
-from .memberview import MemberView
-
-from .passwordview import PasswordView
+from .dialog import GranteeView
+from .dialog import MemberView
+from .dialog import PasswordView
+from .dialog import PrivilegeView
 
 from .adminhandler import GroupsHandler
 from .adminhandler import NewGroupHandler
