@@ -113,6 +113,7 @@ class GridManagerBase(unohelper.Base):
 
 # GridManager setter methods
     def dispose(self):
+        self.saveColumnSettings()
         self._column.dispose()
         self._model.dispose()
 
