@@ -27,27 +27,16 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from com.sun.star.uno import XWeak
-from com.sun.star.uno import XAdapter
-
-from com.sun.star.awt.grid import XMutableGridDataModel
-from com.sun.star.awt.grid import XSortableGridData
-
 from com.sun.star.sdbcx.PrivilegeObject import TABLE
+
+from .gridmodelbase import GridModelBase
 
 import traceback
 
 
-class GridModel(unohelper.Base,
-                XWeak,
-                XAdapter,
-                XMutableGridDataModel):
-    def __init__(self, grantees, tables, flags, recursive, isuser):
-        self._events = []
-        self._listeners = []
+class GridModel(GridModelBase):
+    def __init__(self, ctx, grantees, tables, flags, recursive, isuser):
+        GridModelBase.__init__(self, ctx)
         self._grantee = None
         self._grantees = grantees
         self._tables = tables
@@ -55,8 +44,8 @@ class GridModel(unohelper.Base,
         self._recursive = recursive
         self._isuser = isuser
         self._rows = {}
-        self.RowCount = len(tables)
-        self.ColumnCount = len(flags) + 1
+        self._row = len(tables)
+        self._column = len(flags) + 1
 
     def setGrantee(self, grantee):
         self._grantee = None if grantee is None else self._grantees.getByName(grantee)
@@ -74,37 +63,14 @@ class GridModel(unohelper.Base,
             self._rows = {}
         else:
             del self._rows[row]
-        self._dataChanged(row)
+        first = 0 if row is None else row
+        last = self._row -1 if row is None else row
+        self._changeData(first, last)
 
-    # FIXME: We can't use XMutableGridDataModel without this interface XWeak
-    # com.sun.star.uno.XWeakXWeak
-    def queryAdapter(self):
-        return self
-
-    # FIXME: We can't use XMutableGridDataModel without this interface XAdapter
-    # com.sun.star.uno.XAdapter
-    def queryAdapted(self):
-        return self
-    def addReference(self, reference):
-        pass
-    def removeReference(self, reference):
-        pass
 
     # com.sun.star.util.XCloneable
     def createClone(self):
-        return GridData(self._grantees, self._tables, self._flags, self._recursive, self._isuser)
-
-    # com.sun.star.lang.XComponent
-    def dispose(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in self._events:
-            listener.disposing(event)
-    def addEventListener(self, listener):
-        self._events.append(listener)
-    def removeEventListener(self, listener):
-        if listener in self._events:
-            self._events.remove(listener)
+        return GridModel(self._grantees, self._tables, self._flags, self._recursive, self._isuser)
 
     # com.sun.star.awt.grid.XGridDataModel
     def getCellData(self, column, row):
@@ -126,48 +92,7 @@ class GridModel(unohelper.Base,
             values.append(self._getDataPrivileges(table, row, index +1))
         return tuple(values)
 
-    # FIXME: We need this interface to be able to broadcast the data change to all listener
-    # com.sun.star.awt.grid.XMutableGridDataModel
-    def addRow(self, heading, data):
-        pass
-    def addRows(self, headings, data):
-        pass
-    def insertRow(self, index, heading, data):
-        pass
-    def insertRows(self, index, headings, data):
-        pass
-    def removeRow(self, index):
-        pass
-    def removeAllRows(self):
-        pass
-    def updateCellData(self, column, row, value):
-        pass
-    def updateRowData(self, indexes, rows, values):
-        pass
-    def updateRowHeading(self, index, heading):
-        pass
-    def updateCellToolTip(self, column, row, value):
-        pass
-    def updateRowToolTip(self, row, value):
-        pass
-    def addGridDataListener(self, listener):
-        self._listeners.append(listener)
-    def removeGridDataListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
-
-    def _getDataPrivileges(self, table, row, column):
-        privileges = 0
-        flag = self._flags[column]
-        if self._grantee is not None:
-            privileges = self._getRowPrivileges(table, row)
-        return flag == privileges & flag
-
-    def _getRowPrivileges(self, table, row):
-        if row not in self._rows:
-            self._rows[row] = self.getGranteePrivileges(table, self._isuser or self._recursive)
-        return self._rows[row]
-
+# GridModel getter methods
     def isRecursive(self):
         return self._recursive
 
@@ -183,6 +108,19 @@ class GridModel(unohelper.Base,
     def getInheritedPrivileges(self, table):
         return self._getInheritedPrivileges(table, self.getGrantee(), 0) if self._needInherited() else 0
 
+# GridModel private getter methods
+    def _getDataPrivileges(self, table, row, column):
+        privileges = 0
+        flag = self._flags[column]
+        if self._grantee is not None:
+            privileges = self._getRowPrivileges(table, row)
+        return flag == privileges & flag
+
+    def _getRowPrivileges(self, table, row):
+        if row not in self._rows:
+            self._rows[row] = self.getGranteePrivileges(table, self._isuser or self._recursive)
+        return self._rows[row]
+
     def _needInherited(self):
         return self._isuser or self._recursive
 
@@ -194,23 +132,4 @@ class GridModel(unohelper.Base,
             if self._recursive:
                 privileges |= self._getInheritedPrivileges(table, group, privileges)
         return privileges
-
-    # FIXME: Broadcast the data change to all listener
-    def _dataChanged(self, row=None):
-        event = self._getGridDataEvent(row)
-        for listener in self._listeners:
-            listener.dataChanged(event)
-
-    def _getGridDataEvent(self, row):
-        event = uno.createUnoStruct('com.sun.star.awt.grid.GridDataEvent')
-        event.Source = self
-        event.FirstColumn = 1
-        event.LastColumn = self.ColumnCount -1
-        if row is None:
-            event.FirstRow = 0
-            event.LastRow = self.RowCount -1
-        else:
-            event.FirstRow = row
-            event.LastRow = row
-        return event
 
