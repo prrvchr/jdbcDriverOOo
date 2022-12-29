@@ -58,8 +58,8 @@ class GridView(unohelper.Base):
     def getGridColumnModel(self):
         return self._getGrid().Model.ColumnModel
 
-    def getSelectedRows(self):
-        return self._getGrid().getSelectedRows()
+    def hasSelectedRows(self):
+        return self._getGrid().hasSelectedRows()
 
     def getSelectedRow(self):
         index = -1
@@ -67,6 +67,9 @@ class GridView(unohelper.Base):
         if control.hasSelectedRows():
             index = control.getSelectedRows()[0]
         return index
+
+    def getSelectedRows(self):
+        return self._getGrid().getSelectedRows()
 
     def getUnSelected(self):
         return 'column-0.png'

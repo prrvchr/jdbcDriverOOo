@@ -94,10 +94,7 @@ class GridManagerBase(unohelper.Base):
         return self._view.getGridDataModel()
 
     def getSelectedRow(self):
-        index = -1
-        if self._view.hasSelectedRows():
-            index = self._view.getSelectedRows()[0]
-        return index
+        return self._view.getSelectedRow()
 
     def getSelectedRows(self):
         return self._view.getSelectedRows()
@@ -105,7 +102,7 @@ class GridManagerBase(unohelper.Base):
     def getSelectedIdentifier(self):
         identifier = None
         if self._view.hasSelectedRows():
-            index = self._view.getSelectedRows()[0]
+            index = self._view.getSelectedRow()
             identifier = self.getRowIdentifier(index)
         return identifier
 
