@@ -65,7 +65,7 @@ class GridModel(GridModelBase):
         table = self._tables[row]
         if column == 0:
             return table
-        return self._getPrivilegeImage(table, row, column)
+        return self._getPrivilegeImage(table, column)
 
     def getCellToolTip(self, column, row):
         return ""
@@ -77,7 +77,7 @@ class GridModel(GridModelBase):
         table = self._tables[row]
         values = [table]
         for index in range(0, self.ColumnCount):
-            values.append(self._getPrivilegeImage(table, row, index +1))
+            values.append(self._getPrivilegeImage(table, index +1))
         return tuple(values)
 
 # GridModel getter methods
@@ -99,21 +99,22 @@ class GridModel(GridModelBase):
         return not self._isuser
 
     def getGranteePrivileges(self, table, recursive=False):
-        ascendants = 0
+        legacies = 0
         privileges = self.getGrantee().getPrivileges(table, TABLE)
         if recursive:
-            ascendants = self._getInheritedPrivileges(table, self.getGrantee(), 0)
-        return privileges, ascendants
+            legacies = self._getInheritedPrivileges(table, self.getGrantee(), 0)
+        return privileges, legacies
 
     def getInheritedPrivileges(self, table):
         return self._getInheritedPrivileges(table, self.getGrantee(), 0) if self._needInherited() else 0
 
 # GridModel setter methods
-    def refresh(self, row=None):
-        if row is None:
+    def refresh(self, identifier=None):
+        print("GridModel.refresh() Identifier: %s" % identifier)
+        if identifier is None:
             self._rows = {}
         else:
-            del self._rows[row]
+            del self._rows[identifier]
         #first = 0 if row is None else row
         #last = self._row -1 if row is None else row
         #self._changeData(first, last)
@@ -125,8 +126,8 @@ class GridModel(GridModelBase):
         image = provider.queryGraphic(properties)
         return image
 
-    def _getPrivilegeImage(self, table, row, column):
-        privilege, ascendant = self._getDataPrivileges(table, row, column)
+    def _getPrivilegeImage(self, table, column):
+        privilege, ascendant = self._getDataPrivileges(table, column)
         if privilege:
             index = 2
         elif ascendant:
@@ -135,17 +136,18 @@ class GridModel(GridModelBase):
             index = 0
         return self._images[index]
 
-    def _getDataPrivileges(self, table, row, column):
-        privileges = ascendants = 0
+    def _getDataPrivileges(self, table, column):
+        privileges = legacies = 0
         flag = self._flags[column]
         if self._grantee is not None:
-            privileges, ascendants = self._getRowPrivileges(table, row)
-        return flag == privileges & flag, flag == ascendants & flag
+            privileges, legacies = self._getTablePrivileges(table)
+        return flag == privileges & flag, flag == legacies & flag
 
-    def _getRowPrivileges(self, table, row):
-        if row not in self._rows:
-            self._rows[row] = self.getGranteePrivileges(table, self._needInherited())
-        return self._rows[row]
+    def _getTablePrivileges(self, table):
+        if table not in self._rows:
+            print("GridModel._getTablePrivileges() Table: %s" % table)
+            self._rows[table] = self.getGranteePrivileges(table, self._needInherited())
+        return self._rows[table]
 
     def _needInherited(self):
         return self._isuser or self._recursive

@@ -41,7 +41,7 @@ class GridView(unohelper.Base):
         self._name = name
         self._up = 20
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'GridWindow')
-        self._setWindow(possize, step)
+        self._setWindowSize(possize, step, 2, 10)
         self._createGrid(model, selection)
         self._window.setVisible(True)
 
@@ -78,8 +78,8 @@ class GridView(unohelper.Base):
         return 'column-1.png'
 
 # GridView setter methods
-    def setWindowVisible(self, enabled):
-        self._window.setVisible(enabled)
+    def setGridVisible(self, enabled):
+        self._getGrid().setVisible(enabled)
 
     def setWindowPosSize(self, state):
         self._setGridPosSize(state)
@@ -132,20 +132,18 @@ class GridView(unohelper.Base):
             control.Model.insertItem(index, title, image)
             control.Model.setItemData(index, identifier)
 
-    def _setWindow(self, possize, step):
-        gap = 2
-        margin = 10
+    def _setWindowSize(self, possize, step, gap, margin):
         model = self._window.Model
         model.PositionX = possize.X
         model.PositionY = possize.Y
         model.Height = possize.Height
         model.Width = possize.Width
         offset = possize.X + possize.Width - gap
-        offset = self._setControl(self._getColumn(), offset, margin)
-        self._setControl(self._getColumnLabel(), offset, margin)
+        offset = self._setControlPosition(self._getColumn(), offset, margin)
+        self._setControlPosition(self._getColumnLabel(), offset, margin)
         model.Step = step
 
-    def _setControl(self, control, offset, margin):
+    def _setControlPosition(self, control, offset, margin):
         control.Model.PositionX = offset - control.Model.Width
         return control.Model.PositionX - margin
 

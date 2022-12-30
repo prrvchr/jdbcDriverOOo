@@ -55,10 +55,12 @@ class GridManager(GridManagerBase):
         self._view.addSelectionListener(listener)
 
 # GridManager private getter methods
-    def refresh(self, row=None):
-        self._view.setWindowVisible(False)
-        print("GridManager.refresh() *********************************************************")
-        self._view.setWindowVisible(True)
+    def refresh(self, identifier=None):
+        # FIXME: Since using the 'com.sun.star.awt.grid.SortableGridDataModel' service,
+        # FIXME: the only way to refresh the grid display is to toggle its visibility
+        self._view.setGridVisible(False)
+        self._model.refresh(identifier)
+        self._view.setGridVisible(True)
 
 # GridManager private getter methods
     def _getGridInfos(self, flags):

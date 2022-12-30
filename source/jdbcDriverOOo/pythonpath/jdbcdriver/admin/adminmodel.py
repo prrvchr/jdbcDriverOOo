@@ -227,7 +227,7 @@ class AdminModel(unohelper.Base):
             grantee.grantPrivileges(table, TABLE, grant)
         if revoke != 0:
             grantee.revokePrivileges(table, TABLE, revoke)
-        self._grid.refresh(self._grid.getSelectedRow())
+        self._grid.refresh(table)
 
     def _getMembers(self, isgroup):
         grantee = self._grid.Model.getGrantee()

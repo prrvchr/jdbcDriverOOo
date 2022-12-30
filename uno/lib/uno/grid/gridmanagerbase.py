@@ -128,7 +128,7 @@ class GridManagerBase(unohelper.Base):
         self._model.dispose()
 
     def setGridVisible(self, enabled):
-        self._view.setWindowVisible(enabled)
+        self._view.setGridVisible(enabled)
 
     def addSelectionListener(self, listener):
         self._view.getGrid().addSelectionListener(listener)
