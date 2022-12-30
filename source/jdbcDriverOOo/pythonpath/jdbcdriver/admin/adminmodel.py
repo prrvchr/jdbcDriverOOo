@@ -60,23 +60,15 @@ class AdminModel(unohelper.Base):
         self._members = members
         self._tables = tables
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
-        self._resources = {'TableHeader'      : 'GranteeDialog.Grid1.Column1',
-                           'PrivilegeHeader'  : 'PrivilegesDialog.CheckBox%s.Label',
-                           'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
+        self._resources = {'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
                            'DropGroupMessage' : 'MessageBox.DropGroup.Message',
                            'DropUserTitle'    : 'MessageBox.DropUser.Title',
                            'DropUserMessage'  : 'MessageBox.DropUser.Message',
                            'UsersTitle'       : 'UsersDialog.Title',
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
-        resource = 'PrivilegesDialog.CheckBox%s.Label'
-        self._grid = GridManager(ctx, datasource, listener, flags, url, model, window, setting, SINGLE, resource, None, True)
-        #column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
-        #self._grid.Column.addColumn(column)
-        #for index in flags:
-        #    title = self._getPrivilegeHeader(index)
-        #    column = self._getColumn(self._grid.Column.createColumn(), index, title)
-        #    self._grid.Column.addColumn(column)
+        resources = (self._resolver, 'PrivilegesDialog.CheckBox%s.Label')
+        self._grid = GridManager(ctx, datasource, listener, flags, url, model, window, setting, SINGLE, resources, None, True)
 
     def _getColumn(self, column, title, index, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width

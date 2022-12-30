@@ -55,7 +55,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getCatalogName(index);
-            System.out.println("sdbc.ResultSetMetaData.getCatalogName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -78,9 +77,7 @@ public final class ResultSetMetaData
     public int getColumnDisplaySize(int index) throws SQLException
     {
         try {
-            int value = m_Metadata.getColumnDisplaySize(index);
-            System.out.println("sdbc.ResultSetMetaData.getColumnDisplaySize(): " + value);
-            return value;
+            return m_Metadata.getColumnDisplaySize(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -92,7 +89,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getColumnLabel(index);
-            System.out.println("sdbc.ResultSetMetaData.getColumnLabel(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -105,7 +101,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getColumnName(index);
-            System.out.println("sdbc.ResultSetMetaData.getColumnName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -118,7 +113,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getColumnClassName(index);
-            System.out.println("sdbc.ResultSetMetaData.getColumnServiceName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -144,7 +138,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getColumnTypeName(index);
-            System.out.println("sdbc.ResultSetMetaData.getColumnTypeName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -156,9 +149,7 @@ public final class ResultSetMetaData
     public int getPrecision(int index) throws SQLException
     {
         try {
-            int value = m_Metadata.getPrecision(index);
-            System.out.println("sdbc.ResultSetMetaData.getPrecision(): " + value);
-            return value;
+            return m_Metadata.getPrecision(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -169,9 +160,7 @@ public final class ResultSetMetaData
     public int getScale(int index) throws SQLException
     {
         try {
-            int value = m_Metadata.getScale(index);
-            System.out.println("sdbc.ResultSetMetaData.getScale(): " + value);
-            return value;
+            return m_Metadata.getScale(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -183,7 +172,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getSchemaName(index);
-            System.out.println("sdbc.ResultSetMetaData.getSchemaName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -196,7 +184,6 @@ public final class ResultSetMetaData
     {
         try {
             String value = m_Metadata.getTableName(index);
-            System.out.println("sdbc.ResultSetMetaData.getTableName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -222,7 +209,6 @@ public final class ResultSetMetaData
     {
         try {
             boolean value = m_Metadata.isCaseSensitive(index);
-            System.out.println("sdbc.ResultSetMetaData.isCaseSensitive(): " + value);
             return value;
         }
         catch (java.sql.SQLException e) {
@@ -261,9 +247,7 @@ public final class ResultSetMetaData
     public int isNullable(int index) throws SQLException
     {
         try {
-            int value = m_Metadata.isNullable(index);
-            System.out.println("sdbc.ResultSetMetaData.isNullable(): " + value);
-            return value;
+            return m_Metadata.isNullable(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -300,9 +284,7 @@ public final class ResultSetMetaData
     public boolean isSigned(int index) throws SQLException
     {
         try {
-            boolean value = m_Metadata.isSigned(index);
-            System.out.println("sdbc.ResultSetMetaData.isSigned(): " + value);
-            return value;
+            return m_Metadata.isSigned(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

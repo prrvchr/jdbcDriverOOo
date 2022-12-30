@@ -40,8 +40,8 @@ import traceback
 
 
 class GridManager(GridManagerBase):
-    def __init__(self, ctx, datasource, listener, flags, url, model, window, setting, selection, resource, maxi=None, multi=False, factor=3):
-        GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resource, maxi, multi, factor)
+    def __init__(self, ctx, datasource, listener, flags, url, model, window, setting, selection, resources, maxi=None, multi=False, factor=4):
+        GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resources, maxi, multi, factor)
         self._datasource = datasource
         self._identifier = '0'
         self._index = 0

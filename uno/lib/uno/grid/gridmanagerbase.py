@@ -37,9 +37,7 @@ from .gridhandler import GridDataListener
 
 from ..unotool import createService
 from ..unotool import getConfiguration
-from ..unotool import getStringResource
 
-from ..configuration import g_extension
 from ..configuration import g_identifier
 
 import json
@@ -48,14 +46,15 @@ import traceback
 
 
 class GridManagerBase(unohelper.Base):
-    def __init__(self, ctx, url, model, window, setting, selection, resource=None, maxi=None, multi=False, factor=5):
+    def __init__(self, ctx, url, model, window, setting, selection, resources=None, maxi=None, multi=False, factor=5):
         self._ctx = ctx
         self._factor = factor
-        self._resource = resource
         self._datasource = None
         self._query = None
-        if resource is not None:
-            self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resource = None
+        self._resolver = None
+        if resources is not None:
+            self._resolver, self._resource = resources
         self._setting = setting
         self._config = getConfiguration(ctx, g_identifier, True)
         widths = self._config.getByName(self._getConfigWidthName())
@@ -347,7 +346,7 @@ class GridManagerBase(unohelper.Base):
         return identifiers[slice(self._max)]
 
     def _getColumnTitle(self, identifier):
-        if self._resource is None:
+        if self._resolver is None or self._resource is None:
             title = identifier
         else:
             title = self._resolver.resolveString(self._resource % identifier)
