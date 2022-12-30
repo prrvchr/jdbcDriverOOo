@@ -81,9 +81,12 @@ class GridView(unohelper.Base):
     def setGridVisible(self, enabled):
         self._getGrid().setVisible(enabled)
 
-    def setWindowPosSize(self, state):
-        self._setGridPosSize(state)
+    def showControls(self, state):
+        control = self._getGrid()
+        control.setVisible(False)
+        self._setGridPosSize(control.Model, state)
         self._window.Model.Step = state +1
+        control.setVisible(True)
 
     def addSelectionListener(self, listener):
         self._getGrid().addSelectionListener(listener)
@@ -119,9 +122,8 @@ class GridView(unohelper.Base):
                 control.Model.setItemImage(index, unselected)
 
 # GridView private setter methods
-    def _setGridPosSize(self, state):
+    def _setGridPosSize(self, model, state):
         diff = self._up if state else -self._up
-        model = self._getGrid().Model
         model.PositionY = model.PositionY + diff
         model.Height = model.Height - diff
 

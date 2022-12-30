@@ -137,7 +137,7 @@ class GridManagerBase(unohelper.Base):
         self._view.getGrid().removeSelectionListener(listener)
 
     def showControls(self, state):
-        self._view.setWindowPosSize(state)
+        self._view.showControls(state)
 
     def deselectAllRows(self):
         self._view.deselectAllRows()
