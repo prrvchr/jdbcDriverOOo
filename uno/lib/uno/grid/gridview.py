@@ -133,12 +133,21 @@ class GridView(unohelper.Base):
             control.Model.setItemData(index, identifier)
 
     def _setWindow(self, possize, step):
+        gap = 2
+        margin = 10
         model = self._window.Model
         model.PositionX = possize.X
         model.PositionY = possize.Y
         model.Height = possize.Height
         model.Width = possize.Width
+        offset = possize.X + possize.Width - gap
+        offset = self._setControl(self._getColumn(), offset, margin)
+        self._setControl(self._getColumnLabel(), offset, margin)
         model.Step = step
+
+    def _setControl(self, control, offset, margin):
+        control.Model.PositionX = offset - control.Model.Width
+        return control.Model.PositionX - margin
 
     def _createGrid(self, data, selection):
         model = self._getGridModel(data, selection)
