@@ -57,9 +57,9 @@ class GridManager(GridManagerBase):
             self._query = query
             self._datasource = datasource
             self._view.showGridColumnHeader(True)
-        self._view.setWindowVisible(False)
+        self._view.setGridVisible(False)
         self._model.setRowSetData(rowset)
-        self._view.setWindowVisible(True)
+        self._view.setGridVisible(True)
         if changed:
             self._model.sortByColumn(*self._getSavedOrders(datasource, query))
 
