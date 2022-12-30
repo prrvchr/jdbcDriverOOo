@@ -48,9 +48,9 @@ import traceback
 
 
 class GridManagerBase(unohelper.Base):
-    def __init__(self, ctx, url, model, parent, possize, setting, selection, resource=None, maxi=None, multi=False, name='Grid1'):
+    def __init__(self, ctx, url, model, window, setting, selection, resource=None, maxi=None, multi=False, factor=5):
         self._ctx = ctx
-        self._factor = 5
+        self._factor = factor
         self._resource = resource
         self._datasource = None
         self._query = None
@@ -76,7 +76,7 @@ class GridManagerBase(unohelper.Base):
         #model.addGridDataListener(GridDataListener(self))
         model.setSortableModel(grid)
         grid.initialize((model, ))
-        self._view = GridView(ctx, name, grid, parent, WindowHandler(self), possize, selection)
+        self._view = GridView(ctx, window, WindowHandler(self), grid, selection)
         self._column = self._view.getGridColumnModel()
 
     @property

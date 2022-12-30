@@ -80,11 +80,10 @@ class AdminManager(unohelper.Base):
         user = users.getByName(connection.getMetaData().getUserName())
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
         self._view = view
-        possize = self._view.getGridPosSize()
-        parent = self._view.getGridParent()
+        window = self._view.getGridWindow()
         url = getResourceLocation(ctx, g_identifier, g_extension)
         model = GridModel(ctx, grantees, tables.getElementNames(), self._flags, recursive, isuser, url)
-        self._model = AdminModel(ctx, datasource, model, GridListener(self), url, user, members, tables, self._flags, possize, parent, 'AdminGrid')
+        self._model = AdminModel(ctx, datasource, model, window, GridListener(self), url, user, members, tables, self._flags, 'AdminGrid')
         self._dialog = None
         self._disabled = True
         self._view.initGrantees(self._model.getGrantees())

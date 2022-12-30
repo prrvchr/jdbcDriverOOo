@@ -54,7 +54,7 @@ import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, ctx, datasource, model, listener, url, user, members, tables, flags, possize, parent, setting):
+    def __init__(self, ctx, datasource, model, window, listener, url, user, members, tables, flags, setting):
         self._grantee = '';
         self._user = user
         self._members = members
@@ -70,7 +70,7 @@ class AdminModel(unohelper.Base):
                            'GroupsTitle'      : 'GroupsDialog.Title',
                            'RolesTitle'       : 'RolesDialog.Title'}
         resource = 'PrivilegesDialog.CheckBox%s.Label'
-        self._grid = GridManager(ctx, datasource, listener, flags, url, model, parent, possize, setting, SINGLE, resource, None, True)
+        self._grid = GridManager(ctx, datasource, listener, flags, url, model, window, setting, SINGLE, resource, None, True)
         #column = self._getColumn(self._grid.Column.createColumn(), self._getTableHeader(), 0, 120, 2, LEFT)
         #self._grid.Column.addColumn(column)
         #for index in flags:

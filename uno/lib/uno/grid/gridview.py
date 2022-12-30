@@ -37,11 +37,12 @@ from ..configuration import g_extension
 
 
 class GridView(unohelper.Base):
-    def __init__(self, ctx, name, model, parent, handler, possize, selection, step=1):
-        self._name = name
-        self._up = 20
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'GridWindow')
-        self._setWindowSize(possize, step, 2, 10)
+    def __init__(self, ctx, window, handler, model, selection, step=1):
+        self._name = 'GridControl1'
+        self._gap = 20
+        self._margin = 10
+        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_extension, 'GridWindow')
+        self._setWindowSize(window.Model, step)
         self._createGrid(model, selection)
         self._window.setVisible(True)
 
@@ -123,9 +124,9 @@ class GridView(unohelper.Base):
 
 # GridView private setter methods
     def _setGridPosSize(self, model, state):
-        diff = self._up if state else -self._up
-        model.PositionY = model.PositionY + diff
-        model.Height = model.Height - diff
+        gap = self._gap if state else -self._gap
+        model.PositionY = model.PositionY + gap
+        model.Height = model.Height - gap
 
     def _initListBox(self, control, columns, image):
         control.Model.removeAllItems()
@@ -134,20 +135,17 @@ class GridView(unohelper.Base):
             control.Model.insertItem(index, title, image)
             control.Model.setItemData(index, identifier)
 
-    def _setWindowSize(self, possize, step, gap, margin):
+    def _setWindowSize(self, window, step):
         model = self._window.Model
-        model.PositionX = possize.X
-        model.PositionY = possize.Y
-        model.Height = possize.Height
-        model.Width = possize.Width
-        offset = possize.X + possize.Width - gap
-        offset = self._setControlPosition(self._getColumn(), offset, margin)
-        self._setControlPosition(self._getColumnLabel(), offset, margin)
+        model.Height = window.Height
+        model.Width = window.Width
+        offset = self._setControlPosition(self._getColumn(), window.Width)
+        self._setControlPosition(self._getColumnLabel(), offset)
         model.Step = step
 
-    def _setControlPosition(self, control, offset, margin):
+    def _setControlPosition(self, control, offset):
         control.Model.PositionX = offset - control.Model.Width
-        return control.Model.PositionX - margin
+        return control.Model.PositionX - self._margin
 
     def _createGrid(self, data, selection):
         model = self._getGridModel(data, selection)

@@ -40,7 +40,6 @@ from ..configuration import g_extension
 class AdminView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
-        self._rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 5, 82, 355, 150)
 
     def initGrantees(self, grantees, grantee=None):
         control = self._getGrantees()
@@ -58,11 +57,8 @@ class AdminView(unohelper.Base):
     def dispose(self):
         self._dialog.dispose()
 
-    def getGridParent(self):
-        return self._dialog.getPeer()
-
-    def getGridPosSize(self):
-        return self._rectangle
+    def getGridWindow(self):
+        return self._getGridWindow()
 
     def enableButton(self, enabled, recursive, removable):
         self._getSetGrantee().Model.Enabled = enabled
@@ -85,6 +81,9 @@ class AdminView(unohelper.Base):
 
     def _getDropGrantee(self):
         return self._dialog.getControl('CommandButton3')
+
+    def _getGridWindow(self):
+        return self._dialog.getControl('FrameControl1')
 
     def _getSetPrivileges(self):
         return self._dialog.getControl('CommandButton4')
