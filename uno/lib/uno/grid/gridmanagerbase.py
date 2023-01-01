@@ -30,6 +30,12 @@
 import uno
 import unohelper
 
+from com.sun.star.sdb.SQLFilterOperator import EQUAL
+
+from com.sun.star.sdbc.DataType import CHAR
+from com.sun.star.sdbc.DataType import VARCHAR
+from com.sun.star.sdbc.DataType import LONGVARCHAR
+
 from .gridview import GridView
 
 from .gridhandler import WindowHandler
@@ -37,6 +43,7 @@ from .gridhandler import GridDataListener
 
 from ..unotool import createService
 from ..unotool import getConfiguration
+from ..unotool import getPropertyValue
 
 from ..configuration import g_identifier
 
@@ -63,9 +70,8 @@ class GridManagerBase(unohelper.Base):
         self._orders = json.loads(orders)
         self._max = maxi
         self._multi = multi
-        self._identifier = None
-        self._index = -1
-        self._type = -1
+        self._indexes = {}
+        self._types = {}
         self._url = url
         self._headers = {}
         self._properties = {}
@@ -86,39 +92,61 @@ class GridManagerBase(unohelper.Base):
         return self._column
 
 # GridManager getter methods
-    def getGridModels(self):
-        return self._model, self._column
-
-    def getGridModel(self):
-        return self._view.getGridDataModel()
-
-    def getSelectedRow(self):
-        return self._view.getSelectedRow()
+    def getUnsortedIndex(self, index):
+        return self._view.getGridDataModel().getRowHeading(index)
 
     def getSelectedRows(self):
-        return self._view.getSelectedRows()
+        rows = []
+        for row in self._view.getSelectedRows():
+            rows.append(self.getUnsortedIndex(row))
+        return tuple(rows)
 
-    def getSelectedIdentifier(self):
+    def getSelectedIdentifier(self, identifier):
         identifier = None
         if self._view.hasSelectedRows():
-            index = self._view.getSelectedRow()
-            identifier = self.getRowIdentifier(index)
+            identifier = self.getRowIdentifier(self._view.getSelectedRow(), identifier)
         return identifier
 
-    def getSelectedIdentifiers(self):
-        identifiers = []
-        for index in self._view.getSelectedRows():
-            identifiers.append(self.getRowIdentifier(index))
-        return tuple(identifiers)
+    def getRowIdentifier(self, index, identifier):
+        return self._getRowValue(identifier, self.getUnsortedIndex(index))
 
-    def getRowIdentifier(self, row):
-        return self._view.getGridDataModel().getCellData(self._index, row)
+    def getGridFilters(self):
+        filters = []
+        for row in (range(self._model.RowCount)):
+            filters.append(self._getRowFilter(row))
+        return tuple(filters)
 
-    def getIdentifierIndex(self):
-        return self._index
+    def getSelectedStructuredFilters(self):
+        filters = []
+        for row in self._view.getSelectedRows():
+            filters.append(self._getRowStructuredFilter(row))
+        return tuple(filters)
 
-    def getIdentifierDataType(self):
-        return self._type
+    def _getRowFilter(self, row):
+        filters = []
+        for identifier in self._indexes:
+            value = self._getRowQuotedValue(identifier, row)
+            filter = '"%s" = %s' % (identifier, value)
+            filters.append(filter)
+        return ' AND '.join(filters)
+
+    def _getRowStructuredFilter(self, index):
+        filters = []
+        row = self._view.getGridDataModel().getRowHeading(index)
+        for identifier in self._indexes:
+            value = self._getRowQuotedValue(identifier, row)
+            filter = getPropertyValue(identifier, value, 0, EQUAL)
+            filters.append(filter)
+        return tuple(filters)
+
+    def _getRowQuotedValue(self, identifier, row):
+        value = self._getRowValue(identifier, row)
+        if self._types[identifier] in (CHAR, VARCHAR, LONGVARCHAR):
+            value = "'%s'" % value.replace("'", "''")
+        return value
+
+    def _getRowValue(self, identifier, row):
+        return self._model.getCellData(self._indexes[identifier], row)
 
 # GridManager setter methods
     def dispose(self):

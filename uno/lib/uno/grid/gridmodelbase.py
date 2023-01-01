@@ -83,7 +83,7 @@ class GridModelBase(unohelper.Base,
     def getCellToolTip(self, column, row):
         raise NotImplementedError('Need to be implemented!')
     def getRowHeading(self, row):
-        raise NotImplementedError('Need to be implemented!')
+        return row
     def getRowData(self, row):
         raise NotImplementedError('Need to be implemented!')
 
