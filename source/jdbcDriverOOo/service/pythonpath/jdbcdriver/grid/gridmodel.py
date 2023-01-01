@@ -70,9 +70,6 @@ class GridModel(GridModelBase):
     def getCellToolTip(self, column, row):
         return ""
 
-    def getRowHeading(self, row):
-        return ""
-
     def getRowData(self, row):
         table = self._tables[row]
         values = [table]

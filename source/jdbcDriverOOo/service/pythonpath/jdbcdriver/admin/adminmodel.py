@@ -236,9 +236,6 @@ class AdminModel(unohelper.Base):
         grantables = self._user.getGrantablePrivileges(table, TABLE)
         return privileges, grantables
 
-    def _getTable(self, index):
-        return self._grid.getRowIdentifier(index, '0')
-
     def _isRemovable(self, user):
         return self._grid.Model.isGroup() or self._user.getPropertyValue('Name') != user
 

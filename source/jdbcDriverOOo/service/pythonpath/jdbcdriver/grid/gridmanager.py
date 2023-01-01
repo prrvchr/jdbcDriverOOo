@@ -43,9 +43,8 @@ class GridManager(GridManagerBase):
     def __init__(self, ctx, datasource, listener, flags, url, model, window, setting, selection, resources, maxi=None, multi=False, factor=4):
         GridManagerBase.__init__(self, ctx, url, model, window, setting, selection, resources, maxi, multi, factor)
         self._datasource = datasource
-        self._identifier = '0'
-        self._index = 0
-        self._type = VARCHAR
+        self._indexes = {'0': 0}
+        self._types = {'0': VARCHAR}
         self._view.showGridColumnHeader(False)
         self._properties, self._headers = self._getGridInfos(flags)
         identifiers = self._initColumnModel(datasource)

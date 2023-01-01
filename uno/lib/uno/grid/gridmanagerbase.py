@@ -102,13 +102,10 @@ class GridManagerBase(unohelper.Base):
         return tuple(rows)
 
     def getSelectedIdentifier(self, identifier):
-        identifier = None
+        value = None
         if self._view.hasSelectedRows():
-            identifier = self.getRowIdentifier(self._view.getSelectedRow(), identifier)
-        return identifier
-
-    def getRowIdentifier(self, index, identifier):
-        return self._getRowValue(identifier, self.getUnsortedIndex(index))
+            value = self._getRowValue(identifier, self.getUnsortedIndex(self._view.getSelectedRow()))
+        return value
 
     def getGridFilters(self):
         filters = []
@@ -146,6 +143,8 @@ class GridManagerBase(unohelper.Base):
         return value
 
     def _getRowValue(self, identifier, row):
+        print("GridManagerBase._getRowValue() Identifier: %s - Row: %s" % (identifier, row))
+        print("GridManagerBase._getRowValue() Index: %s - Row: %s" % (self._indexes[identifier], row))
         return self._model.getCellData(self._indexes[identifier], row)
 
 # GridManager setter methods
