@@ -83,11 +83,8 @@ class AdminModel(unohelper.Base):
     def dispose(self):
         self._grid.dispose()
 
-    def getGridModels(self):
-        return self._grid.Model, self._grid.Column
-
     def getSelectedIdentifier(self):
-        return self._grid.getSelectedIdentifier()
+        return self._grid.getSelectedIdentifier('0')
 
     def getGrantees(self):
         return self._grid.Model.getGrantees().getElementNames()
@@ -208,7 +205,7 @@ class AdminModel(unohelper.Base):
         return privileges != 0
 
     def getPrivileges(self):
-        table = self._grid.getSelectedIdentifier()
+        table = self._grid.getSelectedIdentifier('0')
         privileges, grantables = self._getPrivileges(table)
         inherited = self._grid.Model.getInheritedPrivileges(table)
         return table, privileges, grantables, inherited
@@ -240,7 +237,7 @@ class AdminModel(unohelper.Base):
         return privileges, grantables
 
     def _getTable(self, index):
-        return self._grid.getRowIdentifier(index)
+        return self._grid.getRowIdentifier(index, '0')
 
     def _isRemovable(self, user):
         return self._grid.Model.isGroup() or self._user.getPropertyValue('Name') != user
