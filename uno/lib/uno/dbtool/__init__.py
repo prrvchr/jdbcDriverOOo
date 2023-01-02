@@ -57,6 +57,7 @@ from .dbtool import getRowDict
 from .dbtool import getRowValue
 from .dbtool import getSequenceFromResult
 from .dbtool import getSqlException
+from .dbtool import getUnoType
 from .dbtool import getValueFromResult
 from .dbtool import registerDataSource
 

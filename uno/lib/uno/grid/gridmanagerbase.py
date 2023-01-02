@@ -140,11 +140,11 @@ class GridManagerBase(unohelper.Base):
         value = self._getRowValue(identifier, row)
         if self._types[identifier] in (CHAR, VARCHAR, LONGVARCHAR):
             value = "'%s'" % value.replace("'", "''")
+        else:
+            value = "%s" % value
         return value
 
     def _getRowValue(self, identifier, row):
-        print("GridManagerBase._getRowValue() Identifier: %s - Row: %s" % (identifier, row))
-        print("GridManagerBase._getRowValue() Index: %s - Row: %s" % (self._indexes[identifier], row))
         return self._model.getCellData(self._indexes[identifier], row)
 
 # GridManager setter methods
