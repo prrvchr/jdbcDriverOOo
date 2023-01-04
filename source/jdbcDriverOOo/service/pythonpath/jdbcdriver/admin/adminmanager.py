@@ -106,8 +106,9 @@ class AdminManager(unohelper.Base):
 
     def setGrantee(self, grantee):
         self._view.enableButton(*self._model.setGrantee(grantee))
-        table = self._model.getSelectedIdentifier()
-        enabled = self._model.hasGrantablePrivileges(table)
+        enabled = False
+        if self._model.hasGridSelectedRows():
+            enabled = self._model.hasGrantablePrivileges()
         self._view.enableSetPrivileges(enabled)
 
     def createGroup(self):
@@ -210,8 +211,9 @@ class AdminManager(unohelper.Base):
         self._dropGrantee(*self._model.getDropUserInfo())
 
     def changeGridSelection(self, index, grid):
-        table = self._model.getSelectedIdentifier()
-        enabled = self._model.hasGrantablePrivileges(table)
+        enabled = False
+        if index != -1:
+            enabled = self._model.hasGrantablePrivileges()
         self._view.enableSetPrivileges(enabled)
 
     def setPrivileges(self):

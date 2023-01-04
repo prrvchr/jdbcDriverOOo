@@ -198,11 +198,13 @@ class AdminModel(unohelper.Base):
         enabled = grantee is not None
         return enabled, recursive, self._isRemovable(grantee)
 
-    def hasGrantablePrivileges(self, table):
-        privileges = 0
-        if table is not None:
-            privileges = self._user.getGrantablePrivileges(table, TABLE)
-        return privileges != 0
+    def hasGridSelectedRows(self):
+        return self._grid.hasSelectedRows()
+
+    def hasGrantablePrivileges(self):
+        table = self._grid.getSelectedIdentifier('0')
+        privilege, grantable, inherited = self._grid.Model.getGranteePrivileges(table)
+        return grantable != 0
 
     def getPrivileges(self):
         table = self._grid.getSelectedIdentifier('0')

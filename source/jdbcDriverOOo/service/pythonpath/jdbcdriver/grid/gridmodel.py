@@ -92,11 +92,12 @@ class GridModel(GridModelBase):
         return not self._isuser
 
     def getGranteePrivileges(self, table):
-        privilege = self.getGrantee().getPrivileges(table, TABLE)
-        grantable = self._tables.getByName(table).Privileges
-        inherited = 0
-        if self._needInherited():
-            inherited = self._getInheritedPrivileges(table, self.getGrantee())
+        privilege = grantable = inherited = 0
+        if self._grantee is not None:
+            privilege = self._grantee.getPrivileges(table, TABLE)
+            grantable = self._tables.getByName(table).Privileges
+            if self._needInherited():
+                inherited = self._getInheritedPrivileges(table, self._grantee)
         return privilege, grantable, inherited
 
 # GridModel setter methods

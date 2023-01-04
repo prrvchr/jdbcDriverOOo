@@ -92,6 +92,9 @@ class GridManagerBase(unohelper.Base):
         return self._column
 
 # GridManager getter methods
+    def hasSelectedRows(self):
+        return self._view.hasSelectedRows()
+
     def getUnsortedIndex(self, index):
         return self._view.getGridDataModel().getRowHeading(index)
 

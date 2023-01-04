@@ -76,9 +76,7 @@ public abstract class TableBase
                      String name)
     {
         super(service, services, sensitive, name);
-        System.out.println("sdbcx.TableBase() 1");
         registerProperties();
-        System.out.println("sdbcx.TableBase() 1");
     }
 
     private void registerProperties() {

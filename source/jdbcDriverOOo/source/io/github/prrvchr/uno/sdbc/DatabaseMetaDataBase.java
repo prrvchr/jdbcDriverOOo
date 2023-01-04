@@ -1468,21 +1468,12 @@ public abstract class DatabaseMetaDataBase
     public String getUserName() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getUserName()");
             String value = m_Metadata.getUserName();
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return "";
         }
     }
 
@@ -1491,21 +1482,11 @@ public abstract class DatabaseMetaDataBase
     {
         try 
         {
-            System.out.println("sdbc.DatabaseMetaData.getVersionColumns()");
             java.sql.ResultSet resultset = m_Metadata.getVersionColumns(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
         catch (java.sql.SQLException e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return null;
         }
     }
 

@@ -79,13 +79,11 @@ public final class Table
     {
         super(m_service, m_services, sensitive, name);
         m_connection = connection;
-        System.out.println("sdb.Table() 1");
         super.m_CatalogName = catalog;
         super.m_SchemaName= schema;
         super.m_Type = type;
         super.m_Description = remarks;
         registerProperties();
-        System.out.println("sdb.Table() 2");
     }
 
     private void registerProperties() {
