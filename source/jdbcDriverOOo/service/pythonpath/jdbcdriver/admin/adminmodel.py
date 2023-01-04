@@ -206,9 +206,8 @@ class AdminModel(unohelper.Base):
 
     def getPrivileges(self):
         table = self._grid.getSelectedIdentifier('0')
-        privileges, grantables = self._getPrivileges(table)
-        inherited = self._grid.Model.getInheritedPrivileges(table)
-        return table, privileges, grantables, inherited
+        privilege, grantable, inherited = self._grid.Model.getGranteePrivileges(table)
+        return table, privilege, grantable, inherited
 
     def setPrivileges(self, table, grant, revoke):
         grantee = self._grid.Model.getGrantee()
@@ -230,11 +229,6 @@ class AdminModel(unohelper.Base):
         if recursive:
             return grantee != self._grantee and self._grantee not in grantees.getByName(grantee).getGroups().getElementNames()
         return True
-
-    def _getPrivileges(self, table):
-        privileges, ascendants = self._grid.Model.getGranteePrivileges(table)
-        grantables = self._user.getGrantablePrivileges(table, TABLE)
-        return privileges, grantables
 
     def _isRemovable(self, user):
         return self._grid.Model.isGroup() or self._user.getPropertyValue('Name') != user

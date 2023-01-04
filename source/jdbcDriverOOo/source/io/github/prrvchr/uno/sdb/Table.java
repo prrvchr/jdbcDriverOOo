@@ -210,7 +210,6 @@ public final class Table
     @Override
     public XPropertySet createDataDescriptor()
     {
-        System.out.println("sdb.Table.createDataDescriptor() ***************************************************");
         TableDescriptor descriptor = new TableDescriptor(isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
@@ -218,7 +217,6 @@ public final class Table
         return descriptor;
     }
 
-    @SuppressWarnings("unused")
     private int _getPrivileges()
         throws WrappedTargetException
     {
@@ -233,7 +231,6 @@ public final class Table
         catch (NoSuchElementException | SQLException e) {
             throw UnoHelper.getWrappedException(e);
         }
-        System.out.println("sdb.Table._getTablePrivileges() : 4 " + privileges);
         return privileges;
     }
 

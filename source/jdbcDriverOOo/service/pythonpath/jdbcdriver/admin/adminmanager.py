@@ -82,7 +82,7 @@ class AdminManager(unohelper.Base):
         self._view = view
         window = self._view.getGridWindow()
         url = getResourceLocation(ctx, g_identifier, g_extension)
-        model = GridModel(ctx, grantees, tables.getElementNames(), self._flags, recursive, isuser, url)
+        model = GridModel(ctx, grantees, tables, self._flags, recursive, isuser, url)
         self._model = AdminModel(ctx, datasource, model, window, GridListener(self), url, user, members, tables, self._flags, 'AdminGrid')
         self._dialog = None
         self._disabled = True
@@ -211,9 +211,7 @@ class AdminManager(unohelper.Base):
 
     def changeGridSelection(self, index, grid):
         table = self._model.getSelectedIdentifier()
-        print("AdminManager.changeGridSelection() 1 Index: %s" % index)
         enabled = self._model.hasGrantablePrivileges(table)
-        print("AdminManager.changeGridSelection() 2 Enabled: %s" % enabled)
         self._view.enableSetPrivileges(enabled)
 
     def setPrivileges(self):
