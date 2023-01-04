@@ -57,9 +57,9 @@ public final class Table
                                                 "com.sun.star.sdbcx.Table"};
     protected final ConnectionSuper m_connection;
 
-    //private int m_Privileges = 0;
-    private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
-    /*protected String m_Filter = "";
+    private Integer m_Privileges = null;
+    /*private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
+    protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
     protected int m_RowHeight = 15;
@@ -94,7 +94,9 @@ public final class Table
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    //return _getPrivileges();
+                    if (m_Privileges == null) {
+                        m_Privileges = _getPrivileges();
+                    }
                     return m_Privileges;
                 }
             }, null);

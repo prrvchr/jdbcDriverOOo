@@ -124,9 +124,7 @@ public final class ResultSetMetaData
     public int getColumnType(int index) throws SQLException
     {
         try {
-            int value = m_Connection.getProvider().getDataType(m_Metadata.getColumnType(index));
-            System.out.println("sdbc.ResultSetMetaData.getColumnType(): " + value);
-            return value;
+            return m_Connection.getProvider().getDataType(m_Metadata.getColumnType(index));
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

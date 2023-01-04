@@ -117,7 +117,6 @@ public abstract class ConnectionSuper
     private void _refreshTables()
     {
         try {
-            System.out.println("sdb.Connection._refreshTables() 1");
             // FIXME: It is preferable to display all the entities of the underlying database.
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
             String[] types = m_provider.getTableTypes();
@@ -126,9 +125,7 @@ public abstract class ConnectionSuper
             java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
             List<String> names = new ArrayList<>();
             while (result.next()) {
-                System.out.println("sdb.Connection._refreshTables() 2");
                 String name = _buildName(result);
-                System.out.println("sdb.Connection._refreshTables() Table Name: " + name);
                 names.add(name);
             }
             result.close();
