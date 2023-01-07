@@ -57,7 +57,7 @@ class GridManagerBase(unohelper.Base):
         self._ctx = ctx
         self._factor = factor
         self._datasource = None
-        self._query = None
+        self._table = None
         self._resource = None
         self._resolver = None
         if resources is not None:
@@ -215,11 +215,11 @@ class GridManagerBase(unohelper.Base):
         print("GridManager.setColumnOrder() First: %s Second: %s " % (pair.First, pair.Second))
 
 # GridManager private methods
-    def _initColumnModel(self, datasource, query=None):
+    def _initColumnModel(self, datasource, table=None):
         # TODO: ColumnWidth should be assigned after all columns have 
         # TODO: been added to the GridColumnModel
         self._removeColumns()
-        widths = self._getSavedWidths(datasource, query)
+        widths = self._getSavedWidths(datasource, table)
         identifiers = self._getIdentifiers(widths)
         if widths:
             for identifier in widths:
@@ -234,7 +234,7 @@ class GridManagerBase(unohelper.Base):
     def _saveWidths(self):
         widths = self._getColumnWidths()
         if self._multi:
-            name = self._getDataSourceName(self._datasource, self._query)
+            name = self._getDataSourceName(self._datasource, self._table)
             self._widths[name] = widths
         else:
             self._widths = widths
@@ -242,16 +242,16 @@ class GridManagerBase(unohelper.Base):
     def _saveOrders(self):
         orders = self._getColumnOrders()
         if self._multi:
-            name = self._getDataSourceName(self._datasource, self._query)
+            name = self._getDataSourceName(self._datasource, self._table)
             self._orders[name] = orders
         else:
             self._orders = orders
 
-    def _getDataSourceName(self, datasource, query):
+    def _getDataSourceName(self, datasource, table):
         if self._multi:
             name = '%s' % datasource
-            if query is not None:
-                name += '.%s' % query
+            if table is not None:
+                name += '.%s' % table
         else:
             name = datasource
         return name
@@ -284,20 +284,20 @@ class GridManagerBase(unohelper.Base):
         self._config.replaceByName(name, order)
         self._config.commitChanges()
 
-    def _getSavedWidths(self, datasource, query):
+    def _getSavedWidths(self, datasource, table):
         widths = {}
         if self._multi:
-            name = self._getDataSourceName(datasource, query)
+            name = self._getDataSourceName(datasource, table)
             if name in self._widths:
                 widths = self._widths[name]
         else:
             widths = self._widths
         return widths
 
-    def _getSavedOrders(self, datasource, query=None):
+    def _getSavedOrders(self, datasource, table=None):
         orders = (-1, True)
         if self._multi:
-            name = self._getDataSourceName(datasource, query)
+            name = self._getDataSourceName(datasource, table)
             if name in self._orders:
                 orders = self._orders[name]
         else:

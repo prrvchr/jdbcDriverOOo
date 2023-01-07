@@ -82,6 +82,8 @@ class GridModelBase(unohelper.Base,
         raise NotImplementedError('Need to be implemented!')
     def getCellToolTip(self, column, row):
         raise NotImplementedError('Need to be implemented!')
+    # FIXME: This method must not be overloaded: It is necessary to find the RowSet's
+    # FIXME: row number from the Grid's selection even if the sort is activated!!!
     def getRowHeading(self, row):
         return row
     def getRowData(self, row):
