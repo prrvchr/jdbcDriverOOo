@@ -131,11 +131,9 @@ public abstract class TableBase
     public XNameAccess getColumns()
     {
         try {
-            System.out.println("sdbcx.TableBase.getColumns() 1");
             if (m_columns == null) {
                 m_columns = _refreshColumns();
             }
-            System.out.println("sdbcx.TableBase.getColumns() 2");
             return m_columns;
         }
         catch (java.lang.Exception e) {
@@ -147,12 +145,10 @@ public abstract class TableBase
     // com.sun.star.sdbcx.XKeysSupplier:
     @Override
     public XIndexAccess getKeys() {
-        System.out.println("sdbcx.TableBase.getKeys() 1");
         checkDisposed();
         if (m_keys == null) {
             m_keys = _refreshKeys();
         }
-        System.out.println("sdbcx.TableBase.getKeys() 2");
         return m_keys;
     }
 
@@ -247,99 +243,5 @@ public abstract class TableBase
     }
 
     public abstract ConnectionSuper getConnection();
-
-    /*    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Table()
-    // XXX: - io.github.prrvchr.uno.sdb.Table()
-    public TableBase(String service,
-                     String[] services,
-                     Connection connection,
-                     XPropertySet descriptor)
-    throws SQLException
-    {
-        super(service, services, connection, descriptor);
-        try {
-            m_CatalogName = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.CATALOGNAME.name));
-            m_SchemaName = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.SCHEMANAME.name));
-            String value;
-            String[] types = m_Connection.getProvider().getTableTypes();
-            System.out.println("TableBase() 1 Type: " + Arrays.toString(types));
-            //String[] types = null;
-            java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getTables(m_CatalogName, m_SchemaName, m_Name, types);
-            if (result.next()) {
-                System.out.println("TableBase() 2");
-                value = result.getString(4);
-                m_Type = result.wasNull() ? "" : m_Connection.getProvider().getTableType(value);
-                value = result.getString(5);
-                m_Description = result.wasNull() ? "" : value;
-                System.out.println("TableBase() 3");
-            }
-            result.close();
-            m_columns = new ColumnContainer(connection, this);
-            System.out.println("sdbcx.TableBase.TableBase() Columns: " + m_columns.getCount());
-            m_keys = new KeyContainer(connection, this);
-            System.out.println("sdbcx.TableBase.TableBase() Keys: " + m_keys.getCount());
-            m_indexes = new IndexContainer(connection, this);
-            System.out.println("sdbcx.TableBase.TableBase() Indexes: " + m_indexes.getCount());
-            registerProperties();
-        }
-        catch (UnknownPropertyException | WrappedTargetException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type + "\nDecription: " + m_Description);
-    }
-
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Table()
-    // XXX: - io.github.prrvchr.uno.sdb.Table()
-    public TableBase(String service,
-                     String[] services,
-                     Connection connection,
-                     String catalog,
-                     String schema,
-                     String name,
-                     String type,
-                     String description)
-        throws SQLException
-    {
-        super(service, services, connection, name);
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
-        m_Type = type;
-        m_Description = description != null ? description : "";
-        System.out.println("sdbcx.TableBase.TableBase() Columns:");
-        m_columns = new ColumnContainer(connection, this);
-        System.out.println("sdbcx.TableBase.TableBase() Keys:");
-        m_keys = new KeyContainer(connection, this);
-        System.out.println("sdbcx.TableBase.TableBase() Indexes:");
-        m_indexes = new IndexContainer(connection, this);
-        registerProperties();
-        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type + "\nDecription: " + m_Description);
-    }
-
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Table()
-    // XXX: - io.github.prrvchr.uno.sdb.Table()
-    public TableBase(String service,
-                     String[] services,
-                     Connection connection,
-                     schemacrawler.schema.Table table)
-        throws java.sql.SQLException
-    {
-        super(service, services, connection, table.getName());
-        m_CatalogName = table.getSchema().getCatalogName();
-        m_SchemaName = table.getSchema().getName();
-        m_Type = table.getTableType().getTableType();
-        m_Description = table.getRemarks();
-        m_columns = new ColumnContainer(connection, table);
-        m_keys = new KeyContainer(connection, table);
-        //m_indexes = new IndexContainer(connection, table, this);
-        registerProperties();
-        System.out.println("sdbcx.TableBase.TableBase() : " + m_CatalogName + "." + m_SchemaName + "." + m_Name + " - Type: " + m_Type);
-    }*/
-
 
 }

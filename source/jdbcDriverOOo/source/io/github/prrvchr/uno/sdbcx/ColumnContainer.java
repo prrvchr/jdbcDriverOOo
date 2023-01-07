@@ -67,8 +67,6 @@ public class ColumnContainer
         for (ColumnDescription description : descriptions) {
             m_descriptions.put(description.columnName, description);
         }
-
-        System.out.println("sdbcx.ColumnContainer(): Column.getCount(): " + getCount());
     }
 
     private static List<String> toColumnNames(List<ColumnDescription> columns)

@@ -85,20 +85,11 @@ public abstract class DatabaseMetaDataBase
     public boolean allProceduresAreCallable() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.allProceduresAreCallable()");
             return m_Metadata.allProceduresAreCallable();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return false;
         }
     }
 
@@ -106,20 +97,11 @@ public abstract class DatabaseMetaDataBase
     public boolean allTablesAreSelectable() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.allTablesAreSelectable()");
             return m_Metadata.allTablesAreSelectable();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return false;
         }
     }
 
@@ -127,20 +109,11 @@ public abstract class DatabaseMetaDataBase
     public boolean dataDefinitionCausesTransactionCommit() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.dataDefinitionCausesTransactionCommit()");
             return m_Metadata.dataDefinitionCausesTransactionCommit();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return false;
         }
     }
 
@@ -148,7 +121,6 @@ public abstract class DatabaseMetaDataBase
     public boolean dataDefinitionIgnoredInTransactions() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.dataDefinitionIgnoredInTransactions()");
             return m_Metadata.dataDefinitionIgnoredInTransactions();
         }
         catch (java.sql.SQLException e) {
@@ -169,7 +141,6 @@ public abstract class DatabaseMetaDataBase
     public boolean deletesAreDetected(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.deletesAreDetected()");
             return m_Metadata.deletesAreDetected(type);
         }
         catch (java.sql.SQLException e) {
@@ -190,7 +161,6 @@ public abstract class DatabaseMetaDataBase
     public boolean doesMaxRowSizeIncludeBlobs() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.doesMaxRowSizeIncludeBlobs()");
             return m_Metadata.doesMaxRowSizeIncludeBlobs();
         }
         catch (java.sql.SQLException e) {
@@ -212,7 +182,6 @@ public abstract class DatabaseMetaDataBase
             throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getBestRowIdentifier()");
             return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, scope, nullable));
         }
         catch (java.sql.SQLException e) {
@@ -255,7 +224,6 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             String value = m_Metadata.getCatalogTerm();
-            System.out.println("sdbc.DatabaseMetaData.getCatalogTerm(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -276,12 +244,6 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getCatalogs() throws SQLException
     {
         try {
-            java.sql.ResultSet result = m_Metadata.getCatalogs();
-            while (result.next())
-            {
-                System.out.println("sdbc.DatabaseMetaData.getCatalogs() : " + result.getString(1));
-            }
-            result.close();
             return _getResultSet(m_Metadata.getCatalogs());
         }
         catch (java.sql.SQLException e) {
@@ -302,7 +264,6 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getColumnPrivileges(Object catalog, String schema, String table, String column) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getColumnPrivileges()");
             java.sql.ResultSet resultset = m_Metadata.getColumnPrivileges(_getPattern(catalog), _getPattern(schema), table, column);
             return _getResultSet(resultset);
         }
@@ -323,7 +284,6 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getColumns(Object catalog, String schema, String table, String column) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getColumns()");
             java.sql.ResultSet resultset = m_Metadata.getColumns(_getPattern(catalog), _getPattern(schema), table, column);
             return _getResultSet(resultset);
         }
@@ -352,7 +312,6 @@ public abstract class DatabaseMetaDataBase
             throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getCrossReference()");
             schema1 = _getPattern(schema1);
             schema2 = _getPattern(schema2);
             java.sql.ResultSet resultset = m_Metadata.getCrossReference(_getPattern(catalog1), schema1, table1, _getPattern(catalog2), schema2, table2);
@@ -376,7 +335,6 @@ public abstract class DatabaseMetaDataBase
     public String getDatabaseProductName() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getDatabaseProductName()");
             String value = m_Metadata.getDatabaseProductName();
             return value != null ? value : "";
         }
@@ -398,7 +356,6 @@ public abstract class DatabaseMetaDataBase
     public String getDatabaseProductVersion() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getDatabaseProductVersion()");
             String value = m_Metadata.getDatabaseProductVersion();
             return value != null ? value : "";
         }
@@ -420,7 +377,6 @@ public abstract class DatabaseMetaDataBase
     public int getDefaultTransactionIsolation() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getDefaultTransactionIsolation()");
             return m_Metadata.getDefaultTransactionIsolation();
         }
         catch (java.sql.SQLException e) {
@@ -440,14 +396,12 @@ public abstract class DatabaseMetaDataBase
     @Override
     public int getDriverMajorVersion()
     {
-        System.out.println("sdbc.DatabaseMetaData.getDriverMajorVersion()");
         return m_Metadata.getDriverMajorVersion();
     }
 
     @Override
     public int getDriverMinorVersion()
     {
-        System.out.println("sdbc.DatabaseMetaData.getDriverMinorVersion()");
         return m_Metadata.getDriverMinorVersion();
     }
 
@@ -455,7 +409,6 @@ public abstract class DatabaseMetaDataBase
     public String getDriverName() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getDriverName()");
             String value = m_Metadata.getDriverName();
             return value != null ? value : "";
         }
@@ -477,7 +430,6 @@ public abstract class DatabaseMetaDataBase
     public String getDriverVersion() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getDriverVersion()");
             String value = m_Metadata.getDriverVersion();
             return value != null ? value : "";
         }
@@ -499,7 +451,6 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getExportedKeys(Object catalog, String schema, String table) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getExportedKeys()");
             java.sql.ResultSet resultset = m_Metadata.getExportedKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
@@ -521,7 +472,6 @@ public abstract class DatabaseMetaDataBase
     public String getExtraNameCharacters() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getExtraNameCharacters()");
             String value = m_Metadata.getExtraNameCharacters();
             return value != null ? value : "";
         }
@@ -564,7 +514,6 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getImportedKeys(Object catalog, String schema, String table) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getImportedKeys()");
             java.sql.ResultSet resultset = m_Metadata.getImportedKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset);
         }
@@ -588,7 +537,6 @@ public abstract class DatabaseMetaDataBase
     {
         try 
         {
-            System.out.println("sdbc.DatabaseMetaData.getIndexInfo()");
             java.sql.ResultSet resultset = m_Metadata.getIndexInfo(_getPattern(catalog), _getPattern(schema), table, arg3, arg4);
             return _getResultSet(resultset);
         }
@@ -610,7 +558,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxBinaryLiteralLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxBinaryLiteralLength()");
             return m_Metadata.getMaxBinaryLiteralLength();
         }
         catch (java.sql.SQLException e) {
@@ -631,7 +578,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxCatalogNameLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxCatalogNameLength()");
             return m_Metadata.getMaxCatalogNameLength();
         }
         catch (java.sql.SQLException e) {
@@ -652,7 +598,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxCharLiteralLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxCharLiteralLength()");
             return m_Metadata.getMaxCharLiteralLength();
         }
         catch (java.sql.SQLException e) {
@@ -673,7 +618,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnNameLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxColumnNameLength()");
             return m_Metadata.getMaxColumnNameLength();
         }
         catch (java.sql.SQLException e) {
@@ -694,7 +638,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnsInGroupBy() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInGroupBy()");
             return m_Metadata.getMaxColumnsInGroupBy();
         }
         catch (java.sql.SQLException e) {
@@ -715,7 +658,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnsInIndex() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInIndex()");
             return m_Metadata.getMaxColumnsInIndex();
         }
         catch (java.sql.SQLException e) {
@@ -736,7 +678,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnsInOrderBy() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInOrderBy()");
             return m_Metadata.getMaxColumnsInOrderBy();
         }
         catch (java.sql.SQLException e) {
@@ -757,7 +698,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnsInSelect() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInSelect()");
             return m_Metadata.getMaxColumnsInSelect();
         }
         catch (java.sql.SQLException e) {
@@ -778,7 +718,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnsInTable() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxColumnsInTable()");
             return m_Metadata.getMaxColumnsInTable();
         }
         catch (java.sql.SQLException e) {
@@ -799,7 +738,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxConnections() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxConnections()");
             return m_Metadata.getMaxConnections();
         }
         catch (java.sql.SQLException e) {
@@ -820,7 +758,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxCursorNameLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxCursorNameLength()");
             return m_Metadata.getMaxCursorNameLength();
         }
         catch (java.sql.SQLException e) {
@@ -841,7 +778,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxIndexLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxIndexLength()");
             return m_Metadata.getMaxIndexLength();
         }
         catch (java.sql.SQLException e) {
@@ -862,7 +798,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxProcedureNameLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxProcedureNameLength()");
             return m_Metadata.getMaxProcedureNameLength();
         }
         catch (java.sql.SQLException e) {
@@ -883,7 +818,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxRowSize() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxRowSize()");
             return m_Metadata.getMaxRowSize();
         }
         catch (java.sql.SQLException e) {
@@ -904,7 +838,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxSchemaNameLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxSchemaNameLength()");
             return m_Metadata.getMaxSchemaNameLength();
         }
         catch (java.sql.SQLException e) {
@@ -925,7 +858,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxStatementLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxStatementLength()");
             return m_Metadata.getMaxStatementLength();
         }
         catch (java.sql.SQLException e) {
@@ -946,7 +878,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxStatements() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxStatements()");
             return m_Metadata.getMaxStatements();
         }
         catch (java.sql.SQLException e) {
@@ -967,7 +898,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxTableNameLength() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxTableNameLength()");
             return m_Metadata.getMaxTableNameLength();
         }
         catch (java.sql.SQLException e) {
@@ -988,7 +918,6 @@ public abstract class DatabaseMetaDataBase
     public int getMaxTablesInSelect() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getMaxTablesInSelect()");
             return m_Metadata.getMaxTablesInSelect();
         }
         catch (java.sql.SQLException e) {
@@ -1969,21 +1898,11 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsAlterTableWithAddColumn() throws SQLException
     {
         try {
-            boolean value = m_Metadata.supportsAlterTableWithAddColumn();
-            System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithAddColumn(): " + value);
-            return value;
+            return m_Metadata.supportsAlterTableWithAddColumn();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return false;
         }
     }
 
@@ -1991,9 +1910,7 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsAlterTableWithDropColumn() throws SQLException
     {
         try {
-            boolean value = m_Metadata.supportsAlterTableWithDropColumn();
-            System.out.println("sdbc.DatabaseMetaData.supportsAlterTableWithDropColumn(): " + value);
-            return value;
+            return m_Metadata.supportsAlterTableWithDropColumn();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2013,7 +1930,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsBatchUpdates() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsBatchUpdates()");
             return m_Metadata.supportsBatchUpdates();
         }
         catch (java.sql.SQLException e) {
@@ -2163,7 +2079,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsConvert(int arg0, int arg1) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsConvert()");
             return m_Metadata.supportsConvert();
         }
         catch (java.sql.SQLException e) {
@@ -2184,7 +2099,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsCoreSQLGrammar() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsCoreSQLGrammar()");
             return m_Metadata.supportsCoreSQLGrammar();
         }
         catch (java.sql.SQLException e) {
@@ -2205,7 +2119,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsCorrelatedSubqueries() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsCorrelatedSubqueries()");
             return m_Metadata.supportsCorrelatedSubqueries();
         }
         catch (java.sql.SQLException e) {
@@ -2522,9 +2435,7 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
     {
         try {
-            boolean value = m_Metadata.supportsMixedCaseQuotedIdentifiers();
-            System.out.println("sdbc.DatabaseMetaData.supportsMixedCaseQuotedIdentifiers(): " + value);
-            return value;
+            return m_Metadata.supportsMixedCaseQuotedIdentifiers();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2544,7 +2455,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsMultipleResultSets() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsMultipleResultSets()");
             return m_Metadata.supportsMultipleResultSets();
         }
         catch (java.sql.SQLException e) {
@@ -2565,7 +2475,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsMultipleTransactions() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsMultipleTransactions()");
             return m_Metadata.supportsMultipleTransactions();
         }
         catch (java.sql.SQLException e) {
@@ -2586,7 +2495,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsNonNullableColumns() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsNonNullableColumns()");
             return m_Metadata.supportsNonNullableColumns();
         }
         catch (java.sql.SQLException e) {
@@ -2607,7 +2515,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsOpenCursorsAcrossCommit() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsOpenCursorsAcrossCommit()");
             return m_Metadata.supportsOpenCursorsAcrossCommit();
         }
         catch (java.sql.SQLException e) {
@@ -2628,7 +2535,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsOpenCursorsAcrossRollback() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsOpenCursorsAcrossRollback()");
             return m_Metadata.supportsOpenCursorsAcrossRollback();
         }
         catch (java.sql.SQLException e) {
@@ -2649,7 +2555,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsOpenStatementsAcrossCommit() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsOpenStatementsAcrossCommit()");
             return m_Metadata.supportsOpenStatementsAcrossCommit();
         }
         catch (java.sql.SQLException e) {
@@ -2670,7 +2575,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsOpenStatementsAcrossRollback() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsOpenStatementsAcrossRollback()");
             return m_Metadata.supportsOpenStatementsAcrossRollback();
         }
         catch (java.sql.SQLException e) {
@@ -2691,7 +2595,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsOrderByUnrelated() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsOrderByUnrelated()");
             return m_Metadata.supportsOrderByUnrelated();
         }
         catch (java.sql.SQLException e) {
@@ -2712,7 +2615,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsOuterJoins() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsOuterJoins()");
             return m_Metadata.supportsOuterJoins();
         }
         catch (java.sql.SQLException e) {
@@ -2733,7 +2635,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsPositionedDelete() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsPositionedDelete()");
             return m_Metadata.supportsPositionedDelete();
         }
         catch (java.sql.SQLException e) {
@@ -2754,7 +2655,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsPositionedUpdate() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsPositionedUpdate()");
             return m_Metadata.supportsPositionedUpdate();
         }
         catch (java.sql.SQLException e) {
@@ -2775,9 +2675,7 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException
     {
         try {
-            boolean value = m_Metadata.supportsResultSetConcurrency (type, concurrency);
-            System.out.println("sdbc.DatabaseMetaData.supportsResultSetConcurrency() Type: " + type + " - Concurrency: " + concurrency + " - Value: " + value);
-            return value;
+            return m_Metadata.supportsResultSetConcurrency (type, concurrency);
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2797,7 +2695,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsResultSetType(int arg0) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsResultSetType()");
             return m_Metadata.supportsResultSetType(arg0);
         }
         catch (java.sql.SQLException e) {
@@ -2818,10 +2715,7 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSchemasInDataManipulation() throws SQLException
     {
         try {
-            //System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
-            boolean value = m_Metadata.supportsSchemasInDataManipulation();
-            //System.out.println("sdbc.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
-            return value;
+            return m_Metadata.supportsSchemasInDataManipulation();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2841,9 +2735,7 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSchemasInIndexDefinitions() throws SQLException
     {
         try {
-            boolean value = m_Metadata.supportsSchemasInIndexDefinitions();
-            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInIndexDefinitions(): " +  value);
-            return value;
+            return m_Metadata.supportsSchemasInIndexDefinitions();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2863,7 +2755,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInPrivilegeDefinitions()");
             return m_Metadata.supportsSchemasInPrivilegeDefinitions();
         }
         catch (java.sql.SQLException e) {
@@ -2884,7 +2775,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSchemasInProcedureCalls() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSchemasInProcedureCalls()");
             return m_Metadata.supportsSchemasInProcedureCalls();
         }
         catch (java.sql.SQLException e) {
@@ -2927,7 +2817,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSelectForUpdate() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSelectForUpdate()");
             return m_Metadata.supportsSelectForUpdate();
         }
         catch (java.sql.SQLException e) {
@@ -2948,7 +2837,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsStoredProcedures() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsStoredProcedures()");
             return m_Metadata.supportsStoredProcedures();
         }
         catch (java.sql.SQLException e) {
@@ -2969,7 +2857,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSubqueriesInComparisons() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInComparisons()");
             return m_Metadata.supportsSubqueriesInComparisons();
         }
         catch (java.sql.SQLException e) {
@@ -2990,7 +2877,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSubqueriesInExists() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInExists()");
             return m_Metadata.supportsSubqueriesInExists();
         }
         catch (java.sql.SQLException e) {
@@ -3011,7 +2897,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSubqueriesInIns() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInIns()");
             return m_Metadata.supportsSubqueriesInIns();
         }
         catch (java.sql.SQLException e) {
@@ -3032,7 +2917,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsSubqueriesInQuantifieds() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsSubqueriesInQuantifieds()");
             return m_Metadata.supportsSubqueriesInQuantifieds();
         }
         catch (java.sql.SQLException e) {
@@ -3053,7 +2937,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsTableCorrelationNames() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsTableCorrelationNames()");
             return m_Metadata.supportsTableCorrelationNames();
         }
         catch (java.sql.SQLException e) {
@@ -3074,7 +2957,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsTransactionIsolationLevel(int arg0) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsTransactionIsolationLevel()");
             return m_Metadata.supportsTransactionIsolationLevel(arg0);
         }
         catch (java.sql.SQLException e) {
@@ -3095,7 +2977,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsTransactions() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsTransactions()");
             return m_Metadata.supportsTransactions();
         }
         catch (java.sql.SQLException e) {
@@ -3116,7 +2997,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsTypeConversion() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsTypeConversion()");
             return m_Metadata.supportsConvert();
         }
         catch (java.sql.SQLException e) {
@@ -3137,7 +3017,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsUnion() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsUnion()");
             return m_Metadata.supportsUnion();
         }
         catch (java.sql.SQLException e) {
@@ -3158,7 +3037,6 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsUnionAll() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.supportsUnionAll()");
             return m_Metadata.supportsUnionAll();
         }
         catch (java.sql.SQLException e) {
@@ -3179,7 +3057,6 @@ public abstract class DatabaseMetaDataBase
     public boolean updatesAreDetected(int arg0) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.updatesAreDetected()");
             return m_Metadata.updatesAreDetected(arg0);
         }
         catch (java.sql.SQLException e) {
@@ -3200,7 +3077,6 @@ public abstract class DatabaseMetaDataBase
     public boolean usesLocalFilePerTable() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.usesLocalFilePerTable()");
             return m_Metadata.usesLocalFilePerTable();
         }
         catch (java.sql.SQLException e) {
@@ -3221,7 +3097,6 @@ public abstract class DatabaseMetaDataBase
     public boolean usesLocalFiles() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.usesLocalFiles()");
             return m_Metadata.usesLocalFiles();
         }
         catch (java.sql.SQLException e) {
