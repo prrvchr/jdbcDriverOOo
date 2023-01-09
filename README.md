@@ -243,8 +243,8 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Writing, following the MVC model, [administration windows][46] for users and roles (groups) and their associated privileges, accessible in Base via the menu: **Administration -> User administration** and/or **Administration - > Group administration**, allowing:
 
-    - [**Management of users**][47] and their privileges.
-    - [**Management of roles**][48] (groups) and their privileges.
+    - [Management of users][47] and their privileges.
+    - [Management of roles][48] (groups) and their privileges.
 
     These new features have only been tested with the HsqlDB driver so far.
 

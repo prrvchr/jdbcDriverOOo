@@ -243,8 +243,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Ecriture, en suivant le modèle MVC, des [fenêtres d'administration][46] des utilisateurs et des rôles (groupes) et de leurs privilèges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
 
-    - La [**gestion des utilisateurs**][47] et de leurs privilèges.
-    - La [**gestion des rôles**][48] (groupes) et de leurs privilèges.
+    - La [gestion des utilisateurs][47] et de leurs privilèges.
+    - La [gestion des rôles][48] (groupes) et de leurs privilèges.
 
     Ces nouvelles fonctionnalités n'ont étés testées pour l'instant qu'avec le pilote HsqlDB.
 
