@@ -188,11 +188,11 @@ class AdminDispatch(unohelper.Base,
     def _getConnection(self):
         close = False
         connection = self._frame.Controller.ActiveConnection
-        # FIXME: In Base the connection to the database is not necessarily open,
-        # FIXME: on the other hand if it is opened then it must be closed.
+        # FIXME: In Base the connection to the database is not necessarily open, if this is
+        # FIXME: the case we open an isolated connection in order to be able to close it.
         if connection is None:
             datasource = self._frame.Controller.DataSource
-            connection = datasource.getConnection(datasource.User, datasource.Password)
+            connection = datasource.getIsolatedConnection(datasource.User, datasource.Password)
             close = True
         return close, connection
 
