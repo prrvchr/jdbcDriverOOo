@@ -12,15 +12,18 @@
 
 Cette extension vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
 Elle embarque les pilotes pour les base de données suivantes:
-- [HyperSQL ou HsqlDB][8] version 2.70.
-    Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://.
-- [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13).
-- [Apache Derby][10] version 10.15.2.0.
+- [HyperSQL ou HsqlDB][8] version 2.70
+    Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
+- [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13)
+- [Apache Derby][10] version 10.15.2.0
+- [SQLite JDBC Driver][11] version 3.39.3.1-20220916.082601-2
+- [MariaDB Connector/J][12] version 3.1.1
+- [SmallSQL][13] version 0.22
 
 Etant un logiciel libre je vous encourage:
-- A dupliquer son [code source][11].
+- A dupliquer son [code source][14].
 - A apporter des modifications, des corrections, des améliorations.
-- D'ouvrir un [dysfonctionnement][12] si nécessaire.
+- D'ouvrir un [dysfonctionnement][15] si nécessaire.
 
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
@@ -28,15 +31,15 @@ Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
 ## Prérequis:
 
 jdbcDriverOOo est un pilote JDBC écrit en Java.  
-Son utilisation nécessite [l'installation et la configuration][13] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
-Je vous recommande [Adoptium][14] comme source d'installation de Java.
+Son utilisation nécessite [l'installation et la configuration][16] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
+Je vous recommande [Adoptium][17] comme source d'installation de Java.
 
-Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538][15].  
+Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538][18].  
 Pour contourner le problème, veuillez désinstaller les paquets:
 - libreoffice-sdbc-hsqldb
 - libhsqldb1.8.0-java
 
-Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HsqlDBembeddedOOo][16].  
+Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HsqlDBembeddedOOo][19].  
 OpenOffice et LibreOffice sous Windows ne sont pas soumis à ce dysfonctionnement.
 
 ## Installation:
@@ -44,7 +47,7 @@ OpenOffice et LibreOffice sous Windows ne sont pas soumis à ce dysfonctionnemen
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![jdbcDriverOOo logo][17] **[jdbcDriverOOo.oxt][18]** version 0.0.4.
+- Installer l'extension ![jdbcDriverOOo logo][20] **[jdbcDriverOOo.oxt][21]** version 0.0.4.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -56,14 +59,14 @@ Ce mode d'utilisation utilise une base de données HsqlDB.
 
 Dans LibreOffice / OpenOffice aller au menu: **Fichier -> Nouveau -> Base de données**
 
-![jdbcDriverOOo screenshot 1][19]
+![jdbcDriverOOo screenshot 1][22]
 
 A l'étape: **Sélectionner une base de données**
 - selectionner: Connecter une base de données existante
 - choisir: Pilote HsqlDB
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 2][20]
+![jdbcDriverOOo screenshot 2][23]
 
 A l'étape: **Paramètres de connexion**
 
@@ -80,16 +83,16 @@ A l'étape: **Paramètres de connexion**
 
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 3][21]
+![jdbcDriverOOo screenshot 3][24]
 
 A l'étape: **Paramétrer l'authentification de l'utilisateur**
 - cliquer sur le bouton: Tester la connexion
 
-![jdbcDriverOOo screenshot 4][22]
+![jdbcDriverOOo screenshot 4][25]
 
 Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
-![jdbcDriverOOo screenshot 5][23]
+![jdbcDriverOOo screenshot 5][26]
 
 Maintenant à vous d'en profiter...
 
@@ -112,27 +115,27 @@ Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateur
 
 La gestion des utilisateurs de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des utilisateurs**
 
-![jdbcDriverOOo screenshot 6][24]
+![jdbcDriverOOo screenshot 6][27]
 
 La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**  
 Si le privilège est hérité d'un rôle assigné, la case à cocher est de type à trois états.
 
-![jdbcDriverOOo screenshot 7][25]
+![jdbcDriverOOo screenshot 7][28]
 
 ### La gestion des rôles (groupes) dans Base:
 
 La gestion des rôles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
 
-![jdbcDriverOOo screenshot 8][26]
+![jdbcDriverOOo screenshot 8][29]
 
 La gestion des utilisateurs membres du groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Utilisateurs du groupe**
 
-![jdbcDriverOOo screenshot 9][27]
+![jdbcDriverOOo screenshot 9][30]
 
 La gestion des roles assignés au groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Roles du groupe**  
 Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que si le pilote LibreOffice / OpenOffice sous jacent le permet.
 
-![jdbcDriverOOo screenshot 10][28]
+![jdbcDriverOOo screenshot 10][31]
 
 ## A été testé avec:
 
@@ -143,7 +146,7 @@ Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que s
 * Apache OpenOffice 4.1.13 - Lubuntu 22.04
 
 Je vous encourage en cas de problème :-(  
-de créer un [dysfonctionnement][29]  
+de créer un [dysfonctionnement][32]  
 J'essaierai de le résoudre ;-)
 
 ## Historique:
@@ -153,7 +156,7 @@ J'essaierai de le résoudre ;-)
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [bug 132195][30].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [bug 132195][33].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -176,7 +179,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 0.0.1:
 
-- La rédaction de ce pilote a été facilitée par une [discussion avec Villeroy][31], sur le forum OpenOffice, que je tiens à remercier, car la connaissance ne vaut que si elle est partagée...
+- La rédaction de ce pilote a été facilitée par une [discussion avec Villeroy][34], sur le forum OpenOffice, que je tiens à remercier, car la connaissance ne vaut que si elle est partagée...
 
 - Utilisation de la nouvelle version de HsqlDB 2.5.1.
 
@@ -190,7 +193,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 0.0.3:
 
-- Je tiens particulièrement à remercier fredt à [hsqldb.org][32] pour:
+- Je tiens particulièrement à remercier fredt à [hsqldb.org][35] pour:
 
     - Son accueil pour ce projet et sa permission d'utiliser le logo HsqlDB dans l'extension.
 
@@ -210,21 +213,21 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 0.0.4:
 
-- Réécriture de [Driver][33] en Java version 11 OpenJDK amd64 sous Eclipse IDE for Java Developers version 4.23.0 avec les plugins:
+- Réécriture de [Driver][36] en Java version 11 OpenJDK amd64 sous Eclipse IDE for Java Developers version 4.23.0 avec les plugins:
     - LOEclipse ou LibreOffice Eclipse plugin for extension development version 4.0.1.
     - PyDev ou Python IDE for Eclipse version 9.3.0.
 
-- Ecriture des services `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` de JDBC (merci à hanya pour [MRI][34] qui m'a été d'une aide précieuse...)
+- Ecriture des services `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` de JDBC (merci à hanya pour [MRI][37] qui m'a été d'une aide précieuse...)
 
-    - [com.sun.star.sdb.*][35]
-    - [com.sun.star.sdbc.*][36]
-    - [com.sun.star.sdbcx.*][37]
+    - [com.sun.star.sdb.*][38]
+    - [com.sun.star.sdbc.*][39]
+    - [com.sun.star.sdbcx.*][40]
 
 - Intégration dans jdbcDriverOOo des pilotes JDBC **H2** et **Derby** en plus de **HsqlDB**. Implémentation de Services Java:
 
-    - [Driver-HsqlDB.jar][38]
-    - [Driver-H2.jar][39]
-    - [Driver-Derby.jar][40]
+    - [Driver-HsqlDB.jar][41]
+    - [Driver-H2.jar][42]
+    - [Driver-Derby.jar][43]
 
     Afin de corriger d'éventuels défauts, ou incompatibilité avec l'API UNO, des pilotes JDBC embarqués. 
 
@@ -232,19 +235,19 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Prise en charge dans Base des **clés primaires auto incrémentées** pour HsqlDB, H2 et Derby.
 
-- Ecriture de [com.sun.star.sdbcx.Driver][41]. Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
+- Ecriture de [com.sun.star.sdbcx.Driver][44]. Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
 
-- Implémentation d'un fournisseur de services Java [UnoLogger.jar][42] pour l'API [SLF4J][43] afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*][44].
+- Implémentation d'un fournisseur de services Java [UnoLogger.jar][45] pour l'API [SLF4J][46] afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*][47].
 
-- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options][45], accessible par le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre:
+- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options][48], accessible par le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre:
 
     - La mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
     - L'activation de la journalisation du pilote de la base de la données sous-jacente.
 
-- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration][46] des utilisateurs et des rôles (groupes) et de leurs privilèges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
+- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration][49] des utilisateurs et des rôles (groupes) et de leurs privilèges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
 
-    - La [gestion des utilisateurs][47] et de leurs privilèges.
-    - La [gestion des rôles][48] (groupes) et de leurs privilèges.
+    - La [gestion des utilisateurs][50] et de leurs privilèges.
+    - La [gestion des rôles][51] (groupes) et de leurs privilèges.
 
     Ces nouvelles fonctionnalités n'ont étés testées pour l'instant qu'avec le pilote HsqlDB.
 
@@ -266,41 +269,44 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [8]: <http://hsqldb.org/>
 [9]: <https://www.h2database.com/html/main.html>
 [10]: <https://db.apache.org/derby/>
-[11]: <https://github.com/prrvchr/jdbcDriverOOo/>
-[12]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
-[13]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
-[14]: <https://adoptium.net/releases.html?variant=openjdk11>
-[15]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[16]: <https://prrvchr.github.io/HsqlDBembeddedOOo/README_fr>
-[17]: <img/jdbcDriverOOo.png>
-[18]: <https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt>
-[19]: <img/jdbcDriverOOo-1_fr.png>
-[20]: <img/jdbcDriverOOo-2_fr.png>
-[21]: <img/jdbcDriverOOo-3_fr.png>
-[22]: <img/jdbcDriverOOo-4_fr.png>
-[23]: <img/jdbcDriverOOo-5_fr.png>
-[24]: <img/jdbcDriverOOo-6_fr.png>
-[25]: <img/jdbcDriverOOo-7_fr.png>
-[26]: <img/jdbcDriverOOo-8_fr.png>
-[27]: <img/jdbcDriverOOo-9_fr.png>
-[28]: <img/jdbcDriverOOo-10_fr.png>
-[29]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
-[30]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[31]: <https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912>
-[32]: <http://hsqldb.org/>
-[33]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/Driver.java>
-[34]: <https://github.com/hanya/MRI>
-[35]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdb>
-[36]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc>
-[37]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx>
-[38]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-HsqlDB/source/io/github/prrvchr/jdbcdriver/hsqldb>
-[39]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-H2/source/io/github/prrvchr/jdbcdriver/h2>
-[40]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-Derby/source/io/github/prrvchr/jdbcdriver/derby>
-[41]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java>
-[42]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging>
-[43]: <https://www.slf4j.org/>
-[44]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html>
-[45]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/options>
-[46]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
-[47]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
-[48]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
+[11]: <https://github.com/xerial/sqlite-jdbc>
+[12]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
+[13]: <https://github.com/CptTZ/SmallSQL>
+[14]: <https://github.com/prrvchr/jdbcDriverOOo/>
+[15]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
+[16]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
+[17]: <https://adoptium.net/releases.html?variant=openjdk11>
+[18]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
+[19]: <https://prrvchr.github.io/HsqlDBembeddedOOo/README_fr>
+[20]: <img/jdbcDriverOOo.png>
+[21]: <https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt>
+[22]: <img/jdbcDriverOOo-1_fr.png>
+[23]: <img/jdbcDriverOOo-2_fr.png>
+[24]: <img/jdbcDriverOOo-3_fr.png>
+[25]: <img/jdbcDriverOOo-4_fr.png>
+[26]: <img/jdbcDriverOOo-5_fr.png>
+[27]: <img/jdbcDriverOOo-6_fr.png>
+[28]: <img/jdbcDriverOOo-7_fr.png>
+[29]: <img/jdbcDriverOOo-8_fr.png>
+[30]: <img/jdbcDriverOOo-9_fr.png>
+[31]: <img/jdbcDriverOOo-10_fr.png>
+[32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
+[33]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[34]: <https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912>
+[35]: <http://hsqldb.org/>
+[36]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/Driver.java>
+[37]: <https://github.com/hanya/MRI>
+[38]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdb>
+[39]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc>
+[40]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx>
+[41]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-HsqlDB/source/io/github/prrvchr/jdbcdriver/hsqldb>
+[42]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-H2/source/io/github/prrvchr/jdbcdriver/h2>
+[43]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-Derby/source/io/github/prrvchr/jdbcdriver/derby>
+[44]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java>
+[45]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging>
+[46]: <https://www.slf4j.org/>
+[47]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html>
+[48]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/options>
+[49]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
+[50]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
+[51]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
