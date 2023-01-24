@@ -37,10 +37,11 @@ import com.sun.star.uno.XComponentContext;
 public final class UnoLoggerPool
 {
 
-    private static UnoLoggerPool m_instance = new UnoLoggerPool();
-    private XComponentContext m_xContext;
-    private String m_rootlogger;
-    private Set<String> m_loggers = new HashSet<String>();
+    private static XComponentContext m_xContext;
+    private static String m_root;
+    private static String m_service = "/singletons/com.sun.star.logging.LoggerPool";
+    private static Set<String> m_loggers = new HashSet<String>();
+
 
     // The constructor method:
     public UnoLoggerPool()
@@ -48,50 +49,46 @@ public final class UnoLoggerPool
         System.out.println("logging.UnoLoggerPool() 1: ");
     }
 
-    public static UnoLoggerPool getInstance() {
-        return m_instance;
-    }
-
-    public void setContext(XComponentContext context,
-                           String root)
+    public static void initialize(XComponentContext context,
+                                  String root)
     {
-        System.out.println("logging.UnoLoggerPool.setContext() 1: ");
+        System.out.println("logging.UnoLoggerPool.setRoot() 1: ");
         m_xContext = context;
-        m_rootlogger = root;
-        System.out.println("logging.UnoLoggerPool.setContext() 2: " + context);
+        m_root = root;
     }
 
-    public String[] getLoggerNames()
+    public static String[] getLoggerNames()
     {
         return m_loggers.toArray(new String[m_loggers.size()]);
     }
 
-    public XLogger getNamedLogger(String name)
+    public static XLogger getNamedLogger(String name)
     {
-        System.out.println("logging.UnoLoggerPool.getNamedLogger() 1: " + name);
         if (!m_loggers.contains(name)) {
             m_loggers.add(name);
         }
-        XLogger logger = _getLoggerPool().getNamedLogger(m_rootlogger + "." + name);
-        System.out.println("logging.UnoLoggerPool.getNamedLogger() 2: " + logger.getName());
+        XLogger logger = getLoggerPool().getNamedLogger(getLoggerName(name));
+        System.out.println("logging.UnoLoggerPool.getNamedLogger() " + logger.getName());
         return logger;
     }
 
-    public XLogger getDefaultLogger()
+    public static XLogger getDefaultLogger()
     {
-        System.out.println("logging.UnoLoggerPool.getDefaultLogger() 1");
-        XLogger logger = _getLoggerPool().getDefaultLogger();
-        System.out.println("logging.UnoLoggerPool.getDefaultLogger() 2: " + logger.getName());
+        XLogger logger = getLoggerPool().getDefaultLogger();
+        System.out.println("logging.UnoLoggerPool.getDefaultLogger() " + logger.getName());
         return logger;
     }
 
-
-    private XLoggerPool _getLoggerPool()
+    private static XLoggerPool getLoggerPool()
     {
-        System.out.println("logging.UnoLoggerPool.getLoggerPool() 1");
-        String service = "/singletons/com.sun.star.logging.LoggerPool";
-        XLoggerPool pool = (XLoggerPool) UnoRuntime.queryInterface(XLoggerPool.class, m_xContext.getValueByName(service));
-        return pool;
+        System.out.println("logging.UnoLoggerPool.getLoggerPool()");
+        return UnoRuntime.queryInterface(XLoggerPool.class, m_xContext.getValueByName(m_service));
     }
+
+    private static String getLoggerName(String name)
+    {
+        return String.format("%s.%s", m_root, name);
+    }
+
 
 }

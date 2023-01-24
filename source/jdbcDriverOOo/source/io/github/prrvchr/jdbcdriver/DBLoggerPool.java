@@ -57,7 +57,7 @@ public final class DBLoggerPool
 
     @Override
     public String[] getLoggerNames() {
-        return UnoLoggerPool.getInstance().getLoggerNames();
+        return UnoLoggerPool.getLoggerNames();
     }
 
 

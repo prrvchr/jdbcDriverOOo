@@ -37,7 +37,7 @@ public class UnoLoggerServiceProvider
     implements SLF4JServiceProvider
 {
 
-    public static String REQUESTED_API_VERSION = "1.8.99";
+    public static String REQUESTED_API_VERSION = "2.0.6";
     private ILoggerFactory m_logger;
     private IMarkerFactory m_marker;
     private MDCAdapter m_adapter;
@@ -71,7 +71,7 @@ public class UnoLoggerServiceProvider
     }
 
     @Override
-    public String getRequesteApiVersion() {
+    public String getRequestedApiVersion() {
         return REQUESTED_API_VERSION;
     }
 

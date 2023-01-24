@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class UnoLoggerFactory
@@ -55,13 +54,11 @@ public class UnoLoggerFactory
         }
 
         Logger logger = m_loggers.get(name);
-        if (logger != null)
+        if (logger != null) {
             return logger;
+        }
         else {
-            ClassLoader previousCL = Thread.currentThread().getContextClassLoader();
-            ClassLoader desiredCL = LoggerFactory.class.getClassLoader();
-            System.out.println("logging.UnoLoggerFactory.getLogger() 1 : " + previousCL + " - : " + desiredCL);
-            Logger newInstance = new UnoLoggerAdapter(UnoLoggerPool.getInstance().getNamedLogger(name));
+            Logger newInstance = new UnoLoggerAdapter(name);
             Logger oldInstance = m_loggers.putIfAbsent(name, newInstance);
             return oldInstance == null ? newInstance : oldInstance;
         }

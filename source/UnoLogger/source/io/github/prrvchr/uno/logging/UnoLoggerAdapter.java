@@ -35,6 +35,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.logging.XLogger;
 
 
+@SuppressWarnings("deprecation")
 public final class UnoLoggerAdapter
     extends MarkerIgnoringBase
     implements LocationAwareLogger
@@ -44,11 +45,13 @@ public final class UnoLoggerAdapter
     private final XLogger m_xLogger;
 
     // The constructor method:
-    public UnoLoggerAdapter(XLogger logger)
+    public UnoLoggerAdapter(String logger)
     {
         System.out.println("logging.UnoLoggerAdapter() 1");
-        m_xLogger = logger;
-        System.out.println("logging.UnoLoggerAdapter() 2: " + logger.getName());
+        //m_xLogger = UnoHelper.getLoggerPool().getNamedLogger(logger);
+        m_xLogger = UnoLoggerPool.getNamedLogger(logger);
+
+        System.out.println("logging.UnoLoggerAdapter() 2: " + m_xLogger.getName());
     }
 
     @Override

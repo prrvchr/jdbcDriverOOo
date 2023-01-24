@@ -41,6 +41,7 @@ from .optionshandler import OptionsHandler
 from .optionshandler import Tab1Handler
 from .optionshandler import Tab2Handler
 
+from ..unotool import createService
 from ..unotool import getFilePicker
 from ..unotool import getSimpleFile
 from ..unotool import getUrl
@@ -109,9 +110,13 @@ class OptionsManager(unohelper.Base):
         self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
         print("OptionsManager.() 2")
+        #pool = self._ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(pool)
+
 
     def saveSetting(self):
-        self._logger.saveLoggerSetting()
+        self._logger.saveSetting()
         if self._model.saveSetting() and self._model.isLevelUpdated():
             self._view.disableLevel()
 
@@ -121,7 +126,7 @@ class OptionsManager(unohelper.Base):
         self._view.exitAdd(reboot)
         self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
-        self._logger.setLoggerSetting()
+        self._logger.reloadSetting()
 
     def setLevel(self, level):
         self._model.setLevel(level)

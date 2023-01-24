@@ -55,10 +55,10 @@ import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
 
 public abstract class DriverBase
@@ -75,7 +75,7 @@ public abstract class DriverBase
     private static final String m_driverClassPath = "JavaDriverClassPath";
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
-    private static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
+    public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
     private final boolean m_registered;
     private final ResourceBasedEventLogger m_logger;
@@ -90,7 +90,7 @@ public abstract class DriverBase
         m_services = services;
         SharedResources.registerClient(context, m_identifier, "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
-        UnoLoggerPool.getInstance().setContext(context, m_identifier);
+        UnoLoggerPool.initialize(context, m_identifier);
         String driver =  _getRegistredDriver();
         m_enhanced = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
         m_registered = _isDriverRegistred(services, driver);

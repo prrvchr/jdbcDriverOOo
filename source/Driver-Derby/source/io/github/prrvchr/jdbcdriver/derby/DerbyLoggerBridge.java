@@ -32,23 +32,22 @@ import com.sun.star.logging.XLogger;
 
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
-
 public final class DerbyLoggerBridge
 {
 
-    private static final XLogger m_xLogger = UnoLoggerPool.getInstance().getNamedLogger("derby");
+    private static final XLogger m_xLogger = UnoLoggerPool.getNamedLogger("derby");
 
     private DerbyLoggerBridge()
     {
     }
 
-    public static final class LoggingWriter extends Writer
+    public static final class LoggingWriter
+        extends Writer
     {
         @Override
         public void write(final char[] cbuf, final int off, final int len)
         {
-            if (len > 1)
-            {
+            if (len > 1) {
                 m_xLogger.log(LogLevel.INFO, new String(cbuf, off, len));
             }
         }
