@@ -43,6 +43,7 @@ from jdbcdriver import logMessage
 
 from jdbcdriver import g_identifier
 
+from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -53,15 +54,16 @@ g_ImplementationName = '%s.Driver' % g_identifier
 class Driver(unohelper.Base,
              XServiceInfo):
     def __new__(cls, ctx, *args, **kwargs):
-        print("Driver.__new__() 1")
         if cls._instance is None:
-            print("Driver.__new__() 2")
-            service = getConfiguration(ctx, g_identifier).getByName('DriverService')
-            cls._instance = createService(ctx, service)
-        print("Driver.__new__() 3")
+            with cls._lock:
+                if cls._instance is None:
+                    print("Driver.__new__() *******************************")
+                    service = getConfiguration(ctx, g_identifier).getByName('DriverService')
+                    cls._instance = createService(ctx, service)
         return cls._instance
 
     _instance = None
+    _lock = Lock()
 
     # XServiceInfo
     def supportsService(self, service):
