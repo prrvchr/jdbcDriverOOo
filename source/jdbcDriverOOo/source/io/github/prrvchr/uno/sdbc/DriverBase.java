@@ -71,41 +71,26 @@ public abstract class DriverBase
     private XComponentContext m_xContext;
     private static final String m_connectProtocol = "jdbc:";
     private static final String m_registredProtocol = "xdbc:";
-    private static final String m_rootDriver = m_registredProtocol + "*";
     private static final String m_driverClassPath = "JavaDriverClassPath";
     private static final String m_driverClass = "JavaDriverClass";
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
-    private final boolean m_registered;
     private final ResourceBasedEventLogger m_logger;
 
     // The constructor method:
     public DriverBase(final XComponentContext context,
                       final String service, 
-                      final String[] services)
+                      final String[] services,
+                      boolean enhanced)
     {
         m_xContext = context;
         m_service = service;
         m_services = services;
+        m_enhanced = enhanced;
         SharedResources.registerClient(context, m_identifier, "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
-        String driver =  _getRegistredDriver();
-        m_enhanced = "io.github.prrvchr.jdbcdriver.sdbcx.Driver".equals(driver);
-        m_registered = _isDriverRegistred(services, driver);
-    }
-
-    private String _getRegistredDriver()
-    {
-        String service = null;
-        try {
-            XHierarchicalNameAccess config = _getDriverConfiguration();
-            service = (String) config.getByHierarchicalName("Installed/" + m_rootDriver + "/Driver");
-            UnoHelper.disposeComponent(config);
-        }
-        catch (java.lang.Exception e) {}
-        return service;
     }
 
     private XHierarchicalNameAccess _getDriverConfiguration()
@@ -116,22 +101,6 @@ public abstract class DriverBase
 
     public final XComponentContext getComponentContext() {
         return m_xContext;
-    }
-
-    private boolean _isDriverRegistred(final String[] services,
-                                       final String driver)
-    {
-        boolean registred = false;
-        try {
-            for (String service : services) {
-                if (service.equals(driver)) {
-                    registred = true;
-                    break;
-                }
-            }
-        }
-        catch (java.lang.Exception e) {}
-        return registred;
     }
 
     // com.sun.star.lang.XComponent:
@@ -350,10 +319,8 @@ public abstract class DriverBase
     throws SQLException
     {
         System.out.println("sdbc.DriverBase.acceptsURL() 1");
-        // FIXME: To be able to load 2 different drivers (sdbc and sdbcx) that accept the same URLs,
-        // FIXME: We have to check if it is the driver that is currently registered (ie: m_registered is true)
-        boolean accept = m_registered && url.startsWith(m_registredProtocol) && _hasSubProtocol(url);
-        System.out.println(String.format("sdbc.DriverBase.acceptsURL() Url: %s - Accept: %s - Enhanced: %s- Registred: %s", url, accept, m_enhanced, m_registered));
+        boolean accept = url.startsWith(m_registredProtocol) && _hasSubProtocol(url);
+        System.out.println(String.format("sdbc.DriverBase.acceptsURL() Url: %s - Accept: %s - Enhanced: %s", url, accept, m_enhanced));
         return accept;
     }
 

@@ -74,6 +74,8 @@ class OptionsModel(unohelper.Base):
                             'derby': 'memory:dbversion;create=true',
                             'hsqldb': 'mem:dbversion',
                             'smallsql': None}
+        #self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
+        #                  'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
                           'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._connectProtocol = 'jdbc:'
@@ -87,6 +89,7 @@ class OptionsModel(unohelper.Base):
     def loadConfiguration(self, *args):
         with self._lock:
             self._versions = {}
+        self._config = getConfiguration(self._ctx, g_identifier, True)
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._configuration = getConfiguration(self._ctx, path, True)
         config = self._configuration.getByName('Installed')
@@ -119,8 +122,7 @@ class OptionsModel(unohelper.Base):
 
     def getLevel(self):
         level = self._services.index(self._getDriverService()) +1
-        updated = OptionsModel._level
-        return level, updated
+        return level, self.isLevelUpdated()
 
     def isLevelUpdated(self):
         return OptionsModel._level
@@ -132,7 +134,7 @@ class OptionsModel(unohelper.Base):
         return protocol.split(':')[1]
 
     def _getDriverService(self):
-        return self._driver.getByName('Driver')
+        return self._config.getByName('DriverService')
 
     def getDriverName(self, protocol):
         return self._drivers[protocol].getByName('DriverTypeDisplayName')
@@ -180,7 +182,7 @@ class OptionsModel(unohelper.Base):
 # OptionsModel setter methods
     def setLevel(self, level):
         OptionsModel._level = False
-        self._driver.replaceByName('Driver', self._services[level])
+        self._config.replaceByName('DriverService', self._services[level])
 
     def setPath(self, url):
         self._path = url.Protocol + url.Path
@@ -195,10 +197,15 @@ class OptionsModel(unohelper.Base):
         return False
 
     def saveSetting(self):
-        if self._configuration.hasPendingChanges():
+        driver = self._configuration.hasPendingChanges()
+        config = self._config.hasPendingChanges()
+        if driver:
+            self._configuration.commitChanges()
+        if config:
+            self._config.commitChanges()
             if OptionsModel._level is not None:
                 OptionsModel._level = True
-            self._configuration.commitChanges()
+        if driver or config:
             OptionsModel._reboot = True
             return True
         return False

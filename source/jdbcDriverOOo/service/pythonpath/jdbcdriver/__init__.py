@@ -33,6 +33,7 @@ from .configuration import g_identifier
 from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import hasInterface
+from .unotool import getConfiguration
 from .unotool import getStringResource
 
 from .logger import getMessage

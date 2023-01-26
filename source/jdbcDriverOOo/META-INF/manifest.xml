@@ -30,6 +30,7 @@
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.basic-library" manifest:full-path="jdbcDriverOOo/"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Java" manifest:full-path="jdbcDriverOOo.jar"/>
 <!--    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/DefinitionContainer.py"/> -->
+    <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/Driver.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/AdminDispatcher.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Python" manifest:full-path="service/OptionsHandler.py"/>
     <manifest:file-entry manifest:media-type="application/vnd.sun.star.configuration-schema" manifest:full-path="Options.xcs"/>

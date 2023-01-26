@@ -31,6 +31,9 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="io.github.prrvchr"
   oor:name="jdbcDriverOOo">
+    <prop oor:name="DriverService" oor:op="fuse">
+        <value>io.github.prrvchr.jdbcdriver.sdbcx.Driver</value>
+    </prop>
     <prop oor:name="AdminGridColumns" oor:op="fuse">
         <value>{}</value>
     </prop>

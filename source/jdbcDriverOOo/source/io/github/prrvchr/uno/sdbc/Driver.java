@@ -38,13 +38,14 @@ public final class Driver
     extends DriverBase
 {
     private static final String m_service = Driver.class.getName();
+    private static final String[] m_registry = {"io.github.prrvchr.jdbcdriver.sdbc.Driver"};
     private static final String[] m_services = {"io.github.prrvchr.jdbcdriver.sdbc.Driver",
                                                 "com.sun.star.sdbc.Driver"};
 
     // The constructor method:
     public Driver(XComponentContext ctx)
     {
-        super(ctx, m_service, m_services);
+        super(ctx, m_service, m_services, false);
         System.out.println("sdbc.Driver() 1");
     }
 
@@ -63,14 +64,14 @@ public final class Driver
         XSingleComponentFactory factory = null;
         if (name.equals(m_service))
         {
-            factory = Factory.createComponentFactory(Driver.class, m_services);
+            factory = Factory.createComponentFactory(Driver.class, m_registry);
         }
         return factory;
     }
 
     public static boolean __writeRegistryServiceInfo(XRegistryKey key)
     {
-        return Factory.writeRegistryServiceInfo(m_service, m_services, key);
+        return Factory.writeRegistryServiceInfo(m_service, m_registry, key);
     }
 
 
