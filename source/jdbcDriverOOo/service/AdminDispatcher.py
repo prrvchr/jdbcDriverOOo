@@ -54,6 +54,7 @@ from jdbcdriver import getStringResource
 from jdbcdriver import getMessage
 from jdbcdriver import logMessage
 
+from jdbcdriver import g_extension
 from jdbcdriver import g_identifier
 
 import traceback
@@ -124,8 +125,8 @@ class AdminDispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        xusers = "com.sun.star.sdbcx.XUsersSupplier"
-        xgroups = "com.sun.star.sdbcx.XGroupsSupplier"
+        xusers = 'com.sun.star.sdbcx.XUsersSupplier'
+        xgroups = 'com.sun.star.sdbcx.XGroupsSupplier'
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
         if not hasInterface(connection, xusers) or not hasInterface(connection, xgroups):
