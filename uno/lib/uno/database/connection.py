@@ -77,8 +77,6 @@ from .statement import CallableStatement
 
 from .unotool import createService
 
-from .configuration import g_jdbcdriver
-
 import traceback
 
 

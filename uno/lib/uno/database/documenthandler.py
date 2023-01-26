@@ -71,6 +71,7 @@ class DocumentHandler(unohelper.Base,
     # XCloseListener
     def queryClosing(self, event, owner):
         with self._lock:
+            print("DocumentHandler.queryClosing() ******************************")
             document = event.Source
             if self._closeDataBase(document):
                 sf = getSimpleFile(self._ctx)
@@ -84,6 +85,7 @@ class DocumentHandler(unohelper.Base,
     # XStorageChangeListener
     def notifyStorageChange(self, document, storage):
         with self._lock:
+            print("DocumentHandler.notifyStorageChange() ******************************")
             url = document.getLocation()
             newpath, newname = self._getDataBaseInfo(url)
             if self._switchDataBase(document, storage, newname):
@@ -97,7 +99,14 @@ class DocumentHandler(unohelper.Base,
 
     # XEventListener
     def disposing(self, event):
-        pass
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(event.Source)
+        document = event.Source
+        document.removeCloseListener(self)
+        document.removeStorageChangeListener(self)
+        self._url = None
+        print("DocumentHandler.disposing() ******************************")
+        #pass
 
     # DocumentHandler getter methods
     def getDocumentInfo(self, document, storage, url):
