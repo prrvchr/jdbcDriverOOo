@@ -288,7 +288,7 @@ class OptionsModel(unohelper.Base):
             msg = getMessage(self._ctx, g_message, 141, e.Message)
             logMessage(self._ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 142, (e, traceback.print_exc()))
+            msg = getMessage(self._ctx, g_message, 142, e, traceback.print_exc())
             logMessage(self._ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
         return version
 
