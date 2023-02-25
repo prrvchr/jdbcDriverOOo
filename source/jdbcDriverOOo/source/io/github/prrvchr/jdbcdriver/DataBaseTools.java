@@ -200,6 +200,7 @@ public class DataBaseTools
             java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             composedName.append(composeTableName(m_connection, catalog, schema, table, quoted, composeRule));
+            composedName.append('.');
             composedName.append(quoted ? quoteName(quote, column) : column);
         }
         catch (java.sql.SQLException e) {
