@@ -62,14 +62,6 @@ public abstract class TableContainerBase
         m_connection = connection;
     }
 
-    // com.sun.star.sdbcx.XDrop method of Container:
-    protected String _getDropQuery(TableBase table)
-        throws SQLException
-    {
-        return m_connection.getProvider().getDropTableQuery(m_connection, table.getCatalogName(), table.getSchemaName(), table.getName());
-    }
-
-
     @Override
     protected String _getElementName(XPropertySet object)
         throws SQLException
@@ -90,7 +82,7 @@ public abstract class TableContainerBase
     private void _createTable(XPropertySet descriptor)
         throws SQLException
     {
-        try (java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement()){
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
             System.out.println("sdbcx.TableContainer._createTable() SQL: " + sql);
             statement.execute(sql);
@@ -156,9 +148,9 @@ public abstract class TableContainerBase
                 dropView.dropByName(unquotedName);
                 return;
             }
-            String sql = "DROP TABLE " + composedName;
+            String sql = String.format(m_connection.getProvider().getDropTableQuery(), composedName);
             System.out.println("TableContainer._removeElement() Query: " + sql);
-            java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement();
+            java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();
             statement.execute(sql);
             statement.close();
         }
@@ -173,11 +165,6 @@ public abstract class TableContainerBase
     public synchronized void _refresh()
     {
         m_connection._refresh();
-    }
-
-    public ConnectionSuper getConnection()
-    {
-        return m_connection;
     }
 
     @Override

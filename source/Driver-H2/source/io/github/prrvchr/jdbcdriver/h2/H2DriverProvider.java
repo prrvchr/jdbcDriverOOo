@@ -51,8 +51,8 @@ public final class H2DriverProvider
                                                                             Map.entry(2009, 1111),
                                                                             Map.entry(2011, 2005),
                                                                             Map.entry(2012, 2006),
-                                                                            Map.entry(2013, 2013),
-                                                                            Map.entry(2014, 2014));
+                                                                            Map.entry(2013, 12),
+                                                                            Map.entry(2014, 12));
 
     private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
@@ -110,13 +110,15 @@ public final class H2DriverProvider
     }
 
     @Override
-    public String getDropTableQuery(ConnectionBase connection,
-                                    String catalog,
-                                    String schema,
-                                    String table)
+    public String getDropTableQuery()
     {
-        String query = "DROP TABLE \"%s\".\"%s\";";
-        return String.format(query, schema, table);
+        return "DROP TABLE %s IF EXISTS;";
+    }
+
+    @Override
+    public String getDropViewQuery()
+    {
+        return "DROP VIEW %s IF EXISTS;";
     }
 
     @Override

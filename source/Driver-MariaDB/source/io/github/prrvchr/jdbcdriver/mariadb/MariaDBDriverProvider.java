@@ -96,16 +96,6 @@ public final class MariaDBDriverProvider
     }
 
     @Override
-    public String getDropTableQuery(ConnectionBase connection,
-                                    String catalog,
-                                    String schema,
-                                    String table)
-    {
-        String query = "DROP TABLE \"%s\".\"%s\";";
-        return String.format(query, schema, table);
-    }
-
-    @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {

@@ -32,27 +32,12 @@ import java.util.List;
 import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.beans.UnknownPropertyException;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XEnumeration;
-import com.sun.star.container.XEnumerationAccess;
 import com.sun.star.container.XHierarchicalNameAccess;
-import com.sun.star.container.XIndexAccess;
-import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbc.ColumnValue;
-import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
-import com.sun.star.sdbcx.KeyType;
-import com.sun.star.sdbcx.XColumnsSupplier;
-import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.AnyConverter;
-import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -142,12 +127,6 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public int getDataTypeInsertPosition(int datatype)
-    {
-        return (datatype != 2014) ? -1 : 9;
-    }
-
-    @Override
     public String[] getAlterViewQueries(String view,
                                         String command)
     {
@@ -174,17 +153,9 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getViewQuery(NameComponents component)
+    public String getViewQuery()
     {
-        String sql = "SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ";
-        if (!component.getCatalog().isEmpty()) {
-            sql += "TABLE_CATALOG = ? AND ";
-        }
-        if (!component.getSchema().isEmpty()) {
-            sql += "TABLE_SCHEMA = ? AND ";
-        }
-        sql += "TABLE_NAME = ?";
-        return sql;
+        return "SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ";
     }
 
     @Override
@@ -292,25 +263,15 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getDropTableQuery(ConnectionBase connection,
-                                    String catalog,
-                                    String schema,
-                                    String table)
-        throws SQLException
+    public String getDropTableQuery()
     {
-        String query = "DROP TABLE %s";
-        return String.format(query, getTableIdentifier(connection, catalog, schema, table));
+        return "DROP TABLE %s";
     }
 
     @Override
-    public String getDropViewQuery(ConnectionBase connection,
-                                   String catalog,
-                                   String schema,
-                                   String view)
-        throws SQLException
+    public String getDropViewQuery()
     {
-        String query = "DROP VIEW %s";
-        return String.format(query, getTableIdentifier(connection, catalog, schema, view));
+        return "DROP VIEW %s";
     }
 
     @Override
@@ -334,148 +295,6 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String[] getCreateTableQueries(ConnectionBase connection,
-                                          XPropertySet descriptor)
-        throws SQLException
-    {
-        List<String> queries = new ArrayList<String>();
-        System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 1");
-        XNameAccess columns = ((XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor)).getColumns();
-        XIndexAccess keys = ((XKeysSupplier) UnoRuntime.queryInterface(XKeysSupplier.class, descriptor)).getKeys();
-        System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 2");
-        try {
-            String catalog = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.CATALOGNAME.name));
-            String schema = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.SCHEMANAME.name));
-            String table = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.NAME.name));
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
-            String[] elements = getTableElementsQuery(connection, columns, keys, quote, mixed);
-            System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 3: " + elements.length);
-            if (elements.length > 0) {
-                 queries.add(getCreateTableQuery(getTableIdentifier(metadata, catalog, schema, table, quote, mixed), String.join(", ", elements)));
-                 System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 4");
-            }
-            String description = (String) descriptor.getPropertyValue("Description");
-            System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 5: " + description);
-            if (!description.isBlank()) {
-                queries.add(getTableCommentQuery(connection, catalog, schema, table, description));
-            }
-            XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
-            while (iter.hasMoreElements()) {
-                XPropertySet column = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-                String coldesc = (String) column.getPropertyValue("Description");
-                System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 6: " + coldesc);
-                if (!coldesc.isBlank()) {
-                    String name = (String) column.getPropertyValue("Name");
-                    queries.add(getColumnCommentQuery(connection, catalog, schema, table, name, coldesc, quote, mixed));
-                }
-            }
-        }
-        catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-        System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 7");
-        return queries.toArray(new String[0]);
-     }
-
-    @Override
-    public String getTableIdentifier(ConnectionBase connection,
-                                      String catalog,
-                                      String schema,
-                                      String table)
-        throws SQLException
-    {
-        try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
-
-            return getTableIdentifier(metadata, catalog, schema, table, quote, mixed);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-    }
-
-    @Override
-    public String getTableIdentifier(java.sql.DatabaseMetaData metadata,
-                                      String catalog,
-                                      String schema,
-                                      String table,
-                                      String quote,
-                                      boolean mixed)
-        throws java.sql.SQLException
-    {
-        StringBuilder identifier = new StringBuilder(getQuotedIdentifier(table, quote, mixed));
-        if (metadata.supportsSchemasInDataManipulation()) {
-            identifier.insert(0, ".");
-            identifier.insert(0, getQuotedIdentifier(schema, quote, mixed));
-        }
-        if (metadata.supportsCatalogsInDataManipulation()) {
-            if (metadata.isCatalogAtStart()) {
-                identifier.insert(0, metadata.getCatalogSeparator());
-                identifier.insert(0, getQuotedIdentifier(catalog, quote, mixed));
-            }
-            else {
-                identifier.append(metadata.getCatalogSeparator());
-                identifier.append(getQuotedIdentifier(catalog, quote, mixed));
-            }
-        }
-        return identifier.toString();
-    }
-
-    @Override
-    public String getColumnIdentifier(ConnectionBase connection,
-                                      String catalog,
-                                      String schema,
-                                      String table,
-                                      String column,
-                                      String quote,
-                                      boolean mixed)
-        throws SQLException
-    {
-        try {
-            return getColumnIdentifier(connection.getProvider().getConnection().getMetaData(), catalog, schema, table, column, quote, mixed);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-    }
-
-    @Override
-    public String getColumnIdentifier(java.sql.DatabaseMetaData metadata,
-                                      String catalog,
-                                      String schema,
-                                      String table,
-                                      String column,
-                                      String quote,
-                                      boolean mixed)
-        throws java.sql.SQLException
-    {
-        StringBuilder identifier = new StringBuilder(getTableIdentifier(metadata, catalog, schema, table, quote, mixed));
-        identifier.append(".");
-        identifier.append(getQuotedIdentifier(column, quote, mixed));
-        return identifier.toString();
-    }
-
-    @Override
-    public String getQuotedIdentifier(String id,
-                                      String quote,
-                                      boolean mixed)
-    {
-        StringBuilder identifier = new StringBuilder(id);
-        if (mixed && id != id.toUpperCase() && id != id.toLowerCase()) {
-            identifier.insert(0, quote);
-            identifier.append(quote);
-        }
-        return identifier.toString();
-    }
-
-    @Override
     public String getRevokeTableOrViewPrivileges()
     {
         return "REVOKE %s ON %s FROM %s";
@@ -488,209 +307,21 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getCreateTableQuery(String identifier,
-                                      String columns)
+    public String getCreateTableQuery()
     {
-        return String.format("CREATE TABLE %s (%s)", identifier, columns);
+        return "CREATE TABLE %s (%s)";
     }
 
     @Override
-    public String getTableCommentQuery(ConnectionBase connection,
-                                       String catalog,
-                                       String schema,
-                                       String table,
-                                       String description)
-        throws SQLException
+    public String getTableCommentQuery()
     {
-        String query = "COMMENT ON %s IS '%s'";
-        String identifier = getTableIdentifier(connection, catalog, schema, table);
-        return String.format(query, identifier, description);
+        return "COMMENT ON %s IS '%s'";
     }
 
     @Override
-    public String getColumnCommentQuery(ConnectionBase connection,
-                                        String catalog,
-                                        String schema,
-                                        String table,
-                                        String column,
-                                        String description,
-                                        String quote,
-                                        boolean mixed)
-        throws SQLException
+    public String getColumnCommentQuery()
     {
-        String query = "COMMENT ON %s IS '%s'";
-        String identifier = getColumnIdentifier(connection, catalog, schema, table, column, quote, mixed);
-        return String.format(query, identifier, description);
-    }
-
-    @Override
-    public String[] getTableElementsQuery(ConnectionBase connection,
-                                          XNameAccess columns,
-                                          XIndexAccess keys,
-                                          String quote,
-                                          boolean mixed)
-        throws SQLException
-    {
-        System.out.println("jdbcdriver.DriverProviderMain.getTableElementsQuery() 1");
-        List<String> elements = new ArrayList<String>();
-        try {
-            XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
-            System.out.println("jdbcdriver.DriverProviderMain.getTableElementsQuery() 2");
-            while (iter.hasMoreElements()) {
-                String[] column = getColumnQuery(connection, (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement()), quote, mixed);
-                System.out.println("jdbcdriver.DriverProviderMain.getTableElementsQuery() 3");
-                if (column.length > 0) {
-                    elements.add(String.join(" ", column));
-                }
-            }
-            if (keys.hasElements()) {
-                System.out.println("jdbcdriver.DriverProviderMain.getTableElementsQuery() 4");
-                String[] key = getKeyQuery(connection, (XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, keys), quote, mixed);
-                if (key.length > 0) {
-                    elements.add(String.join(" ", key));
-                }
-            }
-        } 
-        catch (NoSuchElementException | WrappedTargetException e) {
-            System.out.println("jdbcdriver.DriverProviderMain.getTableElementsQuery() 5: ********************************************");
-            throw UnoHelper.getSQLException(e, connection);
-        }
-        System.out.println("jdbcdriver.DriverProviderMain.getTableElementsQuery() 7");
-        return elements.toArray(new String[0]);
-    }
-
-    @Override
-    public String[] getColumnQuery(ConnectionBase connection,
-                                   XPropertySet column,
-                                   String quote,
-                                   boolean mixed)
-        throws SQLException
-    {
-        List<String> elements = new ArrayList<String>();
-        try {
-            elements.add(getQuotedIdentifier((String) column.getPropertyValue("Name"), quote, mixed));
-            int type = (int) column.getPropertyValue("Type");
-            String typename = (String) column.getPropertyValue("TypeName");
-            int precision = (int) column.getPropertyValue("Precision");
-            int scale = (int) column.getPropertyValue("Scale");
-            switch (type) {
-            case DataType.BIT:
-            case DataType.BINARY:
-            case DataType.VARBINARY:
-            case DataType.LONGVARBINARY:
-            case DataType.CHAR:
-            case DataType.VARCHAR:
-            case DataType.LONGVARCHAR:
-            case DataType.TIME:
-            case DataType.TIMESTAMP:
-            case DataType.BLOB:
-            case DataType.CLOB:
-                elements.add(String.format("%s(%s)", typename, precision));
-                break;
-            case DataType.NUMERIC:
-            case DataType.DECIMAL:
-                elements.add(String.format("%s(%s,%s)", typename, precision, scale));
-                break;
-            default:
-                elements.add(typename);
-                break;
-            }
-            if ((boolean) column.getPropertyValue("IsAutoIncrement")) {
-                String autoincrement = "";
-                if (column.getPropertySetInfo().hasPropertyByName("AutoIncrementCreation")) {
-                    autoincrement = (String) column.getPropertyValue("AutoIncrementCreation");
-                }
-                else {
-                    autoincrement = getAutoIncrementCreation();
-                }
-                if (!autoincrement.isBlank()) {
-                    System.out.println("jdbcdriver.DriverProviderMain.getColumnQuery() 1 : " + autoincrement);
-                    elements.add(autoincrement);
-                }
-            }
-            if ((int) column.getPropertyValue("IsNullable") == ColumnValue.NO_NULLS) {
-                elements.add("NOT NULL");
-            }
-            if (column.getPropertySetInfo().hasPropertyByName("DefaultValue")) {
-                System.out.println("jdbcdriver.DriverProviderMain.getColumnQuery() 2");
-                String value = (String) column.getPropertyValue("DefaultValue");
-                System.out.println("jdbcdriver.DriverProviderMain.getColumnQuery() 3 : '" + value + "'");
-                if (!value.isBlank()) {
-                    System.out.println("jdbcdriver.DriverProviderMain.getColumnQuery() 4 : " + value);
-                    elements.add(String.format("DEFAULT %s", value));
-                }
-            }
-        }
-        catch (UnknownPropertyException | WrappedTargetException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-        return elements.toArray(new String[0]);
-    }
-
-    @Override
-    public String[] getKeyQuery(ConnectionBase connection,
-                                XEnumerationAccess keys,
-                                String quote,
-                                boolean mixed)
-        throws SQLException
-    {
-        List<String> elements = new ArrayList<String>();
-        try {
-            XEnumeration iter = keys.createEnumeration();
-            while (iter.hasMoreElements()) {
-                String query = null;
-                XPropertySet key = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-                XColumnsSupplier supplier = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, key);
-                String[] columns = getKeyColumnQuery(connection, UnoRuntime.queryInterface(XEnumerationAccess.class, supplier.getColumns()), quote, mixed);
-                if (columns.length > 0) {
-                    switch ((int) key.getPropertyValue("Type")) {
-                    case KeyType.PRIMARY:
-                        query = String.format("PRIMARY KEY(%s)", String.join(",", columns));
-                        break;
-                    case KeyType.UNIQUE:
-                        query = String.format("UNIQUE(%s)", String.join(",", columns));
-                        break;
-                    case KeyType.FOREIGN:
-                        query = String.format("FOREIGN KEY(%s)", String.join(",", columns));
-                        break;
-                    default:
-                        query = null;
-                        break;
-                    }
-                }
-                if (query != null) {
-                    elements.add(query);
-                }
-            }
-        } catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
-        return elements.toArray(new String[0]);
-    }
-
-    @Override
-    public String[] getKeyColumnQuery(ConnectionBase connection,
-                                      XEnumerationAccess columns,
-                                      String quote,
-                                      boolean mixed)
-        throws java.sql.SQLException
-    {
-        List<String> elements = new ArrayList<String>();
-        try {
-            XEnumeration iter = columns.createEnumeration();
-            while (iter.hasMoreElements()) {
-                XPropertySet column = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-                elements.add(getQuotedIdentifier((String) column.getPropertyValue("Name"), quote, mixed));
-            }
-        }
-        catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return elements.toArray(new String[0]);
+        return "COMMENT ON %s IS '%s'";
     }
 
     @Override

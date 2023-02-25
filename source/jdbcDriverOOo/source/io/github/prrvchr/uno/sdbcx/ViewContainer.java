@@ -88,10 +88,19 @@ public class ViewContainer
         System.out.println("sdbcx.ViewContainer._createElement() 1 Name: " + name);
         View view = null;
         NameComponents component = DataBaseTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
-        final String sql = m_Connection.getProvider().getViewQuery(component);
+        //final String sql = m_Connection.getProvider().getViewQuery(component);
+        final StringBuilder sql = new StringBuilder(m_Connection.getProvider().getViewQuery());
+        if (!component.getCatalog().isEmpty()) {
+            sql.append("TABLE_CATALOG = ? AND ");
+        }
+        if (!component.getSchema().isEmpty()) {
+            sql.append("TABLE_SCHEMA = ? AND ");
+        }
+        sql.append("TABLE_NAME = ?");
+
         final String command;
         final String option;
-        try (java.sql.PreparedStatement statement = m_Connection.getProvider().getConnection().prepareStatement(sql)){
+        try (java.sql.PreparedStatement statement = m_Connection.getProvider().getConnection().prepareStatement(sql.toString())){
             System.out.println("sdbcx.ViewContainer._createElement() 2 Name: " + name);
             int next = 1;
             if (!component.getCatalog().isEmpty()) {
@@ -145,7 +154,7 @@ public class ViewContainer
             Object object = _getElement(index);
             XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
             UnoHelper.ensure(propertySet != null, "Object returned from view collection isn't an XPropertySet");
-            String sql = String.format("DROP VIEW %s", DataBaseTools.composeTableName(m_Connection, propertySet, ComposeRule.InTableDefinitions,
+            String sql = String.format(m_Connection.getProvider().getDropViewQuery(), DataBaseTools.composeTableName(m_Connection, propertySet, ComposeRule.InTableDefinitions,
                     false, false, true));
             
             java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement();

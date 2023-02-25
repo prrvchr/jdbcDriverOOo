@@ -27,7 +27,6 @@ package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
@@ -37,13 +36,11 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
-@SuppressWarnings("unused")
 public final class HsqlDBDriverProvider
     extends DriverProviderMain
     implements DriverProvider
@@ -128,62 +125,34 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public String getDropTableQuery(ConnectionBase connection,
-                                    String catalog,
-                                    String schema,
-                                    String table)
-        throws SQLException
+    public String getDropTableQuery()
     {
-        String query = "DROP TABLE %s IF EXISTS;";
-        return String.format(query, getTableIdentifier(connection, catalog, schema, table));
+        return "DROP TABLE %s IF EXISTS;";
     }
 
     @Override
-    public String getDropViewQuery(ConnectionBase connection,
-                                   String catalog,
-                                   String schema,
-                                   String view)
-        throws SQLException
+    public String getDropViewQuery()
     {
-        String query = "DROP VIEW %s IF EXISTS;";
-        return String.format(query, getTableIdentifier(connection, catalog, schema, view));
+        return "DROP VIEW %s IF EXISTS;";
     }
 
     @Override
-    public String getCreateTableQuery(String identifier,
-                                      String columns)
+    public String getCreateTableQuery()
     {
-        return String.format("CREATE TABLE IF NOT EXISTS %s (%s);", identifier, columns);
+        return "CREATE TABLE IF NOT EXISTS %s (%s);";
     }
 
     @Override
-    public String getTableCommentQuery(ConnectionBase connection,
-                                       String catalog,
-                                       String schema,
-                                       String table,
-                                       String description)
-        throws SQLException
+    public String getTableCommentQuery()
     {
-        String query = "COMMENT ON %s IS '%s';";
-        String identifier = getTableIdentifier(connection, catalog, schema, table);
-        return String.format(query, identifier, description);
+        return "COMMENT ON %s IS '%s';";
     }
 
 
     @Override
-    public String getColumnCommentQuery(ConnectionBase connection,
-                                        String catalog,
-                                        String schema,
-                                        String table,
-                                        String column,
-                                        String description,
-                                        String quote,
-                                        boolean mixed)
-        throws SQLException
+    public String getColumnCommentQuery()
     {
-        String query = "COMMENT ON %s IS '%s';";
-        String identifier = getColumnIdentifier(connection, catalog, schema, table, column, quote, mixed);
-        return String.format(query, identifier, description);
+        return "COMMENT ON %s IS '%s';";
     }
 
 

@@ -155,7 +155,7 @@ public class DataBaseTools
         }
     }
 
-    private static NameComponentSupport getNameComponentSupport(ConnectionSuper m_connection,
+    private static NameComponentSupport getNameComponentSupport(ConnectionBase m_connection,
                                                                 ComposeRule rule)
         throws SQLException
     {
@@ -184,9 +184,33 @@ public class DataBaseTools
         }
     }
 
+    /** compose a complete column name from it's up to four parts, regarding to the database meta data composing rules
+     */
+    public static String composeColumnName(ConnectionBase m_connection,
+                                           String catalog,
+                                           String schema,
+                                           String table,
+                                           String column,
+                                           boolean quoted,
+                                           ComposeRule composeRule)
+        throws SQLException
+    {
+        StringBuilder composedName = new StringBuilder();
+        try {
+            java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            composedName.append(composeTableName(m_connection, catalog, schema, table, quoted, composeRule));
+            composedName.append(quoted ? quoteName(quote, column) : column);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_connection);
+        }
+        return composedName.toString();
+    }
+
     /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules
      */
-    public static String composeTableName(ConnectionSuper m_connection,
+    public static String composeTableName(ConnectionBase m_connection,
                                           String catalog,
                                           String schema,
                                           String table,
@@ -442,7 +466,7 @@ public class DataBaseTools
         if (connection.getProvider().supportCreateTableKeyParts()) {
             parts.addAll(getCreateTableKeyParts(connection, descriptor));
         }
-        return String.format("CREATE TABLE %s (%s)", table, String.join(",", parts));
+        return String.format(connection.getProvider().getCreateTableQuery(), table, String.join(",", parts));
     }
 
     /** creates the columns parts of the SQL CREATE TABLE statement.

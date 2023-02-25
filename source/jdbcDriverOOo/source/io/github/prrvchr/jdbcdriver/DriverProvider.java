@@ -29,15 +29,10 @@ import java.util.List;
 import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.XEnumerationAccess;
 import com.sun.star.container.XHierarchicalNameAccess;
-import com.sun.star.container.XIndexAccess;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -66,13 +61,11 @@ public interface DriverProvider
 
     public int getDataType(int type);
 
-    public int getDataTypeInsertPosition(int datatype);
-
     public String[] getTableTypes();
 
     public String getTableType(String type);
 
-    public String getViewQuery(NameComponents component);
+    public String getViewQuery();
 
     public String getViewCommand(String string);
 
@@ -88,55 +81,9 @@ public interface DriverProvider
 
     public List<String> getPrivileges(int privilege);
 
-    public String getTableIdentifier(ConnectionBase connection,
-                                     String catalog,
-                                     String schema,
-                                     String table)
-        throws SQLException;
+    public String getDropTableQuery();
 
-    public String getColumnIdentifier(ConnectionBase connection,
-                                      String catalog,
-                                      String schema,
-                                      String table,
-                                      String column,
-                                      String quote,
-                                      boolean mixed)
-        throws SQLException;
-
-    public String getTableIdentifier(java.sql.DatabaseMetaData metadata,
-                                     String catalog,
-                                     String schema,
-                                     String table,
-                                     String quote,
-                                     boolean mixed)
-        throws java.sql.SQLException;
-
-
-    public String getColumnIdentifier(java.sql.DatabaseMetaData metadata,
-                                      String catalog,
-                                      String schema,
-                                      String table,
-                                      String column,
-                                      String quote,
-                                      boolean mixed)
-        throws java.sql.SQLException;
-
-    public String getQuotedIdentifier(String identifier,
-                                      String quote,
-                                      boolean mixed)
-        throws java.sql.SQLException;
-
-    public String getDropTableQuery(ConnectionBase connection,
-                                    String catalog,
-                                    String schema,
-                                    String table)
-        throws SQLException;
-
-    public String getDropViewQuery(ConnectionBase connection,
-                                   String catalog,
-                                   String schema,
-                                   String view)
-    throws SQLException;
+    public String getDropViewQuery();
 
     public String getDropColumnQuery(ConnectionBase connection,
                                      ColumnMain column);
@@ -146,58 +93,13 @@ public interface DriverProvider
 
     public String getAutoIncrementCreation();
 
-    public String[] getCreateTableQueries(ConnectionBase connection,
-                                          XPropertySet descriptor)
-        throws SQLException;
+    public String getCreateTableQuery();
 
 
-    public String getCreateTableQuery(String identifier,
-                                      String elements);
+    public String getTableCommentQuery();
 
 
-    public String getTableCommentQuery(ConnectionBase connection,
-                                       String catalog,
-                                       String schema,
-                                       String table,
-                                       String description)
-        throws SQLException;
-
-
-    public String getColumnCommentQuery(ConnectionBase connection,
-                                        String catalog,
-                                        String schema,
-                                        String table,
-                                        String column,
-                                        String description,
-                                        String quote,
-                                        boolean mixed)
-        throws SQLException;
-
-
-    public String[] getTableElementsQuery(ConnectionBase connection,
-                                          XNameAccess columns,
-                                          XIndexAccess keys,
-                                          String quote,
-                                          boolean mixed)
-        throws SQLException;
-
-    public String[] getColumnQuery(ConnectionBase connection,
-                                   XPropertySet column,
-                                   String quote,
-                                   boolean mixed)
-        throws SQLException;
-
-    public String[] getKeyQuery(ConnectionBase connection,
-                                XEnumerationAccess keys,
-                                String quote,
-                                boolean mixed)
-        throws SQLException;
-
-    public String[] getKeyColumnQuery(ConnectionBase connection,
-                                      XEnumerationAccess columns,
-                                      String quote,
-                                      boolean mixed)
-        throws java.sql.SQLException;
+    public String getColumnCommentQuery();
 
     public boolean supportWarningsSupplier();
 

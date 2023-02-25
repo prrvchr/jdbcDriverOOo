@@ -29,7 +29,6 @@ import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -66,10 +65,9 @@ public final class SQLiteDriverProvider
     }
 
     @Override
-    public String getViewQuery(NameComponents component)
+    public String getViewQuery()
     {
-        String sql = "SELECT sql, 'NONE' FROM sqlite_master WHERE type='view' AND name=?";
-        return sql;
+        return "SELECT sql, 'NONE' FROM sqlite_master WHERE type='view' AND name=?";
     }
 
     @Override
@@ -101,20 +99,6 @@ public final class SQLiteDriverProvider
     public String getTableType(String type)
     {
         return type;
-    }
-
-
-    @Override
-    public String getDropTableQuery(ConnectionBase connection,
-                                    String catalog,
-                                    String schema,
-                                    String table)
-    {
-        System.out.println("sqlite.getDropTableQuery() 1");
-        String sql = "DROP TABLE \"%s\".\"%s\";";
-        String query = String.format(sql, schema, table);
-        System.out.println("sqlite.getDropTableQuery() : " + query);
-        return query;
     }
 
     @Override
