@@ -74,7 +74,7 @@ public final class PreparedStatement
         System.out.println("sdb.PreparedStatement._getResultSet(): " + m_UseBookmarks);
         XResultSet resultset = null;
         if (result != null) {
-            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this, m_UseBookmarks);
+            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
         }
         return resultset;
     }

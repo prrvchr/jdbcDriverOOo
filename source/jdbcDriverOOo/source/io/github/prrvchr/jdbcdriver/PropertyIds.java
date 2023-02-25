@@ -37,6 +37,7 @@ public enum PropertyIds {
     FETCHSIZE(8, "FetchSize"),
     ESCAPEPROCESSING(9, "EscapeProcessing"),
     USEBOOKMARKS (10, "UseBookmarks"),
+    
     // Column
     NAME (11, "Name"),
     TYPE (12, "Type"),
@@ -86,7 +87,7 @@ public enum PropertyIds {
     FIELDTYPE (56, "FieldType"),
     VALUE (57, "Value"),
     ACTIVE_CONNECTION (58, "ActiveConnection"),
-
+    
     ALIGN (59, "Align"),
     WIDTH (60, "Width"),
     POSITION (61, "Position"),
@@ -95,8 +96,13 @@ public enum PropertyIds {
     FONTDESCRIPTOR (64, "FontDescriptor"),
     ROWHEIGHT (65, "RowHeight"),
     TEXTCOLOR (66, "TextColor"),
-    GROUPBY (67, "GroupBy");
-    
+    GROUPBY (67, "GroupBy"),
+    RELATIVEPOSITION (68, "RelativePosition"),
+    CONTROLMODEL (69, "ControlModel"),
+    HELPTEXT (70, "HelpText"),
+    CONTROLDEFAULT (71, "ControlDefault");
+
+
     PropertyIds(int id, String name) {
         this.id = id;
         this.name = name;

@@ -42,12 +42,11 @@ public class KeyColumnContainer
     protected final Key m_key;
 
     // The constructor method:
-    public KeyColumnContainer(Object lock,
-                              Key key,
+    public KeyColumnContainer(Key key,
                               List<String> columns)
         throws ElementExistException
     {
-        super(lock, true, columns);
+        super(key.getTable(), true, columns);
         System.out.println("sdbcx.KeyColumnContainer() 1");
         m_key = key;
         System.out.println("sdbcx.KeyColumnContainer() Count: " + getCount());
@@ -61,26 +60,27 @@ public class KeyColumnContainer
     {
         KeyColumn column = null;
         try {
-            String catalog = m_key.getTable().getCatalogName();
-            String schema = m_key.getTable().getSchemaName();
+            String catalog = m_key.getTable().getCatalog();
+            String schema = m_key.getTable().getSchema();
             String table = m_key.getTable().getName();
-            System.out.println("sdbcx.KeyColumnContainer._createElement() 1 : " + catalog + "." + schema + "." + table);
+            System.out.println("sdbcx.KeyColumnContainer._createElement() 1 : " + catalog + "." + schema + "." + table + "." + name);
             java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getImportedKeys(catalog, schema, table);
             String refColumnName = "";
-            System.out.println("sdbcx.KeyColumnContainer._createElement() 2");
+            System.out.println("sdbcx.KeyColumnContainer._createElement() 2 Name: " + name + " - Key: " + m_key.getName());
             while (result.next()) {
+                System.out.println("sdbcx.KeyColumnContainer._createElement() 3 Name: " + result.getString(8) + " - Key: " + result.getString(12));
                 if (result.getString(8).equals(name) && m_key.getName().equals(result.getString(12))) {
                     refColumnName = result.getString(4);
-                    System.out.println("sdbcx.KeyColumnContainer._createElement() 3");
+                    System.out.println("sdbcx.KeyColumnContainer._createElement() 4");
                     break;
                 }
             }
             result.close();
             // now describe the column name and set its related column
             result = getConnection().getProvider().getConnection().getMetaData().getColumns(catalog, schema, table, name);
-            System.out.println("sdbcx.KeyColumnContainer._createElement() 4");
+            System.out.println("sdbcx.KeyColumnContainer._createElement() 5");
             if (result.next()) {
-                System.out.println("sdbcx.KeyColumnContainer._createElement() 5 Name: " + name + " - Column: " + result.getString(4));
+                System.out.println("sdbcx.KeyColumnContainer._createElement() 6 Name: " + name + " - Column: " + result.getString(4));
                 if (result.getString(4).equals(name)) {
                     int dataType = getConnection().getProvider().getDataType(result.getInt(5));
                     String typeName = result.getString(6);
@@ -94,8 +94,8 @@ public class KeyColumnContainer
                     catch (java.sql.SQLException e) {
                         // sometimes we get an error when asking for this param
                     }
-                    System.out.println("sdbcx.KeyColumnContainer._createElement() 6");
-                    column = new KeyColumn(isCaseSensitive(), name, typeName, "", columnDef, nul, size, dec, dataType, false, false, false, refColumnName);
+                    System.out.println("sdbcx.KeyColumnContainer._createElement() 7");
+                    column = new KeyColumn(m_key.getTable(), isCaseSensitive(), name, typeName, "", columnDef, nul, size, dec, dataType, false, false, false, refColumnName);
                 }
             }
         }
@@ -105,7 +105,7 @@ public class KeyColumnContainer
         catch (java.lang.Exception e) {
             System.out.println("sdbcx.KeyColumnContainer._createElement() ERROR\n" + UnoHelper.getStackTrace(e));
         }
-        System.out.println("sdbcx.KeyColumnContainer._createElement() 7");
+        System.out.println("sdbcx.KeyColumnContainer._createElement() 8");
         return column;
     }
 
@@ -126,12 +126,14 @@ public class KeyColumnContainer
 
     
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet _createDescriptor()
+    {
         return new KeyColumnDescriptor(isCaseSensitive());
     }
 
     @Override
-    protected void _refresh() {
+    protected void _refresh()
+    {
     }
     
 
@@ -139,76 +141,6 @@ public class KeyColumnContainer
     {
         return m_key.getTable().getConnection();
     }
-
-
-
-/*    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyDescriptor()
-    public KeyColumnContainer(Key key)
-    {
-        super(m_name, m_services, key.m_table.m_Connection);
-        m_key = key;
-        System.out.println("sdbcx.KeyColumnContainer() 1");
-        System.out.println("sdbcx.KeyColumnContainer() Count: " + getCount());
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyDescriptor()
-    public KeyColumnContainer(Key key,
-                              TableConstraint constraint)
-    {
-        super(m_name, m_services, key.m_table.m_Connection);
-        m_key = key;
-        System.out.println("sdbcx.KeyColumnContainer() 1");
-        for (TableConstraintColumn column : constraint.getConstrainedColumns()) {
-            m_Elements.add(new KeyColumn(m_Connection, column));
-            m_Names.add(column.getFullName());
-        }
-        System.out.println("sdbcx.KeyColumnContainer() Count: " + getCount());
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Key()
-    public KeyColumnContainer(Key key,
-                              XNameAccess columns)
-    {
-        super(m_name, m_services, key.m_table.m_Connection);
-        m_key = key;
-        System.out.println("sdbcx.KeyColumnContainer() 1");
-        XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
-        int position = 1;
-        try {
-            while (iter.hasMoreElements()) {
-                XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-                String name;
-                    name = (String) descriptor.getPropertyValue("Name");
-                KeyColumn column = new KeyColumn(m_Connection, descriptor, name, position++);
-                m_Elements.add(column);
-                m_Names.add(name);
-            }
-        }
-        catch (UnknownPropertyException | WrappedTargetException | NoSuchElementException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println("sdbcx.KeyColumnContainer() Count: " + getCount());
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.Key()
-    public KeyColumnContainer(Key key,
-                              String name,
-                              int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
-    {
-        super(m_name, m_services, key.m_table.m_Connection);
-        m_key = key;
-        System.out.println("sdbcx.KeyColumnContainer() 1");
-        m_Elements.add(new KeyColumn(m_Connection, key.m_table, name, position));
-        m_Names.add(name);
-        System.out.println("sdbcx.KeyColumnContainer() Count: " + getCount());
-    }*/
 
 
 }

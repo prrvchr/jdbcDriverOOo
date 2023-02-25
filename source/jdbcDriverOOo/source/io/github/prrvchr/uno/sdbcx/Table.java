@@ -25,9 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.beans.XPropertySet;
+import java.util.List;
 
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
+
+import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdb.ColumnContainer;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
@@ -74,6 +79,13 @@ public final class Table
         }
         return descriptor;
     }
+
+    protected ColumnContainer _getColumnContainer(List<ColumnDescription> descriptions)
+            throws ElementExistException
+    {
+        return new ColumnContainer(this, isCaseSensitive(), descriptions);
+    }
+
 
 /*    // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer()

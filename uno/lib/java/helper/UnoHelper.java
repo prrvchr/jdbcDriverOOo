@@ -5,9 +5,6 @@ import java.io.StringWriter;
 import java.lang.IllegalAccessException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -41,7 +38,9 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
+import com.sun.star.util.DateTimeWithTimezone;
 import com.sun.star.util.Time;
+import com.sun.star.util.TimeWithTimezone;
 
 
 public class UnoHelper
@@ -209,16 +208,6 @@ public class UnoHelper
             locale.Country = data.getLanguageCountryInfo(locale).Country;
         }
         return locale;
-    }
-
-    public static XStringResourceResolver getResourceResolver(XComponentContext ctx,
-                                                              String identifier,
-                                                              String filename)
-        throws NoSuchElementException,
-               Exception
-    {
-        String path = "resource";
-        return getResourceResolver(ctx, identifier, path, filename);
     }
 
     public static XStringResourceResolver getResourceResolver(XComponentContext ctx,
@@ -400,65 +389,99 @@ public class UnoHelper
         return value;
     }
 
-    public static Date getUnoDate(java.sql.Date date)
+    public static Date getUnoDate(java.time.LocalDate date)
     {
         Date value = new Date();
         if (date != null) {
-            LocalDate localdate = date.toLocalDate();
-            value.Year = (short) localdate.getYear();
-            value.Month = (short) localdate.getMonthValue();
-            value.Day = (short) localdate.getDayOfMonth();
+            value.Year = (short) date.getYear();
+            value.Month = (short) date.getMonthValue();
+            value.Day = (short) date.getDayOfMonth();
         }
         return value;
     }
 
-    public static java.sql.Date getJavaDate(Date date)
-    {
-        LocalDate localdate = LocalDate.of(date.Year, date.Month, date.Day);
-        return java.sql.Date.valueOf(localdate);
-    }
-
-    public static Time getUnoTime(java.sql.Time time)
+    public static Time getUnoTime(java.time.LocalTime time)
     {
         Time value = new Time();
         if (time != null) {
-            LocalTime localtime = time.toLocalTime();
-            value.Hours = (short) localtime.getHour();
-            value.Minutes = (short) localtime.getMinute();
-            value.Seconds = (short) localtime.getSecond();
-            value.NanoSeconds = localtime.getNano();
+            value.Hours = (short) time.getHour();
+            value.Minutes = (short) time.getMinute();
+            value.Seconds = (short) time.getSecond();
+            value.NanoSeconds = time.getNano();
             //value.HundredthSeconds = 0;
         }
         return value;
     }
 
-    public static java.sql.Time getJavaTime(Time time)
-    {
-        LocalTime localtime = LocalTime.of(time.Hours, time.Minutes, time.Seconds, time.NanoSeconds);
-        return java.sql.Time.valueOf(localtime);
-    }
-
-    public static DateTime getUnoDateTime(java.sql.Timestamp timestamp)
+    public static DateTime getUnoDateTime(java.time.LocalDateTime datetime)
     {
         DateTime value = new DateTime();
-        if (timestamp != null) {
-            LocalDateTime localdatetime = timestamp.toLocalDateTime();
-            value.Year = (short) localdatetime.getYear();
-            value.Month = (short) localdatetime.getMonthValue();
-            value.Day = (short) localdatetime.getDayOfMonth();
-            value.Hours = (short) localdatetime.getHour();
-            value.Minutes = (short) localdatetime.getMinute();
-            value.Seconds = (short) localdatetime.getSecond();
-            value.NanoSeconds = localdatetime.getNano();
+        if (datetime != null) {
+            value.Year = (short) datetime.getYear();
+            value.Month = (short) datetime.getMonthValue();
+            value.Day = (short) datetime.getDayOfMonth();
+            value.Hours = (short) datetime.getHour();
+            value.Minutes = (short) datetime.getMinute();
+            value.Seconds = (short) datetime.getSecond();
+            value.NanoSeconds = datetime.getNano();
             //value.HundredthSeconds = 0;
         }
         return value;
     }
 
-    public static java.sql.Timestamp getJavaDateTime(DateTime timestamp)
+    public static TimeWithTimezone getUnoTimeWithTimezone(java.time.OffsetTime time)
     {
-        LocalDateTime localdatetime = LocalDateTime.of(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hours, timestamp.Minutes, timestamp.Seconds, timestamp.NanoSeconds);
-        return java.sql.Timestamp.valueOf(localdatetime);
+        TimeWithTimezone value = new TimeWithTimezone();
+        if (time != null) {
+            value.TimeInTZ = getUnoTime(time.toLocalTime());
+            value.Timezone = getUnoTimezone(time.getOffset());
+        }
+        return value;
+    }
+
+    public static DateTimeWithTimezone getUnoDateTimeWithTimezone(java.time.OffsetDateTime datetime)
+    {
+        DateTimeWithTimezone value = new DateTimeWithTimezone();
+        if (datetime != null) {
+            value.DateTimeInTZ = getUnoDateTime(datetime.toLocalDateTime());
+            value.Timezone = getUnoTimezone(datetime.getOffset());
+        }
+        return value;
+    }
+
+    public static short getUnoTimezone(java.time.ZoneOffset offset)
+    {
+        return (short) (offset.getTotalSeconds() / 60);
+    }
+
+    public static java.time.LocalDate getJavaLocalDate(Date date)
+    {
+        return java.time.LocalDate.of(date.Year, date.Month, date.Day);
+    }
+
+    public static java.time.LocalTime getJavaLocalTime(Time time)
+    {
+        return java.time.LocalTime.of(time.Hours, time.Minutes, time.Seconds, time.NanoSeconds);
+    }
+
+    public static java.time.LocalDateTime getJavaLocalDateTime(DateTime timestamp)
+    {
+        return java.time.LocalDateTime.of(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hours, timestamp.Minutes, timestamp.Seconds, timestamp.NanoSeconds);
+    }
+
+    public static java.time.ZoneOffset getJavaZoneOffset(int offset)
+    {
+        return java.time.ZoneOffset.ofTotalSeconds(offset * 60);
+    }
+
+    public static java.time.OffsetTime getJavaOffsetTime(TimeWithTimezone time)
+    {
+        return java.time.OffsetTime.of(getJavaLocalTime(time.TimeInTZ), getJavaZoneOffset(time.Timezone));
+    }
+
+    public static java.time.OffsetDateTime getJavaOffsetDateTime(DateTimeWithTimezone datetime)
+    {
+        return java.time.OffsetDateTime.of(getJavaLocalDateTime(datetime.DateTimeInTZ), getJavaZoneOffset(datetime.Timezone));
     }
 
     public static Object getObjectFromResult(java.sql.ResultSet result, int index)

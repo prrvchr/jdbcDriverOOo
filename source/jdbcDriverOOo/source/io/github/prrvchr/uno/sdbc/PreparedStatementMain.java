@@ -41,10 +41,14 @@ import com.sun.star.sdbc.XRef;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XResultSetMetaData;
 import com.sun.star.sdbc.XResultSetMetaDataSupplier;
+import com.sun.star.uno.Any;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -195,7 +199,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.Date date = UnoHelper.getJavaDate(value);
+            java.sql.Date date = java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value));
             _getPreparedStatement().setDate(index, date);
         }
         catch (java.sql.SQLException e) {
@@ -266,13 +270,14 @@ public abstract class PreparedStatementMain
     @Override
     public void setObject(int index, Object value) throws SQLException
     {
-        try {
-            _createStatement();
-            _getPreparedStatement().setObject(index, value);
+        _createStatement();
+        if (!DataBaseTools.setObject(_getPreparedStatement(), index, value)) {
+            String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_PARA_TYPE,
+                                                                                     "$position$",
+                                                                                     Integer.toString(index));
+            throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+
     }
 
     @Override
@@ -334,7 +339,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.Time time = UnoHelper.getJavaTime(value);
+            java.sql.Time time = java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value));
             _getPreparedStatement().setTime(index, time);
         }
         catch (java.sql.SQLException e) {
@@ -347,7 +352,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.Timestamp timestamp = UnoHelper.getJavaDateTime(value);
+            java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value));
             _getPreparedStatement().setTimestamp(index, timestamp);
         }
         catch (java.sql.SQLException e) {

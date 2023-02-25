@@ -48,7 +48,8 @@ class OptionsHandler(unohelper.Base,
                      XServiceInfo,
                      XContainerWindowEventHandler):
     def __init__(self, ctx):
-        self._manager = OptionsManager(ctx)
+        self._ctx = ctx
+        self._manager = None
 
     # XContainerWindowEventHandler
     def callHandlerMethod(self, window, event, method):
@@ -56,7 +57,7 @@ class OptionsHandler(unohelper.Base,
             handled = False
             if method == 'external_event':
                 if event == 'initialize':
-                    self._manager.initialize(window)
+                    self._manager = OptionsManager(self._ctx, window)
                     handled = True
                 elif event == 'ok':
                     self._manager.saveSetting()

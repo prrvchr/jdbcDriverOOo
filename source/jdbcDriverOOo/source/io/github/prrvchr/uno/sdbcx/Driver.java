@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
@@ -38,9 +39,12 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DriverBase;
+import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
 public final class Driver
@@ -64,9 +68,15 @@ public final class Driver
     protected ConnectionBase _getConnection(XComponentContext ctx,
                                             DriverProvider provider,
                                             ResourceBasedEventLogger logger,
-                                            boolean enhanced)
+                                            boolean enhanced,
+                                            boolean hight)
     {
-        return provider.getConnection(ctx, logger, enhanced);
+        if (hight) {
+            return new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced);
+        }
+        else {
+            return new Connection(ctx, provider, logger, enhanced);
+        }
     }
 
 
@@ -92,11 +102,8 @@ public final class Driver
     public XTablesSupplier getDataDefinitionByConnection(XConnection connection)
     throws SQLException
     {
-        System.out.println("Driver.getDataDefinitionByConnection() 1");
-        XTablesSupplier tables = null;
-        System.out.println("Driver.getDataDefinitionByConnection() 2");
-        tables = (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
-        System.out.println("Driver.getDataDefinitionByConnection() 3");
+        XTablesSupplier tables = (XTablesSupplier) UnoRuntime.queryInterface(XTablesSupplier.class, connection);
+        System.out.println("Driver.getDataDefinitionByConnection()");
         return tables;
     }
 
@@ -104,11 +111,13 @@ public final class Driver
     public XTablesSupplier getDataDefinitionByURL(String url, PropertyValue[] info)
     throws SQLException
     {
-        System.out.println("Driver.getDataDefinitionByURL() 1");
-        XTablesSupplier tables = null;
-        System.out.println("Driver.getDataDefinitionByURL() 2");
-        tables = getDataDefinitionByConnection(connect(url, info));
-        System.out.println("Driver.getDataDefinitionByURL() 3");
+        if (!acceptsURL(url)) {
+            String message = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_URI_SYNTAX_ERROR, url);
+            m_logger.log(LogLevel.SEVERE, message);
+            throw new SQLException(message, this, StandardSQLState.SQL_UNABLE_TO_CONNECT.text(), 0, null);
+        }
+        XTablesSupplier tables = getDataDefinitionByConnection(connect(url, info));
+        System.out.println("Driver.getDataDefinitionByURL(");
         return tables;
     }
 

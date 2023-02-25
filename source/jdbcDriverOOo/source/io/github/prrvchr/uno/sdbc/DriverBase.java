@@ -76,7 +76,8 @@ public abstract class DriverBase
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
-    private final ResourceBasedEventLogger m_logger;
+    private final boolean m_hight;
+    protected final ResourceBasedEventLogger m_logger;
 
     // The constructor method:
     public DriverBase(final XComponentContext context,
@@ -88,15 +89,34 @@ public abstract class DriverBase
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
-        SharedResources.registerClient(context, m_identifier, "Driver");
-        m_logger = new ResourceBasedEventLogger(context, m_identifier, "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
+        m_hight = enhanced ? _getOptionsConfiguration("HighLevel") : false;
+        SharedResources.registerClient(context, m_identifier, "resource", "Driver");
+        m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
     }
+    
+    private boolean _getOptionsConfiguration(String property)
+    {
+        boolean high = false;
+        try {
+            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
+            if (config.hasByHierarchicalName(property)) {
+                high = (Boolean) config.getByHierarchicalName(property);
+            }
+            UnoHelper.disposeComponent(config);
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return high;
+    }
 
-    private XHierarchicalNameAccess _getDriverConfiguration()
+
+    private XHierarchicalNameAccess _getDriverConfiguration(String path)
         throws Exception
     {
-        return UnoHelper.getConfiguration(m_xContext, "org.openoffice.Office.DataAccess.Drivers");
+        return UnoHelper.getConfiguration(m_xContext, path);
     }
 
     public final XComponentContext getComponentContext() {
@@ -136,34 +156,33 @@ public abstract class DriverBase
                                PropertyValue[] info)
         throws SQLException
     {
+        ConnectionBase connection = null;
         m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
-        if (!acceptsURL(url)) {
-            String message = "ERROR sdbc.Driver.connect() can't accepts URL: " + url;
-            throw new SQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        if (acceptsURL(url)) {
+            DriverProvider provider = _getDriverProvider(url, info);
+            String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
+            final XHierarchicalNameAccess config;
+            try {
+                config = _getDriverConfiguration("org.openoffice.Office.DataAccess.Drivers");
+            }
+            catch (Exception e) {
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
+            String level = provider.getLoggingLevel(config);
+            if (!_isDriverRegistered(location)) {
+                provider.setSystemProperties(level);
+                _registerDriver(config, _getUrlProtocol(url), info);
+            }
+            UnoHelper.disposeComponent(config);
+            try {
+                provider.setConnection(location, info, level);
+            }
+            catch(java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
+            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_hight);
+            m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
         }
-        DriverProvider provider = _getDriverProvider(url, info);
-        String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
-        final XHierarchicalNameAccess config;
-        try {
-            config = _getDriverConfiguration();
-        }
-        catch (Exception e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-        }
-        String level = provider.getLoggingLevel(config);
-        if (!_isDriverRegistered(location)) {
-            provider.setSystemProperties(level);
-            _registerDriver(config, _getUrlProtocol(url), info);
-        }
-        UnoHelper.disposeComponent(config);
-        try {
-            provider.setConnection(location, info, level);
-        }
-        catch(java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        ConnectionBase connection = _getConnection(m_xContext, provider, m_logger, m_enhanced);
-        m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
         return connection;
     }
 
@@ -384,7 +403,8 @@ public abstract class DriverBase
     abstract protected ConnectionBase _getConnection(XComponentContext ctx,
                                                      DriverProvider provider,
                                                      ResourceBasedEventLogger logger,
-                                                     boolean enhanced);
+                                                     boolean enhanced,
+                                                     boolean hioght);
 
 
 }

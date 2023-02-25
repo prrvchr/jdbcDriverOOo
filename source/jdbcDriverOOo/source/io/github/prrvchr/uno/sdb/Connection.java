@@ -74,7 +74,6 @@ public final class Connection
                                                 "com.sun.star.sdbcx.DatabaseDefinition"};
     private UserContainer m_Users = null;
     private GroupContainer m_Groups = null;
-    private static final boolean m_crawler = false;
 
     // The constructor method:
     public Connection(XComponentContext ctx,
@@ -82,7 +81,8 @@ public final class Connection
                       ResourceBasedEventLogger logger,
                       boolean enhanced)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, m_crawler);
+        super(ctx, m_service, m_services, provider, logger, enhanced);
+        System.out.println("sdb.Connection() *************************");
     }
 
     // com.sun.star.lang.XComponent
@@ -288,39 +288,11 @@ public final class Connection
         }
     }
 
-    public Table getTable(boolean sensitive,
-                          String catalog,
-                          String schema,
-                          String name,
-                          String type,
-                          String remarks)
+    protected TableContainer _getTableContainer(List<String> names)
+        throws ElementExistException
     {
-        return new Table(this, sensitive, catalog, schema, name, type, remarks);
+        return new TableContainer(this, getProvider().isCaseSensitive(null), names);
     }
-
-
-    /*    public synchronized XNameAccess getTables1()
-    {
-        m_catalog = SchemaCrawler.getCatalog(provider.getConnection());
-        for (final schemacrawler.schema.Table t : m_catalog.getTables()) {
-            System.out.println("Connection.Connection() 2 Table Type: " + t.getTableType().getTableType());
-        }
-        System.out.println("sdb.Connection.getTables() 1");
-        checkDisposed();
-        if (m_Tables == null) {
-            try {
-                System.out.println("sdb.Connection.getTables() 2");
-                m_Tables = m_crawler ? SchemaCrawler.getTables(m_provider, this) :
-                                       new TableContainer(this);
-                System.out.println("sdb.Connection.getTables() 3");
-            }
-            catch (java.sql.SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("sdb.Connection.getTables() 4");
-        return m_Tables;
-    }*/
 
 
 }

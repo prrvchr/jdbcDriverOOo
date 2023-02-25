@@ -1354,9 +1354,12 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getTypeInfo() throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.getTypeInfo()");
+            System.out.println("sdbc.DatabaseMetaData.getTypeInfo() 1");
             java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
-            return _getResultSet(resultset);
+            while (resultset.next()) {
+                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + resultset.getString(1) + " - Type: " + resultset.getInt(2));
+            }
+            return _getResultSet(m_Metadata.getTypeInfo());
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -3119,7 +3122,7 @@ public abstract class DatabaseMetaDataBase
         XResultSet result = null;
         try {
             if (resultset != null)
-                result = m_Connection.getProvider().getResultSet(m_Connection, resultset);
+                result = new ResultSet(m_Connection, resultset);
         }
         catch (java.lang.Exception e)
         {
@@ -3141,7 +3144,6 @@ public abstract class DatabaseMetaDataBase
         java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
         while (resultset.next())
         {
-            System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo()");
             rows.add(_getTypeInfoRowSet(resultset));
         }
         resultset.close();
@@ -3153,7 +3155,8 @@ public abstract class DatabaseMetaDataBase
     {
         CustomRowSet[] row = new CustomRowSet[18];
         row[0] = new CustomRowSet(result.getString(1), result.wasNull());
-        row[1] = new CustomRowSet(m_Connection.getProvider().getDataType(result.getInt(2)));
+        int datatype = m_Connection.getProvider().getDataType(result.getInt(2));
+        row[1] = new CustomRowSet(datatype);
         row[2] = new CustomRowSet(result.getLong(3));
         row[3] = new CustomRowSet(result.getString(4), result.wasNull());
         row[4] = new CustomRowSet(result.getString(5), result.wasNull());
@@ -3164,7 +3167,7 @@ public abstract class DatabaseMetaDataBase
         row[9] = new CustomRowSet(result.getBoolean(10));
         row[10] = new CustomRowSet(result.getBoolean(11));
         row[11] = new CustomRowSet(result.getBoolean(12));
-        System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TypeName: " + result.getString(1) + " - AutoIncrement: " + result.getBoolean(12));
+        System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TYPE_NAME: " + result.getString(1) + " - DATA_TYPE: " + result.getInt(2) + " / " + datatype + " - CREATE_PARAMS: " + result.getString(6));
         row[12] = new CustomRowSet(result.getString(13), result.wasNull());
         row[13] = new CustomRowSet(result.getShort(14));
         row[14] = new CustomRowSet(result.getShort(15));

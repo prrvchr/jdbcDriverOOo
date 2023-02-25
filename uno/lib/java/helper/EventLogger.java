@@ -209,7 +209,7 @@ public class EventLogger
                        Object... arguments)
     {
         if (isLoggable(level))
-            return impl_log(level, null, null, message, arguments);
+            return _log(level, null, null, message, arguments);
         return false;
     }
 
@@ -241,7 +241,7 @@ public class EventLogger
             PrintWriter printerWriter = new PrintWriter(stringWriter);
             exception.printStackTrace(printerWriter);
             message += "\n" + stringWriter.getBuffer().toString();
-            return impl_log(level, null, null, message);
+            return _log(level, null, null, message);
         }
         return true;
     }
@@ -262,7 +262,7 @@ public class EventLogger
             System.out.println("EventLogger.logp() 1");
             StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
             System.out.println("EventLogger.logp() 2 Class: " + caller.getClassName() + " - Method: " + caller.getMethodName());
-            return impl_log(level, caller.getClassName(), caller.getMethodName(), message, arguments);
+            return _log(level, caller.getClassName(), caller.getMethodName(), message, arguments);
         }
         return false;
     }
@@ -296,12 +296,12 @@ public class EventLogger
             exception.printStackTrace(printerWriter);
             message += "\n" + stringWriter.getBuffer().toString();
             StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-            return impl_log(level, caller.getClassName(), caller.getMethodName(), message);
+            return _log(level, caller.getClassName(), caller.getMethodName(), message);
         }
         return true;
     }
 
-    protected boolean impl_log(int level,
+    protected boolean _log(int level,
                                String clazz,
                                String method,
                                String message,
@@ -313,8 +313,7 @@ public class EventLogger
         try {
             message = String.format(message, arguments);
         }
-        catch (Exception e) {
-        }
+        catch (Exception e) { }
         if (clazz != null && method != null) {
             m_xLogger.logp(level, clazz, method, message);
         }

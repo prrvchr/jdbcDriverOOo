@@ -309,6 +309,11 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -321,6 +326,11 @@
                 <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator=",">Column(2) = -5,Column(6) = PRECISION,Column(2) = -4,Column(6) = PRECISION,Column(2) = -3,Column(6) = PRECISION,Column(2) = -2,Column(6) = PRECISION,Column(2) = -1,Column(6) = PRECISION,Column(2) = 2,Column(6) = PRECISION,Column(2) = 12,Column(6) = PRECISION</value>
+                    </prop>
+                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/hsqldb.jar</value>

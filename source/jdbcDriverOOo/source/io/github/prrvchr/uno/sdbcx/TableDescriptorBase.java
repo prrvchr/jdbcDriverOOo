@@ -151,5 +151,15 @@ public abstract class TableDescriptorBase
         return m_keys;
     }
 
+    // 
+    public String getCatalogName()
+    {
+        return m_CatalogName;
+    }
+    public String getSchemaName()
+    {
+        return m_SchemaName;
+    }
+
 
 }

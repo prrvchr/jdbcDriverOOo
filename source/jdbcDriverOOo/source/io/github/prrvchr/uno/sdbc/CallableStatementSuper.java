@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
@@ -38,7 +39,7 @@ public abstract class CallableStatementSuper
     extends CallableStatementBase
 {
 
-    protected boolean m_UseBookmarks = false;
+    protected boolean m_UseBookmarks  = false;
 
 
     // The constructor method:

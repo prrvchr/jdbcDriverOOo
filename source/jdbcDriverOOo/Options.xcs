@@ -33,6 +33,7 @@
   oor:name="jdbcDriverOOo">
     <component>
         <prop oor:name="DriverService" oor:type="xs:string"/>
+        <prop oor:name="HighLevel" oor:type="xs:boolean"/>
         <prop oor:name="AdminGridColumns" oor:type="xs:string"/>
         <prop oor:name="AdminGridOrders" oor:type="xs:string"/>
     </component>

@@ -111,16 +111,16 @@ public final class SQLiteDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getTypeInfo()");
+            System.out.println("sqlite.DatabaseMetaData.getTypeInfo()");
             return _getTypeInfo();
         }
         catch (java.sql.SQLException e)
         {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -135,16 +135,16 @@ public final class SQLiteDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getTableTypes()");
+            System.out.println("sqlite.DatabaseMetaData.getTableTypes()");
             return _getTableTypes();
         }
         catch (java.sql.SQLException e)
         {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -162,11 +162,11 @@ public final class SQLiteDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
+            System.out.println("sqlite.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
             return _getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData.getTables() ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData.getTables() ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -186,7 +186,7 @@ public final class SQLiteDatabaseMetaData
             row[2] = new CustomRowSet(result.getString(3), result.wasNull());
             row[3] = new CustomRowSet(_mapDatabaseTableType(schema, result.getString(4)), result.wasNull());
             row[4] = new CustomRowSet(null, true);
-            //System.out.println("h2.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
+            System.out.println("sqlite.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
             return row;
         }
 
@@ -199,16 +199,16 @@ public final class SQLiteDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getColumns()");
+            System.out.println("sqlite.DatabaseMetaData.getColumns()");
             return _getColumns(_getPattern(catalog), _getPattern(schema), table, column);
         }
         catch (java.sql.SQLException e)
         {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);

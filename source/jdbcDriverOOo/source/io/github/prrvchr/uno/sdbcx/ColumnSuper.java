@@ -34,7 +34,6 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public abstract class ColumnSuper
@@ -42,34 +41,19 @@ public abstract class ColumnSuper
     implements XDataDescriptorFactory
 {
 
-    private final ConnectionBase m_Connection;
-    private final String m_CatalogName;
-    private final String m_SchemaName;
-    private final String m_TableName;
-
     // The constructor method:
     public ColumnSuper(String service,
                       String[] services,
-                      ConnectionBase connection,
-                      boolean sensitive,
-                      String catalog,
-                      String schema,
-                      String table)
+                      TableBase table,
+                      boolean sensitive)
     {
-        super(service, services, sensitive);
-        m_Connection = connection;
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
-        m_TableName = table;
+        super(service, services, table, sensitive);
         registerProperties();
     }
     public ColumnSuper(String service,
                       String[] services,
-                      ConnectionBase connection,
+                      TableBase table,
                       boolean sensitive,
-                      String catalog,
-                      String schema,
-                      String table,
                       String name,
                       final String typename,
                       final String defaultvalue,
@@ -82,44 +66,41 @@ public abstract class ColumnSuper
                       final boolean rowversion,
                       final boolean currency)
     {
-        super(service, services, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
-        m_Connection = connection;
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
-        m_TableName = table;
+        super(service, services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();
     }
 
-    // FIXME: Although these properties are not in the UNO API, they are claimed by
-    // FIXME: LibreOffice/Base and necessary to obtain tables whose contents can be edited in Base
     private void registerProperties() {
-        short attribute = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, attribute,
+        // FIXME: Although these properties are not in the UNO API, they are claimed by
+        // FIXME: LibreOffice/Base and necessary to obtain tables whose contents can be edited in Base
+        short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_CatalogName;
+                    return m_table.getCatalogName();
                 }
             }, null);
-        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, attribute,
+        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_SchemaName;
+                    return m_table.getSchemaName();
                 }
             }, null);
-        registerProperty(PropertyIds.TABLENAME.name, PropertyIds.TABLENAME.id, Type.STRING, attribute,
+        registerProperty(PropertyIds.TABLENAME.name, PropertyIds.TABLENAME.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_TableName;
+                    return m_table.getName();
                 }
             }, null);
-        registerProperty(PropertyIds.AUTOINCREMENTCREATION.name, PropertyIds.AUTOINCREMENTCREATION.id, Type.STRING, attribute,
+
+        registerProperty(PropertyIds.AUTOINCREMENTCREATION.name, PropertyIds.AUTOINCREMENTCREATION.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_Connection.getProvider().getAutoIncrementCreation();
+                    return m_table.getConnection().getProvider().getAutoIncrementCreation();
                 }
             }, null);
     }
@@ -129,7 +110,7 @@ public abstract class ColumnSuper
     @Override
     public XPropertySet createDataDescriptor()
     {
-        ColumnDescriptor descriptor = new ColumnDescriptor(isCaseSensitive());
+        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

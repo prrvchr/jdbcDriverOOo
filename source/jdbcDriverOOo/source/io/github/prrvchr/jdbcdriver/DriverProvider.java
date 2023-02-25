@@ -41,8 +41,6 @@ import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnMain;
 
 public interface DriverProvider
@@ -68,6 +66,8 @@ public interface DriverProvider
 
     public int getDataType(int type);
 
+    public int getDataTypeInsertPosition(int datatype);
+
     public String[] getTableTypes();
 
     public String getTableType(String type);
@@ -91,9 +91,7 @@ public interface DriverProvider
     public String getTableIdentifier(ConnectionBase connection,
                                      String catalog,
                                      String schema,
-                                     String table,
-                                     String quote,
-                                     boolean mixed)
+                                     String table)
         throws SQLException;
 
     public String getColumnIdentifier(ConnectionBase connection,
@@ -161,9 +159,7 @@ public interface DriverProvider
                                        String catalog,
                                        String schema,
                                        String table,
-                                       String description,
-                                       String quote,
-                                       boolean mixed)
+                                       String description)
         throws SQLException;
 
 
@@ -226,21 +222,6 @@ public interface DriverProvider
 
     public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
-
-    public ResultSetBase getResultSet(ConnectionBase connection,
-                                      java.sql.ResultSet resultset)
-        throws SQLException;
-
-    public ResultSetBase getResultSet(ConnectionBase connection,
-                                      java.sql.ResultSet resultset,
-                                      StatementMain statement)
-        throws SQLException;
-
-    public ResultSetBase getResultSet(ConnectionBase connection,
-                                      java.sql.ResultSet resultset,
-                                      StatementMain statement,
-                                      boolean bookmark)
-        throws SQLException;
 
     public boolean isAutoRetrievingEnabled();
 

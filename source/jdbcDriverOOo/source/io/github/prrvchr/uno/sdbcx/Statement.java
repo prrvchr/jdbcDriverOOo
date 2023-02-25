@@ -45,7 +45,7 @@ public final class Statement
     private static final String m_service = Statement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Statement",
                                                 "com.sun.star.sdbcx.Statement"};
-    public boolean m_UseBookmarks = false;
+    protected boolean m_UseBookmarks = false;
 
     // The constructor method:
     public Statement(ConnectionBase connection)
@@ -79,7 +79,7 @@ public final class Statement
     {
         XResultSet resultset = null;
         if (result != null) {
-            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this, m_UseBookmarks);
+            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
         }
         return resultset;
     }

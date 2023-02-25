@@ -52,7 +52,8 @@ public final class Driver
     protected ConnectionBase _getConnection(XComponentContext ctx,
                                             DriverProvider provider,
                                             ResourceBasedEventLogger logger,
-                                            boolean enhanced)
+                                            boolean enhanced,
+                                            boolean hight)
     {
         return new Connection(ctx, provider, logger, enhanced);
     }

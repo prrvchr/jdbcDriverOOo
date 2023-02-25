@@ -80,21 +80,23 @@ public abstract class ResultSetSuper
 
     // com.sun.star.sdbcx.XRowLocate:
     @Override
-    public int compareBookmarks(Object bookmark1, Object bookmark2)
+    public int compareBookmarks(Object object1, Object object2)
     throws SQLException
     {
-        int row1, row2;
+        System.out.println("ResultSetSuper.compareBookmarks() 1");
+        checkDisposed();
+        int bookmark1, bookmark2;
         try {
-            row1 = AnyConverter.toInt(bookmark1);
-            row2 = AnyConverter.toInt(bookmark2);
+            bookmark1 = AnyConverter.toInt(object1);
+            bookmark2 = AnyConverter.toInt(object2);
         }
         catch (IllegalArgumentException e) {
             return CompareBookmark.NOT_COMPARABLE;
         }
-        if (row1 < row2) {
+        if (bookmark1 < bookmark2) {
             return CompareBookmark.LESS;
         }
-        else if (row1 > row2) {
+        else if (bookmark1 > bookmark2) {
             return CompareBookmark.GREATER;
         }
         else {
@@ -106,35 +108,75 @@ public abstract class ResultSetSuper
     public Object getBookmark()
     throws SQLException
     {
-        return AnyConverter.toObject(new Type(Integer.class), getRow());
+        System.out.println("ResultSetSuper.getBookmark() 1");
+        checkDisposed();
+        return getRow();
     }
 
     @Override
     public boolean hasOrderedBookmarks()
     throws SQLException
     {
+        System.out.println("ResultSetSuper.hasOrderedBookmarks() 1");
+        checkDisposed();
         return true;
     }
 
     @Override
-    public int hashBookmark(Object bookmark)
+    public int hashBookmark(Object object)
     throws SQLException
     {
-        return AnyConverter.toInt(bookmark);
+        System.out.println("ResultSetSuper.hashBookmark() 1");
+        checkDisposed();
+        int bookmark;
+        try {
+            bookmark = AnyConverter.toInt(object);
+        }
+        catch (IllegalArgumentException e) {
+            throw new SQLException("Bad bookmark", this, StandardSQLState.SQL_INVALID_BOOKMARK_VALUE.text(), 0, null);
+        }
+        return bookmark;
     }
 
     @Override
-    public boolean moveRelativeToBookmark(Object bookmark, int count)
+    public boolean moveRelativeToBookmark(Object object, int count)
     throws SQLException
     {
-        return absolute(AnyConverter.toInt(bookmark) + count);
+        System.out.println("ResultSetSuper.moveRelativeToBookmark() 1");
+        checkDisposed();
+        int bookmark;
+        boolean moved = false;
+        try {
+            bookmark = AnyConverter.toInt(object);
+            moved = absolute(bookmark);
+            if (moved) {
+                moved = relative(count);
+            }
+        }
+        catch (IllegalArgumentException e) { }
+        if (!moved) {
+            afterLast();
+        }
+        return moved;
     }
 
     @Override
-    public boolean moveToBookmark(Object bookmark)
+    public boolean moveToBookmark(Object object)
     throws SQLException
     {
-        return absolute(AnyConverter.toInt(bookmark));
+        System.out.println("ResultSetSuper.moveToBookmark() 1");
+        checkDisposed();
+        int bookmark;
+        boolean moved = false;
+        try {
+            bookmark = AnyConverter.toInt(object);
+            moved = absolute(bookmark);
+        }
+        catch (IllegalArgumentException e) { }
+        if (!moved) {
+            afterLast();
+        }
+        return moved;
     }
 
 

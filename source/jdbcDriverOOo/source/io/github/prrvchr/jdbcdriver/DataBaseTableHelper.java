@@ -112,7 +112,7 @@ public class DataBaseTableHelper
         throws java.sql.SQLException
     {
         List<ColumnDescription> columns = new ArrayList<>();
-        java.sql.ResultSet result = connection.getProvider().getConnection().getMetaData().getColumns(table.getCatalogName(), table.getSchemaName(), table.getName(), "%");
+        java.sql.ResultSet result = connection.getProvider().getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%");
         while (result.next()) {
             ColumnDescription columnDescription = new ColumnDescription();
             columnDescription.columnName = result.getString(4);
@@ -181,7 +181,7 @@ public class DataBaseTableHelper
         try {
             boolean fetched = false;
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result  = metadata.getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName());
+            java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName());
             while (result.next()) {
                 String columnName = result.getString(4);
                 System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + result.getString(4) + " - Primary Key: " + result.getString(6));
@@ -218,7 +218,7 @@ public class DataBaseTableHelper
         KeyProperties keyProperties = null;
         try {
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalogName(), table.getSchemaName(), table.getName());
+            java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getName());
             while (result.next()) {
                 String catalogReturned = result.getString(1);
                 if (result.wasNull()) {
@@ -273,7 +273,7 @@ public class DataBaseTableHelper
         String separator = connection.getMetaData().getCatalogSeparator();
         try {
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalogName(), table.getSchemaName(), table.getName(), false, false);
+            java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getName(), false, false);
             String previous = "";
             System.out.println("sdbcx.IndexContainer.readIndexes() 1");
             while (result.next()) {

@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.List;
+
+import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
@@ -33,7 +36,6 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
-import io.github.prrvchr.uno.sdb.Table;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
@@ -43,7 +45,6 @@ public class Connection
 
     private static final String m_service = Connection.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Connection"};
-    private static final boolean m_crawler = false;
 
     // The constructor method:
     public Connection(XComponentContext ctx,
@@ -51,7 +52,8 @@ public class Connection
                       ResourceBasedEventLogger logger,
                       boolean enhanced)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, m_crawler);
+        super(ctx, m_service, m_services, provider, logger, enhanced);
+        System.out.println("sdbcx.Connection() *************************");
     }
 
     protected XStatement _getStatement()
@@ -81,14 +83,10 @@ public class Connection
         return statement;
     }
 
-    public Table getTable(boolean sensitive,
-                          String catalog,
-                          String schema,
-                          String name,
-                          String type,
-                          String remarks)
+    protected TableContainer _getTableContainer(List<String> names)
+        throws ElementExistException
     {
-        return new Table(this, sensitive, catalog, schema, name, type, remarks);
+        return new TableContainer(this, getProvider().isCaseSensitive(null), names);
     }
 
 }

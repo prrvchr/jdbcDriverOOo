@@ -50,7 +50,7 @@ public final class CallableStatement
     {
         XResultSet resultset = null;
         if (result != null) {
-            resultset =  m_Connection.getProvider().getResultSet(m_Connection, result, this);
+            resultset =  new ResultSet(m_Connection, result, this);
         }
         return resultset;
     }

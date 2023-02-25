@@ -51,10 +51,10 @@ public class Index
 
     private static final String m_service = Index.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Index"};
-
+    
     protected IndexColumnContainer m_columns = null;
     protected final TableBase m_table;
-
+    
     protected String m_Catalog;
     protected boolean m_IsUnique;
     protected boolean m_IsPrimaryKeyIndex;
@@ -77,7 +77,7 @@ public class Index
         m_IsUnique = unique;
         m_IsPrimaryKeyIndex = primarykey;
         m_IsClustered = clustered;
-        m_columns = new IndexColumnContainer(this, this, columns);
+        m_columns = new IndexColumnContainer(this, columns);
         registerProperties();
     }
 

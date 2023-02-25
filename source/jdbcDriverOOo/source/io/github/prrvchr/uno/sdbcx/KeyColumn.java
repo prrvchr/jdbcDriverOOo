@@ -44,11 +44,14 @@ public class KeyColumn
     private String m_RelatedColumn;
 
     // The constructor method:
-    protected KeyColumn(boolean sensitive) {
-        super(m_service, m_services, sensitive);
+    protected KeyColumn(TableBase table,
+                        boolean sensitive)
+    {
+        super(m_service, m_services, table, sensitive);
         registerProperties();
     }
-    public KeyColumn(final boolean sensitive,
+    public KeyColumn(TableBase table,
+                     final boolean sensitive,
                      final String name,
                      final String typename,
                      final String defaultvalue,
@@ -62,7 +65,7 @@ public class KeyColumn
                      final boolean currency,
                      final String referenced)
     {
-        super(m_service, m_services, sensitive, name, typename, defaultvalue, description,
+        super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description,
               nullable, precision, scale, type, autoincrement, rowversion, currency);
         m_RelatedColumn = referenced;
         registerProperties();

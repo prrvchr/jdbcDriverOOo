@@ -55,12 +55,11 @@ public class IndexContainer
 
     // The constructor method:
     public IndexContainer(TableBase table,
-                          Object lock,
                           boolean sensitive,
                           List<String> indexes)
     throws ElementExistException
     {
-        super(lock, sensitive, indexes);
+        super(table, sensitive, indexes);
         m_Table = table;
     }
 
@@ -89,7 +88,7 @@ public class IndexContainer
             }
             System.out.println("sdbcx.IndexContainer._createElement() 3: Name: " + name + " - Qualifier: " + qualifier + " - Subname: " + subname);
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getIndexInfo(m_Table.getCatalogName(), m_Table.getSchemaName(), m_Table.getName(), false, false);
+            java.sql.ResultSet result = metadata.getIndexInfo(m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), false, false);
             boolean found = false;
             boolean unique = false;
             int type = -1;
@@ -132,7 +131,7 @@ public class IndexContainer
         throws java.sql.SQLException
     {
         boolean primary = false;
-        java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName());
+        java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName());
         if (result.next()) { // there can be only one primary key
             primary = name.equals(result.getString(6));
         }

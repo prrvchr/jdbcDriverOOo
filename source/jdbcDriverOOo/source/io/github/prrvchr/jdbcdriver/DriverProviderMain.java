@@ -58,10 +58,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnMain;
-import io.github.prrvchr.uno.sdbcx.Connection;
 
 public abstract class DriverProviderMain
     implements DriverProvider
@@ -142,6 +139,12 @@ public abstract class DriverProviderMain
             }
         }
         return query;
+    }
+
+    @Override
+    public int getDataTypeInsertPosition(int datatype)
+    {
+        return (datatype != 2014) ? -1 : 9;
     }
 
     @Override
@@ -295,16 +298,8 @@ public abstract class DriverProviderMain
                                     String table)
         throws SQLException
     {
-        try {
-            String query = "DROP TABLE %s";
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
-            return String.format(query, getTableIdentifier(connection, catalog, schema, table, quote, mixed));
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
+        String query = "DROP TABLE %s";
+        return String.format(query, getTableIdentifier(connection, catalog, schema, table));
     }
 
     @Override
@@ -314,16 +309,8 @@ public abstract class DriverProviderMain
                                    String view)
         throws SQLException
     {
-        try {
-            String query = "DROP VIEW %s";
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
-            return String.format(query, getTableIdentifier(connection, catalog, schema, view, quote, mixed));
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
+        String query = "DROP VIEW %s";
+        return String.format(query, getTableIdentifier(connection, catalog, schema, view));
     }
 
     @Override
@@ -366,13 +353,13 @@ public abstract class DriverProviderMain
             String[] elements = getTableElementsQuery(connection, columns, keys, quote, mixed);
             System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 3: " + elements.length);
             if (elements.length > 0) {
-                 queries.add(getCreateTableQuery(getTableIdentifier(connection, catalog, schema, table, quote, mixed), String.join(", ", elements)));
+                 queries.add(getCreateTableQuery(getTableIdentifier(metadata, catalog, schema, table, quote, mixed), String.join(", ", elements)));
                  System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 4");
             }
             String description = (String) descriptor.getPropertyValue("Description");
             System.out.println("jdbcdriver.DriverProviderMain.getCreateTableQueries() 5: " + description);
             if (!description.isBlank()) {
-                queries.add(getTableCommentQuery(connection, catalog, schema, table, description, quote, mixed));
+                queries.add(getTableCommentQuery(connection, catalog, schema, table, description));
             }
             XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, columns)).createEnumeration();
             while (iter.hasMoreElements()) {
@@ -399,13 +386,15 @@ public abstract class DriverProviderMain
     public String getTableIdentifier(ConnectionBase connection,
                                       String catalog,
                                       String schema,
-                                      String table,
-                                      String quote,
-                                      boolean mixed)
+                                      String table)
         throws SQLException
     {
         try {
-            return getTableIdentifier(connection.getProvider().getConnection().getMetaData(), catalog, schema, table, quote, mixed);
+            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
+            String quote = metadata.getIdentifierQuoteString();
+            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
+
+            return getTableIdentifier(metadata, catalog, schema, table, quote, mixed);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
@@ -510,13 +499,11 @@ public abstract class DriverProviderMain
                                        String catalog,
                                        String schema,
                                        String table,
-                                       String description,
-                                       String quote,
-                                       boolean mixed)
+                                       String description)
         throws SQLException
     {
         String query = "COMMENT ON %s IS '%s'";
-        String identifier = getTableIdentifier(connection, catalog, schema, table, quote, mixed);
+        String identifier = getTableIdentifier(connection, catalog, schema, table);
         return String.format(query, identifier, description);
     }
 
@@ -770,7 +757,12 @@ public abstract class DriverProviderMain
                                         ResourceBasedEventLogger logger,
                                         boolean enhanced)
     {
-        return new Connection(ctx, this, logger, enhanced);
+        if (enhanced) {
+            return new io.github.prrvchr.uno.sdb.Connection(ctx, this, logger, enhanced);
+        }
+        else {
+            return new io.github.prrvchr.uno.sdbcx.Connection(ctx, this, logger, enhanced);
+        }
     }
 
     @Override
@@ -815,33 +807,6 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         return new DatabaseMetaData(connection);
-    }
-
-    @Override
-    public ResultSetBase getResultSet(final ConnectionBase connection,
-                                      final java.sql.ResultSet resultset)
-        throws SQLException
-    {
-        return new io.github.prrvchr.uno.sdbc.ResultSet(connection, resultset, null, false);
-    }
-
-    @Override
-    public ResultSetBase getResultSet(final ConnectionBase connection,
-                                      final java.sql.ResultSet resultset,
-                                      final StatementMain statement)
-        throws SQLException
-    {
-        return new io.github.prrvchr.uno.sdbc.ResultSet(connection, resultset, statement, false);
-    }
-
-    @Override
-    public ResultSetBase getResultSet(final ConnectionBase connection,
-                                      final java.sql.ResultSet resultset,
-                                      final StatementMain statement,
-                                      boolean bookmark)
-        throws SQLException
-    {
-        return new io.github.prrvchr.uno.sdbcx.ResultSet(connection, resultset, statement, bookmark);
     }
 
     @Override

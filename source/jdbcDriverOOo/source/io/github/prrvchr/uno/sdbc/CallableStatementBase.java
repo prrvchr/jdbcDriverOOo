@@ -34,11 +34,11 @@ import com.sun.star.sdbc.XClob;
 import com.sun.star.sdbc.XOutParameters;
 import com.sun.star.sdbc.XRef;
 import com.sun.star.sdbc.XRow;
-import com.sun.star.uno.Any;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -223,7 +223,7 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             java.sql.Date value = _getCallableStatement().getDate(index);
-            return (value != null) ? UnoHelper.getUnoDate(value) : new Date();
+            return (value != null) ? UnoHelper.getUnoDate(value.toLocalDate()) : new Date();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -285,26 +285,12 @@ public abstract class CallableStatementBase
     @Override
     public Object getObject(int index, XNameAccess map) throws SQLException
     {
-        try
-        {
+        try {
             _createStatement();
-            Object value = Any.VOID;
-            Object object = _getCallableStatement().getObject(index);
-            if (object instanceof String) {
-                value = (String) object;
-            } else if (object instanceof Boolean) {
-                value = (Boolean) object;
-            } else if (object instanceof java.sql.Date) {
-                value = UnoHelper.getUnoDate((java.sql.Date) object);
-            } else if (object instanceof java.sql.Time) {
-                value = UnoHelper.getUnoTime((java.sql.Time) object);
-            } else if (object instanceof java.sql.Timestamp) {
-                value = UnoHelper.getUnoDateTime((java.sql.Timestamp) object);
-            }
-            return value;
+            return DataBaseTools.getObject(_getCallableStatement().getObject(index), map);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getLoggedSQLException(this, m_logger, e);
         }
     }
 
@@ -356,7 +342,7 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             java.sql.Time value = _getCallableStatement().getTime(index);
-            return (value != null) ? UnoHelper.getUnoTime(value) : new Time();
+            return (value != null) ? UnoHelper.getUnoTime(value.toLocalTime()) : new Time();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -370,7 +356,7 @@ public abstract class CallableStatementBase
         {
             _createStatement();
             java.sql.Timestamp value = _getCallableStatement().getTimestamp(index);
-            return (value != null) ? UnoHelper.getUnoDateTime(value) : new DateTime();
+            return (value != null) ? UnoHelper.getUnoDateTime(value.toLocalDateTime()) : new DateTime();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

@@ -29,17 +29,20 @@ public class ColumnDescriptorContainer
     extends DescriptorContainer
 {
 
+    private TableDescriptorBase m_table;
+    
     // The constructor method:
-    public ColumnDescriptorContainer(Object lock,
+    public ColumnDescriptorContainer(TableDescriptorBase table,
                                      boolean sensitive)
     {
-        super(lock, sensitive);
+        super(table, sensitive);
+        m_table = table;
         System.out.println("sdbcx.ColumnDescriptorContainer() ***************************************************");
     }
 
     @Override
     protected ColumnDescriptor _createDescriptor() {
-        return new ColumnDescriptor(isCaseSensitive());
+        return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
     }
 
 }

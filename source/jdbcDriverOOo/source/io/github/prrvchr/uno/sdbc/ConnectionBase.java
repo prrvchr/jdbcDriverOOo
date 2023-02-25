@@ -68,7 +68,6 @@ public abstract class ConnectionBase
     protected final DriverProvider m_provider;
     protected final ConnectionLog m_logger; 
     public final boolean m_enhanced;
-    private boolean m_crawler;
     protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
@@ -79,22 +78,11 @@ public abstract class ConnectionBase
                           ResourceBasedEventLogger logger,
                           boolean enhanced)
     {
-        this(ctx, service, services, provider, logger, enhanced, false);
-    }
-    public ConnectionBase(XComponentContext ctx,
-                          String service,
-                          String[] services,
-                          DriverProvider provider,
-                          ResourceBasedEventLogger logger,
-                          boolean enhanced,
-                          boolean crawler)
-    {
         m_xContext = ctx;
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
         m_provider = provider;
-        m_crawler = crawler;
         m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
         m_logger.log(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
     }
@@ -379,10 +367,6 @@ public abstract class ConnectionBase
     public boolean isEnhanced()
     {
         return m_enhanced;
-    }
-    public boolean useSchemaCrawler()
-    {
-        return m_crawler;
     }
 
     abstract protected XStatement _getStatement();

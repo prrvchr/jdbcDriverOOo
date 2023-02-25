@@ -28,6 +28,8 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
@@ -48,7 +50,8 @@ public abstract class DescriptorContainer
     {
         // This should never be called. DescriptorContainer always starts off empty,
         // and only grows as a result of appending.
-        throw new SQLException("", this, StandardSQLState.SQL_FUNCTION_SEQUENCE_ERROR.text(), 0, null);
+        String error = SharedResources.getInstance().getResource(Resources.STR_ERRORMSG_SEQUENCE);
+        throw new SQLException(error, this, StandardSQLState.SQL_FUNCTION_SEQUENCE_ERROR.text(), 0, null);
     }
     
     @Override

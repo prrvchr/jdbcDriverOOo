@@ -92,7 +92,7 @@ public class CustomResultSet
 
     private XResultSetMetaData m_xMetaData;
     private ArrayList<CustomRowSet[]> m_rows;
-    private final boolean m_IsBookmarkable;
+    private final boolean m_IsBookmarkable = true;
     /// 0-based:
     private int m_row = -1;
     /// 1-based:
@@ -105,11 +105,11 @@ public class CustomResultSet
     {
         m_xMetaData = metadata;
         m_rows = rows;
-        m_IsBookmarkable = true;
         registerProperties();
     }
 
-    private void registerProperties() {
+    private void registerProperties()
+    {
         short readonly = PropertyAttribute.READONLY;
         registerProperty(PropertyIds.CURSORNAME.name, PropertyIds.CURSORNAME.id, Type.STRING, readonly,
             new PropertyGetter() {
@@ -204,7 +204,6 @@ public class CustomResultSet
         return ResultSetType.SCROLL_INSENSITIVE;
     }
 
-
     protected boolean _getIsBookmarkable()
     {
         System.out.println("sdbc.ResultSetSuper._getIsBookmarkable(): " + m_IsBookmarkable);
@@ -214,32 +213,34 @@ public class CustomResultSet
 
     // com.sun.star.lang.XComponent
     @Override
-    public void postDisposing() { 
+    public void postDisposing()
+    { 
         System.out.println("CustomResultSet.postDisposing() **************************************");
     }
 
 
     // com.sun.star.sdbc.XCloseable
     @Override
-    public void close() throws SQLException
+    public void close()
+        throws SQLException
     {
         System.out.println("CustomResultSet.close() **************************************");
     }
 
 
     // com.sun.star.sdbc.XResultSet:
-    private CustomRowSet getField(int columnIndex)
+    private CustomRowSet getField(int index)
         throws SQLException
     {
         if (isBeforeFirst() || isAfterLast()) {
             throw new SQLException("Row out of range");
         }
         CustomRowSet[] fields = m_rows.get(m_row);
-        if (columnIndex < 1 || fields.length < columnIndex) {
+        if (index < 1 || fields.length < index) {
             throw new SQLException("Column out of range");
         }
-        m_column = columnIndex;
-        return fields[columnIndex - 1];
+        m_column = index;
+        return fields[index - 1];
     }
 
     public synchronized boolean absolute(int position)
@@ -249,7 +250,8 @@ public class CustomResultSet
         checkDisposed();
         if (position >= 0) {
             m_row = position;
-        } else {
+        }
+        else {
             m_row = m_rows.size() + position;
         }
         if (m_row <= -1) {
@@ -271,63 +273,83 @@ public class CustomResultSet
         m_row = m_rows.size();
     }
 
-    public synchronized void beforeFirst() throws SQLException {
+    public synchronized void beforeFirst()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.beforeFirst()");
         checkDisposed();
         m_row = -1;
     }
 
-    public synchronized boolean first() throws SQLException {
+    public synchronized boolean first()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.first()");
         checkDisposed();
         m_row = 0;
         return true;
     }
 
-    public synchronized int getRow() throws SQLException {
+    public synchronized int getRow()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.getRow()");
         checkDisposed();
         return m_row + 1;
     }
 
-    public synchronized Object getStatement() throws SQLException {
+    public synchronized Object getStatement()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.getStatement()");
         checkDisposed();
         return null;
     }
 
-    public synchronized boolean isAfterLast() throws SQLException {
+    public synchronized boolean isAfterLast()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.isAfterLast()");
         checkDisposed();
         return m_row == m_rows.size();
     }
 
-    public synchronized boolean isBeforeFirst() throws SQLException {
+    public synchronized boolean isBeforeFirst()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.isBeforeFirst()");
         checkDisposed();
         return m_row == -1;
     }
 
-    public synchronized boolean isFirst() throws SQLException {
+    public synchronized boolean isFirst()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.isFirst()");
         checkDisposed();
         return m_row == 0;
     }
 
-    public synchronized boolean isLast() throws SQLException {
+    public synchronized boolean isLast()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.isLast()");
         checkDisposed();
         return m_row == (m_rows.size() - 1);
     }
 
-    public synchronized boolean last() throws SQLException {
+    public synchronized boolean last()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.last()");
         checkDisposed();
         m_row = m_rows.size() - 1;
         return true;
     }
 
-    public synchronized boolean next() throws SQLException {
+    public synchronized boolean next()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.next()");
         checkDisposed();
         if (m_row < m_rows.size()) {
@@ -336,7 +358,9 @@ public class CustomResultSet
         return m_row < m_rows.size();
     }
 
-    public synchronized boolean previous() throws SQLException {
+    public synchronized boolean previous()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.previous()");
         checkDisposed();
         if (m_row > -1) {
@@ -345,12 +369,16 @@ public class CustomResultSet
         return m_row > -1;
     }
 
-    public synchronized void refreshRow() throws SQLException {
+    public synchronized void refreshRow()
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.refreshRow()");
         checkDisposed();
     }
 
-    public synchronized boolean relative(int offset) throws SQLException {
+    public synchronized boolean relative(int offset)
+        throws SQLException
+    {
         //System.out.println("CustomResultSet.relative()");
         checkDisposed();
         m_row += offset;
@@ -365,147 +393,197 @@ public class CustomResultSet
         return true;
     }
 
-    public synchronized boolean rowDeleted() throws SQLException {
+    public synchronized boolean rowDeleted()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.rowDeleted()");
         checkDisposed();
         return false;
     }
 
-    public synchronized boolean rowInserted() throws SQLException {
+    public synchronized boolean rowInserted()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.rowInserted()");
         checkDisposed();
         return false;
     }
 
-    public synchronized boolean rowUpdated() throws SQLException {
+    public synchronized boolean rowUpdated()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.rowUpdated()");
         checkDisposed();
         return false;
     }
 
     // com.sun.star.sdbc.XResultSetMetaDataSupplier:
-    public synchronized XResultSetMetaData getMetaData() throws SQLException {
+    public synchronized XResultSetMetaData getMetaData()
+        throws SQLException
+    {
         checkDisposed();
         return m_xMetaData;
     }
 
     // com.sun.star.sdbc.XRow:
-    public synchronized XArray getArray(int columnIndex) throws SQLException {
+    public synchronized XArray getArray(int index)
+        throws SQLException
+    {
         checkDisposed();
         return null;
     }
 
-    public synchronized XInputStream getBinaryStream(int columnIndex) throws SQLException {
+    public synchronized XInputStream getBinaryStream(int index)
+        throws SQLException
+    {
         checkDisposed();
         return null;
     }
 
-    public synchronized XBlob getBlob(int columnIndex) throws SQLException {
+    public synchronized XBlob getBlob(int index)
+        throws SQLException
+    {
         checkDisposed();
         return null;
     }
 
-    public synchronized boolean getBoolean(int columnIndex) throws SQLException {
+    public synchronized boolean getBoolean(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getBoolean();
     }
 
-    public synchronized byte getByte(int columnIndex) throws SQLException {
+    public synchronized byte getByte(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getInt8();
     }
 
-    public synchronized byte[] getBytes(int columnIndex) throws SQLException {
+    public synchronized byte[] getBytes(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getSequence();
     }
 
-    public synchronized XInputStream getCharacterStream(int columnIndex) throws SQLException {
+    public synchronized XInputStream getCharacterStream(int index)
+        throws SQLException
+    {
         checkDisposed();
         return null;
     }
 
-    public synchronized XClob getClob(int columnIndex) throws SQLException {
+    public synchronized XClob getClob(int index)
+        throws SQLException
+    {
         checkDisposed();
         return null;
     }
 
-    public synchronized Date getDate(int columnIndex) throws SQLException {
+    public synchronized Date getDate(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getDate();
     }
 
-    public synchronized double getDouble(int columnIndex) throws SQLException {
+    public synchronized double getDouble(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getDouble();
     }
 
-    public synchronized float getFloat(int columnIndex) throws SQLException {
+    public synchronized float getFloat(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getFloat();
     }
 
-    public synchronized int getInt(int columnIndex) throws SQLException {
+    public synchronized int getInt(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getInt32();
     }
 
-    public synchronized long getLong(int columnIndex) throws SQLException {
+    public synchronized long getLong(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getLong();
     }
 
-    public synchronized Object getObject(int columnIndex, XNameAccess arg1) throws SQLException {
+    public synchronized Object getObject(int index, XNameAccess map)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.makeAny();
     }
 
-    public synchronized XRef getRef(int columnIndex) throws SQLException {
+    public synchronized XRef getRef(int index)
+        throws SQLException
+    {
         checkDisposed();
         return null;
     }
 
-    public synchronized short getShort(int columnIndex) throws SQLException {
+    public synchronized short getShort(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getInt16();
     }
 
-    public synchronized String getString(int columnIndex) throws SQLException {
+    public synchronized String getString(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getString();
     }
 
-    public synchronized Time getTime(int columnIndex) throws SQLException {
+    public synchronized Time getTime(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getTime();
     }
 
-    public synchronized DateTime getTimestamp(int columnIndex) throws SQLException {
+    public synchronized DateTime getTimestamp(int index)
+        throws SQLException
+    {
         checkDisposed();
-        CustomRowSet field = getField(columnIndex);
+        CustomRowSet field = getField(index);
         return field.getDateTime();
     }
 
-    public synchronized boolean wasNull() throws SQLException {
+    public synchronized boolean wasNull()
+        throws SQLException
+    {
         checkDisposed();
         CustomRowSet field = getField(m_column);
         return field.isNull();
     }
 
     // com.sun.star.sdbc.XColumnLocate:
-    public synchronized int findColumn(String name) throws SQLException {
+    public synchronized int findColumn(String name)
+        throws SQLException
+    {
         checkDisposed();
         for (int i = 1; i <= m_xMetaData.getColumnCount(); i++) {
             boolean isCaseSensitive = m_xMetaData.isCaseSensitive(i);
@@ -528,81 +606,98 @@ public class CustomResultSet
     }
 
     // com.sun.star.sdbcx.XRowLocate:
-    public synchronized int compareBookmarks(Object arg0, Object arg1) throws SQLException {
+    public synchronized int compareBookmarks(Object object1, Object object2)
+        throws SQLException
+    {
         System.out.println("CustomResultSet.compareBookmarks()");
         checkDisposed();
         int bookmark1, bookmark2;
         try {
-            bookmark1 = AnyConverter.toInt(arg0);
-            bookmark2 = AnyConverter.toInt(arg1);
-        } catch (IllegalArgumentException illegalArgumentException) {
+            bookmark1 = AnyConverter.toInt(object1);
+            bookmark2 = AnyConverter.toInt(object2);
+        }
+        catch (IllegalArgumentException e) {
             return CompareBookmark.NOT_COMPARABLE;
         }
         if (bookmark1 < bookmark2) {
             return CompareBookmark.LESS;
-        } else if (bookmark1 > bookmark2) {
+        }
+        else if (bookmark1 > bookmark2) {
             return CompareBookmark.GREATER;
-        } else {
+        }
+        else {
             return CompareBookmark.EQUAL;
         }
     }
 
-    public synchronized Object getBookmark() throws SQLException {
+    public synchronized Object getBookmark()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.getBookmark()");
         checkDisposed();
         return m_row;
     }
 
-    public synchronized boolean hasOrderedBookmarks() throws SQLException {
+    public synchronized boolean hasOrderedBookmarks()
+        throws SQLException
+    {
         System.out.println("CustomResultSet.hasOrderedBookmarks()");
         checkDisposed();
         return true;
     }
 
-    public synchronized int hashBookmark(Object arg0) throws SQLException {
+    public synchronized int hashBookmark(Object object)
+        throws SQLException
+    {
         System.out.println("CustomResultSet.hashBookmark()");
         checkDisposed();
         int bookmark;
         try {
-            bookmark = AnyConverter.toInt(arg0);
-        } catch (IllegalArgumentException illegalArgumentException) {
+            bookmark = AnyConverter.toInt(object);
+        }
+        catch (IllegalArgumentException e) {
             throw new SQLException("Bad bookmark", this, StandardSQLState.SQL_INVALID_BOOKMARK_VALUE.text(), 0, null);
         }
         return bookmark;
     }
 
-    public synchronized boolean moveRelativeToBookmark(Object arg0, int arg1) throws SQLException {
+    public synchronized boolean moveRelativeToBookmark(Object object, int count)
+        throws SQLException
+    {
         System.out.println("CustomResultSet.moveRelativeToBookmark()");
         checkDisposed();
         int bookmark;
         boolean moved = false;
         try {
-            bookmark = AnyConverter.toInt(arg0);
+            bookmark = AnyConverter.toInt(object);
             moved = absolute(bookmark);
             if (moved) {
-                moved = relative(arg1);
+                moved = relative(count);
             }
-        } catch (IllegalArgumentException illegalArgumentException) {
         }
+        catch (IllegalArgumentException e) { }
         if (!moved) {
             afterLast();
         }
         return moved;
     }
 
-    public synchronized boolean moveToBookmark(Object arg0) throws SQLException {
+    public synchronized boolean moveToBookmark(Object object)
+        throws SQLException
+    {
         System.out.println("CustomResultSet.moveToBookmark()");
         checkDisposed();
         int bookmark;
         boolean moved = false;
         try {
-            bookmark = AnyConverter.toInt(arg0);
+            bookmark = AnyConverter.toInt(object);
             moved = absolute(bookmark);
-        }catch (IllegalArgumentException illegalArgumentException) { }
+        }
+        catch (IllegalArgumentException e) { }
         if (!moved) {
             afterLast();
         }
-            return moved;
+        return moved;
     }
 
 

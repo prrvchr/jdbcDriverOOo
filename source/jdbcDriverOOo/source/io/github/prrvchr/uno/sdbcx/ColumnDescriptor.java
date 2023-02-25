@@ -25,43 +25,22 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.uno.Type;
-
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 
 public class ColumnDescriptor
-    extends ColumnDescriptorBase
+    extends ColumnDescriptorSuper
 {
 
     private static final String m_service = ColumnDescriptor.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.ColumnDescriptor"};
-    protected String m_AutoIncrementCreation = "";
 
     // The constructor method:
-    public ColumnDescriptor(boolean sensitive)
+    public ColumnDescriptor(String catalog,
+                            String schema,
+                            String table,
+                            boolean sensitive)
     {
-        super(m_service, m_services, sensitive);
-        registerProperties();
+        super(m_service, m_services, catalog, schema, table, sensitive);
         System.out.println("sdbcx.descriptors.ColumnDescriptor()");
-    }
-
-    private void registerProperties() {
-        registerProperty(PropertyIds.AUTOINCREMENTCREATION.name, PropertyIds.AUTOINCREMENTCREATION.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() {
-                    return m_AutoIncrementCreation;
-                    
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) {
-                    m_AutoIncrementCreation = (String) value;
-                }
-            });
     }
 
 

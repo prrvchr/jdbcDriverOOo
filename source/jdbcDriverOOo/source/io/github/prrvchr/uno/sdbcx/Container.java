@@ -100,7 +100,8 @@ public abstract class Container
 
     // The constructor method:
     public Container(Object lock,
-                     boolean sensitive) {
+                     boolean sensitive)
+    {
         m_lock = lock;
         m_sensitive = sensitive;
         m_Elements = new TreeMap<>(caseSensitiveComparator);
@@ -135,7 +136,8 @@ public abstract class Container
 
 
     // Would be from com.sun.star.lang.XComponent ;)
-    public void dispose() {
+    public void dispose()
+    {
         System.out.println("sdbcx.Container.dispose() 1 Class: " + this.getClass().getName());
         EventObject event = new EventObject(this);
         m_container.disposeAndClear(event);
@@ -363,7 +365,8 @@ public abstract class Container
     {
         try {
             return AnyConverter.toString(object.getPropertyValue(PropertyIds.NAME.name));
-        } catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
+        }
+        catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }

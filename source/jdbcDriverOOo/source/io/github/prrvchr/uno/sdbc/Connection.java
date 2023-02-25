@@ -41,7 +41,6 @@ public class Connection
 
     private static final String m_service = Connection.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Connection"};
-    private static final boolean m_crawler = false;
 
     // The constructor method:
     public Connection(XComponentContext ctx,
@@ -49,7 +48,8 @@ public class Connection
                       ResourceBasedEventLogger logger,
                       boolean enhanced)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, m_crawler);
+        super(ctx, m_service, m_services, provider, logger, enhanced);
+        System.out.println("sdbc.Connection() *************************");
     }
 
     protected XStatement _getStatement()

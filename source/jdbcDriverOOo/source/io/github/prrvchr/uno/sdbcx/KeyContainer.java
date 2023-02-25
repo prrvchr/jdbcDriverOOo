@@ -61,23 +61,21 @@ public class KeyContainer
 
     // The constructor method:
     public KeyContainer(TableBase table,
-                        Object lock,
                         boolean sensitive,
                         Map<String, Key> keys)
         throws ElementExistException
     {
-        super(lock, sensitive, Arrays.asList(keys.keySet().toArray(new String[keys.size()])));
+        super(table, sensitive, Arrays.asList(keys.keySet().toArray(new String[keys.size()])));
         System.out.println("sdbcx.KeyContainer() 1");
         for (Map.Entry<String, Key> entry : keys.entrySet()) {
-            System.out.print(entry.getKey() + " => " + entry.getValue().m_ReferencedTable);
-            XIndexAccess cols = UnoRuntime.queryInterface(XIndexAccess.class, entry.getValue().getColumns());
+            System.out.println("sdbcx.KeyContainer() 2 Key: " + entry.getKey() + " => " + entry.getValue().m_ReferencedTable);
+            XIndexAccess cols = (XIndexAccess) UnoRuntime.queryInterface(XIndexAccess.class, entry.getValue().getColumns());
             try {
-                System.out.print("" + cols.getCount() + " columns:");
+                System.out.println("sdbcx.KeyContainer() 3 Columns count: " + cols.getCount());
                 for (int i = 0; i < cols.getCount(); i++) {
                     XPropertySet properties = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, cols.getByIndex(i));
-                    System.out.print(" " + AnyConverter.toString(properties.getPropertyValue(PropertyIds.NAME.name)));
+                    System.out.println("sdbcx.KeyContainer() 4 Columns name: " + AnyConverter.toString(properties.getPropertyValue(PropertyIds.NAME.name)));
                 }
-                System.out.println("");
             }
             catch (WrappedTargetException | IllegalArgumentException | IndexOutOfBoundsException | UnknownPropertyException e) {
                 e.printStackTrace();
@@ -88,7 +86,7 @@ public class KeyContainer
         }
         m_keys = keys;
         m_table = table;
-        System.out.println("sdbcx.KeyContainer() 2");
+        System.out.println("sdbcx.KeyContainer() 5");
     }
 
     @Override
@@ -172,11 +170,11 @@ public class KeyContainer
             java.sql.ResultSet result = null;
             final int column;
             if (keyType == KeyType.FOREIGN) {
-                result = metadata.getImportedKeys(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName());
+                result = metadata.getImportedKeys(m_table.getCatalog(), m_table.getSchema(), m_table.getName());
                 column = 12;
             }
             else {
-                result = metadata.getPrimaryKeys(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName());
+                result = metadata.getPrimaryKeys(m_table.getCatalog(), m_table.getSchema(), m_table.getName());
                 column = 6;
             }
             while (result.next()) {

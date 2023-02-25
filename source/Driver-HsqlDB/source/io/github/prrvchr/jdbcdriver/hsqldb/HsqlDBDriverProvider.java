@@ -134,16 +134,8 @@ public final class HsqlDBDriverProvider
                                     String table)
         throws SQLException
     {
-        try {
-            String query = "DROP TABLE %s IF EXISTS;";
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
-            return String.format(query, getTableIdentifier(connection, catalog, schema, table, quote, mixed));
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
+        String query = "DROP TABLE %s IF EXISTS;";
+        return String.format(query, getTableIdentifier(connection, catalog, schema, table));
     }
 
     @Override
@@ -153,16 +145,8 @@ public final class HsqlDBDriverProvider
                                    String view)
         throws SQLException
     {
-        try {
-            String query = "DROP VIEW %s IF EXISTS;";
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean mixed = metadata.supportsMixedCaseQuotedIdentifiers();
-            return String.format(query, getTableIdentifier(connection, catalog, schema, view, quote, mixed));
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
+        String query = "DROP VIEW %s IF EXISTS;";
+        return String.format(query, getTableIdentifier(connection, catalog, schema, view));
     }
 
     @Override
@@ -177,13 +161,11 @@ public final class HsqlDBDriverProvider
                                        String catalog,
                                        String schema,
                                        String table,
-                                       String description,
-                                       String quote,
-                                       boolean mixed)
+                                       String description)
         throws SQLException
     {
         String query = "COMMENT ON %s IS '%s';";
-        String identifier = getTableIdentifier(connection, catalog, schema, table, quote, mixed);
+        String identifier = getTableIdentifier(connection, catalog, schema, table);
         return String.format(query, identifier, description);
     }
 

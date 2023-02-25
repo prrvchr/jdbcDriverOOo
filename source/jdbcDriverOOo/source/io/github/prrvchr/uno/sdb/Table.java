@@ -32,6 +32,7 @@ import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
@@ -40,6 +41,7 @@ import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
@@ -255,6 +257,12 @@ public final class Table
     public Connection getConnection()
     {
         return (Connection) m_connection;
+    }
+
+    protected ColumnContainer _getColumnContainer(List<ColumnDescription> descriptions)
+            throws ElementExistException
+    {
+        return new ColumnContainer(this, isCaseSensitive(), descriptions);
     }
 
 

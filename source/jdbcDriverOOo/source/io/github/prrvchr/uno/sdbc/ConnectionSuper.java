@@ -39,8 +39,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
-import io.github.prrvchr.uno.sdbcx.TableBase;
-import io.github.prrvchr.uno.sdbcx.TableContainer;
+import io.github.prrvchr.uno.sdbcx.TableContainerBase;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
 
@@ -51,7 +50,7 @@ public abstract class ConnectionSuper
 
 {
 
-    private TableContainer m_Tables = null;
+    private TableContainerBase m_Tables = null;
     private ViewContainer m_Views = null;
 
     // The constructor method:
@@ -60,10 +59,9 @@ public abstract class ConnectionSuper
                            String[] services,
                            DriverProvider provider,
                            ResourceBasedEventLogger logger,
-                           boolean enhanced,
-                           boolean crawler)
+                           boolean enhanced)
     {
-        super(ctx, service, services, provider, logger, enhanced, crawler);
+        super(ctx, service, services, provider, logger, enhanced);
     }
 
     // com.sun.star.lang.XComponent
@@ -102,7 +100,7 @@ public abstract class ConnectionSuper
     }
 
 
-    public synchronized TableContainer getTablesInternal()
+    public synchronized TableContainerBase getTablesInternal()
     {
         return m_Tables;
     }
@@ -130,7 +128,7 @@ public abstract class ConnectionSuper
             }
             result.close();
             if (m_Tables == null) {
-                m_Tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
+                m_Tables = _getTableContainer(names);
             }
             else {
                 m_Tables.refill(names);
@@ -170,36 +168,7 @@ public abstract class ConnectionSuper
         return DataBaseTools.buildName(this, result, ComposeRule.InDataManipulation);
     }
 
-
-    public abstract TableBase getTable(boolean sensitive,
-                                       String catalog,
-                                       String schema,
-                                       String name,
-                                       String type,
-                                       String remarks);
-
-    /*    public synchronized XNameAccess getTables1()
-    {
-        m_catalog = SchemaCrawler.getCatalog(provider.getConnection());
-        for (final schemacrawler.schema.Table t : m_catalog.getTables()) {
-            System.out.println("Connection.Connection() 2 Table Type: " + t.getTableType().getTableType());
-        }
-        System.out.println("sdb.Connection.getTables() 1");
-        checkDisposed();
-        if (m_Tables == null) {
-            try {
-                System.out.println("sdb.Connection.getTables() 2");
-                m_Tables = m_crawler ? SchemaCrawler.getTables(m_provider, this) :
-                                       new TableContainer(this);
-                System.out.println("sdb.Connection.getTables() 3");
-            }
-            catch (java.sql.SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("sdb.Connection.getTables() 4");
-        return m_Tables;
-    }*/
+    protected abstract TableContainerBase _getTableContainer(List<String> names) throws ElementExistException;
 
 
 }

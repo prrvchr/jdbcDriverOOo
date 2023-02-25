@@ -46,8 +46,8 @@ public class Array
     public Array(ConnectionBase connection,
                  java.sql.Array array)
     {
-            m_Connection = connection;
-            m_Array = array;
+        m_Connection = connection;
+        m_Array = array;
     }
 
     // com.sun.star.lang.XComponent
@@ -117,7 +117,7 @@ public class Array
     {
         try {
             java.sql.ResultSet result = m_Array.getResultSet();
-            return result != null ? m_Connection.getProvider().getResultSet(m_Connection, result) : null;
+            return result != null ? new ResultSet(m_Connection, result) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -130,7 +130,7 @@ public class Array
     {
         try {
             java.sql.ResultSet result = m_Array.getResultSet(index, count);
-            return result != null ? m_Connection.getProvider().getResultSet(m_Connection, result) : null;
+            return result != null ? new ResultSet(m_Connection, result) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

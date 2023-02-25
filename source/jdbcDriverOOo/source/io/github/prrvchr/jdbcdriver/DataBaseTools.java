@@ -45,6 +45,9 @@
  *************************************************************/
 package io.github.prrvchr.jdbcdriver;
 
+import java.io.InputStream;
+import java.sql.RowIdLifetime;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,18 +60,16 @@ import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.io.IOException;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.KeyRule;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XDatabaseMetaData;
-import com.sun.star.sdbc.XParameters;
-import com.sun.star.sdbc.XRowUpdate;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XColumnsSupplier;
@@ -79,12 +80,16 @@ import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.util.Date;
+import com.sun.star.util.DateWithTimezone;
 import com.sun.star.util.DateTime;
+import com.sun.star.util.DateTimeWithTimezone;
 import com.sun.star.util.Time;
+import com.sun.star.util.TimeWithTimezone;
 
-import io.github.prrvchr.uno.sdbcx.ColumnContainer.ExtraColumnInfo;
+import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
@@ -447,7 +452,7 @@ public class DataBaseTools
      *    The descriptor of the new table.
      * @param helper
      *    Allow to add special SQL constructs.
-     * @param createPattern
+     * @param pattern
      *   
      * @return
      *   The columns parts.
@@ -456,27 +461,27 @@ public class DataBaseTools
     public static List<String> getCreateTableColumnParts(ConnectionSuper connection,
                                                          XPropertySet descriptor,
                                                          ISQLStatementHelper helper,
-                                                         String createPattern,
+                                                         String pattern,
                                                          String table)
         throws SQLException
     {
         List<String> parts = new ArrayList<String>();
         try {
             XIndexAccess columns = null;
-            XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-            if (columnsSupplier != null) {
-                columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
+            XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+            if (supplier != null) {
+                columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
             }
             if (columns == null || columns.getCount() <= 0) {
                 String message = String.format("The '%s' table has no columns, it is not possible to create the table", table);
                 throw new SQLException(message);
             }
-            int columnCount = columns.getCount();
-            for (int i = 0; i < columnCount; i++) {
-                XPropertySet columnProperties;
-                columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                if (columnProperties != null) {
-                    parts.add(getStandardColumnPartQuery(connection, columnProperties, helper, createPattern));
+            int count = columns.getCount();
+            for (int i = 0; i < count; i++) {
+                XPropertySet column;
+                column = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
+                if (column != null) {
+                    parts.add(getStandardColumnPartQuery(connection, column, helper, pattern));
                }
             }
         }
@@ -489,57 +494,63 @@ public class DataBaseTools
     /** creates the standard sql statement for the column part of statement.
      *  @param connection
      *      The connection.
-     *  @param columnProperties
+     *  @param column
      *      The descriptor of the column.
      *  @param helper
-     *       Allow to add special SQL constructs.
-     *  @param createPattern
+     *      Allow to add special SQL constructs.
+     *  @param pattern
      *      
      * @throws SQLException
      */
     public static String getStandardColumnPartQuery(ConnectionSuper connection,
-                                                    XPropertySet columnProperties,
+                                                    XPropertySet column,
                                                     ISQLStatementHelper helper,
-                                                    String createPattern)
+                                                    String pattern)
         throws SQLException
     {
+        final String quote = connection.getMetaData().getIdentifierQuoteString();
         final StringBuilder sql = new StringBuilder();
-        final String quoteString = connection.getMetaData().getIdentifierQuoteString();
         try {
-            sql.append(quoteName(quoteString, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.NAME.name))));
+            sql.append(quoteName(quote, AnyConverter.toString(column.getPropertyValue(PropertyIds.NAME.name))));
             sql.append(' ');
-    
-            String typename = AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.TYPENAME.name));
-            int datatype = AnyConverter.toInt(columnProperties.getPropertyValue(PropertyIds.TYPE.name));
-            int precision = AnyConverter.toInt(columnProperties.getPropertyValue(PropertyIds.PRECISION.name));
-            int scale = AnyConverter.toInt(columnProperties.getPropertyValue(PropertyIds.SCALE.name));
-            boolean isAutoIncrement = AnyConverter.toBoolean(columnProperties.getPropertyValue(PropertyIds.ISAUTOINCREMENT.name));
+            
+            String typename = AnyConverter.toString(column.getPropertyValue(PropertyIds.TYPENAME.name));
+            int datatype = AnyConverter.toInt(column.getPropertyValue(PropertyIds.TYPE.name));
+            int precision = AnyConverter.toInt(column.getPropertyValue(PropertyIds.PRECISION.name));
+            int scale = AnyConverter.toInt(column.getPropertyValue(PropertyIds.SCALE.name));
+            boolean isAutoIncrement = AnyConverter.toBoolean(column.getPropertyValue(PropertyIds.ISAUTOINCREMENT.name));
+            System.out.println("DataBaseTools.getStandardColumnPartQuery() TYPENAME: " + typename + " - TYPE: " + datatype + " - PRECISION: " + precision + " - SCALE: " + scale);
             
             // check if the user enter a specific string to create autoincrement values
             String autoIncrementValue = "";
-            XPropertySetInfo columnPropertiesInfo = columnProperties.getPropertySetInfo();
+            XPropertySetInfo columnPropertiesInfo = column.getPropertySetInfo();
             if (columnPropertiesInfo != null && columnPropertiesInfo.hasPropertyByName(PropertyIds.AUTOINCREMENTCREATION.name)) {
-                autoIncrementValue = AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.AUTOINCREMENTCREATION.name));
+                autoIncrementValue = AnyConverter.toString(column.getPropertyValue(PropertyIds.AUTOINCREMENTCREATION.name));
             }
             
             // look if we have to use precisions
-            boolean useLiteral = false;
+            boolean useliteral = false;
+            int nativetype = 0;
             String prefix = "";
             String postfix = "";
-            String createParams = "";
+            String createparams = "";
             java.sql.ResultSet result = connection.getProvider().getConnection().getMetaData().getTypeInfo();
             while (result.next()) {
-                String typeName2Cmp = result.getString(1);
-                int nType = connection.getProvider().getDataType(result.getShort(2));
+                String typename2cmp = result.getString(1);
+                nativetype = result.getShort(2);
+                int type2cmp = connection.getProvider().getDataType(nativetype);
+                //FIXME: Make sure prefix and suffix values are not null
                 prefix = result.getString(4);
+                prefix = result.wasNull() ? "" : prefix;
                 postfix = result.getString(5);
-                createParams = result.getString(6);
+                postfix = result.wasNull() ? "" : postfix;
+                createparams = result.getString(6);
                 // first identical type will be used if typename is empty
-                if (typename.isEmpty() && nType == datatype) {
-                    typename = typeName2Cmp;
+                if (typename.isEmpty() && type2cmp == datatype) {
+                    typename = typename2cmp;
                 }
-                if (typename.equalsIgnoreCase(typeName2Cmp) && nType == datatype && !result.wasNull() && !createParams.isEmpty()) {
-                    useLiteral = true;
+                if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !result.wasNull() && !createparams.isEmpty()) {
+                    useliteral = true;
                     break;
                 }
             }
@@ -550,46 +561,61 @@ public class DataBaseTools
                 typename = typename.substring(0, index);
             }
             
-            if ((precision > 0 || scale > 0) && useLiteral) {
-                int parenPos = typename.indexOf('(');
-                if (parenPos == -1) {
+            if ((precision > 0 || scale > 0) && useliteral) {
+                //FIXME: The original code coming from OpenOffice/main/connectivity/java check only for TIMESTAMP...
+                //FIXME: Now all temporal SQL types with fraction of a second are taken into account.
+                boolean timed = nativetype == Types.TIME ||
+                                nativetype == Types.TIME_WITH_TIMEZONE ||
+                                nativetype == Types.TIMESTAMP ||
+                                nativetype == Types.TIMESTAMP_WITH_TIMEZONE;
+                
+                //FIXME: The original code coming from OpenOffice/main/connectivity/java search only for parenthesis...
+                //FIXME: Now the insertion position takes into account the peculiarity of the data types WITH TIME ZONE
+                int insert =    nativetype == Types.TIME_WITH_TIMEZONE ||
+                                nativetype == Types.TIMESTAMP_WITH_TIMEZONE ?
+                                typename.indexOf(' ') : typename.indexOf('(');
+                if (insert == -1) {
                     sql.append(typename);
-                    sql.append('(');
                 }
                 else {
-                    sql.append(typename.substring(0, ++parenPos));
+                    sql.append(typename.substring(0, insert));
                 }
-                
-                if (precision > 0 && datatype != DataType.TIMESTAMP) {
+                sql.append('(');
+                if (precision > 0 && !timed) {
                     sql.append(precision);
-                    if (scale > 0 || (!createPattern.isEmpty() && createParams.indexOf(createPattern) != -1)) {
+                    if (scale > 0 || (!pattern.isEmpty() && createparams.indexOf(pattern) != -1)) {
                         sql.append(',');
                     }
                 }
-                if (scale > 0 || (!createPattern.isEmpty() && createParams.indexOf(createPattern) != -1) || datatype == DataType.TIMESTAMP) {
+                if (scale > 0 || (!pattern.isEmpty() && createparams.indexOf(pattern) != -1) || timed) {
                     sql.append(scale);
                 }
-                if (parenPos == -1) {
+                if (insert == -1) {
                     sql.append(')');
                 }
+                else if (timed) {
+                    sql.append(')');
+                    sql.append(typename.substring(insert));
+                }
                 else {
-                    parenPos = typename.indexOf(')', parenPos);
-                    sql.append(typename.substring(parenPos));
+                    insert = typename.indexOf(')', ++insert);
+                    sql.append(typename.substring(insert));
                 }
             }
             else {
                 sql.append(typename); // simply add the type name
             }
             
-            String defaultValue = AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.DEFAULTVALUE.name));
-            if (!defaultValue.isEmpty()) {
+            String defaultvalue = AnyConverter.toString(column.getPropertyValue(PropertyIds.DEFAULTVALUE.name));
+            System.out.println("DataBaseTools.getStandardColumnPartQuery() DEFAULT: " + defaultvalue + " - PREFIX: " + prefix + " - POSTFIX: " + postfix + " - PARAM: " + createparams);
+            if (!defaultvalue.isEmpty()) {
                 sql.append(" DEFAULT ");
                 sql.append(prefix);
-                sql.append(defaultValue);
+                sql.append(defaultvalue);
                 sql.append(postfix);
             }
-            
-            if (AnyConverter.toInt(columnProperties.getPropertyValue(PropertyIds.ISNULLABLE.name)) == ColumnValue.NO_NULLS) {
+            int isnullable = AnyConverter.toInt(column.getPropertyValue(PropertyIds.ISNULLABLE.name));
+            if (isnullable == ColumnValue.NO_NULLS) {
                 sql.append(" NOT NULL");
             }
             
@@ -599,7 +625,7 @@ public class DataBaseTools
             }
             
             if (helper != null) {
-                helper.addComment(columnProperties, sql);
+                helper.addComment(column, sql);
             }
             
         }
@@ -1227,189 +1253,258 @@ public class DataBaseTools
         System.out.println("DataBaseTools.cloneDescriptorColumns() 4");
     }
 
-    public static boolean updateObject(XRowUpdate updater,
+    public static boolean updateObject(java.sql.ResultSet resultset,
                                        int index,
-                                       Object value)
+                                       Object any)
         throws SQLException
     {
         try {
-            boolean successfullyReRouted = true;
-            Type type = AnyConverter.getType(value);
+            boolean success = true;
+            Type type = AnyConverter.getType(any);
             switch (type.getTypeClass().getValue()) {
             case TypeClass.VOID_value:
-                updater.updateNull(index);
+                resultset.updateNull(index);
                 break;
             case TypeClass.STRING_value:
-                updater.updateString(index, AnyConverter.toString(value));
+                resultset.updateString(index, AnyConverter.toString(any));
                 break;
             case TypeClass.BOOLEAN_value:
-                updater.updateBoolean(index, AnyConverter.toBoolean(value));
+                resultset.updateBoolean(index, AnyConverter.toBoolean(any));
                 break;
             case TypeClass.BYTE_value:
-                updater.updateByte(index, AnyConverter.toByte(value));
+                resultset.updateByte(index, AnyConverter.toByte(any));
                 break;
             case TypeClass.UNSIGNED_SHORT_value:
-                updater.updateShort(index, AnyConverter.toUnsignedShort(value));
+                resultset.updateShort(index, AnyConverter.toUnsignedShort(any));
                 break;
             case TypeClass.SHORT_value:
-                updater.updateShort(index, AnyConverter.toShort(value));
+                resultset.updateShort(index, AnyConverter.toShort(any));
                 break;
             case TypeClass.CHAR_value:
-                updater.updateString(index, Character.toString(AnyConverter.toChar(value)));
+                resultset.updateString(index, Character.toString(AnyConverter.toChar(any)));
                 break;
             case TypeClass.UNSIGNED_LONG_value:
-                updater.updateInt(index, AnyConverter.toUnsignedInt(value));
+                resultset.updateInt(index, AnyConverter.toUnsignedInt(any));
                 break;
             case TypeClass.LONG_value:
-                updater.updateInt(index, AnyConverter.toInt(value));
+                resultset.updateInt(index, AnyConverter.toInt(any));
                 break;
             case TypeClass.UNSIGNED_HYPER_value:
-                updater.updateLong(index, AnyConverter.toUnsignedLong(value));
+                resultset.updateLong(index, AnyConverter.toUnsignedLong(any));
                 break;
             case TypeClass.HYPER_value:
-                updater.updateLong(index, AnyConverter.toLong(value));
+                resultset.updateLong(index, AnyConverter.toLong(any));
                 break;
             case TypeClass.FLOAT_value:
-                updater.updateFloat(index, AnyConverter.toFloat(value));
+                resultset.updateFloat(index, AnyConverter.toFloat(any));
                 break;
             case TypeClass.DOUBLE_value:
-                updater.updateDouble(index, AnyConverter.toDouble(value));
+                resultset.updateDouble(index, AnyConverter.toDouble(any));
                 break;
             case TypeClass.SEQUENCE_value:
-                if (AnyConverter.isArray(value)) {
-                    Object array = AnyConverter.toArray(value);
+                if (AnyConverter.isArray(any)) {
+                    Object array = AnyConverter.toArray(any);
                     if (array instanceof byte[]) {
-                        updater.updateBytes(index, (byte[]) array);
+                        resultset.updateBytes(index, (byte[]) array);
                     }
                     else {
-                        successfullyReRouted = false;
+                        success = false;
                     }
-                } else {
-                    successfullyReRouted = false;
+                }
+                else {
+                    success = false;
                 }
                 break;
             case TypeClass.STRUCT_value:
-                Object object = AnyConverter.toObject(Object.class, value);
+                Object object = AnyConverter.toObject(Object.class, any);
                 if (object instanceof Date) {
-                    updater.updateDate(index, (Date)object);
+                    resultset.updateObject(index, UnoHelper.getJavaLocalDate((Date) object));
                 }
                 else if (object instanceof Time) {
-                    updater.updateTime(index, (Time)object);
+                    resultset.updateObject(index, UnoHelper.getJavaLocalTime((Time) object));
                 }
                 else if (object instanceof DateTime) {
-                    updater.updateTimestamp(index, (DateTime)object);
+                    resultset.updateObject(index, UnoHelper.getJavaLocalDateTime((DateTime) object));
                 }
                 else {
-                    successfullyReRouted = false;
+                    success = false;
                 }
                 break;
             case TypeClass.INTERFACE_value:
-                XInputStream inputStream = UnoRuntime.queryInterface(XInputStream.class, AnyConverter.toObject(Object.class, value));
-                if (inputStream != null) {
-                    updater.updateBinaryStream(index, inputStream, inputStream.available());
+                XInputStream stream = UnoRuntime.queryInterface(XInputStream.class, AnyConverter.toObject(Object.class, any));
+                if (stream != null) {
+                    InputStream input = new XInputStreamToInputStreamAdapter(stream);
+                    resultset.updateBinaryStream(index, input, input.available());
                 }
                 else {
-                    successfullyReRouted = false;
+                    success = false;
                 }
                 break;
             default:
-                successfullyReRouted = false;
+                success = false;
             }
-            return successfullyReRouted;
+            return success;
         }
-        catch (IllegalArgumentException | IOException e) {
+        catch (IllegalArgumentException | java.sql.SQLException | java.io.IOException e) {
             throw new SQLException("Error", Any.VOID, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
-    public static boolean setObject(XParameters parameters,
+    public static boolean setObject(java.sql.PreparedStatement statement,
                                     int index,
                                     Object any)
         throws SQLException
     {
         Type type = AnyConverter.getType(any);
         try {
-            boolean successfullyReRouted = true;
+            boolean success = true;
             switch (type.getTypeClass().getValue()) {
             case TypeClass.HYPER_value:
-                parameters.setLong(index, AnyConverter.toLong(any));
+                statement.setLong(index, AnyConverter.toLong(any));
                 break;
             case TypeClass.UNSIGNED_HYPER_value:
-                parameters.setLong(index, AnyConverter.toUnsignedLong(any));
+                statement.setLong(index, AnyConverter.toUnsignedLong(any));
                 break;
             case TypeClass.VOID_value:
-                parameters.setNull(index, DataType.VARCHAR);
+                statement.setNull(index, DataType.VARCHAR);
                 break;
             case TypeClass.STRING_value:
-                parameters.setString(index, AnyConverter.toString(any));
+                statement.setString(index, AnyConverter.toString(any));
                 break;
             case TypeClass.BOOLEAN_value:
-                parameters.setBoolean(index, AnyConverter.toBoolean(any));
+                statement.setBoolean(index, AnyConverter.toBoolean(any));
                 break;
             case TypeClass.BYTE_value:
-                parameters.setByte(index, AnyConverter.toByte(any));
+                statement.setByte(index, AnyConverter.toByte(any));
                 break;
             case TypeClass.SHORT_value:
-                parameters.setShort(index, AnyConverter.toShort(any));
+                statement.setShort(index, AnyConverter.toShort(any));
                 break;
             case TypeClass.UNSIGNED_SHORT_value:
-                parameters.setShort(index, AnyConverter.toUnsignedShort(any));
+                statement.setShort(index, AnyConverter.toUnsignedShort(any));
                 break;
             case TypeClass.CHAR_value:
-                parameters.setString(index, Character.toString(AnyConverter.toChar(any)));
+                statement.setString(index, Character.toString(AnyConverter.toChar(any)));
                 break;
             case TypeClass.LONG_value:
-                parameters.setInt(index, AnyConverter.toInt(any));
+                statement.setInt(index, AnyConverter.toInt(any));
                 break;
             case TypeClass.UNSIGNED_LONG_value:
-                parameters.setInt(index, AnyConverter.toUnsignedInt(any));
+                statement.setInt(index, AnyConverter.toUnsignedInt(any));
                 break;
             case TypeClass.FLOAT_value:
-                parameters.setFloat(index, AnyConverter.toFloat(any));
+                statement.setFloat(index, AnyConverter.toFloat(any));
                 break;
             case TypeClass.DOUBLE_value:
-                parameters.setDouble(index, AnyConverter.toDouble(any));
+                statement.setDouble(index, AnyConverter.toDouble(any));
                 break;
             case TypeClass.SEQUENCE_value:
                 if (AnyConverter.isArray(any)) {
                     Object array = AnyConverter.toArray(any);
                     if (array instanceof byte[]) {
-                        parameters.setBytes(index, (byte[])array);
-                    } else {
-                        successfullyReRouted = false;
+                        statement.setBytes(index, (byte[])array);
                     }
-                } else {
-                    successfullyReRouted = false;
+                    else {
+                        success = false;
+                    }
+                }
+                else {
+                    success = false;
                 }
                 break;
             case TypeClass.STRUCT_value:
                 Object object = AnyConverter.toObject(Object.class, any);
                 if (object instanceof Date) {
-                    parameters.setDate(index, (Date)object);
-                } else if (object instanceof Time) {
-                    parameters.setTime(index, (Time)object);
-                } else if (object instanceof DateTime) {
-                    parameters.setTimestamp(index, (DateTime)object);
-                } else {
-                    successfullyReRouted = false;
+                    statement.setObject(index, UnoHelper.getJavaLocalDate((Date) object));
+                }
+                else if (object instanceof Time) {
+                    statement.setObject(index, UnoHelper.getJavaLocalTime((Time) object));
+                }
+                else if (object instanceof DateTime) {
+                    statement.setObject(index, UnoHelper.getJavaLocalDateTime((DateTime) object));
+                }
+                else if (object instanceof DateWithTimezone) {
+                    DateWithTimezone date = (DateWithTimezone) object;
+                    statement.setObject(index, UnoHelper.getJavaLocalDate(date.DateInTZ));
+                }
+                else if (object instanceof TimeWithTimezone) {
+                    TimeWithTimezone time = (TimeWithTimezone) object;
+                    statement.setObject(index, UnoHelper.getJavaOffsetTime(time));
+                }
+                else if (object instanceof DateTimeWithTimezone) {
+                    DateTimeWithTimezone datetime = (DateTimeWithTimezone) object;
+                    statement.setObject(index, UnoHelper.getJavaOffsetDateTime(datetime));
+                }
+                else {
+                    success = false;
                 }
                 break;
             case TypeClass.INTERFACE_value:
-                XInputStream inputStream = UnoRuntime.queryInterface(XInputStream.class, AnyConverter.toObject(Object.class, any));
-                if (inputStream != null) {
-                    parameters.setBinaryStream(index, inputStream, inputStream.available());
-                } else {
-                    successfullyReRouted = false;
+                XInputStream stream = UnoRuntime.queryInterface(XInputStream.class, AnyConverter.toObject(Object.class, any));
+                if (stream != null) {
+                    InputStream input = new XInputStreamToInputStreamAdapter(stream);
+                    statement.setBinaryStream(index, input, input.available());
+                }
+                else {
+                    success = false;
                 }
                 break;
             default:
-                successfullyReRouted = false;
+                success = false;
             }
-            return successfullyReRouted;
-        } catch (IllegalArgumentException | IOException exception) {
-            throw new SQLException("Error", Any.VOID, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, exception);
+            return success;
+        }
+        catch (java.sql.SQLException | IllegalArgumentException | java.io.IOException e) {
+            throw new SQLException("Error", Any.VOID, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
+
+    public static Object getObject(Object object,
+                                   XNameAccess map)
+    {
+        Object value = Any.VOID;
+        if (object == null) {
+            return value;
+        }
+        if (object instanceof String) {
+            value = (String) object;
+        }
+        else if (object instanceof Boolean) {
+            value = (Boolean) object;
+        }
+        else if (object instanceof Integer) {
+            value = (Integer) object;
+        }
+        else if (object instanceof java.time.OffsetTime) {
+            value = UnoHelper.getUnoTimeWithTimezone((java.time.OffsetTime) object);
+        }
+        else if (object instanceof java.time.OffsetDateTime) {
+            value = UnoHelper.getUnoDateTimeWithTimezone((java.time.OffsetDateTime) object);
+        }
+        else if (object instanceof java.time.LocalDate) {
+            value = UnoHelper.getUnoDate((java.time.LocalDate) object);
+        }
+        else if (object instanceof java.time.LocalTime) {
+            value = UnoHelper.getUnoTime((java.time.LocalTime) object);
+        }
+        else if (object instanceof java.time.LocalDateTime) {
+            value = UnoHelper.getUnoDateTime((java.time.LocalDateTime) object);
+        }
+        else if (object instanceof java.sql.Date) {
+            java.sql.Date date = (java.sql.Date) object;
+            value = UnoHelper.getUnoDate(date.toLocalDate());
+        }
+        else if (object instanceof java.sql.Time) {
+            java.sql.Time time = (java.sql.Time) object;
+            value = UnoHelper.getUnoTime(time.toLocalTime());
+        }
+        else if (object instanceof java.sql.Timestamp) {
+            java.sql.Timestamp timestamp = (java.sql.Timestamp) object;
+            value = UnoHelper.getUnoDateTime(timestamp.toLocalDateTime());
+        }
+        return value;
+    }
+
 
     public static String buildName(ConnectionSuper connection,
                                    java.sql.ResultSet result,
@@ -1436,5 +1531,15 @@ public class DataBaseTools
         }
     }
 
-
+    public static boolean useBookmarks(ConnectionBase connection) {
+        RowIdLifetime lifetime = RowIdLifetime.ROWID_UNSUPPORTED;
+        try {
+            lifetime = connection.getProvider().getConnection().getMetaData().getRowIdLifetime();
+        }
+        catch (java.sql.SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return (lifetime != RowIdLifetime.ROWID_UNSUPPORTED);
+    }
 }

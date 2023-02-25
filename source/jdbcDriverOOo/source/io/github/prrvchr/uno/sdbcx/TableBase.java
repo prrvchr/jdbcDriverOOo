@@ -61,7 +61,7 @@ public abstract class TableBase
                XDataDescriptorFactory
 {
 
-    private ColumnContainer m_columns = null;
+    private ColumnContainerBase m_columns = null;
     private KeyContainer m_keys = null;
     private IndexContainer m_indexes = null;
     protected String m_CatalogName = "";
@@ -187,11 +187,11 @@ public abstract class TableBase
     public abstract XPropertySet createDataDescriptor();
 
 
-    protected ColumnContainer _refreshColumns()
+    protected ColumnContainerBase _refreshColumns()
     {
         try {
             List<ColumnDescription> columns = DataBaseTableHelper.readColumns(getConnection(), this);
-            return new ColumnContainer(this, this, isCaseSensitive(), columns);
+            return _getColumnContainer(columns);
         }
         catch (ElementExistException e) {
             return null;
@@ -205,7 +205,8 @@ public abstract class TableBase
     {
         try {
             List<String> indexes = DataBaseTableHelper.readIndexes(getConnection(), this);
-            return new IndexContainer(this, this, isCaseSensitive(), indexes);
+            System.out.println("sdbcx.TableBase._refreshIndexes() Index Count: " + indexes.size());
+            return new IndexContainer(this, isCaseSensitive(), indexes);
         }
         catch (ElementExistException e) {
             return null;
@@ -218,7 +219,8 @@ public abstract class TableBase
     private KeyContainer _refreshKeys() {
         try {
             Map<String, Key> keys = DataBaseTableHelper.readKeys(getConnection(), isCaseSensitive(), this);
-            return new KeyContainer(this, this, isCaseSensitive(), keys);
+            System.out.println("sdbcx.TableBase._refreshKeys() Key Count: " + keys.size());
+            return new KeyContainer(this, isCaseSensitive(), keys);
         }
         catch (ElementExistException e) {
             return null;
@@ -230,11 +232,20 @@ public abstract class TableBase
 
     public String getCatalogName()
     {
-        return m_CatalogName.isBlank() ? null : m_CatalogName;
+        return m_CatalogName;
     }
     public String getSchemaName()
     {
-        return m_SchemaName.isBlank() ? null : m_SchemaName;
+        return m_SchemaName;
+    }
+
+    public String getCatalog()
+    {
+        return m_CatalogName.isEmpty() ? null : m_CatalogName;
+    }
+    public String getSchema()
+    {
+        return m_SchemaName.isEmpty() ? null : m_SchemaName;
     }
 
     public String getTypeCreatePattern()
@@ -243,5 +254,7 @@ public abstract class TableBase
     }
 
     public abstract ConnectionSuper getConnection();
+
+    protected abstract ColumnContainerBase _getColumnContainer(List<ColumnDescription> descriptions) throws ElementExistException;
 
 }

@@ -44,6 +44,7 @@ public abstract class ColumnMain
     implements XDataDescriptorFactory
 {
 
+    protected final TableBase m_table;
     private int m_Type;
     private int m_Precision;
     private int m_Scale;
@@ -58,9 +59,11 @@ public abstract class ColumnMain
     // The constructor method:
     public ColumnMain(String service,
                       String[] services,
+                      TableBase table,
                       boolean sensitive)
     {
         super(service, services, sensitive);
+        m_table = table;
         m_Type = 0;
         m_Precision = 0;
         m_Scale = 0;
@@ -72,6 +75,7 @@ public abstract class ColumnMain
     }
     public ColumnMain(String service,
                       String[] services,
+                      TableBase table,
                       boolean sensitive,
                       String name,
                       final String typename,
@@ -86,6 +90,7 @@ public abstract class ColumnMain
                       final boolean currency)
     {
         super(service, services, sensitive, name);
+        m_table = table;
         m_TypeName = typename;
         m_Description = description;
         m_DefaultValue = defaultvalue;
@@ -247,7 +252,7 @@ public abstract class ColumnMain
     @Override
     public XPropertySet createDataDescriptor()
     {
-        ColumnDescriptor descriptor = new ColumnDescriptor(isCaseSensitive());
+        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

@@ -26,14 +26,15 @@
 package io.github.prrvchr.uno.sdb;
 
 import com.sun.star.beans.PropertyVetoException;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.ColumnSuper;
+import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
 public class Column
@@ -47,23 +48,21 @@ public class Column
     private int m_Align = 0;
     private int m_Width = 100;
     private int m_Position;
+    private int m_RelativePosition;
     private boolean m_Hidden = false;
+    private XPropertySet m_ControlModel = null;
+    private String m_HelpText = "";
+    private String m_ControlDefault = "";
 
     // The constructor method:
-    public Column(final ConnectionBase connection,
-                  final boolean sensitive,
-                  final String catalog,
-                  final String schema,
-                  final String table)
+    public Column(final TableBase table,
+                  final boolean sensitive)
     {
-        super(m_service, m_services, connection, sensitive, catalog, schema, table);
+        super(m_service, m_services, table, sensitive);
         registerProperties();
     }
-    public Column(final ConnectionBase connection,
+    public Column(final TableBase table,
                   final boolean sensitive,
-                  final String catalog,
-                  final String schema,
-                  final String table,
                   final String name,
                   final String typeName,
                   final String defaultValue,
@@ -76,7 +75,7 @@ public class Column
                   final boolean rowversion,
                   final boolean currency)
     {
-        super(m_service, m_services, connection, sensitive, catalog, schema, table, name, typeName, defaultValue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        super(m_service, m_services, table, sensitive, name, typeName, defaultValue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();
     }
 
@@ -134,6 +133,19 @@ public class Column
                     m_Position = (int) value;
                 }
             });
+        registerProperty(PropertyIds.RELATIVEPOSITION.name, PropertyIds.RELATIVEPOSITION.id, Type.LONG,
+                new PropertyGetter() {
+                    @Override
+                    public Object getValue() throws WrappedTargetException {
+                        return m_RelativePosition;
+                    }
+                },
+                new PropertySetter() {
+                    @Override
+                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                        m_RelativePosition = (int) value;
+                    }
+                });
         registerProperty(PropertyIds.HIDDEN.name, PropertyIds.HIDDEN.id, Type.BOOLEAN,
             new PropertyGetter() {
                 @Override
@@ -147,6 +159,45 @@ public class Column
                     m_Hidden = (boolean) value;
                 }
             });
+        registerProperty(PropertyIds.CONTROLMODEL.name, PropertyIds.CONTROLMODEL.id, Type.ANY,
+                new PropertyGetter() {
+                    @Override
+                    public Object getValue() throws WrappedTargetException {
+                        return m_ControlModel;
+                    }
+                },
+                new PropertySetter() {
+                    @Override
+                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                        m_ControlModel = (XPropertySet) value;
+                    }
+                });
+        registerProperty(PropertyIds.HELPTEXT.name, PropertyIds.HELPTEXT.id, Type.STRING,
+                new PropertyGetter() {
+                    @Override
+                    public Object getValue() throws WrappedTargetException {
+                        return m_HelpText;
+                    }
+                },
+                new PropertySetter() {
+                    @Override
+                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                        m_HelpText = (String) value;
+                    }
+                });
+        registerProperty(PropertyIds.CONTROLDEFAULT.name, PropertyIds.CONTROLDEFAULT.id, Type.STRING,
+                new PropertyGetter() {
+                    @Override
+                    public Object getValue() throws WrappedTargetException {
+                        return m_ControlDefault;
+                    }
+                },
+                new PropertySetter() {
+                    @Override
+                    public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                        m_ControlDefault = (String) value;
+                    }
+                });
     }
 
 

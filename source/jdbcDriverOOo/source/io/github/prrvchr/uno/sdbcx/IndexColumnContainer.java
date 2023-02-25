@@ -43,12 +43,11 @@ public class IndexColumnContainer
 
     // The constructor method:
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexDescriptor()
-    public IndexColumnContainer(Object lock,
-                                Index index,
+    public IndexColumnContainer(Index index,
                                 List<String> columns)
         throws ElementExistException
     {
-        super(lock, true, columns);
+        super(index.getTable(), true, columns);
         m_index = index;
         System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
     }
@@ -64,19 +63,20 @@ public class IndexColumnContainer
         throws SQLException
     {
         IndexColumn index = null;
+        boolean isascending = true;
+        java.sql.ResultSet result = null;
+        String catalog = m_index.getTable().getCatalog();
+        String schema = m_index.getTable().getSchema();
+        String table = m_index.getTable().getName();
         try {
             java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
-            String catalog = m_index.getTable().getCatalogName();
-            String schema = m_index.getTable().getSchemaName();
-            String table = m_index.getTable().getName();
             System.out.println("sdbcx.IndexColumnContainer._createElement() 1 : " + catalog + "." + schema + "." + table);
-            boolean isAscending = true;
-            java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false);
+            result = metadata.getIndexInfo(catalog, schema, table, false, false);
             while (result.next()) {
                 System.out.println("sdbcx.IndexColumnContainer._createElement() 2");
                 if (name.equals(result.getString(9))) {
                     System.out.println("sdbcx.IndexColumnContainer._createElement() 3");
-                    isAscending = !"D".equals(result.getString(10));
+                    isascending = !"D".equals(result.getString(10));
                 }
             }
             result.close();
@@ -86,15 +86,16 @@ public class IndexColumnContainer
                 System.out.println("sdbcx.IndexColumnContainer._createElement() 4");
                 if (name.equals(result.getString(4))) {
                     System.out.println("sdbcx.IndexColumnContainer._createElement() 5");
-                    int dataType = _getConnection().getProvider().getDataType(result.getInt(5));
-                    String typeName = result.getString(6);
-                    int size = result.getInt(7);
-                    int dec = result.getInt(9);
-                    int nul = result.getInt(11);
-                    String columnDef = result.getString(13);
-                    index = new IndexColumn(isCaseSensitive(), m_index.getTable().m_CatalogName,
-                                            m_index.getTable().m_SchemaName, table, name, typeName, columnDef,
-                                            "", nul, size, dec, dataType, false, false, false, isAscending);
+                    int datatype = _getConnection().getProvider().getDataType(result.getInt(5));
+                    String typename = result.getString(6);
+                    int precision = result.getInt(7);
+                    int scale = result.getInt(9);
+                    scale = result.wasNull() ? 0 : scale;
+                    int nullable = result.getInt(11);
+                    String defaultvalue = result.getString(13);
+                    defaultvalue = result.wasNull() ? "" : defaultvalue;
+                    index = new IndexColumn(m_index.getTable(), isCaseSensitive(), name, typename, defaultvalue,
+                                            "", nullable, precision, scale, datatype, false, false, false, isascending);
                     System.out.println("sdbcx.IndexColumnContainer._createElement() 6");
                     break;
                 }

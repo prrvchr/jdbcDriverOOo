@@ -671,7 +671,7 @@ public abstract class ResultSetBase
     {
         try {
             java.sql.Date value = m_ResultSet.getDate(index);
-            return value != null ? UnoHelper.getUnoDate(value) : new Date();
+            return value != null ? UnoHelper.getUnoDate(value.toLocalDate()) : new Date();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -726,24 +726,7 @@ public abstract class ResultSetBase
     public Object getObject(int index, XNameAccess map) throws SQLException
     {
         try {
-            Object value = Any.VOID;
-            Object object = m_ResultSet.getObject(index);
-            if (object instanceof String) {
-                value = (String) object;
-            }
-            else if (object instanceof Boolean) {
-                value = (Boolean) object;
-            }
-            else if (object instanceof java.sql.Date) {
-                value = UnoHelper.getUnoDate((java.sql.Date) object);
-            }
-            else if (object instanceof java.sql.Time) {
-                value = UnoHelper.getUnoTime((java.sql.Time) object);
-            }
-            else if (object instanceof java.sql.Timestamp) {
-                value = UnoHelper.getUnoDateTime((java.sql.Timestamp) object);
-            }
-            return value;
+            return DataBaseTools.getObject(m_ResultSet.getObject(index), map);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getLoggedSQLException(this, m_logger, e);
@@ -790,7 +773,7 @@ public abstract class ResultSetBase
     {
         try {
             java.sql.Time value = m_ResultSet.getTime(index);
-            return value != null ? UnoHelper.getUnoTime(value) : new Time();
+            return value != null ? UnoHelper.getUnoTime(value.toLocalTime()) : new Time();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -802,7 +785,7 @@ public abstract class ResultSetBase
     {
         try {
             java.sql.Timestamp value = m_ResultSet.getTimestamp(index);
-            return value != null ? UnoHelper.getUnoDateTime(value) : new DateTime();
+            return value != null ? UnoHelper.getUnoDateTime(value.toLocalDateTime()) : new DateTime();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -937,7 +920,7 @@ public abstract class ResultSetBase
     public void updateDate(int index, Date value) throws SQLException
     {
         try {
-            m_ResultSet.updateDate(index, UnoHelper.getJavaDate(value));
+            m_ResultSet.updateDate(index, java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value)));
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -948,7 +931,7 @@ public abstract class ResultSetBase
     public void updateTime(int index, Time value) throws SQLException
     {
         try {
-            m_ResultSet.updateTime(index, UnoHelper.getJavaTime(value));
+            m_ResultSet.updateTime(index, java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value)));
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -959,7 +942,7 @@ public abstract class ResultSetBase
     public void updateTimestamp(int index, DateTime value) throws SQLException
     {
         try {
-            m_ResultSet.updateTimestamp(index, UnoHelper.getJavaDateTime(value));
+            m_ResultSet.updateTimestamp(index, java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value)));
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -994,20 +977,13 @@ public abstract class ResultSetBase
     @Override
     public void updateObject(int index, Object value) throws SQLException
     {
-        try {
-            if (!DataBaseTools.updateObject(this, index, value)) {
-                String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_COLUMN_TYPE,
-                                                                                         this.getClass().getName(),
-                                                                                         "updateObject()",
-                                                                                         Integer.toString(index));
-                throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-            }
-
-            m_ResultSet.updateObject(index, value);
+        if (!DataBaseTools.updateObject(m_ResultSet, index, value)) {
+            String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_COLUMN_TYPE,
+                                                                                     this.getClass().getName(),
+                                                                                     "updateObject()",
+                                                                                     Integer.toString(index));
+            throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        } 
     }
 
     @Override

@@ -479,6 +479,7 @@ public abstract class StatementMain
     public XResultSet getGeneratedValues()
             throws SQLException
     {
+        System.out.println("StatementMain.getGeneratedValues() ******************************************");
         _createStatement();
         XResultSet result = null;
         try {

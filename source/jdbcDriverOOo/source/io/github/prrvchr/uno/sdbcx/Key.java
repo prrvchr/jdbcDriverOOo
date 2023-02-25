@@ -48,22 +48,15 @@ public class Key
 
     private static final String m_service = Key.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Key"};
-
+    
     protected KeyColumnContainer m_columns = null;
-
     private final TableBase m_table;
+    
     public int m_Type;
     protected String m_ReferencedTable;
     protected int m_UpdateRule;
     protected int m_DeleteRule;
 
-    // The constructor method:
-    public Key(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive, "");
-        m_table = null;
-        System.out.println("sdbcx.Key() 1");
-    }
     // The constructor method:
     public Key(TableBase table,
                boolean sensitive,
@@ -82,7 +75,7 @@ public class Key
         m_ReferencedTable = reference;
         m_UpdateRule = update;
         m_DeleteRule = delete;
-        m_columns = new KeyColumnContainer(this, this, columns);
+        m_columns = new KeyColumnContainer(this, columns);
         registerProperties();
     }
 

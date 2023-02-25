@@ -59,14 +59,29 @@ from threading import Condition
 
 
 class OptionsManager(unohelper.Base):
-    def __init__(self, ctx):
+    def __init__(self, ctx, window):
         self._ctx = ctx
         self._lock = Condition()
-        self._view = None
-        self._logger = None
         self._disposed = False
         self._disabled = False
         self._model = OptionsModel(ctx, self._lock)
+        print("OptionsManager.__init__() 1")
+        window.addEventListener(OptionsHandler(self))
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 180)
+        title1, title2, title3, reboot = self._model.getTabData()
+        tab, tab1, tab2 = self._getTabPages(window, 'Tab1', rectangle, title1, title2, title3)
+        version  = ' '.join(sys.version.split())
+        path = os.pathsep.join(sys.path)
+        loggers = self._model.getLoggerNames('Driver')
+        infos = {111: version, 112: path}
+        self._logger = LogManager(self._ctx, tab.getPeer(), loggers, infos)
+        self._view = OptionsView(self._ctx, window, tab1.getPeer(), Tab1Handler(self), tab2.getPeer(), Tab2Handler(self), reboot)
+        self._model.loadConfiguration(self.updateView, 'Driver')
+        self._initView()
+        print("OptionsManager.__init__() 2")
+        #pool = self._ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
+        #mri = createService(self._ctx, 'mytools.Mri')
+        #mri.inspect(pool)
 
     def dispose(self):
         with self._lock:
@@ -94,26 +109,6 @@ class OptionsManager(unohelper.Base):
             protocol = self._view.getSelectedProtocol()
             if protocol in versions:
                 self._view.setVersion(versions[protocol])
-
-    def initialize(self, window):
-        print("OptionsManager.() 1")
-        window.addEventListener(OptionsHandler(self))
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 180)
-        title1, title2, title3, rebbot = self._model.getTabData()
-        tab, tab1, tab2 = self._getTabPages(window, 'Tab1', rectangle, title1, title2, title3)
-        version  = ' '.join(sys.version.split())
-        path = os.pathsep.join(sys.path)
-        loggers = self._model.getLoggerNames('Driver')
-        infos = {111: version, 112: path}
-        self._logger = LogManager(self._ctx, tab.getPeer(), loggers, infos)
-        self._view = OptionsView(self._ctx, window, tab1.getPeer(), Tab1Handler(self), tab2.getPeer(), Tab2Handler(self), rebbot)
-        self._model.loadConfiguration(self.updateView, 'Driver')
-        self._initView()
-        print("OptionsManager.() 2")
-        #pool = self._ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(pool)
-
 
     def saveSetting(self):
         self._logger.saveSetting()

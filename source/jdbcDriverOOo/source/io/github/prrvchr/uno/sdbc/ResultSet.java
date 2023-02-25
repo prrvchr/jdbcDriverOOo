@@ -37,16 +37,14 @@ public class ResultSet
 
     // The constructor method:
     public ResultSet(ConnectionBase connection,
-                     java.sql.ResultSet resultset,
-                     StatementMain statement)
+                     java.sql.ResultSet resultset)
         throws SQLException
     {
-        this(connection, resultset, statement, false);
+        this(connection, resultset, null);
     }
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     StatementMain statement,
-                     boolean bookmark)
+                     StatementMain statement)
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement);
