@@ -489,8 +489,8 @@ public abstract class StatementMain
             throw UnoHelper.getSQLException(e, this);
         }
         if (result == null) {
-            if (m_Connection.getProvider().isAutoRetrievingEnabled()) {
-                String statement = m_Connection.getProvider().getTransformedGeneratedStatement(m_Sql);
+            if (m_Connection.isAutoRetrievingEnabled()) {
+                String statement = m_Connection.getTransformedGeneratedStatement(m_Sql);
                 if (!statement.isEmpty()) {
                     UnoHelper.disposeComponent(m_GeneratedStatement);
                     m_GeneratedStatement = m_Connection.createStatement();

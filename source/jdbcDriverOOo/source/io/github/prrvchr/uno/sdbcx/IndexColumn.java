@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class IndexColumn
-    extends ColumnMain
+    extends ColumnBase
 {
     private static final String m_service = IndexColumn.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumn"};

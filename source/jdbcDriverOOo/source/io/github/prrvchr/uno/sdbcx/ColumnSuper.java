@@ -26,30 +26,20 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class ColumnSuper
-    extends ColumnMain
+    extends ColumnBase
     implements XDataDescriptorFactory
 {
 
     // The constructor method:
-    public ColumnSuper(String service,
-                      String[] services,
-                      TableBase table,
-                      boolean sensitive)
-    {
-        super(service, services, table, sensitive);
-        registerProperties();
-    }
     public ColumnSuper(String service,
                       String[] services,
                       TableBase table,
@@ -103,18 +93,6 @@ public abstract class ColumnSuper
                     return m_table.getConnection().getProvider().getAutoIncrementCreation();
                 }
             }, null);
-    }
-
-    // XDataDescriptorFactory
-    
-    @Override
-    public XPropertySet createDataDescriptor()
-    {
-        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
-        synchronized (this) {
-            UnoHelper.copyProperties(this, descriptor);
-        }
-        return descriptor;
     }
 
 

@@ -76,14 +76,16 @@ class OptionsModel(unohelper.Base):
                             'smallsql': None}
         #self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
         #                  'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
-        self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
-                          'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
+        self._services = {'Driver': ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
+                                     'io.github.prrvchr.jdbcdriver.sdbcx.Driver'),
+                          'Connection': ('com.sun.star.sdbc.Connection',
+                                         'com.sun.star.sdbcx.Connection',
+                                         'com.sun.star.sdb.Connection')}
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'TabTitle1' : 'OptionsDialog.Tab1.Title',
-                           'TabTitle2' : 'OptionsDialog.Tab2.Title',
-                           'TabTitle3' : 'OptionsDialog.Tab3.Title'}
+                           'TabTitle2' : 'OptionsDialog.Tab2.Title'}
 
 
     def loadConfiguration(self, *args):
@@ -101,7 +103,7 @@ class OptionsModel(unohelper.Base):
 
 # OptionsModel getter methods
     def getTabData(self):
-        return self._getTabTitle(1), self._getTabTitle(2), self._getTabTitle(3), OptionsModel._reboot
+        return self._getTabTitle(1), self._getTabTitle(2), OptionsModel._reboot
 
     def getLoggerNames(self, *args):
         service = 'io.github.prrvchr.jdbcdriver.logging.DBLoggerPool'
@@ -120,9 +122,10 @@ class OptionsModel(unohelper.Base):
         location = '%s/%s' % (g_folder, url.Name)
         return getResourceLocation(self._ctx, g_identifier, location)
 
-    def getLevel(self):
-        level = self._services.index(self._getDriverService()) +1
-        return level, self.isLevelUpdated()
+    def getServicesLevel(self):
+        driver = self._services.get('Driver').index(self._getDriverService())
+        connection = self._services.get('Connection').index(self._getConnectionService())
+        return driver, connection, self.isLevelUpdated(), self._isConnectionLevelEnabled(driver)
 
     def isLevelUpdated(self):
         return OptionsModel._level
@@ -135,6 +138,9 @@ class OptionsModel(unohelper.Base):
 
     def _getDriverService(self):
         return self._config.getByName('DriverService')
+
+    def _getConnectionService(self):
+        return self._config.getByName('ConnectionService')
 
     def getDriverName(self, protocol):
         return self._drivers[protocol].getByName('DriverTypeDisplayName')
@@ -180,9 +186,18 @@ class OptionsModel(unohelper.Base):
                 self._getProtocol(sub) not in self._drivers)
 
 # OptionsModel setter methods
-    def setLevel(self, level):
+    def setDriverService(self, driver):
         OptionsModel._level = False
-        self._config.replaceByName('DriverService', self._services[level])
+        self._config.replaceByName('DriverService', self._services.get('Driver')[driver])
+        connection = self._services.get('Connection').index(self._getConnectionService())
+        if driver and not connection:
+            connection = 1
+            self._config.replaceByName('ConnectionService', self._services.get('Connection')[connection])
+        return connection, self.isLevelUpdated(), self._isConnectionLevelEnabled(driver)
+
+    def setConnectionService(self, level):
+        OptionsModel._level = False
+        self._config.replaceByName('ConnectionService', self._services.get('Connection')[level])
 
     def setPath(self, url):
         self._path = url.Protocol + url.Path
@@ -224,6 +239,9 @@ class OptionsModel(unohelper.Base):
         self._drivers[protocol].setHierarchicalPropertyValue(property, self._getLevelValue(level))
 
 # OptionsModel private methods
+    def _isConnectionLevelEnabled(self, driver):
+        return driver == 0
+
     def _getLevelValue(self, level):
         return '%d' % level
 

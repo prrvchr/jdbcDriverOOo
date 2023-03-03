@@ -32,29 +32,48 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
+import com.sun.star.uno.RuntimeException;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
-import com.sun.star.util.Date;
-import com.sun.star.util.DateTime;
-import com.sun.star.util.DateTimeWithTimezone;
-import com.sun.star.util.Time;
-import com.sun.star.util.TimeWithTimezone;
+
+import io.github.prrvchr.jdbcdriver.util.Date;
+import io.github.prrvchr.jdbcdriver.util.DateTime;
+import io.github.prrvchr.jdbcdriver.util.DateTimeWithTimezone;
+import io.github.prrvchr.jdbcdriver.util.Time;
+import io.github.prrvchr.jdbcdriver.util.TimeWithTimezone;
+import io.github.prrvchr.uno.sdbc.ConnectionLog;
 
 
 public class UnoHelper
 {
 
     public static void ensure(boolean condition, String message) {
+        ensure(condition, message, null);
+    }
+
+    public static void ensure(Object reference, String message) {
+        ensure(reference, message, null);
+    }
+
+    public static void ensure(boolean condition, String message, ConnectionLog logger) {
         if (!condition) {
-            throw new com.sun.star.uno.RuntimeException(message);
+            RuntimeException error = new com.sun.star.uno.RuntimeException(message);
+            if (logger != null) {
+                logger.logp(LogLevel.SEVERE, error);
+            }
+            throw error;
         }
     }
-    
-    public static void ensure(Object reference, String message) {
+
+    public static void ensure(Object reference, String message, ConnectionLog logger) {
         if (reference == null) {
-            throw new com.sun.star.uno.RuntimeException(message);
+            RuntimeException error = new com.sun.star.uno.RuntimeException(message);
+            if (logger != null) {
+                logger.logp(LogLevel.SEVERE, error);
+            }
+            throw error;
         }
     }
 
@@ -389,9 +408,9 @@ public class UnoHelper
         return value;
     }
 
-    public static Date getUnoDate(java.time.LocalDate date)
+    public static com.sun.star.util.Date getUnoDate(java.time.LocalDate date)
     {
-        Date value = new Date();
+        com.sun.star.util.Date value = new com.sun.star.util.Date();
         if (date != null) {
             value.Year = (short) date.getYear();
             value.Month = (short) date.getMonthValue();
@@ -400,9 +419,9 @@ public class UnoHelper
         return value;
     }
 
-    public static Time getUnoTime(java.time.LocalTime time)
+    public static com.sun.star.util.Time getUnoTime(java.time.LocalTime time)
     {
-        Time value = new Time();
+        com.sun.star.util.Time value = new com.sun.star.util.Time();
         if (time != null) {
             value.Hours = (short) time.getHour();
             value.Minutes = (short) time.getMinute();
@@ -413,9 +432,9 @@ public class UnoHelper
         return value;
     }
 
-    public static DateTime getUnoDateTime(java.time.LocalDateTime datetime)
+    public static com.sun.star.util.DateTime getUnoDateTime(java.time.LocalDateTime datetime)
     {
-        DateTime value = new DateTime();
+        com.sun.star.util.DateTime value = new com.sun.star.util.DateTime();
         if (datetime != null) {
             value.Year = (short) datetime.getYear();
             value.Month = (short) datetime.getMonthValue();
@@ -429,9 +448,9 @@ public class UnoHelper
         return value;
     }
 
-    public static TimeWithTimezone getUnoTimeWithTimezone(java.time.OffsetTime time)
+    public static com.sun.star.util.TimeWithTimezone getUnoTimeWithTimezone(java.time.OffsetTime time)
     {
-        TimeWithTimezone value = new TimeWithTimezone();
+        com.sun.star.util.TimeWithTimezone value = new com.sun.star.util.TimeWithTimezone();
         if (time != null) {
             value.TimeInTZ = getUnoTime(time.toLocalTime());
             value.Timezone = getUnoTimezone(time.getOffset());
@@ -439,9 +458,9 @@ public class UnoHelper
         return value;
     }
 
-    public static DateTimeWithTimezone getUnoDateTimeWithTimezone(java.time.OffsetDateTime datetime)
+    public static com.sun.star.util.DateTimeWithTimezone getUnoDateTimeWithTimezone(java.time.OffsetDateTime datetime)
     {
-        DateTimeWithTimezone value = new DateTimeWithTimezone();
+        com.sun.star.util.DateTimeWithTimezone value = new com.sun.star.util.DateTimeWithTimezone();
         if (datetime != null) {
             value.DateTimeInTZ = getUnoDateTime(datetime.toLocalDateTime());
             value.Timezone = getUnoTimezone(datetime.getOffset());
@@ -454,14 +473,29 @@ public class UnoHelper
         return (short) (offset.getTotalSeconds() / 60);
     }
 
+    public static java.time.LocalDate getJavaLocalDate(com.sun.star.util.Date date)
+    {
+        return java.time.LocalDate.of(date.Year, date.Month, date.Day);
+    }
+
     public static java.time.LocalDate getJavaLocalDate(Date date)
     {
         return java.time.LocalDate.of(date.Year, date.Month, date.Day);
     }
 
+    public static java.time.LocalTime getJavaLocalTime(com.sun.star.util.Time time)
+    {
+        return java.time.LocalTime.of(time.Hours, time.Minutes, time.Seconds, time.NanoSeconds);
+    }
+
     public static java.time.LocalTime getJavaLocalTime(Time time)
     {
         return java.time.LocalTime.of(time.Hours, time.Minutes, time.Seconds, time.NanoSeconds);
+    }
+
+    public static java.time.LocalDateTime getJavaLocalDateTime(com.sun.star.util.DateTime timestamp)
+    {
+        return java.time.LocalDateTime.of(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hours, timestamp.Minutes, timestamp.Seconds, timestamp.NanoSeconds);
     }
 
     public static java.time.LocalDateTime getJavaLocalDateTime(DateTime timestamp)
@@ -474,9 +508,19 @@ public class UnoHelper
         return java.time.ZoneOffset.ofTotalSeconds(offset * 60);
     }
 
+    public static java.time.OffsetTime getJavaOffsetTime(com.sun.star.util.TimeWithTimezone time)
+    {
+        return java.time.OffsetTime.of(getJavaLocalTime(time.TimeInTZ), getJavaZoneOffset(time.Timezone));
+    }
+
     public static java.time.OffsetTime getJavaOffsetTime(TimeWithTimezone time)
     {
         return java.time.OffsetTime.of(getJavaLocalTime(time.TimeInTZ), getJavaZoneOffset(time.Timezone));
+    }
+
+    public static java.time.OffsetDateTime getJavaOffsetDateTime(com.sun.star.util.DateTimeWithTimezone datetime)
+    {
+        return java.time.OffsetDateTime.of(getJavaLocalDateTime(datetime.DateTimeInTZ), getJavaZoneOffset(datetime.Timezone));
     }
 
     public static java.time.OffsetDateTime getJavaOffsetDateTime(DateTimeWithTimezone datetime)

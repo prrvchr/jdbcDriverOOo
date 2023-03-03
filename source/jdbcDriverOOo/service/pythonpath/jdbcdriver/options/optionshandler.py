@@ -55,10 +55,19 @@ class Tab1Handler(unohelper.Base,
         try:
             handled = False
             if method == 'Base':
-                self._manager.setLevel(0)
+                self._manager.setDriverService(0)
                 handled = True
             elif method == 'Enhanced':
-                self._manager.setLevel(1)
+                self._manager.setDriverService(1)
+                handled = True
+            elif method == 'Level0':
+                self._manager.setConnectionService(0)
+                handled = True
+            elif method == 'Level1':
+                self._manager.setConnectionService(1)
+                handled = True
+            elif method == 'Level2':
+                self._manager.setConnectionService(2)
                 handled = True
             return handled
         except Exception as e:
@@ -67,7 +76,10 @@ class Tab1Handler(unohelper.Base,
 
     def getSupportedMethodNames(self):
         return ('Base',
-                'Enhanced')
+                'Enhanced',
+                'Level0',
+                'Level1',
+                'Level2')
 
 
 class Tab2Handler(unohelper.Base,

@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class KeyColumn
-    extends ColumnMain
+    extends ColumnBase
 {
     private static final String m_service = KeyColumn.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn"};
@@ -44,12 +44,6 @@ public class KeyColumn
     private String m_RelatedColumn;
 
     // The constructor method:
-    protected KeyColumn(TableBase table,
-                        boolean sensitive)
-    {
-        super(m_service, m_services, table, sensitive);
-        registerProperties();
-    }
     public KeyColumn(TableBase table,
                      final boolean sensitive,
                      final String name,
@@ -93,47 +87,5 @@ public class KeyColumn
         return descriptor;
     }
 
-
-/*    // The constructor method:
-    public KeyColumn(Connection connection,
-                     XPropertySet descriptor,
-                     String name,
-                     int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException
-    {
-        super(m_name, m_services, connection, descriptor, name, position);
-        m_RelatedColumn = name;
-        registerProperties();
-    }
-
-
-    public KeyColumn(Connection connection,
-                     TableBase table,
-                     String name,
-                     int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
-    {
-        super(m_name, m_services, connection, table, name, position);
-        m_RelatedColumn = name;
-        registerProperties();
-    }
-    public KeyColumn(Connection connection,
-                     java.sql.ResultSet result,
-                     String name,
-                     int position)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, result, name, position);
-        m_RelatedColumn = name;
-        registerProperties();
-    }
-
-    public KeyColumn(Connection connection,
-                     TableConstraintColumn column)
-    {
-        super(m_name, m_services, connection, column, column.getName());
-        m_RelatedColumn = "";
-        registerProperties();
-    }*/
 
 }

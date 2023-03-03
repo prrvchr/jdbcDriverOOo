@@ -47,6 +47,7 @@ import com.sun.star.uno.XComponentContext;
 
 import com.sun.star.lib.uno.helper.ComponentBase;
 
+import io.github.prrvchr.jdbcdriver.AutoRetrievingBase;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
@@ -69,7 +70,9 @@ public abstract class ConnectionBase
     protected final ConnectionLog m_logger; 
     public final boolean m_enhanced;
     protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
+    private final AutoRetrievingBase m_autoretrieving = new AutoRetrievingBase();
 
+    
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
                           String service,
@@ -83,6 +86,8 @@ public abstract class ConnectionBase
         m_services = services;
         m_enhanced = enhanced;
         m_provider = provider;
+        m_autoretrieving.setAutoRetrievingEnabled(provider.isAutoRetrievingEnabled());
+        m_autoretrieving.setAutoRetrievingStatement(provider.getAutoRetrievingStatement());
         m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
         m_logger.log(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
     }
@@ -369,6 +374,18 @@ public abstract class ConnectionBase
         return m_enhanced;
     }
 
+    public boolean isAutoRetrievingEnabled() {
+        return m_autoretrieving.isAutoRetrievingEnabled();
+    }
+    
+    public String getTransformedGeneratedStatement(String sql) {
+        return m_autoretrieving.getTransformedGeneratedStatement(this, sql);
+    }
+
+    public XComponentContext getComponentContext()
+    {
+        return m_xContext;
+    }
     abstract protected XStatement _getStatement();
     abstract protected XPreparedStatement _getPreparedStatement(String sql);
     abstract protected XPreparedStatement _getCallableStatement(String sql);

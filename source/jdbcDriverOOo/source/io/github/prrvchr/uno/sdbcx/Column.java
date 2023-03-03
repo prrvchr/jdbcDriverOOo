@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.XPropertySet;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 public class Column
     extends ColumnSuper
@@ -33,11 +36,6 @@ public class Column
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
 
     // The constructor method:
-    public Column(final TableBase table,
-                  final boolean sensitive)
-    {
-        super(m_service, m_services, table, sensitive);
-    }
     public Column(final TableBase table,
                   final boolean sensitive,
                   final String name,
@@ -55,57 +53,17 @@ public class Column
         super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
-
-/*    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer.appendByDescriptor()
-    public Column(Connection connection,
-                  XPropertySet descriptor,
-                  String name,
-                  int position)
-        throws java.sql.SQLException, UnknownPropertyException, WrappedTargetException
+    // XDataDescriptorFactory
+    
+    @Override
+    public XPropertySet createDataDescriptor()
     {
-        super(m_name, m_services, connection, descriptor, name, position);
+        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
     }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    public Column(Connection connection,
-                  ResultSetMetaData metadata,
-                  String name,
-                  int index)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, metadata, name, index);
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.ColumnContainer()
-    public Column(Connection connection,
-                  java.sql.ResultSet result,
-                  String name)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, result, name);
-    }
-    public Column(Connection connection,
-                  java.sql.ResultSet result,
-                  String name,
-                  int position)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection, result, name, position);
-    }
-    public Column(Connection connection,
-                  schemacrawler.schema.Column column,
-                  String name)
-    {
-        super(m_name, m_services, connection, column, name);
-    }
-    public Column(Connection connection,
-                  schemacrawler.schema.ResultsColumn column,
-                  String name)
-    {
-        super(m_name, m_services, connection, column, name);
-    }*/
 
 
 }

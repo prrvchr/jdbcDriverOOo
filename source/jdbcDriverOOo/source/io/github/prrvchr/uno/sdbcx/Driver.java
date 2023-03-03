@@ -38,6 +38,7 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.ConnectionService;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
@@ -69,14 +70,21 @@ public final class Driver
                                             DriverProvider provider,
                                             ResourceBasedEventLogger logger,
                                             boolean enhanced,
-                                            boolean hight)
+                                            ConnectionService level)
     {
-        if (hight) {
-            return new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced);
+        ConnectionBase connection = null;
+        switch(level) {
+        case CSS_SDBC_CONNECTION:
+            break;
+        case CSS_SDBCX_CONNECTION:
+            connection = new Connection(ctx, provider, logger, enhanced);
+            break;
+        case CSS_SDB_CONNECTION:
+            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced);
+            break;
+        default:
         }
-        else {
-            return new Connection(ctx, provider, logger, enhanced);
-        }
+        return connection;
     }
 
 

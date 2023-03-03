@@ -98,13 +98,13 @@ public class DataBaseTableHelper
                                                       TableBase table)
         throws java.sql.SQLException
     {
-        List<ColumnDescription> columnDescriptions = collectColumnDescriptions(connection, table);
-        sanitizeColumnDescriptions(columnDescriptions);
-        List<ColumnDescription> columnsByOrdinal = new ArrayList<>(columnDescriptions);
-        for (ColumnDescription columnDescription : columnDescriptions) {
-            columnsByOrdinal.set(columnDescription.ordinalPosition - 1, columnDescription);
+        List<ColumnDescription> descriptions = collectColumnDescriptions(connection, table);
+        sanitizeColumnDescriptions(connection, descriptions);
+        List<ColumnDescription> columns = new ArrayList<>(descriptions);
+        for (ColumnDescription description : descriptions) {
+            columns.set(description.ordinalPosition - 1, description);
         }
-        return columnsByOrdinal;
+        return columns;
     }
 
     private static List<ColumnDescription> collectColumnDescriptions(ConnectionSuper connection,
@@ -114,46 +114,50 @@ public class DataBaseTableHelper
         List<ColumnDescription> columns = new ArrayList<>();
         java.sql.ResultSet result = connection.getProvider().getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%");
         while (result.next()) {
-            ColumnDescription columnDescription = new ColumnDescription();
-            columnDescription.columnName = result.getString(4);
-            columnDescription.type = connection.getProvider().getDataType(result.getInt(5));
-            columnDescription.typeName = result.getString(6);
-            columnDescription.columnSize = result.getInt(7);
-            columnDescription.decimalDigits = result.getInt(9);
-            columnDescription.nullable = result.getInt(11);
-            columnDescription.remarks = result.getString(12);
-            columnDescription.defaultValue = result.getString(13);
-            columnDescription.ordinalPosition = result.getInt(17);
-            columns.add(columnDescription);
+            ColumnDescription description = new ColumnDescription();
+            description.columnName = result.getString(4);
+            description.type = connection.getProvider().getDataType(result.getInt(5));
+            description.typeName = result.getString(6);
+            description.columnSize = result.getInt(7);
+            int decimalDigits = result.getInt(9);
+            description.decimalDigits = result.wasNull() ? 0 : decimalDigits;
+            description.nullable = result.getInt(11);
+            String remarks = result.getString(12);
+            description.remarks = result.wasNull() ? "" : remarks;
+            String defaultValue = result.getString(13);
+            description.defaultValue = result.wasNull() ? "" : defaultValue;
+            description.ordinalPosition = result.getInt(17);
+            columns.add(description);
         }
         result.close();
         return columns;
     }
 
-    private static void sanitizeColumnDescriptions(List<ColumnDescription> columnDescriptions)
+    private static void sanitizeColumnDescriptions(ConnectionSuper connection,
+                                                   List<ColumnDescription> descriptions)
     {
-        if (columnDescriptions.isEmpty()) {
+        if (descriptions.isEmpty()) {
             return;
         }
-        Set<Integer> usedOrdinals = new TreeSet<>();
-        int maxOrdinal = Integer.MIN_VALUE;
-        for (ColumnDescription columnDescription : columnDescriptions) {
-            usedOrdinals.add(columnDescription.ordinalPosition);
-            if (maxOrdinal < columnDescription.ordinalPosition) {
-                maxOrdinal = columnDescription.ordinalPosition;
+        Set<Integer> ordinals = new TreeSet<>();
+        int max = Integer.MIN_VALUE;
+        for (ColumnDescription description : descriptions) {
+            ordinals.add(description.ordinalPosition);
+            if (max < description.ordinalPosition) {
+                max = description.ordinalPosition;
             }
         }
         // we need to have as many different ordinals as we have different columns
-        boolean hasDuplicates = usedOrdinals.size() != columnDescriptions.size();
+        boolean hasduplicates = ordinals.size() != descriptions.size();
         // and it needs to be a continuous range
-        boolean hasGaps = (maxOrdinal - usedOrdinals.iterator().next() + 1) != columnDescriptions.size();
+        boolean hasgaps = (max - ordinals.iterator().next() + 1) != descriptions.size();
         // if that's not the case, normalize it
-        UnoHelper.ensure(!hasDuplicates && !hasGaps, "database provided invalid ORDINAL_POSITION values!");
+        UnoHelper.ensure(!hasduplicates && !hasgaps, "database provided invalid ORDINAL_POSITION values!", connection.getLogger());
         // what's left is that the range might not be from 1 to <column count>, but for instance
         // 0 to <column count>-1.
-        int offset = usedOrdinals.iterator().next() - 1;
-        for (ColumnDescription columnDescription : columnDescriptions) {
-            columnDescription.ordinalPosition -= offset;
+        int offset = ordinals.iterator().next() - 1;
+        for (ColumnDescription description : descriptions) {
+            description.ordinalPosition -= offset;
         }
     }
 

@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.List;
 
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
@@ -45,6 +46,13 @@ public class TableContainer
         throws ElementExistException
     {
         super(connection, sensitive, names);
+    }
+
+    @Override
+    protected XPropertySet _createDescriptor()
+    {
+        System.out.println("sdb.TableContainer._createDescriptor()");
+        return new TableDescriptor(isCaseSensitive());
     }
 
     protected Table _getTable(NameComponents component,

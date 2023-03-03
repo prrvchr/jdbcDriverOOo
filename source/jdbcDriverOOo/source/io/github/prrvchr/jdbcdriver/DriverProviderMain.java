@@ -36,14 +36,12 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.AnyConverter;
-import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbcx.ColumnMain;
+import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 public abstract class DriverProviderMain
     implements DriverProvider
@@ -96,44 +94,12 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getTransformedGeneratedStatement(String insert)
-    {
-        UnoHelper.ensure(isAutoRetrievingEnabled(), "Illegal call here. isAutoRetrievingEnabled() is false!");
-        String query = "";
-        if (insert.startsWith("INSERT ")) {
-            query = getAutoRetrievingStatement();
-            int index = 0;
-            index = query.indexOf("$column");
-            if (index != -1) {
-                //XXX: we need a column
-                //FIXME: do something?
-            }
-            index = query.indexOf("$table");
-            if (index != -1) {
-                //XXX: we need a table
-                int start = insert.indexOf(" INTO");
-                if (start != -1) {
-                    String table = "";
-                    insert = insert.substring(start + 5);
-                    int end = insert.indexOf("(");
-                    if (end != -1) {
-                        table = insert.substring(0, end).strip();
-                    }
-                    query = query.substring(0, index) + table + query.substring(index + 6);
-                }
-            }
-        }
-        return query;
-    }
-
-    @Override
     public String[] getAlterViewQueries(String view,
                                         String command)
     {
         String[] queries = {String.format("ALTER VIEW %s AS %s", view, command)};
         return queries;
     }
-
 
     @Override
     public int getDataType(int type) {
@@ -276,7 +242,7 @@ public abstract class DriverProviderMain
 
     @Override
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnMain column)
+                                     ColumnBase column)
     {
         return null;
     }
@@ -382,18 +348,6 @@ public abstract class DriverProviderMain
     public java.sql.Connection getConnection()
     {
         return m_connection;
-    }
-
-    public ConnectionBase getConnection(XComponentContext ctx,
-                                        ResourceBasedEventLogger logger,
-                                        boolean enhanced)
-    {
-        if (enhanced) {
-            return new io.github.prrvchr.uno.sdb.Connection(ctx, this, logger, enhanced);
-        }
-        else {
-            return new io.github.prrvchr.uno.sdbcx.Connection(ctx, this, logger, enhanced);
-        }
     }
 
     @Override

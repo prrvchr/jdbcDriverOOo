@@ -31,12 +31,10 @@ import java.util.Properties;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbcx.ColumnMain;
+import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 public interface DriverProvider
 {
@@ -86,7 +84,7 @@ public interface DriverProvider
     public String getDropViewQuery();
 
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnMain column);
+                                     ColumnBase column);
 
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);
@@ -106,10 +104,6 @@ public interface DriverProvider
     public boolean acceptsURL(String url,
                               PropertyValue[] info);
 
-    public ConnectionBase getConnection(XComponentContext ctx,
-                                        ResourceBasedEventLogger logger,
-                                        boolean enhanced);
-
     public String getUrl();
 
     public PropertyValue[] getInfo();
@@ -128,8 +122,6 @@ public interface DriverProvider
     public boolean isAutoRetrievingEnabled();
 
     public String getAutoRetrievingStatement();
-
-    public String getTransformedGeneratedStatement(String sql);
 
     void registerURL(String url,
                      PropertyValue[] info);

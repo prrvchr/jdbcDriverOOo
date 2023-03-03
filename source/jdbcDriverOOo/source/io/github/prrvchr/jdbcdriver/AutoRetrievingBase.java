@@ -46,6 +46,7 @@
 package io.github.prrvchr.jdbcdriver;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public class AutoRetrievingBase
@@ -81,9 +82,10 @@ public class AutoRetrievingBase
      * @return
      *     The transformed generated statement.
      */
-    public String getTransformedGeneratedStatement(String insertStatement)
+    public String getTransformedGeneratedStatement(ConnectionBase connection,
+                                                   String insertStatement)
     {
-        UnoHelper.ensure(autoRetrievingEnabled, "Illegal call here. isAutoRetrievingEnabled() is false!");
+        UnoHelper.ensure(autoRetrievingEnabled, "Illegal call here. isAutoRetrievingEnabled() is false!", connection.getLogger());
         insertStatement = insertStatement.toUpperCase();
         String statement = "";
         if (insertStatement.startsWith("INSERT")) {

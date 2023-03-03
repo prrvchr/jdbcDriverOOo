@@ -79,130 +79,6 @@ public class Key
         registerProperties();
     }
 
-    
-    
-/*    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer(XPropertySet)
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer.appendByDescriptor(ConnectionBase, XIndexAccess, TableBase<?>)
-    public Key(Connection connection,
-               TableBase table,
-               XPropertySet descriptor,
-               String name)
-        throws SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
-    {
-        super(m_name, m_services, connection, name);
-        System.out.println("sdbcx.Key() 1");
-        m_table = table;
-        m_Type = (int) descriptor.getPropertyValue("Type");
-        m_ReferencedTable = (String) descriptor.getPropertyValue("ReferencedTable");
-        m_UpdateRule = (int) descriptor.getPropertyValue("UpdateRule");
-        m_DeleteRule = (int) descriptor.getPropertyValue("DeleteRule");
-        XColumnsSupplier columns = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-        try {
-            m_columns = new KeyColumnContainer(m_Connection, columns.getColumns());
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Key() 1 ERROR *******************");
-        }
-        registerProperties();
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer(XPropertySet)
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer.appendByDescriptor(ConnectionBase, XIndexAccess, TableBase<?>)
-    public Key(Connection connection,
-               TableBase table,
-               String name,
-               String column,
-               int position)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, name);
-        System.out.println("sdbcx.Key() 2");
-        m_table = table;
-        m_Type = KeyType.PRIMARY;
-        m_ReferencedTable = "";
-        m_UpdateRule = KeyRule.CASCADE;
-        m_DeleteRule = KeyRule.CASCADE;
-        try {
-            m_columns = new KeyColumnContainer(connection, table, column, position);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Key() 2 ERROR *******************\n" + UnoHelper.getStackTrace(e));
-        }
-        registerProperties();
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer(XPropertySet)
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer.appendByDescriptor(ConnectionBase, XIndexAccess, TableBase<?>)
-    public Key(Connection connection,
-               TableBase table,
-               PrimaryKey key)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, key.getName());
-        System.out.println("sdbcx.Key() 2");
-        m_table = table;
-        m_Type = KeyType.PRIMARY;
-        m_ReferencedTable = "";
-        m_UpdateRule = KeyRule.CASCADE;
-        m_DeleteRule = KeyRule.CASCADE;
-        try {
-            m_columns = new KeyColumnContainer(connection, key);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Key() 2 ERROR *******************\n" + UnoHelper.getStackTrace(e));
-        }
-        registerProperties();
-    }
-    // XXX: - io.github.prrvchr.uno.sdbcx.KeyContainer.appendByDescriptor(ConnectionBase, XIndexAccess, TableBase<?>)
-    public Key(Connection connection,
-               TableBase table,
-               ForeignKey key)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, key.getName());
-        System.out.println("sdbcx.Key() 2");
-        m_table = table;
-        m_Type = KeyType.FOREIGN;
-        m_ReferencedTable = "";
-        m_UpdateRule = key.getUpdateRule().id();
-        m_DeleteRule = key.getDeleteRule().id();;
-        try {
-            m_columns = new KeyColumnContainer(connection, key);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Key() 2 ERROR *******************\n" + UnoHelper.getStackTrace(e));
-        }
-        registerProperties();
-    }
-
-    public Key(Connection connection,
-               TableBase table,
-               String name,
-               String referencedtable,
-               int type,
-               int update,
-               int delete,
-               List<String> columns)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, name);
-        System.out.println("sdbcx.Key() 2");
-        m_table = table;
-        m_Type = type;
-        m_ReferencedTable = referencedtable;
-        m_UpdateRule = update;
-        m_DeleteRule = delete;
-        try {
-            m_columns = new KeyColumnContainer(connection, columns);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Key() 2 ERROR *******************\n" + UnoHelper.getStackTrace(e));
-        }
-        registerProperties();
-    }*/
-
-
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
         registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG, readonly,
@@ -234,7 +110,6 @@ public class Key
                 }
             }, null);
     }
-
 
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
@@ -279,6 +154,6 @@ public class Key
     public String toString()
     {
         return String.format("%s: Name: %s, Type: %s, ReferencedTable: %s, UpdateRule: %s, DeleteRule: %s ",
-                             this.getClass().getName(),getName(), m_Type, m_ReferencedTable, m_UpdateRule, m_DeleteRule);
+                             this.getClass().getName(), getName(), m_Type, m_ReferencedTable, m_UpdateRule, m_DeleteRule);
     }
 }

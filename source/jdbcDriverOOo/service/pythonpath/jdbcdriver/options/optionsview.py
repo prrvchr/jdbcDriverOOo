@@ -38,11 +38,13 @@ import traceback
 
 
 class OptionsView(unohelper.Base):
-    def __init__(self, ctx, window, parent1, handler1, parent2, handler2, reboot):
+    def __init__(self, ctx, window, handler1, handler2, title1, title2, reboot):
         self._window = window
-        self._tab1 = getContainerWindow(ctx, parent1, handler1, g_extension, 'UnoDriverDialog')
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
+        tab1, tab2 = self._getTabPages(window, 'Tab1', rectangle, title1, title2)
+        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_extension, 'UnoDriverDialog')
         self._tab1.setVisible(True)
-        self._tab2 = getContainerWindow(ctx, parent2, handler2, g_extension, 'JdbcDriverDialog')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'JdbcDriverDialog')
         self._tab2.setVisible(True)
         self._setStep(1)
         # XXX: If we modify the Dialog.Model.Step, we need
@@ -50,6 +52,9 @@ class OptionsView(unohelper.Base):
         self.setReboot(reboot)
 
 # OptionsView getter methods
+    def getLoggerParent(self):
+        return self._tab1.getPeer()
+
     def getSelectedProtocol(self):
         return self._getProtocols().getSelectedItem()
 
@@ -76,14 +81,26 @@ class OptionsView(unohelper.Base):
         return level
 
 # OptionsView setter methods
-    def setLevel(self, level, updated):
-        self._getLevel(level).State = 1
+    def setDriverLevel(self, level, updated):
+        self._getDriverService(level).State = 1
         if updated:
-            self.disableLevel()
+            self.disableDriverLevel()
 
-    def disableLevel(self):
-        self._getLevel(1).Model.Enabled = False
-        self._getLevel(2).Model.Enabled = False
+    def setConnectionLevel(self, level, updated, enabled):
+        self._getConnectionService(level).State = 1
+        if updated:
+            self.disableConnectionLevel()
+        else:
+            self._getConnectionService(0).Model.Enabled = enabled
+
+    def disableDriverLevel(self):
+        self._getDriverService(0).Model.Enabled = False
+        self._getDriverService(1).Model.Enabled = False
+
+    def disableConnectionLevel(self):
+        self._getConnectionService(0).Model.Enabled = False
+        self._getConnectionService(1).Model.Enabled = False
+        self._getConnectionService(2).Model.Enabled = False
 
     def setProtocols(self, protocols, protocol):
         control = self._getProtocols()
@@ -206,12 +223,40 @@ class OptionsView(unohelper.Base):
     def _setStep(self, step):
         self._tab2.Model.Step = step
 
+    def _getTabPages(self, window, name, rectangle, title1, title2, i=1):
+        model = self._getTabModel(window, rectangle)
+        window.Model.insertByName(name, model)
+        tab = window.getControl(name)
+        tab1 = self._getTabPage(model, tab, title1)
+        tab2 = self._getTabPage(model, tab, title2)
+        tab.ActiveTabPageID = i
+        return tab1, tab2
+
+    def _getTabModel(self, window, rectangle):
+        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
+        model = window.Model.createInstance(service)
+        model.PositionX = rectangle.X
+        model.PositionY = rectangle.Y
+        model.Width = rectangle.Width
+        model.Height = rectangle.Height
+        return model
+
+    def _getTabPage(self, model, tab, title):
+        index = model.getCount()
+        page = model.createTabPage(index +1)
+        page.Title = title
+        model.insertByIndex(index, page)
+        return tab.getControls()[index]
+
 # OptionsView private control methods
-    def _getLevel(self, index):
-        return self._tab1.getControl('OptionButton%s' % index)
+    def _getDriverService(self, index):
+        return self._tab1.getControl('OptionButton%s' % (index + 1))
+
+    def _getConnectionService(self, index):
+        return self._tab1.getControl('OptionButton%s' % (index + 3))
 
     def _getReboot1(self):
-        return self._tab1.getControl('Label2')
+        return self._tab1.getControl('Label3')
 
     def _getReboot2(self):
         return self._tab2.getControl('Label10')

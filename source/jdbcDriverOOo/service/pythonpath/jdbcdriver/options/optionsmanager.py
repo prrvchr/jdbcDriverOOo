@@ -67,15 +67,12 @@ class OptionsManager(unohelper.Base):
         self._model = OptionsModel(ctx, self._lock)
         print("OptionsManager.__init__() 1")
         window.addEventListener(OptionsHandler(self))
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 180)
-        title1, title2, title3, reboot = self._model.getTabData()
-        tab, tab1, tab2 = self._getTabPages(window, 'Tab1', rectangle, title1, title2, title3)
+        self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
-        loggers = self._model.getLoggerNames('Driver')
         infos = {111: version, 112: path}
-        self._logger = LogManager(self._ctx, tab.getPeer(), loggers, infos)
-        self._view = OptionsView(self._ctx, window, tab1.getPeer(), Tab1Handler(self), tab2.getPeer(), Tab2Handler(self), reboot)
+        loggers = self._model.getLoggerNames('Driver')
+        self._logger = LogManager(ctx, self._view.getLoggerParent(), loggers, infos)
         self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
         print("OptionsManager.__init__() 2")
@@ -113,7 +110,8 @@ class OptionsManager(unohelper.Base):
     def saveSetting(self):
         self._logger.saveSetting()
         if self._model.saveSetting() and self._model.isLevelUpdated():
-            self._view.disableLevel()
+            self._view.disableDriverLevel()
+            self._view.disableConnectionLevel()
 
     def reloadSetting(self):
         # XXX: We need to exit from Add new Driver mode if needed...
@@ -123,8 +121,13 @@ class OptionsManager(unohelper.Base):
         self._initView()
         self._logger.reloadSetting()
 
-    def setLevel(self, level):
-        self._model.setLevel(level)
+    def setDriverService(self, driver):
+        print("OptionsManager.setDriverService() ************************")
+        level, updated, enabled = self._model.setDriverService(driver)
+        self._view.setConnectionLevel(level, updated, enabled)
+
+    def setConnectionService(self, level):
+        self._model.setConnectionService(level)
 
     def updateArchive(self):
         archive = self._updateArchive()
@@ -195,7 +198,9 @@ class OptionsManager(unohelper.Base):
         self._disabled = True
 
     def _initView(self):
-        self._view.setLevel(*self._model.getLevel())
+        driver, connection, upadated, enabled = self._model.getServicesLevel()
+        self._view.setDriverLevel(driver, upadated)
+        self._view.setConnectionLevel(connection, upadated, enabled)
         self._initViewProtocol()
 
     def _initViewProtocol(self, driver=None):
@@ -227,31 +232,4 @@ class OptionsManager(unohelper.Base):
         reboot = self._model.needReboot()
         self._view.enableAdd(reboot)
         self.checkDriver()
-
-    def _getTabPages(self, window, name, rectangle, title1, title2, title3, i=1):
-        model = self._getTabModel(window, rectangle)
-        window.Model.insertByName(name, model)
-        tab = window.getControl(name)
-        tab1 = self._getTabPage(model, tab, title1)
-        tab2 = self._getTabPage(model, tab, title2)
-        tab3 = self._getTabPage(model, tab, title3)
-        tab.ActiveTabPageID = i
-        return tab1, tab2, tab3
-
-    def _getTabModel(self, window, rectangle):
-        service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
-        model = window.Model.createInstance(service)
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Width = rectangle.Width
-        model.Height = rectangle.Height
-        return model
-
-    def _getTabPage(self, model, tab, title):
-        index = model.getCount()
-        page = model.createTabPage(index +1)
-        page.Title = title
-        model.insertByIndex(index, page)
-        return tab.getControls()[index]
-
 

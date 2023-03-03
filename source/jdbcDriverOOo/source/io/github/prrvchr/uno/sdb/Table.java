@@ -27,7 +27,6 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
@@ -36,7 +35,6 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.Privilege;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
@@ -233,26 +231,6 @@ public final class Table
         }
         return privileges;
     }
-
-
-    @SuppressWarnings("unused")
-    private static int _getTablePrivileges(schemacrawler.schema.Table table)
-        throws java.sql.SQLException
-    {
-        int value = 265;
-        System.out.println("sdb.Table._getTablePrivileges() : 1");
-        Collection<schemacrawler.schema.Privilege<schemacrawler.schema.Table>> privileges = table.getPrivileges();
-        System.out.println("sdb.Table._getTablePrivileges() : 2 : " + privileges.size());
-        for (schemacrawler.schema.Privilege<schemacrawler.schema.Table> privilege : privileges)
-        {
-            System.out.println("sdb.Table._getTablePrivileges() : 3 " + privilege.getName());
-            value = UnoHelper.getConstantValue(Privilege.class, privilege.getName());
-            System.out.println("sdb.Table._getTablePrivileges() : 4 " + value);
-            break;
-        }
-        return value;
-    }
-
 
     public Connection getConnection()
     {

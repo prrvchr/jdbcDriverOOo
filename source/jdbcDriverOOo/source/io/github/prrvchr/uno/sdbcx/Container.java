@@ -328,36 +328,44 @@ public abstract class Container
         throws SQLException,
                ElementExistException
     {
-        System.out.println("sdbcx.Container.appendByDescriptor() 1");
-        ContainerEvent event;
-        Iterator<?> iterator;
-        synchronized (m_lock) {
-            String name = _getElementName(descriptor);
-            if (m_Elements.containsKey(name)) {
-                 throw new ElementExistException();
+        try {
+            System.out.println("sdbcx.Container.appendByDescriptor() 1");
+            ContainerEvent event;
+            Iterator<?> iterator;
+            synchronized (m_lock) {
+                String name = _getElementName(descriptor);
+                System.out.println("sdbcx.Container.appendByDescriptor() 2: Class: " + this.getClass().getName() + " - Name: " + name);
+                if (m_Elements.containsKey(name)) {
+                     throw new ElementExistException();
+                }
+                System.out.println("sdbcx.Container.appendByDescriptor() 3");
+                XPropertySet element = _appendElement(descriptor, name);
+                System.out.println("sdbcx.Container.appendByDescriptor() 4");
+                if (element == null) {
+                    System.out.println("sdbcx.Container.appendByDescriptor() ERROR ***************************" + name);
+                    throw new RuntimeException();
+                }
+                name = _getElementName(element);
+                XPropertySet value = m_Elements.get(name);
+                if (value == null) {
+                    System.out.println("sdbcx.Container.appendByDescriptor() ***************************" + name);
+                    // XXX: This can happen when the derived class does not include it itself
+                    m_Elements.put(name, element);
+                    m_Names.add(name);
+                }
+                // notify our container listeners
+                event = new ContainerEvent(this, name, element, null);
+                iterator = m_container.iterator();
             }
-            System.out.println("sdbcx.Container.appendByDescriptor() 2: Class: " + this.getClass().getName() + " - Name: " + name);
-            XPropertySet element = _appendElement(descriptor, name);
-            if (element == null) {
-                throw new RuntimeException();
+            while (iterator.hasNext()) {
+                XContainerListener listener = (XContainerListener) iterator.next();
+                listener.elementInserted(event);
             }
-            name = _getElementName(element);
-            XPropertySet value = m_Elements.get(name);
-            if (value == null) {
-                System.out.println("sdbcx.Container.appendByDescriptor() ***************************" + name);
-                // XXX: This can happen when the derived class does not include it itself
-                m_Elements.put(name, element);
-                m_Names.add(name);
-            }
-            // notify our container listeners
-            event = new ContainerEvent(this, name, element, null);
-            iterator = m_container.iterator();
+            System.out.println("sdbcx.Container.appendByDescriptor() 5");
         }
-        while (iterator.hasNext()) {
-            XContainerListener listener = (XContainerListener) iterator.next();
-            listener.elementInserted(event);
+        catch (Exception e) {
+            System.out.println("sdbcx.Container.appendByDescriptor() ERROR: " + UnoHelper.getStackTrace(e));
         }
-
     }
 
     protected String _getElementName(XPropertySet object)

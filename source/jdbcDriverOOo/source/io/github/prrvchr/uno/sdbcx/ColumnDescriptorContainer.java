@@ -25,11 +25,13 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.XPropertySet;
+
 public class ColumnDescriptorContainer
     extends DescriptorContainer
 {
 
-    private TableDescriptorBase m_table;
+    protected TableDescriptorBase m_table;
     
     // The constructor method:
     public ColumnDescriptorContainer(TableDescriptorBase table,
@@ -41,7 +43,8 @@ public class ColumnDescriptorContainer
     }
 
     @Override
-    protected ColumnDescriptor _createDescriptor() {
+    protected XPropertySet _createDescriptor() {
+        System.out.println("sdbcx.ColumnDescriptorContainer._createDescriptor()");
         return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
     }
 

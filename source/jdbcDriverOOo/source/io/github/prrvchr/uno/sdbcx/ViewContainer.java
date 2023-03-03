@@ -153,7 +153,7 @@ public class ViewContainer
         try {
             Object object = _getElement(index);
             XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
-            UnoHelper.ensure(propertySet != null, "Object returned from view collection isn't an XPropertySet");
+            UnoHelper.ensure(propertySet != null, "Object returned from view collection isn't an XPropertySet", m_Connection.getLogger());
             String sql = String.format(m_Connection.getProvider().getDropViewQuery(), DataBaseTools.composeTableName(m_Connection, propertySet, ComposeRule.InTableDefinitions,
                     false, false, true));
             

@@ -53,7 +53,7 @@ public class IndexColumnContainer
     }
 
     @Override
-    protected IndexColumnDescriptor _createDescriptor()
+    protected XPropertySet _createDescriptor()
     {
         return new IndexColumnDescriptor(isCaseSensitive());
     }

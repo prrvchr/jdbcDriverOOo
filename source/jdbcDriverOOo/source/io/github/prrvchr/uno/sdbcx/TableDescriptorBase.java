@@ -56,40 +56,13 @@ public abstract class TableDescriptorBase
                                boolean sensitive)
     {
         super(service, services, sensitive);
-        m_columns = new ColumnDescriptorContainer(this, sensitive);
+        m_columns = _getColumnDescriptorContainer(sensitive);
         m_keys = new KeyDescriptorContainer(this, sensitive);
         registerProperties();
-        System.out.println("sdbcx.descriptors.TableDescriptor()");
+        System.out.println("sdbcx.descriptors.TableDescriptorBase()");
     }
 
-
-/*    // The constructor method:
-    public TableDescriptorBase(String service,
-                               String[] services,
-                               Connection connection)
-    {
-        super(service, services, connection);
-        m_xColumns = new ColumnContainer(connection);
-        m_xKeys = new KeyContainer(connection);
-        registerProperties();
-        System.out.println("sdbcx.TableDescriptor() ***************************************************");
-    }
-
-    public TableDescriptorBase(String service,
-                               String[] services,
-                               Connection connection,
-                               TableBase table)
-    {
-        super(service, services, connection);
-        m_Name = table.m_Name;
-        m_CatalogName = table.m_CatalogName;
-        m_SchemaName = table.m_SchemaName;
-        m_Description = table.m_Description;
-        m_xColumns = new ColumnContainer(connection, table.getColumns());
-        m_xKeys = new KeyContainer(connection, table.getKeys(), table);
-        registerProperties();
-        System.out.println("sdbcx.TableDescriptor() ***************************************************");
-    }*/
+    public abstract ColumnDescriptorContainer _getColumnDescriptorContainer(boolean sensitive);
 
     private void registerProperties() {
         registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING,

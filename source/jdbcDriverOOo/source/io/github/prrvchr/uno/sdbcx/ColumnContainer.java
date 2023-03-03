@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.List;
 
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
@@ -45,9 +46,12 @@ public class ColumnContainer
         super(table, sensitive, descriptions);
     }
 
+    @Override
+    protected XPropertySet _createDescriptor() {
+        return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
+    }
 
-    protected Column _getColumn(TableBase table,
-                                String name,
+    protected Column _getColumn(String name,
                                 String typename,
                                 String defaultvalue,
                                 String description,
@@ -59,7 +63,7 @@ public class ColumnContainer
                                 boolean rowversion,
                                 boolean currency)
     {
-        return new Column(table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        return new Column(m_table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
 }

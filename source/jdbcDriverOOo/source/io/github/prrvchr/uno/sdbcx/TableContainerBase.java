@@ -83,6 +83,8 @@ public abstract class TableContainerBase
         throws SQLException
     {
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            //XIntrospection mri = (XIntrospection) UnoRuntime.queryInterface(XIntrospection.class, UnoHelper.createService(m_connection.getComponentContext(), "mytools.Mri"));
+            //mri.inspect(descriptor);
             String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
             System.out.println("sdbcx.TableContainer._createTable() SQL: " + sql);
             statement.execute(sql);
@@ -165,12 +167,6 @@ public abstract class TableContainerBase
     public synchronized void _refresh()
     {
         m_connection._refresh();
-    }
-
-    @Override
-    protected XPropertySet _createDescriptor() {
-        System.out.println("TableContainer._createDescriptor() 1");
-        return new TableDescriptor(isCaseSensitive());
     }
 
     protected abstract TableBase _getTable(NameComponents component,

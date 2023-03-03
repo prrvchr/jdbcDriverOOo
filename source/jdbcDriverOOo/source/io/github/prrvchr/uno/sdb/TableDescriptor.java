@@ -33,6 +33,7 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.sdbcx.ColumnDescriptorContainer;
 import io.github.prrvchr.uno.sdbcx.TableDescriptorBase;
 
 
@@ -170,33 +171,11 @@ public final class TableDescriptor
             });
     }
 
+    public ColumnDescriptorContainer _getColumnDescriptorContainer(boolean sensitive)
+    {
+        System.out.println("sdb.TableDescriptor._getColumnDescriptorContainer()");
+        return new ColumnDescriptorContainer(this, sensitive);
+    };
 
-/*    // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableContainer.createDataDescriptor()
-    public TableDescriptor(Connection connection)
-        throws java.sql.SQLException
-    {
-        super(m_name, m_services, connection);
-        registerProperties();
-        System.out.println("sdb.TableDescriptor()");
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdb.Table.createDataDescriptor()
-    public TableDescriptor(Connection connection,
-                           Table table)
-    {
-        super(m_name, m_services, connection, table);
-        m_Filter = table.m_Filter;
-        m_ApplyFilter = table.m_ApplyFilter;
-        m_Order = table.m_Order;
-        //m_FontDescriptor = table.m_FontDescriptor;
-        m_RowHeight = table.m_RowHeight;
-        m_TextColor = table.m_TextColor;
-        m_HavingClause = table.m_HavingClause;
-        m_GroupBy = table.m_GroupBy;
-        registerProperties();
-        System.out.println("sdb.TableDescriptor()");
-    }*/
 
 }

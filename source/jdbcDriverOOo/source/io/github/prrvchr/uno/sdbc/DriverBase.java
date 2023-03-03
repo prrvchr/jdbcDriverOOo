@@ -56,6 +56,7 @@ import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
+import io.github.prrvchr.jdbcdriver.ConnectionService;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -76,7 +77,7 @@ public abstract class DriverBase
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
-    private final boolean m_hight;
+    private final ConnectionService m_level;
     protected final ResourceBasedEventLogger m_logger;
 
     // The constructor method:
@@ -89,19 +90,19 @@ public abstract class DriverBase
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
-        m_hight = enhanced ? _getOptionsConfiguration("HighLevel") : false;
+        m_level = _getOptionsConfiguration("ConnectionService");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
     }
     
-    private boolean _getOptionsConfiguration(String property)
+    private ConnectionService _getOptionsConfiguration(String property)
     {
-        boolean high = false;
+        String service = ConnectionService.CSS_SDBC_CONNECTION.service();
         try {
             XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
             if (config.hasByHierarchicalName(property)) {
-                high = (Boolean) config.getByHierarchicalName(property);
+                service = (String) config.getByHierarchicalName(property);
             }
             UnoHelper.disposeComponent(config);
         }
@@ -109,7 +110,7 @@ public abstract class DriverBase
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return high;
+        return ConnectionService.fromString(service);
     }
 
 
@@ -180,7 +181,7 @@ public abstract class DriverBase
             catch(java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
             }
-            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_hight);
+            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_level);
             m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
         }
         return connection;
@@ -404,7 +405,7 @@ public abstract class DriverBase
                                                      DriverProvider provider,
                                                      ResourceBasedEventLogger logger,
                                                      boolean enhanced,
-                                                     boolean hioght);
+                                                     ConnectionService level);
 
 
 }

@@ -317,6 +317,7 @@
             </node>
         </node>
 
+
         <node oor:name="xdbc:hsqldb:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
                 <value>xdbc:*</value>
@@ -369,6 +370,7 @@
             </node>
         </node>
 
+
         <node oor:name="xdbc:h2:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
                 <value>xdbc:*</value>
@@ -412,7 +414,6 @@
         </node>
 
 
-
         <node oor:name="xdbc:mariadb:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
                 <value>xdbc:*</value>
@@ -424,7 +425,7 @@
             <node oor:name="Properties">
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/mariadb-java-client-3.1.1.jar</value>
+                        <value>%origin%/driver/mariadb-java-client-3.1.2.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">

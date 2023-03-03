@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+
 public class TableDescriptor
     extends TableDescriptorBase
 {
@@ -36,8 +37,13 @@ public class TableDescriptor
     public TableDescriptor(boolean sensitive)
     {
         super(m_service, m_services, sensitive);
-        System.out.println("sdbcx.descriptors.TableDescriptor()");
+        System.out.println("sdbcx.TableDescriptor()");
     }
+
+    public ColumnDescriptorContainer _getColumnDescriptorContainer(boolean sensitive)
+    {
+        return new ColumnDescriptorContainer(this, sensitive);
+    };
 
 
 }

@@ -79,12 +79,13 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.UnoRuntime;
-import com.sun.star.util.Date;
-import com.sun.star.util.DateWithTimezone;
-import com.sun.star.util.DateTime;
-import com.sun.star.util.DateTimeWithTimezone;
-import com.sun.star.util.Time;
-import com.sun.star.util.TimeWithTimezone;
+
+import io.github.prrvchr.jdbcdriver.util.Date;
+import io.github.prrvchr.jdbcdriver.util.DateWithTimezone;
+import io.github.prrvchr.jdbcdriver.util.DateTime;
+import io.github.prrvchr.jdbcdriver.util.DateTimeWithTimezone;
+import io.github.prrvchr.jdbcdriver.util.Time;
+import io.github.prrvchr.jdbcdriver.util.TimeWithTimezone;
 
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -281,7 +282,7 @@ public class DataBaseTools
         NameComponentSupport nameComponentSupport = getNameComponentSupport(connection, rule);
         try {
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            UnoHelper.ensure(!table.isEmpty(), "At least the table name should be non-empty");
+            UnoHelper.ensure(!table.isEmpty(), "At least the table name should be non-empty", connection.getLogger());
             String quoteString = metadata.getIdentifierQuoteString();
             
             String catalogSeparator = "";
@@ -347,7 +348,7 @@ public class DataBaseTools
         return composeTableNameForSelect(connection, component.getCatalog(), component.getSchema(), component.getTable());
     }
 
-    public static NameComponents getTableNameComponents(ConnectionSuper m_connection,
+    public static NameComponents getTableNameComponents(ConnectionSuper connection,
                                                         XPropertySet table)
         throws SQLException
     {
@@ -363,12 +364,12 @@ public class DataBaseTools
                 component.setTable(AnyConverter.toString(table.getPropertyValue(PropertyIds.NAME.name)));
             }
             else {
-                UnoHelper.ensure(false, "this is not a table object");
+                UnoHelper.ensure(false, "this is not a table object", connection.getLogger());
             }
             return component;
         }
         catch (IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), m_connection);
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
     }
 
@@ -408,7 +409,7 @@ public class DataBaseTools
         NameComponents component = new NameComponents();
         NameComponentSupport support = getNameComponentSupport(connection, rule);
         XDatabaseMetaData metadata = connection.getMetaData();
-        UnoHelper.ensure(metadata, "QualifiedNameComponents : invalid meta data!");
+        UnoHelper.ensure(metadata, "QualifiedNameComponents : invalid meta data!", connection.getLogger());
         String separator = metadata.getCatalogSeparator();
         String buffer = name;
         // do we have catalogs ?
@@ -432,7 +433,7 @@ public class DataBaseTools
         }
         if (support.useSchemas) {
             int index = buffer.indexOf(".");
-            //UnoHelper.ensure(-1 != nIndex, "QualifiedNameComponents : no schema separator!");
+            UnoHelper.ensure(-1 != index, "QualifiedNameComponents : no schema separator!", connection.getLogger());
             if (index != -1) {
                 component.setSchema(buffer.substring(0, index));
             }
@@ -1207,13 +1208,13 @@ public class DataBaseTools
 
         Map<String, ExtraColumnInfo> columns = new TreeMap<>();
         int count = metadata.getColumnCount();
-        UnoHelper.ensure(count > 0, "resultset has empty metadata");
+        UnoHelper.ensure(count > 0, "resultset has empty metadata", connection.getLogger());
         for (int i = 1; i <= count; i++) {
             String newColumnName = metadata.getColumnName(i);
             ExtraColumnInfo columnInfo = new ExtraColumnInfo();
             columnInfo.isAutoIncrement = metadata.isAutoIncrement(i);
             columnInfo.isCurrency = metadata.isCurrency(i);
-            columnInfo.dataType = metadata.getColumnType(i);
+            columnInfo.dataType = connection.getProvider().getDataType(metadata.getColumnType(i));
             columns.put(newColumnName, columnInfo);
         }
         result.close();
@@ -1246,6 +1247,34 @@ public class DataBaseTools
                     }
                 }
             }
+            return keyColumns;
+        } catch (IndexOutOfBoundsException | IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
+            throw new java.sql.SQLException(e.getMessage());
+        }
+    }
+
+
+    /** returns the primary key columns of the table
+     */
+    public static XNameAccess getPrimaryKeyColumns(XIndexAccess keys)
+        throws java.sql.SQLException {
+        try {
+            XNameAccess keyColumns = null;
+            int count = keys.getCount();
+            for (int i = 0; i < count; i++) {
+                XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
+                if (propertySet != null) {
+                    int keyType = 0;
+                    keyType = AnyConverter.toInt(propertySet.getPropertyValue(PropertyIds.TYPE.name));
+                    if (keyType == KeyType.PRIMARY) {
+                        XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, propertySet);
+                        keyColumns = columnsSupplier.getColumns();
+                        break;
+                    }
+                }
+            }
+            
+            
             return keyColumns;
         } catch (IndexOutOfBoundsException | IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
             throw new java.sql.SQLException(e.getMessage());

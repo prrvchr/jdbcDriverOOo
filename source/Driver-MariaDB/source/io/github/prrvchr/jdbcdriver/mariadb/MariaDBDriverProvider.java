@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.mariadb;
 
+import java.sql.Types;
 import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -38,16 +39,16 @@ public final class MariaDBDriverProvider
     implements DriverProvider
 {
 
-    protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(-16, -1),
-                                                                            Map.entry(-15, 1),
-                                                                            Map.entry(-9, 12),
-                                                                            Map.entry(-8, 4),
-                                                                            Map.entry(70, 1111),
-                                                                            Map.entry(2009, 1111),
-                                                                            Map.entry(2011, 2005),
-                                                                            Map.entry(2012, 2006),
-                                                                            Map.entry(2013, 12),
-                                                                            Map.entry(2014, 12));
+    protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(Types.LONGNVARCHAR, Types.LONGVARCHAR),
+                                                                            Map.entry(Types.NCHAR, Types.CHAR),
+                                                                            Map.entry(Types.NVARCHAR, Types.VARCHAR),
+                                                                            Map.entry(Types.ROWID, Types.JAVA_OBJECT),
+                                                                            Map.entry(Types.DATALINK, Types.VARCHAR),
+                                                                            Map.entry(Types.SQLXML, Types.VARCHAR),
+                                                                            Map.entry(Types.NCLOB, Types.CLOB),
+                                                                            Map.entry(Types.REF_CURSOR, Types.REF),
+                                                                            Map.entry(Types.TIME_WITH_TIMEZONE, Types.VARCHAR),
+                                                                            Map.entry(Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR));
 
     // The constructor method:
     public MariaDBDriverProvider()

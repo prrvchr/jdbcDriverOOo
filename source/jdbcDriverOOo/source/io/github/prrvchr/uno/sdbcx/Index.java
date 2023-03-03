@@ -72,6 +72,7 @@ public class Index
         throws ElementExistException
     {
         super(m_service, m_services, sensitive, name);
+        System.out.println("sdbcx.Index() 1");
         m_table = table;
         m_Catalog = catalog;
         m_IsUnique = unique;
@@ -142,93 +143,6 @@ public class Index
     {
         return m_table;
     }
-
-
-/*    // The constructor method:
-    // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer.appendByDescriptor()
-    public Index(Connection connection,
-                 String name,
-                 String catalog,
-                 boolean unique,
-                 boolean primarykey,
-                 boolean clustered,
-                 List<String> columns)
-    {
-        super(m_name, m_services, connection, name);
-        m_Catalog = catalog;
-        m_IsUnique = unique;
-        m_IsPrimaryKeyIndex = primarykey;
-        m_IsClustered = clustered;
-    }
-    public Index(Connection connection,
-                 XPropertySet descriptor)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, descriptor);
-        System.out.println("sdbcx.Index() 1");
-        try {
-            m_Catalog = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.CATALOG.name));
-            m_IsUnique = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISUNIQUE.name));
-            //m_IsPrimaryKeyIndex = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISPRIMARYKEYINDEX.name));
-            m_IsClustered = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISCLUSTERED.name));
-            XColumnsSupplier columns = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-            m_columns = new IndexColumnContainer(m_Connection, columns.getColumns());
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Index() 1 ERROR *******************");
-        }
-        registerProperties();
-    }
-    // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer(ConnectionBase, XNameAccess, TableBase<?>)
-    // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer.appendByDescriptor()
-    public Index(Connection connection,
-                 XPropertySet descriptor,
-                 String name)
-        throws SQLException, UnknownPropertyException, WrappedTargetException, NoSuchElementException
-    {
-        super(m_name, m_services, connection, name);
-        System.out.println("sdbcx.Index() 1");
-        m_Catalog = (String) descriptor.getPropertyValue("Catalog");
-        m_IsUnique = (boolean) descriptor.getPropertyValue("IsUnique");
-        m_IsPrimaryKeyIndex = (boolean) descriptor.getPropertyValue("IsPrimaryKeyIndex");
-        m_IsClustered = (boolean) descriptor.getPropertyValue("IsClustered");
-        XColumnsSupplier columns = (XColumnsSupplier) UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-        try {
-            m_columns = new IndexColumnContainer(m_Connection, columns.getColumns());
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Index() 1 ERROR *******************");
-        }
-        registerProperties();
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.IndexContainer(ConnectionBase, XNameAccess, TableBase<?>)
-    public Index(Connection connection,
-                 TableBase table,
-                 String name,
-                 String catalog,
-                 boolean unique,
-                 boolean primary,
-                 boolean clustered,
-                 boolean ascending,
-                 String column,
-                 int position)
-        throws SQLException
-    {
-        super(m_name, m_services, connection, name);
-        System.out.println("sdbcx.Index() 2");
-        m_Catalog = catalog;
-        m_IsUnique = unique;
-        m_IsPrimaryKeyIndex = primary;
-        m_IsClustered = clustered;
-        try {
-            m_columns = new IndexColumnContainer(connection, table, ascending, column, position);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Index() 2 ERROR *******************\n" + UnoHelper.getStackTrace(e));
-        }
-        registerProperties();
-    }*/
 
 
 }
