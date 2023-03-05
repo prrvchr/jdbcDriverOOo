@@ -105,11 +105,6 @@ class OptionsModel(unohelper.Base):
     def getTabData(self):
         return self._getTabTitle(1), self._getTabTitle(2), OptionsModel._reboot
 
-    def getLoggerNames(self, *args):
-        service = 'io.github.prrvchr.jdbcdriver.logging.DBLoggerPool'
-        loggers = args + createService(self._ctx, service).getLoggerNames()
-        return {name: name in args for name in loggers}
-
     def needReboot(self):
         return OptionsModel._reboot
 
@@ -284,16 +279,18 @@ class OptionsModel(unohelper.Base):
         url = getUrl(self._ctx, path)
         return url.Name
 
-    def _setDriverVersions(self, update, loggers):
+    def _setDriverVersions(self, update):
+        versions = {}
         property = 'Properties/InMemoryDataBase/Value'
         service = createService(self._ctx, self._getDriverService())
         for protocol, driver in self._drivers.items():
             if driver.hasByHierarchicalName(property):
                 url = driver.getByHierarchicalName(property)
                 version = self._getDriverVersion(service, url)
-                with self._lock:
-                    self._versions[protocol] = version
-        update(self.getLoggerNames(loggers), self._versions)
+                versions[protocol] = version
+        with self._lock:
+            self._versions = versions
+        update(versions)
 
     def _getDriverVersion(self, driver, protocol):
         version = self._default

@@ -32,6 +32,8 @@ import unohelper
 from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt import XDialogEventHandler
 
+from com.sun.star.util import XModifyListener
+
 import traceback
 
 
@@ -83,14 +85,11 @@ class DialogHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'ClearLog':
-                self._manager.clearLog()
-                handled = True
-            elif method == 'RefreshLog':
-                self._manager.refreshLog()
+            if method == 'RefreshLog':
+                self._manager.updateLogger()
                 handled = True
             elif method == 'LogInfo':
-                self._manager.logInfo()
+                self._manager.logInfos()
                 handled = True
             return handled
         except Exception as e:
@@ -98,6 +97,31 @@ class DialogHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ClearLog',
-                'RefreshLog',
+        return ('RefreshLog',
                 'LogInfo')
+
+
+class PoolListener(unohelper.Base,
+                   XModifyListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XModifyListener
+    def modified(self, event):
+        try:
+            print("PoolListener.modified()")
+            self._manager.updateLoggers()
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
+
+
+class LoggerListener(unohelper.Base,
+                     XModifyListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+    # XModifyListener
+    def modified(self, event):
+        self._manager.updateLogger()
+

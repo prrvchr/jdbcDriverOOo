@@ -62,6 +62,11 @@ public class ResourceBasedEventLogger
     private String m_path;
     private OfficeResourceBundle m_Bundle;
 
+    // The constructor method:
+    public ResourceBasedEventLogger(ResourceBasedEventLogger logger)
+    {
+        this(logger.m_xContext, logger.m_identifier, logger.m_path, logger.m_basename, logger.getName());
+    }
     public ResourceBasedEventLogger(XComponentContext context,
                                     String identifier,
                                     String path,
@@ -77,19 +82,6 @@ public class ResourceBasedEventLogger
         }
         catch (NullPointerException e) {
             throw new RuntimeException(e);
-        }
-    }
-    
-    public ResourceBasedEventLogger(ResourceBasedEventLogger logger)
-    {
-        super(logger.m_xContext, logger.getName());
-        m_identifier = logger.m_identifier;
-        m_basename = logger.m_basename;
-        try {
-            m_Bundle = new OfficeResourceBundle(logger.m_xContext, logger.m_identifier, logger.m_path,logger.m_basename);
-        }
-        catch (NullPointerException nullPointerException) {
-            throw new RuntimeException(nullPointerException);
         }
     }
     

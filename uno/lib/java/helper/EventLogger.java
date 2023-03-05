@@ -60,6 +60,7 @@ import com.sun.star.uno.XComponentContext;
 public class EventLogger
 {
     protected XComponentContext m_xContext;
+    private static String m_service = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
     private String m_name;
     private XLogger m_xLogger;
     
@@ -97,12 +98,11 @@ public class EventLogger
 
     public static XLoggerPool getLoggerPool(XComponentContext context)
     {
-        Object object = context.getValueByName("/singletons/com.sun.star.logging.LoggerPool");
+        Object object = UnoHelper.createService(context, m_service);
         XLoggerPool pool = UnoRuntime.queryInterface(XLoggerPool.class, object);
         if (pool == null) {
-            throw new DeploymentException(
-                    "component context fails to supply singleton com.sun.star.logging.LoggerPool of type com.sun.star.logging.XLoggerPool",
-                    context);
+            throw new DeploymentException("component context fails to supply singleton com.sun.star.logging.LoggerPool of type com.sun.star.logging.XLoggerPool",
+                                          context);
         }
         return pool;
     }

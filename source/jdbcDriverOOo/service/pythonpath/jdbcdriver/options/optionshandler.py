@@ -30,6 +30,7 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt import XTopWindowListener
 from com.sun.star.lang import XEventListener
 
 import traceback
@@ -42,7 +43,11 @@ class OptionsHandler(unohelper.Base,
 
 # com.sun.star.lang.XEventListener
     def disposing(self, source):
-        self._manager.dispose()
+        try:
+            self._manager.dispose()
+        except Exception as e:
+            msg = "OptionsHandler.disposing() Error: %s" % traceback.print_exc()
+            print(msg)
 
 
 class Tab1Handler(unohelper.Base,

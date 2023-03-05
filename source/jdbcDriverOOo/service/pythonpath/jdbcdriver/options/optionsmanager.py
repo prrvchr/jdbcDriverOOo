@@ -51,17 +51,18 @@ from ..logger import LogManager
 from ..dbconfig import g_jar
 
 from ..configuration import g_extension
+from ..configuration import g_identifier
 
 import os
 import sys
 import traceback
-from threading import Condition
+from threading import Lock
 
 
 class OptionsManager(unohelper.Base):
     def __init__(self, ctx, window):
         self._ctx = ctx
-        self._lock = Condition()
+        self._lock = Lock()
         self._disposed = False
         self._disabled = False
         self._model = OptionsModel(ctx, self._lock)
@@ -71,18 +72,14 @@ class OptionsManager(unohelper.Base):
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
         infos = {111: version, 112: path}
-        loggers = self._model.getLoggerNames('Driver')
-        self._logger = LogManager(ctx, self._view.getLoggerParent(), loggers, infos)
-        self._model.loadConfiguration(self.updateView, 'Driver')
+        self._logger = LogManager(ctx, self._view.getLoggerParent(), infos, g_identifier, 'Driver')
+        self._model.loadConfiguration(self.updateView)
         self._initView()
         print("OptionsManager.__init__() 2")
-        #pool = self._ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(pool)
 
     def dispose(self):
-        with self._lock:
-            self._disposed = True
+        self._logger.dispose()
+        self._disposed = True
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -92,20 +89,16 @@ class OptionsManager(unohelper.Base):
         return True
 
 # OptionsManager setter methods
-    def updateView(self, loggers, versions):
+    def updateView(self, versions):
         with self._lock:
-            self.updateLogger(loggers)
             self.updateVersion(versions)
 
-    def updateLogger(self, loggers):
-        if not self._disposed:
-            self._logger.updateLoggers(loggers)
-
     def updateVersion(self, versions):
-        if not self._disposed:
-            protocol = self._view.getSelectedProtocol()
-            if protocol in versions:
-                self._view.setVersion(versions[protocol])
+        with self._lock:
+            if not self._disposed:
+                protocol = self._view.getSelectedProtocol()
+                if protocol in versions:
+                    self._view.setVersion(versions[protocol])
 
     def saveSetting(self):
         self._logger.saveSetting()

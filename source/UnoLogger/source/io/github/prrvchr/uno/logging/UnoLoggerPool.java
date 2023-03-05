@@ -25,13 +25,13 @@
 */
 package io.github.prrvchr.uno.logging;
 
-import java.util.HashSet;
-import java.util.Set;
 
 import com.sun.star.logging.XLogger;
 import com.sun.star.logging.XLoggerPool;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
+
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class UnoLoggerPool
@@ -39,9 +39,7 @@ public final class UnoLoggerPool
 
     private static XComponentContext m_xContext;
     private static String m_root;
-    private static String m_service = "/singletons/com.sun.star.logging.LoggerPool";
-    private static Set<String> m_loggers = new HashSet<String>();
-
+    private static String m_service = "io.github.prrvchr.jdbcDriverOOo.LoggerPool";
 
     // The constructor method:
     public UnoLoggerPool()
@@ -57,16 +55,8 @@ public final class UnoLoggerPool
         m_root = root;
     }
 
-    public static String[] getLoggerNames()
-    {
-        return m_loggers.toArray(new String[m_loggers.size()]);
-    }
-
     public static XLogger getNamedLogger(String name)
     {
-        if (!m_loggers.contains(name)) {
-            m_loggers.add(name);
-        }
         XLogger logger = getLoggerPool().getNamedLogger(getLoggerName(name));
         System.out.println("logging.UnoLoggerPool.getNamedLogger() " + logger.getName());
         return logger;
@@ -82,7 +72,8 @@ public final class UnoLoggerPool
     private static XLoggerPool getLoggerPool()
     {
         System.out.println("logging.UnoLoggerPool.getLoggerPool()");
-        return UnoRuntime.queryInterface(XLoggerPool.class, m_xContext.getValueByName(m_service));
+        Object object = UnoHelper.createService(m_xContext, m_service);
+        return UnoRuntime.queryInterface(XLoggerPool.class, object);
     }
 
     private static String getLoggerName(String name)

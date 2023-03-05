@@ -33,36 +33,45 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .logger import Pool
+from .logmodel import LogModel
 from .logview import LogWindow
 from .logview import LogDialog
 from .loghandler import WindowHandler
 from .loghandler import DialogHandler
+from .loghandler import PoolListener
+from .loghandler import LoggerListener
 
+from ..unotool import createService
 from ..unotool import getDialog
 from ..unotool import getFileSequence
 
 from ..configuration import g_extension
+from ..configuration import g_identifier
 
 import traceback
 
 
 class LogManager(unohelper.Base):
-    def __init__(self, ctx, parent, loggers, infos):
+    def __init__(self, ctx, parent, infos, filter, default):
         self._ctx = ctx
-        self._logger = 'Logger'
-        self._loggers = loggers
+        self._listener = PoolListener(self)
+        pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+        pool.addModifyListener(self._listener)
+        self._model = LogModel(ctx, pool, default)
         self._infos = infos
-        self._model = None
+        self._filter = filter
         self._dialog = None
         self._view = LogWindow(ctx, WindowHandler(self), parent)
-        self._view.initLogger(self._getLoggerNames())
+        self._view.initLogger(self._model.getLoggerNames(filter))
 
 # LogManager setter methods
-    def updateLoggers(self, loggers):
-        self._loggers = loggers
+    def dispose(self):
+        self._model.dispose(self._listener)
+
+    def updateLoggers(self):
         logger = self._view.getLogger()
-        self._view.updateLoggers(self._getLoggerNames())
+        loggers = self._model.getLoggerNames(self._filter)
+        self._view.updateLoggers(loggers)
         if logger in loggers:
             self._view.setLogger(logger)
 
@@ -74,8 +83,9 @@ class LogManager(unohelper.Base):
         settings = self._model.getLoggerSetting()
         self._view.setLoggerSetting(*settings)
 
-    def changeLogger(self, logger):
-        self._model = Pool(self._ctx).getLogger(logger)
+    def changeLogger(self, name):
+        logger = name if self._filter is None else '%s.%s' % (g_identifier, name)
+        self._model.setLogger(logger)
         self.reloadSetting()
 
     def toggleLogger(self, enabled):
@@ -88,34 +98,26 @@ class LogManager(unohelper.Base):
         handler = DialogHandler(self)
         parent = self._view.getParent()
         url = self._model.getLoggerUrl()
-        writable = self._loggers[self._view.getLogger()]
         writable = True
         logger = self._getLoggerContent(url)
         self._dialog = LogDialog(self._ctx, handler, parent, g_extension, url, True, *logger)
-        self._model.addListener(self)
+        listener = LoggerListener(self)
+        self._model.addListener(listener)
         dialog = self._dialog.getDialog()
         dialog.execute()
         dialog.dispose()
-        self._model.removeListener(self)
+        self._model.removeListener(listener)
         self._dialog = None
 
-    def clearLog(self):
-        msg = Pool(self._ctx).getLogger(self._logger).getMessage(101)
-        self._model.clearLogger(msg, "LogManager", "clearLog()")
+    def logInfos(self):
+        self._model.logInfos(INFO, self._infos, "LogManager", "logInfos()")
 
-    def logInfo(self):
-        for info in self._infos():
-            self._model.logMessage(INFO, info, "LogManager", "logInfo()")
-
-    def refreshLog(self):
+    def updateLogger(self):
         url = self._model.getLoggerUrl()
         logger = self._getLoggerContent(url)
         self._dialog.setLogger(*logger)
 
 # LogManager private methods
-    def _getLoggerNames(self):
-        return tuple(self._loggers.keys())
-
     def _getLoggerContent(self, url):
         length, sequence = getFileSequence(self._ctx, url)
         return sequence.value.decode('utf-8'), length
