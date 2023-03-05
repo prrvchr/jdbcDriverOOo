@@ -30,14 +30,13 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.awt import XTopWindowListener
 from com.sun.star.lang import XEventListener
 
 import traceback
 
 
-class OptionsHandler(unohelper.Base,
-                     XEventListener):
+class OptionsListener(unohelper.Base,
+                      XEventListener):
     def __init__(self, manager):
         self._manager = manager
 

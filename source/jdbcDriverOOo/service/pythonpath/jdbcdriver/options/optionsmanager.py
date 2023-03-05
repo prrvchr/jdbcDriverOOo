@@ -37,7 +37,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
-from .optionshandler import OptionsHandler
+from .optionshandler import OptionsListener
 from .optionshandler import Tab1Handler
 from .optionshandler import Tab2Handler
 
@@ -67,7 +67,7 @@ class OptionsManager(unohelper.Base):
         self._disabled = False
         self._model = OptionsModel(ctx, self._lock)
         print("OptionsManager.__init__() 1")
-        window.addEventListener(OptionsHandler(self))
+        window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)

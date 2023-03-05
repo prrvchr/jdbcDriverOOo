@@ -65,71 +65,13 @@ class OptionsHandler(unohelper.Base,
                 elif event == 'back':
                     self._manager.reloadSetting()
                     handled = True
-            elif method == 'Base':
-                self._manager.setLevel(0)
-                handled = True
-            elif method == 'Enhanced':
-                self._manager.setLevel(1)
-                handled = True
-            elif method == 'SetDriver':
-                if self._manager.isHandlerEnabled():
-                    driver = event.Source.getSelectedItem()
-                    self._manager.setDriver(driver)
-                handled = True
-            elif method == 'New':
-                self._manager.newDriver()
-                handled = True
-            elif method == 'Remove':
-                self._manager.removeDriver()
-                handled = True
-            elif method == 'Save':
-                self._manager.saveDriver()
-                handled = True
-            elif method == 'Cancel':
-                self._manager.cancelDriver()
-                handled = True
-            elif method == 'Check':
-                self._manager.checkDriver()
-                handled = True
-            elif method == 'Update':
-                self._manager.updateArchive()
-                handled = True
-            elif method == 'Search':
-                self._manager.searchArchive()
-                handled = True
-            elif method == 'ToggleLogger':
-                control = event.Source
-                enabled = control.Model.Enabled
-                state = control.State == 1
-                self._manager.toggleLogger(enabled, state)
-                handled = True
-            elif method == 'SetLogger':
-                control = event.Source
-                enabled = control.Model.Enabled
-                # XXX: There is nothing to do if logging is not supported
-                if enabled:
-                    level = control.getSelectedItemPos()
-                    self._manager.setLogger(level)
-                handled = True
             return handled
         except Exception as e:
             msg = "OptionsHandler.callHandlerMethod() Error: %s" % traceback.print_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('external_event',
-                'Base',
-                'Enhanced',
-                'SetDriver',
-                'New',
-                'Remove',
-                'Save',
-                'Cancel',
-                'Check',
-                'Update',
-                'Search',
-                'ToggleLogger',
-                'SetLogger')
+        return ('external_event', )
 
     # XServiceInfo
     def supportsService(self, service):
