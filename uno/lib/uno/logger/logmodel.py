@@ -50,32 +50,21 @@ from ..configuration import g_resource
 from ..configuration import g_basename
 
 
-class LogModel(unohelper.Base):
-    def __init__(self, ctx, pool, default):
+class LogModel():
+    def __init__(self, ctx, default):
         self._ctx = ctx
-        self._pool = pool
-        self._default = default
+        pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
         self._resolver = getStringResource(ctx, g_identifier, g_resource, 'Logger')
-        self._logger = None
+        logger = '%s.%s' % (g_identifier, default)
+        self._logger = self._getLogger(pool, logger)
+        self._debug = (True, 7, 'com.sun.star.logging.FileHandler')
         self._settings = None
 
-# Public getter method
-    def dispose(self, listener):
-        self._pool.removeModifyListener(listener)
+    _debug = False
 
-    def getLoggerNames(self, filter=None):
-        names = []
-        if filter is None:
-            names = self._pool.getLoggerNames()
-        else:
-            names = self._pool.getFilteredLoggerNames(filter)
-        if self._default not in names:
-            names = list(names)
-            names.insert(0, self._default)
-        return names
-
+    # Public getter method
     def isDebugMode(self):
-        return self._settings is not None
+        return LogModel._debug
 
     def isLoggerEnabled(self):
         level = self._getLogConfig().LogLevel
@@ -104,16 +93,28 @@ class LogModel(unohelper.Base):
         url = url.replace('$(loggername)', self._logger.Name)
         return path.substituteVariables(url, True)
 
-    def getLoggerText(self):
+    def getLogContent(self):
         url = self.getLoggerUrl()
         length, sequence = getFileSequence(self._ctx, url)
         text = sequence.value.decode('utf-8')
-        return text
+        return text, length
+
+    def getLoggerData(self):
+        url = self.getLoggerUrl()
+        length, sequence = getFileSequence(self._ctx, url)
+        text = sequence.value.decode('utf-8')
+        return url, text, length
 
 # Public setter method
-    def setLogger(self, name):
-        url = getResourceLocation(self._ctx, g_identifier, g_resource)
-        self._logger = self._pool.getLocalizedLogger(name, url, g_basename)
+    def dispose(self):
+        pass
+
+    def clearLogger(self):
+        name = self._logger.Name
+        self._logger = None
+        self._logger = self._getLogger(name)
+        msg = self._resolver.resolveString(131)
+        self._logMessage(SEVERE, msg, 'Logger', 'clearLogger')
 
     def addLogHandler(self, handler):
         self._logger.addLogHandler(handler)
@@ -127,18 +128,31 @@ class LogModel(unohelper.Base):
         else:
             self._setDebugModeOff()
 
-    def logInfos(self, level, infos, clazz=None, method=None):
+    def logrb(self, level, resource, *args):
+        print("Logger.logrb() 1 %s - %s" % (resource, args))
         if self._isLoggable(level):
-            for resource, info in infos.items():
-                msg = self._resolver.resolveString(resource) % info
-                self._logMessage(level, msg, clazz, method)
-                print("Logger.logResource() %s - %s - %s - %s" % (level, msg, clazz, method))
+            msg = self.getMessage(resource, *args)
+            self._logMessage(level, msg)
+            print("Logger.logrb() 2 %s - %s" % (level, msg))
+
+    def logprb(self, level, resource, clazz, method, *args):
+        print("Logger.logprb() 1 %s - %s" % (resource, args))
+        if self._isLoggable(level):
+            msg = self.getMessage(resource, *args)
+            self._logMessage(level, msg, clazz, method)
+            print("Logger.logprb() 2 %s - %s" % (level, msg))
 
     def logResource(self, level, resource, clazz=None, method=None, *args):
         if self._isLoggable(level):
-            msg = self.getMessage(resource, args)
+            msg = self.getMessage(resource, *args)
             self._logMessage(level, msg, clazz, method)
             print("Logger.logResource() %s - %s - %s - %s" % (level, msg, clazz, method))
+
+    def logp(self, level, msg, clazz=None, method=None):
+        if self._isLoggable(level):
+            self._logMessage(level, msg, clazz, method)
+            print("Logger.logp() %s - %s - %s - %s" % (level, msg, clazz, method))
+
 
     def logMessage(self, level, msg, clazz=None, method=None):
         if self._isLoggable(level):
@@ -160,6 +174,10 @@ class LogModel(unohelper.Base):
         if self._logger is None:
             return False
         return self._logger.isLoggable(level)
+
+    def _getLogger(self, pool, name):
+        url = getResourceLocation(self._ctx, g_identifier, g_resource)
+        return pool.getLocalizedLogger(name, url, g_basename)
 
     def _getLoggerSetting(self):
         configuration = self._getLogConfig()
@@ -233,18 +251,52 @@ class LogModel(unohelper.Base):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        if not self.isDebugMode():
+        if self._settings is None:
             self._settings = self._getLoggerSetting()
-            self._setLoggerSetting(True, 7, 'com.sun.star.logging.FileHandler')
+        self._setLoggerSetting(*self._debug)
+        LogModel._debug = True
 
     def _setDebugModeOff(self):
-        if self.isDebugMode():
+        if self._settings is not None:
             self._setLoggerSetting(*self._settings)
             self._settings = None
+        LogModel._debug = False
 
-    def _logMessage(self, level, msg, clazz, method):
+    def _logMessage(self, level, msg, clazz=None, method=None):
         if clazz is None or method is None:
             self._logger.log(level, msg)
         else:
             self._logger.logp(level, clazz, method, msg)
+
+
+class LoggerModel(LogModel):
+    def __init__(self, ctx, default, listener):
+        self._ctx = ctx
+        self._pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+        self._pool.addModifyListener(listener)
+        self._listener = listener
+        self._default = default
+        self._resolver = getStringResource(ctx, g_identifier, g_resource, 'Logger')
+        self._logger = None
+        self._settings = None
+
+# Public getter method
+    def getLoggerNames(self, filter=None):
+        names = []
+        if filter is None:
+            names = self._pool.getLoggerNames()
+        else:
+            names = self._pool.getFilteredLoggerNames(filter)
+        if self._default not in names:
+            names = list(names)
+            names.insert(0, self._default)
+        return names
+
+# Public setter method
+    def dispose(self):
+        self._pool.removeModifyListener(self._listener)
+
+    def setLogger(self, name):
+        url = getResourceLocation(self._ctx, g_identifier, g_resource)
+        self._logger =  self._pool.getLocalizedLogger(name, url, g_basename)
 

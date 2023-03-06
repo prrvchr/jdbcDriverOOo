@@ -29,7 +29,9 @@
 
 from .logger import Logger
 from .logmanager import LogManager
+from .logmodel import LogModel
 from .handler import LogHandler
+from .loghandler import LoggerListener
 
 from .log import clearLogger
 from .log import disposeLogger

@@ -123,5 +123,10 @@ class LoggerListener(unohelper.Base,
 
     # XModifyListener
     def modified(self, event):
-        self._manager.updateLogger()
+        try:
+            print("LoggerListener.modified()")
+            self._manager.updateLogger()
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
