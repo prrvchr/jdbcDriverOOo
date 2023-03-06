@@ -117,7 +117,7 @@ class LogManager(unohelper.Base):
         self._dialog = None
 
     def logInfos(self):
-        self._model.logInfos(INFO, self._infos, "LogManager", "logInfos()")
+        self._model.logInfos(INFO, self._infos, 'LogManager', 'logInfos()')
 
     def updateLogger(self):
         self._dialog.updateLogger(*self._model.getLogContent())

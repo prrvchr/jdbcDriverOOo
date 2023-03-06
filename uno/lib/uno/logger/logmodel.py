@@ -106,6 +106,11 @@ class LogModel():
         return url, text, length
 
 # Public setter method
+    def logInfos(self, level, infos, clazz, method):
+        for resource, info in infos.items():
+            msg = self._resolver.resolveString(resource) % info
+            self._logger.logp(level, msg, clazz, method)
+
     def dispose(self):
         pass
 
