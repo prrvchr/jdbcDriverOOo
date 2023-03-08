@@ -27,21 +27,30 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
+from ..unotool import createService
+from ..unotool import getResourceLocation
+from ..unotool import getStringResourceWithLocation
 
-from com.sun.star.logging import XLogger2
+from ..configuration import g_identifier
+from ..configuration import g_resource
+from ..configuration import g_basename
 
 import traceback
 
 
-class Logger(unohelper.Base,
-             XLogger2):
-    def __init__(self, ctx, logger, listeners, resolver=None):
+def getLogger(ctx, logger, basename=g_basename):
+    return LoggerWrapper(ctx, logger, basename)
+
+
+# This logger wrapper allows using variable number of argument in python
+# while the UNO API does not allow it
+class LoggerWrapper():
+    def __init__(self, ctx, logger, basename):
         self._ctx = ctx
-        self._logger = logger
-        self._listeners = listeners
-        self._resolver = resolver
+        self._basename = basename
+        self._url = getResourceLocation(ctx, g_identifier, g_resource)
+        pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+        self._logger = pool.getLocalizedLogger(logger, self._url, basename)
 
     # XLogger
     @property
@@ -65,56 +74,36 @@ class Logger(unohelper.Base,
         return self._logger.isLoggable(level)
 
     def log(self, level, message):
-        if self.isLoggable(level):
-            self._log(level, message)
+        self._logger.log(level, message)
 
     def logp(self, level, clazz, method, message):
-        if self.isLoggable(level):
-            self._logp(level, clazz, method, message)
+        self._logger.logp(level, clazz, method, message)
 
-    # XLogger2
-    def hasEntryForId(self, resource):
-        if self._resolver is None:
-            return False
-        return self._resolver.hasEntryForId(resource)
-
-    def resolveString(self, resource, args):
-        if self.hasEntryForId(resource):
-            msg = self._resolver.resolveString(resource)
-            if args:
-                msg = msg % args
+    def logrb(self, level, resource, *args):
+        if self._logger.hasEntryForId(resource):
+            self._logger.logrb(level, resource, args)
         else:
-            msg = resource
-        return msg
+            self._logger.log(level, self._getErrorMessage(resource))
 
-    def logrb(self, level, resource, arguments):
-        if self.isLoggable(level):
-            message = self.resolveString(resource, arguments)
-            self._log(level, message)
+    def logprb(self, level, clazz, method, resource, *args):
+        if self._logger.hasEntryForId(resource):
+            self._logger.logprb(level, clazz, method, resource, args)
+        else:
+            self._logger.logp(level, clazz, method, self._getErrorMessage(resource))
 
-    def logprb(self, level, clazz, method, resource, arguments):
-        if self.isLoggable(level):
-            message = self.resolveString(resource, arguments)
-            self._logp(level, clazz, method, message)
+    def resolveString(self, resource, *args):
+        if self._logger.hasEntryForId(resource):
+            return self._logger.resolveString(resource, args)
+        else:
+            return self._getErrorMessage(resource)
 
     def addModifyListener(self, listener):
-        self._listeners.append(listener)
+        self._logger.addModifyListener(listener)
 
     def removeModifyListener(self, listener):
-        if listener in self._listeners:
-            self._listeners.remove(listener)
+        self._logger.removeModifyListener(listener)
 
-    def _log(self, level, message):
-        self._logger.log(level, message)
-        self._notifyListener()
-
-    def _logp(self, level, clazz, method, message):
-        self._logger.logp(level, clazz, method, message)
-        self._notifyListener()
-
-    def _notifyListener(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in self._listeners:
-            listener.modified(event)
+    def _getErrorMessage(self, resource):
+        resolver = getStringResourceWithLocation(self._ctx, self._url, 'Logger')
+        return resolver.resolveString(141) % (resource, self._url, self._basename)
 

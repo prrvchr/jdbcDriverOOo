@@ -39,40 +39,42 @@ interface XLoggerPool2 : com::sun::star::logging::XLoggerPool
 
     /** get a localized logger from the pool.
 
-        @param name
+        @param Name
             the name of the logger
 
-        @param url
+        @param Url
             the location of the resource file
 
-        @param name
-            the name of the resource file
+        @param Basename
+            the base name of the resource file
     */
-    com::sun::star::logging::XLogger2 getLocalizedLogger([in] string name,
-                                                         [in] string url,
-                                                         [in] string basename);
+    com::sun::star::logging::XLogger2 getLocalizedLogger([in] string Name,
+                                                         [in] string Url,
+                                                         [in] string Basename);
 
     /** retrieves all logger names
     */
     sequence<string> getLoggerNames();
 
     /** retrieves filtered logger names (ie: all logger names which starts with filter)
+    @param Filter
+           the filter (to be retrieved le logger name must start with the filter)
     */
-    sequence<string> getFilteredLoggerNames([in] string filter);
+    sequence<string> getFilteredLoggerNames([in] string Filter);
 
     /** add a modify listener to the pool.
 
-        @param listener
+    @param Listener
             the listener that will be notified when a new logger is requested or released from the pool
     */
-    void addModifyListener([in] com::sun::star::util::XModifyListener listener);
+    void addModifyListener([in] com::sun::star::util::XModifyListener Listener);
 
     /** remove a modify listener from the pool.
 
-        @param listener
+        @param Listener
             the listener which will be removed from the pool
     */
-    void removeModifyListener([in] com::sun::star::util::XModifyListener listener);
+    void removeModifyListener([in] com::sun::star::util::XModifyListener Listener);
 
 
 };

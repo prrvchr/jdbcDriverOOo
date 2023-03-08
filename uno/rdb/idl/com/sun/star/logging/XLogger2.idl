@@ -38,68 +38,76 @@ interface XLogger2 : com::sun::star::logging::XLogger
 
     /** logs a given resource string
     
-        @param level
+        @param Level
             the log level of this message. If this level is smaller than the logger's #Level
             attribute, then the call will be ignored.
         
-        @param resource
-            the resouce to log
+        @param ResourceID
+            ID to specify the string inside the resource
         
-        @param arguments
+        @param Arguments
             the optional arguments
     */
-    void logrb([in] long level,
-               [in] string resource,
-               [in] sequence<string> arguments);
+    void logrb([in] long Level,
+               [in] string ResourceID,
+               [in] sequence<string> Arguments);
 
     /** logs a given resource string
     
-        @param level
+        @param Level
             the log level of this message. If this level is smaller than the logger's #Level
             attribute, then the call will be ignored.
         
-        @param clazz
+        @param Clazz
             the source class at which the logged event occurred.
         
-        @param method
+        @param Method
             the source class at which the logged event occurred.
         
-        @param resource
-            the resouce to log
+        @param ResourceID
+            ID to specify the string inside the resource
         
-        @param arguments
+        @param Arguments
             the optional arguments
     */
-    void logprb([in] long level,
-                [in] string clazz,
-                [in] string method,
-                [in] string resource,
-                [in] sequence<string> arguments);
+    void logprb([in] long Level,
+                [in] string Clazz,
+                [in] string Method,
+                [in] string ResourceID,
+                [in] sequence<string> Arguments);
 
-    /** get message from resource string
+    /** get resource string from the given ResourceID and current locale, and optionaly some arguments
     
-        @param resource
-            the resource pointing to the message
+        @param ResourceID
+            ID to specify the string inside the resource
         
-        @param arguments
+        @param Arguments
             the optional arguments
     */
-    string getMessage([in] string resource,
-                      [in] sequence<string> arguments);
+    string resolveString([in] string ResourceID,
+                         [in] sequence<string> Arguments);
 
-    /** add a modify listener to the logger.
+
+    /** Checks if the resource contains an entry for the given ResourceID and current locale. 
     
-        @param listener
+        @param ResourceID
+            ID to specify the string inside the resource
+*    */
+    boolean hasEntryForId([in] string ResourceID);
+
+     /** add a modify listener to the logger.
+    
+        @param Listener
             the listener which will be notified when the logger log message
     */
-    void addModifyListener([in] com::sun::star::util::XModifyListener listener);
+    void addModifyListener([in] com::sun::star::util::XModifyListener Listener);
 
     /** remove a modify listener from the logger.
     
-        @param listener
+        @param Listener
             the listener which will be removed from the logger
     */
-    void removeModifyListener([in] com::sun::star::util::XModifyListener listener);
+    void removeModifyListener([in] com::sun::star::util::XModifyListener Listener);
 
 };
 

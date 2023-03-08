@@ -43,10 +43,9 @@ from .dataparser import DataParser
 
 from .configuration import g_sync
 from .configuration import g_filter
+from .configuration import g_synclog
 
-from .logger import logMessage
-from .logger import getMessage
-g_message = 'replicator'
+from .logger import LogModel
 
 from threading import Thread
 from threading import Event
@@ -60,6 +59,7 @@ class Replicator(unohelper.Base):
         self.DataBase = database
         self.Provider = provider
         self.Users = users
+        self._log = LogModel(ctx, g_synclog)
         self._started = Event()
         self._paused = Event()
         self._disposed = Event()
@@ -119,8 +119,7 @@ class Replicator(unohelper.Base):
 
     def _synchronize(self):
         if self.Provider.isOffLine():
-            msg = getMessage(self._ctx, g_message, 101)
-            logMessage(self._ctx, INFO, msg, 'Replicator', '_synchronize()')
+            self._log.logprb(201, msg, 'Replicator', '_synchronize()')
         else:
             self._syncData()
 
@@ -134,11 +133,9 @@ class Replicator(unohelper.Base):
 
         for user in self.Users.values():
             if not self._canceled():
-                msg = getMessage(self._ctx, g_message, 111, user.Account)
-                logMessage(self._ctx, INFO, msg, 'Replicator', '_synchronize()')
+                self._log.logprb(INFO, 211, 'Replicator', '_synchronize()', user.Account)
                 result.setValue(user.Account, self._syncUser(user, timestamp))
-                msg = getMessage(self._ctx, g_message, 112, user.Account)
-                logMessage(self._ctx, INFO, msg, 'Replicator', '_synchronize()')
+                self._log.logprb(INFO, 212, 'Replicator', '_synchronize()', user.Account)
         if not self._canceled():
             self.DataBase.executeBatchCall()
             self.DataBase.Connection.commit()
@@ -164,8 +161,7 @@ class Replicator(unohelper.Base):
                 return result
             result += self._syncGroup(user, timestamp)
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 121, e, traceback.print_exc())
-            logMessage(self._ctx, SEVERE, msg, 'Replicator', '_synchronize()')
+            self._log.logprb(SEVERE, 221, 'Replicator', '_synchronize()', e, traceback.print_exc())
         return result
 
     def _syncPeople(self, user, timestamp):
@@ -189,8 +185,7 @@ class Replicator(unohelper.Base):
                 update += u
                 delete += d
                 token = t
-        msg = getMessage(self._ctx, g_message, 131, pages, update, delete)
-        logMessage(self._ctx, INFO, msg, 'Replicator', '_syncPeople()')
+        self._log.logprb(INFO, 231, 'Replicator', '_syncPeople()', pages, update, delete)
         self._count += update + delete
         print("replicator._syncPeople() 1 %s" % method['PrimaryKey'])
         return token
@@ -214,8 +209,7 @@ class Replicator(unohelper.Base):
                 update += u
                 delete += d
                 token = t
-        msg = getMessage(self._ctx, g_message, 141, pages, update, delete)
-        logMessage(self._ctx, INFO, msg, 'Replicator', '_syncGroup()')
+        self._log.logprb(INFO, 241, 'Replicator', '_syncGroup()', pages, update, delete)
         self._count += update + delete
         return token
 
@@ -243,8 +237,7 @@ class Replicator(unohelper.Base):
                 update += u
         else:
             print("replicator._syncConnection(): nothing to sync")
-        msg = getMessage(self._ctx, g_message, 151, pages, len(groups), update)
-        logMessage(self._ctx, INFO, msg, 'Replicator', '_syncConnection()')
+        self._log.logprb(INFO, 251, 'Replicator', '_syncConnection()', pages, len(groups), update)
         self._count += update
         return token
 

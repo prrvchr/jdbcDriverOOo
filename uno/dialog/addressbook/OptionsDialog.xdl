@@ -5,8 +5,8 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="6" dlg:top="40" dlg:width="244" dlg:height="14" dlg:help-text="&amp;OptionsDialog.FixedLine1.HelpText" dlg:value="&amp;OptionsDialog.FixedLine1.Label"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="1" dlg:disabled="false" dlg:left="80" dlg:top="55" dlg:width="100" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton1.HelpText" dlg:value="&amp;OptionsDialog.CommandButton1.Label">
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="6" dlg:top="60" dlg:width="244" dlg:height="14" dlg:help-text="&amp;OptionsDialog.FixedLine1.HelpText" dlg:value="&amp;OptionsDialog.FixedLine1.Label"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="1" dlg:disabled="false" dlg:left="80" dlg:top="85" dlg:width="100" dlg:height="15" dlg:help-text="&amp;OptionsDialog.CommandButton1.HelpText" dlg:value="&amp;OptionsDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewData" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>
