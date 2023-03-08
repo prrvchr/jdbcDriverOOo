@@ -46,6 +46,8 @@ from .loghandler import LoggerListener
 from ..unotool import getDialog
 from ..unotool import getFileSequence
 
+from .loghelper import getLoggerName
+
 from ..configuration import g_extension
 from ..configuration import g_identifier
 
@@ -92,7 +94,7 @@ class LogManager(unohelper.Base):
         self._view.setLoggerSetting(*settings)
 
     def changeLogger(self, name):
-        logger = name if self._filter is None else '%s.%s' % (g_identifier, name)
+        logger = name if self._filter is None else getLoggerName(name)
         self._model.setLogger(logger)
         self.reloadSetting()
 

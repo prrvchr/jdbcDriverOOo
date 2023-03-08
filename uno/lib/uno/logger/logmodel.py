@@ -45,6 +45,8 @@ from ..unotool import getFileSequence
 from ..unotool import getResourceLocation
 from ..unotool import getStringResource
 
+from .loghelper import getLoggerName
+
 from ..configuration import g_identifier
 from ..configuration import g_resource
 from ..configuration import g_basename
@@ -55,8 +57,7 @@ class LogModel():
         self._ctx = ctx
         pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
         self._resolver = getStringResource(ctx, g_identifier, g_resource, 'Logger')
-        logger = '%s.%s' % (g_identifier, default)
-        self._logger = self._getLogger(pool, logger)
+        self._logger = self._getLogger(pool, getLoggerName(default))
         self._debug = (True, 7, 'com.sun.star.logging.FileHandler')
         self._settings = None
 

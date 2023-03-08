@@ -41,16 +41,19 @@ import traceback
 def getLogger(ctx, logger, basename=g_basename):
     return LoggerWrapper(ctx, logger, basename)
 
+def getLoggerName(name):
+    return '%s.%s' % (g_identifier, name)
+
 
 # This logger wrapper allows using variable number of argument in python
 # while the UNO API does not allow it
 class LoggerWrapper():
-    def __init__(self, ctx, logger, basename):
+    def __init__(self, ctx, name, basename):
         self._ctx = ctx
         self._basename = basename
         self._url = getResourceLocation(ctx, g_identifier, g_resource)
         pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
-        self._logger = pool.getLocalizedLogger(logger, self._url, basename)
+        self._logger = pool.getLocalizedLogger(getLoggerName(name), self._url, basename)
 
     # XLogger
     @property
