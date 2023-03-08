@@ -298,14 +298,15 @@ class OptionsModel(unohelper.Base):
         try:
             url = '%s%s' % (self._registeredProtocol, protocol)
             connection = driver.connect(url, ())
-            version = self._version % connection.getMetaData().getDriverVersion()
-            connection.close()
+            if connection is not None:
+                version = self._version % connection.getMetaData().getDriverVersion()
+                connection.close()
         except UnoException as e:
             logger = getLogger(self._ctx, g_extension, g_message)
             logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 141, e.Message)
         except Exception as e:
             logger = getLogger(self._ctx, g_extension, g_message)
-            logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 142, e, traceback.print_exc())
+            logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 142, string(e), 'traceback.print_exc()')
         return version
 
     def _updateArchive(self, driver, archive):

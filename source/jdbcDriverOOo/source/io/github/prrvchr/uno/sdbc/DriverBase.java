@@ -346,7 +346,8 @@ public abstract class DriverBase
 
     private boolean _hasSubProtocol(String url)
     {
-        return !url.split(":")[1].isBlank();
+        String[] protocol = url.split(":");
+        return (protocol.length > 2 && !protocol[1].isBlank());
     }
 
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] info)
