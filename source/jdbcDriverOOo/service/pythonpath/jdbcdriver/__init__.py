@@ -38,8 +38,7 @@ from .unotool import getStringResource
 from .unotool import getStringResourceWithLocation
 
 from .logger import Logger
-from .logger import getMessage
-from .logger import logMessage
+from .logger import getLogger
 
 from .options import OptionsManager
 

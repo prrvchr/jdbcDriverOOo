@@ -38,9 +38,6 @@ from com.sun.star.lang import XServiceInfo
 from jdbcdriver import createService
 from jdbcdriver import getConfiguration
 
-from jdbcdriver import getMessage
-from jdbcdriver import logMessage
-
 from jdbcdriver import g_identifier
 
 from threading import Lock

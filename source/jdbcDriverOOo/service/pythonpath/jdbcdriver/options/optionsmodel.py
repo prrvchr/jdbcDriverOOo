@@ -46,8 +46,9 @@ from ..configuration import g_extension
 
 from ..dbconfig import g_folder
 
-from ..logger import logMessage
-from ..logger import getMessage
+from ..configuration import g_extension
+
+from ..logger import getLogger
 g_message = 'OptionsDialog'
 
 from threading import Thread
@@ -300,11 +301,11 @@ class OptionsModel(unohelper.Base):
             version = self._version % connection.getMetaData().getDriverVersion()
             connection.close()
         except UnoException as e:
-            msg = getMessage(self._ctx, g_message, 141, e.Message)
-            logMessage(self._ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
+            logger = getLogger(self._ctx, g_extension, g_message)
+            logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 141, e.Message)
         except Exception as e:
-            msg = getMessage(self._ctx, g_message, 142, e, traceback.print_exc())
-            logMessage(self._ctx, SEVERE, msg, 'OptionsDialog', '_getDriverVersion()')
+            logger = getLogger(self._ctx, g_extension, g_message)
+            logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 142, e, traceback.print_exc())
         return version
 
     def _updateArchive(self, driver, archive):

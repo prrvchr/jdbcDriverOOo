@@ -32,6 +32,7 @@ from .logmanager import LogManager
 from .logmodel import LogModel
 from .handler import LogHandler
 from .loghandler import LoggerListener
+from .loghelper import getLogger
 
 from .log import clearLogger
 from .log import disposeLogger

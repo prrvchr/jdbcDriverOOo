@@ -51,9 +51,6 @@ from jdbcdriver import createService
 from jdbcdriver import hasInterface
 from jdbcdriver import getStringResource
 
-from jdbcdriver import getMessage
-from jdbcdriver import logMessage
-
 from jdbcdriver import g_extension
 from jdbcdriver import g_identifier
 
@@ -71,7 +68,6 @@ class AdminDispatcher(unohelper.Base,
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
-        #logMessage(self._ctx, INFO, "Loading ... Done", 'AdminDispatcher', '__init__()')
 
 # XInitialization
     def initialize(self, args):

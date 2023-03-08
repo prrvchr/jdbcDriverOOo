@@ -71,13 +71,6 @@ class LogModel():
         enabled = self._isLogEnabled(level)
         return enabled
 
-    def getMessage(self, resource, *args):
-        if self._logger is not None:
-            msg = self._logger.getMessage(resource, args)
-        else:
-            msg = 'Logger must be initialized with a string resource file'
-        return msg
-
     def getLoggerSetting(self):
         enabled, index, handler = self._getLoggerSetting()
         state = self._getState(handler)
@@ -133,37 +126,6 @@ class LogModel():
         else:
             self._setDebugModeOff()
 
-    def logrb(self, level, resource, *args):
-        print("Logger.logrb() 1 %s - %s" % (resource, args))
-        if self._isLoggable(level):
-            msg = self.getMessage(resource, *args)
-            self._logMessage(level, msg)
-            print("Logger.logrb() 2 %s - %s" % (level, msg))
-
-    def logprb(self, level, resource, clazz, method, *args):
-        print("Logger.logprb() 1 %s - %s" % (resource, args))
-        if self._isLoggable(level):
-            msg = self.getMessage(resource, *args)
-            self._logMessage(level, msg, clazz, method)
-            print("Logger.logprb() 2 %s - %s" % (level, msg))
-
-    def logResource(self, level, resource, clazz=None, method=None, *args):
-        if self._isLoggable(level):
-            msg = self.getMessage(resource, *args)
-            self._logMessage(level, msg, clazz, method)
-            print("Logger.logResource() %s - %s - %s - %s" % (level, msg, clazz, method))
-
-    def logp(self, level, msg, clazz=None, method=None):
-        if self._isLoggable(level):
-            self._logMessage(level, msg, clazz, method)
-            print("Logger.logp() %s - %s - %s - %s" % (level, msg, clazz, method))
-
-
-    def logMessage(self, level, msg, clazz=None, method=None):
-        if self._isLoggable(level):
-            self._logMessage(level, msg, clazz, method)
-            print("Logger.logMessage() %s - %s - %s - %s" % (level, msg, clazz, method))
-
     def setLoggerSetting(self, enabled, index, state):
         handler = self._getHandler(state)
         self._setLoggerSetting(enabled, index, handler)
@@ -175,11 +137,6 @@ class LogModel():
         self._logger.removeModifyListener(listener)
 
 # Private getter method
-    def _isLoggable(self, level):
-        if self._logger is None:
-            return False
-        return self._logger.isLoggable(level)
-
     def _getLogger(self, pool, name):
         url = getResourceLocation(self._ctx, g_identifier, g_resource)
         return pool.getLocalizedLogger(name, url, g_basename)

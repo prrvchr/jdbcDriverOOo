@@ -30,9 +30,10 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .logger import logMessage
-from .logger import getMessage
+from .logger import getLogger
 g_message = 'dbqueries'
+
+from .configuration import g_extension
 
 
 def getSqlQuery(ctx, name, format=None):
@@ -51,7 +52,8 @@ def getSqlQuery(ctx, name, format=None):
 
 # Queries don't exist!!!
     else:
+        logger = getLogger(ctx, g_extension, g_message)
+        logger.logprb(SEVERE, g_message, 'getSqlQuery()', 101, name)
         query = None
-        msg = getMessage(ctx, g_message, 101, name)
-        logMessage(ctx, SEVERE, msg, 'dbqueries', 'getSqlQuery()')
     return query
+
