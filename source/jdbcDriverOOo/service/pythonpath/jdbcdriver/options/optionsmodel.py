@@ -49,7 +49,7 @@ from ..dbconfig import g_folder
 from ..configuration import g_extension
 
 from ..logger import getLogger
-g_message = 'OptionsDialog'
+g_basename = 'OptionsDialog'
 
 from threading import Thread
 from collections import OrderedDict
@@ -157,9 +157,8 @@ class OptionsModel(unohelper.Base):
 
     def getDriverVersion(self, protocol):
         version = self._default
-        with self._lock:
-            if protocol in self._versions:
-                version = self._versions[protocol]
+        if protocol in self._versions:
+            version = self._versions[protocol]
         return version
 
     def getDriverClassPath(self, protocol):
@@ -295,6 +294,7 @@ class OptionsModel(unohelper.Base):
 
     def _getDriverVersion(self, driver, protocol):
         version = self._default
+        print("OptionsModel._getDriverVersion()")
         try:
             url = '%s%s' % (self._registeredProtocol, protocol)
             connection = driver.connect(url, ())
@@ -302,10 +302,10 @@ class OptionsModel(unohelper.Base):
                 version = self._version % connection.getMetaData().getDriverVersion()
                 connection.close()
         except UnoException as e:
-            logger = getLogger(self._ctx, g_extension, g_message)
+            logger = getLogger(self._ctx, g_extension, g_basename)
             logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 141, e.Message)
         except Exception as e:
-            logger = getLogger(self._ctx, g_extension, g_message)
+            logger = getLogger(self._ctx, g_extension, g_basename)
             logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 142, string(e), 'traceback.print_exc()')
         return version
 
