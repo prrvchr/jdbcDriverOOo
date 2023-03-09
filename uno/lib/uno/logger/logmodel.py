@@ -30,18 +30,24 @@
 import unohelper
 
 from ..unotool import getFileSequence
+from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
 
 from .loghelper import LogController
 from .loghelper import getPool
 
+from ..configuration import g_identifier
+from ..configuration import g_resource
 from ..configuration import g_basename
 
 
 class LogModel(LogController):
     def __init__(self, ctx, name, listener):
+        self._ctx = ctx
+        self._basename = g_basename
         self._pool = getPool(ctx)
-        self._init(ctx, self._pool, name, g_basename)
+        self._url = getResourceLocation(ctx, g_identifier, g_resource)
+        self._logger = None
         self._listener = listener
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
         self._debug = (True, 7, 'com.sun.star.logging.FileHandler')

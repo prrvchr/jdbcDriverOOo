@@ -72,7 +72,7 @@ class OptionsManager(unohelper.Base):
         version  = ' '.join(sys.version.split())
         path = os.pathsep.join(sys.path)
         infos = {111: version, 112: path}
-        self._logger = LogManager(ctx, self._view.getLoggerParent(), infos, g_identifier, 'Driver', True)
+        self._logger = LogManager(ctx, self._view.getLoggerParent(), infos, g_identifier, 'Driver')
         self._model.loadConfiguration(self.updateView)
         self._initView()
         print("OptionsManager.__init__() 2")

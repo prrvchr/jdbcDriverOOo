@@ -39,6 +39,7 @@ from com.sun.star.logging.LogLevel import OFF
 
 from ..unotool import createService
 from ..unotool import getConfiguration
+from ..unotool import getFileSequence
 from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
 
