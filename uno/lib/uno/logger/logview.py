@@ -36,14 +36,17 @@ from ..unotool import getDialog
 from ..configuration import g_extension
 
 
-class LogWindow(unohelper.Base):
+class LogWindow():
     def __init__(self, ctx, handler, parent):
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'LogWindow')
         self._window.setVisible(True)
 
 # LogWindow getter methods
     def getParent(self):
-        return self._window.Peer
+        return self._window.getPeer()
+
+    def getLogger(self):
+        return self._getLoggers().getSelectedItem()
 
     def getLoggerSetting(self):
         enabled = bool(self._getLogger().State)
@@ -52,26 +55,44 @@ class LogWindow(unohelper.Base):
         return enabled, level, handler
 
 # LogWindow setter methods
-    def setLoggerSetting(self, enabled, level, handler):
-        self._getHandler(handler).State = 1
-        self._getLevel().selectItemPos(level, True)
-        self.toggleLogger(enabled)
+    def initLogger(self, loggers):
+        control = self._getLoggers()
+        control.Model.StringItemList = loggers
+        control.selectItemPos(0, True)
+
+    def setLogger(self, logger):
+        self._getLoggers().selectItem(logger, True)
+
+    def updateLoggers(self, loggers):
+        self._getLoggers().Model.StringItemList = loggers
 
     def toggleLogger(self, enabled):
         self._getLogger().State = int(enabled)
         self._getLevelLabel().Model.Enabled = enabled
         self._getLevel().Model.Enabled = enabled
         self._getConsoleHandler().Model.Enabled = enabled
+        self._getOutputLabel().Model.Enabled = enabled
         control = self._getFileHandler()
         control.Model.Enabled = enabled
         self.toggleViewer(enabled and control.State)
+
+    def setLoggerSetting(self, enabled, level, handler):
+        self._getHandler(handler).State = 1
+        self._getLevel().selectItemPos(level, True)
+        self.toggleLogger(enabled)
 
     def toggleViewer(self, enabled):
         self._getViewer().Model.Enabled = enabled
 
 # LogWindow private control methods
+    def _getLoggers(self):
+        return self._window.getControl('ListBox1')
+
     def _getLogger(self):
         return self._window.getControl('CheckBox1')
+
+    def _getOutputLabel(self):
+        return self._window.getControl('Label2')
 
     def _getLevelLabel(self):
         return self._window.getControl('Label3')
@@ -90,39 +111,6 @@ class LogWindow(unohelper.Base):
 
     def _getViewer(self):
         return self._window.getControl('CommandButton1')
-
-
-class LoggerWindow(LogWindow):
-    def __init__(self, ctx, handler, parent):
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'LoggerWindow')
-        self._window.setVisible(True)
-
-# LogWindow getter methods
-    def getLogger(self):
-        return self._getLoggers().getSelectedItem()
-
-# LogWindow setter methods
-    def initLogger(self, loggers):
-        control = self._getLoggers()
-        control.Model.StringItemList = loggers
-        control.selectItemPos(0, True)
-
-    def setLogger(self, logger):
-        self._getLoggers().selectItem(logger, True)
-
-    def updateLoggers(self, loggers):
-        self._getLoggers().Model.StringItemList = loggers
-
-    def toggleLogger(self, enabled):
-        super(LoggerWindow, self).toggleLogger(enabled)
-        self._getOutputLabel().Model.Enabled = enabled
-
-# LogWindow private control methods
-    def _getLoggers(self):
-        return self._window.getControl('ListBox1')
-
-    def _getOutputLabel(self):
-        return self._window.getControl('Label2')
 
 
 class LogDialog():
