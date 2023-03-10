@@ -88,10 +88,10 @@ from ..dbconfig import g_version
 
 from ..logger import getLogger
 
-from ..configuration import g_extension
+from ..configuration import g_errorlog
+g_basename = 'dbtool'
 
 import traceback
-
 
 
 def getDataSourceConnection(ctx, url, name='', password='', create=True):
@@ -200,10 +200,10 @@ def checkDataBase(ctx, connection):
     error = None
     version = connection.getMetaData().getDriverVersion()
     if version < g_version:
-        logger = getLogger(ctx, g_extension, 'dbtool')
+        logger = getLogger(ctx, g_errorlog, g_basename)
         state = logger.resolveString(101)
         msg = logger.resolveString(102, g_jar, g_version, version)
-        logger.logp(SEVERE, 'dbtool', 'checkDataBase()', msg)
+        logger.logp(SEVERE, g_basename, 'checkDataBase()', msg)
         error = getSqlException(state, 1112, msg)
     return version, error
 

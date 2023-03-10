@@ -268,7 +268,7 @@ class LogController(LogWrapper):
         if self._settings is not None:
             self._setLoggerSetting(*self._settings)
             self._settings = None
-        LogWrapper._debug[self.Name] = True
+        LogWrapper._debug[self.Name] = False
 
     def _logMessage(self, level, msg, clazz=None, method=None):
         if clazz is None or method is None:
