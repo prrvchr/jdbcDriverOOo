@@ -7,29 +7,30 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef __io_github_prrvchr_jdbcdriver_util_DateWithTimezone_idl__
-#define __io_github_prrvchr_jdbcdriver_util_DateWithTimezone_idl__
+#ifndef __io_github_prrvchr_css_util_DateTimeWithTimezone_idl__
+#define __io_github_prrvchr_css_util_DateTimeWithTimezone_idl__
 
-#include <io/github/prrvchr/jdbcdriver/util/Date.idl>
+#include <io/github/prrvchr/css/util/DateTime.idl>
 
 
-module io { module github { module prrvchr { module jdbcdriver { module util {
+module io { module github { module prrvchr { module css { module util {
 
-/** represents a date value with time zone.
+/** represents a combined date+time value with time zone.
 
     @since LibreOffice 4.1
  */
-struct DateWithTimezone
+struct DateTimeWithTimezone
 {
-    /** the date.
-        @note XMLSchema-2 defines this as a 24 hour interval.
-              The TimeZone shifts the interval along the UTC time line.
+    /** the date and time (in TimeZone)
     */
-    Date DateInTZ;
+    DateTime DateTimeInTZ;
 
     /** contains the time zone, as signed offset in minutes *from* UTC,
         that is *east* of UTC, that is the amount of minutes that should
-        be added to UTC time to obtain time in that timezone.
+        be added to UTC time to obtain the time in that timezone.
+
+        To obtain UTC datetime from DateTimeInTZ, you need to *subtract*
+        TimeZone minutes.
     */
     short Timezone;
 };
@@ -40,4 +41,3 @@ struct DateWithTimezone
 #endif
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */
-

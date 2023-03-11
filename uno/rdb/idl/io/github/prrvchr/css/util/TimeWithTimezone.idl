@@ -7,13 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef __io_github_prrvchr_jdbcdriver_util_TimeWithTimezone_idl__
-#define __io_github_prrvchr_jdbcdriver_util_TimeWithTimezone_idl__
+#ifndef __io_github_prrvchr_css_util_TimeWithTimezone_idl__
+#define __io_github_prrvchr_css_util_TimeWithTimezone_idl__
 
-#include <io/github/prrvchr/jdbcdriver/util/Time.idl>
+#include <io/github/prrvchr/css/util/Time.idl>
 
 
-module io { module github { module prrvchr { module jdbcdriver {  module util {
+module io { module github { module prrvchr { module css {  module util {
 
 /** represents a combined time value with time zone.
 

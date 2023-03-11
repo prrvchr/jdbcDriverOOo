@@ -38,12 +38,11 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.util.Date;
-import io.github.prrvchr.jdbcdriver.util.DateTime;
-import io.github.prrvchr.jdbcdriver.util.DateTimeWithTimezone;
-import io.github.prrvchr.jdbcdriver.util.Time;
-import io.github.prrvchr.jdbcdriver.util.TimeWithTimezone;
-import io.github.prrvchr.uno.sdbc.ConnectionLog;
+import io.github.prrvchr.css.util.Date;
+import io.github.prrvchr.css.util.DateTime;
+import io.github.prrvchr.css.util.DateTimeWithTimezone;
+import io.github.prrvchr.css.util.Time;
+import io.github.prrvchr.css.util.TimeWithTimezone;
 
 
 public class UnoHelper
@@ -57,7 +56,7 @@ public class UnoHelper
         ensure(reference, message, null);
     }
 
-    public static void ensure(boolean condition, String message, ConnectionLog logger) {
+    public static void ensure(boolean condition, String message, EventLogger logger) {
         if (!condition) {
             RuntimeException error = new com.sun.star.uno.RuntimeException(message);
             if (logger != null) {
@@ -67,7 +66,7 @@ public class UnoHelper
         }
     }
 
-    public static void ensure(Object reference, String message, ConnectionLog logger) {
+    public static void ensure(Object reference, String message, EventLogger logger) {
         if (reference == null) {
             RuntimeException error = new com.sun.star.uno.RuntimeException(message);
             if (logger != null) {

@@ -80,12 +80,12 @@ import com.sun.star.uno.Type;
 import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.jdbcdriver.util.Date;
-import io.github.prrvchr.jdbcdriver.util.DateWithTimezone;
-import io.github.prrvchr.jdbcdriver.util.DateTime;
-import io.github.prrvchr.jdbcdriver.util.DateTimeWithTimezone;
-import io.github.prrvchr.jdbcdriver.util.Time;
-import io.github.prrvchr.jdbcdriver.util.TimeWithTimezone;
+import io.github.prrvchr.css.util.Date;
+import io.github.prrvchr.css.util.DateWithTimezone;
+import io.github.prrvchr.css.util.DateTime;
+import io.github.prrvchr.css.util.DateTimeWithTimezone;
+import io.github.prrvchr.css.util.Time;
+import io.github.prrvchr.css.util.TimeWithTimezone;
 
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
