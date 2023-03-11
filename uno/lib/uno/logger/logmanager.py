@@ -84,7 +84,7 @@ class LogManager(unohelper.Base):
     def changeLogger(self, name):
         logger = name if self._filter is None else getLoggerName(name)
         self._model.setLogger(logger)
-        self.reloadSetting()
+        self.loadSetting()
 
     def toggleLogger(self, enabled):
         self._view.toggleLogger(enabled)
