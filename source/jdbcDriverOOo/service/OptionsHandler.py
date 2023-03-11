@@ -63,7 +63,7 @@ class OptionsHandler(unohelper.Base,
                     self._manager.saveSetting()
                     handled = True
                 elif event == 'back':
-                    self._manager.reloadSetting()
+                    self._manager.loadSetting()
                     handled = True
             return handled
         except Exception as e:

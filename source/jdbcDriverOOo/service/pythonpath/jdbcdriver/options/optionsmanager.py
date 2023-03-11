@@ -106,13 +106,13 @@ class OptionsManager(unohelper.Base):
             self._view.disableDriverLevel()
             self._view.disableConnectionLevel()
 
-    def reloadSetting(self):
+    def loadSetting(self):
         # XXX: We need to exit from Add new Driver mode if needed...
         reboot = self._model.needReboot()
         self._view.exitAdd(reboot)
         self._model.loadConfiguration(self.updateView, 'Driver')
         self._initView()
-        self._logger.reloadSetting()
+        self._logger.loadSetting()
 
     def setDriverService(self, driver):
         print("OptionsManager.setDriverService() ************************")
