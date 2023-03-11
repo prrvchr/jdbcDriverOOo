@@ -77,7 +77,7 @@ class LogManager(unohelper.Base):
         settings = self._view.getLoggerSetting()
         self._model.setLoggerSetting(*settings)
 
-    def reloadSetting(self):
+    def loadSetting(self):
         settings = self._model.getLoggerSetting()
         self._view.setLoggerSetting(*settings)
 
