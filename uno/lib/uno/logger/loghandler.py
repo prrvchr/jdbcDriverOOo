@@ -46,22 +46,27 @@ class WindowHandler(unohelper.Base,
     def callHandlerMethod(self, dialog, event, method):
         try:
             handled = False
-            if method == 'ChangeLogger':
+            if method == 'SetLogger':
                 logger = event.Source.getSelectedItem()
-                self._manager.changeLogger(logger)
+                self._manager.setLogger(logger)
                 handled = True
-            elif method == 'ToggleLogger':
+            elif method == 'EnableLogger':
                 enabled = event.Source.State == 1
-                self._manager.toggleLogger(enabled)
+                self._manager.enableLogger(enabled)
                 handled = True
-            elif method == 'EnableViewer':
-                self._manager.toggleViewer(True)
+            elif method == 'ConsoleHandler':
+                self._manager.toggleHandler(False)
                 handled = True
-            elif method == 'DisableViewer':
-                self._manager.toggleViewer(False)
+            elif method == 'FileHandler':
+                self._manager.toggleHandler(True)
                 handled = True
             elif method == 'ViewLog':
                 self._manager.viewLog()
+                handled = True
+            elif method == 'SetLevel':
+                if self._manager.isHandlerEnabled():
+                    index = event.Source.getSelectedItemPos()
+                    self._manager.setLevel(index)
                 handled = True
             return handled
         except Exception as e:
@@ -69,11 +74,12 @@ class WindowHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('ChangeLogger',
-                'ToggleLogger',
-                'EnableViewer',
-                'DisableViewer',
-                'ViewLog')
+        return ('SetLogger',
+                'EnableLogger',
+                'ConsoleHandler',
+                'FileHandler',
+                'ViewLog',
+                'SetLevel')
 
 
 class DialogHandler(unohelper.Base,

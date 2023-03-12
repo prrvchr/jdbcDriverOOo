@@ -29,6 +29,10 @@
 
 import unohelper
 
+from com.sun.star.logging.LogLevel import ALL
+from com.sun.star.logging.LogLevel import OFF
+
+from ..unotool import getConfiguration
 from ..unotool import getFileSequence
 from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
@@ -50,9 +54,10 @@ class LogModel(LogController):
         self._logger = None
         self._listener = listener
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
-        self._debug = (True, 7, 'com.sun.star.logging.FileHandler')
-        self._settings = None
+        self._debug = (True, 7, True)
+        self._setting = None
         self._default = name
+        self._config = getConfiguration(ctx, '/org.openoffice.Office.Logging/Settings', True)
         if self._localized:
             self._pool.addModifyListener(listener)
 
@@ -67,18 +72,16 @@ class LogModel(LogController):
             names = (self._default, )
         return names
 
-    def isLoggerEnabled(self):
-        level = self._getLogConfig().LogLevel
-        enabled = self._isLogEnabled(level)
-        return enabled
+    def getLoggerSetting(self, name):
+        if self._localized:
+            self._logger = self._pool.getLocalizedLogger(name, self._url, g_basename)
+        else:
+            self._logger = self._pool.getNamedLogger(name)
+        return self._getLoggerSetting()
 
-    def getLoggerSetting(self):
-        enabled, index, handler = self._getLoggerSetting()
-        state = self._getState(handler)
-        return enabled, index, state
-
-    def getLoggerUrl(self):
-        return self._getLoggerUrl()
+    def loadSetting(self):
+        self._config = getConfiguration(self._ctx, '/org.openoffice.Office.Logging/Settings', True)
+        return self._getLoggerSetting()
 
     def getLoggerData(self):
         url = self._getLoggerUrl()
@@ -91,23 +94,15 @@ class LogModel(LogController):
         if self._localized:
             self._pool.removeModifyListener(self._listener)
 
-    def setLogger(self, name):
-        if self._localized:
-            self._logger = self._pool.getLocalizedLogger(name, self._url, g_basename)
-        else:
-            self._logger = self._pool.getNamedLogger(name)
+    def setLevel(self, index, enabled=True):
+        configuration = self._getLogConfig()
+        self._setLogIndex(configuration, index, enabled)
 
-    def setLoggerSetting(self, enabled, index, state):
-        handler = self._getHandler(state)
-        self._setLoggerSetting(enabled, index, handler)
+    def toggleHandler(self, enable):
+        configuration = self._getLogConfig()
+        self._setLogHandler(configuration, enable)
 
-# Private getter method
-    def _getHandler(self, state):
-        handlers = {True: 'ConsoleHandler', False: 'FileHandler'}
-        return 'com.sun.star.logging.%s' % handlers.get(state)
-
-    def _getState(self, handler):
-        states = {'com.sun.star.logging.ConsoleHandler': 1,
-                  'com.sun.star.logging.FileHandler': 2}
-        return states.get(handler)
+    def saveSetting(self):
+        if self._config.hasPendingChanges():
+            self._config.commitChanges()
 

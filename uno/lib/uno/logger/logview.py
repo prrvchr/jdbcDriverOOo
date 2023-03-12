@@ -48,11 +48,11 @@ class LogWindow():
     def getLogger(self):
         return self._getLoggers().getSelectedItem()
 
-    def getLoggerSetting(self):
-        enabled = bool(self._getLogger().State)
-        level = self._getLevel().getSelectedItemPos()
-        handler = self._getConsoleHandler().State
-        return enabled, level, handler
+    def getLevel(self):
+        return self._getLevel().getSelectedItemPos()
+
+    def getLoggerStatus(self):
+        return bool(self._getLogger().State)
 
 # LogWindow setter methods
     def initLogger(self, loggers):
@@ -66,7 +66,7 @@ class LogWindow():
     def updateLoggers(self, loggers):
         self._getLoggers().Model.StringItemList = loggers
 
-    def toggleLogger(self, enabled):
+    def enableLogger(self, enabled):
         self._getLogger().State = int(enabled)
         self._getLevelLabel().Model.Enabled = enabled
         self._getLevel().Model.Enabled = enabled
@@ -74,14 +74,17 @@ class LogWindow():
         self._getOutputLabel().Model.Enabled = enabled
         control = self._getFileHandler()
         control.Model.Enabled = enabled
-        self.toggleViewer(enabled and control.State)
+        self.toggleHandler(enabled and control.State)
 
-    def setLoggerSetting(self, enabled, level, handler):
-        self._getHandler(handler).State = 1
-        self._getLevel().selectItemPos(level, True)
-        self.toggleLogger(enabled)
+    def setLoggerSetting(self, enabled, index, handler):
+        if handler:
+            self._getFileHandler().State = 1
+        else:
+            self._getConsoleHandler().State = 1
+        self._getLevel().selectItemPos(index, True)
+        self.enableLogger(enabled)
 
-    def toggleViewer(self, enabled):
+    def toggleHandler(self, enabled):
         self._getViewer().Model.Enabled = enabled
 
 # LogWindow private control methods

@@ -56,13 +56,13 @@ from ..configuration import g_identifier
 import os
 import sys
 import traceback
-from threading import Lock
+from threading import Condition
 
 
 class OptionsManager(unohelper.Base):
     def __init__(self, ctx, window):
         self._ctx = ctx
-        self._lock = Lock()
+        self._lock = Condition()
         self._disposed = False
         self._disabled = False
         self._model = OptionsModel(ctx, self._lock)
@@ -107,12 +107,12 @@ class OptionsManager(unohelper.Base):
             self._view.disableConnectionLevel()
 
     def loadSetting(self):
+        self._logger.loadSetting()
         # XXX: We need to exit from Add new Driver mode if needed...
         reboot = self._model.needReboot()
         self._view.exitAdd(reboot)
-        self._model.loadConfiguration(self.updateView, 'Driver')
+        self._model.loadConfiguration(self.updateView)
         self._initView()
-        self._logger.loadSetting()
 
     def setDriverService(self, driver):
         print("OptionsManager.setDriverService() ************************")

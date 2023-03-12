@@ -60,12 +60,31 @@ class LogManager(unohelper.Base):
         self._infos = infos
         self._filter = filter
         self._dialog = None
+        self._disabled = False
         self._view.initLogger(self._model.getLoggerNames(filter))
+
+    # TODO: One shot disabler handler
+    def isHandlerEnabled(self):
+        if self._disabled:
+            self._disabled = False
+            return False
+        return True
+    def disableHandler(self):
+        self._disabled = True
 
 # LogManager setter methods
     def dispose(self):
         self._model.dispose()
 
+    # LogManager setter methods called by OptionsHandler
+    def saveSetting(self):
+        self._model.saveSetting()
+
+    def loadSetting(self):
+        self.disableHandler()
+        self._view.setLoggerSetting(*self._model.loadSetting())
+
+    # LogManager setter methods called by PoolListener
     def updateLoggers(self):
         logger = self._view.getLogger()
         loggers = self._model.getLoggerNames(self._filter)
@@ -73,24 +92,20 @@ class LogManager(unohelper.Base):
         if logger in loggers:
             self._view.setLogger(logger)
 
-    def saveSetting(self):
-        settings = self._view.getLoggerSetting()
-        self._model.setLoggerSetting(*settings)
-
-    def loadSetting(self):
-        settings = self._model.getLoggerSetting()
-        self._view.setLoggerSetting(*settings)
-
-    def changeLogger(self, name):
+    # LogManager setter methods called by WindowHandler
+    def setLogger(self, name):
         logger = name if self._filter is None else getLoggerName(name)
-        self._model.setLogger(logger)
-        self.loadSetting()
+        self.disableHandler()
+        self._view.setLoggerSetting(*self._model.getLoggerSetting(logger))
 
-    def toggleLogger(self, enabled):
-        self._view.toggleLogger(enabled)
+    def enableLogger(self, enabled):
+        index = self._view.getLevel()
+        self._model.setLevel(index, enabled)
+        self._view.enableLogger(enabled)
 
-    def toggleViewer(self, enabled):
-        self._view.toggleViewer(enabled)
+    def toggleHandler(self, enabled):
+        self._model.toggleHandler(enabled)
+        self._view.toggleHandler(enabled)
 
     def viewLog(self):
         handler = DialogHandler(self)
@@ -106,9 +121,15 @@ class LogManager(unohelper.Base):
         self._model.removeListener(listener)
         self._dialog = None
 
+    def setLevel(self, index):
+        enabled = self._view.getLoggerStatus()
+        self._model.setLevel(index, enabled)
+
+    # LogManager setter methods called by DialogHandler
     def logInfos(self):
         self._model.logInfos(INFO, self._infos, 'LogManager', 'logInfos()')
 
+    # LogManager setter methods called by LoggerListener
     def updateLogger(self):
         self._dialog.updateLogger(*self._model.getLogContent())
 
