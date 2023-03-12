@@ -57,20 +57,22 @@ def getLoggerName(name):
     return '%s.%s' % (g_identifier, name)
 
 def getPool(ctx):
-    return createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+    pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+    if pool is None:
+        pool = ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
+        localized = False
+    else:
+        localized = True
+    return pool, localized
 
 
 # This logger wrapper allows using variable number of argument in python
 # while the UNO API does not allow it
 class LogWrapper(object):
     def __init__(self, ctx, name, basename):
-        pool = getPool(ctx)
-        self._init(ctx, pool, name, basename)
-
-    def _init(self, ctx, pool, name, basename):
         self._ctx = ctx
         self._basename = basename
-        self._url, self._logger = _getLogger(ctx, pool, name, basename)
+        self._url, self._logger, self._localized = _getPoolLogger(ctx, name, basename)
 
     _debug = {}
 
@@ -106,19 +108,19 @@ class LogWrapper(object):
         self._logger.logp(level, clazz, method, message)
 
     def logrb(self, level, resource, *args):
-        if self._logger.hasEntryForId(resource):
+        if self._localized and self._logger.hasEntryForId(resource):
             self._logger.logrb(level, resource, args)
         else:
             self._logger.log(level, self._getErrorMessage(resource))
 
     def logprb(self, level, clazz, method, resource, *args):
-        if self._logger.hasEntryForId(resource):
+        if self._localized and self._logger.hasEntryForId(resource):
             self._logger.logprb(level, clazz, method, resource, args)
         else:
             self._logger.logp(level, clazz, method, self._getErrorMessage(resource))
 
     def resolveString(self, resource, *args):
-        if self._logger.hasEntryForId(resource):
+        if self._localized and self._logger.hasEntryForId(resource):
             return self._logger.resolveString(resource, args)
         else:
             return self._getErrorMessage(resource)
@@ -131,19 +133,27 @@ class LogWrapper(object):
 
     def _getErrorMessage(self, resource):
         resolver = getStringResourceWithLocation(self._ctx, self._url, 'Logger')
-        return resolver.resolveString(141) % (resource, self._url, self._basename)
+        return self._resolveErrorMessage(resolver, resource)
+
+    def _resolveErrorMessage(self, resolver, resource):
+        if self._localized:
+            msg = resolver.resolveString(141) % (resource, self._url, self._basename)
+        else:
+            msg = resolver.resolveString(142)
+        return msg
 
 
 # This logger controller allows using listener and access content of logger
 class LogController(LogWrapper):
     def __init__(self, ctx, name, basename=g_basename, listener=None):
-        pool = getPool(ctx)
-        self._init(ctx, pool, name, basename)
+        self._ctx = ctx
+        self._basename = basename
+        self._url, self._logger, self._localized = _getPoolLogger(ctx, name, basename)
         self._listener = listener
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
         self._debug = (True, 7, 'com.sun.star.logging.FileHandler')
         self._settings = None
-        if listener is not None:
+        if self._localized and listener is not None:
             self._logger.addModifyListener(listener)
 
     def getLogContent(self):
@@ -154,7 +164,7 @@ class LogController(LogWrapper):
 
 # Public setter method
     def dispose(self):
-        if self._listener is not None:
+        if self._localized and self._listener is not None:
             self._logger.removeModifyListener(self._listener)
 
     def logInfos(self, level, infos, clazz, method):
@@ -165,8 +175,11 @@ class LogController(LogWrapper):
     def clearLogger(self):
         name = self._logger.Name
         self._logger = None
-        pool = createService(self._ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
-        self._logger = pool.getLocalizedLogger(name, self._url, self._basename)
+        if self._localized:
+            pool = createService(self._ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
+        else:
+            pool = self._ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
+        self._logger = _getLogger(self._ctx, pool, self._localized, self._url, name, self._basename)
         msg = self._resolver.resolveString(131)
         self._logMessage(SEVERE, msg, 'Logger', 'clearLogger')
 
@@ -177,14 +190,16 @@ class LogController(LogWrapper):
             self._setDebugModeOff()
 
     def addListener(self, listener):
-        self._logger.addModifyListener(listener)
+        if self._localized:
+            self._logger.addModifyListener(listener)
 
     def removeListener(self, listener):
-        self._logger.removeModifyListener(listener)
+        if self._localized:
+            self._logger.removeModifyListener(listener)
 
 # Private getter method
     def _getErrorMessage(self, resource):
-        return self._resolver.resolveString(141) % (resource, self._url, self._basename)
+        return self._resolveErrorMessage(self._resolver, resource)
 
     def _getLoggerUrl(self):
         url = '$(userurl)/$(loggername).log'
@@ -277,8 +292,16 @@ class LogController(LogWrapper):
             self._logger.logp(level, clazz, method, msg)
 
 
-def _getLogger(ctx, pool, name, basename):
+def _getPoolLogger(ctx, name, basename):
+    pool, localized = getPool(ctx)
     url = getResourceLocation(ctx, g_identifier, g_resource)
-    logger = pool.getLocalizedLogger(getLoggerName(name), url, basename)
-    return url, logger
+    logger = _getLogger(ctx, pool, localized, url, name, basename)
+    return url, logger, localized
+
+def _getLogger(ctx, pool, localized, url, name, basename):
+    if localized:
+        logger = pool.getLocalizedLogger(getLoggerName(name), url, basename)
+    else:
+        logger = pool.getNamedLogger(getLoggerName(name))
+    return logger
 
