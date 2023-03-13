@@ -27,15 +27,28 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
-g_folder = 'hsqldb'
-g_path = 'hsqldb'
-g_jar = 'hsqldb.jar'
-g_class = 'org.hsqldb.jdbcDriver'
-g_options = ';hsqldb.default_table_type=cached;get_column_name=false;ifexists=false'
-g_shutdown = ';shutdown=true'
-g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
-g_version = '2.5.0'
-g_role = 'FrontOffice'
-g_dba = 'AD'
+import unohelper
+
+import traceback
+
+
+class OptionsView(unohelper.Base):
+    def __init__(self, window, timeout, enabled):
+        self._window = window
+        self._getTimeout().Value = timeout
+        self._getDatasource().Model.Enabled = enabled
+
+# OptionsView getter methods
+    def getTimeout(self):
+        return int(self._getTimeout().Value)
+
+# OptionsView setter methods
+    def setTimeout(self, timeout):
+        self._getTimeout().Value = timeout
+
+# OptionsView private control methods
+    def _getTimeout(self):
+        return self._window.getControl('NumericField1')
+
+    def _getDatasource(self):
+        return self._window.getControl('CommandButton1')

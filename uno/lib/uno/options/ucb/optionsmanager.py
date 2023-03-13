@@ -27,15 +27,43 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
-g_folder = 'hsqldb'
-g_path = 'hsqldb'
-g_jar = 'hsqldb.jar'
-g_class = 'org.hsqldb.jdbcDriver'
-g_options = ';hsqldb.default_table_type=cached;get_column_name=false;ifexists=false'
-g_shutdown = ';shutdown=true'
-g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
-g_version = '2.5.0'
-g_role = 'FrontOffice'
-g_dba = 'AD'
+import unohelper
+
+from .optionsmodel import OptionsModel
+from .optionsview import OptionsView
+
+from ..unotool import getDesktop
+
+from ..logger import LogManager
+
+from ..configuration import g_identifier
+from ..configuration import g_driverlog
+
+import os
+import sys
+import traceback
+
+
+class OptionsManager(unohelper.Base):
+    def __init__(self, ctx, window):
+        self._ctx = ctx
+        self._model = OptionsModel(ctx)
+        timeout = self._model.getTimeout()
+        enabled = self._model.hasDatasource()
+        self._view = OptionsView(window, timeout, enabled)
+        version  = ' '.join(sys.version.split())
+        path = os.pathsep.join(sys.path)
+        infos = {111: version, 112: path}
+        self._logger = LogManager(self._ctx, window.Peer, infos, g_identifier, g_driverlog)
+
+    def saveSetting(self):
+        self._model.setTimeout(self._view.getTimeout())
+        self._logger.saveSetting()
+
+    def loadSetting(self):
+        self._view.setTimeout(self._model.getTimeout())
+        self._logger.loadSetting()
+
+    def viewData(self):
+        url = self._model.getDatasourceUrl()
+        getDesktop(self._ctx).loadComponentFromURL(url, '_default', 0, ())

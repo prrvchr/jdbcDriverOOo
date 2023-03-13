@@ -27,15 +27,43 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
-g_folder = 'hsqldb'
-g_path = 'hsqldb'
-g_jar = 'hsqldb.jar'
-g_class = 'org.hsqldb.jdbcDriver'
-g_options = ';hsqldb.default_table_type=cached;get_column_name=false;ifexists=false'
-g_shutdown = ';shutdown=true'
-g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
-g_version = '2.5.0'
-g_role = 'FrontOffice'
-g_dba = 'AD'
+import unohelper
+
+from ..unotool import getConfiguration
+from ..unotool import getResourceLocation
+from ..unotool import getSimpleFile
+
+from ..dbconfig  import g_folder
+
+from ..configuration import g_identifier
+from ..configuration import g_scheme
+
+import traceback
+
+
+class OptionsModel(unohelper.Base):
+    def __init__(self, ctx):
+        self._ctx = ctx
+        self._configuration = getConfiguration(ctx, g_identifier, True)
+        folder = g_folder + '/' + g_scheme
+        location = getResourceLocation(ctx, g_identifier, folder)
+        self._url = location + '.odb'
+        self._factor = 60
+
+# OptionsModel getter methods
+    def getTimeout(self):
+        timeout = self._configuration.getByName('ReplicateTimeout')
+        return timeout / self._factor
+
+    def hasDatasource(self):
+        return getSimpleFile(self._ctx).exists(self._url)
+
+    def getDatasourceUrl(self):
+        return self._url
+
+# OptionsModel setter methods
+    def setTimeout(self, timeout):
+        timeout = timeout * self._factor
+        self._configuration.replaceByName('ReplicateTimeout', timeout)
+        if self._configuration.hasPendingChanges():
+            self._configuration.commitChanges()
