@@ -65,8 +65,7 @@ class WindowHandler(unohelper.Base,
                 handled = True
             elif method == 'SetLevel':
                 if self._manager.isHandlerEnabled():
-                    index = event.Source.getSelectedItemPos()
-                    self._manager.setLevel(index)
+                    self._manager.setLevel()
                 handled = True
             return handled
         except Exception as e:
@@ -121,6 +120,9 @@ class PoolListener(unohelper.Base,
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
 
+    def disposing(self, event):
+        pass
+
 
 class LoggerListener(unohelper.Base,
                      XModifyListener):
@@ -135,4 +137,7 @@ class LoggerListener(unohelper.Base,
         except Exception as e:
             msg = "Error: %s" % traceback.print_exc()
             print(msg)
+
+    def disposing(self, event):
+        pass
 

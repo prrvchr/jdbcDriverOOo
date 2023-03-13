@@ -82,7 +82,7 @@ class LogManager(unohelper.Base):
 
     def loadSetting(self):
         self.disableHandler()
-        self._view.setLoggerSetting(*self._model.loadSetting())
+        self._view.setLogSetting(self._model.loadSetting())
 
     # LogManager setter methods called by PoolListener
     def updateLoggers(self):
@@ -96,15 +96,14 @@ class LogManager(unohelper.Base):
     def setLogger(self, name):
         logger = name if self._filter is None else getLoggerName(name)
         self.disableHandler()
-        self._view.setLoggerSetting(*self._model.getLoggerSetting(logger))
+        self._view.setLogSetting(self._model.getLoggerSetting(logger))
 
     def enableLogger(self, enabled):
-        index = self._view.getLevel()
-        self._model.setLevel(index, enabled)
+        self._model.setLogSetting(self._view.getLogSetting())
         self._view.enableLogger(enabled)
 
     def toggleHandler(self, enabled):
-        self._model.toggleHandler(enabled)
+        self._model.setLogSetting(self._view.getLogSetting())
         self._view.toggleHandler(enabled)
 
     def viewLog(self):
@@ -114,16 +113,15 @@ class LogManager(unohelper.Base):
         data = self._model.getLoggerData()
         self._dialog = LogDialog(self._ctx, handler, parent, g_extension, True, *data)
         listener = LoggerListener(self)
-        self._model.addListener(listener)
+        self._model.addModifyListener(listener)
         dialog = self._dialog.getDialog()
         dialog.execute()
         dialog.dispose()
-        self._model.removeListener(listener)
+        self._model.removeModifyListener(listener)
         self._dialog = None
 
-    def setLevel(self, index):
-        enabled = self._view.getLoggerStatus()
-        self._model.setLevel(index, enabled)
+    def setLevel(self):
+        self._model.setLogSetting(self._view.getLogSetting())
 
     # LogManager setter methods called by DialogHandler
     def logInfos(self):

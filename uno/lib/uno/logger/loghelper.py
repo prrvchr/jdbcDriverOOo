@@ -47,6 +47,7 @@ from ..configuration import g_identifier
 from ..configuration import g_resource
 from ..configuration import g_basename
 
+from threading import Lock
 import traceback
 
 
@@ -58,15 +59,13 @@ def getLoggerName(name):
 
 def getPool(ctx):
     pool = createService(ctx, 'io.github.prrvchr.jdbcDriverOOo.LoggerPool')
-    if pool is None:
+    localized = pool is not None
+    if not localized:
         pool = ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
-        localized = False
-    else:
-        localized = True
     return pool, localized
 
 
-# This logger wrapper allows using variable number of argument in python
+# This LogWrapper allows using variable number of argument in python
 # while the UNO API does not allow it
 class LogWrapper(object):
     def __init__(self, ctx, name, basename):
@@ -75,6 +74,7 @@ class LogWrapper(object):
         self._url, self._logger, self._localized = _getPoolLogger(ctx, name, basename)
 
     _debug = {}
+    _lock = Lock()
 
     # XLogger
     @property
@@ -90,7 +90,9 @@ class LogWrapper(object):
 
     # Public getter method
     def isDebugMode(self):
-        return LogWrapper._debug.get(self.Name, False)
+        with LogWrapper._lock:
+            mode = self._isDebugMode()
+        return mode
 
     def addLogHandler(self, handler):
         self._logger.addLogHandler(handler)
@@ -125,12 +127,6 @@ class LogWrapper(object):
         else:
             return self._getErrorMessage(resource)
 
-    def addModifyListener(self, listener):
-        self._logger.addModifyListener(listener)
-
-    def removeModifyListener(self, listener):
-        self._logger.removeModifyListener(listener)
-
     def _getErrorMessage(self, resource):
         resolver = getStringResourceWithLocation(self._ctx, self._url, 'Logger')
         return self._resolveErrorMessage(resolver, resource)
@@ -142,8 +138,11 @@ class LogWrapper(object):
             msg = resolver.resolveString(142)
         return msg
 
+    def _isDebugMode(self):
+        return LogWrapper._debug.get(self.Name) is not None
 
-# This logger controller allows using listener and access content of logger
+
+# This LogController allows using listener and access content of logger
 class LogController(LogWrapper):
     def __init__(self, ctx, name, basename=g_basename, listener=None):
         self._ctx = ctx
@@ -151,12 +150,12 @@ class LogController(LogWrapper):
         self._url, self._logger, self._localized = _getPoolLogger(ctx, name, basename)
         self._listener = listener
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
-        self._debug = (True, 7, True)
         self._setting = None
         self._config = getConfiguration(ctx, '/org.openoffice.Office.Logging/Settings', True)
         if self._localized and listener is not None:
             self._logger.addModifyListener(listener)
 
+# Public getter method
     def getLogContent(self):
         url = self._getLoggerUrl()
         length, sequence = getFileSequence(self._ctx, url)
@@ -185,16 +184,17 @@ class LogController(LogWrapper):
         self._logMessage(SEVERE, msg, 'Logger', 'clearLogger')
 
     def setDebugMode(self, mode):
-        if mode:
-            self._setDebugModeOn()
-        else:
-            self._setDebugModeOff()
+        with LogWrapper._lock:
+            if mode:
+                self._setDebugModeOn()
+            else:
+                self._setDebugModeOff()
 
-    def addListener(self, listener):
+    def addModifyListener(self, listener):
         if self._localized:
             self._logger.addModifyListener(listener)
 
-    def removeListener(self, listener):
+    def removeModifyListener(self, listener):
         if self._localized:
             self._logger.removeModifyListener(listener)
 
@@ -213,60 +213,21 @@ class LogController(LogWrapper):
         return path.substituteVariables(url, True)
 
     def _getLoggerSetting(self):
-        configuration = self._getLogConfig()
-        enabled, index = self._getLogIndex(configuration)
-        state = self._getLogHandler(configuration)
-        return enabled, index, state
+        config = self._getLogConfig()
+        return LogConfig(config.LogLevel, config.DefaultHandler)
 
     def _getLogConfig(self):
         if not self._config.hasByName(self.Name):
             self._config.insertByName(self.Name, self._config.createInstance())
         return self._config.getByName(self.Name)
 
-    def _getLogIndex(self, configuration):
-        level = configuration.LogLevel
-        enabled = self._isLogEnabled(level)
-        if enabled:
-            index = self._getLogLevels().index(level)
-        else:
-            index = self._getLogLevels().index(ALL)
-        return enabled, index
-    
-    def _getLogLevels(self):
-        levels = (SEVERE,
-                  WARNING,
-                  INFO,
-                  CONFIG,
-                  FINE,
-                  FINER,
-                  FINEST,
-                  ALL)
-        return levels
-
-    def _isLogEnabled(self, level):
-        return level != OFF
-
-    def _getLogHandler(self, configuration):
-        handler = configuration.DefaultHandler
-        return self._getHandlerState(handler)
-
 # Private setter method
-    def _setLoggerSetting(self, enabled, index, state):
-        configuration = self._getLogConfig()
-        self._setLogIndex(configuration, index, enabled)
-        self._setLogHandler(configuration, state)
+    def _setLoggerSetting(self, setting):
+        config = self._getLogConfig()
+        config.LogLevel = setting.LogLevel
+        config.DefaultHandler = setting.DefaultHandler
         if self._config.hasPendingChanges():
             self._config.commitChanges()
-
-    def _setLogIndex(self, configuration, index, enabled):
-        level = self._getLogLevels()[index] if enabled else OFF
-        if configuration.LogLevel != level:
-             configuration.LogLevel = level
-
-    def _setLogHandler(self, configuration, state):
-        handler = self._getHandler(state)
-        if configuration.DefaultHandler != handler:
-           configuration.DefaultHandler = handler
 
     def _setLogHandler1(self, configuration, handler, index):
         if configuration.DefaultHandler != handler:
@@ -279,31 +240,78 @@ class LogController(LogWrapper):
             settings.insertByName('Threshold', index)
 
     def _setDebugModeOn(self):
-        if self._setting is None:
-            self._setting = self._getLoggerSetting()
-        self._setLoggerSetting(*self._debug)
-        LogWrapper._debug[self.Name] = True
+        LogWrapper._debug[self.Name] = self._getLoggerSetting()
+        self._setLoggerSetting(LogConfig())
 
     def _setDebugModeOff(self):
-        if self._setting is not None:
-            self._setLoggerSetting(*self._setting)
-            self._setting = None
-        LogWrapper._debug[self.Name] = False
-
-    def _getHandlerState(self, handler):
-        states = {'com.sun.star.logging.ConsoleHandler': False,
-                  'com.sun.star.logging.FileHandler': True}
-        return states.get(handler)
-
-    def _getHandler(self, state):
-        handlers = {False: 'ConsoleHandler', True: 'FileHandler'}
-        return 'com.sun.star.logging.%s' % handlers.get(state)
+        setting = LogWrapper._debug.get(self.Name)
+        if setting is not None:
+            self._setLoggerSetting(setting)
+            del LogWrapper._debug[self.Name]
 
     def _logMessage(self, level, msg, clazz=None, method=None):
         if clazz is None or method is None:
             self._logger.log(level, msg)
         else:
             self._logger.logp(level, clazz, method, msg)
+
+# This LogConfig is a wrapper around the logger configuration
+class LogConfig():
+    def __init__(self, level=ALL, handler='com.sun.star.logging.FileHandler'):
+        self._level = level
+        self._handler = handler
+        self._defaultlevel = ALL
+
+    @property
+    def LogLevel(self):
+        return self._level
+    @property
+    def DefaultHandler(self):
+        return self._handler
+
+    def getLevelIndex(self):
+        enabled = self.isLogEnabled()
+        if enabled:
+            index = self._getLogLevels().index(self.LogLevel)
+        else:
+            index = self._getLogLevels().index(self._defaultlevel)
+        return index
+
+    def getHandlerId(self):
+        return self._getHandlerIds().get(self.DefaultHandler)
+
+    def isLogEnabled(self):
+        return self.LogLevel != OFF
+
+    def _getLogLevels(self):
+        levels = (SEVERE,
+                  WARNING,
+                  INFO,
+                  CONFIG,
+                  FINE,
+                  FINER,
+                  FINEST,
+                  ALL)
+        return levels
+
+    def _getHandlerIds(self):
+        return {'com.sun.star.logging.ConsoleHandler': 1,
+                'com.sun.star.logging.FileHandler': 2}
+
+# This LogSetting is a wrapper around the logger UI setting
+class LogSetting(LogConfig):
+    def __init__(self, enabled, index, state):
+        self._enabled = enabled
+        self._index = index
+        self._state = state
+        self._defaultlevel = ALL
+
+    @property
+    def LogLevel(self):
+        return self._getLogLevels()[self._index] if self._enabled else OFF
+    @property
+    def DefaultHandler(self):
+        return 'com.sun.star.logging.FileHandler' if self._state else 'com.sun.star.logging.ConsoleHandler'
 
 
 def _getPoolLogger(ctx, name, basename):

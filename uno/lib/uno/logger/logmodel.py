@@ -37,7 +37,9 @@ from ..unotool import getFileSequence
 from ..unotool import getResourceLocation
 from ..unotool import getStringResourceWithLocation
 
+from .loghelper import LogWrapper
 from .loghelper import LogController
+from .loghelper import LogConfig
 from .loghelper import getPool
 
 from ..configuration import g_identifier
@@ -54,7 +56,6 @@ class LogModel(LogController):
         self._logger = None
         self._listener = listener
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
-        self._debug = (True, 7, True)
         self._setting = None
         self._default = name
         self._config = getConfiguration(ctx, '/org.openoffice.Office.Logging/Settings', True)
@@ -94,15 +95,17 @@ class LogModel(LogController):
         if self._localized:
             self._pool.removeModifyListener(self._listener)
 
-    def setLevel(self, index, enabled=True):
-        configuration = self._getLogConfig()
-        self._setLogIndex(configuration, index, enabled)
-
-    def toggleHandler(self, enable):
-        configuration = self._getLogConfig()
-        self._setLogHandler(configuration, enable)
+    def setLogSetting(self, setting):
+        with LogWrapper._lock:
+            if self._isDebugMode():
+                config = LogWrapper._debug.get(self.Name)
+            else:
+                config = self._getLogConfig()
+        config.LogLevel = setting.LogLevel
+        config.DefaultHandler = setting.DefaultHandler
 
     def saveSetting(self):
         if self._config.hasPendingChanges():
             self._config.commitChanges()
+
 

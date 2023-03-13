@@ -33,6 +33,8 @@ import unohelper
 from ..unotool import getContainerWindow
 from ..unotool import getDialog
 
+from .loghelper import LogSetting
+
 from ..configuration import g_extension
 
 
@@ -48,11 +50,11 @@ class LogWindow():
     def getLogger(self):
         return self._getLoggers().getSelectedItem()
 
-    def getLevel(self):
-        return self._getLevel().getSelectedItemPos()
-
-    def getLoggerStatus(self):
-        return bool(self._getLogger().State)
+    def getLogSetting(self):
+        enabled = bool(self._getLogger().State)
+        index = self._getLevel().getSelectedItemPos()
+        state = self._getFileHandler().State
+        return LogSetting(enabled, index, state)
 
 # LogWindow setter methods
     def initLogger(self, loggers):
@@ -76,13 +78,10 @@ class LogWindow():
         control.Model.Enabled = enabled
         self.toggleHandler(enabled and control.State)
 
-    def setLoggerSetting(self, enabled, index, handler):
-        if handler:
-            self._getFileHandler().State = 1
-        else:
-            self._getConsoleHandler().State = 1
-        self._getLevel().selectItemPos(index, True)
-        self.enableLogger(enabled)
+    def setLogSetting(self, setting):
+        self._getHandler(setting.getHandlerId()).State = 1
+        self._getLevel().selectItemPos(setting.getLevelIndex(), True)
+        self.enableLogger(setting.isLogEnabled())
 
     def toggleHandler(self, enabled):
         self._getViewer().Model.Enabled = enabled
