@@ -86,21 +86,13 @@ class OptionsView(unohelper.Base):
         if updated:
             self.disableDriverLevel()
 
-    def setConnectionLevel(self, level, updated, enabled):
+    def setConnectionLevel(self, level, enabled):
         self._getConnectionService(level).State = 1
-        if updated:
-            self.disableConnectionLevel()
-        else:
-            self._getConnectionService(0).Model.Enabled = enabled
+        self._getConnectionService(0).Model.Enabled = enabled
 
     def disableDriverLevel(self):
         self._getDriverService(0).Model.Enabled = False
         self._getDriverService(1).Model.Enabled = False
-
-    def disableConnectionLevel(self):
-        self._getConnectionService(0).Model.Enabled = False
-        self._getConnectionService(1).Model.Enabled = False
-        self._getConnectionService(2).Model.Enabled = False
 
     def setProtocols(self, protocols, protocol):
         control = self._getProtocols()

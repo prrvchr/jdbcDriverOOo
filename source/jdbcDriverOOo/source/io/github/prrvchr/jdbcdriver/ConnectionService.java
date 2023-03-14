@@ -50,7 +50,9 @@ public enum ConnectionService {
                 return connection;
             }
         }
-        return null;
+        // FIXME: By default we return a connection whose type can work with the two possible
+        // FIXME: drivers (ie: com.sun.star.sdbc.Driver or com.sun.star.sdbcx.Driver)
+        return ConnectionService.CSS_SDBCX_CONNECTION;
     }
 
 

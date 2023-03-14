@@ -102,9 +102,8 @@ class OptionsManager(unohelper.Base):
 
     def saveSetting(self):
         self._logger.saveSetting()
-        if self._model.saveSetting() and self._model.isLevelUpdated():
+        if self._model.saveSetting() and self._model.isUpdated():
             self._view.disableDriverLevel()
-            self._view.disableConnectionLevel()
 
     def loadSetting(self):
         self._logger.loadSetting()
@@ -115,9 +114,7 @@ class OptionsManager(unohelper.Base):
         self._initView()
 
     def setDriverService(self, driver):
-        print("OptionsManager.setDriverService() ************************")
-        level, updated, enabled = self._model.setDriverService(driver)
-        self._view.setConnectionLevel(level, updated, enabled)
+        self._view.setConnectionLevel(*self._model.setDriverService(driver))
 
     def setConnectionService(self, level):
         self._model.setConnectionService(level)
@@ -193,7 +190,7 @@ class OptionsManager(unohelper.Base):
     def _initView(self):
         driver, connection, upadated, enabled = self._model.getServicesLevel()
         self._view.setDriverLevel(driver, upadated)
-        self._view.setConnectionLevel(connection, upadated, enabled)
+        self._view.setConnectionLevel(connection, enabled)
         self._initViewProtocol()
 
     def _initViewProtocol(self, driver=None):

@@ -58,7 +58,7 @@ import traceback
 
 class OptionsModel(unohelper.Base):
 
-    _level = None
+    _level = False
     _reboot = False
 
     def __init__(self, ctx, lock):
@@ -121,9 +121,9 @@ class OptionsModel(unohelper.Base):
     def getServicesLevel(self):
         driver = self._services.get('Driver').index(self._getDriverService())
         connection = self._services.get('Connection').index(self._getConnectionService())
-        return driver, connection, self.isLevelUpdated(), self._isConnectionLevelEnabled(driver)
+        return driver, connection, self.isUpdated(), self._isConnectionLevelEnabled(driver)
 
-    def isLevelUpdated(self):
+    def isUpdated(self):
         return OptionsModel._level
 
     def getProtocols(self):
@@ -182,16 +182,15 @@ class OptionsModel(unohelper.Base):
 
 # OptionsModel setter methods
     def setDriverService(self, driver):
-        OptionsModel._level = False
+        OptionsModel._level = True
         self._config.replaceByName('DriverService', self._services.get('Driver')[driver])
         connection = self._services.get('Connection').index(self._getConnectionService())
         if driver and not connection:
             connection = 1
             self._config.replaceByName('ConnectionService', self._services.get('Connection')[connection])
-        return connection, self.isLevelUpdated(), self._isConnectionLevelEnabled(driver)
+        return connection, self._isConnectionLevelEnabled(driver)
 
     def setConnectionService(self, level):
-        OptionsModel._level = False
         self._config.replaceByName('ConnectionService', self._services.get('Connection')[level])
 
     def setPath(self, url):
@@ -213,9 +212,7 @@ class OptionsModel(unohelper.Base):
             self._configuration.commitChanges()
         if config:
             self._config.commitChanges()
-            if OptionsModel._level is not None:
-                OptionsModel._level = True
-        if driver or config:
+        if driver or (config and OptionsModel._level):
             OptionsModel._reboot = True
             return True
         return False

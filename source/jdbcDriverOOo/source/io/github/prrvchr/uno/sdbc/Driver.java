@@ -54,10 +54,10 @@ public final class Driver
                                             DriverProvider provider,
                                             ResourceBasedEventLogger logger,
                                             boolean enhanced,
-                                            ConnectionService level)
+                                            ConnectionService service)
     {
         ConnectionBase connection = null;
-        switch(level) {
+        switch(service) {
         case CSS_SDBC_CONNECTION:
             connection = new Connection(ctx, provider, logger, enhanced);
             break;
@@ -68,6 +68,7 @@ public final class Driver
             connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced);
             break;
         default:
+            connection = new Connection(ctx, provider, logger, enhanced);
         }
         return connection;
     }

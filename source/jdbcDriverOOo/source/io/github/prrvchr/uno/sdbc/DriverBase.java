@@ -77,7 +77,6 @@ public abstract class DriverBase
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
-    private final ConnectionService m_level;
     protected final ResourceBasedEventLogger m_logger;
 
     // The constructor method:
@@ -90,29 +89,11 @@ public abstract class DriverBase
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
-        m_level = _getOptionsConfiguration("ConnectionService");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
     }
     
-    private ConnectionService _getOptionsConfiguration(String property)
-    {
-        String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-        try {
-            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
-            if (config.hasByHierarchicalName(property)) {
-                service = (String) config.getByHierarchicalName(property);
-            }
-            UnoHelper.disposeComponent(config);
-        }
-        catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return ConnectionService.fromString(service);
-    }
-
 
     private XHierarchicalNameAccess _getDriverConfiguration(String path)
         throws Exception
@@ -181,10 +162,30 @@ public abstract class DriverBase
             catch(java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
             }
-            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_level);
+            ConnectionService service = _getOptionsConfiguration(info, "ConnectionService");
+            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, service);
             m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
         }
         return connection;
+    }
+
+    private ConnectionService _getOptionsConfiguration(PropertyValue[] info,
+                                                       String property)
+    {
+        String service = ConnectionService.CSS_SDBC_CONNECTION.service();
+        try {
+            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
+            if (config.hasByHierarchicalName(property)) {
+                service = (String) config.getByHierarchicalName(property);
+            }
+            UnoHelper.disposeComponent(config);
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        service = UnoHelper.getDefaultPropertyValue(info, property, service);
+        return ConnectionService.fromString(service);
     }
 
     private String _getUrlProtocol(final String url)
@@ -406,7 +407,7 @@ public abstract class DriverBase
                                                      DriverProvider provider,
                                                      ResourceBasedEventLogger logger,
                                                      boolean enhanced,
-                                                     ConnectionService level);
+                                                     ConnectionService service);
 
 
 }
