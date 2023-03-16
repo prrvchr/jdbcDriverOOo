@@ -31,21 +31,37 @@ import uno
 import unohelper
 
 from com.sun.star.logging.LogLevel import ALL
+from com.sun.star.logging.LogLevel import OFF
 
 from com.sun.star.logging import XLogHandler
 
 from ..unotool import createService
+from ..unotool import getResourceLocation
+from ..unotool import getSimpleFile
+
+from ..configuration import g_identifier
 
 
 class LogHandler(unohelper.Base,
                  XLogHandler):
-    def __init__(self, ctx, callback, level=ALL):
-        self._encoding = 'UTF-8'
-        service = 'com.sun.star.logging.PlainTextFormatter'
-        self._formatter = createService(ctx, service)
+    def __init__(self, ctx, name, listener, level=ALL):
+        encoding = 'UTF-8'
+        self._encoding = encoding
+        self._delimiter = '\n'
+        self._formatter = createService(ctx, 'com.sun.star.logging.PlainTextFormatter').create()
+        path = 'log/%s' % name
+        self._url = getResourceLocation(ctx, g_identifier, path)
+        self._sf = getSimpleFile(ctx)
+        if not self._sf.exists(self._url):
+            self._createLoggerFile()
+        self._output = createService(ctx, 'com.sun.star.io.TextOutputStream')
+        self._output.setEncoding(encoding)
+        self._input = createService(ctx, 'com.sun.star.io.TextInputStream')
+        self._input.setEncoding(encoding)
+        self._openLoggerFile()
+        self._listner = listener
         self._level = level
         self._listeners = []
-        self._callback = callback
 
 # XLogHandler
     @property
@@ -54,6 +70,7 @@ class LogHandler(unohelper.Base,
     @Encoding.setter
     def Encoding(self, value):
         self._encoding = value
+        self._output.setEncoding(value)
 
     @property
     def Formatter(self):
@@ -74,8 +91,12 @@ class LogHandler(unohelper.Base,
 
     def publish(self, record):
         # TODO: Need to do a callback with the record
-        self._callback()
-        return True
+        if self._level <= record.Level < OFF:
+            msg = self._formatRecord(record)
+            print("Handler.publish() Message: %s" % msg)
+            self._output.writeString(msg)
+            return True
+        return False
 
 # XComponent <- XLogHandler
     def dispose(self):
@@ -90,3 +111,20 @@ class LogHandler(unohelper.Base,
     def removeEventListener(self, listener):
         if listener in self._listeners:
             self._listeners.remove(listener)
+
+
+    def _createLoggerFile(self):
+        output = createService(self._ctx, 'com.sun.star.io.TextOutputStream')
+        output.setEncoding(self._encoding)
+        self._sf.writeFile(self._url, output)
+        output.writeString(self._formatter.getHead())
+        output.flush()
+        output.closeOutput()
+
+    def _openLoggerFile(self):
+        stream = self._sf.openFileReadWrite(self._url)
+        self._output.setOutputStream(stream.getOutputStream())
+        self._input.setInputStream(stream.getInputStream())
+
+    def _formatRecord(self, record):
+        return self._delimiter + self._formater.format(record)
