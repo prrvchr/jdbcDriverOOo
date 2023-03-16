@@ -37,10 +37,10 @@ import traceback
 
 class Logger(unohelper.Base,
              XLogger2):
-    def __init__(self, ctx, logger, resolver=None):
+    def __init__(self, ctx, logger, listener, resolver=None):
         self._ctx = ctx
         self._logger = logger
-        self._listeners = []
+        self._listeners = listener
         self._resolver = resolver
 
     # XLogger
