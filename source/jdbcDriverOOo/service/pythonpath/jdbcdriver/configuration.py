@@ -33,6 +33,7 @@ g_identifier = 'io.github.prrvchr.%s' % g_extension
 # Resource strings files folder
 g_resource = 'resource'
 g_basename = 'Driver'
+g_defaultlog = 'jdbcDriverLogger'
 g_errorlog = 'jdbcDriverError'
 
 
