@@ -39,27 +39,26 @@ from ..unotool import createService
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 
+
 from ..configuration import g_identifier
+from ..configuration import g_folderlog
 
 
-class LogHandler(unohelper.Base,
-                 XLogHandler):
-    def __init__(self, ctx, name, listener, level=ALL):
+def getRollerHandlerUrl(ctx, name):
+    path = '%s/%s.log' % (g_folderlog, name)
+    return getResourceLocation(ctx, g_identifier, path)
+
+
+class RollerHandler(unohelper.Base,
+                    XLogHandler):
+    def __init__(self, ctx, name, level=ALL):
         encoding = 'UTF-8'
         self._encoding = encoding
-        self._delimiter = '\n'
-        self._formatter = createService(ctx, 'com.sun.star.logging.PlainTextFormatter').create()
-        path = 'log/%s' % name
-        self._url = getResourceLocation(ctx, g_identifier, path)
+        self._formatter = createService(ctx, 'com.sun.star.logging.PlainTextFormatter')
+        self._url = getRollerHandlerUrl(ctx, name)
         self._sf = getSimpleFile(ctx)
-        if not self._sf.exists(self._url):
-            self._createLoggerFile()
-        self._output = createService(ctx, 'com.sun.star.io.TextOutputStream')
-        self._output.setEncoding(encoding)
-        self._input = createService(ctx, 'com.sun.star.io.TextInputStream')
-        self._input.setEncoding(encoding)
-        self._openLoggerFile()
-        self._listner = listener
+        self._out = createService(ctx, 'com.sun.star.io.TextOutputStream')
+        self._out.setEncoding(encoding)
         self._level = level
         self._listeners = []
 
@@ -70,7 +69,7 @@ class LogHandler(unohelper.Base,
     @Encoding.setter
     def Encoding(self, value):
         self._encoding = value
-        self._output.setEncoding(value)
+        self._out.setEncoding(value)
 
     @property
     def Formatter(self):
@@ -90,11 +89,8 @@ class LogHandler(unohelper.Base,
         pass
 
     def publish(self, record):
-        # TODO: Need to do a callback with the record
         if self._level <= record.Level < OFF:
-            msg = self._formatRecord(record)
-            print("Handler.publish() Message: %s" % msg)
-            self._output.writeString(msg)
+            self._publishRecord(record)
             return True
         return False
 
@@ -112,19 +108,18 @@ class LogHandler(unohelper.Base,
         if listener in self._listeners:
             self._listeners.remove(listener)
 
+    def _publishRecord(self, record):
+        if not self._sf.exists(self._url):
+            msg = self._formatter.getHead()
+            self._publishMessage(msg)
+        msg = self._formatter.format(record)
+        self._publishMessage(msg)
 
-    def _createLoggerFile(self):
-        output = createService(self._ctx, 'com.sun.star.io.TextOutputStream')
-        output.setEncoding(self._encoding)
-        self._sf.writeFile(self._url, output)
-        output.writeString(self._formatter.getHead())
-        output.flush()
-        output.closeOutput()
+    def _publishMessage(self, msg):
+        output = self._sf.openFileWrite(self._url)
+        output.seek(output.getLength())
+        self._out.setOutputStream(output)
+        self._out.writeString(msg)
+        self._out.getOutputStream().flush()
+        self._out.getOutputStream().closeOutput()
 
-    def _openLoggerFile(self):
-        stream = self._sf.openFileReadWrite(self._url)
-        self._output.setOutputStream(stream.getOutputStream())
-        self._input.setInputStream(stream.getInputStream())
-
-    def _formatRecord(self, record):
-        return self._delimiter + self._formater.format(record)
