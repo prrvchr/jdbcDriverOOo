@@ -58,7 +58,7 @@ class Logger(unohelper.Base,
     def addLogHandler(self, handler):
         self._logger.addLogHandler(handler)
 
-    def removeLogHandler(selfself, handler):
+    def removeLogHandler(self, handler):
         self._logger.removeLogHandler(handler)
 
     def isLoggable(self, level):
