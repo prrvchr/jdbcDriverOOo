@@ -39,9 +39,9 @@ from ..unotool import createService
 from ..unotool import getResourceLocation
 from ..unotool import getSimpleFile
 
-
 from ..configuration import g_identifier
-from ..configuration import g_folderlog
+
+g_folderlog = 'log'
 
 
 def getRollerHandlerUrl(ctx, name):
