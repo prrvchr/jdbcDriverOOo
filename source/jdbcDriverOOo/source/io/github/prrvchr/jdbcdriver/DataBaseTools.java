@@ -81,18 +81,17 @@ import com.sun.star.uno.TypeClass;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.css.util.Date;
-import io.github.prrvchr.css.util.DateWithTimezone;
 import io.github.prrvchr.css.util.DateTime;
 import io.github.prrvchr.css.util.DateTimeWithTimezone;
+import io.github.prrvchr.css.util.DateWithTimezone;
 import io.github.prrvchr.css.util.Time;
 import io.github.prrvchr.css.util.TimeWithTimezone;
-
-import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StandardSQLState;
+import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 
 
 public class DataBaseTools
@@ -1467,26 +1466,25 @@ public class DataBaseTools
                 }
                 break;
             case TypeClass.STRUCT_value:
-                Object object = AnyConverter.toObject(Object.class, any);
-                if (object instanceof Date) {
-                    statement.setObject(index, UnoHelper.getJavaLocalDate((Date) object));
+                if (any instanceof Date) {
+                    statement.setObject(index, UnoHelper.getJavaLocalDate((Date) any));
                 }
-                else if (object instanceof Time) {
-                    statement.setObject(index, UnoHelper.getJavaLocalTime((Time) object));
+                else if (any instanceof Time) {
+                    statement.setObject(index, UnoHelper.getJavaLocalTime((Time) any));
                 }
-                else if (object instanceof DateTime) {
-                    statement.setObject(index, UnoHelper.getJavaLocalDateTime((DateTime) object));
+                else if (any instanceof DateTime) {
+                    statement.setObject(index, UnoHelper.getJavaLocalDateTime((DateTime) any));
                 }
-                else if (object instanceof DateWithTimezone) {
-                    DateWithTimezone date = (DateWithTimezone) object;
+                else if (any instanceof DateWithTimezone) {
+                    DateWithTimezone date = (DateWithTimezone) any;
                     statement.setObject(index, UnoHelper.getJavaLocalDate(date.DateInTZ));
                 }
-                else if (object instanceof TimeWithTimezone) {
-                    TimeWithTimezone time = (TimeWithTimezone) object;
+                else if (any instanceof TimeWithTimezone) {
+                    TimeWithTimezone time = (TimeWithTimezone) any;
                     statement.setObject(index, UnoHelper.getJavaOffsetTime(time));
                 }
-                else if (object instanceof DateTimeWithTimezone) {
-                    DateTimeWithTimezone datetime = (DateTimeWithTimezone) object;
+                else if (any instanceof DateTimeWithTimezone) {
+                    DateTimeWithTimezone datetime = (DateTimeWithTimezone) any;
                     statement.setObject(index, UnoHelper.getJavaOffsetDateTime(datetime));
                 }
                 else {
