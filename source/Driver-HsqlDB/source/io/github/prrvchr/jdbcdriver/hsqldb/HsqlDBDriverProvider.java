@@ -51,9 +51,7 @@ public final class HsqlDBDriverProvider
                                                                             Map.entry(Types.DATALINK, Types.VARCHAR),
                                                                             Map.entry(Types.SQLXML, Types.VARCHAR),
                                                                             Map.entry(Types.NCLOB, Types.CLOB),
-                                                                            Map.entry(Types.REF_CURSOR, Types.REF),
-                                                                            Map.entry(Types.TIME_WITH_TIMEZONE, Types.VARCHAR),
-                                                                            Map.entry(Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR));
+                                                                            Map.entry(Types.REF_CURSOR, Types.REF));
 
     private final Map<String, String> m_sqllogger = Map.ofEntries(Map.entry("0", "1"),
                                                                   Map.entry("1", "1"),

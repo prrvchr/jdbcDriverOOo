@@ -1528,10 +1528,10 @@ public class DataBaseTools
             value = (Integer) object;
         }
         else if (object instanceof java.time.OffsetTime) {
-            value = UnoHelper.getUnoTimeWithTimezone((java.time.OffsetTime) object);
+            value = UnoHelper.getTimeWithTimezone((java.time.OffsetTime) object);
         }
         else if (object instanceof java.time.OffsetDateTime) {
-            value = UnoHelper.getUnoDateTimeWithTimezone((java.time.OffsetDateTime) object);
+            value = UnoHelper.getDateTimeWithTimezone((java.time.OffsetDateTime) object);
         }
         else if (object instanceof java.time.LocalDate) {
             value = UnoHelper.getUnoDate((java.time.LocalDate) object);
@@ -1540,7 +1540,7 @@ public class DataBaseTools
             value = UnoHelper.getUnoTime((java.time.LocalTime) object);
         }
         else if (object instanceof java.time.LocalDateTime) {
-            value = UnoHelper.getUnoDateTime((java.time.LocalDateTime) object);
+            value = UnoHelper.getDateTime((java.time.LocalDateTime) object);
         }
         else if (object instanceof java.sql.Date) {
             java.sql.Date date = (java.sql.Date) object;

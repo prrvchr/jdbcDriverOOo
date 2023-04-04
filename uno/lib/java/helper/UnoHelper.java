@@ -457,6 +457,56 @@ public class UnoHelper
         return value;
     }
 
+    public static io.github.prrvchr.css.util.TimeWithTimezone getTimeWithTimezone(java.time.OffsetTime time)
+    {
+        io.github.prrvchr.css.util.TimeWithTimezone value = new io.github.prrvchr.css.util.TimeWithTimezone();
+        if (time != null) {
+            value.TimeInTZ = getTime(time.toLocalTime());
+            value.Timezone = getUnoTimezone(time.getOffset());
+        }
+        return value;
+    }
+
+    public static io.github.prrvchr.css.util.Time getTime(java.time.LocalTime time)
+    {
+        io.github.prrvchr.css.util.Time value = new io.github.prrvchr.css.util.Time();
+        if (time != null) {
+            value.Hours = (short) time.getHour();
+            value.Minutes = (short) time.getMinute();
+            value.Seconds = (short) time.getSecond();
+            value.NanoSeconds = time.getNano();
+        }
+        return value;
+    }
+
+    public static io.github.prrvchr.css.util.DateTimeWithTimezone getDateTimeWithTimezone(java.time.OffsetDateTime datetime)
+    {
+        io.github.prrvchr.css.util.DateTimeWithTimezone value = new io.github.prrvchr.css.util.DateTimeWithTimezone();
+        if (datetime != null) {
+            value.DateTimeInTZ = getDateTime(datetime.toLocalDateTime());
+            value.Timezone = getUnoTimezone(datetime.getOffset());
+        }
+        return value;
+    }
+
+    public static io.github.prrvchr.css.util.DateTime getDateTime(java.time.LocalDateTime datetime)
+    {
+        io.github.prrvchr.css.util.DateTime value = new io.github.prrvchr.css.util.DateTime();
+        if (datetime != null) {
+            value.Year = (short) datetime.getYear();
+            value.Month = (short) datetime.getMonthValue();
+            value.Day = (short) datetime.getDayOfMonth();
+            value.Hours = (short) datetime.getHour();
+            value.Minutes = (short) datetime.getMinute();
+            value.Seconds = (short) datetime.getSecond();
+            value.NanoSeconds = datetime.getNano();
+            value.IsUTC = false;
+        }
+        return value;
+    }
+
+
+
     public static com.sun.star.util.DateTimeWithTimezone getUnoDateTimeWithTimezone(java.time.OffsetDateTime datetime)
     {
         com.sun.star.util.DateTimeWithTimezone value = new com.sun.star.util.DateTimeWithTimezone();
