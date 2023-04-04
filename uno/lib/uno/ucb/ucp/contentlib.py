@@ -43,13 +43,13 @@ from com.sun.star.ucb import XCommandInfo
 from com.sun.star.ucb import XCommandInfoChangeNotifier
 from com.sun.star.ucb import UnsupportedCommandException
 
-from .oauth2lib import g_oauth2
+from ..oauth2lib import g_oauth2
 
-from .unolib import PropertySet
+from ..unolib import PropertySet
 
-from .unotool import getProperty
+from ..unotool import getProperty
 
-from .contenttools import getParametersRequest
+from .contenthelper import getParametersRequest
 
 import traceback
 
@@ -278,13 +278,15 @@ class Row(unohelper.Base,
 
 class DynamicResultSet(unohelper.Base,
                        XDynamicResultSet):
-    def __init__(self, identifier, select):
-        self._identifier = identifier
+    def __init__(self, user, path, authority, select):
+        self._user = user
+        self._path = path
+        self._authority = authority
         self._select = select
 
     # XDynamicResultSet
     def getStaticResultSet(self):
-        return ContentResultSet(self._identifier, self._select)
+        return ContentResultSet(self._user, self._path, self._authority, self._select)
     def setListener(self, listener):
         pass
     def connectToCache(self, cache):
@@ -299,9 +301,11 @@ class ContentResultSet(unohelper.Base,
                        XRow,
                        XResultSetMetaDataSupplier,
                        XContentAccess):
-    def __init__(self, identifier, select):
+    def __init__(self, user, path, authority, select):
         try:
-            self._identifier = identifier
+            self._user = user
+            self._path = path
+            self._authority = authority
             result = select.executeQuery()
             result.last()
             self.RowCount = result.getRow()
@@ -399,11 +403,13 @@ class ContentResultSet(unohelper.Base,
 
     # XContentAccess
     def queryContentIdentifierString(self):
-        return self._result.getString(self._result.findColumn('TargetURL'))
+        return  self._result.getString(self._result.findColumn('TargetURL'))
     def queryContentIdentifier(self):
-        return self._identifier.queryContentIdentifier(self.queryContentIdentifierString())
+        return ContentIdentifier(self.queryContentIdentifierString())
     def queryContent(self):
-        return self.queryContentIdentifier().getContent()
+        title = self._result.getString(self._result.findColumn('Title'))
+        path = self._user.getContentPath(self._path, title)
+        return self._user.getContent(path, self._authority)
 
     def _getPropertySetInfo(self):
         properties = {}

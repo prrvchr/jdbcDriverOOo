@@ -29,16 +29,24 @@
 
 import uno
 
-from com.sun.star.sdb import ParametersRequest
 from com.sun.star.connection import NoConnectException
+
+from com.sun.star.ucb.ContentAction import INSERTED
+from com.sun.star.ucb.ContentAction import REMOVED
+from com.sun.star.ucb.ContentAction import DELETED
+from com.sun.star.ucb.ContentAction import EXCHANGED
+
 from com.sun.star.ucb import InteractiveAugmentedIOException
+
 from com.sun.star.ucb.ConnectionMode import ONLINE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 
-from .unotool import createService
-from .unotool import getProperty
-from .unotool import getPropertyValue
-from .unotool import getNamedValueSet
+from com.sun.star.sdb import ParametersRequest
+
+from ..unotool import createService
+from ..unotool import getProperty
+from ..unotool import getPropertyValue
+from ..unotool import getNamedValueSet
 
 
 def propertyChange(source, name, oldvalue, newvalue):
@@ -60,7 +68,7 @@ def setContentData(content, call, properties, index=1):
             call.setTimestamp(index, value)
         elif name in ('Trashed', 'CanAddChild', 'CanRename', 'IsReadOnly', 'IsVersionable'):
             call.setBoolean(index, value)
-        elif name in ('Size', 'Loaded'):
+        elif name in ('Size', 'ConnectionMode'):
             call.setLong(index, value)
         index += 1
     return index
@@ -146,3 +154,19 @@ def getInteractiveAugmentedIOException(message, source, classification, code, ar
     e.Code = uno.Enum('com.sun.star.ucb.IOErrorCode', code)
     e.Arguments = arguments
     return e
+
+def notifyContentListener(ctx, content, action, identifier=None):
+    if action == INSERTED:
+        identifier = content.getIdentifier()
+        parent = identifier.getParent()
+        parent.notify(getContentEvent(action, content, identifier))
+    elif action == DELETED:
+        identifier = content.getIdentifier()
+        content.notify(getContentEvent(action, content, identifier))
+    elif action == EXCHANGED:
+        content.notify(getContentEvent(action, content, identifier))
+
+def executeContentCommand(content, name, argument, environment):
+    command = getCommand(name, argument)
+    return content.execute(command, 0, environment)
+

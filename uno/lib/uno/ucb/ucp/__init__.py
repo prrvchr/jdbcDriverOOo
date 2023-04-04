@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,37 +25,9 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_ucb_XRestDataSource_idl__
-#define __com_sun_star_ucb_XRestDataSource_idl__
+from .contentuser import ContentUser
 
-#include <com/sun/star/uno/XInterface.idl>
-#include <com/sun/star/uri/XUriReference.idl>
-#include <com/sun/star/ucb/XRestDataBase.idl>
-#include <com/sun/star/ucb/XRestProvider.idl>
-#include <com/sun/star/ucb/XRestReplicator.idl>
-#include <com/sun/star/ucb/XRestUser.idl>
-#include <com/sun/star/ucb/XRestIdentifier.idl>
+from .parameterizedprovider import ParameterizedProvider
 
-module com { module sun { module star { module ucb {
-
-interface XRestDataSource: com::sun::star::uno::XInterface
-{
-
-    boolean isValid();
-    ::com::sun::star::ucb::XRestUser getUser([in] string Name,
-                                             [in] string Password);
-    ::com::sun::star::ucb::XRestIdentifier getIdentifier([in] ::com::sun::star::ucb::XRestUser User,
-                                                         [in] ::com::sun::star::uri::XUriReference Uri);
-
-    [attribute, readonly] ::com::sun::star::ucb::XRestProvider Provider;
-    [attribute, readonly] ::com::sun::star::ucb::XRestDataBase DataBase;
-    [attribute, readonly] ::com::sun::star::ucb::XRestReplicator Replicator;
-    [attribute, readonly] string Error;
-
-};
-
-}; }; }; };
-
-#endif

@@ -34,13 +34,11 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.sdb.CommandType import QUERY
 
-from com.sun.star.ucb import XRestDataBase
+from io.github.prrvchr.css.util import DateTimeWithTimezone
 
 from .unolib import KeyMap
 
 from .unotool import createService
-
-from .configuration import g_admin
 
 from .dbqueries import getSqlQuery
 from .dbconfig import g_role
@@ -51,8 +49,10 @@ from .dbtool import Array
 from .dbtool import checkDataBase
 from .dbtool import createStaticTable
 from .dbtool import currentDateTimeInTZ
+from .dbtool import currentUnoDateTime
 from .dbtool import executeSqlQueries
 from .dbtool import getDataSourceCall
+from .dbtool import getDateTimeInTZToString
 from .dbtool import getKeyMapFromResult
 from .dbtool import executeQueries
 
@@ -60,13 +60,13 @@ from .dbinit import getStaticTables
 from .dbinit import getQueries
 from .dbinit import getTablesAndStatements
 
-from .logger import getLogger
+from .configuration import g_admin
+from .configuration import g_scheme
 
 import traceback
 
 
-class DataBase(unohelper.Base,
-               XRestDataBase):
+class DataBase():
     def __init__(self, ctx, datasource, name='', password='', sync=None):
         self._ctx = ctx
         self._statement = datasource.getIsolatedConnection(name, password).createStatement()
@@ -125,8 +125,16 @@ class DataBase(unohelper.Base,
         result = select.executeQuery()
         if result.next():
             user = getKeyMapFromResult(result)
+        result.close()
         select.close()
         return user
+
+    def getDefaultUserTimeStamp(self):
+        dtz = DateTimeWithTimezone()
+        dtz.DateTimeInTZ.Year = 1970
+        dtz.DateTimeInTZ.Month = 1
+        dtz.DateTimeInTZ.Day = 1
+        return dtz
 
     def insertUser(self, provider, user, root):
         userid = provider.getUserId(user)
@@ -135,14 +143,14 @@ class DataBase(unohelper.Base,
         rootid = provider.getRootId(root)
         rootname = provider.getRootTitle(root)
         timestamp = currentDateTimeInTZ()
-        insert = self._getCall('insertUser')
-        insert.setString(1, username)
-        insert.setString(2, displayname)
-        insert.setString(3, rootid)
-        insert.setObject(4, timestamp)
-        insert.setString(5, userid)
-        insert.execute()
-        insert.close()
+        call = self._getCall('insertUser')
+        call.setString(1, userid)
+        call.setString(2, rootid)
+        call.setString(3, username)
+        call.setString(4, displayname)
+        call.setObject(5, timestamp)
+        call.execute()
+        call.close()
         self._mergeRoot(provider, userid, rootid, rootname, root, timestamp)
         data = KeyMap()
         data.insertValue('UserId', userid)
@@ -150,6 +158,9 @@ class DataBase(unohelper.Base,
         data.insertValue('RootId', rootid)
         data.insertValue('RootName', rootname)
         data.insertValue('Token', '')
+        data.insertValue('SyncMode', 0)
+        print("DataBase.insertUser() TimeStamp: %s" % getDateTimeInTZToString(timestamp))
+        data.insertValue('TimeStamp', timestamp)
         return data
 
     def getContentType(self):
@@ -158,24 +169,34 @@ class DataBase(unohelper.Base,
         if result.next():
             folder = result.getString(1)
             link = result.getString(2)
+        result.close()
         call.close()
         return folder, link
 
-# Procedures called by the Identifier
-    def getItem(self, userid, itemid, parentid):
+# Procedures called by the Replicator
+    def getMetaData(self, user, item):
+        itemid = item.getValue('ItemId')
+        metadata = self.getItem(user, itemid, False)
+        atroot = metadata.getValue('ParentId') == user.RootId
+        metadata.insertValue('AtRoot', atroot)
+        return metadata
+
+# Procedures called by the Content
         #TODO: Can't have a simple SELECT ResultSet with a Procedure,
-        #TODO: the malfunction is rather bizard: it always returns the same result
-        #TODO: as a workaround we use a simple quey...
+    def getItem(self, user, itemid, rewite=True):
         item = None
-        call = 'getRoot' if parentid is None else 'getItem'
+        isroot = itemid == user.RootId
+        print("Content.getItem() 1 isroot: '%s'" % isroot)
+        call = 'getRoot' if isroot else 'getItem'
         select = self._getCall(call)
-        select.setString(1, userid)
-        select.setString(2, itemid)
-        if parentid is not None:
-            select.setString(3, parentid)
+        select.setString(1, user.Id if isroot else itemid)
+        if not isroot:
+             select.setBoolean(2, rewite)
         result = select.executeQuery()
         if result.next():
+            print("Content.getItem() 2 isroot: '%s'" % isroot)
             item = getKeyMapFromResult(result)
+        result.close()
         select.close()
         return item
 
@@ -198,47 +219,40 @@ class DataBase(unohelper.Base,
         call.close()
         return all(rows)
 
-    def getChildren(self, userid, itemid, url, mode):
+    def getChildren(self, username, itemid, properties, mode, scheme):
         #TODO: Can't have a ResultSet of type SCROLL_INSENSITIVE with a Procedure,
         #TODO: as a workaround we use a simple quey...
-        select = self._getCall('getChildren')
+        select = self._getCall('getChildren', properties)
         scroll = uno.getConstantByName('com.sun.star.sdbc.ResultSetType.SCROLL_INSENSITIVE')
         select.ResultSetType = scroll
         # OpenOffice / LibreOffice Columns:
         #    ['Title', 'Size', 'DateModified', 'DateCreated', 'IsFolder', 'TargetURL', 'IsHidden',
         #    'IsVolume', 'IsRemote', 'IsRemoveable', 'IsFloppy', 'IsCompactDisc']
-        # "TargetURL" is done by:
-        #    CONCAT(identifier.getContentIdentifier(), Uri) for File and Foder
-        select.setString(1, url)
-        select.setString(2, userid)
+        # "TargetURL" is done by: the database view Path
+        select.setString(1, scheme)
+        select.setShort(2, mode)
         select.setString(3, itemid)
-        select.setShort(4, mode)
         return select
 
-    def updateLoaded(self, userid, itemid, value, default):
-        update = self._getCall('updateLoaded')
+    def updateConnectionMode(self, userid, itemid, value, default):
+        update = self._getCall('updateConnectionMode')
         update.setLong(1, value)
         update.setString(2, itemid)
         update.executeUpdate()
         update.close()
         return value
 
-    def getIdentifier(self, userid, rootid, uripath):
+    def getIdentifier(self, user, url):
+        print("DataBase.getIdentifier() Url: '%s'" % url)
         call = self._getCall('getIdentifier')
-        call.setString(1, userid)
-        call.setString(2, rootid)
-        call.setString(3, uripath)
-        call.setString(4, '/')
+        call.setString(1, user.Id)
+        call.setString(2, url)
         call.execute()
-        itemid = call.getString(5)
+        itemid = call.getString(3)
         if call.wasNull():
             itemid = None
-        parentid = call.getString(6)
-        if call.wasNull():
-            parentid = None
-        path = call.getString(7)
         call.close()
-        return itemid, parentid, path
+        return itemid
 
     def getNewIdentifier(self, userid):
         identifier = ''
@@ -247,10 +261,12 @@ class DataBase(unohelper.Base,
         result = select.executeQuery()
         if result.next():
             identifier = result.getString(1)
+        result.close()
         select.close()
         return identifier
 
     def deleteNewIdentifier(self, userid, itemid):
+        print("DataBase.deleteNewIdentifier() NewID: %s" % itemid)
         call = self._getCall('deleteNewIdentifier')
         call.setString(1, userid)
         call.setString(2, itemid)
@@ -269,15 +285,11 @@ class DataBase(unohelper.Base,
             update.close()
         elif property == 'Size':
             update = self._getCall('updateSize')
-            # The Size of the file is not sufficient to detect a 'Save' of the file,
-            # It can be modified and have the same Size...
-            # For this we temporarily update the Size to 0
+            # FIXME: If we update the Size, we need to update the DateModified too...
             update.setObject(1, timestamp)
-            update.setLong(2, 0)
-            update.setString(3, itemid)
-            update.execute()
             update.setLong(2, value)
-            update.setString(3, itemid)
+            update.setTimestamp(3, currentUnoDateTime())
+            update.setString(4, itemid)
             updated = update.execute() == 0
             update.close()
         elif property == 'Trashed':
@@ -288,26 +300,25 @@ class DataBase(unohelper.Base,
             updated = update.execute() == 0
             update.close()
         if updated:
-            # We need to update Capabilities table to be able to retrieve
-            # changes by user with system versioning
-            # TODO: I cannot use a procedure performing the two UPDATE 
-            # TODO: without the system versioning malfunctioning...
-            # TODO: As a workaround I use two successive UPDATE queries
-            update = self._getCall('updateCapabilities')
-            update.setObject(1, timestamp)
-            update.setString(2, userid)
-            update.setString(3, itemid)
-            update.execute()
-            update.close()
             # Start Replicator for pushing changes…
             self._sync.set()
 
-    def insertNewContent(self, userid, itemid, parentid, content, timestamp):
+    def getNewTitle(self, title, parentid, isfolder):
+        call = self._getCall('getNewTitle')
+        call.setString(1, title)
+        call.setString(2, parentid)
+        call.setBoolean(3, isfolder)
+        call.execute()
+        newtitle = call.getString(4)
+        call.close()
+        return newtitle
+
+    def insertNewContent(self, userid, content, timestamp):
         call = self._getCall('insertItem')
         call.setString(1, userid)
         call.setLong(2, 1)
         call.setObject(3, timestamp)
-        call.setString(4, itemid)
+        call.setString(4, content.getValue("Id"))
         call.setString(5, content.getValue("Title"))
         call.setTimestamp(6, content.getValue('DateCreated'))
         call.setTimestamp(7, content.getValue('DateModified'))
@@ -318,35 +329,38 @@ class DataBase(unohelper.Base,
         call.setBoolean(12, content.getValue('CanRename'))
         call.setBoolean(13, content.getValue('IsReadOnly'))
         call.setBoolean(14, content.getValue('IsVersionable'))
-        call.setString(15, parentid)
-        result = call.execute() == 0
+        call.setString(15, content.getValue("ParentId"))
+        status = call.execute() == 0
+        content.setValue('BaseURI', call.getString(16))
+        content.setValue('Title', call.getString(17))
+        content.setValue('TitleOnServer', call.getString(18))
         call.close()
-        if result:
+        if status:
             # Start Replicator for pushing changes…
             self._sync.set()
-        return result
 
-    def countChildTitle(self, userid, parentid, title):
-        count = 1
-        call = self._getCall('countChildTitle')
+    def hasTitle(self, userid, parentid, title):
+        has = True
+        call = self._getCall('hasTitle')
         call.setString(1, userid)
         call.setString(2, parentid)
         call.setString(3, title)
         result = call.executeQuery()
         if result.next():
-            count = result.getLong(1)
+            has = result.getBoolean(1)
+        result.close()
         call.close()
-        return count
+        return has
 
-    def getChildId(self, userid, parentid, title):
+    def getChildId(self, parentid, title):
         id = None
         call = self._getCall('getChildId')
-        call.setString(1, userid)
-        call.setString(2, parentid)
-        call.setString(3, title)
+        call.setString(1, parentid)
+        call.setString(2, title)
         result = call.executeQuery()
         if result.next():
             id = result.getString(1)
+        result.close()
         call.close()
         return id
 
@@ -368,6 +382,7 @@ class DataBase(unohelper.Base,
         result = call.executeQuery()
         if result.next():
             count = result.getLong(1)
+        result.close()
         call.close()
         return count
 
@@ -388,10 +403,10 @@ class DataBase(unohelper.Base,
         insert.addBatch()
 
     # First pull procedure: header of merge request
-    def getFirstPullCall(self, userid, loaded, timestamp):
+    def getFirstPullCall(self, userid, connectionmode, timestamp):
         call = self._getCall('mergeItem')
         call.setString(1, userid)
-        call.setInt(2, loaded)
+        call.setInt(2, connectionmode)
         call.setObject(3, timestamp)
         return call
 
@@ -401,52 +416,74 @@ class DataBase(unohelper.Base,
         call.addBatch()
         return row
 
-    def updateUserTimeStamp(self, timestamp, userid=None):
-        call = 'updateUsersTimeStamp' if userid is None else 'updateUserTimeStamp'
-        update = self._getCall(call)
-        update.setObject(1, timestamp)
-        if userid is not None:
-            update.setString(2, userid)
+    def updateUserSyncMode(self, userid, mode):
+        update = self._getCall('updateUserSyncMode')
+        update.setInt(1, mode)
+        update.setString(2, userid)
         update.executeUpdate()
         update.close()
-
-    def getUserTimeStamp(self, userid):
-        select = self._getCall('getUserTimeStamp')
-        select.setString(1, userid)
-        result = select.executeQuery()
-        if result.next():
-            timestamp = result.getObject(1, None)
-        select.close()
-        return timestamp
 
     def setSession(self, user=g_dba):
         query = getSqlQuery(self._ctx, 'setSession', user)
         self._statement.execute(query)
 
     # Procedure to retrieve all the UPDATE AND INSERT in the 'Capabilities' table
-    def getPushItems(self, start, end):
+    def getPushItems(self, userid, start, end):
         items = []
-        select = self._getCall('getSyncItems')
-        select.setObject(1, start)
-        select.setObject(2, end)
+        select = self._getCall('getPushItems')
+        select.setString(1, userid)
+        select.setObject(2, start)
+        select.setObject(3, end)
         result = select.executeQuery()
         while result.next():
             items.append(getKeyMapFromResult(result))
+        result.close()
         select.close()
         return items
 
-    def updateItemId(self, provider, user, uri, itemid, response):
+    def getPushProperties(self, userid, itemid, start, end):
+        properties = []
+        select = self._getCall('getPushProperties')
+        select.setString(1, userid)
+        select.setString(2, itemid)
+        select.setObject(3, start)
+        select.setObject(4, end)
+        result = select.executeQuery()
+        while result.next():
+            properties.append(getKeyMapFromResult(result))
+        result.close()
+        select.close()
+        return properties
+
+    def updatePushItems(self, user, itemids):
+        call = self._getCall('updatePushItems')
+        call.setString(1, user.Id)
+        call.setArray(2, Array('VARCHAR', itemids))
+        call.execute()
+        timestamp = call.getObject(3, None)
+        call.close()
+        user.TimeStamp = timestamp
+
+    def getItemParentIds(self, itemid, metadata, start, end):
+        call = self._getCall('getItemParentIds')
+        call.setString(1, itemid)
+        call.setObject(2, start)
+        call.setObject(3, end)
+        call.execute()
+        old = call.getArray(4)
+        new = call.getArray(5)
+        call.close()
+        metadata.insertValue('ParentToAdd', set(new) - set(old))
+        metadata.insertValue('ParentToRemove', set(old) - set(new))
+
+    def updateItemId(self, provider, itemid, response):
         newid = provider.getResponseId(response, itemid)
         if newid != itemid:
             update = self._getCall('updateItemId')
             update.setString(1, newid)
             update.setString(2, itemid)
-            row = update.executeUpdate()
-            msg = "execute UPDATE Items - Old ItemId: %s - New ItemId: %s - RowCount: %s" % (itemid, newid, row)
-            getLogger(self._ctx).logp(INFO, "DataBase", "updateItemId", msg)
+            update.executeUpdate()
             update.close()
-            # The Id of the item have been changed, we need to clear the Identifier from the cache
-            user.clearIdentifier(uri)
 
 # Procedures called internally
     def _mergeItem(self, call, provider, item, id, parents, timestamp):

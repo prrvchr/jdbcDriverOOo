@@ -24,30 +24,23 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_ucb_AuthenticationRequest2_idl__
-#define __com_sun_star_ucb_AuthenticationRequest2_idl__
+#ifndef __com_sun_star_ucb_ContentProperties_idl__
+#define __com_sun_star_ucb_ContentProperties_idl__
 
-#include <com/sun/star/task/ClassifiedInteractionRequest.idl>
+ module com {  module sun {  module star {  module ucb {
 
-module com {  module sun {  module star {  module ucb {
 
-exception AuthenticationRequest2: com::sun::star::task::ClassifiedInteractionRequest
+constants ContentProperties
 {
+    const long TITLE   = 1;
 
-    string ServerName;
-    string Diagnostic;
-    boolean HasRealm;
-    string Realm;
-    boolean HasUserName;
-    string UserName;
-    boolean HasPassword;
-    string Password;
-    boolean HasAccount;
-    string Account;
-    sequence<any> args;
+    const long CONTENT = 2;
+
+    const long TRASHED = 4;
 
 };
 
 }; }; }; };
 
 #endif
+

@@ -31,11 +31,12 @@ import uno
 import unohelper
 
 from com.sun.star.util import XCloseListener
+from com.sun.star.util import CloseVetoException
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.ucb import XRestDataSource
+from com.sun.star.ucb import IllegalIdentifierException
 
 from .oauth2lib import g_oauth2
 from .oauth2lib import getOAuth2UserName
@@ -44,6 +45,7 @@ from .unotool import createService
 from .unotool import getResourceLocation
 from .unotool import getSimpleFile
 from .unotool import getUrlPresentation
+from .unotool import parseUrl
 
 from .configuration import g_cache
 
@@ -54,12 +56,18 @@ from .dbtool import getDataSourceInfo
 from .dbtool import getDataSourceJavaInfo
 from .dbtool import registerDataSource
 
-from .user import User
-from .identifier import Identifier
+from .ucp import ContentUser
+
+from .provider import Provider
+
 from .replicator import Replicator
+
 from .database import DataBase
 
 from .logger import getLogger
+
+from .configuration import g_identifier
+from .configuration import g_scheme
 
 g_message = 'datasource'
 
@@ -67,17 +75,19 @@ import traceback
 
 
 class DataSource(unohelper.Base,
-                 XRestDataSource,
                  XCloseListener):
-    def __init__(self, ctx, event, scheme, plugin):
-        msg = "DataSource for Scheme: %s loading ... " % scheme
+    def __init__(self, ctx, logger, sync, lock):
         print("DataSource.__init__() 1")
         self._ctx = ctx
+        self._default = ''
         self._users = {}
+        self._logger = logger
         self.Error = None
-        self._sync = event
-        self.Provider = createService(self._ctx, '%s.Provider' % plugin)
-        datasource, url, created = self._getDataSource(scheme, plugin, True)
+        self._sync = sync
+        self._lock = lock
+        self._factory = createService(ctx, 'com.sun.star.uri.UriReferenceFactory')
+        self._provider = Provider(ctx)
+        datasource, url, created = self._getDataSource(True)
         self.DataBase = DataBase(self._ctx, datasource)
         if created:
             print("DataSource.__init__() 2")
@@ -87,78 +97,86 @@ class DataSource(unohelper.Base,
                 print("DataSource.__init__() 3")
         self.DataBase.addCloseListener(self)
         folder, link = self.DataBase.getContentType()
-        self.Provider.initialize(scheme, plugin, folder, link)
-        self.Replicator = Replicator(ctx, datasource, self.Provider, self._users, self._sync)
-        msg += "Done"
-        self._logger = getLogger(ctx)
-        self._logger.logp(INFO, 'DataSource', '__init__()', msg)
+        self._provider.initialize(folder, link)
+        self.Replicator = Replicator(ctx, datasource, self._provider, self._users, self._sync, self._lock)
+        self._logger.logprb(INFO, 'DataSource', '__init__()', 301)
         print("DataSource.__init__() 4")
+
+    # DataSource
+    def getDefaultUser(self):
+        return self._default
+
+    # FIXME: Get called from ParameterizedProvider.queryContent()
+    def queryContent(self, source, authority, identifier):
+        user, path = self._getUser(source, identifier.getContentIdentifier(), authority)
+        content = user.getContent(path, authority)
+        return content
 
     # XCloseListener
     def queryClosing(self, source, ownership):
+        if ownership:
+            raise CloseVetoException('cant close', self)
+        print("DataSource.queryClosing() ownership: %s" % ownership)
         if self.Replicator.is_alive():
             self.Replicator.cancel()
             self.Replicator.join()
-        #self.deregisterInstance(self.Scheme, self.Plugin)
         self.DataBase.shutdownDataBase(self.Replicator.fullPull())
-        msg = "DataSource queryClosing: Scheme: %s ... Done" % self.Provider.Scheme
-        self._logger.logp(INFO, 'DataSource', 'queryClosing()', msg)
-        print(msg)
+        self._logger.logprb(INFO, 'DataSource', 'queryClosing()', 331, self._provider.Scheme)
     def notifyClosing(self, source):
         pass
 
-    # XRestDataSource
-    def isValid(self):
-        return self.Error is None
-
-    def getIdentifier(self, factory, url, default=None):
-        print("DataSource.getIdentifier() 1 Url: %s" % url)
-        user, name, uri = self._getIdentifiers(factory, url, default)
-        if user is not None:
-            url = '%s://%s%s' % (uri.getScheme(), name, uri.getPath())
-            print("DataSource.getIdentifier() 2 Url: %s" % url)
-            identifier = user.getIdentifier(factory, url)
-        else:
-            identifier = Identifier(self._ctx, factory, user, url)
-        return identifier
-
     # Private methods
-    def _getIdentifiers(self, factory, url, default):
-        uri = factory.parse(url)
+    def _getUser(self, source, url, authority):
+        default = False
+        uri = self._factory.parse(url)
         if uri is None:
-            name = None
-        elif uri.hasAuthority() and uri.getAuthority() != '':
-            name = uri.getAuthority()
-        elif default is not None:
-            name = default
+            msg = self._logger.resolveString(311, url)
+            raise IllegalIdentifierException(msg, source)
+        if authority:
+            if uri.hasAuthority() and uri.getAuthority() != '':
+                name = uri.getAuthority()
+            else:
+                msg = self._logger.resolveString(312, url)
+                raise IllegalIdentifierException(msg, source)
+        elif self._default:
+            name = self._default
         else:
-            name = getOAuth2UserName(self._ctx, self, uri.getScheme())
+            name = self._getUserName(source, url)
+            default = True
         # User never change... we can cache it...
-        if name is None:
-            print("DataSource._getIdentifiers() Error **************************************************")
-            user = None
-        elif name in self._users:
+        if name in self._users:
             user = self._users[name]
         else:
-            user = User(self._ctx, self, name, self._sync)
+            user = ContentUser(self._ctx, self._logger, source, self.DataBase,
+                               self._provider, name, self._sync, self._lock)
             self._users[name] = user
-        return user, name, uri
+            # FIXME: if the user has been instantiated then we can consider it as the default user
+            if authority or default:
+                self._default = name
+        return user, uri.getPath()
 
-    def _getDataSource(self, dbname, plugin, register):
-        location = getResourceLocation(self._ctx, plugin, g_folder)
+    def _getUserName(self, source, url):
+        name = getOAuth2UserName(self._ctx, self, self._provider.Scheme)
+        if not name:
+            msg = self._logger.resolveString(321, url)
+            raise IllegalIdentifierException(msg, source)
+        return name
+
+    def _getDataSource(self, register):
+        location = getResourceLocation(self._ctx, g_identifier, g_folder)
         location = getUrlPresentation(self._ctx, location)
-        url = '%s/%s.odb' % (location, dbname)
+        url = '%s/%s.odb' % (location, g_scheme)
         dbcontext = createService(self._ctx, 'com.sun.star.sdb.DatabaseContext')
         if getSimpleFile(self._ctx).exists(url):
-            odb = dbname if dbcontext.hasByName(dbname) else url
+            odb = g_scheme if dbcontext.hasByName(g_scheme) else url
             datasource = dbcontext.getByName(odb)
             created = False
         else:
             datasource = dbcontext.createInstance()
-            datasource.URL = getDataSourceLocation(location, dbname, False)
+            datasource.URL = getDataSourceLocation(location, g_scheme, False)
             datasource.Info = getDataSourceInfo() + getDataSourceJavaInfo(location)
             created = True
         if register:
-            registerDataSource(dbcontext, dbname, url)
+            registerDataSource(dbcontext, g_scheme, url)
         return datasource, url, created
 

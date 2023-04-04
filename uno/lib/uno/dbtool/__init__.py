@@ -32,6 +32,7 @@ from .dbtool import createDataSource
 from .dbtool import createStaticTable
 from .dbtool import currentDateTime
 from .dbtool import currentDateTimeInTZ
+from .dbtool import currentUnoDateTime
 from .dbtool import executeQueries
 from .dbtool import executeSqlQueries
 from .dbtool import getConnectionInfo
@@ -61,6 +62,7 @@ from .dbtool import getRowDict
 from .dbtool import getRowValue
 from .dbtool import getSequenceFromResult
 from .dbtool import getSqlException
+from .dbtool import getDateTimeToString
 from .dbtool import getUnoType
 from .dbtool import getValueFromResult
 from .dbtool import registerDataSource

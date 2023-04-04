@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,51 +25,29 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_ucb_XRestIdentifier_idl__
-#define __com_sun_star_ucb_XRestIdentifier_idl__
+import unohelper
 
-#include <com/sun/star/uno/XInterface.idl>
-#include <com/sun/star/ucb/XRestDataBase.idl>
-#include <com/sun/star/ucb/XRestUser.idl>
-#include <com/sun/star/auth/XRestKeyMap.idl>
-#include <com/sun/star/ucb/XSimpleFileAccess.idl>
-#include <com/sun/star/sdbc/XPreparedStatement.idl>
-#include <com/sun/star/ucb/ContentInfo.idl>
-#include <com/sun/star/uri/XUriReference.idl>
+from com.sun.star.ucb import XContentEventListener
 
-module com { module sun { module star { module ucb {
+import traceback
 
-interface XRestIdentifier: com::sun::star::uno::XInterface
-{
 
-    boolean isInitialized();
-    void initialize([in] ::com::sun::star::ucb::XRestDataBase DataBase);
-    boolean isRoot();
-    boolean isFolder();
-    boolean isValid();
-    ::com::sun::star::uri::XUriReference getUri();
-    ::com::sun::star::ucb::XRestIdentifier createNewIdentifier([in] string ContentType);
-    ::com::sun::star::uno::XInterface getContent();
-    ::com::sun::star::sdbc::XPreparedStatement getFolderContent([in] ::com::sun::star::auth::XRestKeyMap Content);
-    string getDocumentContent([in] ::com::sun::star::ucb::XSimpleFileAccess Sf,
-                              [in] ::com::sun::star::auth::XRestKeyMap Content,
-                              [out] long Size);
-    void insertNewContent([in] ::com::sun::star::uno::XInterface Request,
-                          [in] ::com::sun::star::auth::XRestKeyMap Content);
-    void setTitle([in] string Value);
-    sequence<::com::sun::star::ucb::ContentInfo> getCreatableContentsInfo();
+class ContentListener(unohelper.Base,
+                      XContentEventListener):
+    def __init__(self, user):
+        self._user = user
 
-    [attribute, readonly] ::com::sun::star::ucb::XRestUser User;
-    [attribute, readonly] ::com::sun::star::auth::XRestKeyMap MetaData;
-    [attribute, readonly] string Id;
-    [attribute, readonly] string ParentId;
-    [attribute, readonly] string ParentURI;
-    [attribute, readonly] boolean IsNew;
+    # XContentEventListener
+    def contentEvent(self, event):
+        try:
+            print("ContentListener.contentEvent()")
+            self._user.updateIdentifier(event)
+        except Exception as e:
+            msg = "Error: %s" % traceback.print_exc()
+            print(msg)
 
-};
+    def disposing(self, event):
+        pass
 
-}; }; }; };
-
-#endif

@@ -54,6 +54,9 @@ from .dbtool import createStaticTable
 
 from .dbqueries import getSqlQuery
 
+from .configuration import g_scheme
+from .configuration import g_separator
+
 import traceback
 
 
@@ -164,14 +167,25 @@ def getQueries():
             ('grantPrivilege',{'Privilege':'SELECT,INSERT,UPDATE,DELETE','Table': 'Parents', 'Role': g_role}),
             ('grantPrivilege',{'Privilege':'SELECT,INSERT,UPDATE,DELETE','Table': 'Capabilities', 'Role': g_role}),
 
+            ('createGetTitle',{'Role': g_role}),
+            ('createGetUniqueName',{'Role': g_role, 'Prefix': ' ~', 'Suffix': ''}),
+
             ('createChildView',{'Role': g_role}),
             ('createTwinView',{'Role': g_role}),
             ('createUriView',{'Role': g_role}),
-            ('createTileView',{'Role': g_role}),
             ('createItemView',{'Role': g_role}),
+            ('createTitleView',{'Role': g_role}),
             ('createChildrenView',{'Role': g_role}),
+            ('createPathView',{'Role': g_role, 'Separator': g_separator}),
 
-            ('createGetIdentifier',{'Role': g_role}),
-            ('createGetSyncItems',{'Role': g_role}),
+            ('createGetIdentifier',{'Role': g_role, 'Separator': g_separator}),
+            ('createGetRoot',{'Role': g_role}),
+            ('createGetItem',{'Role': g_role}),
+            ('createGetNewTitle',{'Role': g_role}),
+            ('createUpdatePushItems',{'Role': g_role}),
+            ('createGetPushItems',{'Role': g_role}),
+            ('createGetPushProperties',{'Role': g_role}),
+            ('createGetItemParentIds',{'Role': g_role}),
+            ('createInsertUser',{'Role': g_role}),
             ('createMergeItem',{'Role': g_role}),
             ('createInsertItem',{'Role': g_role}))

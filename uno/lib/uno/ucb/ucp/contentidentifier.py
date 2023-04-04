@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,25 +25,25 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_ucb_RestProvider_idl__
-#define __com_sun_star_ucb_RestProvider_idl__
+import unohelper
 
-#include <com/sun/star/lang/XServiceInfo.idl>
-#include <com/sun/star/ucb/XRestProvider.idl>
+from com.sun.star.ucb import XContentIdentifier
 
-module com { module sun { module star { module ucb {
+from ..configuration import g_scheme
 
-service RestProvider
-{
-
-    interface ::com::sun::star::lang::XServiceInfo;
-    interface ::com::sun::star::ucb::XRestProvider;
-
-};
+import traceback
 
 
-}; }; }; };
+class ContentIdentifier(unohelper.Base,
+                        XContentIdentifier):
+    def __init__(self, url):
+        self._url = url
 
-#endif
+    # XContentIdentifier
+    def getContentIdentifier(self):
+        return self._url
+    def getContentProviderScheme(self):
+        return g_scheme
+
