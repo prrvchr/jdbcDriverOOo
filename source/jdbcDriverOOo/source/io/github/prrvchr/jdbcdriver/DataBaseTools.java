@@ -268,7 +268,6 @@ public class DataBaseTools
                                   schema ? "" : component.getSchema(), component.getTable(), quoted, rule);
     }
 
-
     public static String doComposeTableName(ConnectionSuper connection,
                                             String catalog,
                                             String schema,
@@ -1024,7 +1023,6 @@ public class DataBaseTools
         return sql;
     }
 
-
     /** creates a SQL REVOKE ROLE statement
      *
      * @param connection
@@ -1063,7 +1061,6 @@ public class DataBaseTools
         return sql;
     }
 
-
     public static int getTableOrViewPrivileges(ConnectionSuper connection,
                                                List<String> grantees,
                                                String catalog,
@@ -1074,7 +1071,6 @@ public class DataBaseTools
         NameComponents component = new NameComponents(catalog, schema, table);
         return getTableOrViewPrivileges(connection, grantees, component);
     }
-
 
     public static int getTableOrViewPrivileges(ConnectionSuper connection,
                                                List<String> grantees,
@@ -1251,7 +1247,6 @@ public class DataBaseTools
             throw new java.sql.SQLException(e.getMessage());
         }
     }
-
 
     /** returns the primary key columns of the table
      */
@@ -1556,7 +1551,6 @@ public class DataBaseTools
         }
         return value;
     }
-
 
     public static String buildName(ConnectionSuper connection,
                                    java.sql.ResultSet result,
