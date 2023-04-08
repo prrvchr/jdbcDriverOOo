@@ -481,7 +481,7 @@ public class UnoHelper
         return value;
     }
 
-    public static io.github.prrvchr.css.util.DateTimeWithTimezone getDateTimeWithTimezone(java.time.OffsetDateTime datetime)
+    public static io.github.prrvchr.css.util.DateTimeWithTimezone getDateTimeWithTimezone(OffsetDateTime datetime)
     {
         io.github.prrvchr.css.util.DateTimeWithTimezone value = new io.github.prrvchr.css.util.DateTimeWithTimezone();
         if (datetime != null) {
@@ -507,9 +507,7 @@ public class UnoHelper
         return value;
     }
 
-
-
-    public static com.sun.star.util.DateTimeWithTimezone getUnoDateTimeWithTimezone(java.time.OffsetDateTime datetime)
+    public static com.sun.star.util.DateTimeWithTimezone getUnoDateTimeWithTimezone(OffsetDateTime datetime)
     {
         com.sun.star.util.DateTimeWithTimezone value = new com.sun.star.util.DateTimeWithTimezone();
         if (datetime != null) {
@@ -571,14 +569,14 @@ public class UnoHelper
         return java.time.OffsetTime.of(getJavaLocalTime(time.TimeInTZ), getJavaZoneOffset(time.Timezone));
     }
 
-    public static java.time.OffsetDateTime getJavaOffsetDateTime(com.sun.star.util.DateTimeWithTimezone datetime)
+    public static OffsetDateTime getJavaOffsetDateTime(com.sun.star.util.DateTimeWithTimezone datetime)
     {
-        return java.time.OffsetDateTime.of(getJavaLocalDateTime(datetime.DateTimeInTZ), getJavaZoneOffset(datetime.Timezone));
+        return OffsetDateTime.of(getJavaLocalDateTime(datetime.DateTimeInTZ), getJavaZoneOffset(datetime.Timezone));
     }
 
-    public static java.time.OffsetDateTime getJavaOffsetDateTime(DateTimeWithTimezone datetime)
+    public static OffsetDateTime getJavaOffsetDateTime(DateTimeWithTimezone datetime)
     {
-        return java.time.OffsetDateTime.of(getJavaLocalDateTime(datetime.DateTimeInTZ), getJavaZoneOffset(datetime.Timezone));
+        return OffsetDateTime.of(getJavaLocalDateTime(datetime.DateTimeInTZ), getJavaZoneOffset(datetime.Timezone));
     }
 
     public static Object getObjectFromResult(java.sql.ResultSet result, int index)
