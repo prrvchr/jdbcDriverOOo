@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,27 +25,37 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_auth_XRestDataParser_idl__
-#define __com_sun_star_auth_XRestDataParser_idl__
-
-#include <com/sun/star/uno/XInterface.idl>
-
-module com { module sun { module star { module auth {
-
-interface XRestDataParser: com::sun::star::uno::XInterface
-{
-
-    any parseResponse([in] any Response);
-
-    any filterResponse([in] any Response);
-
-    [attribute, readonly] string DataType;
-
-};
+import uno
+import unohelper
 
 
-}; }; }; };
+from com.sun.star.rest import XRequestDataSink
 
-#endif
+import traceback
+
+
+class RequestDataSink(unohelper.Base,
+                      XRequestDataSink):
+    def __init__(self, ctx):
+        self._ctx = ctx
+        self._input = None
+
+    #XActiveDataSink
+    def setInputStream(self, input):
+        self._input = input
+    def getInputStream(self):
+        return self._input
+
+    #Python File Like Object
+    def read(self, length):
+        length, sequence = self._input.readBytes(None, length)
+        return sequence.value
+    def close(self):
+        self._input.closeInput()
+    def seek(self, location):
+        self._input.seek(location)
+    def tell(self):
+        return self._input.getPosition()
+

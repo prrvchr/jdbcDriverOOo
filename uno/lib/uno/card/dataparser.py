@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,27 +25,26 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_auth_XRestDataParser_idl__
-#define __com_sun_star_auth_XRestDataParser_idl__
+import unohelper
 
-#include <com/sun/star/uno/XInterface.idl>
+from com.sun.star.rest import XJsonParser
 
-module com { module sun { module star { module auth {
-
-interface XRestDataParser: com::sun::star::uno::XInterface
-{
-
-    any parseResponse([in] any Response);
-
-    any filterResponse([in] any Response);
-
-    [attribute, readonly] string DataType;
-
-};
+from .unolib import KeyMap
 
 
-}; }; }; };
+class JsonParser(unohelper.Base,
+                 XJsonParser):
+    def __init__(self, field, **kwargs):
+        self._field = field
+        self._keys = kwargs
 
-#endif
+    def parse(self, data):
+        keymap = KeyMap()
+        for key, value in data:
+            if isinstance(value, list):
+                value = tuple(value)
+            keymap.insertValue(self._keys.get(key, key), value)
+        return keymap.getValue(self._field) if keymap.hasValue(self._field) else keymap
+

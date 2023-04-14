@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,27 +25,48 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_auth_XRestDataParser_idl__
-#define __com_sun_star_auth_XRestDataParser_idl__
+import unohelper
 
-#include <com/sun/star/uno/XInterface.idl>
+from com.sun.star.frame import XTerminateListener
 
-module com { module sun { module star { module auth {
-
-interface XRestDataParser: com::sun::star::uno::XInterface
-{
-
-    any parseResponse([in] any Response);
-
-    any filterResponse([in] any Response);
-
-    [attribute, readonly] string DataType;
-
-};
+from com.sun.star.lang import XEventListener
 
 
-}; }; }; };
+import traceback
 
-#endif
+
+class TerminateListener(unohelper.Base,
+                        XTerminateListener):
+    def __init__(self, replicator):
+        self._replicator = replicator
+
+# XTerminateListener
+    def queryTermination(self, event):
+        try:
+            self._replicator.dispose()
+        except Exception as e:
+            msg = "TerminateListener Error: %s" % traceback.print_exc()
+            print(msg)
+
+    def notifyTermination(self, event):
+        pass
+
+    def disposing(self, source):
+        pass
+
+
+class EventListener(unohelper.Base,
+                    XEventListener):
+    def __init__(self, datasource):
+        self._datasource = datasource
+
+# XEventListener
+    def disposing(self, event):
+        try:
+            print("EventListener.disposing() ******************")
+            self._datasource.closeConnection(event.Source)
+        except Exception as e:
+            msg = "EventListener Error: %s" % traceback.print_exc()
+            print(msg)

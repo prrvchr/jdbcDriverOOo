@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,27 +25,30 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_auth_XRestDataParser_idl__
-#define __com_sun_star_auth_XRestDataParser_idl__
+from .configuration import g_identifier
+from .configuration import g_extension
+from .configuration import g_defaultlog
+from .configuration import g_scheme
+from .configuration import g_host
 
-#include <com/sun/star/uno/XInterface.idl>
+from .datasource import DataSource
 
-module com { module sun { module star { module auth {
+from .logger import getLogger
 
-interface XRestDataParser: com::sun::star::uno::XInterface
-{
+from .options import OptionsManager
 
-    any parseResponse([in] any Response);
+from .dbtool import getDriverPropertyInfos
 
-    any filterResponse([in] any Response);
+from .providerbase import getSqlException
 
-    [attribute, readonly] string DataType;
+from .unotool import createMessageBox
+from .unotool import createService
+from .unotool import getDesktop
+from .unotool import getDialog
+from .unotool import getFileSequence
+from .unotool import getResourceLocation
+from .unotool import getSimpleFile
+from .unotool import getStringResource
 
-};
-
-
-}; }; }; };
-
-#endif

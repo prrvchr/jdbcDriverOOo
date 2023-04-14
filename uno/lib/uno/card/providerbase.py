@@ -1,4 +1,7 @@
-/*
+#!
+# -*- coding: utf-8 -*-
+
+"""
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -22,27 +25,46 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
- */
+"""
 
-#ifndef __com_sun_star_auth_XRestDataParser_idl__
-#define __com_sun_star_auth_XRestDataParser_idl__
+import uno
+import unohelper
 
-#include <com/sun/star/uno/XInterface.idl>
+from com.sun.star.logging.LogLevel import SEVERE
 
-module com { module sun { module star { module auth {
+from .dbtool import getSqlException
 
-interface XRestDataParser: com::sun::star::uno::XInterface
-{
+from .logger import getLogger
 
-    any parseResponse([in] any Response);
+from .configuration import g_errorlog
+from .configuration import g_basename
 
-    any filterResponse([in] any Response);
-
-    [attribute, readonly] string DataType;
-
-};
+import traceback
 
 
-}; }; }; };
+class ProviderBase(unohelper.Base):
 
-#endif
+    # Need to be implemented method
+    def insertUser(self, database, request, scheme, server, name, pwd):
+        raise NotImplementedError
+
+    def initAddressbooks(self, database, user):
+        raise NotImplementedError
+
+    def firstPullCard(self, database, user, addressbook):
+        raise NotImplementedError
+
+    def pullCard(self, database, user, addressbook, dltd, mdfd):
+        raise NotImplementedError
+
+    def parseCard(self, connection):
+        raise NotImplementedError
+
+def getSqlException(ctx, source, state, code, method, *args):
+    logger = getLogger(ctx, g_errorlog, g_basename)
+    state = logger.resolveString(state)
+    msg = logger.resolveString(code, *args)
+    logger.logp(SEVERE, g_basename, method, msg)
+    error = getSqlException(state, code, msg, source)
+    return error
+
