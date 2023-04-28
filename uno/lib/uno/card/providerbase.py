@@ -32,6 +32,7 @@ import unohelper
 
 from com.sun.star.logging.LogLevel import SEVERE
 
+from .dbtool import getDateTimeFromString
 from .dbtool import getSqlException
 
 from .logger import getLogger
@@ -44,6 +45,13 @@ import traceback
 
 class ProviderBase(unohelper.Base):
 
+    @property
+    def DateTimeFormat(self):
+        return '%Y-%m-%dT%H:%M:%SZ'
+
+    def parseDateTime(self, timestamp):
+        return getDateTimeFromString(timestamp, self.DateTimeFormat)
+
     # Need to be implemented method
     def insertUser(self, database, request, scheme, server, name, pwd):
         raise NotImplementedError
@@ -51,14 +59,18 @@ class ProviderBase(unohelper.Base):
     def initAddressbooks(self, database, user):
         raise NotImplementedError
 
-    def firstPullCard(self, database, user, addressbook):
+    def firstPullCard(self, database, user, addressbook, pages, count):
         raise NotImplementedError
 
-    def pullCard(self, database, user, addressbook, dltd, mdfd):
+    def pullCard(self, database, user, addressbook, pages, count):
         raise NotImplementedError
 
-    def parseCard(self, connection):
+    def parseCard(self, database):
         raise NotImplementedError
+
+    # Can be overwritten method
+    def syncGroups(self, database, user, addressbook, pages, count):
+        pass
 
 def getSqlException(ctx, source, state, code, method, *args):
     logger = getLogger(ctx, g_errorlog, g_basename)

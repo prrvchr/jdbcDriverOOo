@@ -46,13 +46,7 @@ from .oauth2 import g_oauth2
 from .dbconfig import g_user
 from .dbconfig import g_schema
 
-from .configuration import g_path
-
 import traceback
-
-
-def getUserUri(server, name):
-    return server + '/' + name
 
 
 class User(unohelper.Base):
@@ -108,9 +102,6 @@ class User(unohelper.Base):
         return self._isOffLine(self.Server)
 
 # Procedures called by DataSource
-    def getUri(self):
-        return getUserUri(self.Server, self.Name)
-
     def getName(self):
         return g_user % self.Id
 

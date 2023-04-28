@@ -43,7 +43,6 @@ from .configuration import g_compact
 from .database import DataBase
 
 from .user import User
-from .user import getUserUri
 
 from .addressbook import AddressBook
 from .provider import Provider
@@ -69,7 +68,8 @@ class DataSource(unohelper.Base):
         self._users = {}
         self._listener = EventListener(self)
         self._database = DataBase(ctx)
-        self._provider = Provider(ctx)
+        paths, maps, types, tmps, fields = self._database.getDataBaseMetaData('metadata', 'item')
+        self._provider = Provider(ctx, paths, maps, types, tmps, fields)
         self._replicator = Replicator(ctx, self._database, self._provider, self._users)
         listener = TerminateListener(self._replicator)
         getDesktop(ctx).addTerminateListener(listener)
@@ -87,31 +87,35 @@ class DataSource(unohelper.Base):
 
 # Procedures called by Driver
     def getConnection(self, scheme, server, account, password):
-        print("DataSource.getConnection () 1")
-        uri = getUserUri(server, account)
-        if uri in self._maps:
-            name = self._maps.get(uri)
-            user = self._users.get(name)
-        else:
-            user = User(self._ctx, self._database, self._provider, scheme, server, account, password)
-            name = user.getName()
-            self._users[name] = user
-            self._maps[uri] = name
-        print("DataSource.getConnection () 2")
-        if user.isOnLine():
-            self._provider.initAddressbooks(self._database, user)
-        print("DataSource.getConnection () 3")
-        connection = self._database.getConnection(name, user.getPassword())
-        print("DataSource.getConnection () 4")
-        user.addSession(self._database.getSessionId(connection))
-        print("DataSource.getConnection () 5")
-        # User and/or AddressBooks has been initialized and the connection to the database is done...
-        # We can start the database replication in a background task.
-        self._replicator.start()
-        print("DataSource.getConnection () 6")
-        connection.addEventListener(self._listener)
-        print("DataSource.getConnection () 7")
-        return connection
+        try: 
+            print("DataSource.getConnection () 1")
+            uri = self._provider.getUserUri(server, account)
+            if uri in self._maps:
+                name = self._maps.get(uri)
+                user = self._users.get(name)
+            else:
+                user = User(self._ctx, self._database, self._provider, scheme, server, account, password)
+                name = user.getName()
+                self._users[name] = user
+                self._maps[uri] = name
+            print("DataSource.getConnection () 2")
+            if user.isOnLine():
+                self._provider.initAddressbooks(self._database, user)
+            print("DataSource.getConnection () 3")
+            connection = self._database.getConnection(name, user.getPassword())
+            print("DataSource.getConnection () 4")
+            user.addSession(self._database.getSessionId(connection))
+            print("DataSource.getConnection () 5")
+            # User and/or AddressBooks has been initialized and the connection to the database is done...
+            # We can start the database replication in a background task.
+            self._replicator.start()
+            print("DataSource.getConnection () 6")
+            connection.addEventListener(self._listener)
+            print("DataSource.getConnection () 7")
+            return connection
+        except Exception as e:
+            msg = "DataSource.getConnection() Error: %s" % traceback.format_exc()
+            print(msg)
 
     def _hasSession(self):
         for user in self._users.values():

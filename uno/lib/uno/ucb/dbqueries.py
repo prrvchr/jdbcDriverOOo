@@ -328,7 +328,7 @@ SELECT "ItemId" FROM "Children" WHERE "ParentId" = ? AND "Uri" = ?;'''
 
 # Insert Queries
     elif name == 'insertNewIdentifier':
-        query = 'INSERT INTO "Identifiers"("UserId","ItemId")VALUES(?,?);'
+        query = 'INSERT INTO "Identifiers"("UserId", "ItemId") VALUES (?, ?);'
 
 # Update Queries
     elif name == 'updateToken':
@@ -371,6 +371,19 @@ CREATE PROCEDURE "GetIdentifier"(IN USERID VARCHAR(100),
     SET ITEMID = ITEM;
   END;
 GRANT EXECUTE ON SPECIFIC ROUTINE "GetIdentifier_1" TO "%(Role)s";''' % format
+
+    elif name == 'createUpdateNewItemId':
+        query = '''\
+CREATE PROCEDURE "UpdateNewItemId"(IN ItemId VARCHAR(100),
+                                   IN NewId VARCHAR(100),
+                                   IN Created TIMESTAMP(6),
+                                   IN Modified TIMESTAMP(6))
+  SPECIFIC "UpdateNewItemId_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    UPDATE "Items" SET "ItemId"=NewId, "DateCreated"=Created, "DateModified"=Modified WHERE "ItemId"=ItemId;
+  END;
+GRANT EXECUTE ON SPECIFIC ROUTINE "UpdateNewItemId_1" TO "%(Role)s";''' % format
 
     elif name == 'createGetRoot':
         query = '''\
@@ -445,16 +458,38 @@ GRANT EXECUTE ON SPECIFIC ROUTINE "GetNewTitle_1" TO "%(Role)s";''' % format
 
     elif name == 'createInsertUser':
         query = '''\
-CREATE PROCEDURE "InsertUser"(IN USERID VARCHAR(100),
-                              IN ROOTID VARCHAR(100),
-                              IN USERNAME VARCHAR(100),
-                              IN DISPLAYNAME VARCHAR(100),
-                              IN DATETIME TIMESTAMP(6) WITH TIME ZONE)
+CREATE PROCEDURE "InsertUser"(IN UserId VARCHAR(100),
+                              IN UserName VARCHAR(100),
+                              IN DisplayName VARCHAR(100),
+                              IN RootId VARCHAR(100),
+                              IN Title VARCHAR(100),
+                              IN Created TIMESTAMP(6),
+                              IN Modified TIMESTAMP(6),
+                              IN MediaType VARCHAR(100),
+                              IN Trashed BOOLEAN,
+                              IN CanAddChild BOOLEAN,
+                              IN CanRename BOOLEAN,
+                              IN IsReadOnly BOOLEAN,
+                              IN IsVersionable BOOLEAN,
+                              IN DateTime TIMESTAMP(6) WITH TIME ZONE)
   SPECIFIC "InsertUser_1"
   MODIFIES SQL DATA
+  DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
-    DECLARE TMP TIMESTAMP(6) WITH TIME ZONE;
-    INSERT INTO "Users" ("UserId", "RootId", "UserName", "DisplayName", "TimeStamp") VALUES (USERID,ROOTID,USERNAME,DISPLAYNAME,DATETIME);
+    DECLARE RSLT CURSOR WITH RETURN FOR
+      SELECT U."UserId", U."RootId", U."Token", I."Title" "RootName", U."TimeStamp", U."SyncMode" 
+      FROM "Users" AS U 
+      INNER JOIN "Items" AS I ON U."RootId" = I."ItemId" 
+      WHERE U."UserName" = UserName FOR READ ONLY;
+    INSERT INTO "Users" ("UserId", "RootId", "UserName", "DisplayName", "TimeStamp") 
+                 VALUES (UserId, RootId, UserName, DisplayName, DateTime);
+    INSERT INTO "Items" ("UserId", "ItemId", "Title", "DateCreated", "DateModified", 
+                         "MediaType", "Size", "Trashed", "ConnectionMode", "TimeStamp") 
+                 VALUES (UserId, RootId, Title, Created, Modified, MediaType, 0, Trashed, 0, DateTime);
+    INSERT INTO "Capabilities" ("UserId", "ItemId", "CanAddChild", "CanRename", 
+                                "IsReadOnly", "IsVersionable", "TimeStamp")
+                        VALUES (UserId, RootId, CanAddChild, CanRename, IsReadOnly, IsVersionable, DateTime);
+    OPEN RSLT;
   END;
 GRANT EXECUTE ON SPECIFIC ROUTINE "InsertUser_1" TO "%(Role)s";''' % format
 
@@ -582,29 +617,55 @@ CREATE PROCEDURE "GetItemParentIds"(IN ITEMID VARCHAR(100),
   END;
 GRANT EXECUTE ON SPECIFIC ROUTINE "GetItemParentIds_1" TO "%(Role)s";''' % format
 
+    elif name == 'createPullChanges':
+        query = '''\
+CREATE PROCEDURE "PullChanges"(IN UserId VARCHAR(100),
+                               IN ItemId VARCHAR(100),
+                               IN Trashed BOOLEAN,
+                               IN Title VARCHAR(100),
+                               IN Modified TIMESTAMP(6),
+                               IN DateTime TIMESTAMP(6) WITH TIME ZONE)
+  SPECIFIC "PullChanges_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    IF Trashed THEN
+      DELETE FROM "Items" WHERE "UserId"=UserId AND "ItemId"=ItemId;
+    ELSEIF Title IS NULL THEN
+      UPDATE "Items" SET "DateModified"=Modified, "TimeStamp"=DateTime 
+        WHERE "UserId"=UserId AND "ItemId"=ItemId;
+    ELSE
+      UPDATE "Items" SET "Title"=Title, "DateModified"=Modified, "TimeStamp"=DateTime 
+        WHERE "UserId"=UserId AND "ItemId"=ItemId;
+    END IF;
+  END;
+GRANT EXECUTE ON SPECIFIC ROUTINE "PullChanges_1" TO "%(Role)s";''' % format
+
+
     elif name == 'createMergeItem':
         query = '''\
-CREATE PROCEDURE "MergeItem"(IN "UserId" VARCHAR(100),
-                             IN "ConnectionMode" SMALLINT,
-                             IN "TimeStamp" TIMESTAMP(6) WITH TIME ZONE,
-                             IN "ItemId" VARCHAR(100),
-                             IN "Title" VARCHAR(100),
-                             IN "DateCreated" TIMESTAMP(6),
-                             IN "DateModified" TIMESTAMP(6),
-                             IN "MediaType" VARCHAR(100),
-                             IN "Size" BIGINT,
-                             IN "Trashed" BOOLEAN,
-                             IN "CanAddChild" BOOLEAN,
-                             IN "CanRename" BOOLEAN,
-                             IN "IsReadOnly" BOOLEAN,
-                             IN "IsVersionable" BOOLEAN,
-                             IN "Parents" VARCHAR(100) ARRAY)
+CREATE PROCEDURE "MergeItem"(IN UserId VARCHAR(100),
+                             IN ConnectionMode SMALLINT,
+                             IN DateTime TIMESTAMP(6) WITH TIME ZONE,
+                             IN ItemId VARCHAR(100),
+                             IN Title VARCHAR(100),
+                             IN DateCreated TIMESTAMP(6),
+                             IN DateModified TIMESTAMP(6),
+                             IN MediaType VARCHAR(100),
+                             IN Size BIGINT,
+                             IN Trashed BOOLEAN,
+                             IN CanAddChild BOOLEAN,
+                             IN CanRename BOOLEAN,
+                             IN IsReadOnly BOOLEAN,
+                             IN IsVersionable BOOLEAN)
   SPECIFIC "MergeItem_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DECLARE "Index" INTEGER DEFAULT 1;
-    MERGE INTO "Items" USING (VALUES("UserId","ItemId","Title","DateCreated","DateModified", 
-                                     "MediaType","Size","Trashed","ConnectionMode","TimeStamp")) 
+    DECLARE Index INTEGER DEFAULT 1;
+    DECLARE TmpItem VARCHAR(100) DEFAULT NULL;
+    DECLARE TmpParent VARCHAR(100) DEFAULT NULL;
+    DECLARE TmpRoots VARCHAR(100) ARRAY;
+    MERGE INTO "Items" USING (VALUES(UserId, ItemId, Title, DateCreated, DateModified, 
+                                     MediaType, Size, Trashed, ConnectionMode, DateTime)) 
       AS vals(k,r,s,t,u,v,w,x,y,z) ON "Items"."ItemId"=vals.r 
         WHEN MATCHED THEN 
           UPDATE SET "Title"=vals.s, "DateCreated"=vals.t, "DateModified"=vals.u, "MediaType"=vals.v, 
@@ -613,8 +674,8 @@ CREATE PROCEDURE "MergeItem"(IN "UserId" VARCHAR(100),
           INSERT ("UserId","ItemId","Title","DateCreated","DateModified", 
                   "MediaType","Size","Trashed","ConnectionMode","TimeStamp") 
           VALUES vals.k, vals.r, vals.s, vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z; 
-    MERGE INTO "Capabilities" USING (VALUES("UserId","ItemId","CanAddChild","CanRename", 
-                                            "IsReadOnly","IsVersionable","TimeStamp")) 
+    MERGE INTO "Capabilities" USING (VALUES(UserId, ItemId, CanAddChild, CanRename, 
+                                            IsReadOnly, IsVersionable, DateTime)) 
       AS vals(t,u,v,w,x,y,z) ON "Capabilities"."UserId"=vals.t AND "Capabilities"."ItemId"=vals.u 
         WHEN MATCHED THEN 
           UPDATE SET "CanAddChild"=vals.v, "CanRename"=vals.w, "IsReadOnly"=vals.x, 
@@ -623,18 +684,36 @@ CREATE PROCEDURE "MergeItem"(IN "UserId" VARCHAR(100),
           INSERT ("UserId","ItemId","CanAddChild","CanRename","IsReadOnly", 
                   "IsVersionable","TimeStamp")
           VALUES vals.t, vals.u, vals.v, vals.w, vals.x, vals.y, vals.z;
-    DELETE FROM "Parents" WHERE "ChildId"="ItemId" AND "ItemId" NOT IN (UNNEST("Parents"));
-    -- A resource can have several parents in any case Google allows it...
-    WHILE "Index" <= CARDINALITY("Parents") DO
-      MERGE INTO "Parents" USING (VALUES("ItemId","Parents"["Index"],"TimeStamp")) 
-        AS vals(x,y,z) ON "Parents"."ChildId"=vals.x AND "Parents"."ItemId"=vals.y 
-          WHEN NOT MATCHED THEN 
-            INSERT ("ChildId","ItemId","TimeStamp") 
-            VALUES vals.x, vals.y, vals.z;
-      SET "Index" = "Index" + 1;
-    END WHILE;
   END;
 GRANT EXECUTE ON SPECIFIC ROUTINE "MergeItem_1" TO "%(Role)s";''' % format
+
+    elif name == 'createMergeParent':
+        query = '''\
+CREATE PROCEDURE "MergeParent"(IN ItemId VARCHAR(100),
+                               IN Path VARCHAR(100),
+                               IN Parents VARCHAR(100) ARRAY,
+                               IN DateTime TIMESTAMP(6) WITH TIME ZONE)
+  SPECIFIC "MergeParent_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DECLARE Index INTEGER DEFAULT 1;
+    DECLARE TmpParents VARCHAR(100) ARRAY;
+    IF Path IS NULL THEN
+      SET TmpParents = Parents;
+    ELSE
+      SELECT ARRAY_AGG("ItemId") INTO TmpParents FROM "Path" WHERE "Path" = Path;
+    END IF;
+    DELETE FROM "Parents" WHERE "ChildId"=ItemId AND "ItemId" NOT IN (UNNEST(TmpParents));
+    WHILE Index <= CARDINALITY(TmpParents) DO
+      MERGE INTO "Parents" USING (VALUES(ItemId, TmpParents[Index], DateTime)) 
+      AS vals(x,y,z) ON "Parents"."ChildId"=vals.x AND "Parents"."ItemId"=vals.y 
+        WHEN NOT MATCHED THEN 
+          INSERT ("ChildId","ItemId","TimeStamp") 
+          VALUES vals.x, vals.y, vals.z;
+      SET Index = Index + 1;
+    END WHILE;
+  END;
+GRANT EXECUTE ON SPECIFIC ROUTINE "MergeParent_1" TO "%(Role)s";''' % format
 
     elif name == 'createInsertItem':
         query = '''\
@@ -699,11 +778,17 @@ GRANT EXECUTE ON SPECIFIC ROUTINE "InsertItem_1" TO "%(Role)s";''' % format
     elif name == 'getItemParentIds':
         query = 'CALL "GetItemParentIds"(?,?,?,?,?)'
     elif name == 'insertUser':
-        query = 'CALL "InsertUser"(?,?,?,?,?)'
+        query = 'CALL "InsertUser"(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     elif name == 'mergeItem':
-        query = 'CALL "MergeItem"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+        query = 'CALL "MergeItem"(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    elif name == 'mergeParent':
+        query = 'CALL "MergeParent"(?,?,?,?)'
+    elif name == 'pullChanges':
+        query = 'CALL "PullChanges"(?,?,?,?,?,?)'
     elif name == 'insertItem':
         query = 'CALL "InsertItem"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    elif name == 'updateNewItemId':
+        query = 'CALL "UpdateNewItemId"(?,?,?,?)'
 
 # Get DataBase Version Query
     elif name == 'getVersion':

@@ -46,17 +46,23 @@ from com.sun.star.ucb.RestDataSourceSyncMode import SYNC_RENAMED
 from com.sun.star.ucb.RestDataSourceSyncMode import SYNC_REWRITED
 from com.sun.star.ucb.RestDataSourceSyncMode import SYNC_TRASHED
 
+from com.sun.star.ucb import IllegalIdentifierException
+
 from .unolib import KeyMap
 
-from .unotool import getResourceLocation
 from .unotool import getConnectionMode
 
+from .dbtool import currentDateTimeInTZ
 from .dbtool import getDateTimeFromString
+
+from .logger import getLogger
 
 from .configuration import g_identifier
 from .configuration import g_scheme
+from .configuration import g_separator
+from .configuration import g_chunk
 
-import datetime
+from collections import OrderedDict
 import traceback
 
 
@@ -92,6 +98,15 @@ class ProviderBase(object):
     @property
     def Buffer(self):
         raise NotImplementedError
+    @property
+    def DateTimeFormat(self):
+        raise NotImplementedError
+    @property
+    def Folder(self):
+        raise NotImplementedError
+    @property
+    def Link(self):
+        raise NotImplementedError
 
     # Can be rewrited properties
     @property
@@ -110,80 +125,140 @@ class ProviderBase(object):
     def SupportDuplicate(self):
         return False
 
-    # Must be implemented method
-    def getRequestParameter(self, method, data):
-        raise NotImplementedError
+    # Method called by Content
+    def updateFolderContent(self, content):
+        timestamp = currentDateTimeInTZ()
+        parameter = self.getRequestParameter(content.User.Request, 'getFolderContent', content)
+        iterator = self.parseRootFolder(parameter, content)
+        count = content.User.DataBase.pullItems(iterator, content.User.Id, timestamp)
+        return count
 
-    def getUserId(self, item):
-        raise NotImplementedError
-    def getUserName(self, item):
-        raise NotImplementedError
-    def getUserDisplayName(self, item):
-        raise NotImplementedError
-    def getUserToken(self, item):
-        raise NotImplementedError
+    def getDocumentContent(self, content, url):
+        print('ProviderBase.getDocumentContent() Url: %s' % url)
+        data = self.getDocumentLocation(content)
+        if data is not None:
+            print('ProviderBase.getDocumentContent() Data: %s' % data)
+            parameter = self.getRequestParameter(content.User.Request, 'getDocumentContent', data)
+            response = content.User.Request.download(parameter, url, g_chunk, 3, 10)
+            response.close()
+            return response.Ok
+        return False
 
-    def getItemId(self, item):
-        raise NotImplementedError
-    def getItemTitle(self, item):
-        raise NotImplementedError
-    def getItemCreated(self, item, timestamp=None):
-        raise NotImplementedError
-    def getItemModified(self, item, timestamp=None):
-        raise NotImplementedError
-    def getItemMediaType(self, item):
-        raise NotImplementedError
-    def getItemSize(self, item):
-        raise NotImplementedError
-    def getItemTrashed(self, item):
-        raise NotImplementedError
-    def getItemCanAddChild(self, item):
-        raise NotImplementedError
-    def getItemCanRename(self, item):
-        raise NotImplementedError
-    def getItemIsReadOnly(self, item):
-        raise NotImplementedError
-    def getItemIsVersionable(self, item):
-        raise NotImplementedError
+    # Method called by Replicator
+    def pullNewIdentifiers(self, user):
+        parameter = self.getRequestParameter(user.Request, 'getNewIdentifier', user)
+        response = user.Request.execute(parameter)
+        if response.Ok:
+            iterator = self.parseNewIdentifiers(response)
+        else:
+            # TODO: raise exception with the right message...
+            self._logger.logprb(SEVERE, 'Replicator', '_checkNewIdentifier', 403, user.Name)
+        user.DataBase.insertIdentifier(iterator, user.Id)
+        response.close()
 
-    def getItemParent(self, item, rootid):
-        raise NotImplementedError
+    def firstPull(self, user):
+        timestamp = currentDateTimeInTZ()
+        page = count = 0
+        for root in self.getFirstPullRoots(user):
+            parameter = self.getRequestParameter(user.Request, 'getFirstPull', root)
+            iterator = self.parseItems(user.Request, parameter)
+            count +=  user.DataBase.pullItems(iterator, user.Id, timestamp)
+            page += parameter.PageCount
+        return page, count, parameter.SyncToken
 
-    # Base method
-    def parseDateTime(self, timestamp, format='%Y-%m-%dT%H:%M:%S.%fZ'):
-        return getDateTimeFromString(timestamp, format)
-    def isOnLine(self):
-        self.SessionMode = getConnectionMode(self._ctx, self.Host)
-        return  self.SessionMode != OFFLINE
-    def isOffLine(self):
-        self.SessionMode = getConnectionMode(self._ctx, self.Host)
-        return  self.SessionMode != ONLINE
+    def pullUser(self, user):
+        timestamp = currentDateTimeInTZ()
+        parameter = self.getRequestParameter(user.Request, 'getPull', user)
+        iterator = self.parseItems(user.Request, parameter)
+        count = user.DataBase.pullItems(iterator, user.Id, timestamp)
+        return parameter.PageCount, count, parameter.SyncToken
 
-    def initialize(self, folder, link):
-        self.Folder = folder
-        self.Link = link
-        self.SourceURL = getResourceLocation(self._ctx, g_identifier, g_scheme)
-        self.SessionMode = getConnectionMode(self._ctx, self.Host)
+    def getUserToken(self, user):
+        parameter = self.getRequestParameter(user.Request, 'getToken', user)
+        response = user.Request.execute(parameter)
+        if not response.Ok:
+            pass
+        token = self.parseUserToken(response)
+        response.close()
+        return token
 
-    def initializeUser(self, user, name):
-        if self.isOnLine():
-            return user.Request.initializeUser(name)
+    def _getRejectedItems(self, items):
+        rejected = []
+        for item in items:
+            itemid = self._getItemId(item)
+            title = self._getItemTitle(item)
+            parents = self._getItemParents(item)
+            rejected.append((title, itemid, ','.join(parents)))
+        return rejected
+
+    def _isValidItem(self, item, roots, orphans):
+        itemid = self._getItemId(item)
+        parents = self._getItemParents(item)
+        if not all(parent in roots for parent in parents):
+            orphans[itemid] = item
+            return False
+        roots.append(itemid)
         return True
 
+    def _validItem(self, item, roots, orphans):
+        return True
+
+    def _getItemId(self, item):
+        return item[0]
+    def _getItemTitle(self, item):
+        return item[1]
+    def _getItemParents(self, item):
+        return item[11]
+
+    # Must be implemented method
+    def getRequestParameter(self, request, method, data):
+        raise NotImplementedError
+
+    def getUser(self, source, request, name):
+        raise NotImplementedError
+
+    def parseNewIdentifiers(self, response):
+        raise NotImplementedError
+
+    def parseItems(self, request, parameter):
+        raise NotImplementedError
+
+    def parseChanges(self, user, parameter):
+        raise NotImplementedError
+
+    def parseUserToken(self, user):
+        raise NotImplementedError
+
+    def getFirstPullRoots(self, user):
+        raise NotImplementedError
+
+    def parseUploadLocation(self, user):
+        raise NotImplementedError
+
+    def getDocumentLocation(self, user):
+        raise NotImplementedError
+
+    def mergeNewFolder(self, response, user, item):
+        raise NotImplementedError
+
+    def createNewFile(self, user, data):
+        raise NotImplementedError
+
+    def parseRootFolder(self, parameter, content):
+        raise NotImplementedError
+
+    def initUser(self, database, user, token):
+        pass
+
+    # Base method
+    def parseDateTime(self, timestamp):
+        return getDateTimeFromString(timestamp, self.DateTimeFormat)
+    def isOnLine(self):
+        return OFFLINE != getConnectionMode(self._ctx, self.Host)
+    def isOffLine(self):
+        return ONLINE != getConnectionMode(self._ctx, self.Host)
+
     # Can be rewrited method
-    def initUser(self, request, database, user):
-        pass
-    def initFirstPull(self, rootid):
-        self._folders = [rootid]
-    def hasFirstPull(self):
-        return len(self._folders) > 0
-    def getFirstPull(self):
-        if self.hasFirstPull():
-            return self._folders.pop(0)
-    def setFirstPull(self, item):
-        pass
-    def updateDrive(self, database, user, token):
-        pass
     def isFolder(self, contenttype):
         return contenttype == self.Folder
     def isLink(self, contenttype):
@@ -191,96 +266,41 @@ class ProviderBase(object):
     def isDocument(self, contenttype):
         return not (self.isFolder(contenttype) or self.isLink(contenttype))
 
-    def getRootId(self, item):
-        return self.getItemId(item)
-    def getRootTitle(self, item):
-        return self.getItemTitle(item)
-    def getRootCreated(self, item, timestamp=None):
-        return self.getItemCreated(item, timestamp)
-    def getRootModified(self, item, timestamp=None):
-        return self.getItemModified(item, timestamp)
-    def getRootMediaType(self, item):
-        return self.getItemMediaType(item)
-    def getRootSize(self, item):
-        return self.getItemSize(item)
-    def getRootTrashed(self, item):
-        return self.getItemTrashed(item)
-    def getRootCanAddChild(self, item):
-        return self.getItemCanAddChild(item)
-    def getRootCanRename(self, item):
-        return self.getItemCanRename(item)
-    def getRootIsReadOnly(self, item):
-        return self.getItemIsReadOnly(item)
-    def getRootIsVersionable(self, item):
-        return self.getItemIsVersionable(item)
-
-    def getResponseId(self, response, default):
-        id = self.getItemId(response)
-        if not id:
-            id = default
-        return id
-    def getResponseTitle(self, response, default):
-        title = self.getItemTitle(response)
-        if not title:
-            title = default
-        return title
-    def transform(self, name, value):
-        return value
-
-    def getIdentifier(self, request, user):
-        parameter = self.getRequestParameter('getNewIdentifier', user)
-        return request.getIterator(parameter, None)
-    def getUser(self, request, name):
-        data = KeyMap()
-        data.insertValue('Id', name)
-        parameter = self.getRequestParameter('getUser', data)
-        return request.execute(parameter)
-    def getRoot(self, request, user):
-        parameter = self.getRequestParameter('getRoot', user)
-        return request.execute(parameter)
-    def getToken(self, request, user):
-        parameter = self.getRequestParameter('getToken', user)
-        return request.execute(parameter)
     def getItem(self, request, identifier):
-        parameter = self.getRequestParameter('getItem', identifier)
+        parameter = self.getRequestParameter(request, 'getItem', identifier)
         return request.execute(parameter)
 
-    def getDocumentContent(self, request, content):
-        parameter = self.getRequestParameter('getDocumentContent', content)
-        return request.getInputStream(parameter, self.Chunk, self.Buffer)
-
-    def getFolderContent(self, request, content):
-        parameter = self.getRequestParameter('getFolderContent', content)
-        return request.getIterator(parameter, None)
-
-    def createFolder(self, request, item):
-        parameter = self.getRequestParameter('createNewFolder', item)
-        return request.execute(parameter)
-
-    def createFile(self, request, uploader, item):
-        return True
-
-    def uploadFile(self, uploader, user, item, new=False):
-        method = 'getNewUploadLocation' if new else 'getUploadLocation'
-        parameter = self.getRequestParameter(method, item)
+    def createFolder(self, user, item):
+        parameter = self.getRequestParameter(user.Request, 'createNewFolder', item)
         response = user.Request.execute(parameter)
-        if response.IsPresent:
-            parameter = self.getRequestParameter('getUploadStream', response.Value)
-            return uploader.start(user.Name, item.getValue('Id'), parameter)
-        return False
+        return self.mergeNewFolder(response, user, item)
+
+    def uploadFile(self, user, data, new=False):
+        status = False
+        method = 'getNewUploadLocation' if new else 'getUploadLocation'
+        parameter = self.getRequestParameter(user.Request, method, data)
+        response = user.Request.execute(parameter)
+        location = self.parseUploadLocation(response)
+        if location is not None:
+            parameter = self.getRequestParameter(user.Request, 'getUploadStream', location)
+            url = self.SourceURL + g_separator + data.get('Id')
+            response = user.Request.upload(parameter, url)
+            status = response.Ok
+            response.close()
+        return status
 
     def updateTitle(self, request, item):
-        parameter = self.getRequestParameter('updateTitle', item)
+        parameter = self.getRequestParameter(request, 'updateTitle', item)
         response = request.execute(parameter)
         return response.IsPresent
 
     def updateTrashed(self, request, item):
-        parameter = self.getRequestParameter('updateTrashed', item)
+        parameter = self.getRequestParameter(request, 'updateTrashed', item)
         response = request.execute(parameter)
         return response.IsPresent
 
     def updateParents(self, request, item):
-        parameter = self.getRequestParameter('updateParents', item)
+        parameter = self.getRequestParameter(request, 'updateParents', item)
         response = request.execute(parameter)
         return response.IsPresent
 

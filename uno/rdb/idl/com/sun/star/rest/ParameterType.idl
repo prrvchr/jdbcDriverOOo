@@ -24,20 +24,20 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_rest_XRequestDataSink_idl__
-#define __com_sun_star_rest_XRequestDataSink_idl__
-
-#include <com/sun/star/io/XActiveDataSink.idl>
+#ifndef __com_sun_star_rest_ParameterType_idl__
+#define __com_sun_star_rest_ParameterType_idl__
 
 module com { module sun { module star { module rest {
 
-interface XRequestDataSink: com::sun::star::io::XActiveDataSink
+constants ParameterType
 {
 
-    sequence<byte> read([in] long Length);
-    void close();
-    void seek([in] hyper Location);
-    hyper tell();
+    const short NONE = 0;
+    const short URL = 1;
+    const short JSON = 2;
+    const short QUERY = 4;
+    const short HEADER = 8;
+    const short REDIRECT = 16;
 
 };
 

@@ -24,24 +24,19 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
  */
 
-#ifndef __com_sun_star_auth_XRestDataParser_idl__
-#define __com_sun_star_auth_XRestDataParser_idl__
+#ifndef __com_sun_star_rest_ContentType_idl__
+#define __com_sun_star_rest_ContentType_idl__
 
-#include <com/sun/star/uno/XInterface.idl>
+module com { module sun { module star { module rest {
 
-module com { module sun { module star { module auth {
-
-interface XRestDataParser: com::sun::star::uno::XInterface
+constants ContentType
 {
 
-    any parseResponse([in] any Response);
-
-    any filterResponse([in] any Response);
-
-    [attribute, readonly] string DataType;
+    const short HTML = 0;
+    const short JSON = 1;
+    const short XML = 2;
 
 };
-
 
 }; }; }; };
 

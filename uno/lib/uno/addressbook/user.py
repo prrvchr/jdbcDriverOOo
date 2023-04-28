@@ -36,10 +36,8 @@ from com.sun.star.logging.LogLevel import SEVERE
 from com.sun.star.ucb.ConnectionMode import OFFLINE
 from com.sun.star.ucb.ConnectionMode import ONLINE
 
-from com.sun.star.sdbc import XRestUser
-
-from .oauth2lib import getRequest
-from .oauth2lib import g_oauth2
+from .oauth2 import getRequest
+from .oauth2 import g_oauth2
 
 from .unotool import executeDispatch
 
@@ -53,8 +51,7 @@ g_basename = 'User'
 import traceback
 
 
-class User(unohelper.Base,
-           XRestUser):
+class User(unohelper.Base):
     def __init__(self, ctx, database, provider, name, password=''):
         self._ctx = ctx
         self.Fields = database.getUserFields()
@@ -96,10 +93,9 @@ class User(unohelper.Base,
             raise self._getSqlException(1003, 1105, '_getMetaData', g_oauth2)
         if provider.isOffLine():
             raise self._getSqlException(1004, 1108, '_getMetaData', name)
-        data = provider.getUser(self.Request, self.Fields)
-        if not data.IsPresent:
+        userid = provider.getUser(self.Request, self.Fields)
+        if userid is None:
             raise self._getSqlException(1006, 1107, '_getMetaData', name)
-        userid = provider.getUserId(data.Value)
         return database.insertUser(userid, name)
 
     def _initUser(self, database, password):

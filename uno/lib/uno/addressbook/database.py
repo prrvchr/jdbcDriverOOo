@@ -35,8 +35,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.sdb.CommandType import QUERY
 
-from com.sun.star.sdbc import XRestDataBase
-
 from .unolib import KeyMap
 
 from .unotool import parseDateTime
@@ -83,8 +81,7 @@ import traceback
 from time import sleep
 
 
-class DataBase(unohelper.Base,
-               XRestDataBase):
+class DataBase(unohelper.Base):
     def __init__(self, ctx):
         self._ctx = ctx
         self._statement = None
@@ -292,7 +289,12 @@ class DataBase(unohelper.Base,
         call.addBatch()
         return (0, 1) if deleted else (1, 0)
 
-    def mergePeopleData(self, table, resource, typename, label, value, timestamp):
+    def mergePeopleData(self, iterator, timestamp):
+        for item in iterator:
+            pass
+        return 1
+
+    def mergePeopleData1(self, table, resource, typename, label, value, timestamp):
         format = {'Table': table, 'Type': typename}
         call = self._getBatchedCall(table, 'mergePeopleData', format)
         call.setString(1, 'people/')

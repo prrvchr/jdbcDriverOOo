@@ -50,9 +50,9 @@ from com.sun.star.ucb import IllegalIdentifierException
 
 from ..unolib import KeyMap
 
-from ..oauth2lib import getOAuth2UserName
-from ..oauth2lib import getRequest
-from ..oauth2lib import g_oauth2
+from ..oauth2 import getOAuth2UserName
+from ..oauth2 import getRequest
+from ..oauth2 import g_oauth2
 
 from ..dbtool import currentDateTimeInTZ
 from ..dbtool import currentUnoDateTime
@@ -81,74 +81,80 @@ import traceback
 
 class ContentUser():
     def __init__(self, ctx, logger, source, database, provider, name, sync, lock, password=''):
-        self._ctx = ctx
-        self._name = name
-        self._sync = sync
-        self._lock = lock
-        self._expired = None
-        self.Provider = provider
-        #self.CanAddChild = not self.Provider.GenerateIds
-        self.CanAddChild = True
-        self.Request = getRequest(ctx, self.Provider.Scheme, name)
-        self._logger = logger
-        data = database.selectUser(name)
-        new = data is None
-        if new:
-            if self.Request is None:
-                msg = self._logger.resolveString(401, g_oauth2)
-                raise IllegalIdentifierException(msg, source)
-            elif not self.Provider.isOnLine():
-                msg = self._logger.resolveString(402, name)
-                raise IllegalIdentifierException(msg, source)
-            user = self.Provider.getUser(self.Request, name)
-            if not user.IsPresent:
-                msg = self._logger.resolveString(403, name)
-                raise IllegalIdentifierException(msg, source)
-            root = self.Provider.getRoot(self.Request, user.Value)
-            if not root.IsPresent:
-                msg = self._logger.resolveString(403, name)
-                raise IllegalIdentifierException(msg, source)
-            data = database.insertUser(self.Provider, user.Value, root.Value)
-            if not database.createUser(name, password):
-                msg = self._logger.resolveString(404, name)
-                raise IllegalIdentifierException(msg, source)
-        self.MetaData = data
-        self.DataBase = DataBase(ctx, database.getDataSource(), name, password, sync)
-        self._identifiers = {}
-        self._contents = {}
-        self._contents[self.RootId] = Content(ctx, self)
-        if new:
-            self._sync.set()
-        self._logger.logprb(INFO, 'ContentUser', '__init__()', 405)
+        try:
+            self._ctx = ctx
+            self._name = name
+            self._sync = sync
+            self._lock = lock
+            self._expired = None
+            self.Provider = provider
+            #self.CanAddChild = not self.Provider.GenerateIds
+            self.CanAddChild = True
+            self.Request = getRequest(ctx, self.Provider.Scheme, name)
+            self._logger = logger
+            metadata = database.selectUser(name)
+            new = metadata is None
+            if new:
+                if self.Request is None:
+                    msg = self._logger.resolveString(401, g_oauth2)
+                    raise IllegalIdentifierException(msg, source)
+                elif not self.Provider.isOnLine():
+                    msg = self._logger.resolveString(402, name)
+                    raise IllegalIdentifierException(msg, source)
+                user, root = self.Provider.getUser(source, self.Request, name)
+                metadata = database.insertUser(user, root)
+                if metadata is None:
+                    msg = self._logger.resolveString(403, name)
+                    raise IllegalIdentifierException(msg, source)
+                if not database.createUser(name, password):
+                    msg = self._logger.resolveString(404, name)
+                    raise IllegalIdentifierException(msg, source)
+            self.MetaData = metadata
+            self.DataBase = DataBase(ctx, database.getDataSource(), name, password, sync)
+            self._identifiers = {}
+            self._contents = {}
+            self._contents[self.RootId] = Content(ctx, self)
+            if new:
+                self._sync.set()
+            self._logger.logprb(INFO, 'ContentUser', '__init__()', 405)
+        except Exception as e:
+            msg = "ContentUser.__init__() Error: %s" % traceback.format_exc()
+            print(msg)
 
     @property
     def Name(self):
         return self._name
     @property
     def Id(self):
-        return self.MetaData.getValue('UserId')
+        return self.MetaData.get('UserId')
     @property
     def RootId(self):
-        return self.MetaData.getValue('RootId')
+        return self.MetaData.get('RootId')
     @property
     def RootName(self):
-        return self.MetaData.getValue('RootName')
+        return self.MetaData.get('RootName')
     @property
     def Token(self):
-        return self.MetaData.getValue('Token')
+        return self.MetaData.get('Token')
     @property
     def SyncMode(self):
-        return self.MetaData.getValue('SyncMode')
+        return self.MetaData.get('SyncMode')
     @SyncMode.setter
     def SyncMode(self, mode):
-        self.MetaData.setValue('SyncMode', mode)
+        self.MetaData['SyncMode'] = mode
         self.DataBase.updateUserSyncMode(self.Id, mode)
     @property
+    def SessionMode(self):
+        return self.Request.getSessionMode(self.Provider.Host)
+    @property
     def TimeStamp(self):
-        return self.MetaData.getValue('TimeStamp')
+        return self.MetaData.get('TimeStamp')
     @TimeStamp.setter
     def TimeStamp(self, timestamp):
-        self.MetaData.setValue('TimeStamp', timestamp)
+        self.MetaData['TimeStamp'] = timestamp
+
+    def setToken(self, token):
+        self.MetaData['Token'] = token
 
     # method called from DataSource.queryContent(), Content.getParent() and ContentResultSet.queryContent()
     def getContent(self, path, authority):
@@ -171,7 +177,7 @@ class ContentUser():
         return path in ('', g_separator)
 
     def getContentIdentifier(self, authority, path, title, isroot):
-        url = self._getContentScheme(authority) + self.getContentPath(path, title, isroot, g_separator)
+        url = self.getContentScheme(authority) + self.getContentPath(path, title, isroot, g_separator)
         return ContentIdentifier(url)
 
     def getContentPath(self, path, title, isroot=False, rootpath=''):
@@ -215,23 +221,10 @@ class ContentUser():
             else:
                 size = sf.getSize(url)
                 loaded = self.DataBase.updateConnectionMode(self.Id, itemid, OFFLINE, ONLINE)
-                content.insertValue('ConnectionMode', loaded)
+                content.setConnectionMode(loaded)
             finally:
                 stream.closeInput()
         return url, size
-
-    def getFolderContent(self, content, properties, authority, isroot):
-        try:
-            select, updated = self._getFolderContent(content, properties, authority, isroot, False)
-            if updated:
-                itemid = content.getValue('Id')
-                loaded = self.DataBase.updateConnectionMode(self.Id, itemid, OFFLINE, ONLINE)
-                content.insertValue('ConnectionMode', loaded)
-            return select
-        except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
-            print(msg)
-            raise e
 
     def insertNewContent(self, content):
         timestamp = currentDateTimeInTZ()
@@ -242,34 +235,38 @@ class ContentUser():
         if self.Provider.GenerateIds:
             self.DataBase.deleteNewIdentifier(self.Id, itemid)
 
+    def getContentScheme(self, authority):
+        name = self.Name if authority else ''
+        return '%s://%s' % (g_scheme, name)
+
     def _getNewContent(self, parentid, path, contentype):
         timestamp = currentUnoDateTime()
         isfolder = self.Provider.isFolder(contentype)
         isdocument = self.Provider.isDocument(contentype)
         itemid = self._getNewIdentifier()
-        data = KeyMap()
-        data.insertValue('Id', itemid)
-        data.insertValue('ParentId', parentid)
-        data.insertValue('Path', path)
-        data.insertValue('ObjectId', itemid)
-        data.insertValue('Title', '')
-        data.insertValue('TitleOnServer', '')
-        data.insertValue('DateCreated', timestamp)
-        data.insertValue('DateModified', timestamp)
-        data.insertValue('ContentType', contentype)
+        data = {}
+        data['Id'] = itemid
+        data['ParentId'] = parentid
+        data['Path'] = path
+        data['ObjectId'] = itemid
+        data['Title'] = ''
+        data['TitleOnServer'] = ''
+        data['DateCreated'] = timestamp
+        data['DateModified'] = timestamp
+        data['ContentType'] = contentype
         mediatype = '' if isdocument else contentype
-        data.insertValue('MediaType', mediatype)
-        data.insertValue('Size', 0)
-        data.insertValue('Trashed', False)
-        data.insertValue('IsRoot', False)
-        data.insertValue('IsFolder', isfolder)
-        data.insertValue('IsDocument', isdocument)
-        data.insertValue('CanAddChild', isfolder)
-        data.insertValue('CanRename', True)
-        data.insertValue('IsReadOnly', False)
-        data.insertValue('IsVersionable', isdocument)
-        data.insertValue('ConnectionMode', True)
-        data.insertValue('BaseURI', path)
+        data['MediaType'] = mediatype
+        data['Size'] = 0
+        data['Trashed'] = False
+        data['IsRoot'] = False
+        data['IsFolder'] = isfolder
+        data['IsDocument'] = isdocument
+        data['CanAddChild'] = isfolder
+        data['CanRename'] = True
+        data['IsReadOnly'] = False
+        data['IsVersionable'] = isdocument
+        data['ConnectionMode'] = True
+        data['BaseURI'] = path
         return data
 
     def _getNewIdentifier(self):
@@ -279,17 +276,6 @@ class ContentUser():
             identifier = binascii.hexlify(uno.generateUuid().value).decode('utf-8')
         return identifier
 
-    def _getFolderContent(self, content, properties, authority, isroot, updated):
-        itemid = content.getValue('Id')
-        if ONLINE == content.getValue('ConnectionMode') == self.Provider.SessionMode:
-            url = self.getContentPath(content.getValue('Path'), content.getValue('Title'), isroot)
-            self._logger.logprb(INFO, 'ContentUser', '_getFolderContent()', 411, url)
-            updated = self.DataBase.updateFolderContent(self, content)
-        mode = self.Provider.SessionMode
-        scheme = self._getContentScheme(authority)
-        select = self.DataBase.getChildren(self.Name, itemid, properties, mode, scheme)
-        return select, updated
-
     def _removeIdentifiers(self):
         for url in tuple(self._identifiers.keys()):
             if url.startswith(self._expired):
@@ -297,8 +283,4 @@ class ContentUser():
                     if url in self._identifiers:
                         del self._identifiers[url]
         self._expired = None
-
-    def _getContentScheme(self, authority):
-        name = self.Name if authority else ''
-        return '%s://%s' % (g_scheme, name)
 
