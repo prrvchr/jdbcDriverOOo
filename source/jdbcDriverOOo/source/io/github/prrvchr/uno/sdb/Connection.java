@@ -79,9 +79,10 @@ public final class Connection
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
                       ResourceBasedEventLogger logger,
-                      boolean enhanced)
+                      boolean enhanced,
+                      boolean showsystem)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced);
+        super(ctx, m_service, m_services, provider, logger, enhanced, showsystem);
         System.out.println("sdb.Connection() *************************");
     }
 

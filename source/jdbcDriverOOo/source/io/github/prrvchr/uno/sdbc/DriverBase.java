@@ -44,6 +44,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDriver;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -77,6 +78,8 @@ public abstract class DriverBase
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
+    private final boolean m_showsystem;
+
     protected final ResourceBasedEventLogger m_logger;
 
     // The constructor method:
@@ -89,6 +92,9 @@ public abstract class DriverBase
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
+        System.out.println("sdbc.DriverBase.DriverBase() 1");
+        m_showsystem = _getOptionsConfiguration("ShowSystemTable", false);
+        System.out.println("sdbc.DriverBase.DriverBase() 2");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
@@ -104,6 +110,7 @@ public abstract class DriverBase
     public final XComponentContext getComponentContext() {
         return m_xContext;
     }
+
 
     // com.sun.star.lang.XComponent:
     
@@ -162,15 +169,62 @@ public abstract class DriverBase
             catch(java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
             }
-            ConnectionService service = _getOptionsConfiguration(info, "ConnectionService");
-            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, service);
+            System.out.println("sdbc.DriverBase.connect() 1");
+            String service = ConnectionService.CSS_SDBC_CONNECTION.service();
+            service = _getOptionsConfiguration("ConnectionService", service);
+            System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
+            service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
+            System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
+            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_showsystem, ConnectionService.fromString(service));
             m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
+            System.out.println("sdbc.DriverBase.connect() 4");
         }
         return connection;
     }
 
-    private ConnectionService _getOptionsConfiguration(PropertyValue[] info,
-                                                       String property)
+    private String _getOptionsConfiguration(String property, String value)
+    {
+        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 1");
+        String option = value;
+        try {
+            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
+            if (config.hasByHierarchicalName(property)) {
+                System.out.println("sdbc.DriverBase._getOptionsConfiguration() 2");
+                option = AnyConverter.toString(config.getByHierarchicalName(property));
+            }
+            UnoHelper.disposeComponent(config);
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 3");
+        return option;
+    }
+
+    private boolean _getOptionsConfiguration(String property, boolean value)
+    {
+        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 1");
+        boolean option = value;
+        try {
+            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
+            if (config.hasByHierarchicalName(property)) {
+                System.out.println("sdbc.DriverBase._getOptionsConfiguration() 2");
+                option = AnyConverter.toBoolean(config.getByHierarchicalName(property));
+            }
+            UnoHelper.disposeComponent(config);
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return option;
+        }
+        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 3");
+        return option;
+    }
+
+    @SuppressWarnings("unused")
+    private String _getStringOptionsConfiguration(String property)
     {
         String service = ConnectionService.CSS_SDBC_CONNECTION.service();
         try {
@@ -184,8 +238,7 @@ public abstract class DriverBase
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        service = UnoHelper.getDefaultPropertyValue(info, property, service);
-        return ConnectionService.fromString(service);
+        return service;
     }
 
     private String _getUrlProtocol(final String url)
@@ -407,6 +460,7 @@ public abstract class DriverBase
                                                      DriverProvider provider,
                                                      ResourceBasedEventLogger logger,
                                                      boolean enhanced,
+                                                     boolean showsystem,
                                                      ConnectionService service);
 
 

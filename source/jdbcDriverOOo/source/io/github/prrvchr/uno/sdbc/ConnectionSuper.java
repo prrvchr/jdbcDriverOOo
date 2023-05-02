@@ -59,9 +59,10 @@ public abstract class ConnectionSuper
                            String[] services,
                            DriverProvider provider,
                            ResourceBasedEventLogger logger,
-                           boolean enhanced)
+                           boolean enhanced,
+                           boolean showsystem)
     {
-        super(ctx, service, services, provider, logger, enhanced);
+        super(ctx, service, services, provider, logger, enhanced, showsystem);
     }
 
     // com.sun.star.lang.XComponent
@@ -117,8 +118,8 @@ public abstract class ConnectionSuper
         try {
             // FIXME: It is preferable to display all the entities of the underlying database.
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
-            String[] types = m_provider.getTableTypes();
-            //String[] types = null;
+            String[] types = (m_showsystem) ? null : m_provider.getTableTypes();
+            System.out.println("sdbc.ConnectionSuper._refreshTables() Show Sytem Table: " + m_showsystem);
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
             java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
             List<String> names = new ArrayList<>();

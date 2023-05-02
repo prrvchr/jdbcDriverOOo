@@ -109,7 +109,7 @@ public abstract class DriverProviderMain
     @Override
     public String[] getTableTypes()
     {
-        return null;
+        return new String[]{"TABLE", "VIEW"};
     }
 
     @Override

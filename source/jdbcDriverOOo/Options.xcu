@@ -37,6 +37,9 @@
     <prop oor:name="ConnectionService" oor:op="fuse">
         <value>com.sun.star.sdb.Connection</value>
     </prop>
+    <prop oor:name="ShowSystemTable" oor:op="fuse">
+        <value>false</value>
+    </prop>
     <prop oor:name="AdminGridColumns" oor:op="fuse">
         <value>{}</value>
     </prop>
