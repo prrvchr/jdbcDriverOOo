@@ -27,35 +27,56 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-# DataSource configuration
-g_protocol = 'xdbc:hsqldb:'
-g_folder = 'hsqldb'
-g_jar = 'hsqldb.jar'
-g_class = 'org.hsqldb.jdbcDriver'
-g_options = ';hsqldb.default_table_type=cached;ifexists=false;shutdown=true'
-g_csv = '%s.csv;fs=|;ignore_first=true;encoding=UTF-8;quoted=true'
-g_version = '2.5.1'
-g_role = 'FrontOffice'
-g_dba = 'SA'
-g_superuser = ('#', 'https://', 'localhost', '/', 'admin')
-g_schema = '%i'
-g_user = '%i'
+import uno
+import unohelper
 
-# View parameter
-g_cardview = 'CardView'
-g_bookview = 'BookView'
-g_usercolumn = 'User'
-g_view = {'UserTable': 'Users',
-          'UserColumn': g_usercolumn,
-          'BookCardTable': 'BookCards',
-          'CardTable': 'Cards',
-          'CardColumn': 'Card',
-          'CardUri': 'Uri',
-          'BookTable': 'Books',
-          'BookColumn': 'Book',
-          'DataTable': 'CardValues',
-          'DataColumn': 'Column',
-          'DataValue': 'Value',
-          'Admin': g_dba}
+from com.sun.star.logging.LogLevel import SEVERE
 
-g_bookmark = 'Bookmark'
+from ..dbtool import getDateTimeFromString
+from ..dbtool import getSqlException as getException
+
+from ..logger import getLogger
+
+from ..configuration import g_errorlog
+from ..configuration import g_basename
+
+import traceback
+
+
+class Provider(unohelper.Base):
+
+    @property
+    def DateTimeFormat(self):
+        return '%Y-%m-%dT%H:%M:%SZ'
+
+    def parseDateTime(self, timestamp):
+        return getDateTimeFromString(timestamp, self.DateTimeFormat)
+
+    # Need to be implemented method
+    def insertUser(self, database, request, scheme, server, name, pwd):
+        raise NotImplementedError
+
+    def initAddressbooks(self, database, user):
+        raise NotImplementedError
+
+    def firstPullCard(self, database, user, addressbook, pages, count):
+        raise NotImplementedError
+
+    def pullCard(self, database, user, addressbook, pages, count):
+        raise NotImplementedError
+
+    def parseCard(self, database):
+        raise NotImplementedError
+
+    # Can be overwritten method
+    def syncGroups(self, database, user, addressbook, pages, count):
+        pass
+
+def getSqlException(ctx, source, state, code, method, *args):
+    logger = getLogger(ctx, g_errorlog, g_basename)
+    state = logger.resolveString(state)
+    msg = logger.resolveString(code, *args)
+    logger.logp(SEVERE, g_basename, method, msg)
+    error = getException(state, code, msg, source)
+    return error
+

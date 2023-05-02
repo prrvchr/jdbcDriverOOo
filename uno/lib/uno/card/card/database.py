@@ -40,50 +40,52 @@ from com.sun.star.sdbc.DataType import INTEGER
 from com.sun.star.sdbc.DataType import TIMESTAMP
 from com.sun.star.sdbc.DataType import VARCHAR
 
-from .unolib import KeyMap
+from ..unolib import KeyMap
 
-from .unotool import parseDateTime
-from .unotool import createService
-from .unotool import getConfiguration
-from .unotool import getResourceLocation
-from .unotool import getSimpleFile
-from .unotool import getUrlPresentation
+from ..dbtool import Array
+from ..dbtool import checkDataBase
+from ..dbtool import createDataSource
+from ..dbtool import createStaticTable
+from ..dbtool import currentDateTimeInTZ
+from ..dbtool import getConnectionInfo
+from ..dbtool import getDataBaseConnection
+from ..dbtool import getDataBaseUrl
+from ..dbtool import executeSqlQueries
+from ..dbtool import getDataFromResult
+from ..dbtool import getDataSourceCall
+from ..dbtool import getDataSourceConnection
+from ..dbtool import executeQueries
+from ..dbtool import getDictFromResult
+from ..dbtool import getKeyMapFromResult
+from ..dbtool import getRowDict
+from ..dbtool import getSequenceFromResult
+from ..dbtool import getValueFromResult
+from ..dbtool import getKeyMapKeyMapFromResult
 
-from .configuration import g_identifier
-from .configuration import g_admin
-from .configuration import g_group
-from .configuration import g_host
+from ..unotool import parseDateTime
+from ..unotool import createService
+from ..unotool import getConfiguration
+from ..unotool import getResourceLocation
+from ..unotool import getSimpleFile
+from ..unotool import getUrlPresentation
 
-from .dbqueries import getSqlQuery
+from ..configuration import g_identifier
+from ..configuration import g_admin
+from ..configuration import g_group
+from ..configuration import g_host
 
-from .dbconfig import g_dba
-from .dbconfig import g_folder
-from .dbconfig import g_jar
-from .dbconfig import g_role
-from .dbconfig import g_schema
-from .dbconfig import g_user
-from .dbconfig import g_cardview
-from .dbconfig import g_bookmark
+from ..dbqueries import getSqlQuery
 
-from .dbtool import Array
-from .dbtool import checkDataBase
-from .dbtool import createDataSource
-from .dbtool import createStaticTable
-from .dbtool import currentDateTimeInTZ
-from .dbtool import getConnectionInfo
-from .dbtool import getDataBaseConnection
-from .dbtool import getDataBaseUrl
-from .dbtool import executeSqlQueries
-from .dbtool import getDataFromResult
-from .dbtool import getDataSourceCall
-from .dbtool import getDataSourceConnection
-from .dbtool import executeQueries
-from .dbtool import getDictFromResult
-from .dbtool import getKeyMapFromResult
-from .dbtool import getRowDict
-from .dbtool import getSequenceFromResult
-from .dbtool import getValueFromResult
-from .dbtool import getKeyMapKeyMapFromResult
+from ..dbconfig import g_dba
+from ..dbconfig import g_folder
+from ..dbconfig import g_jar
+from ..dbconfig import g_role
+from ..dbconfig import g_schema
+from ..dbconfig import g_user
+from ..dbconfig import g_usercolumn
+from ..dbconfig import g_cardview
+from ..dbconfig import g_bookmark
+from ..dbconfig import g_csv
 
 from .dbinit import getStaticTables
 from .dbinit import getQueries
@@ -145,7 +147,7 @@ class DataBase(unohelper.Base):
         version, error = checkDataBase(self._ctx, connection)
         if error is None:
             statement = connection.createStatement()
-            createStaticTable(self._ctx, statement, getStaticTables(), True)
+            createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)
             tables = getTables(self._ctx, connection, version)
             executeSqlQueries(statement, tables)
             executeQueries(self._ctx, statement, getQueries())
@@ -211,18 +213,14 @@ class DataBase(unohelper.Base):
     def createUserSchema(self, schema, name):
         view = self._getViewName()
         format = {'Schema': schema,
-                  'User': name,
-                  'Public': 'PUBLIC',
-                  'View': view,
-                  'Name': view,
-                  'OldName': view}
+                  'User': name}
         statement = self.Connection.createStatement()
         query = getSqlQuery(self._ctx, 'createUserSchema', format)
         statement.execute(query)
         query = getSqlQuery(self._ctx, 'setUserSchema', format)
         statement.execute(query)
-        self._deleteUserView(statement, format)
-        self._createUserView(statement, 'createUserSynonym', format)
+        #self._deleteUserView(statement, format)
+        #self._createUserView(statement, 'createUserBook', format)
         statement.close()
 
     def selectUser(self, server, name):
@@ -236,7 +234,7 @@ class DataBase(unohelper.Base):
         call.close()
         return user
 
-    def getDataBaseMetaData(self, default, tag, dot='.', sep=','):
+    def getMetaData(self, default, tag, dot='.', sep=','):
         try:
             paths = self._getPaths(tag, dot)
             maps = self._getMaps(tag, dot)
@@ -499,11 +497,11 @@ class DataBase(unohelper.Base):
         call.close()
 
 # Procedures called by the Replicator
-    def mergeCard(self, aid, iterator):
+    def mergeCard(self, book, iterator):
         count = 0
         self._setBatchModeOn()
         call = self._getCall('mergeCard')
-        call.setInt(1, aid)
+        call.setInt(1, book)
         for cid, etag, deleted, data in iterator:
             call.setString(2, cid)
             call.setString(3, etag)
@@ -607,10 +605,9 @@ class DataBase(unohelper.Base):
 
 
 
-    def deleteCard(self, aid, urls):
+    def deleteCard(self, urls):
         call = self._getCall('deleteCard')
-        call.setInt(1, aid)
-        call.setArray(2, Array('VARCHAR', urls))
+        call.setArray(1, Array('VARCHAR', urls))
         status = call.executeUpdate()
         call.close()
         return len(urls)

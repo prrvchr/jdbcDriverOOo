@@ -30,8 +30,6 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from .dbconfig import g_csv
-
 from .configuration import g_member
 from .configuration import g_errorlog
 
@@ -82,7 +80,8 @@ def getSqlQuery(ctx, name, format=None):
         c2 = '"Path" VARCHAR(100) NOT NULL'
         c3 = '"Name" VARCHAR(100) NOT NULL'
         c4 = '"View" VARCHAR(100) DEFAULT NULL'
-        c = (c1, c2, c3, c4)
+        c5 = '"Method" SMALLINT DEFAULT NULL'
+        c = (c1, c2, c3, c4, c5)
         query = 'CREATE TEXT TABLE IF NOT EXISTS "Resources"(%s)' % ','.join(c)
 
     elif name == 'createTableProperties':
@@ -113,7 +112,7 @@ def getSqlQuery(ctx, name, format=None):
         query = 'CREATE TEXT TABLE IF NOT EXISTS "PropertyType"(%s)' % ','.join(c)
 
     elif name == 'setTableSource':
-        query = 'SET TABLE "%s" SOURCE "%s"' % (format, g_csv % format)
+        query = 'SET TABLE "%s" SOURCE "%s"' % format
 
     elif name == 'setTableHeader':
         query = 'SET TABLE "%s" SOURCE HEADER "%s"' % format
@@ -152,7 +151,7 @@ CREATE VIEW "%(View)s" ("%(Columns)s") AS SELECT %(Select)s FROM "Card" %(Table)
 ''' % format
 
     elif name == 'createCardColumnsView':
-        query = 'CREATE VIEW "AddressBook" (%(Columns)s) AS SELECT %(Select)s FROM %(Table)s' % format
+        query = 'CREATE VIEW "Book" (%(Columns)s) AS SELECT %(Select)s FROM %(Table)s' % format
 
     elif name == 'createView':
         query = 'CREATE VIEW "%s"(%s) AS SELECT %s FROM %s' % format
@@ -176,31 +175,34 @@ JOIN "Peoples" AS P ON "Groups"."People"=P."People"
     elif name == 'getAddressBookPredicate':
         query = '''WHERE P."Account"=CURRENT_USER OR CURRENT_USER='SA' ORDER BY "Peoples"."People"'''
 
-    elif name == 'createUserView':
+    elif name == 'createBookView':
         view = '''\
 CREATE VIEW IF NOT EXISTS "%(Name)s" AS
-  SELECT "%(ViewName)s".*,ROWNUM() AS "%(Bookmark)s" FROM "%(ViewName)s"
-  JOIN "%(CardTable)s" ON "%(ViewName)s"."%(CardColumn)s"="%(CardTable)s"."%(CardColumn)s"
-  JOIN "%(AddressbookTable)s" ON "%(CardTable)s"."%(AddressbookColumn)s"="%(AddressbookTable)s"."%(AddressbookColumn)s"
-  WHERE CURRENT_USER="%(AddressbookTable)s"."%(UserColumn)s" OR CURRENT_USER='%(Admin)s'
-  ORDER BY "%(CardTable)s"."Created";
+  SELECT "%(ViewName)s".*, "%(UserTable)s"."%(UserColumn)s" FROM "%(ViewName)s" 
+  JOIN "%(CardTable)s" ON "%(ViewName)s"."%(CardColumn)s"="%(CardTable)s"."%(CardColumn)s" 
+  JOIN "%(BookCardTable)s" ON "%(CardTable)s"."%(CardColumn)s"="%(BookCardTable)s"."%(CardColumn)s" 
+  JOIN "%(BookTable)s" ON "%(BookCardTable)s"."%(BookColumn)s"="%(BookTable)s"."%(BookColumn)s" 
+  JOIN "%(UserTable)s" ON "%(BookTable)s"."%(UserColumn)s"="%(UserTable)s"."%(UserColumn)s";
 '''
         query = view % format
 
-    elif name == 'createUserSynonym':
+    elif name == 'createUserBook':
         synonym = '''\
-CREATE SYNONYM "%(Schema)s"."%(Name)s" FOR %(Public)s."%(View)s";
-GRANT SELECT ON "%(Public)s"."%(View)s" TO "%(User)s";
+CREATE VIEW IF NOT EXISTS "%(Schema)s"."%(Name)s" AS
+  SELECT %(Public)s."%(View)s".* FROM %(Public)s."%(View)s" 
+  WHERE %(Public)s."%(View)s"."%(UserColumn)s" = "%(UserId)s";
 '''
+
         query = synonym % format
 
     elif name == 'createAddressbookView':
         view = '''\
 CREATE VIEW IF NOT EXISTS "%(Schema)s"."%(Name)s" AS
-  SELECT %(Public)s."%(View)s".*,ROWNUM() AS "%(Bookmark)s" FROM %(Public)s."%(View)s"
+  SELECT %(Public)s."%(View)s".* FROM %(Public)s."%(View)s"
   JOIN %(Public)s."Cards" ON %(Public)s."%(View)s"."Card"=%(Public)s."Cards"."Card"
-  JOIN %(Public)s."Addressbooks" ON %(Public)s."Cards"."Addressbook"=%(Public)s."Addressbooks"."Addressbook"
-  WHERE %(Public)s."Addressbooks"."Addressbook"=%(Addressbook)s
+  JOIN %(Public)s."BookCards" ON %(Public)s."Cards"."Card"=%(Public)s."BookCards"."Card"
+  JOIN %(Public)s."Books" ON %(Public)s."BookCards"."Book"=%(Public)s."Books"."Book"
+  WHERE %(Public)s."Books"."Book"=%(Book)s
   ORDER BY %(Public)s."%(View)s"."Created";
 GRANT SELECT ON "%(Schema)s"."%(Name)s" TO "%(User)s";
 '''
@@ -209,7 +211,7 @@ GRANT SELECT ON "%(Schema)s"."%(Name)s" TO "%(User)s";
     elif name == 'createGroupView':
         view = '''\
 CREATE VIEW IF NOT EXISTS "%(Schema)s"."%(Name)s" AS
-  SELECT %(Public)s."%(View)s".*,ROWNUM() AS "%(Bookmark)s" FROM %(Public)s."%(View)s"
+  SELECT %(Public)s."%(View)s".* FROM %(Public)s."%(View)s"
   JOIN %(Public)s."GroupCards" ON %(Public)s."%(View)s"."Card"=%(Public)s."GroupCards"."Card"
   JOIN %(Public)s."Groups" ON %(Public)s."GroupCards"."Group"=%(Public)s."Groups"."Group"
   WHERE %(Public)s."Groups"."Group"=%(Group)s
@@ -359,7 +361,7 @@ SELECT "Name" FROM "Fields" WHERE "Table"='Loop' AND "Column"=1;'''
 
 # Update Queries
     elif name == 'updateAddressbookToken':
-        query = 'UPDATE "Addressbooks" SET "Token"=?,"Modified"=DEFAULT WHERE "Addressbook"=?'
+        query = 'UPDATE "Books" SET "Token"=?,"Modified"=DEFAULT WHERE "Book"=?'
 
     elif name == 'updateUser1':
         query = 'UPDATE "Users" SET "Scheme"=?,"Password"=? WHERE "User"=?'
@@ -416,12 +418,12 @@ INSERT INTO "Users" ("Uri","Scheme","Server","Path","Name") VALUES ('%s','%s','%
 
     elif name == 'insertSuperAdressbook':
         query = """\
-INSERT INTO "Addressbooks" ("User","Uri","Name","Tag","Token") VALUES (0,'/','admin','#','#');
+INSERT INTO "Books" ("User","Uri","Name","Tag","Token") VALUES (0,'/','admin','#','#');
 """
 
     elif name == 'insertSuperGroup':
         query = """\
-INSERT INTO "Groups" ("Addressbook","Uri","Name") VALUES (0,'/','#');
+INSERT INTO "Groups" ("Book","Uri","Name") VALUES (0,'/','#');
 """
 
 # Create Procedure Query
@@ -459,13 +461,13 @@ CREATE PROCEDURE "SelectUser"(IN SERVER VARCHAR(128),
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT U."User",U."Uri",U."Scheme",U."Server",U."Path",U."Name",
-        ARRAY_AGG(A."Addressbook" ORDER BY A."Addressbook") AS "Aids",
-        ARRAY_AGG(A."Uri" ORDER BY A."Addressbook") AS "Uris",
-        ARRAY_AGG(A."Name" ORDER BY A."Addressbook") AS "Names",
-        ARRAY_AGG(A."Tag" ORDER BY A."Addressbook") AS "Tags",
-        ARRAY_AGG(A."Token" ORDER BY A."Addressbook") AS "Tokens"
+        ARRAY_AGG(A."Book" ORDER BY A."Book") AS "Aids",
+        ARRAY_AGG(A."Uri" ORDER BY A."Book") AS "Uris",
+        ARRAY_AGG(A."Name" ORDER BY A."Book") AS "Names",
+        ARRAY_AGG(A."Tag" ORDER BY A."Book") AS "Tags",
+        ARRAY_AGG(A."Token" ORDER BY A."Book") AS "Tokens"
       FROM "Users" AS U
-      LEFT JOIN "Addressbooks" AS A ON U."User"=A."User"
+      LEFT JOIN "Books" AS A ON U."User"=A."User"
       WHERE U."Server"=SERVER AND U."Name"=NAME
       GROUP BY U."User",U."Uri",U."Scheme",U."Server",U."Path",U."Name"
     FOR READ ONLY;
@@ -487,19 +489,19 @@ CREATE PROCEDURE "InsertUser"(IN URI VARCHAR(256),
     DECLARE PK1 INTEGER DEFAULT NULL;
     DECLARE RSLT CURSOR WITH RETURN FOR
       SELECT U."User",U."Uri",U."Scheme",U."Server",U."Path",U."Name",
-        ARRAY_AGG(A."Addressbook" ORDER BY A."Addressbook") AS "Aids",
-        ARRAY_AGG(A."Uri" ORDER BY A."Addressbook") AS "Uris",
-        ARRAY_AGG(A."Name" ORDER BY A."Addressbook") AS "Names",
-        ARRAY_AGG(A."Tag" ORDER BY A."Addressbook") AS "Tags",
-        ARRAY_AGG(A."Token" ORDER BY A."Addressbook") AS "Tokens"
+        ARRAY_AGG(A."Book" ORDER BY A."Book") AS "Aids",
+        ARRAY_AGG(A."Uri" ORDER BY A."Book") AS "Uris",
+        ARRAY_AGG(A."Name" ORDER BY A."Book") AS "Names",
+        ARRAY_AGG(A."Tag" ORDER BY A."Book") AS "Tags",
+        ARRAY_AGG(A."Token" ORDER BY A."Book") AS "Tokens"
       FROM "Users" AS U
-      LEFT JOIN "Addressbooks" AS A ON U."User"=A."User"
+      LEFT JOIN "Books" AS A ON U."User"=A."User"
       WHERE U."Server"=SERVER AND U."Name"=NAME
       GROUP BY U."User",U."Uri",U."Scheme",U."Server",U."Path",U."Name"
     FOR READ ONLY;
     INSERT INTO "Users" ("Uri","Scheme","Server","Path","Name") VALUES (URI,SCHEME,SERVER,PATH,NAME);
     IF ADDRESSBOOK IS NOT NULL THEN
-      INSERT INTO "Addressbooks" ("User","Uri","Name","Tag") VALUES (IDENTITY(),'/',ADDRESSBOOK,'#');
+      INSERT INTO "Books" ("User","Uri","Name","Tag") VALUES (IDENTITY(),'/',ADDRESSBOOK,'#');
     END IF;
     OPEN RSLT;
   END"""
@@ -514,13 +516,13 @@ CREATE PROCEDURE "SelectAddressbook"(IN UID INTEGER,
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT A."Addressbook", A."Uri" AS "Path", A."Name",A."Tag",
+      SELECT A."Book", A."Uri" AS "Path", A."Name",A."Tag",
       A."Token" AS "AdrSync",
       A."Created"=A."Modified" AS "New"
       FROM "Users" AS U
-      JOIN "Addressbooks" AS A ON U."User"=A."User"
-      WHERE U."User"=UID AND (A."Addressbook"=AID OR
-        (((NAME IS NULL AND A."Addressbook"=U."Default") OR
+      JOIN "Books" AS A ON U."User"=A."User"
+      WHERE U."User"=UID AND (A."Book"=AID OR
+        (((NAME IS NULL AND A."Book"=U."Default") OR
         (NAME IS NOT NULL AND A."Name"=NAME))))
       FOR READ ONLY;
     OPEN RSLT;
@@ -537,7 +539,7 @@ CREATE PROCEDURE "InsertAddressbook"(IN UID INTEGER,
   SPECIFIC "InsertAddressbook_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    INSERT INTO "Addressbooks" ("User","Uri","Name","Tag","Token") VALUES (UID,URI,NAME,TAG,TOKEN);
+    INSERT INTO "Books" ("User","Uri","Name","Tag","Token") VALUES (UID,URI,NAME,TAG,TOKEN);
     SET AID = IDENTITY();
   END"""
 
@@ -548,38 +550,74 @@ CREATE PROCEDURE "UpdateAddressbookName"(IN AID INTEGER,
   SPECIFIC "UpdateAddressbookName_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    UPDATE "Addressbooks" SET "Name"=NAME WHERE "Addressbook"=AID;
+    UPDATE "Books" SET "Name"=NAME WHERE "Book"=AID;
+  END"""
+
+    elif name == 'createMergeCardData':
+        query = """\
+CREATE PROCEDURE "MergeCardData"(IN Labels VARCHAR(60) ARRAY,
+                                 IN DateTime TIMESTAMP(6),
+                                 IN Card INTEGER,
+                                 IN Prefix VARCHAR(20),
+                                 IN Label VARCHAR(20),
+                                 IN Suffixes VARCHAR(20) ARRAY,
+                                 IN Data VARCHAR(128))
+  SPECIFIC "MergeCardData_1"
+  MODIFIES SQL DATA
+  BEGIN ATOMIC
+    DECLARE Index INTEGER DEFAULT 1;
+    DECLARE ColumnId INTEGER DEFAULT 0;
+    DECLARE Suffix VARCHAR(20) DEFAULT '';
+    WHILE Index <= CARDINALITY(Suffixes) DO 
+      SET Suffix = Suffix || Suffixes[Index];
+      SET Index = Index + 1;
+    END WHILE;
+    SET ColumnId = POSITION_ARRAY(Prefix || Label || Suffix IN Labels);
+    IF ColumnId > 0 THEN
+      MERGE INTO "CardValues" USING (VALUES(Card,ColumnId,Data,DateTime)) 
+        AS vals(w,x,y,z) ON "CardValues"."Card"=vals.w AND "CardValues"."Column"=vals.x
+          WHEN MATCHED THEN UPDATE SET "Value"=vals.y, "Modified"=vals.z 
+          WHEN NOT MATCHED THEN INSERT ("Card","Column","Value","Created","Modified")
+             VALUES vals.w,vals.x,vals.y,vals.z,vals.z;
+    END IF;
   END"""
 
     elif name == 'createMergeCard':
         query = """\
-CREATE PROCEDURE "MergeCard"(IN AID INTEGER,
-                             IN URI VARCHAR(256),
-                             IN TAG VARCHAR(128),
-                             IN DELETED BOOLEAN,
-                             IN DATA VARCHAR(100000))
+CREATE PROCEDURE "MergeCard"(IN Book INTEGER,
+                             IN Uri VARCHAR(256),
+                             IN Tag VARCHAR(128),
+                             IN Deleted BOOLEAN,
+                             IN Data VARCHAR(10000))
   SPECIFIC "MergeCard_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    IF DELETED THEN
-      DELETE FROM "Cards" WHERE "Addressbook"=AID AND "Uri"=URI;
+    DECLARE Card INTEGER DEFAULT NULL;
+    IF Deleted THEN
+      DELETE FROM "Cards" WHERE "Uri"=Uri;
     ELSE
-      MERGE INTO "Cards" USING (VALUES(AID,URI,TAG,DATA))
-        AS vals(w,x,y,z) ON "Cards"."Addressbook"=vals.w AND "Cards"."Uri"=vals.x
+      MERGE INTO "Cards" USING (VALUES(Uri,Tag,Data))
+        AS vals(x,y,z) ON "Cards"."Uri"=vals.x
           WHEN MATCHED THEN UPDATE SET "Tag"=vals.y,"Data"=vals.z
-          WHEN NOT MATCHED THEN INSERT ("Addressbook","Uri","Tag","Data")
-            VALUES vals.w,vals.x,vals.y,vals.z;
+          WHEN NOT MATCHED THEN INSERT ("Uri","Tag","Data")
+            VALUES vals.x,vals.y,vals.z;
+      SELECT "Card" INTO Card FROM "Cards" WHERE "Uri"=Uri;
+      IF Card IS NOT NULL THEN
+        MERGE INTO "BookCards" USING (VALUES(Book,Card))
+          AS vals(y,z) ON "Book"=vals.y AND "Card"=vals.z
+            WHEN NOT MATCHED THEN INSERT ("Book","Card")
+              VALUES vals.y,vals.z;
+      END IF;
     END IF;
   END"""
 
     elif name == 'createDeleteCard':
         query = """\
-CREATE PROCEDURE "DeleteCard"(IN AID INTEGER,
-                              IN URIS VARCHAR(256) ARRAY)
+CREATE PROCEDURE "DeleteCard"(IN URIS VARCHAR(256) ARRAY)
   SPECIFIC "DeleteCard_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DELETE FROM "Cards" WHERE "Addressbook"=AID AND "Uri" IN (UNNEST(URIS));
+    DELETE FROM "Cards" WHERE "Uri" IN (UNNEST(URIS));
   END"""
 
     elif name == 'createGetLastAddressbookSync':
@@ -589,7 +627,7 @@ CREATE PROCEDURE "GetLastAddressbookSync"(OUT FIRST TIMESTAMP(6) WITH TIME ZONE)
   READS SQL DATA
   BEGIN ATOMIC
     DECLARE TMP TIMESTAMP(6) WITH TIME ZONE;
-    SELECT "Created" INTO TMP FROM "Addressbooks" WHERE "Addressbook"=0;
+    SELECT "Created" INTO TMP FROM "Books" WHERE "Book"=0;
     SET FIRST = TMP;
   END"""
 
@@ -604,31 +642,31 @@ CREATE PROCEDURE "SelectChangedAddressbooks"(IN UID INTEGER,
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
       (SELECT CAST(U."User" AS VARCHAR(9)) AS "User", 
-              A1."Addressbook", NULL AS "Name", A1."Name" AS "OldName", 
+              A1."Book", NULL AS "Name", A1."Name" AS "OldName", 
               'Deleted' AS "Query", A1."RowEnd" AS "Order"
-      FROM "Addressbooks" FOR SYSTEM_TIME AS OF FIRST AS A1
+      FROM "Books" FOR SYSTEM_TIME AS OF FIRST AS A1
       JOIN "Users" AS U ON A1."User"=U."User"
-      LEFT JOIN "Addressbooks" FOR SYSTEM_TIME AS OF LAST AS A2
-        ON A1."Addressbook" = A2."Addressbook"
-      WHERE A1."Addressbook"!=0 AND A2."Addressbook" IS NULL AND U."User"=UID)
+      LEFT JOIN "Books" FOR SYSTEM_TIME AS OF LAST AS A2
+        ON A1."Book" = A2."Book"
+      WHERE A1."Book"!=0 AND A2."Book" IS NULL AND U."User"=UID)
       UNION
       (SELECT CAST(U."User" AS VARCHAR(9)) AS "User", 
-              A2."Addressbook", A2."Name", NULL AS "OldName", 
+              A2."Book", A2."Name", NULL AS "OldName", 
               'Inserted' AS "Query", A2."RowStart" AS "Order"
-      FROM "Addressbooks" FOR SYSTEM_TIME AS OF LAST AS A2
+      FROM "Books" FOR SYSTEM_TIME AS OF LAST AS A2
       JOIN "Users" AS U ON A2."User"=U."User"
-      LEFT JOIN "Addressbooks" FOR SYSTEM_TIME AS OF FIRST AS A1
-        ON A2."Addressbook"=A1."Addressbook"
-      WHERE A2."Addressbook"!=0 AND  A1."Addressbook" IS NULL AND U."User"=UID)
+      LEFT JOIN "Books" FOR SYSTEM_TIME AS OF FIRST AS A1
+        ON A2."Book"=A1."Book"
+      WHERE A2."Book"!=0 AND  A1."Book" IS NULL AND U."User"=UID)
       UNION
       (SELECT CAST(U."User" AS VARCHAR(9)) AS "User", 
-              A2."Addressbook", A2."Name", A1."Name" AS "OldName", 
+              A2."Book", A2."Name", A1."Name" AS "OldName", 
               'Updated' AS "Query", A1."RowEnd" AS "Order"
-      FROM "Addressbooks" FOR SYSTEM_TIME AS OF LAST AS A2
+      FROM "Books" FOR SYSTEM_TIME AS OF LAST AS A2
       JOIN "Users" AS U ON A2."User"=U."User"
-      INNER JOIN "Addressbooks" FOR SYSTEM_TIME FROM FIRST TO LAST AS A1
-        ON A2."Addressbook"=A1."Addressbook" AND A2."RowStart"=A1."RowEnd"
-      WHERE A2."Addressbook"!=0 AND U."User"=UID)
+      INNER JOIN "Books" FOR SYSTEM_TIME FROM FIRST TO LAST AS A1
+        ON A2."Book"=A1."Book" AND A2."RowStart"=A1."RowEnd"
+      WHERE A2."Book"!=0 AND U."User"=UID)
       ORDER BY "Order"
       FOR READ ONLY;
     OPEN RSLT;
@@ -640,7 +678,7 @@ CREATE PROCEDURE "UpdateAddressbook"(IN LAST TIMESTAMP(6) WITH TIME ZONE)
   SPECIFIC "UpdateAddressbook_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    UPDATE "Addressbooks" SET "Created"=LAST WHERE "Addressbook"=0;
+    UPDATE "Books" SET "Created"=LAST WHERE "Book"=0;
   END"""
 
     elif name == 'createGetLastGroupSync':
@@ -668,7 +706,7 @@ CREATE PROCEDURE "SelectChangedGroups"(IN FIRST TIMESTAMP(6) WITH TIME ZONE,
               G1."Group", NULL AS "Name", G1."Name" AS "OldName", 
               'Deleted' AS "Query", G1."RowEnd" AS "Order"
       FROM "Groups" FOR SYSTEM_TIME AS OF FIRST AS G1
-      JOIN "Addressbooks" AS A ON G1."Addressbook"=A."Addressbook"
+      JOIN "Books" AS A ON G1."Book"=A."Book"
       JOIN "Users" AS U ON A."User"=U."User"
       LEFT JOIN "Groups" FOR SYSTEM_TIME AS OF LAST AS G2
         ON G1."Group" = G2."Group"
@@ -679,7 +717,7 @@ CREATE PROCEDURE "SelectChangedGroups"(IN FIRST TIMESTAMP(6) WITH TIME ZONE,
               G2."Group", G2."Name", NULL AS "OldName", 
               'Inserted' AS "Query", G2."RowStart" AS "Order"
       FROM "Groups" FOR SYSTEM_TIME AS OF LAST AS G2
-      JOIN "Addressbooks" AS A ON G2."Addressbook"=A."Addressbook"
+      JOIN "Books" AS A ON G2."Book"=A."Book"
       JOIN "Users" AS U ON A."User"=U."User"
       LEFT JOIN "Groups" FOR SYSTEM_TIME AS OF FIRST AS G1
         ON G2."Group"=G1."Group"
@@ -690,7 +728,7 @@ CREATE PROCEDURE "SelectChangedGroups"(IN FIRST TIMESTAMP(6) WITH TIME ZONE,
               G2."Group", G2."Name", G1."Name" AS "OldName", 
               'Updated' AS "Query", G1."RowEnd" AS "Order"
       FROM "Groups" FOR SYSTEM_TIME AS OF LAST AS G2
-      JOIN "Addressbooks" AS A ON G2."Addressbook"=A."Addressbook"
+      JOIN "Books" AS A ON G2."Book"=A."Book"
       JOIN "Users" AS U ON A."User"=U."User"
       INNER JOIN "Groups" FOR SYSTEM_TIME FROM FIRST TO LAST AS G1
         ON G2."Group"=G1."Group" AND G2."RowStart"=G1."RowEnd"
@@ -729,26 +767,29 @@ CREATE PROCEDURE "SelectChangedCards"(IN FIRST TIMESTAMP(6) WITH TIME ZONE,
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      (SELECT U1."User",C1."Card",NULL AS "Data",'Deleted' AS "Query",C1."RowEnd" AS "Order"
+      (SELECT U."User",C1."Card",'Deleted' AS "Query",NULL AS "Data",C1."RowEnd" AS "Order"
       FROM "Cards" FOR SYSTEM_TIME AS OF FIRST AS C1
-      JOIN "Addressbooks" AS A ON C1."Addressbook"=A."Addressbook"
-      JOIN "Users" AS U1 ON A."User"=U1."User"
+      JOIN "BookCards" AS BC ON C1."Card"=BC."Card"
+      JOIN "Books" AS B ON BC."Book"=B."Book"
+      JOIN "Users" AS U ON B."User"=U."User"
       LEFT JOIN "Cards" FOR SYSTEM_TIME AS OF LAST AS C2
         ON C1."Card" = C2."Card"
       WHERE C2."Card" IS NULL)
       UNION
-      (SELECT U2."User",C2."Card",C2."Data",'Inserted' AS "Query",C2."RowStart" AS "Order"
+      (SELECT U."User",C2."Card",'Inserted' AS "Query",C2."Data",C2."RowStart" AS "Order"
       FROM "Cards" FOR SYSTEM_TIME AS OF LAST AS C2
-      JOIN "Addressbooks" AS A ON C2."Addressbook"=A."Addressbook"
-      JOIN "Users" AS U2 ON A."User"=U2."User"
+      JOIN "BookCards" AS BC ON C2."Card"=BC."Card"
+      JOIN "Books" AS B ON BC."Book"=B."Book"
+      JOIN "Users" AS U ON B."User"=U."User"
       LEFT JOIN "Cards" FOR SYSTEM_TIME AS OF FIRST AS C1
         ON C2."Card"=C1."Card"
       WHERE C1."Card" IS NULL)
       UNION
-      (SELECT U3."User",C2."Card",C2."Data",'Updated' AS "Query",C1."RowEnd" AS "Order"
+      (SELECT U."User",C2."Card",'Updated' AS "Query",C2."Data",C1."RowEnd" AS "Order"
       FROM "Cards" FOR SYSTEM_TIME AS OF LAST AS C2
-      JOIN "Addressbooks" AS A ON C2."Addressbook"=A."Addressbook"
-      JOIN "Users" AS U3 ON A."User"=U3."User"
+      JOIN "BookCards" AS BC ON C2."Card"=BC."Card"
+      JOIN "Books" AS B ON BC."Book"=B."Book"
+      JOIN "Users" AS U ON B."User"=U."User"
       INNER JOIN "Cards" FOR SYSTEM_TIME FROM FIRST TO LAST AS C1
         ON C2."Card"=C1."Card" AND C2."RowStart"=C1."RowEnd")
       ORDER BY "Order"
@@ -763,6 +804,48 @@ CREATE PROCEDURE "UpdateUser"(IN LAST TIMESTAMP(6) WITH TIME ZONE)
   MODIFIES SQL DATA
   BEGIN ATOMIC
     UPDATE "Users" SET "Created"=LAST WHERE "User"=0;
+  END"""
+
+    elif name == 'createSelectCardProperties':
+        query = """\
+CREATE PROCEDURE "SelectCardProperties"()
+  SPECIFIC "SelectCardProperties_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE RSLT CURSOR WITH RETURN FOR
+      SELECT
+        R."Name" AS "PropertyName", 
+        R."Path" AS "PropertyGetter", 
+        R."View" IS NULL AS "IsGroup", 
+        PT."Property" IS NOT NULL AS "IsTyped",
+        ARRAY_AGG(DISTINCT JSON_OBJECT(P."Path": P."Name"))
+      FROM "Resources" AS R 
+      INNER JOIN "Properties" AS P ON R."Resource"=P."Resource" 
+      LEFT JOIN "PropertyType" AS PT ON P."Property"=PT."Property" 
+      GROUP BY R."Name", R."Path", "IsGroup", "IsTyped" 
+      FOR READ ONLY;
+    OPEN RSLT;
+  END"""
+
+    # The getColumnIds query allows to obtain all the columns available from parser properties.
+    elif name == 'createSelectColumnIds':
+        query = """\
+CREATE PROCEDURE "SelectColumnIds"()
+  SPECIFIC "SelectColumnIds_1"
+  READS SQL DATA
+  DYNAMIC RESULT SETS 1
+  BEGIN ATOMIC
+    DECLARE Rslt CURSOR WITH RETURN FOR 
+      SELECT ARRAY_AGG(R."Name" || P."Path" || COALESCE(T."Path",'') 
+                       ORDER BY R."Resource", P."Property", T."Type")
+      FROM "Resources" AS R 
+      INNER JOIN "Properties" AS P ON R."Resource"=P."Resource" 
+      LEFT JOIN "PropertyType" AS PT ON P."Property"=PT."Property" 
+      LEFT JOIN "Types" AS T ON PT."Type"=T."Type" 
+      WHERE P."Name" IS NOT NULL 
+      FOR READ ONLY;
+    OPEN Rslt;
   END"""
 
     # The getColumns query allows to obtain all the columns available from parser properties.
@@ -884,7 +967,7 @@ CREATE PROCEDURE "SelectGroups"(IN Aid Integer)
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE Rslt CURSOR WITH RETURN FOR 
-      SELECT "Group", "Uri" FROM "Groups" WHERE "Addressbook"=Aid ORDER BY "Group" 
+      SELECT "Group", "Uri" FROM "Groups" WHERE "Book"=Aid ORDER BY "Group" 
       FOR READ ONLY;
     OPEN Rslt;
   END"""
@@ -900,13 +983,13 @@ CREATE PROCEDURE "MergeGroup"(IN AID VARCHAR(100),
   MODIFIES SQL DATA
   BEGIN ATOMIC
     IF DELETED THEN
-      DELETE FROM "Groups" WHERE "Addressbook"=AID AND "Uri"=URI;
+      DELETE FROM "Groups" WHERE "Book"=AID AND "Uri"=URI;
     ELSE
       MERGE INTO "Groups" USING (VALUES(AID,URI,NAME,DATETIME))
-        AS vals(w,x,y,z) ON "Addressbook"=vals.w AND "Uri"=vals.x
+        AS vals(w,x,y,z) ON "Book"=vals.w AND "Uri"=vals.x
           WHEN MATCHED THEN UPDATE
             SET "Name"=vals.y, "Modified"=vals.z
-          WHEN NOT MATCHED THEN INSERT ("Addressbook","Uri","Name","Created","Modified")
+          WHEN NOT MATCHED THEN INSERT ("Book","Uri","Name","Created","Modified")
             VALUES vals.w, vals.x, vals.y, vals.z, vals.z;
     END IF;
   END"""
@@ -986,13 +1069,13 @@ CREATE PROCEDURE "SelectCardGroup"()
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE RSLT CURSOR WITH RETURN FOR
-      SELECT U."User",
-        ARRAY_AGG(G."Name") AS "Names",
-        ARRAY_AGG(G."Group") AS "Groups"
-      FROM "Users" AS U
-      INNER JOIN "Addressbooks" AS A ON U."User"=A."User"
-      INNER JOIN "Groups" AS G ON A."Addressbook"=G."Addressbook"
-      GROUP BY U."User"
+      SELECT U."User", 
+        ARRAY_AGG(JSON_OBJECT(G."Name": G."Group")) 
+      FROM "Users" AS U 
+      INNER JOIN "Books" AS A ON U."User"=A."User" 
+      INNER JOIN "Groups" AS G ON A."Book"=G."Book" 
+      WHERE U."User"!=0 
+      GROUP BY U."User" 
       FOR READ ONLY;
     OPEN RSLT;
   END"""
@@ -1006,23 +1089,19 @@ CREATE PROCEDURE "InsertGroup"(IN AID INTEGER,
   SPECIFIC "InsertGroup_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    INSERT INTO "Groups" ("Addressbook","Uri","Name") VALUES (AID,URI,NAME);
+    INSERT INTO "Groups" ("Book","Uri","Name") VALUES (AID,URI,NAME);
     SET GID = IDENTITY();
   END"""
 
     elif name == 'createMergeCardGroup':
         query = """\
-CREATE PROCEDURE "MergeCardGroup"(IN CID INTEGER,
-                                  IN GIDS INTEGER ARRAY)
+CREATE PROCEDURE "MergeCardGroup"(IN Cid INTEGER,
+                                  IN Gid INTEGER)
   SPECIFIC "MergeCardGroup_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DECLARE INDEX INTEGER DEFAULT 1;
-    DELETE FROM "GroupCards" WHERE "Card"=CID;
-    WHILE INDEX <= CARDINALITY(GIDS) DO
-      INSERT INTO "GroupCards" ("Group","Card") VALUES (GIDS[INDEX],CID);
-      SET INDEX = INDEX + 1;
-    END WHILE;
+    DELETE FROM "GroupCards" WHERE "Card"=Cid;
+    INSERT INTO "GroupCards" ("Group","Card") VALUES (Gid,Cid);
   END"""
 
     elif name == 'createGetPeopleIndex':
@@ -1182,9 +1261,11 @@ CREATE PROCEDURE "MergeConnection"(IN "GroupPrefix" VARCHAR(50),
     elif name == 'mergeGroupMembers':
         query = 'CALL "MergeGroupMembers"(?,?,?)'
     elif name == 'deleteCard':
-        query = 'CALL "DeleteCard"(?,?)'
+        query = 'CALL "DeleteCard"(?)'
     elif name == 'getColumns':
         query = 'CALL "SelectColumns"()'
+    elif name == 'getColumnIds':
+        query = 'CALL "SelectColumnIds"()'
     elif name == 'getPaths':
         query = 'CALL "SelectPaths"()'
     elif name == 'getTypes':
