@@ -35,9 +35,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.sdb.CommandType import QUERY
 
-from com.sun.star.sdbc.DataType import BIGINT
 from com.sun.star.sdbc.DataType import INTEGER
-from com.sun.star.sdbc.DataType import TIMESTAMP
 from com.sun.star.sdbc.DataType import VARCHAR
 
 from ..unolib import KeyMap
@@ -71,18 +69,12 @@ from ..unotool import getUrlPresentation
 
 from ..configuration import g_identifier
 from ..configuration import g_admin
-from ..configuration import g_group
 from ..configuration import g_host
 
 from ..dbqueries import getSqlQuery
 
-from ..dbconfig import g_dba
 from ..dbconfig import g_folder
 from ..dbconfig import g_jar
-from ..dbconfig import g_role
-from ..dbconfig import g_schema
-from ..dbconfig import g_user
-from ..dbconfig import g_usercolumn
 from ..dbconfig import g_cardview
 from ..dbconfig import g_bookmark
 from ..dbconfig import g_csv
