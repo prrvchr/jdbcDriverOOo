@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
+import com.sun.star.uno.Exception;
+
 
 public class UnoLoggerFactory
     implements ILoggerFactory
@@ -58,7 +60,13 @@ public class UnoLoggerFactory
             return logger;
         }
         else {
-            Logger newInstance = new UnoLoggerAdapter(name);
+            Logger newInstance = null;
+            try {
+                newInstance = new UnoLoggerAdapter(name);
+            }
+            catch (Exception e) {
+                return null;
+            }
             Logger oldInstance = m_loggers.putIfAbsent(name, newInstance);
             return oldInstance == null ? newInstance : oldInstance;
         }

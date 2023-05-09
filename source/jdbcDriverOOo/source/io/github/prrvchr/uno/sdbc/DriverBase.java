@@ -380,12 +380,14 @@ public abstract class DriverBase
               InstantiationException | InvocationTargetException | IllegalAccessException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
         }
-        try {
-            DriverManager.registerDriver(driver);
-            System.out.println("sdbc.DriverBase._registerDriver(name) 1");
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+        if (driver != null) {
+            try {
+                DriverManager.registerDriver(driver);
+                System.out.println("sdbc.DriverBase._registerDriver(name) 1");
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
     }
 

@@ -291,7 +291,6 @@ class OptionsModel(unohelper.Base):
 
     def _getDriverVersion(self, driver, protocol):
         version = self._default
-        print("OptionsModel._getDriverVersion()")
         try:
             url = '%s%s' % (self._registeredProtocol, protocol)
             connection = driver.connect(url, ())

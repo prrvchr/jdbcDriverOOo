@@ -29,16 +29,19 @@ import java.io.Writer;
 
 import com.sun.star.logging.LogLevel;
 import com.sun.star.logging.XLogger;
+import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
 
 public final class DerbyLoggerBridge
 {
 
-    private static final XLogger m_xLogger = UnoLoggerPool.getNamedLogger("derby");
+    private static XLogger m_xLogger = null;
 
     private DerbyLoggerBridge()
+        throws Exception
     {
+        m_xLogger = UnoLoggerPool.getNamedLogger("derby");
     }
 
     public static final class LoggingWriter

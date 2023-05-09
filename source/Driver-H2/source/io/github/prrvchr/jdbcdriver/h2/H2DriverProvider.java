@@ -65,6 +65,15 @@ public final class H2DriverProvider
     }
 
     @Override
+    public String[] getTableTypes()
+    {
+        System.out.println("h2.H2DriverProvider.getTableTypes() 1");
+        //return new String[]{"BASE TABLE", "VIEW"};
+        return null;
+    }
+
+
+    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);

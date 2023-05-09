@@ -25,13 +25,11 @@
 */
 package io.github.prrvchr.uno.logging;
 
-
 import com.sun.star.logging.XLogger;
 import com.sun.star.logging.XLoggerPool;
+import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class UnoLoggerPool
@@ -56,6 +54,7 @@ public final class UnoLoggerPool
     }
 
     public static XLogger getNamedLogger(String name)
+        throws Exception
     {
         XLogger logger = getLoggerPool().getNamedLogger(getLoggerName(name));
         System.out.println("logging.UnoLoggerPool.getNamedLogger() " + logger.getName());
@@ -63,16 +62,18 @@ public final class UnoLoggerPool
     }
 
     public static XLogger getDefaultLogger()
+        throws Exception
     {
         XLogger logger = getLoggerPool().getDefaultLogger();
         System.out.println("logging.UnoLoggerPool.getDefaultLogger() " + logger.getName());
         return logger;
     }
 
-    private static XLoggerPool getLoggerPool()
+    private static XLoggerPool getLoggerPool() 
+        throws Exception
     {
         System.out.println("logging.UnoLoggerPool.getLoggerPool()");
-        Object object = UnoHelper.createService(m_xContext, m_service);
+        Object object = m_xContext.getServiceManager().createInstanceWithContext(m_service, m_xContext);
         return UnoRuntime.queryInterface(XLoggerPool.class, object);
     }
 

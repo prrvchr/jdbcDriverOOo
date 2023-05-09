@@ -33,6 +33,7 @@ import org.slf4j.spi.LocationAwareLogger;
 
 import com.sun.star.logging.LogLevel;
 import com.sun.star.logging.XLogger;
+import com.sun.star.uno.Exception;
 
 
 @SuppressWarnings("deprecation")
@@ -46,6 +47,7 @@ public final class UnoLoggerAdapter
 
     // The constructor method:
     public UnoLoggerAdapter(String logger)
+        throws Exception
     {
         System.out.println("logging.UnoLoggerAdapter() 1");
         //m_xLogger = UnoHelper.getLoggerPool().getNamedLogger(logger);

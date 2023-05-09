@@ -66,7 +66,6 @@ class OptionsManager(unohelper.Base):
         self._disposed = False
         self._disabled = False
         self._model = OptionsModel(ctx, self._lock)
-        print("OptionsManager.__init__() 1")
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
         version  = ' '.join(sys.version.split())
@@ -75,7 +74,6 @@ class OptionsManager(unohelper.Base):
         self._logger = LogManager(ctx, self._view.getLoggerParent(), infos, g_identifier, 'Driver')
         self._model.loadConfiguration(self.updateView)
         self._initView()
-        print("OptionsManager.__init__() 2")
 
     def dispose(self):
         self._logger.dispose()
@@ -188,10 +186,12 @@ class OptionsManager(unohelper.Base):
         self._disabled = True
 
     def _initView(self):
+        print("OptionsManager._initView() 1")
         driver, connection, upadated, enabled = self._model.getServicesLevel()
         self._view.setDriverLevel(driver, upadated)
         self._view.setConnectionLevel(connection, enabled)
         self._initViewProtocol()
+        print("OptionsManager._initView() 2")
 
     def _initViewProtocol(self, driver=None):
         self._disableHandler()
