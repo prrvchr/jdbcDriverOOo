@@ -47,16 +47,20 @@ from ..unotool import getSimpleFile
 from ..unotool import getUrl
 
 from ..logger import LogManager
+from ..logger import getLogger
 
 from ..dbconfig import g_jar
 
 from ..configuration import g_extension
 from ..configuration import g_identifier
+from ..configuration import g_basename
+from ..configuration import g_errorlog
 
 import os
 import sys
-import traceback
 from threading import Condition
+from collections import OrderedDict
+import traceback
 
 
 class OptionsManager(unohelper.Base):
@@ -68,10 +72,7 @@ class OptionsManager(unohelper.Base):
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
-        version  = ' '.join(sys.version.split())
-        path = os.pathsep.join(sys.path)
-        infos = {111: version, 112: path}
-        self._logger = LogManager(ctx, self._view.getLoggerParent(), infos, g_identifier, 'Driver')
+        self._logger = LogManager(ctx, self._view.getLoggerParent(), self._getInfos(), g_identifier, 'Driver')
         self._model.loadConfiguration(self.updateView)
         self._initView()
 
@@ -192,6 +193,27 @@ class OptionsManager(unohelper.Base):
         self._view.setConnectionLevel(connection, enabled)
         self._initViewProtocol()
         print("OptionsManager._initView() 2")
+
+    def _getInfos(self):
+        infos = OrderedDict()
+        version  = ' '.join(sys.version.split())
+        infos[111] = version
+        path = os.pathsep.join(sys.path)
+        infos[112] = path
+        # FIXME: Need to known if ssl is installed
+        try:
+            import ssl
+        except Exception as e:
+            infos[125] = self._getExceptionMessage(e)
+        else:
+            infos[126] = ssl.OPENSSL_VERSION
+        return infos
+
+    def _getExceptionMessage(self, e):
+        logger = getLogger(self._ctx, g_errorlog, g_basename)
+        error = repr(e)
+        trace = repr(traceback.format_exc())
+        return logger.resolveString(181, error, trace)
 
     def _initViewProtocol(self, driver=None):
         self._disableHandler()
