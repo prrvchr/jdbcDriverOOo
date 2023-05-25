@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
@@ -25,64 +22,55 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+ */
 
-import unohelper
+#ifndef __com_sun_star_rest_UploadResponse_idl__
+#define __com_sun_star_rest_UploadResponse_idl__
 
-from .optionsmodel import OptionsModel
-from .optionsview import OptionsView
-
-from ..unotool import executeDispatch
-from ..unotool import getDesktop
-
-from ..logger import LogManager
-
-from ..configuration import g_identifier
-from ..configuration import g_defaultlog
-
-from collections import OrderedDict
-import os
-import sys
-import traceback
+#include <io/github/prrvchr/css/util/Duration.idl>
 
 
-class OptionsManager(unohelper.Base):
-    def __init__(self, ctx, window):
-        self._ctx = ctx
-        self._model = OptionsModel(ctx)
-        index, timeout, exist = self._model.getViewData()
-        self._view = OptionsView(window, index, timeout, exist)
-        self._logger = LogManager(ctx, window.Peer, self._getInfos(), g_identifier, g_defaultlog)
+module com { module sun { module star { module rest {
 
-    def saveSetting(self):
-        self._model.setSynchronizePolicy(self._view.getSynchronizePolicy())
-        self._model.setTimeout(self._view.getTimeout())
-        self._logger.saveSetting()
+struct UploadResponse
+{
+    /** is the upload finished.
+     */
+    boolean Uploaded;
 
-    def loadSetting(self):
-        self._view.setSynchronizePolicy(self._model.getSynchronizePolicy())
-        self._view.setTimeout(self._model.getTimeout())
-        self._logger.loadSetting()
 
-    def enableTimeout(self, enabled):
-        self._view.enableTimeout(enabled)
+    /** is the uploader has next range to upload.
+     */
+    boolean HasNextRange;
 
-    def viewData(self):
-        url = self._model.getDatasourceUrl()
-        getDesktop(self._ctx).loadComponentFromURL(url, '_blank', 0, ())
 
-    def _getInfos(self):
-        infos = OrderedDict()
-        version  = ' '.join(sys.version.split())
-        infos[111] = version
-        path = os.pathsep.join(sys.path)
-        infos[112] = path
-        # Required modules for ijson
-        try:
-            import cffi
-        except Exception as e:
-            infos[113] = self._getExceptionMessage(e)
-        else:
-            infos[114] = cffi.__version__
-        return infos
+    /** contains the next range to upload.
+     */
+    unsigned hyper NextRange;
+
+
+    /** contains the Duration of the upload.
+     */
+    io::github::prrvchr::css::util::Duration Elapsed;
+
+
+    /** contains the response text content.
+     */
+    string Text;
+
+
+    /** contains the response HTTP Status Code.
+     */
+    long StatusCode;
+
+    /** contains the request HTTP count needed for the upload.
+     */
+    long Count;
+
+};
+
+
+}; }; }; };
+
+#endif
 
