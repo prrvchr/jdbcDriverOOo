@@ -47,14 +47,10 @@ from ..unotool import getSimpleFile
 from ..unotool import getUrl
 
 from ..logger import LogManager
-from ..logger import getLogger
 
 from ..dbconfig import g_jar
 
-from ..configuration import g_extension
 from ..configuration import g_identifier
-from ..configuration import g_basename
-from ..configuration import g_errorlog
 
 import os
 import sys
@@ -204,16 +200,15 @@ class OptionsManager(unohelper.Base):
         try:
             import ssl
         except Exception as e:
-            infos[125] = self._getExceptionMessage(e)
+            infos[125] = self._getExceptionMsg(e)
         else:
-            infos[126] = ssl.OPENSSL_VERSION
+            infos[126] = ssl.OPENSSL_VERSION, ssl.__file__
         return infos
 
-    def _getExceptionMessage(self, e):
-        logger = getLogger(self._ctx, g_errorlog, g_basename)
+    def _getExceptionMsg(self, e):
         error = repr(e)
         trace = repr(traceback.format_exc())
-        return logger.resolveString(181, error, trace)
+        return error, trace
 
     def _initViewProtocol(self, driver=None):
         self._disableHandler()
