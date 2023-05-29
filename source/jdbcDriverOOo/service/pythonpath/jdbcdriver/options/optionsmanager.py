@@ -183,12 +183,10 @@ class OptionsManager(unohelper.Base):
         self._disabled = True
 
     def _initView(self):
-        print("OptionsManager._initView() 1")
         driver, connection, upadated, enabled = self._model.getServicesLevel()
         self._view.setDriverLevel(driver, upadated)
         self._view.setConnectionLevel(connection, enabled)
         self._initViewProtocol()
-        print("OptionsManager._initView() 2")
 
     def _getInfos(self):
         infos = OrderedDict()
@@ -196,19 +194,7 @@ class OptionsManager(unohelper.Base):
         infos[111] = version
         path = os.pathsep.join(sys.path)
         infos[112] = path
-        # FIXME: Need to known if ssl is installed
-        try:
-            import ssl
-        except Exception as e:
-            infos[125] = self._getExceptionMsg(e)
-        else:
-            infos[126] = ssl.OPENSSL_VERSION, ssl.__file__
         return infos
-
-    def _getExceptionMsg(self, e):
-        error = repr(e)
-        trace = repr(traceback.format_exc())
-        return error, trace
 
     def _initViewProtocol(self, driver=None):
         self._disableHandler()
