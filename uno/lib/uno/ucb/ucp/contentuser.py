@@ -47,9 +47,6 @@ from com.sun.star.ucb.ContentInfoAttribute import KIND_LINK
 
 from com.sun.star.ucb import IllegalIdentifierException
 
-
-from ..unolib import KeyMap
-
 from ..oauth2 import getOAuth2UserName
 from ..oauth2 import getRequest
 from ..oauth2 import g_oauth2
@@ -120,6 +117,7 @@ class ContentUser():
         except Exception as e:
             msg = "ContentUser.__init__() Error: %s" % traceback.format_exc()
             print(msg)
+            raise IllegalIdentifierException(msg, source)
 
     @property
     def Name(self):
