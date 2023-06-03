@@ -34,10 +34,9 @@ jdbcDriverOOo is a JDBC driver written in Java.
 Its use requires the [installation and configuration][16] in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium][17] as your Java installation source.
 
-If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug 139538][18].  
-To work around the problem, please uninstall the packages:
-- libreoffice-sdbc-hsqldb
-- libhsqldb1.8.0-java
+If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug 139538][18]. To work around the problem, please **uninstall the packages** with commands:
+- `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
+- `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
 
 If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HsqlDBembeddedOOo][19] extension.  
 OpenOffice and LibreOffice on Windows are not subject to this malfunction.
