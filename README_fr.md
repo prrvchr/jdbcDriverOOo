@@ -258,7 +258,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Tout ce qui est bienvenu...
 
-[1]: <img/jdbcDriverOOo.png>
+[1]: <img/jdbcDriverOOo.svg>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-004>

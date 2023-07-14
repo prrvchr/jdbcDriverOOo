@@ -258,7 +258,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Anything welcome...
 
-[1]: <img/jdbcDriverOOo.png>
+[1]: <img/jdbcDriverOOo.svg>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-004>

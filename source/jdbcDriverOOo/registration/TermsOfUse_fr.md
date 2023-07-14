@@ -1,4 +1,6 @@
-# ![logo][1] jdbcDriverOOo - Conditions d'utilisation
+# Conditions d'utilisation
+
+**This [document][1] in English.**
 
 Concernant l'installation, la configuration et l'utilisation,
 veuillez consulter la **[documentation][2]**.
@@ -23,7 +25,7 @@ le modifier selon les termes (à votre choix):
 - La GNU [Lesser General Public License][4] publiée par La Free Software Foundation,
 soit la version 3 de la Licence, soit (selon votre choix) toute version ultérieure.
 
-[1]: <https://prrvchr.github.io/jdbcDriverOOo/img/jdbcDriverOOo.png>
+[1]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [3]: <http://mozilla.org/MPL/2.0/>
 [4]: <http://www.gnu.org/licenses/lgpl-3.0.html>
