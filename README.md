@@ -12,7 +12,7 @@
 
 This extension allows you to use the JDBC driver of your choice directly in Base.  
 It embeds the drivers for the following databases:
-- [HyperSQL or HsqlDB][8] version 2.70
+- [HyperSQL or HsqlDB][8] version 2.72
     The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
 - [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13)
 - [Apache Derby][10] version 10.15.2.0
