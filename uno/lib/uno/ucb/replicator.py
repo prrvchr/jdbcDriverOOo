@@ -78,19 +78,11 @@ class Replicator(unohelper.Base,
         self._canceled = False
         self._fullPull = False
         self.DataBase = DataBase(ctx, datasource)
-        self.Provider = provider
+        self._provider = provider
         self._config = getConfiguration(ctx, g_identifier, False)
         self._logger = getLogger(ctx, g_synclog, g_basename)
         sync.clear()
         self.start()
-
-    # TODO: Need to update the item id after creation if needed
-    def callBack(self, itemid, response):
-        if response.IsPresent:
-            self.DataBase.updateItemId(self.Provider, itemid, response.Value)
-            return True
-        return False
-
 
     def fullPull(self):
         return self._fullPull
@@ -102,7 +94,7 @@ class Replicator(unohelper.Base,
 
     def run(self):
         try:
-            msg = "Replicator for Scheme: %s loading ... " % self.Provider.Scheme
+            msg = "Replicator for Scheme: %s loading ... " % self._provider.Scheme
             print("Replicator.run() 1 *************************************************************")
             print("Replicator run() 2")
             while not self._canceled:
@@ -120,7 +112,7 @@ class Replicator(unohelper.Base,
         if policy == self._getSynchronizePolicy('NONE_IS_MASTER'):
             return
         self._logger.logprb(INFO, 'Replicator', '_synchronize()', 101, getDateTimeInTZToString(currentDateTimeInTZ()))
-        if self.Provider.isOffLine():
+        if self._provider.isOffLine():
             self._logger.logprb(INFO, 'Replicator', '_synchronize()', 102)
         elif policy == self._getSynchronizePolicy('SERVER_IS_MASTER'):
             if not self._canceled:
@@ -155,9 +147,9 @@ class Replicator(unohelper.Base,
     def _initUser(self, user):
         # This procedure is launched only once for each new user
         # This procedure corresponds to the initial pull for a new User (ie: without Token)
-        pages, count, token = self.Provider.firstPull(user)
+        pages, count, token = self._provider.firstPull(user)
         print("Replicator._initUser() 1 Count: %s - Pages %s - Token: %s" % (count, pages, token))
-        user.Provider.initUser(self.DataBase, user, token)
+        self._provider.initUser(self.DataBase, user, token)
         user.SyncMode = 1
         self._fullPull = True
 
@@ -165,7 +157,7 @@ class Replicator(unohelper.Base,
         # This procedure is launched each time the synchronization is started
         # This procedure corresponds to the pull for a User (ie: a Token is required)
         print("Replicator._pullUser() 1")
-        pages, count, token = user.Provider.pullUser(user)
+        pages, count, token = self._provider.pullUser(user)
         if token:
             user.setToken(token)
         print("Replicator._pullUser() 2 Items count: %s - Pages count: %s - Token: %s" % (count, pages, token))
@@ -186,9 +178,9 @@ class Replicator(unohelper.Base,
                     print("Replicator._pushUsers() 1 Start: %s - End: %s" % (getDateTimeInTZToString(start), getDateTimeInTZToString(end)))
                     print("Replicator._pushUsers() 2 Item: UserName: %s - ItemId: %s - ChangeAction: %s - TimeStamp: %s" % (user.Name, item.get('ItemId'),item.get('ChangeAction'),getDateTimeInTZToString(item.get('TimeStamp'))))
                     metadata = self.DataBase.getMetaData(user, item)
-                    itemid = item.get('ItemId')
-                    if self._pushItem(user, itemid, item, metadata, start, end):
-                        items.append(itemid)
+                    newid = self._pushItem(user, item, metadata, start, end)
+                    if newid is not None:
+                        items.append(newid)
                     else:
                         modified = getDateTimeToString(metadata.get('DateModified'))
                         self._logger.logprb(SEVERE, 'Replicator', '_pushUsers()', 132, metadata.get('Title'), modified, metadata.get('Id'))
@@ -200,14 +192,14 @@ class Replicator(unohelper.Base,
             print("Replicator.synchronize() ERROR: %s - %s" % (e, traceback.print_exc()))
 
     def _checkNewIdentifier(self, user):
-        if not user.Provider.GenerateIds:
+        if not self._provider.GenerateIds:
             user.CanAddChild = True
             return
-        if user.Provider.isOffLine():
+        if self._provider.isOffLine():
             user.CanAddChild = self.DataBase.countIdentifier(user.Id) > 0
             return
-        if self.DataBase.countIdentifier(user.Id) < min(user.Provider.IdentifierRange):
-            user.Provider.pullNewIdentifiers(user)
+        if self.DataBase.countIdentifier(user.Id) < min(self._provider.IdentifierRange):
+            self._provider.pullNewIdentifiers(user)
         # Need to postpone the creation authorization after this verification...
         user.CanAddChild = True
 
@@ -228,11 +220,13 @@ class Replicator(unohelper.Base,
             childs.reverse()
         return rows
 
-    def _pushItem(self, user, itemid, item, metadata, start, end):
+    def _pushItem(self, user, item, metadata, start, end):
         try:
-            status = False
+            itemid = item.get('ItemId')
+            newid = None
             timestamp = item.get('TimeStamp')
             action = item.get('ChangeAction')
+            chunk, retry, delay = self._getUploadSetting()
             print("Replicator._pushItem() 3 Insert/Update Title: %s Id: %s - Action: %s" % (metadata.get('Title'),
                                                                                  itemid,
                                                                                  action))
@@ -244,47 +238,44 @@ class Replicator(unohelper.Base,
                 mediatype = metadata.get('MediaType')
                 print("Replicator._pushItem() INSERT 2")
                 created = getDateTimeToString(metadata.get('DateCreated'))
-                if user.Provider.isFolder(mediatype):
+                if self._provider.isFolder(mediatype):
                     print("Replicator._pushItem() INSERT 3")
-                    status = user.Provider.createFolder(user, metadata)
+                    newid = self._provider.createFolder(user, itemid, metadata)
                     print("Replicator._pushItem() INSERT 4")
                     self._logger.logprb(INFO, 'Replicator', '_pushItem()', 141, metadata.get('Title'), created)
                     print("Replicator._pushItem() INSERT 5")
-                elif user.Provider.isLink(mediatype):
+                elif self._provider.isLink(mediatype):
                     pass
-                elif user.Provider.isDocument(mediatype):
-                    status = user.Provider.uploadFile(user, metadata, True)
-                    if status:
+                elif self._provider.isDocument(mediatype):
+                    newid = self._provider.uploadFile(user, itemid, metadata, chunk, retry, delay, True)
+                    if newid:
                         self._logger.logprb(INFO, 'Replicator', '_pushItem()', 142, metadata.get('Title'), created)
             # UPDATE procedures, only a few properties are synchronized: Title and content(ie: Size or DateModified)
             elif action & UPDATE:
                 for property in self.DataBase.getPushProperties(user.Id, itemid, start, end):
-                    status = False
                     properties = property.get('Properties')
                     timestamp = property.get('TimeStamp')
                     modified = getDateTimeToString(metadata.get('DateModified'))
                     if properties & TITLE:
-                        status = user.Provider.updateTitle(user.Request, metadata)
+                        newid = self._provider.updateTitle(user.Request, itemid, metadata)
                         self._logger.logprb(INFO, 'Replicator', '_pushItem()', 143, metadata.get('Title'), modified)
                     elif properties & CONTENT:
-                        status = user.Provider.uploadFile(user, metadata, False)
+                        newid = self._provider.uploadFile(user, itemid, metadata, chunk, retry, delay, False)
                         self._logger.logprb(INFO, 'Replicator', '_pushItem()', 144, metadata.get('Title'), modified, metadata.get('Size'))
                     elif properties & TRASHED:
-                        status = user.Provider.updateTrashed(user.Request, metadata)
+                        newid = self._provider.updateTrashed(user.Request, itemid, metadata)
                         self._logger.logprb(INFO, 'Replicator', '_pushItem()', 145, metadata.get('Title'), modified)
-                    if not status:
-                        break
             # MOVE procedures to follow parent changes of a resource
             elif action & MOVE:
                 print("Replicator._pushItem() MOVE")
                 self.DataBase.getItemParentIds(itemid, metadata, start, end)
-                status = user.Provider.updateParents(user.Request, metadata)
+                newid = self._provider.updateParents(user.Request, itemid, metadata)
                 print("Replicator.._pushItem() MOVE ToAdd: %s - ToRemove: %s" % (toadd, toremove))
             elif action & DELETE:
                 print("Replicator._pushItem() DELETE")
-                status = user.Provider.updateTrashed(user.Request, metadata)
+                newid = self._provider.updateTrashed(user.Request, itemid, metadata)
                 self._logger.logprb(INFO, 'Replicator', '_pushItem()', 145, metadata.get('Title'), timestamp)
-            return status
+            return newid
         except Exception as e:
             msg = "ERROR: %s - %s" % (e, traceback.print_exc())
             self._logger.logp(SEVERE, 'Replicator', '_pushItem()', msg)
@@ -307,3 +298,7 @@ class Replicator(unohelper.Base,
         # FIXME: LibreOffice raise exception on uno.getConstantByName() on Enum...
         except:
             return uno.Enum('com.sun.star.ucb.SynchronizePolicy', policy)
+
+    def _getUploadSetting(self):
+        config = self._config.getByHierarchicalName('Settings/Upload')
+        return config.getByName('Chunk'), config.getByName('Retry'), config.getByName('Delay')

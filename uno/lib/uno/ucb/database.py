@@ -182,19 +182,15 @@ class DataBase():
         metadata['AtRoot'] = atroot
         return metadata
 
-    def updateNewItemId(self, item, newitem):
-        newid, created, modified = newitem
-        print("DataBase.mergeNewFolder() 1 Item Id: %s - New Item Id: %s" % (item.get('Id'), newid))
+    def updateNewItemId(self, oldid, newid, created, modified):
+        print("DataBase.mergeNewFolder() 1 Item Id: %s - New Item Id: %s" % (oldid, newid))
         call = self._getCall('updateNewItemId')
-        call.setString(1, item.get('Id'))
+        call.setString(1, oldid)
         call.setString(2, newid)
         call.setTimestamp(3, created)
         call.setTimestamp(4, modified)
         call.close()
-        print("DataBase.mergeNewFolder() 1 Item Id: %s - New Item Id: %s" % (item.get('Id'), newid))
-        item['Id'] = newid
-        print("DataBase.mergeNewFolder() 2 Item Id: %s - New Item Id: %s" % (item.get('Id'), newid))
-        return True
+        return newid
 
 # Procedures called by the Content
         #TODO: Can't have a simple SELECT ResultSet with a Procedure,
@@ -492,14 +488,13 @@ class DataBase():
         metadata.insertValue('ParentToAdd', set(new) - set(old))
         metadata.insertValue('ParentToRemove', set(old) - set(new))
 
-    def updateItemId(self, provider, itemid, response):
-        newid = provider.getResponseId(response, itemid)
-        if newid != itemid:
-            update = self._getCall('updateItemId')
-            update.setString(1, newid)
-            update.setString(2, itemid)
-            update.executeUpdate()
-            update.close()
+    def updateItemId(self, newid, oldid):
+        print("DataBase.updateItemId () NewId: %s - OldId: %s" % (newid, oldid))
+        update = self._getCall('updateItemId')
+        update.setString(1, newid)
+        update.setString(2, oldid)
+        update.executeUpdate()
+        update.close()
 
 # Procedures called internally
     def _mergeItem(self, call1, call2, item, timestamp):
