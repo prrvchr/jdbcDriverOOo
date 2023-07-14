@@ -28,6 +28,7 @@ Being free software I encourage you:
 In short, to participate in the development of this extension.  
 Because it is together that we can make Free Software smarter.
 
+___
 ## Requirement:
 
 jdbcDriverOOo is a JDBC driver written in Java.  
@@ -41,6 +42,7 @@ If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are s
 If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HsqlDBembeddedOOo][19] extension.  
 OpenOffice and LibreOffice on Windows are not subject to this malfunction.
 
+___
 ## Installation:
 
 It seems important that the file was not renamed when it was downloaded.
@@ -50,6 +52,7 @@ If necessary, rename it before installing it.
 
 Restart LibreOffice / OpenOffice after installation.
 
+___
 ## Use:
 
 This mode of use uses an HsqlDB database.
@@ -106,6 +109,7 @@ If you use HsqlDB as database, follow these steps:
 
 Now your database is up to date.
 
+___
 ## LibreOffice/OpenOffice Base improvement:
 
 This driver allows in LibreOffice / OpenOffice Base the management of **users**, **roles** (groups) and their associated **privileges** of the underlying database.
@@ -136,6 +140,7 @@ This functionality is an extension of the UNO API and will only be available if 
 
 ![jdbcDriverOOo screenshot 10][30]
 
+___
 ## Has been tested with:
 
 * LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1
@@ -148,6 +153,7 @@ I encourage you in case of problem :-(
 to create an [issue][31]  
 I will try to solve it ;-)
 
+___
 ## Historical:
 
 ### Introduction:

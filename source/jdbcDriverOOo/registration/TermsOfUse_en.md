@@ -9,12 +9,14 @@ please consult the **[documentation][2]**.
 
 The jdbcDriverOOo library is a part of a personal project.
 
+___
 ## Responsibilities:
 
 jdbcDriverOOo is distributed in the hope that it will be useful,
 but **WITHOUT ANY WARRANTY**; without even the implied warranty of
 **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**.
 
+___
 ## License:
 
 jdbcDriverOOo is free software; you can redistribute it and/or

@@ -9,12 +9,14 @@ veuillez consulter la **[documentation][2]**.
 
 La bibliothèque jdbcDriverOOo fait partie d'un projet personnel.
 
+___
 ## Responsabilités:
 
 jdbcDriverOOo est distribué dans l'espoir qu'il sera utile,
 mais **SANS AUCUNE GARANTIE**; sans même la garantie implicite de
 **QUALITÉ MARCHANDE** ou **ADAPTATION À UN USAGE PARTICULIER**.
 
+___
 ## Licence:
 
 jdbcDriverOOo est un logiciel gratuit; Vous pouvez le redistribuer et/ou
