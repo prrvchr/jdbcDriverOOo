@@ -39,7 +39,7 @@ Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous ê
 - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
 - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
 
-Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HsqlDBembeddedOOo][19].  
+Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HsqlDriverOOo][19].  
 OpenOffice et LibreOffice sous Windows ne sont pas soumis à ce dysfonctionnement.
 
 ___
@@ -282,7 +282,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [16]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
 [17]: <https://adoptium.net/releases.html?variant=openjdk11>
 [18]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[19]: <https://prrvchr.github.io/HsqlDBembeddedOOo/README_fr>
+[19]: <https://prrvchr.github.io/HsqlDriverOOo/README_fr>
 [20]: <https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt>
 [21]: <img/jdbcDriverOOo-1_fr.png>
 [22]: <img/jdbcDriverOOo-2_fr.png>
