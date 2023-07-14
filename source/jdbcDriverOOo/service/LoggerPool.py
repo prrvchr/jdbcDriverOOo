@@ -32,15 +32,10 @@ import unohelper
 
 from com.sun.star.lang import XServiceInfo
 
-from com.sun.star.logging import XLoggerPool2
-
-from jdbcdriver import Logger
-
-from jdbcdriver import getStringResourceWithLocation
+from jdbcdriver import LoggerPool as LoggerPoolBase
 
 from jdbcdriver import g_identifier
 
-from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
@@ -48,77 +43,10 @@ g_ImplementationHelper = unohelper.ImplementationHelper()
 g_ImplementationName = '%s.LoggerPool' % g_identifier
 
 
-class LoggerPool(unohelper.Base,
-                 XServiceInfo,
-                 XLoggerPool2):
+class LoggerPool(LoggerPoolBase,
+                 XServiceInfo):
     def __init__(self, ctx):
-        self._ctx = ctx
-        print("LoggerPool.__init__() 1")
-        self._default = 'org.openoffice.logging.DefaultLogger'
-        self._pool = ctx.getByName('/singletons/com.sun.star.logging.LoggerPool')
-        print("LoggerPool.__init__() 2 *******************************")
-
-    # FIXME: for the LoggerPool, the modify listener is global
-    _listeners = []
-    # FIXME: for the Logger, the modify listener is global
-    _loggers = {}
-    _resolvers = {}
-    _lock = Lock()
-
-    # XLoggerPool
-    def getNamedLogger(self, name):
-        logger = self._getNamedLogger(name)
-        listeners = LoggerPool._loggers[name]
-        return Logger(self._ctx, logger, listeners)
-
-    def getDefaultLogger(self):
-        return getNamedLogger(self._default)
-
-    # XLoggerPool2
-    def getLocalizedLogger(self, name, url, basename):
-        logger = self._getNamedLogger(name)
-        listeners = LoggerPool._loggers[name]
-        key = '%s/%s' % (url, basename)
-        with LoggerPool._lock:
-            if key not in LoggerPool._resolvers:
-                LoggerPool._resolvers[key] = getStringResourceWithLocation(self._ctx, url, basename)
-        resolver = LoggerPool._resolvers[key]
-        return Logger(self._ctx, logger, listeners, resolver)
-
-    def getLoggerNames(self):
-        return tuple(LoggerPool._loggers.keys())
-
-    def getFilteredLoggerNames(self, filter):
-        names = []
-        start = len(filter) +1
-        for name in LoggerPool._loggers:
-            if name.startswith(filter):
-                names.append(name[start:])
-        return tuple(names)
-
-    def addModifyListener(self, listener):
-        LoggerPool._listeners.append(listener)
-
-    def removeModifyListener(self, listener):
-        if listener in LoggerPool._listeners:
-            LoggerPool._listeners.remove(listener)
-
-    def _getNamedLogger(self, name):
-        with LoggerPool._lock:
-            toadd = name not in LoggerPool._loggers
-            if toadd:
-                LoggerPool._loggers[name] = []
-                print("LoggerPool._getNamedLogger() %s" % name)
-        logger = self._pool.getNamedLogger(name)
-        if toadd:
-            self._notifyListener()
-        return logger
-
-    def _notifyListener(self):
-        event = uno.createUnoStruct('com.sun.star.lang.EventObject')
-        event.Source = self
-        for listener in LoggerPool._listeners:
-            listener.modified(event)
+        super(LoggerPool, self).__init__(ctx)
 
     # XServiceInfo
     def supportsService(self, service):

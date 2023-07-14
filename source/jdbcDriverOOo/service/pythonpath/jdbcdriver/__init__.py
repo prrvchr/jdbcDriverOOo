@@ -35,9 +35,9 @@ from .unotool import createService
 from .unotool import hasInterface
 from .unotool import getConfiguration
 from .unotool import getStringResource
-from .unotool import getStringResourceWithLocation
 
-from .logger import Logger
+from .logger import LoggerPool
+
 from .logger import getLogger
 
 from .options import OptionsManager
