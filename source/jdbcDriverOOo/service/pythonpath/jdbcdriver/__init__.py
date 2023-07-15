@@ -40,5 +40,5 @@ from .logger import getLogger
 
 from .options import OptionsManager
 
-from dbadmin import AdminDispatch
+from .dbadmin import AdminDispatch
 
