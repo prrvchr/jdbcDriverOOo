@@ -27,14 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_extension
 from .configuration import g_identifier
 
-from .unotool import createMessageBox
+
 from .unotool import createService
 from .unotool import hasInterface
 from .unotool import getConfiguration
-from .unotool import getStringResource
 
 from .logger import LoggerPool
 
@@ -42,7 +40,5 @@ from .logger import getLogger
 
 from .options import OptionsManager
 
-from .user import UserManager
-
-from .group import GroupManager
+from dbadmin import AdminDispatch
 

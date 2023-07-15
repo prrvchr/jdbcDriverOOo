@@ -4,7 +4,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3]**
 
-# version [0.0.4][4]
+# version [1.0.0][4]
 
 ## Introduction:
 
@@ -40,7 +40,6 @@ If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are s
 - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
 
 If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HsqlDriverOOo][19] extension.  
-OpenOffice and LibreOffice on Windows are not subject to this malfunction.
 
 ___
 ## Installation:
@@ -48,7 +47,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][20]** extension version 0.0.4.
+- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][20]** extension version 1.0.0.
 
 Restart LibreOffice / OpenOffice after installation.
 
