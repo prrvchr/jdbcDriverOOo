@@ -36,12 +36,6 @@
           <value xml:lang="en">Administration</value>
           <value xml:lang="fr">Administration</value>
         </prop>
-        <prop oor:name="Target" oor:type="xs:string">
-          <value>_self</value>
-        </prop>
-        <prop oor:name="ImageIdentifier" oor:type="xs:string">
-          <value/>
-        </prop>
         <prop oor:name="Context" oor:type="xs:string">
           <value>com.sun.star.sdb.OfficeDatabaseDocument</value>
         </prop>
@@ -54,9 +48,6 @@
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
             </prop>
-            <prop oor:name="ImageIdentifier" oor:type="xs:string">
-              <value/>
-            </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>sdbcx:users</value>
             </prop>
@@ -68,9 +59,6 @@
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
-            </prop>
-            <prop oor:name="ImageIdentifier" oor:type="xs:string">
-              <value/>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
               <value>sdbcx:groups</value>
