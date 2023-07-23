@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CompareBookmark;
 import com.sun.star.sdbcx.XDeleteRows;
@@ -48,8 +49,7 @@ public abstract class ResultSetSuper
                XDeleteRows,
                XCancellable
 {
-    private final boolean m_IsBookmarkable;
-    @SuppressWarnings("unused")
+    private boolean m_IsBookmarkable;
     private final boolean m_CanUpdateInsertedRows = false;
     
     // The constructor method:
@@ -62,8 +62,11 @@ public abstract class ResultSetSuper
     throws SQLException
     {
         super(service, services, connection, resultset, statement);
-        m_IsBookmarkable = bookmark;
+        m_IsBookmarkable = bookmark && connection.m_usebookmark;
         registerProperties();
+        String msg = "Initialization IsBookmarkable: " + m_IsBookmarkable;
+        m_logger.logp(LogLevel.INFO, msg);
+        System.out.println(msg);
     }
 
     private void registerProperties() {
@@ -75,8 +78,15 @@ public abstract class ResultSetSuper
                     return m_IsBookmarkable;
                 }
             }, null);
+        registerProperty(PropertyIds.CANUPDATEINSERTEDROWS.name, PropertyIds.CANUPDATEINSERTEDROWS.id, Type.BOOLEAN, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    System.out.println("ResultSetSuper() 1 CanUpdateInsertedRows: " + m_CanUpdateInsertedRows);
+                    return m_CanUpdateInsertedRows;
+                }
+            }, null);
     }
-
 
     // com.sun.star.sdbcx.XRowLocate:
     @Override
@@ -144,19 +154,15 @@ public abstract class ResultSetSuper
     {
         System.out.println("ResultSetSuper.moveRelativeToBookmark() 1");
         checkDisposed();
-        int bookmark;
-        boolean moved = false;
+        int bookmark = -1;
+        boolean moved = moveToBookmark(object);
         try {
-            bookmark = AnyConverter.toInt(object);
-            moved = absolute(bookmark);
             if (moved) {
                 moved = relative(count);
             }
         }
         catch (IllegalArgumentException e) { }
-        if (!moved) {
-            afterLast();
-        }
+        System.out.println("ResultSetSuper.moveRelativeToBookmark() 2 Bookmark: " + bookmark + " - Moved: " + moved);
         return moved;
     }
 
@@ -166,16 +172,18 @@ public abstract class ResultSetSuper
     {
         System.out.println("ResultSetSuper.moveToBookmark() 1");
         checkDisposed();
-        int bookmark;
+        int bookmark = -1;
         boolean moved = false;
         try {
+            if (m_insert) {
+                System.out.println("ResultSetSuper.moveToBookmark() 2");
+                moveToCurrentRow();
+            }
             bookmark = AnyConverter.toInt(object);
             moved = absolute(bookmark);
         }
         catch (IllegalArgumentException e) { }
-        if (!moved) {
-            afterLast();
-        }
+        System.out.println("ResultSetSuper.moveToBookmark() 3 Bookmark: " + bookmark + " - Moved: " + moved);
         return moved;
     }
 

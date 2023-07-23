@@ -70,6 +70,7 @@ public abstract class ConnectionBase
     protected final ConnectionLog m_logger; 
     public final boolean m_enhanced;
     public final boolean m_showsystem;
+    public final boolean m_usebookmark;
     protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
     private final AutoRetrievingBase m_autoretrieving = new AutoRetrievingBase();
 
@@ -81,13 +82,15 @@ public abstract class ConnectionBase
                           DriverProvider provider,
                           ResourceBasedEventLogger logger,
                           boolean enhanced,
-                          boolean showsystem)
+                          boolean showsystem,
+                          boolean usebookmark)
     {
         m_xContext = ctx;
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
         m_showsystem = showsystem;
+        m_usebookmark = usebookmark;
         m_provider = provider;
         m_autoretrieving.setAutoRetrievingEnabled(provider.isAutoRetrievingEnabled());
         m_autoretrieving.setAutoRetrievingStatement(provider.getAutoRetrievingStatement());

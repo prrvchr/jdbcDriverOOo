@@ -79,6 +79,7 @@ public abstract class DriverBase
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
     private final boolean m_showsystem;
+    private final boolean m_usebookmark;
 
     protected final ResourceBasedEventLogger m_logger;
 
@@ -94,6 +95,7 @@ public abstract class DriverBase
         m_enhanced = enhanced;
         System.out.println("sdbc.DriverBase.DriverBase() 1");
         m_showsystem = _getOptionsConfiguration("ShowSystemTable", false);
+        m_usebookmark = _getOptionsConfiguration("UseBookmark", true);
         System.out.println("sdbc.DriverBase.DriverBase() 2");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
@@ -175,7 +177,7 @@ public abstract class DriverBase
             System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
-            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_showsystem, ConnectionService.fromString(service));
+            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_showsystem, m_usebookmark, ConnectionService.fromString(service));
             m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
             System.out.println("sdbc.DriverBase.connect() 4");
         }
@@ -463,6 +465,7 @@ public abstract class DriverBase
                                                      ResourceBasedEventLogger logger,
                                                      boolean enhanced,
                                                      boolean showsystem,
+                                                     boolean usebookmark,
                                                      ConnectionService service);
 
 

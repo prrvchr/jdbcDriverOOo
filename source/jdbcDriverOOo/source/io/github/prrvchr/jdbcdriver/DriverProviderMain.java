@@ -313,7 +313,7 @@ public abstract class DriverProviderMain
     @Override
     public String getUrl()
     {
-        return m_url;
+        return UnoHelper.getDefaultPropertyValue(m_info, "Url", m_url);
     }
 
     @Override

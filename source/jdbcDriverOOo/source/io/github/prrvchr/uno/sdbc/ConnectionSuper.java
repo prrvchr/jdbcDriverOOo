@@ -60,9 +60,10 @@ public abstract class ConnectionSuper
                            DriverProvider provider,
                            ResourceBasedEventLogger logger,
                            boolean enhanced,
-                           boolean showsystem)
+                           boolean showsystem,
+                           boolean usebookmark)
     {
-        super(ctx, service, services, provider, logger, enhanced, showsystem);
+        super(ctx, service, services, provider, logger, enhanced, showsystem, usebookmark);
     }
 
     // com.sun.star.lang.XComponent

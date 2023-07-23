@@ -80,9 +80,10 @@ public final class Connection
                       DriverProvider provider,
                       ResourceBasedEventLogger logger,
                       boolean enhanced,
-                      boolean showsystem)
+                      boolean showsystem,
+                      boolean usebookmark)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, showsystem);
+        super(ctx, m_service, m_services, provider, logger, enhanced, showsystem, usebookmark);
         System.out.println("sdb.Connection() *************************");
     }
 

@@ -54,8 +54,8 @@ public abstract class TableContainerBase
 
     // The constructor method:
     public TableContainerBase(ConnectionSuper connection,
-                          boolean sensitive,
-                          List<String> names)
+                              boolean sensitive,
+                              List<String> names)
         throws ElementExistException
     {
         super(connection, sensitive, names);

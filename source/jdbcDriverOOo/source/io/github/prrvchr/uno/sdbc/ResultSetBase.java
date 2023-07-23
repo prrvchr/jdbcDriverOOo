@@ -86,7 +86,8 @@ public abstract class ResultSetBase
     protected final ConnectionLog m_logger;
     private StatementMain m_Statement;
     protected java.sql.ResultSet m_ResultSet;
-    
+    protected boolean m_insert = false;
+
 
     // The constructor method:
     public ResultSetBase(String service,
@@ -244,7 +245,7 @@ public abstract class ResultSetBase
                 m_ResultSet.close();
             }
             catch (java.sql.SQLException e) {
-                m_logger.log(LogLevel.WARNING, e);
+                m_logger.logp(LogLevel.WARNING, e);
             }
             m_ResultSet = null;
         }
@@ -421,6 +422,7 @@ public abstract class ResultSetBase
     public void refreshRow() throws SQLException
     {
         try {
+            System.out.println("ResultSetBase.refreshRow() 1");
             m_ResultSet.refreshRow();
         }
         catch (java.sql.SQLException e) {
@@ -516,8 +518,12 @@ public abstract class ResultSetBase
     public void insertRow() throws SQLException
     {
         try {
+            String msg = "insertRow() has been called";
+            System.out.println(msg);
+            m_logger.logp(LogLevel.INFO, msg);
             m_ResultSet.insertRow();
-            m_ResultSet.moveToCurrentRow();
+            // ********************************
+            //m_ResultSet.moveToCurrentRow();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -550,7 +556,10 @@ public abstract class ResultSetBase
     public void cancelRowUpdates() throws SQLException
     {
         try {
-            m_ResultSet.moveToCurrentRow();
+            // ***********************
+            if (m_insert) {
+                m_ResultSet.moveToCurrentRow();
+            }
             m_ResultSet.cancelRowUpdates();
         }
         catch (java.sql.SQLException e) {
@@ -563,7 +572,11 @@ public abstract class ResultSetBase
     public void moveToInsertRow() throws SQLException
     {
         try {
+            String msg = "moveToInsertRow() has been called";
+            System.out.println(msg);
+            m_logger.logp(LogLevel.INFO, msg);
             m_ResultSet.moveToInsertRow();
+            m_insert = true;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -574,7 +587,11 @@ public abstract class ResultSetBase
     public void moveToCurrentRow() throws SQLException
     {
         try {
+            String msg = "moveToCurrentRow() has been called";
+            System.out.println(msg);
+            m_logger.logp(LogLevel.INFO, msg);
             m_ResultSet.moveToCurrentRow();
+            m_insert = false;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -898,6 +915,7 @@ public abstract class ResultSetBase
     public void updateString(int index, String value) throws SQLException
     {
         try {
+            System.out.println("ResultSetBase.updateString() 2 Index: " + index + " - Value: " + value);
             m_ResultSet.updateString(index, value);
         }
         catch (java.sql.SQLException e) {

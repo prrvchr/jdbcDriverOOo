@@ -100,7 +100,9 @@ public enum PropertyIds {
     RELATIVEPOSITION (68, "RelativePosition"),
     CONTROLMODEL (69, "ControlModel"),
     HELPTEXT (70, "HelpText"),
-    CONTROLDEFAULT (71, "ControlDefault");
+    CONTROLDEFAULT (71, "ControlDefault"),
+
+    CANUPDATEINSERTEDROWS (72, "CanUpdateInsertedRows");
 
 
     PropertyIds(int id, String name) {

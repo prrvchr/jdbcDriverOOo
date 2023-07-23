@@ -71,18 +71,19 @@ public final class Driver
                                             ResourceBasedEventLogger logger,
                                             boolean enhanced,
                                             boolean showsystem,
+                                            boolean usebookmark,
                                             ConnectionService service)
     {
         ConnectionBase connection = null;
         switch(service) {
         case CSS_SDBCX_CONNECTION:
-            connection = new Connection(ctx, provider, logger, enhanced, showsystem);
+            connection = new Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
             break;
         case CSS_SDB_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced, showsystem);
+            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
             break;
         default:
-            connection = new Connection(ctx, provider, logger, enhanced, showsystem);
+            connection = new Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
         }
         return connection;
     }
