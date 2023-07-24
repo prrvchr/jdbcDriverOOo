@@ -88,19 +88,10 @@ public class ViewContainer
         System.out.println("sdbcx.ViewContainer._createElement() 1 Name: " + name);
         View view = null;
         NameComponents component = DataBaseTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
-        //final String sql = m_Connection.getProvider().getViewQuery(component);
-        final StringBuilder sql = new StringBuilder(m_Connection.getProvider().getViewQuery());
-        if (!component.getCatalog().isEmpty()) {
-            sql.append("TABLE_CATALOG = ? AND ");
-        }
-        if (!component.getSchema().isEmpty()) {
-            sql.append("TABLE_SCHEMA = ? AND ");
-        }
-        sql.append("TABLE_NAME = ?");
-
+        final String sql = m_Connection.getProvider().getViewQuery(component);
         final String command;
         final String option;
-        try (java.sql.PreparedStatement statement = m_Connection.getProvider().getConnection().prepareStatement(sql.toString())){
+        try (java.sql.PreparedStatement statement = m_Connection.getProvider().getConnection().prepareStatement(sql)){
             System.out.println("sdbcx.ViewContainer._createElement() 2 Name: " + name);
             int next = 1;
             if (!component.getCatalog().isEmpty()) {
@@ -112,7 +103,9 @@ public class ViewContainer
             statement.setString(next, component.getTable());
             java.sql.ResultSet result = statement.executeQuery();
             if (result.next()) {
-                command = m_Connection.getProvider().getViewCommand(result.getString(1));
+                String cmd = result.getString(1);
+                System.out.println("sdbcx.ViewContainer._createElement() 3 Command: " + cmd);
+                command = m_Connection.getProvider().getViewCommand(cmd);
                 option = result.getString(2);
             }
             else {
@@ -140,7 +133,7 @@ public class ViewContainer
         catch (java.sql.SQLException e) {
             UnoHelper.getSQLException(e, this);
         }
-        System.out.println("sdbcx.ViewContainer._createElement() 2");
+        System.out.println("sdbcx.ViewContainer._createElement() 4");
         return view;
     }
 

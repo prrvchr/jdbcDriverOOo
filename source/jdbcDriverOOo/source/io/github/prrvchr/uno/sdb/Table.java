@@ -221,13 +221,19 @@ public final class Table
         int privileges = 0;
         try {
             String name = getConnection().getMetaData().getUserName();
-            XGroupsSupplier groups = (XGroupsSupplier) AnyConverter.toObject(XGroupsSupplier.class, getConnection().getUsers().getByName(name));
-            List<String> grantees = new ArrayList<>(List.of(name));
-            grantees.addAll(Arrays.asList(groups.getGroups().getElementNames()));
-            privileges = DataBaseTools.getTableOrViewPrivileges(getConnection(), grantees, m_CatalogName, m_SchemaName, getName());
+            if (name != null && !name.isBlank()) {
+                XGroupsSupplier groups = (XGroupsSupplier) AnyConverter.toObject(XGroupsSupplier.class, getConnection().getUsers().getByName(name));
+                List<String> grantees = new ArrayList<>(List.of(name));
+                grantees.addAll(Arrays.asList(groups.getGroups().getElementNames()));
+                privileges = DataBaseTools.getTableOrViewPrivileges(getConnection(), grantees, m_CatalogName, m_SchemaName, getName());
+            }
         }
         catch (NoSuchElementException | SQLException e) {
+            System.out.println("sdb.Table._getPrivileges() 7 ERROR ******************");
             throw UnoHelper.getWrappedException(e);
+        }
+        catch (Exception e) {
+            System.out.println("sdb.Table._getPrivileges() 8 ERROR ******************");
         }
         return privileges;
     }

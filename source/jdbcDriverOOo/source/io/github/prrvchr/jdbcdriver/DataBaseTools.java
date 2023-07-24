@@ -252,6 +252,7 @@ public class DataBaseTools
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, m_connection);
         }
+        System.out.println("DataBaseTools.composeTableName(): Name: " + composedName.toString());
         return composedName.toString();
     }
 

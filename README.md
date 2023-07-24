@@ -4,7 +4,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3]**
 
-# version [1.0.0][4]
+# version [1.0.1][4]
 
 ## Introduction:
 
@@ -14,9 +14,9 @@ This extension allows you to use the JDBC driver of your choice directly in Base
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][8] version 2.72
     The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
+- [SQLite JDBC Driver][11] version 3.42.0.0
 - [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13)
 - [Apache Derby][10] version 10.15.2.0
-- [SQLite JDBC Driver][11] version 3.39.3.1-20220916.082601-2
 - [MariaDB Connector/J][12] version 3.1.1
 - [SmallSQL][13] version 0.22
 
@@ -47,7 +47,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][20]** extension version 1.0.0.
+- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][20]** extension version 1.0.1.
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -257,7 +257,15 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Many other fix...
 
-### What remains to be done for version 0.0.4:
+### What has been done for version 1.0.0:
+
+- Integration of HyperSQL version 2.7.2.
+
+### What has been done for version 1.0.1:
+
+- Integration of SQLite JDBC version 3.42.0.0.
+
+### What remains to be done for version 1.0.1:
 
 - Add new languages for internationalization...
 
@@ -266,7 +274,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [1]: <img/jdbcDriverOOo.svg>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[4]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-004>
+[4]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-101>
 [5]: <https://prrvchr.github.io/>
 [6]: <https://www.libreoffice.org/download/download-libreoffice/>
 [7]: <https://www.openoffice.org/download/index.html>

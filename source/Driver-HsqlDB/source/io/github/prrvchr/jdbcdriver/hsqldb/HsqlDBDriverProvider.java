@@ -103,7 +103,7 @@ public final class HsqlDBDriverProvider
     @Override
     public String getUserQuery()
     {
-        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS;";
     }
 
     @Override

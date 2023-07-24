@@ -4,7 +4,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3]**
 
-# version [1.0.0][4]
+# version [1.0.1][4]
 
 ## Introduction:
 
@@ -14,9 +14,9 @@ Cette extension vous permet d'utiliser le pilote JDBC de votre choix directement
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][8] version 2.72
     Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
+- [SQLite JDBC Driver][11] version 3.42.0.0
 - [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13)
 - [Apache Derby][10] version 10.15.2.0
-- [SQLite JDBC Driver][11] version 3.39.3.1-20220916.082601-2
 - [MariaDB Connector/J][12] version 3.1.1
 - [SmallSQL][13] version 0.22
 
@@ -47,7 +47,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][20]** version 1.0.0.
+- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][20]** version 1.0.1.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -257,7 +257,15 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Beaucoup d'autres correctifs...
 
-### Que reste-t-il à faire pour la version 0.0.4:
+### Ce qui a été fait pour la version 1.0.0:
+
+- Integration de HyperSQL version 2.7.2.
+
+### Ce qui a été fait pour la version 1.0.1:
+
+- Integration de SQLite JDBC version 3.42.0.0.
+
+### Que reste-t-il à faire pour la version 1.0.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -266,7 +274,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [1]: <img/jdbcDriverOOo.svg>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[4]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-004>
+[4]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-101>
 [5]: <https://prrvchr.github.io/README_fr>
 [6]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [7]: <https://www.openoffice.org/fr/Telecharger/>

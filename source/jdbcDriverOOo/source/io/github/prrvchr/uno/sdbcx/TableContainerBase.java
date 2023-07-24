@@ -104,8 +104,10 @@ public abstract class TableContainerBase
         try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
             if (result.next()) {
                 String type = result.getString(4);
+                System.out.println("TableContainerBase._createElement() 1 Type: " + type);
                 type = result.wasNull() ? "" : m_connection.getProvider().getTableType(type);
                 String remarks = result.getString(5);
+                System.out.println("TableContainerBase._createElement() 1 Remarks: " + remarks);
                 remarks = result.wasNull() ? "" : remarks;
                 table = _getTable(component, type, remarks);
             }
@@ -140,9 +142,6 @@ public abstract class TableContainerBase
             if (propertySet != null) {
                 isView = AnyConverter.toString(propertySet.getPropertyValue(PropertyIds.TYPE.name)).equals("VIEW");
             }
-            
-            String composedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
-                                                                 nameComponents.getTable(), true, ComposeRule.InDataManipulation);
             if (isView) {
                 XDrop dropView = UnoRuntime.queryInterface(XDrop.class, m_connection.getViews());
                 String unquotedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
@@ -150,6 +149,8 @@ public abstract class TableContainerBase
                 dropView.dropByName(unquotedName);
                 return;
             }
+            String composedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
+                    nameComponents.getTable(), true, ComposeRule.InDataManipulation);
             String sql = String.format(m_connection.getProvider().getDropTableQuery(), composedName);
             System.out.println("TableContainer._removeElement() Query: " + sql);
             java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();

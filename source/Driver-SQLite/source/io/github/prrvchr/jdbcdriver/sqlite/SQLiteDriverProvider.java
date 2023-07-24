@@ -30,6 +30,7 @@ import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -66,7 +67,7 @@ public final class SQLiteDriverProvider
     }
 
     @Override
-    public String getViewQuery()
+    public String getViewQuery(NameComponents component)
     {
         return "SELECT sql, 'NONE' FROM sqlite_master WHERE type='view' AND name=?";
     }
@@ -74,10 +75,13 @@ public final class SQLiteDriverProvider
     @Override
     public String getViewCommand(String sql)
     {
-        int position = sql.indexOf(" AS ");
-        if (position >= 0) {
-            sql = sql.substring(position+ 4, sql.length());
+        System.out.println("SQLiteDriverProvider.getViewCommand() 1 Command: " + sql);
+        String sep = " AS ";
+        int index = sql.indexOf(sep);
+        if (index != -1) {
+            sql = sql.substring(index + sep.length());
         }
+        System.out.println("SQLiteDriverProvider.getViewCommand() 2 Command: " + sql);
         return sql;
     }
 
@@ -93,8 +97,7 @@ public final class SQLiteDriverProvider
 
     public String[] getTableTypes()
     {
-        //return new String[]{"GLOBAL TEMPORARY", "SYSTEM TABLE", "TABLE", "VIEW"};
-        return new String[]{"TABLE", "VIEW"};
+        return new String[]{"GLOBAL TEMPORARY", "SYSTEM TABLE", "TABLE", "VIEW"};
     }
 
     public String getTableType(String type)

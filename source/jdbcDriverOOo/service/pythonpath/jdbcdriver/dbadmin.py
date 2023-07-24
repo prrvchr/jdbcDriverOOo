@@ -72,7 +72,7 @@ class AdminDispatch(unohelper.Base,
         xgroups = 'com.sun.star.sdbcx.XGroupsSupplier'
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
-        if not hasInterface(connection, xusers) or not hasInterface(connection, xgroups):
+        if not hasInterface(connection, xusers) or not hasInterface(connection, xgroups) or connection.getGroups() is None:
             dialog = createMessageBox(parent, *self._getDialogData())
             dialog.execute()
             dialog.dispose()

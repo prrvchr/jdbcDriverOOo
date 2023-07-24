@@ -36,7 +36,9 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.AnyConverter;
+import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
@@ -82,6 +84,22 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public boolean isResultSetUpdatable(XInterface component)
+    throws SQLException
+    {
+        boolean updatable = false;
+        try {
+            java.sql.DatabaseMetaData metadata = m_connection.getMetaData();
+            updatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                                              java.sql.ResultSet.CONCUR_UPDATABLE);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, component);
+        }
+        return updatable;
+    }
+
+    @Override
     public boolean isAutoRetrievingEnabled()
     {
         return UnoHelper.getDefaultPropertyValue(m_info, "IsAutoRetrievingEnabled", false);
@@ -119,9 +137,17 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getViewQuery()
+    public String getViewQuery(NameComponents component)
     {
-        return "SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ";
+        final StringBuilder sql = new StringBuilder("SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ");
+        if (!component.getCatalog().isEmpty()) {
+            sql.append("TABLE_CATALOG = ? AND ");
+        }
+        if (!component.getSchema().isEmpty()) {
+            sql.append("TABLE_SCHEMA = ? AND ");
+        }
+        sql.append("TABLE_NAME = ?");
+        return sql.toString();
     }
 
     @Override
@@ -133,13 +159,13 @@ public abstract class DriverProviderMain
     @Override
     public String getUserQuery()
     {
-        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS";
+        return null;
     }
 
     @Override
     public String getGroupQuery()
     {
-        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ADMINISTRABLE_ROLE_AUTHORIZATIONS;";
+        return null;
     }
 
     @Override

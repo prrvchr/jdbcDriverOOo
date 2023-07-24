@@ -393,8 +393,8 @@ public abstract class ConnectionBase
         return m_xContext;
     }
     abstract protected XStatement _getStatement();
-    abstract protected XPreparedStatement _getPreparedStatement(String sql);
-    abstract protected XPreparedStatement _getCallableStatement(String sql);
+    abstract protected XPreparedStatement _getPreparedStatement(String sql) throws SQLException;
+    abstract protected XPreparedStatement _getCallableStatement(String sql) throws SQLException;
 
 
     //XXX: Checks whether this component (which you should have locked, prior to this call, and until you are done using) is disposed, throwing DisposedException if it is.

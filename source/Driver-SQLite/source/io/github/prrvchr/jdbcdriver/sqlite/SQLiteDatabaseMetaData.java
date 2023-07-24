@@ -47,65 +47,6 @@ public final class SQLiteDatabaseMetaData
     }
 
     @Override
-    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
-    {
-        try {
-            boolean value = m_Metadata.supportsMixedCaseQuotedIdentifiers();
-            System.out.println("sqlite.DatabaseMetaData.supportsMixedCaseQuotedIdentifiers(): " + value);
-            return true;
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return false;
-        }
-    }
-
-    //@Override
-    public boolean supportsSchemasInDataManipulation() throws SQLException
-    {
-        System.out.println("sqlite.DatabaseMetaData.supportsSchemasInDataManipulation() 1");
-        boolean value = false;
-        try {
-            if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsSchemasInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("sqlite.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("sqlite.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
-        return value;
-    }
-
-
-    //@Override
-    public boolean supportsCatalogsInDataManipulation() throws SQLException
-    {
-        System.out.println("sqlite.DatabaseMetaData.supportsCatalogsInDataManipulation() 1");
-        boolean value = false;
-        try {
-            if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsCatalogsInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("sqlite.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("sqlite.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
-        return value;
-    }
-
-    @Override
     public final XResultSet getTypeInfo()
         throws SQLException
     {
@@ -224,14 +165,9 @@ public final class SQLiteDatabaseMetaData
     }
 
     @Override
-    protected final String _mapDatabaseTableType(final String schema, String type)
+    protected final String _mapDatabaseTableType(final String schema,
+                                                 final String type)
     {
-        if ("BASE TABLE".equals(type)) {
-            type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "TABLE";
-        }
-        else if ("VIEW".equals(type)) {
-            type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "VIEW";
-        }
         return type;
     }
 

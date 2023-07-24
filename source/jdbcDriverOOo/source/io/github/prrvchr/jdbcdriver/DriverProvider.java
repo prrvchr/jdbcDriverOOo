@@ -31,7 +31,9 @@ import java.util.Properties;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
@@ -55,6 +57,9 @@ public interface DriverProvider
 
     public boolean isCaseSensitive(String string);
 
+    public boolean isResultSetUpdatable(XInterface component)
+        throws SQLException;
+
     public String[] getAlterViewQueries(String view, String command);
 
     public int getDataType(int type);
@@ -63,7 +68,7 @@ public interface DriverProvider
 
     public String getTableType(String type);
 
-    public String getViewQuery();
+    public String getViewQuery(NameComponents component);
 
     public String getViewCommand(String string);
 

@@ -50,11 +50,11 @@ public class CallableStatement
 
 
     protected XResultSet _getResultSet(java.sql.ResultSet result)
-    throws SQLException
+        throws SQLException
     {
         XResultSet resultset = null;
         if (result != null) {
-            resultset =  new ResultSet(m_Connection, result, this, this.m_UseBookmarks);
+            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
         }
         return resultset;
     }

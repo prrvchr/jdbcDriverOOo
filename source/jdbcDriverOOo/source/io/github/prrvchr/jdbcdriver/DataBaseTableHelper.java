@@ -182,24 +182,24 @@ public class DataBaseTableHelper
     {
         ArrayList<String> columns = new ArrayList<>();
         String name = null;
+        boolean fetched = false;
         try {
-            boolean fetched = false;
             java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
             java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName());
             while (result.next()) {
-                String columnName = result.getString(4);
-                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + result.getString(4) + " - Primary Key: " + result.getString(6));
-                columns.add(columnName);
+                String column = result.getString(4);
+                columns.add(column);
                 if (!fetched) {
                     fetched = true;
                     String pk = result.getString(6);
                     if (result.wasNull()) {
-                        name = String.format("PK_%s_%s", table.getName(), columnName);
+                        name = String.format("PK_%s_%s", table.getName(), column);
                     }
                     else {
                         name = pk;
                     }
                 }
+                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + name);
             }
             result.close();
         }

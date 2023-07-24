@@ -217,6 +217,7 @@ public final class Connection
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
+        throws SQLException
     {
         m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
@@ -226,6 +227,7 @@ public final class Connection
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
+        throws SQLException
     {
         m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
@@ -244,8 +246,12 @@ public final class Connection
 
     public void _refreshUsers()
     {
+        String query = getProvider().getUserQuery();
+        if (query == null) {
+            return;
+        }
         try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-            java.sql.ResultSet result = statement.executeQuery(getProvider().getUserQuery());
+            java.sql.ResultSet result = statement.executeQuery(query);
             List<String> names = new ArrayList<>();
             System.out.println("sdb.Connection._refreshUsers() 1");
             while (result.next()) {
@@ -269,8 +275,12 @@ public final class Connection
 
     public void _refreshGroups()
     {
+        String query = getProvider().getGroupQuery();
+        if (query == null) {
+            return;
+        }
         try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-            java.sql.ResultSet result = statement.executeQuery(getProvider().getGroupQuery());
+            java.sql.ResultSet result = statement.executeQuery(query);
             List<String> names = new ArrayList<>();
             while (result.next()) {
                 String name = result.getString(1);

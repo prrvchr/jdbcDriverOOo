@@ -71,12 +71,12 @@ public class CallableStatement
 
 
     protected XResultSet _getResultSet(java.sql.ResultSet result)
-    throws SQLException
+        throws SQLException
     {
-        System.out.println("sdb.CallableStatement._getResultSet(): " + this.m_UseBookmarks);
+        System.out.println("sdb.CallableStatement._getResultSet(): " + m_UseBookmarks);
         XResultSet resultset = null;
         if (result != null) {
-            resultset =  new ResultSet(m_Connection, result, this, this.m_UseBookmarks);
+            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
         }
         return resultset;
     }

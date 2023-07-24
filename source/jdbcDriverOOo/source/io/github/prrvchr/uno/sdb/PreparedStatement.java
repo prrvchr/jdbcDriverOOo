@@ -55,6 +55,7 @@ public final class PreparedStatement
     @Override
     public XNameAccess getColumns()
     {
+        System.out.println("sdb.PreparedStatement.getColumns() ************************************");
         /*try {
             System.out.println("sdb.PreparedStatement.getColumns() ************************************");
             java.sql.ResultSetMetaData metadata = _getPreparedStatement().getMetaData();

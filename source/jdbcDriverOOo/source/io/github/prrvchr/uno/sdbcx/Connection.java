@@ -29,6 +29,7 @@ import java.util.List;
 
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
@@ -68,6 +69,7 @@ public class Connection
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
+        throws SQLException
     {
         m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
@@ -77,6 +79,7 @@ public class Connection
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
+        throws SQLException
     {
         m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);

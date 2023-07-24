@@ -124,10 +124,11 @@ public class View
         }
     }
 
+    // com.sun.star.sdbcx.XRename
     @Override
     public void rename(String name)
         throws SQLException,
-        ElementExistException
+               ElementExistException
     {
         System.out.println("sdbcx.View.rename() 1 : " + name);
     }
