@@ -14,9 +14,9 @@ This extension allows you to use the JDBC driver of your choice directly in Base
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][8] version 2.72
     The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
-- [SQLite JDBC Driver][11] version 3.42.0.0
-- [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13)
-- [Apache Derby][10] version 10.15.2.0
+- [SQLite JDBC Driver][9] version 3.42.0.0
+- [H2 Database Engine][10] version 2.219-SNAPSHOT (2022-06-13)
+- [Apache Derby][11] version 10.15.2.0
 - [MariaDB Connector/J][12] version 3.1.1
 - [SmallSQL][13] version 0.22
 
@@ -265,6 +265,12 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Integration of SQLite JDBC version 3.42.0.0.
 
+- It is possible to display or not the system tables in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Show system tables**
+
+- It is possible to disallow the use of updatable resultset in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Use bookmarks**
+
+- Many corrections have been made to make the extension [SQLiteOOo][51] functional.
+
 ### What remains to be done for version 1.0.1:
 
 - Add new languages for internationalization...
@@ -279,9 +285,9 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [6]: <https://www.libreoffice.org/download/download-libreoffice/>
 [7]: <https://www.openoffice.org/download/index.html>
 [8]: <http://hsqldb.org/>
-[9]: <https://www.h2database.com/html/main.html>
-[10]: <https://db.apache.org/derby/>
-[11]: <https://github.com/xerial/sqlite-jdbc>
+[9]: <https://github.com/xerial/sqlite-jdbc>
+[10]: <https://www.h2database.com/html/main.html>
+[11]: <https://db.apache.org/derby/>
 [12]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
 [13]: <https://github.com/CptTZ/SmallSQL>
 [14]: <https://github.com/prrvchr/jdbcDriverOOo/>
@@ -321,3 +327,4 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [48]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
 [49]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
 [50]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
+[51]: <https://prrvchr.github.io/SQLiteOOo>

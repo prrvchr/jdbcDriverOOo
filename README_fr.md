@@ -14,9 +14,9 @@ Cette extension vous permet d'utiliser le pilote JDBC de votre choix directement
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][8] version 2.72
     Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
-- [SQLite JDBC Driver][11] version 3.42.0.0
-- [H2 Database Engine][9] version 2.219-SNAPSHOT (2022-06-13)
-- [Apache Derby][10] version 10.15.2.0
+- [SQLite JDBC Driver][9] version 3.42.0.0
+- [H2 Database Engine][10] version 2.219-SNAPSHOT (2022-06-13)
+- [Apache Derby][11] version 10.15.2.0
 - [MariaDB Connector/J][12] version 3.1.1
 - [SmallSQL][13] version 0.22
 
@@ -265,6 +265,12 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Integration de SQLite JDBC version 3.42.0.0.
 
+- Il est possible d'afficher ou non les tables système dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Options du pilote UNO -> Afficher les tables système**
+
+- Il est possible d'interdire l'utilisation de jeux de résultats actualisables dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Options du pilote UNO -> Utiliser les bookmarks**
+
+- De nombreuses corrections ont été apportées afin de rendre l'extension [SQLiteOOo][51] fonctionnelle.
+
 ### Que reste-t-il à faire pour la version 1.0.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
@@ -279,9 +285,9 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [6]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [7]: <https://www.openoffice.org/fr/Telecharger/>
 [8]: <http://hsqldb.org/>
-[9]: <https://www.h2database.com/html/main.html>
-[10]: <https://db.apache.org/derby/>
-[11]: <https://github.com/xerial/sqlite-jdbc>
+[9]: <https://github.com/xerial/sqlite-jdbc>
+[10]: <https://www.h2database.com/html/main.html>
+[11]: <https://db.apache.org/derby/>
 [12]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
 [13]: <https://github.com/CptTZ/SmallSQL>
 [14]: <https://github.com/prrvchr/jdbcDriverOOo/>
@@ -321,3 +327,4 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [48]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
 [49]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
 [50]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
+[51]: <https://prrvchr.github.io/SQLiteOOo/README_fr>
