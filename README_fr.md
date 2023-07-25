@@ -263,13 +263,15 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.0.1:
 
-- Integration de SQLite JDBC version 3.42.0.0.
+- Integration de [SQLite JDBC][9] version 3.42.0.0. Je tiens tout particulièrement à remercier [gotson][51] pour les [nombreuses améliorations apportées au pilote SQLite JDBC][52] qui ont rendu possible l'utilisation de SQLite dans LibreOffice/OpenOffice.
+
+- Ce pilote peut être enveloppé par un autre pilote ([HsqlDriverOOo][19] ou [SQLiteOOo][53]) grâce à une url de connexion désormais modifiable.
 
 - Il est possible d'afficher ou non les tables système dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Options du pilote UNO -> Afficher les tables système**
 
 - Il est possible d'interdire l'utilisation de jeux de résultats actualisables dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Options du pilote UNO -> Utiliser les bookmarks**
 
-- De nombreuses corrections ont été apportées afin de rendre l'extension [SQLiteOOo][51] fonctionnelle.
+- De nombreuses corrections ont été apportées afin de rendre l'extension [SQLiteOOo][53] fonctionnelle.
 
 ### Que reste-t-il à faire pour la version 1.0.1:
 
@@ -327,4 +329,6 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [48]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
 [49]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
 [50]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
-[51]: <https://prrvchr.github.io/SQLiteOOo/README_fr>
+[51]: <https://github.com/gotson>
+[52]: <https://github.com/xerial/sqlite-jdbc/issues/786>
+[53]: <https://prrvchr.github.io/SQLiteOOo/README_fr>

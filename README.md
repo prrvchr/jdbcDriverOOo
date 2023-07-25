@@ -263,13 +263,15 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 ### What has been done for version 1.0.1:
 
-- Integration of SQLite JDBC version 3.42.0.0.
+- Integration of [SQLite JDBC][9] version 3.42.0.0. I especially want to thank [gotson][51] for the [many improvements to the SQLite JDBC driver][52] that made it possible to use SQLite in LibreOffice/OpenOffice.
+
+- This driver can be wrapped by another driver ([HsqlDriverOOo][19] ou [SQLiteOOo][53]) thanks to a connection url now modifiable.
 
 - It is possible to display or not the system tables in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Show system tables**
 
 - It is possible to disallow the use of updatable resultset in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Use bookmarks**
 
-- Many corrections have been made to make the extension [SQLiteOOo][51] functional.
+- Many corrections have been made to make the extension [SQLiteOOo][53] functional.
 
 ### What remains to be done for version 1.0.1:
 
@@ -327,4 +329,6 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [48]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
 [49]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
 [50]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
-[51]: <https://prrvchr.github.io/SQLiteOOo>
+[51]: <https://github.com/gotson>
+[52]: <https://github.com/xerial/sqlite-jdbc/issues/786>
+[53]: <https://prrvchr.github.io/SQLiteOOo>
