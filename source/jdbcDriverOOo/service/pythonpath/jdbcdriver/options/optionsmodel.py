@@ -70,6 +70,9 @@ class OptionsModel(unohelper.Base):
         self._version = 'Version: %s'
         self._default = 'Version: N/A'
         self._versions = {}
+        self._config = getConfiguration(ctx, g_identifier, True)
+        path = 'org.openoffice.Office.DataAccess.Drivers'
+        self._configuration = getConfiguration(ctx, path, True)
         self._dbloggers = ('h2', 'derby', 'hsqldb')
         self._dbversions = {'h2': 'mem:dbversion',
                             'derby': 'memory:dbversion;create=true',
@@ -92,9 +95,6 @@ class OptionsModel(unohelper.Base):
     def loadConfiguration(self, *args):
         with self._lock:
             self._versions = {}
-        self._config = getConfiguration(self._ctx, g_identifier, True)
-        path = 'org.openoffice.Office.DataAccess.Drivers'
-        self._configuration = getConfiguration(self._ctx, path, True)
         config = self._configuration.getByName('Installed')
         root = self._getRootProtocol(False)
         self._driver = config.getByName(root)
@@ -121,7 +121,9 @@ class OptionsModel(unohelper.Base):
     def getServicesLevel(self):
         driver = self._services.get('Driver').index(self._getDriverService())
         connection = self._services.get('Connection').index(self._getConnectionService())
-        return driver, connection, self.isUpdated(), self._isConnectionLevelEnabled(driver)
+        system = self._config.getByName('ShowSystemTable')
+        bookmark = self._config.getByName('UseBookmark')
+        return driver, connection, self.isUpdated(), self._isConnectionLevelEnabled(driver), system, bookmark
 
     def isUpdated(self):
         return OptionsModel._level
@@ -192,6 +194,12 @@ class OptionsModel(unohelper.Base):
 
     def setConnectionService(self, level):
         self._config.replaceByName('ConnectionService', self._services.get('Connection')[level])
+
+    def setSystemTable(self, state):
+        self._config.replaceByName('ShowSystemTable', bool(state))
+
+    def setBookmark(self, state):
+        self._config.replaceByName('UseBookmark', bool(state))
 
     def setPath(self, url):
         self._path = url.Protocol + url.Path

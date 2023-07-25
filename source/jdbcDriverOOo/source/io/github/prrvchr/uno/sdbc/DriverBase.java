@@ -78,8 +78,6 @@ public abstract class DriverBase
     private static final String m_expandSchema = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
-    private final boolean m_showsystem;
-    private final boolean m_usebookmark;
 
     protected final ResourceBasedEventLogger m_logger;
 
@@ -94,12 +92,10 @@ public abstract class DriverBase
         m_services = services;
         m_enhanced = enhanced;
         System.out.println("sdbc.DriverBase.DriverBase() 1");
-        m_showsystem = _getOptionsConfiguration("ShowSystemTable", false);
-        m_usebookmark = _getOptionsConfiguration("UseBookmark", true);
-        System.out.println("sdbc.DriverBase.DriverBase() 2");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
+        System.out.println("sdbc.DriverBase.DriverBase() 2");
     }
     
 
@@ -152,7 +148,7 @@ public abstract class DriverBase
         if (acceptsURL(url)) {
             DriverProvider provider = _getDriverProvider(url, info);
             String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
-            final XHierarchicalNameAccess config;
+            XHierarchicalNameAccess config;
             try {
                 config = _getDriverConfiguration("org.openoffice.Office.DataAccess.Drivers");
             }
@@ -172,29 +168,38 @@ public abstract class DriverBase
                 throw UnoHelper.getSQLException(e, this);
             }
             System.out.println("sdbc.DriverBase.connect() 1");
+            try {
+                config = UnoHelper.getConfiguration(m_xContext, m_identifier);
+            }
+            catch (Exception e) {
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
             String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-            service = _getOptionsConfiguration("ConnectionService", service);
+            service = _getOptionsConfiguration(config, "ConnectionService", service);
+            boolean showsystem = _getOptionsConfiguration(config, "ShowSystemTable", false);
+            boolean usebookmark = _getOptionsConfiguration(config, "UseBookmark", true);
+            UnoHelper.disposeComponent(config);
             System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
-            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, m_showsystem, m_usebookmark, ConnectionService.fromString(service));
+            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
             m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
             System.out.println("sdbc.DriverBase.connect() 4");
         }
         return connection;
     }
 
-    private String _getOptionsConfiguration(String property, String value)
+    private String _getOptionsConfiguration(XHierarchicalNameAccess config,
+                                            String property,
+                                            String value)
     {
         System.out.println("sdbc.DriverBase._getOptionsConfiguration() 1");
         String option = value;
         try {
-            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
             if (config.hasByHierarchicalName(property)) {
                 System.out.println("sdbc.DriverBase._getOptionsConfiguration() 2");
                 option = AnyConverter.toString(config.getByHierarchicalName(property));
             }
-            UnoHelper.disposeComponent(config);
         }
         catch (Exception e) {
             // TODO Auto-generated catch block
@@ -204,17 +209,17 @@ public abstract class DriverBase
         return option;
     }
 
-    private boolean _getOptionsConfiguration(String property, boolean value)
+    private boolean _getOptionsConfiguration(XHierarchicalNameAccess config,
+                                             String property,
+                                             boolean value)
     {
         System.out.println("sdbc.DriverBase._getOptionsConfiguration() 1");
         boolean option = value;
         try {
-            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
             if (config.hasByHierarchicalName(property)) {
                 System.out.println("sdbc.DriverBase._getOptionsConfiguration() 2");
                 option = AnyConverter.toBoolean(config.getByHierarchicalName(property));
             }
-            UnoHelper.disposeComponent(config);
         }
         catch (Exception e) {
             // TODO Auto-generated catch block
@@ -223,24 +228,6 @@ public abstract class DriverBase
         }
         System.out.println("sdbc.DriverBase._getOptionsConfiguration() 3");
         return option;
-    }
-
-    @SuppressWarnings("unused")
-    private String _getStringOptionsConfiguration(String property)
-    {
-        String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-        try {
-            XHierarchicalNameAccess config = UnoHelper.getConfiguration(m_xContext, m_identifier);
-            if (config.hasByHierarchicalName(property)) {
-                service = (String) config.getByHierarchicalName(property);
-            }
-            UnoHelper.disposeComponent(config);
-        }
-        catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return service;
     }
 
     private String _getUrlProtocol(final String url)

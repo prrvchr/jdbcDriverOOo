@@ -94,6 +94,12 @@ class OptionsView(unohelper.Base):
         self._getDriverService(0).Model.Enabled = False
         self._getDriverService(1).Model.Enabled = False
 
+    def setSystemTable(self, state):
+        self._getSytemTable().State = int(state)
+
+    def setBookmark(self, state):
+        self._getBookmark().State = int(state)
+
     def setProtocols(self, protocols, protocol):
         control = self._getProtocols()
         # XXX: Need to clear ListBox so that the Handle fires for the same selection
@@ -246,6 +252,12 @@ class OptionsView(unohelper.Base):
 
     def _getConnectionService(self, index):
         return self._tab1.getControl('OptionButton%s' % (index + 3))
+
+    def _getSytemTable(self):
+        return self._tab1.getControl('CheckBox1')
+
+    def _getBookmark(self):
+        return self._tab1.getControl('CheckBox2')
 
     def _getReboot1(self):
         return self._tab1.getControl('Label3')

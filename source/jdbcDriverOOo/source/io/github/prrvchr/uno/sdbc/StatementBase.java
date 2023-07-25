@@ -100,16 +100,17 @@ public abstract class StatementBase
         checkDisposed();
         if (m_Statement == null) {
             try {
-                try {
+                if (m_Connection.getProvider().isResultSetUpdatable(m_Connection) &&
+                   (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
                     m_Statement = m_Connection.getProvider().getConnection().createStatement(m_ResultSetType, m_ResultSetConcurrency);
-                    _setStatement();
                 } 
-                catch (NoSuchMethodError e) {
+                else {
                     m_Statement = m_Connection.getProvider().getConnection().createStatement();
-                    _setStatement();
                 }
+                _setStatement();
             } 
             catch (java.sql.SQLException e) {
+                System.out.println("sdbc.StatementBase._createStatement() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
                 throw UnoHelper.getSQLException(e, this);
             }
         }

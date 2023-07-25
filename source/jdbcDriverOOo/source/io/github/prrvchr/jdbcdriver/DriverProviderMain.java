@@ -85,18 +85,18 @@ public abstract class DriverProviderMain
 
     @Override
     public boolean isResultSetUpdatable(XInterface component)
-    throws SQLException
+    throws java.sql.SQLException
     {
-        boolean updatable = false;
-        try {
-            java.sql.DatabaseMetaData metadata = m_connection.getMetaData();
-            updatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                                              java.sql.ResultSet.CONCUR_UPDATABLE);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, component);
-        }
-        return updatable;
+        java.sql.DatabaseMetaData metadata = m_connection.getMetaData();
+        return metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                                     java.sql.ResultSet.CONCUR_UPDATABLE);
+    }
+
+    @Override
+    public boolean supportGeneratedKeys(XInterface component)
+    throws java.sql.SQLException
+    {
+        return  m_connection.getMetaData().supportsGetGeneratedKeys();
     }
 
     @Override

@@ -79,12 +79,7 @@ public final class Statement
     {
         XResultSet resultset = null;
         if (result != null) {
-            if (m_Connection.getProvider().isResultSetUpdatable(this)) {
-                resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
-            }
-            else {
-                resultset =  new io.github.prrvchr.uno.sdbc.ResultSet(m_Connection, result, this);
-            }
+            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
         }
         return resultset;
     }

@@ -58,7 +58,10 @@ public interface DriverProvider
     public boolean isCaseSensitive(String string);
 
     public boolean isResultSetUpdatable(XInterface component)
-        throws SQLException;
+        throws java.sql.SQLException;
+
+    public boolean supportGeneratedKeys(XInterface component)
+        throws java.sql.SQLException;
 
     public String[] getAlterViewQueries(String view, String command);
 

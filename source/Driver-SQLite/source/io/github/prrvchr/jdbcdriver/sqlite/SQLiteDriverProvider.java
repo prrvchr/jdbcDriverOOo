@@ -95,11 +95,6 @@ public final class SQLiteDriverProvider
         return queries;
     }
 
-    public String[] getTableTypes()
-    {
-        return new String[]{"GLOBAL TEMPORARY", "SYSTEM TABLE", "TABLE", "VIEW"};
-    }
-
     public String getTableType(String type)
     {
         return type;

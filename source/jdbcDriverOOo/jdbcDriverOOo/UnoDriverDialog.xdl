@@ -27,6 +27,12 @@
         <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:Level2" script:language="UNO"/>
       </dlg:radio>
     </dlg:radiogroup>
-    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="8" dlg:left="10" dlg:top="120" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="8" dlg:left="10" dlg:top="120" dlg:width="110" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.CheckBox1.HelpText" dlg:value="&amp;UnoDriverDialog.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SystemTable" script:language="UNO"/>
+    </dlg:checkbox>
+    <dlg:checkbox dlg:id="CheckBox2" dlg:tab-index="9" dlg:left="130" dlg:top="120" dlg:width="110" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.CheckBox2.HelpText" dlg:value="&amp;UnoDriverDialog.CheckBox2.Label" dlg:valign="center" dlg:checked="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:UseBookmark" script:language="UNO"/>
+    </dlg:checkbox>
+    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="10" dlg:left="10" dlg:top="140" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

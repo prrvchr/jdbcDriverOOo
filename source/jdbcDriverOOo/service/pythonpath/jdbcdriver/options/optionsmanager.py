@@ -114,6 +114,12 @@ class OptionsManager(unohelper.Base):
     def setConnectionService(self, level):
         self._model.setConnectionService(level)
 
+    def setSystemTable(self, state):
+        self._model.setSystemTable(state)
+
+    def setBookmark(self, state):
+        self._model.setBookmark(state)
+
     def updateArchive(self):
         archive = self._updateArchive()
         if archive is not None:
@@ -183,9 +189,11 @@ class OptionsManager(unohelper.Base):
         self._disabled = True
 
     def _initView(self):
-        driver, connection, upadated, enabled = self._model.getServicesLevel()
+        driver, connection, upadated, enabled, system, bookmark = self._model.getServicesLevel()
         self._view.setDriverLevel(driver, upadated)
         self._view.setConnectionLevel(connection, enabled)
+        self._view.setSystemTable(system)
+        self._view.setBookmark(bookmark)
         self._initViewProtocol()
 
     def _getInfos(self):

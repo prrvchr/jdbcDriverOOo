@@ -73,6 +73,12 @@ class Tab1Handler(unohelper.Base,
             elif method == 'Level2':
                 self._manager.setConnectionService(2)
                 handled = True
+            elif method == 'SystemTable':
+                self._manager.setSystemTable(event.Source.State)
+                handled = True
+            elif method == 'UseBookmark':
+                self._manager.setBookmark(event.Source.State)
+                handled = True
             return handled
         except Exception as e:
             msg = "Tab1Handler.callHandlerMethod() Error: %s" % traceback.print_exc()
@@ -83,7 +89,9 @@ class Tab1Handler(unohelper.Base,
                 'Enhanced',
                 'Level0',
                 'Level1',
-                'Level2')
+                'Level2',
+                'SystemTable',
+                'UseBookmark')
 
 
 class Tab2Handler(unohelper.Base,
