@@ -265,7 +265,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Integration of [SQLite JDBC][9] version 3.42.0.0. I especially want to thank [gotson][51] for the [many improvements to the SQLite JDBC driver][52] that made it possible to use SQLite in LibreOffice/OpenOffice.
 
-- This driver can be wrapped by another driver ([HsqlDriverOOo][19] ou [SQLiteOOo][53]) thanks to a connection url now modifiable.
+- This driver can be wrapped by another driver ([HsqlDriverOOo][19] or [SQLiteOOo][53]) thanks to a connection url now modifiable.
 
 - It is possible to display or not the system tables in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Show system tables**
 
