@@ -173,7 +173,7 @@ class Driver(unohelper.Base,
         with self._lock:
             handler = self._getHandler(location)
             if handler is None:
-                handler = DocumentHandler(self._ctx, self._lock, location)
+                handler = DocumentHandler(self._ctx, self._lock, self._logger, location)
                 self._handlers.append(handler)
             return handler
 

@@ -54,17 +54,14 @@ import traceback
 
 class LogManager(unohelper.Base):
     def __init__(self, ctx, parent, infos, filter, default):
-        try:
-            self._ctx = ctx
-            self._model = LogModel(ctx, default, PoolListener(self))
-            self._view = LogWindow(ctx, WindowHandler(self), parent)
-            self._infos = infos
-            self._filter = filter
-            self._dialog = None
-            self._disabled = False
-            self._view.initLogger(self._model.getLoggerNames(filter))
-        except Exception as e:
-            print("LogManager.__init__() ERROR: %s - %s", (e, traceback.format_exc()))
+        self._ctx = ctx
+        self._model = LogModel(ctx, default, PoolListener(self))
+        self._view = LogWindow(ctx, WindowHandler(self), parent)
+        self._infos = infos
+        self._filter = filter
+        self._dialog = None
+        self._disabled = False
+        self._view.initLogger(self._model.getLoggerNames(filter))
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -134,4 +131,3 @@ class LogManager(unohelper.Base):
     def updateLogger(self):
         text, length = self._model.getLogContent()
         self._dialog.updateLogger(text, length)
-
