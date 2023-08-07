@@ -40,6 +40,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 
 
@@ -65,7 +66,7 @@ public abstract class ResultSetSuper
         m_IsBookmarkable = bookmark && connection.m_usebookmark;
         registerProperties();
         String msg = "Initialization IsBookmarkable: " + m_IsBookmarkable;
-        m_logger.logp(LogLevel.INFO, msg);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, m_IsBookmarkable);
         System.out.println(msg);
     }
 
@@ -118,7 +119,7 @@ public abstract class ResultSetSuper
     public Object getBookmark()
     throws SQLException
     {
-        System.out.println("ResultSetSuper.getBookmark() 1");
+        System.out.println("ResultSetSuper.getBookmark() Bookmark: " + getRow());
         checkDisposed();
         return getRow();
     }

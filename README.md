@@ -4,7 +4,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3]**
 
-# version [1.0.1][4]
+# version [1.0.2][4]
 
 ## Introduction:
 
@@ -15,9 +15,9 @@ It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][8] version 2.72
     The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
 - [SQLite JDBC Driver][9] version 3.42.0.0
-- [H2 Database Engine][10] version 2.219-SNAPSHOT (2022-06-13)
-- [Apache Derby][11] version 10.15.2.0
-- [MariaDB Connector/J][12] version 3.1.1
+- [MariaDB Connector/J][10] version 3.1.4
+- [H2 Database Engine][11] version 2.219-SNAPSHOT (2022-06-13)
+- [Apache Derby][12] version 10.15.2.0
 - [SmallSQL][13] version 0.22
 
 Being free software I encourage you:
@@ -273,7 +273,13 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Many corrections have been made to make the extension [SQLiteOOo][53] functional.
 
-### What remains to be done for version 1.0.1:
+### What has been done for version 1.0.2:
+
+- Integration of [MariaDB Connector/J][10] version 3.1.4.
+
+- Many other fix...
+
+### What remains to be done for version 1.0.2:
 
 - Add new languages for internationalization...
 
@@ -288,9 +294,9 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [7]: <https://www.openoffice.org/download/index.html>
 [8]: <http://hsqldb.org/>
 [9]: <https://github.com/xerial/sqlite-jdbc>
-[10]: <https://www.h2database.com/html/main.html>
-[11]: <https://db.apache.org/derby/>
-[12]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
+[10]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
+[11]: <https://www.h2database.com/html/main.html>
+[12]: <https://db.apache.org/derby/>
 [13]: <https://github.com/CptTZ/SmallSQL>
 [14]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [15]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>

@@ -144,7 +144,7 @@ public abstract class ConnectionSuper
     public void _refreshViews() {
         try {
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getTables(null, null, "%", new String[] { "VIEW" });
+            java.sql.ResultSet result = metadata.getTables(null, null, "%", m_provider.getViewTypes(m_showsystem));
             List<String> names = new ArrayList<>();
             while (result.next()) {
                 String name = _buildName(result);

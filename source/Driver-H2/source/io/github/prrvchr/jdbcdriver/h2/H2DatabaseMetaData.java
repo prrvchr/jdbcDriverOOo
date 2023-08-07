@@ -141,13 +141,14 @@ public final class H2DatabaseMetaData
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+            String catalog = result.getString(1);
+            row[0] = new CustomRowSet(catalog, result.wasNull());
             String schema = result.getString(2);
             row[1] = new CustomRowSet(schema, result.wasNull());
             row[2] = new CustomRowSet(result.getString(3), result.wasNull());
-            row[3] = new CustomRowSet(_mapDatabaseTableType(schema, result.getString(4)), result.wasNull());
+            row[3] = new CustomRowSet(_mapDatabaseTableTypes(catalog, schema, result.getString(4)), result.wasNull());
             row[4] = new CustomRowSet(null, true);
-            //System.out.println("h2.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
+            System.out.println("h2.DatabaseMetaData._getTablesRowSet() Catalog: " + catalog + " Schema: " + schema + " Table: " + result.getString(3));
             return row;
         }
 
@@ -189,7 +190,9 @@ public final class H2DatabaseMetaData
         return type;
     }
     @Override
-    protected final String _mapDatabaseTableType(final String schema, String type)
+    protected final String _mapDatabaseTableTypes(final String catalog,
+                                                  final String schema,
+                                                  String type)
     {
         if ("BASE TABLE".equals(type)) {
             type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "TABLE";

@@ -104,8 +104,9 @@ public final class DerbyDatabaseMetaData
     }
 
     @Override
-    protected String _mapDatabaseTableType(String schema,
-                                           String type)
+    protected String _mapDatabaseTableTypes(final String catalog,
+                                            final String schema,
+                                            final String type)
     {
         return type;
     }

@@ -69,6 +69,8 @@ public interface DriverProvider
 
     public String[] getTableTypes();
 
+    public String[] getViewTypes(boolean showsystem);
+
     public String getTableType(String type);
 
     public String getViewQuery(NameComponents component);

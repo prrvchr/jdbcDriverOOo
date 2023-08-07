@@ -54,7 +54,6 @@ public final class MariaDBDriverProvider
     public MariaDBDriverProvider()
     {
         super("mariadb");
-        System.out.println("mariadb.MariaDBDriverProvider() 1");
     }
 
     @Override
@@ -63,6 +62,25 @@ public final class MariaDBDriverProvider
             return m_datatype.get(type);
         }
         return type;
+    }
+
+    @Override
+    public String[] getTableTypes()
+    {
+        System.out.println("mariadb.MariaDBDriverProvider.getTableTypes() 1");
+        return new String[]{"TABLE", "VIEW"};
+    }
+
+    @Override
+    public String[] getViewTypes(final boolean showsystem)
+    {
+        System.out.println("mariadb.MariaDBDriverProvider.getViewTypes() 1");
+        if (showsystem) {
+            return new String[]{"VIEW", "SYSTEM VIEW"};
+        }
+        else {
+            return new String[]{"VIEW"};
+        }
     }
 
     public String getTableType(String type)

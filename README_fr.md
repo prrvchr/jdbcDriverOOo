@@ -4,7 +4,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3]**
 
-# version [1.0.1][4]
+# version [1.0.2][4]
 
 ## Introduction:
 
@@ -15,9 +15,9 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][8] version 2.72
     Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
 - [SQLite JDBC Driver][9] version 3.42.0.0
-- [H2 Database Engine][10] version 2.219-SNAPSHOT (2022-06-13)
-- [Apache Derby][11] version 10.15.2.0
-- [MariaDB Connector/J][12] version 3.1.1
+- [MariaDB Connector/J][10] version 3.1.4
+- [H2 Database Engine][11] version 2.219-SNAPSHOT (2022-06-13)
+- [Apache Derby][12] version 10.15.2.0
 - [SmallSQL][13] version 0.22
 
 Etant un logiciel libre je vous encourage:
@@ -273,7 +273,13 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - De nombreuses corrections ont été apportées afin de rendre l'extension [SQLiteOOo][53] fonctionnelle.
 
-### Que reste-t-il à faire pour la version 1.0.1:
+### Ce qui a été fait pour la version 1.0.2:
+
+- Integration de [MariaDB Connector/J][109] version 3.1.4.
+
+- Beaucoup d'autres correctifs...
+
+### Que reste-t-il à faire pour la version 1.0.2:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -288,9 +294,9 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [7]: <https://www.openoffice.org/fr/Telecharger/>
 [8]: <http://hsqldb.org/>
 [9]: <https://github.com/xerial/sqlite-jdbc>
-[10]: <https://www.h2database.com/html/main.html>
-[11]: <https://db.apache.org/derby/>
-[12]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
+[10]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
+[11]: <https://www.h2database.com/html/main.html>
+[12]: <https://db.apache.org/derby/>
 [13]: <https://github.com/CptTZ/SmallSQL>
 [14]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [15]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>

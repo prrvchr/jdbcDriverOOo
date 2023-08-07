@@ -131,6 +131,12 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public String[] getViewTypes(final boolean showsystem)
+    {
+        return new String[]{"VIEW"};
+    }
+
+    @Override
     public String getTableType(String type)
     {
         return type;

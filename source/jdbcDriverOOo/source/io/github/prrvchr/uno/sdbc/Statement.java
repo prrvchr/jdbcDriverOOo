@@ -25,8 +25,11 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
+
+import io.github.prrvchr.jdbcdriver.Resources;
 
 
 public final class Statement
@@ -45,9 +48,11 @@ extends StatementBase
     protected XResultSet _getResultSet(java.sql.ResultSet result)
     throws SQLException
     {
-        XResultSet resultset = null;
+        ResultSetBase resultset = null;
         if (result != null) {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(m_Connection, result, this);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }
         return resultset;
     }

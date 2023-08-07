@@ -3315,9 +3315,7 @@ public abstract class DatabaseMetaDataBase
     {
         ArrayList<CustomRowSet[]> rows = new ArrayList<>();
         java.sql.ResultSet resultset = m_Metadata.getTableTypes();
-        while (resultset.next())
-        {
-            System.out.println("sdbc.DatabaseMetaDataBase._getTableTypes() : " + resultset.getString(1));
+        while (resultset.next()) {
             rows.add(_getTableTypesRowSet(resultset));
         }
         resultset.close();
@@ -3328,7 +3326,9 @@ public abstract class DatabaseMetaDataBase
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[1];
-            row[0] =  new CustomRowSet(_mapDatabaseTableTypes(result.getString(1)), result.wasNull());
+            String type = result.getString(1);
+            System.out.println("sdbc.DatabaseMetaDataBase._getTableTypesRowSet() : " + type);
+            row[0] =  new CustomRowSet(_mapDatabaseTableTypes(type), result.wasNull());
             return row;
         }
 
@@ -3714,7 +3714,7 @@ public abstract class DatabaseMetaDataBase
 
 
     abstract protected String _mapDatabaseTableTypes(String type);
-    abstract protected String _mapDatabaseTableType(String schema, String type);
+    abstract protected String _mapDatabaseTableTypes(String catalog, String schema, String type);
 
 
 }

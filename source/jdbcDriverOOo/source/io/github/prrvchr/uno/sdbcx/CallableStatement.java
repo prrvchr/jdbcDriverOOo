@@ -26,11 +26,14 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
 public class CallableStatement
@@ -52,9 +55,11 @@ public class CallableStatement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
-        XResultSet resultset = null;
+        ResultSetBase resultset = null;
         if (result != null) {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }
         return resultset;
     }

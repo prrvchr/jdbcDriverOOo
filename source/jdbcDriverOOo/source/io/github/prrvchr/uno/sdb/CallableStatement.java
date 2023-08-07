@@ -26,11 +26,14 @@
 package io.github.prrvchr.uno.sdb;
 
 import com.sun.star.container.XNameAccess;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
+import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
 public class CallableStatement
@@ -74,9 +77,11 @@ public class CallableStatement
         throws SQLException
     {
         System.out.println("sdb.CallableStatement._getResultSet(): " + m_UseBookmarks);
-        XResultSet resultset = null;
+        ResultSetBase resultset = null;
         if (result != null) {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }
         return resultset;
     }

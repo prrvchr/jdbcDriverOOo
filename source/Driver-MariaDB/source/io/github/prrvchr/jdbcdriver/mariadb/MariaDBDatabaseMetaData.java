@@ -47,42 +47,6 @@ public final class MariaDBDatabaseMetaData
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("mariadb.DatabaseMetaData() 1");
-    }
-
-    //@Override
-    public boolean supportsSchemasInDataManipulation() throws SQLException
-    {
-        boolean value = false;
-        try {
-            if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsSchemasInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("mariadb.DatabaseMetaData.supportsSchemasInDataManipulation() ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("mariadb.DatabaseMetaData.supportsSchemasInDataManipulation() 2: " + value);
-        return value;
-    }
-
-
-    //@Override
-    public boolean supportsCatalogsInDataManipulation() throws SQLException
-    {
-        boolean value = false;
-        try {
-            if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsCatalogsInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("mariadb.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("mariadb.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
-        return value;
     }
 
     @Override
@@ -91,16 +55,16 @@ public final class MariaDBDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getTypeInfo()");
+            System.out.println("mariadb.DatabaseMetaData.getTypeInfo()");
             return _getTypeInfo();
         }
         catch (java.sql.SQLException e)
         {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -115,16 +79,16 @@ public final class MariaDBDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getTableTypes()");
+            System.out.println("mariadb.DatabaseMetaData.getTableTypes()");
             return _getTableTypes();
         }
         catch (java.sql.SQLException e)
         {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -142,11 +106,11 @@ public final class MariaDBDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
+            System.out.println("mariadb.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
             return _getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData.getTables() ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData.getTables() ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -160,13 +124,14 @@ public final class MariaDBDatabaseMetaData
             throws java.sql.SQLException
         {
             CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+            String catalog = result.getString(1);
+            row[0] = new CustomRowSet(catalog, result.wasNull());
             String schema = result.getString(2);
             row[1] = new CustomRowSet(schema, result.wasNull());
             row[2] = new CustomRowSet(result.getString(3), result.wasNull());
-            row[3] = new CustomRowSet(_mapDatabaseTableType(schema, result.getString(4)), result.wasNull());
+            row[3] = new CustomRowSet(_mapDatabaseTableTypes(catalog, schema, result.getString(4)), result.wasNull());
             row[4] = new CustomRowSet(null, true);
-            //System.out.println("h2.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
+            System.out.println("mariadb.DatabaseMetaData._getTablesRowSet() Catalog: " + catalog + " Schema: " + schema + " Table: " + result.getString(3));
             return row;
         }
 
@@ -179,16 +144,16 @@ public final class MariaDBDatabaseMetaData
     {
         try
         {
-            System.out.println("h2.DatabaseMetaData.getColumns()");
+            System.out.println("mariadb.DatabaseMetaData.getColumns()");
             return _getColumns(_getPattern(catalog), _getPattern(schema), table, column);
         }
         catch (java.sql.SQLException e)
         {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
             throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
-            System.out.println("h2.DatabaseMetaData ********************************* ERROR: " + e);
+            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
             for (StackTraceElement trace : e.getStackTrace())
             {
                 System.out.println(trace);
@@ -202,19 +167,28 @@ public final class MariaDBDatabaseMetaData
     {
         if (m_tableType.containsKey(type))
         {
-            System.out.println("h2.DatabaseMetaData._mapDatabaseTableTypes() Type: " + type);
+            System.out.println("mariadb.DatabaseMetaData._mapDatabaseTableTypes() Type: " + type);
             return m_tableType.get(type);
         }
         return type;
     }
     @Override
-    protected final String _mapDatabaseTableType(final String schema, String type)
+    protected final String _mapDatabaseTableTypes(final String catalog,
+                                                  final String schema,
+                                                  String type)
     {
+        System.out.println("mariadb.DatabaseMetaData._mapDatabaseTableTypes() Catalog: " + catalog + " - Schema: " + schema + " - Type: " + type);
         if ("BASE TABLE".equals(type)) {
-            type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "TABLE";
+            type = "INFORMATION_SCHEMA".equals(catalog) ||
+                   "mysql".equals(catalog) ||
+                   "performance_schema".equals(catalog) ||
+                   "sys".equals(catalog) ? "SYSTEM TABLE" : "TABLE";
         }
         else if ("VIEW".equals(type)) {
-            type = "INFORMATION_SCHEMA".equals(schema) ? "SYSTEM TABLE" : "VIEW";
+            type = "INFORMATION_SCHEMA".equals(catalog) ||
+                   "mysql".equals(catalog) ||
+                   "performance_schema".equals(catalog) ||
+                   "sys".equals(catalog)? "SYSTEM TABLE" : "VIEW";
         }
         return type;
     }

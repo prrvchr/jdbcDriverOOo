@@ -27,14 +27,17 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
@@ -77,9 +80,11 @@ public final class Statement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
     throws SQLException
     {
-        XResultSet resultset = null;
+        ResultSetBase resultset = null;
         if (result != null) {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }
         return resultset;
     }

@@ -50,7 +50,7 @@ public class Resources {
     // = resource ids for log messages
     public static final int STR_LOG_MESSAGE_BASE               = 10000;
     public static final int STR_JDBC_LOG_MESSAGE_BASE          = STR_LOG_MESSAGE_BASE + 500;
-    
+
     public static final int STR_STRING_LENGTH_EXCEEDED         = (STR_COMMON_BASE +  1);
     public static final int STR_CANNOT_CONVERT_STRING          = (STR_COMMON_BASE +  2);
     public static final int STR_URI_SYNTAX_ERROR               = (STR_COMMON_BASE +  3);
@@ -147,5 +147,8 @@ public class Resources {
     public static final int STR_LOG_THROWING_EXCEPTION         = (STR_JDBC_LOG_MESSAGE_BASE + 55);
     public static final int STR_LOG_SETTING_SYSTEM_PROPERTY    = (STR_JDBC_LOG_MESSAGE_BASE + 56);
 
+    public static final int STR_LOG_CREATE_RESULTSET           = (STR_JDBC_LOG_MESSAGE_BASE + 60);
+    public static final int STR_LOG_CREATED_RESULTSET_ID       = (STR_JDBC_LOG_MESSAGE_BASE + 61);
+    public static final int STR_LOG_RESULTSET_ISBOOKMARKABLE   = (STR_JDBC_LOG_MESSAGE_BASE + 62);
 
 }

@@ -42,8 +42,9 @@ public final class DatabaseMetaData
         return type;
     }
     @Override
-    protected final String _mapDatabaseTableType(final String schema,
-                                                 final String type) {
+    protected final String _mapDatabaseTableTypes(final String catalog,
+                                                  final String schema,
+                                                  final String type) {
         return type;
     }
 

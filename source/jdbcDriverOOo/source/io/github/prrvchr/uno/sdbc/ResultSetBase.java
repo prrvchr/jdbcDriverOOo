@@ -236,6 +236,11 @@ public abstract class ResultSetBase
         
     }
 
+    public int getObjectId()
+    {
+        return m_logger.getObjectId();
+    }
+
     // com.sun.star.lang.XComponent
     @Override
     public synchronized void postDisposing() {
