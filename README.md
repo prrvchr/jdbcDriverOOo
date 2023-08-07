@@ -10,7 +10,7 @@
 
 **jdbcDriverOOo** is part of a [Suite][5] of [LibreOffice][6] and/or [OpenOffice][7] extensions allowing to offer you innovative services in these office suites.  
 
-This extension is the pure Java transcription of the [java.sql.*][8] API to the [com.sun.star.sdbc][9], [com.sun.star.sdbcx][10] and [com.sun.star.sdb][11] API of UNO.
+This extension is the transcription in pure Java of the [java.sql.*][8] API to the [com.sun.star.sdbc][9], [com.sun.star.sdbcx][10] and [com.sun.star.sdb][11] API of UNO.
 It allows you to use the JDBC driver of your choice directly in Base.  
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][12] version 2.72
