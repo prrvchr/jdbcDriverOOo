@@ -48,7 +48,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.1.
+- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.2.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -149,9 +149,9 @@ ___
 
 * Apache OpenOffice 4.1.13 - Lubuntu 22.04
 
-Je vous encourage en cas de problème :-(  
+Je vous encourage en cas de problème :confused:  
 de créer un [dysfonctionnement][35]  
-J'essaierai de le résoudre ;-)
+J'essaierai de le résoudre :smile:
 
 ___
 ## Historique:
@@ -170,9 +170,10 @@ Depuis la version 0.0.4, il a été complètement réécrit en Java sous Eclipse
 Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors de l'appel des protocoles suivants:
 
 - `xdbc:*`
-- `xdbc:h2:*`
-- `xdbc:derby:*`
 - `xdbc:hsqldb:*`
+- `xdbc:sqlite:*`
+- `xdbc:mariadb:*`
+- `xdbc:...`
 
 mais utilise le protocole `jdbc:*` en interne pour se connecter.
 
