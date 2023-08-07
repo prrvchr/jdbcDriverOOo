@@ -275,7 +275,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.0.2:
 
-- Integration de [MariaDB Connector/J][109] version 3.1.4.
+- Integration de [MariaDB Connector/J][10] version 3.1.4.
 
 - Beaucoup d'autres correctifs...
 
