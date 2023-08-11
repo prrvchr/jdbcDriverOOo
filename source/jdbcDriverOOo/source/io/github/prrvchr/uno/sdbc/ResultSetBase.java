@@ -185,7 +185,7 @@ public abstract class ResultSetBase
         }
         
     }
-    private void _setFetchDirection(int direction)
+    private synchronized void _setFetchDirection(int direction)
         throws WrappedTargetException
     {
         try {
@@ -210,7 +210,7 @@ public abstract class ResultSetBase
         }
         
     }
-    private void _setFetchSize(int size)
+    private synchronized void _setFetchSize(int size)
         throws WrappedTargetException
     {
         try {
@@ -254,13 +254,14 @@ public abstract class ResultSetBase
         return m_logger.getObjectId();
     }
 
+
     // com.sun.star.lang.XComponent
     @Override
-    public synchronized void postDisposing()
+    protected synchronized void postDisposing()
     {
-        System.out.println("ResultSetBase.postDisposing() 1");
         // FIXME: If we use logging here then it may produce Fatal exception: Signal 11 (SIGSEGV) 
         // FIXME: m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_RESULTSET);
+        super.postDisposing();
         if (m_ResultSet != null) {
             try {
                 m_ResultSet.close();
@@ -270,8 +271,6 @@ public abstract class ResultSetBase
             }
             m_ResultSet = null;
         }
-        super.postDisposing();
-        System.out.println("ResultSetBase.postDisposing() 2");
     }
 
 

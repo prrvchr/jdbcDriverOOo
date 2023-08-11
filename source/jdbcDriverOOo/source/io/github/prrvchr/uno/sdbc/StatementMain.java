@@ -423,7 +423,6 @@ public abstract class StatementMain
             WarningsSupplier.clearWarnings(m_Statement, this);
     }
 
-
     @Override
     public Object getWarnings() throws SQLException
     {
@@ -435,7 +434,8 @@ public abstract class StatementMain
 
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing() {
+    protected synchronized void postDisposing()
+    {
         m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_STATEMENT);
         super.postDisposing();
         if (m_Statement != null) {
@@ -450,11 +450,11 @@ public abstract class StatementMain
         UnoHelper.disposeComponent(m_GeneratedStatement);
     }
 
+
     // com.sun.star.sdbc.XCloseable
     @Override
     public void close() throws SQLException
     {
-        System.out.println("StatementMain.close() **************************************");
         checkDisposed();
         dispose();
     }
