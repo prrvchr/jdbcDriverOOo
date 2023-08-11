@@ -56,8 +56,9 @@ public class ConnectionLog
     public static enum ObjectType
     {
         CONNECTION,
+        METADATA,
         STATEMENT,
-        RESULT
+        RESULTSET
     }
 
     private static final AtomicInteger[] uniqueIds;

@@ -164,12 +164,16 @@ public abstract class ConnectionBase
     public XDatabaseMetaData getMetaData()
         throws SQLException
     {
+        DatabaseMetaDataBase metadata = null;
         try {
-            return m_provider.getDatabaseMetaData(this);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
+            metadata = m_provider.getDatabaseMetaData(this);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getObjectId());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return metadata;
     }
 
     @Override

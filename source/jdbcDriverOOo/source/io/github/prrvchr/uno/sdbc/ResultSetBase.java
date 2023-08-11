@@ -100,12 +100,11 @@ public abstract class ResultSetBase
         m_service = service;
         m_services = services;
         m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.RESULT);
+        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.RESULTSET);
         m_Statement = statement;
         m_ResultSet = resultset;
         registerProperties();
     }
-
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
@@ -163,7 +162,11 @@ public abstract class ResultSetBase
     {
         try {
             String cursor = m_ResultSet.getCursorName();
-            return cursor != null ? cursor : "";
+            if (cursor == null) {
+                cursor = "";
+            }
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
+            return cursor;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
@@ -173,7 +176,9 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            return m_ResultSet.getFetchDirection();
+            int direction = m_ResultSet.getFetchDirection();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
+            return direction;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
@@ -184,6 +189,7 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
             m_ResultSet.setFetchDirection(direction);
         }
         catch (java.sql.SQLException e) {
@@ -195,7 +201,9 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            return m_ResultSet.getFetchSize();
+            int size = m_ResultSet.getFetchSize();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
+            return size;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
@@ -206,6 +214,7 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
             m_ResultSet.setFetchSize(size);
         }
         catch (java.sql.SQLException e) {
@@ -217,7 +226,9 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            return m_ResultSet.getConcurrency();
+            int concurrency = m_ResultSet.getConcurrency();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
+            return concurrency;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
@@ -228,7 +239,9 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            return m_ResultSet.getType();
+            int type = m_ResultSet.getType();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
+            return type;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
@@ -243,8 +256,11 @@ public abstract class ResultSetBase
 
     // com.sun.star.lang.XComponent
     @Override
-    public synchronized void postDisposing() {
-        super.postDisposing();
+    public synchronized void postDisposing()
+    {
+        System.out.println("ResultSetBase.postDisposing() 1");
+        // FIXME: If we use logging here then it may produce Fatal exception: Signal 11 (SIGSEGV) 
+        // FIXME: m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_RESULTSET);
         if (m_ResultSet != null) {
             try {
                 m_ResultSet.close();
@@ -254,6 +270,8 @@ public abstract class ResultSetBase
             }
             m_ResultSet = null;
         }
+        super.postDisposing();
+        System.out.println("ResultSetBase.postDisposing() 2");
     }
 
 
@@ -261,6 +279,7 @@ public abstract class ResultSetBase
     @Override
     public void close() throws SQLException
     {
+        checkDisposed();
         dispose();
     }
 
@@ -283,7 +302,9 @@ public abstract class ResultSetBase
     public boolean absolute(int row) throws SQLException
     {
         try {
-            return m_ResultSet.absolute(row);
+            boolean moved = m_ResultSet.absolute(row);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row), Boolean.toString(moved));
+            return moved;
         }
         catch (java.sql.SQLException e) {
             System.out.println("ResultSetBase.absolute() ERROR:\n" + UnoHelper.getStackTrace(e));
@@ -405,7 +426,9 @@ public abstract class ResultSetBase
     public boolean next() throws SQLException
     {
         try {
-            return m_ResultSet.next();
+            boolean next = m_ResultSet.next();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
+            return next;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -439,7 +462,9 @@ public abstract class ResultSetBase
     public boolean relative(int row) throws SQLException
     {
         try {
-            return m_ResultSet.relative(row);
+            boolean moved = m_ResultSet.relative(row);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row), Boolean.toString(moved));
+            return moved;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -450,7 +475,9 @@ public abstract class ResultSetBase
     public boolean rowDeleted() throws SQLException
     {
         try {
-            return m_ResultSet.rowDeleted();
+            boolean deleted = m_ResultSet.rowDeleted();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
+            return deleted;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -461,7 +488,9 @@ public abstract class ResultSetBase
     public boolean rowInserted() throws SQLException
     {
         try {
-            return m_ResultSet.rowInserted();
+            boolean inserted = m_ResultSet.rowInserted();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
+            return inserted;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -472,7 +501,9 @@ public abstract class ResultSetBase
     public boolean rowUpdated() throws SQLException
     {
         try {
-            return m_ResultSet.rowUpdated();
+            boolean updated = m_ResultSet.rowUpdated();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
+            return updated;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -523,12 +554,8 @@ public abstract class ResultSetBase
     public void insertRow() throws SQLException
     {
         try {
-            String msg = "insertRow() has been called";
-            System.out.println(msg);
-            m_logger.logp(LogLevel.INFO, msg);
             m_ResultSet.insertRow();
-            // ********************************
-            //m_ResultSet.moveToCurrentRow();
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW, Boolean.toString(m_ResultSet.rowInserted()));
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -539,6 +566,7 @@ public abstract class ResultSetBase
     public void updateRow() throws SQLException
     {
         try {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
             m_ResultSet.updateRow();
         }
         catch (java.sql.SQLException e) {
@@ -550,6 +578,7 @@ public abstract class ResultSetBase
     public void deleteRow() throws SQLException
     {
         try {
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
             m_ResultSet.deleteRow();
         }
         catch (java.sql.SQLException e) {
@@ -561,9 +590,15 @@ public abstract class ResultSetBase
     public void cancelRowUpdates() throws SQLException
     {
         try {
-            // ***********************
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
+            // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
+            // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
+            // FIXME: this method is called on a closed result set; the result set concurrency is CONCUR_READ_ONLY 
+            // FIXME: or if this method is called when the cursor is on the insert row
+            // FIXME: see: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
             if (m_insert) {
                 m_ResultSet.moveToCurrentRow();
+                m_insert = false;
             }
             m_ResultSet.cancelRowUpdates();
         }
@@ -577,9 +612,7 @@ public abstract class ResultSetBase
     public void moveToInsertRow() throws SQLException
     {
         try {
-            String msg = "moveToInsertRow() has been called";
-            System.out.println(msg);
-            m_logger.logp(LogLevel.INFO, msg);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
             m_ResultSet.moveToInsertRow();
             m_insert = true;
         }
@@ -592,9 +625,7 @@ public abstract class ResultSetBase
     public void moveToCurrentRow() throws SQLException
     {
         try {
-            String msg = "moveToCurrentRow() has been called";
-            System.out.println(msg);
-            m_logger.logp(LogLevel.INFO, msg);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENTROW);
             m_ResultSet.moveToCurrentRow();
             m_insert = false;
         }
@@ -783,7 +814,11 @@ public abstract class ResultSetBase
     {
         try {
             String value = m_ResultSet.getString(index);
-            return value != null ? value : "";
+            if (value == null) {
+                value = "";
+            }
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString", Integer.toString(index));
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -920,7 +955,7 @@ public abstract class ResultSetBase
     public void updateString(int index, String value) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateString() 2 Index: " + index + " - Value: " + value);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_PARAMETER, "updateString", Integer.toString(index), value);
             m_ResultSet.updateString(index, value);
         }
         catch (java.sql.SQLException e) {

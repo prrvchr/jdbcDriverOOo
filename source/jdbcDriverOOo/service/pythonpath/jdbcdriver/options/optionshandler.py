@@ -30,6 +30,7 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
+from com.sun.star.awt.tab import XTabPageContainerListener
 from com.sun.star.lang import XEventListener
 
 import traceback
@@ -45,8 +46,23 @@ class OptionsListener(unohelper.Base,
         try:
             self._manager.dispose()
         except Exception as e:
-            msg = "OptionsHandler.disposing() Error: %s" % traceback.print_exc()
+            msg = "OptionsHandler.disposing() Error: %s" % traceback.format_exc()
             print(msg)
+
+
+class TabListener(unohelper.Base,
+                  XTabPageContainerListener):
+    def __init__(self, manager):
+        self._manager = manager
+
+# com.sun.star.awt.tab.XTabPageContainerListener
+    def tabPageActivated(self, event):
+        if event.TabPageID == 2:
+            self._manager.activateTab2()
+
+# com.sun.star.lang.XEventListener
+    def disposing(self, source):
+        pass
 
 
 class Tab1Handler(unohelper.Base,

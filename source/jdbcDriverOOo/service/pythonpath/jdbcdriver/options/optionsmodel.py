@@ -65,8 +65,6 @@ class OptionsModel(unohelper.Base):
         self._ctx = ctx
         self._lock = lock
         self._path = None
-        self._driver = None
-        self._drivers = {}
         self._version = 'Version: %s'
         self._default = 'Version: N/A'
         self._versions = {}
@@ -90,17 +88,10 @@ class OptionsModel(unohelper.Base):
         self._resolver = getStringResource(ctx, g_identifier, g_extension)
         self._resources = {'TabTitle1' : 'OptionsDialog.Tab1.Title',
                            'TabTitle2' : 'OptionsDialog.Tab2.Title'}
-
-
-    def loadConfiguration(self, *args):
-        with self._lock:
-            self._versions = {}
         config = self._configuration.getByName('Installed')
         root = self._getRootProtocol(False)
         self._driver = config.getByName(root)
         self._drivers = self._getDriverConfigurations(config, root)
-        if not self.needReboot():
-            Thread(target=self._setDriverVersions, args=args).start()
 
 # OptionsModel getter methods
     def getTabData(self):
@@ -183,6 +174,12 @@ class OptionsModel(unohelper.Base):
                 self._getProtocol(sub) not in self._drivers)
 
 # OptionsModel setter methods
+    def setDriverVersions(self, *args):
+        with self._lock:
+            self._versions = {}
+        if not self.needReboot():
+            Thread(target=self._setDriverVersions, args=args).start()
+
     def setDriverService(self, driver):
         OptionsModel._level = True
         self._config.replaceByName('DriverService', self._services.get('Driver')[driver])

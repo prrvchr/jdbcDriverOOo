@@ -38,6 +38,7 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 from .optionshandler import OptionsListener
+from .optionshandler import TabListener
 from .optionshandler import Tab1Handler
 from .optionshandler import Tab2Handler
 
@@ -65,11 +66,12 @@ class OptionsManager(unohelper.Base):
         self._lock = Condition()
         self._disposed = False
         self._disabled = False
+        self._listener = TabListener(self)
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
         self._logger = LogManager(ctx, self._view.getLoggerParent(), self._getInfos(), g_identifier, 'Driver')
-        self._model.loadConfiguration(self.updateView)
+        self._view.getTab().addTabPageContainerListener(self._listener)
         self._initView()
 
     def dispose(self):
@@ -84,6 +86,10 @@ class OptionsManager(unohelper.Base):
         return True
 
 # OptionsManager setter methods
+    def activateTab2(self):
+        self._view.getTab().removeTabPageContainerListener(self._listener)
+        self._model.setDriverVersions(self.updateView)
+
     def updateView(self, versions):
         with self._lock:
             self.updateVersion(versions)
@@ -105,7 +111,6 @@ class OptionsManager(unohelper.Base):
         # XXX: We need to exit from Add new Driver mode if needed...
         reboot = self._model.needReboot()
         self._view.exitAdd(reboot)
-        self._model.loadConfiguration(self.updateView)
         self._initView()
 
     def setDriverService(self, driver):

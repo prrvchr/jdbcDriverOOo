@@ -4,7 +4,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3]**
 
-# version [1.0.2][4]
+# version [1.0.3][4]
 
 ## Introduction:
 
@@ -17,7 +17,7 @@ Elle embarque les pilotes pour les base de données suivantes:
     Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
 - [SQLite JDBC Driver][13] version 3.42.0.0
 - [MariaDB Connector/J][14] version 3.1.4
-- [H2 Database Engine][15] version 2.219-SNAPSHOT (2022-06-13)
+- [H2 Database Engine][15] version 2.2.220 (2023-07-04)
 - [Apache Derby][16] version 10.15.2.0
 - [SmallSQL][17] version 0.22
 
@@ -48,7 +48,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.2.
+- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.3.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -261,11 +261,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.0.0:
 
-- Integration de HyperSQL version 2.7.2.
+- Intégration de HyperSQL version 2.7.2.
 
 ### Ce qui a été fait pour la version 1.0.1:
 
-- Integration de [SQLite JDBC][13] version 3.42.0.0. Je tiens tout particulièrement à remercier [gotson][55] pour les [nombreuses améliorations apportées au pilote SQLite JDBC][56] qui ont rendu possible l'utilisation de SQLite dans LibreOffice/OpenOffice.
+- Intégration de [SQLite JDBC][13] version 3.42.0.0. Je tiens tout particulièrement à remercier [gotson][55] pour les [nombreuses améliorations apportées au pilote SQLite JDBC][56] qui ont rendu possible l'utilisation de SQLite dans LibreOffice/OpenOffice.
 
 - Ce pilote peut être enveloppé par un autre pilote ([HsqlDriverOOo][23] ou [SQLiteOOo][57]) grâce à une url de connexion désormais modifiable.
 
@@ -277,11 +277,19 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.0.2:
 
-- Integration de [MariaDB Connector/J][14] version 3.1.4.
+- Intégration de [MariaDB Connector/J][14] version 3.1.4.
 
 - Beaucoup d'autres correctifs...
 
-### Que reste-t-il à faire pour la version 1.0.2:
+### Ce qui a été fait pour la version 1.0.3:
+
+- Intégration de [H2][15] version 2.2.220.
+
+- Intégration de la journalisation dans les jeux de résultat ([ResultSetBase][58] and [ResultSetSuper][59]) afin d'en savoir plus sur le [dysfonctionnement 156512][60].
+
+- Beaucoup d'autres correctifs...
+
+### Que reste-t-il à faire pour la version 1.0.3:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -344,3 +352,6 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [55]: <https://github.com/gotson>
 [56]: <https://github.com/xerial/sqlite-jdbc/issues/786>
 [57]: <https://prrvchr.github.io/SQLiteOOo/README_fr>
+[58]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetBase.java>
+[59]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetSuper.java>
+[60]: <https://bugs.documentfoundation.org/show_bug.cgi?id=156512>

@@ -39,9 +39,10 @@ import traceback
 
 class OptionsView(unohelper.Base):
     def __init__(self, ctx, window, handler1, handler2, title1, title2, reboot):
+        self._tab = 'Tab1'
         self._window = window
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
-        tab1, tab2 = self._getTabPages(window, 'Tab1', rectangle, title1, title2)
+        tab1, tab2 = self._getTabPages(window, rectangle, title1, title2)
         self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_extension, 'UnoDriverDialog')
         self._tab1.setVisible(True)
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'JdbcDriverDialog')
@@ -52,6 +53,9 @@ class OptionsView(unohelper.Base):
         self.setReboot(reboot)
 
 # OptionsView getter methods
+    def getTab(self):
+        return self._getTab()
+
     def getLoggerParent(self):
         return self._tab1.getPeer()
 
@@ -221,10 +225,10 @@ class OptionsView(unohelper.Base):
     def _setStep(self, step):
         self._tab2.Model.Step = step
 
-    def _getTabPages(self, window, name, rectangle, title1, title2, i=1):
+    def _getTabPages(self, window, rectangle, title1, title2, i=1):
         model = self._getTabModel(window, rectangle)
-        window.Model.insertByName(name, model)
-        tab = window.getControl(name)
+        window.Model.insertByName(self._tab, model)
+        tab = self._getTab()
         tab1 = self._getTabPage(model, tab, title1)
         tab2 = self._getTabPage(model, tab, title2)
         tab.ActiveTabPageID = i
@@ -247,6 +251,9 @@ class OptionsView(unohelper.Base):
         return tab.getControls()[index]
 
 # OptionsView private control methods
+    def _getTab(self):
+        return self._window.getControl(self._tab)
+
     def _getDriverService(self, index):
         return self._tab1.getControl('OptionButton%s' % (index + 1))
 

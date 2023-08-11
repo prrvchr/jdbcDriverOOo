@@ -75,10 +75,9 @@ public final class PreparedStatement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
-        System.out.println("sdb.PreparedStatement._getResultSet(): " + m_UseBookmarks);
         ResultSetBase resultset = null;
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
-            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
             m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }

@@ -4,7 +4,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3]**
 
-# version [1.0.2][4]
+# version [1.0.3][4]
 
 ## Introduction:
 
@@ -17,7 +17,7 @@ It embeds the drivers for the following databases:
     The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
 - [SQLite JDBC Driver][13] version 3.42.0.0
 - [MariaDB Connector/J][14] version 3.1.4
-- [H2 Database Engine][15] version 2.219-SNAPSHOT (2022-06-13)
+- [H2 Database Engine][15] version 2.2.220 (2023-07-04)
 - [Apache Derby][16] version 10.15.2.0
 - [SmallSQL][17] version 0.22
 
@@ -48,7 +48,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** extension version 1.0.2.
+- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** extension version 1.0.3.
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -281,7 +281,15 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Many other fix...
 
-### What remains to be done for version 1.0.2:
+### What has been done for version 1.0.3:
+
+- Integration of [H2][15] version 2.2.220.
+
+- Integration of logging in the resultset ([ResultSetBase][58] and [ResultSetSuper][59]) in order to learn more about [issue 156512][60].
+
+- Many other fix...
+
+### What remains to be done for version 1.0.3:
 
 - Add new languages for internationalization...
 
@@ -344,3 +352,6 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [55]: <https://github.com/gotson>
 [56]: <https://github.com/xerial/sqlite-jdbc/issues/786>
 [57]: <https://prrvchr.github.io/SQLiteOOo>
+[58]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetBase.java>
+[59]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetSuper.java>
+[60]: <https://bugs.documentfoundation.org/show_bug.cgi?id=156512>

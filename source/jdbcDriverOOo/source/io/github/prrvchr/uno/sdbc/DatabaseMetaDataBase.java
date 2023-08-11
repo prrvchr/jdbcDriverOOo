@@ -31,6 +31,7 @@ import java.util.TreeMap;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
@@ -43,7 +44,9 @@ import com.sun.star.sdbc.XRow;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
 
 
 public abstract class DatabaseMetaDataBase
@@ -52,6 +55,7 @@ public abstract class DatabaseMetaDataBase
 {
     protected final ConnectionBase m_Connection;
     protected final java.sql.DatabaseMetaData m_Metadata;
+    protected final ConnectionLog m_logger;
 
     // The constructor method:
     public DatabaseMetaDataBase(final ConnectionBase connection)
@@ -65,8 +69,13 @@ public abstract class DatabaseMetaDataBase
     {
         m_Connection = connection;
         m_Metadata = metadata;
+        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.METADATA);
     }
 
+    public int getObjectId()
+    {
+        return m_logger.getObjectId();
+    }
 
     // com.sun.star.sdbc.XDatabaseMetaData2:
     @Override
@@ -182,7 +191,7 @@ public abstract class DatabaseMetaDataBase
             throws SQLException
     {
         try {
-            return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, scope, nullable));
+            return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, scope, nullable), "getBestRowIdentifier");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -244,7 +253,7 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getCatalogs() throws SQLException
     {
         try {
-            return _getResultSet(m_Metadata.getCatalogs());
+            return _getResultSet(m_Metadata.getCatalogs(), "getCatalogs");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -265,7 +274,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             java.sql.ResultSet resultset = m_Metadata.getColumnPrivileges(_getPattern(catalog), _getPattern(schema), table, column);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getColumnPrivileges");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -285,7 +294,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             java.sql.ResultSet resultset = m_Metadata.getColumns(_getPattern(catalog), _getPattern(schema), table, column);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getColumns");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -315,7 +324,7 @@ public abstract class DatabaseMetaDataBase
             schema1 = _getPattern(schema1);
             schema2 = _getPattern(schema2);
             java.sql.ResultSet resultset = m_Metadata.getCrossReference(_getPattern(catalog1), schema1, table1, _getPattern(catalog2), schema2, table2);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getCrossReference");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -452,7 +461,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             java.sql.ResultSet resultset = m_Metadata.getExportedKeys(_getPattern(catalog), _getPattern(schema), table);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getExportedKeys");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -515,7 +524,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             java.sql.ResultSet resultset = m_Metadata.getImportedKeys(_getPattern(catalog), _getPattern(schema), table);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getImportedKeys");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -538,7 +547,7 @@ public abstract class DatabaseMetaDataBase
         try 
         {
             java.sql.ResultSet resultset = m_Metadata.getIndexInfo(_getPattern(catalog), _getPattern(schema), table, arg3, arg4);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getIndexInfo");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -983,7 +992,7 @@ public abstract class DatabaseMetaDataBase
         try {
             System.out.println("sdbc.DatabaseMetaData.getPrimaryKeys()");
             java.sql.ResultSet resultset = m_Metadata.getPrimaryKeys(_getPattern(catalog), _getPattern(schema), table);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getPrimaryKeys");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1005,7 +1014,7 @@ public abstract class DatabaseMetaDataBase
         try {
             System.out.println("sdbc.DatabaseMetaData.getProcedureColumns()");
             java.sql.ResultSet resultset = m_Metadata.getProcedureColumns(_getPattern(catalog), _getPattern(schema), table, column);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getProcedureColumns");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1049,7 +1058,7 @@ public abstract class DatabaseMetaDataBase
         try {
             System.out.println("sdbc.DatabaseMetaData.getProcedures()");
             java.sql.ResultSet resultset = m_Metadata.getProcedures(_getPattern(catalog), _getPattern(schema), table);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getProcedures");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1119,7 +1128,7 @@ public abstract class DatabaseMetaDataBase
                 System.out.println("sdbc.DatabaseMetaData.getSchemas() : " + result.getString(1));
             }
             result.close();
-            return _getResultSet(m_Metadata.getSchemas());
+            return _getResultSet(m_Metadata.getSchemas(), "getSchemas");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1215,7 +1224,7 @@ public abstract class DatabaseMetaDataBase
                 java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
                 System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 3 ColumnCount != 7 :" + resultset.getMetaData().getColumnCount());
                 if (resultset != null) {
-                    result = _getResultSet(resultset);
+                    result = _getResultSet(resultset, "getTablePrivileges");
                     // we have to check the result columns for the tables privileges #106324#
                     XResultSetMetaDataSupplier supplier = UnoRuntime.queryInterface(XResultSetMetaDataSupplier.class, result);
                     XResultSetMetaData metadata = null;
@@ -1294,7 +1303,7 @@ public abstract class DatabaseMetaDataBase
             {
                 System.out.println("sdbc.DatabaseMetaData.getTableTypes(): Type: " + resultset.getString(1));
             }
-            return _getResultSet(m_Metadata.getTableTypes());
+            return _getResultSet(m_Metadata.getTableTypes(), "getTableTypes");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1317,7 +1326,7 @@ public abstract class DatabaseMetaDataBase
         try {
             System.out.println("sdbc.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
             java.sql.ResultSet resultset = m_Metadata.getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getTables");
         }
         catch (java.lang.Exception e) {
             System.out.println("sdbc.DatabaseMetaData.getTables() ********************************* ERROR");
@@ -1357,9 +1366,9 @@ public abstract class DatabaseMetaDataBase
             System.out.println("sdbc.DatabaseMetaData.getTypeInfo() 1");
             java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
             while (resultset.next()) {
-                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + resultset.getString(1) + " - Type: " + resultset.getInt(2));
+                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + resultset.getString(1) + " - Type: " + resultset.getInt(2) + " - AutoIncrement: " + resultset.getBoolean(12));
             }
-            return _getResultSet(m_Metadata.getTypeInfo());
+            return _getResultSet(m_Metadata.getTypeInfo(), "getTypeInfo");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1380,7 +1389,7 @@ public abstract class DatabaseMetaDataBase
         try {
             System.out.println("sdbc.DatabaseMetaData.getUDTs()");
             java.sql.ResultSet resultset = m_Metadata.getUDTs(_getPattern(catalog), _getPattern(schema), type, types);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getUDTs");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1415,7 +1424,7 @@ public abstract class DatabaseMetaDataBase
         try 
         {
             java.sql.ResultSet resultset = m_Metadata.getVersionColumns(_getPattern(catalog), _getPattern(schema), table);
-            return _getResultSet(resultset);
+            return _getResultSet(resultset, "getVersionColumns");
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -3117,22 +3126,17 @@ public abstract class DatabaseMetaDataBase
     }
 
 
-    protected XResultSet _getResultSet(java.sql.ResultSet resultset)
+    protected XResultSet _getResultSet(java.sql.ResultSet result,
+                                       String method)
+        throws SQLException
     {
-        XResultSet result = null;
-        try {
-            if (resultset != null)
-                result = new ResultSet(m_Connection, resultset);
+        ResultSetBase resultset = null;
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
+        if (result != null) {
+            resultset = new ResultSet(m_Connection, result);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getObjectId());
         }
-        catch (java.lang.Exception e)
-        {
-            System.out.println("sdbc.DatabaseMetaData._getResultSet() ********************************* ERROR: ");
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-        }
-        return result;
+        return resultset;
     }
 
 
@@ -3167,13 +3171,13 @@ public abstract class DatabaseMetaDataBase
         row[9] = new CustomRowSet(result.getBoolean(10));
         row[10] = new CustomRowSet(result.getBoolean(11));
         row[11] = new CustomRowSet(result.getBoolean(12));
-        System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TYPE_NAME: " + result.getString(1) + " - DATA_TYPE: " + result.getInt(2) + " / " + datatype + " - CREATE_PARAMS: " + result.getString(6));
         row[12] = new CustomRowSet(result.getString(13), result.wasNull());
         row[13] = new CustomRowSet(result.getShort(14));
         row[14] = new CustomRowSet(result.getShort(15));
         row[15] = new CustomRowSet(result.getLong(16));
         row[16] = new CustomRowSet(result.getLong(17));
         row[17] = new CustomRowSet(result.getLong(18));
+        System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TYPE_NAME: " + result.getString(1) + " - DATA_TYPE: " + result.getInt(2) + " / " + datatype + " - CREATE_PARAMS: " + result.getString(6) + " - AUTO_INCREMENT: " + result.getBoolean(12));
         return row;
     }
 

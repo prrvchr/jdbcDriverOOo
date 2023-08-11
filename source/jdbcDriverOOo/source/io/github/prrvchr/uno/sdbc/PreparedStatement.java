@@ -52,8 +52,8 @@ public class PreparedStatement
     throws SQLException
     {
         ResultSetBase resultset = null;
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
-            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(m_Connection, result, this);
             m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }

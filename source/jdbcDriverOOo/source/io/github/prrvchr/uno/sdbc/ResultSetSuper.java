@@ -65,9 +65,6 @@ public abstract class ResultSetSuper
         super(service, services, connection, resultset, statement);
         m_IsBookmarkable = bookmark && connection.m_usebookmark;
         registerProperties();
-        String msg = "Initialization IsBookmarkable: " + m_IsBookmarkable;
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, m_IsBookmarkable);
-        System.out.println(msg);
     }
 
     private void registerProperties() {
@@ -76,6 +73,7 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
+                    m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
                     return m_IsBookmarkable;
                 }
             }, null);
@@ -83,7 +81,7 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    System.out.println("ResultSetSuper() 1 CanUpdateInsertedRows: " + m_CanUpdateInsertedRows);
+                    m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
                     return m_CanUpdateInsertedRows;
                 }
             }, null);
@@ -94,42 +92,41 @@ public abstract class ResultSetSuper
     public int compareBookmarks(Object object1, Object object2)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.compareBookmarks() 1");
-        checkDisposed();
-        int bookmark1, bookmark2;
+        int compare = CompareBookmark.NOT_COMPARABLE;
+        int bookmark1 = 0, bookmark2 = 0;
         try {
             bookmark1 = AnyConverter.toInt(object1);
             bookmark2 = AnyConverter.toInt(object2);
         }
-        catch (IllegalArgumentException e) {
-            return CompareBookmark.NOT_COMPARABLE;
+        catch (IllegalArgumentException e) { }
+        if (bookmark1 != 0 && bookmark2 != 0) {
+            if (bookmark1 < bookmark2) {
+                compare = CompareBookmark.LESS;
+            }
+            else if (bookmark1 > bookmark2) {
+                compare = CompareBookmark.GREATER;
+            }
+            else {
+                compare = CompareBookmark.EQUAL;
+            }
         }
-        if (bookmark1 < bookmark2) {
-            return CompareBookmark.LESS;
-        }
-        else if (bookmark1 > bookmark2) {
-            return CompareBookmark.GREATER;
-        }
-        else {
-            return CompareBookmark.EQUAL;
-        }
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
+        return compare;
     }
 
     @Override
     public Object getBookmark()
     throws SQLException
     {
-        System.out.println("ResultSetSuper.getBookmark() Bookmark: " + getRow());
-        checkDisposed();
-        return getRow();
+        int row = getRow();
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, Integer.toString(row));
+        return row;
     }
 
     @Override
     public boolean hasOrderedBookmarks()
     throws SQLException
     {
-        System.out.println("ResultSetSuper.hasOrderedBookmarks() 1");
-        checkDisposed();
         return true;
     }
 
@@ -137,8 +134,6 @@ public abstract class ResultSetSuper
     public int hashBookmark(Object object)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.hashBookmark() 1");
-        checkDisposed();
         int bookmark;
         try {
             bookmark = AnyConverter.toInt(object);
@@ -153,17 +148,15 @@ public abstract class ResultSetSuper
     public boolean moveRelativeToBookmark(Object object, int count)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.moveRelativeToBookmark() 1");
-        checkDisposed();
-        int bookmark = -1;
-        boolean moved = moveToBookmark(object);
+        boolean moved = false;
         try {
-            if (moved) {
+            if (moveToBookmark(object)) {
                 moved = relative(count);
             }
+            int bookmark = AnyConverter.toInt(object);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(bookmark), Boolean.toString(moved));
         }
         catch (IllegalArgumentException e) { }
-        System.out.println("ResultSetSuper.moveRelativeToBookmark() 2 Bookmark: " + bookmark + " - Moved: " + moved);
         return moved;
     }
 
@@ -171,20 +164,17 @@ public abstract class ResultSetSuper
     public boolean moveToBookmark(Object object)
     throws SQLException
     {
-        System.out.println("ResultSetSuper.moveToBookmark() 1");
-        checkDisposed();
-        int bookmark = -1;
         boolean moved = false;
         try {
+            int bookmark = AnyConverter.toInt(object);
             if (m_insert) {
-                System.out.println("ResultSetSuper.moveToBookmark() 2");
+                m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT, Integer.toString(bookmark));
                 moveToCurrentRow();
             }
-            bookmark = AnyConverter.toInt(object);
             moved = absolute(bookmark);
+            m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
         }
         catch (IllegalArgumentException e) { }
-        System.out.println("ResultSetSuper.moveToBookmark() 3 Bookmark: " + bookmark + " - Moved: " + moved);
         return moved;
     }
 
@@ -196,9 +186,13 @@ public abstract class ResultSetSuper
     {
         List<Integer> rows = new ArrayList<Integer>();
         for (Object bookmark: bookmarks) {
-            moveToBookmark(bookmark);
-            deleteRow();
-            rows.add(1);
+            if (moveToBookmark(bookmark)) {
+                deleteRow();
+                rows.add(1);
+            }
+            else {
+                rows.add(0);
+            }
         }
         return rows.stream().mapToInt(Integer::intValue).toArray();
     }

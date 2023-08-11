@@ -436,8 +436,8 @@ public abstract class StatementMain
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        super.postDisposing();
         m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_STATEMENT);
+        super.postDisposing();
         if (m_Statement != null) {
             try {
                 m_Statement.close();
