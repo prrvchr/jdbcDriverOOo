@@ -40,7 +40,7 @@ If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are s
 - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
 - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
 
-If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HsqlDriverOOo][23] extension.  
+If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HyperSQLOOo][23] extension.  
 
 ___
 ## Installation:
@@ -267,7 +267,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Integration of [SQLite JDBC][13] version 3.42.0.0. I especially want to thank [gotson][55] for the [many improvements to the SQLite JDBC driver][56] that made it possible to use SQLite in LibreOffice/OpenOffice.
 
-- This driver can be wrapped by another driver ([HsqlDriverOOo][23] or [SQLiteOOo][57]) thanks to a connection url now modifiable.
+- This driver can be wrapped by another driver ([HyperSQLOOo][23] or [SQLiteOOo][57]) thanks to a connection url now modifiable.
 
 - It is possible to display or not the system tables in: **Tools -> Options -> Base drivers -> JDBC Driver -> UNO drivers settings -> Show system tables**
 
@@ -317,7 +317,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [20]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10>
 [21]: <https://adoptium.net/releases.html?variant=openjdk11>
 [22]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[23]: <https://prrvchr.github.io/HsqlDriverOOo/>
+[23]: <https://prrvchr.github.io/HyperSQLOOo/>
 [24]: <https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt>
 [25]: <img/jdbcDriverOOo-1.png>
 [26]: <img/jdbcDriverOOo-2.png>
