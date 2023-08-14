@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.math.BigDecimal;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyVetoException;
@@ -51,6 +52,7 @@ import com.sun.star.sdbc.XRow;
 import com.sun.star.sdbc.XRowUpdate;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
@@ -259,7 +261,7 @@ public abstract class ResultSetBase
     @Override
     protected synchronized void postDisposing()
     {
-        // FIXME: If we use logging here then it may produce Fatal exception: Signal 11 (SIGSEGV) 
+        // FIXME: If we use logging here then it may produce Fatal exception: Signal 11 (SIGSEGV)
         // FIXME: m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_RESULTSET);
         super.postDisposing();
         if (m_ResultSet != null) {
@@ -1047,11 +1049,18 @@ public abstract class ResultSetBase
     public void updateNumericObject(int index, Object value, int scale) throws SQLException
     {
         try {
-            m_ResultSet.updateObject(index, value, scale);
+            BigDecimal bigDecimal;
+            if (AnyConverter.isDouble(value)) {
+                bigDecimal = BigDecimal.valueOf(AnyConverter.toDouble(value));
+            }
+            else {
+                bigDecimal = new BigDecimal(AnyConverter.toString(value));
+            }
+            m_ResultSet.updateObject(index, bigDecimal, scale);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        } 
+        catch (IllegalArgumentException | java.sql.SQLException e) {
+            updateObject(index, value);
+        }
     }
 
 

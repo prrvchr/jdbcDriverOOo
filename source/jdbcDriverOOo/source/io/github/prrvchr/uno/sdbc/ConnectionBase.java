@@ -27,12 +27,11 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.util.Iterator;
 
-//import java.util.Iterator;
-
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lib.uno.helper.ComponentBase;
 import com.sun.star.lib.util.WeakMap;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
@@ -42,15 +41,16 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-//import com.sun.star.lib.util.WeakMap;
-
-import com.sun.star.lib.uno.helper.ComponentBase;
+import com.sun.star.util.XStringSubstitution;
 
 import io.github.prrvchr.jdbcdriver.AutoRetrievingBase;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.Tools;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
 import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
@@ -141,8 +141,10 @@ public abstract class ConnectionBase
 
     // com.sun.star.sdbc.XWarningsSupplier:
     @Override
-    public void clearWarnings() throws SQLException
+    public void clearWarnings()
+        throws SQLException
     {
+        checkDisposed();
         if (m_provider.supportWarningsSupplier()) {
             WarningsSupplier.clearWarnings(getProvider().getConnection(), this);
         }
@@ -150,8 +152,10 @@ public abstract class ConnectionBase
 
 
     @Override
-    public Object getWarnings() throws SQLException
+    public Object getWarnings()
+        throws SQLException
     {
+        checkDisposed();
         if (m_provider.supportWarningsSupplier()) {
             return WarningsSupplier.getWarnings(getProvider().getConnection(), this);
         }
@@ -164,6 +168,7 @@ public abstract class ConnectionBase
     public XDatabaseMetaData getMetaData()
         throws SQLException
     {
+        checkDisposed();
         DatabaseMetaDataBase metadata = null;
         try {
             m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
@@ -177,13 +182,15 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void close() throws SQLException
+    public void close()
+        throws SQLException
     {
         dispose();
     }
 
     @Override
-    public void commit() throws SQLException
+    public void commit()
+        throws SQLException
     {
         try {
             getProvider().getConnection().commit();
@@ -194,7 +201,8 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public boolean getAutoCommit() throws SQLException
+    public boolean getAutoCommit()
+        throws SQLException
     {
         try {
             return getProvider().getConnection().getAutoCommit();
@@ -205,8 +213,10 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public String getCatalog() throws SQLException
+    public String getCatalog()
+        throws SQLException
     {
+        checkDisposed();
         try {
             System.out.println("Connection.getCatalog() 1");
             String value = getProvider().getConnection().getCatalog();
@@ -219,8 +229,10 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public int getTransactionIsolation() throws SQLException
+    public int getTransactionIsolation()
+        throws SQLException
     {
+        checkDisposed();
         try {
             return getProvider().getConnection().getTransactionIsolation();
         }
@@ -230,10 +242,11 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public boolean isClosed() throws SQLException
+    public boolean isClosed()
+        throws SQLException
     {
         try {
-            return getProvider().getConnection().isClosed();
+            return getProvider().getConnection().isClosed() && bDisposed;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -241,8 +254,10 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public boolean isReadOnly() throws SQLException
+    public boolean isReadOnly()
+        throws SQLException
     {
+        checkDisposed();
         try {
             boolean readonly = getProvider().getConnection().isReadOnly();
             System.out.println("Connection.isReadOnly() 1 readonly: " + readonly);
@@ -254,8 +269,10 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public String nativeSQL(String sql) throws SQLException
+    public String nativeSQL(String sql)
+        throws SQLException
     {
+        checkDisposed();
         try {
             String value = getProvider().getConnection().nativeSQL(sql);
             return value != null ? value : "";
@@ -266,7 +283,8 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void rollback() throws SQLException
+    public void rollback()
+        throws SQLException
     {
         try {
             getProvider().getConnection().rollback();
@@ -277,7 +295,8 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void setAutoCommit(boolean commit) throws SQLException
+    public void setAutoCommit(boolean commit)
+        throws SQLException
     {
         try {
             getProvider().getConnection().setAutoCommit(commit);
@@ -288,7 +307,8 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void setCatalog(String catalog) throws SQLException
+    public void setCatalog(String catalog)
+        throws SQLException
     {
         try {
             getProvider().getConnection().setCatalog(catalog);
@@ -299,7 +319,8 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void setReadOnly(boolean readonly) throws SQLException
+    public void setReadOnly(boolean readonly)
+        throws SQLException
     {
         try {
             getProvider().getConnection().setReadOnly(readonly);
@@ -310,8 +331,10 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void setTransactionIsolation(int isolation) throws SQLException
+    public void setTransactionIsolation(int isolation)
+        throws SQLException
     {
+        checkDisposed();
         try {
             getProvider().getConnection().setTransactionIsolation(isolation);
         }
@@ -321,38 +344,48 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public XNameAccess getTypeMap() throws SQLException
+    public XNameAccess getTypeMap()
+        throws SQLException
     {
-        System.out.println("Connection.getTypeMap() 1");
+        checkDisposed();
         // TODO: Implement me!!!
         return null;
     }
 
     @Override
-    public void setTypeMap(XNameAccess typemap) throws SQLException
+    public void setTypeMap(XNameAccess typemap)
+        throws SQLException
     {
-        System.out.println("Connection.setTypeMap() 1 : " + typemap);
+        checkDisposed();
         // TODO: Implement me!!!
+        String msg = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNSUPPORTED_FEATURE, "XConnection::setTypeMap");
+        throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
     }
 
     @Override
-    public XStatement createStatement() throws SQLException
+    public XStatement createStatement()
+        throws SQLException
     {
+         checkDisposed();
          return _getStatement();
 
     }
 
     @Override
-    public XPreparedStatement prepareStatement(String sql) throws SQLException
+    public XPreparedStatement prepareStatement(String sql)
+        throws SQLException
     {
-        return _getPreparedStatement(sql);
+        checkDisposed();
+        return _getPreparedStatement(_substituteVariables(sql));
 
     }
 
     @Override
-    public XPreparedStatement prepareCall(String sql) throws SQLException
+    public XPreparedStatement prepareCall(String sql)
+        throws SQLException
     {
-        return _getCallableStatement(sql);
+        checkDisposed();
+        return _getCallableStatement(_substituteVariables(sql));
 
     }
 
@@ -375,10 +408,12 @@ public abstract class ConnectionBase
     {
         return m_provider.getUrl();
     }
+
     public PropertyValue[] getInfo()
     {
         return m_provider.getInfo();
     }
+
     public boolean isEnhanced()
     {
         return m_enhanced;
@@ -387,7 +422,7 @@ public abstract class ConnectionBase
     public boolean isAutoRetrievingEnabled() {
         return m_autoretrieving.isAutoRetrievingEnabled();
     }
-    
+
     public String getTransformedGeneratedStatement(String sql) {
         return m_autoretrieving.getTransformedGeneratedStatement(this, sql);
     }
@@ -396,16 +431,34 @@ public abstract class ConnectionBase
     {
         return m_xContext;
     }
+
     abstract protected XStatement _getStatement();
     abstract protected XPreparedStatement _getPreparedStatement(String sql) throws SQLException;
     abstract protected XPreparedStatement _getCallableStatement(String sql) throws SQLException;
 
+    private String _substituteVariables(String sql)
+        throws SQLException
+    {
+        PropertyValue[] properties = new PropertyValue[1];
+        properties[0] = new PropertyValue();
+        properties[0].Name = "ActiveConnection";
+        properties[0].Value = this;
+        try {
+            String service = "com.sun.star.sdb.ParameterSubstitution";
+            Object object = m_xContext.getServiceManager().createInstanceWithArgumentsAndContext(service, properties, m_xContext);
+            XStringSubstitution substitution = UnoRuntime.queryInterface(XStringSubstitution.class, object);
+            return substitution.substituteVariables(sql, true);
+        }
+        catch (com.sun.star.uno.Exception e) {
+            throw Tools.toUnoExceptionLogged(this, m_logger, e);
+        }
+    }
 
     //XXX: Checks whether this component (which you should have locked, prior to this call, and until you are done using) is disposed, throwing DisposedException if it is.
     protected synchronized final void checkDisposed()
     {
         if (bInDispose || bDisposed) {
-            System.out.println("beans.PropertySet()checkDisposed() ERROR: **************************" + this.getClass().getName());
+            System.out.println("sdbc.ConnectionBase.checkDisposed() ERROR: **************************" + this.getClass().getName());
             throw new DisposedException();
         }
     }

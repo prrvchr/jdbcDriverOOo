@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.logging;
 
 import com.sun.star.logging.XLogger;
 import com.sun.star.logging.XLoggerPool;
+import com.sun.star.uno.DeploymentException;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -54,27 +55,17 @@ public final class UnoLoggerPool
     }
 
     public static XLogger getNamedLogger(String name)
-        throws Exception
     {
-        XLogger logger = getLoggerPool().getNamedLogger(getLoggerName(name));
+        XLogger logger = _getLoggerPool().getNamedLogger(getLoggerName(name));
         System.out.println("logging.UnoLoggerPool.getNamedLogger() " + logger.getName());
         return logger;
     }
 
     public static XLogger getDefaultLogger()
-        throws Exception
     {
-        XLogger logger = getLoggerPool().getDefaultLogger();
+        XLogger logger = _getLoggerPool().getDefaultLogger();
         System.out.println("logging.UnoLoggerPool.getDefaultLogger() " + logger.getName());
         return logger;
-    }
-
-    private static XLoggerPool getLoggerPool() 
-        throws Exception
-    {
-        System.out.println("logging.UnoLoggerPool.getLoggerPool()");
-        Object object = m_xContext.getServiceManager().createInstanceWithContext(m_service, m_xContext);
-        return UnoRuntime.queryInterface(XLoggerPool.class, object);
     }
 
     private static String getLoggerName(String name)
@@ -82,5 +73,19 @@ public final class UnoLoggerPool
         return String.format("%s.%s", m_root, name);
     }
 
+    private static XLoggerPool _getLoggerPool()
+    {
+        XLoggerPool pool = null;
+        try {
+            Object object = m_xContext.getServiceManager().createInstanceWithContext(m_service, m_xContext);
+            pool = UnoRuntime.queryInterface(XLoggerPool.class, object);
+        }
+        catch (Exception e) {}
+        if (pool == null) {
+            throw new DeploymentException("component context fails to supply singleton com.sun.star.logging.LoggerPool of type com.sun.star.logging.XLoggerPool",
+                                          m_xContext);
+        }
+        return pool;
+    }
 
 }
