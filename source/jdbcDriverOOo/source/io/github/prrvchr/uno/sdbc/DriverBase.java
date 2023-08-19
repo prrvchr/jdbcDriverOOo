@@ -60,7 +60,9 @@ import io.github.prrvchr.uno.logging.UnoLoggerPool;
 import io.github.prrvchr.jdbcdriver.ConnectionService;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
+import io.github.prrvchr.jdbcdriver.DriverWrapper;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
 public abstract class DriverBase
@@ -182,7 +184,7 @@ public abstract class DriverBase
             System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
-            connection = _getConnection(m_xContext, provider, m_logger, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
+            connection = _getConnection(m_xContext, provider, url, info, m_logger, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
             m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
             System.out.println("sdbc.DriverBase.connect() 4");
         }
@@ -440,7 +442,7 @@ public abstract class DriverBase
     {
         ServiceLoader<DriverProvider> loader = ServiceLoader.load(DriverProvider.class, ConnectionBase.class.getClassLoader());
         for (final DriverProvider provider : loader) {
-            if (provider.acceptsURL(url, info)) {
+            if (provider.acceptsURL(url)) {
                 return provider;
             }
         }
@@ -449,6 +451,8 @@ public abstract class DriverBase
 
     abstract protected ConnectionBase _getConnection(XComponentContext ctx,
                                                      DriverProvider provider,
+                                                     String url,
+                                                     PropertyValue[] info,
                                                      ResourceBasedEventLogger logger,
                                                      boolean enhanced,
                                                      boolean showsystem,

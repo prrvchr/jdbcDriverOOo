@@ -30,9 +30,9 @@ import java.util.Map;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.jdbcdriver.CustomColumn;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.CustomRowSet;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
@@ -57,11 +57,6 @@ public final class MariaDBDatabaseMetaData
         {
             System.out.println("mariadb.DatabaseMetaData.getTypeInfo()");
             return _getTypeInfo();
-        }
-        catch (java.sql.SQLException e)
-        {
-            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
             System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
@@ -120,17 +115,17 @@ public final class MariaDBDatabaseMetaData
     }
 
     @Override
-    protected final CustomRowSet[] _getTablesRowSet(final java.sql.ResultSet result)
+    protected final CustomColumn[] _getTablesRow(final java.sql.ResultSet result)
             throws java.sql.SQLException
         {
-            CustomRowSet[] row = new CustomRowSet[5];
+            CustomColumn[] row = new CustomColumn[5];
             String catalog = result.getString(1);
-            row[0] = new CustomRowSet(catalog, result.wasNull());
+            row[0] = new CustomColumn(catalog, result.wasNull());
             String schema = result.getString(2);
-            row[1] = new CustomRowSet(schema, result.wasNull());
-            row[2] = new CustomRowSet(result.getString(3), result.wasNull());
-            row[3] = new CustomRowSet(_mapDatabaseTableTypes(catalog, schema, result.getString(4)), result.wasNull());
-            row[4] = new CustomRowSet(null, true);
+            row[1] = new CustomColumn(schema, result.wasNull());
+            row[2] = new CustomColumn(result.getString(3), result.wasNull());
+            row[3] = new CustomColumn(_mapDatabaseTableTypes(catalog, schema, result.getString(4)), result.wasNull());
+            row[4] = new CustomColumn(null, true);
             System.out.println("mariadb.DatabaseMetaData._getTablesRowSet() Catalog: " + catalog + " Schema: " + schema + " Table: " + result.getString(3));
             return row;
         }

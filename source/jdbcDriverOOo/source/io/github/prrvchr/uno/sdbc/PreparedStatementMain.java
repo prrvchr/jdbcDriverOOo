@@ -48,6 +48,7 @@ import com.sun.star.util.Time;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 

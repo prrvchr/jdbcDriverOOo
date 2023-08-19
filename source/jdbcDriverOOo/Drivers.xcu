@@ -329,7 +329,7 @@
             <node oor:name="Properties">
                 <node oor:name="TypeInfoSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator=",">Column(2) = -5,Column(6) = PRECISION,Column(2) = -4,Column(6) = PRECISION,Column(2) = -3,Column(6) = PRECISION,Column(2) = -2,Column(6) = PRECISION,Column(2) = -1,Column(6) = PRECISION,Column(2) = 2,Column(6) = PRECISION,Column(2) = 12,Column(6) = PRECISION</value>
+                        <value oor:separator=",">COLUMN(2) = 92,COLUMN(6) = SCALE DEFAULT,COLUMN(2) = 92,COLUMN(14) = 0,COLUMN(2) = 92,COLUMN(15) = 9,COLUMN(2) = 93,COLUMN(6) = SCALE DEFAULT,COLUMN(2) = 93,COLUMN(14) = 0,COLUMN(2) = 93,COLUMN(15) = 9,COLUMN(2) = 2013,COLUMN(6) = SCALE DEFAULT,COLUMN(2) = 2013,COLUMN(14) = 0,COLUMN(2) = 2013,COLUMN(15) = 9,COLUMN(2) = 2014,COLUMN(6) = SCALE DEFAULT,COLUMN(2) = 2014,COLUMN(14) = 0,COLUMN(2) = 2014,COLUMN(15) = 9</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">

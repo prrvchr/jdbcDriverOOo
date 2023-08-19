@@ -58,16 +58,19 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
+
 
 public abstract class ResultSetBase
     extends PropertySet
@@ -262,7 +265,7 @@ public abstract class ResultSetBase
     protected synchronized void postDisposing()
     {
         // FIXME: If we use logging here then it may produce Fatal exception: Signal 11 (SIGSEGV)
-        // FIXME: m_logger.log(LogLevel.FINE, Resources.STR_LOG_CLOSING_RESULTSET);
+        // FIXME: m_logger.log(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
         super.postDisposing();
         if (m_ResultSet != null) {
             try {

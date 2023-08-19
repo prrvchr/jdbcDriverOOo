@@ -29,8 +29,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
 public abstract class DescriptorContainer

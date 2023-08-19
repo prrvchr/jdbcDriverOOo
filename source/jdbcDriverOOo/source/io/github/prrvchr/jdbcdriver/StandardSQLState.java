@@ -1,23 +1,3 @@
-/**************************************************************
- * 
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- *************************************************************/
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
@@ -43,10 +23,32 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
+/**************************************************************
+ * 
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ *************************************************************/
+
 package io.github.prrvchr.jdbcdriver;
 
 
-public enum StandardSQLState {
+public enum StandardSQLState
+{
     SQL_WRONG_PARAMETER_NUMBER("07001"),
     SQL_INVALID_DESCRIPTOR_INDEX("07009"),
     SQL_UNABLE_TO_CONNECT("08001"),
@@ -69,15 +71,17 @@ public enum StandardSQLState {
     SQL_FUNCTION_NOT_SUPPORTED("IM001"),
     SQL_CONNECTION_DOES_NOT_EXIST("08003"),
     SQL_ERROR_UNSPECIFIED("");
-    
-    
+
     private String text;
-    
-    private StandardSQLState(String text) {
+
+    private StandardSQLState(String text)
+    {
         this.text = text;
     }
-    
-    public String text() {
+
+    public String text()
+    {
         return text;
     }
+
 }

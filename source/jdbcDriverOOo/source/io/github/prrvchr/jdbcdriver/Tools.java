@@ -50,10 +50,14 @@ import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import com.sun.star.beans.NamedValue;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.uno.XInterface;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.XCloseable;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
+import com.sun.star.uno.UnoRuntime;
+
 
 public class Tools
 {
@@ -147,5 +151,13 @@ public class Tools
         return ret;
     }
 
+    public static void close(XInterface object)
+        throws SQLException
+    {
+        XCloseable closeable = UnoRuntime.queryInterface(XCloseable.class, object);
+        if (closeable != null) {
+            closeable.close();
+        }
+    }
 
 }

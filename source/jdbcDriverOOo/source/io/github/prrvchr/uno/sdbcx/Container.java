@@ -59,9 +59,9 @@ import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.uno.sdbc.StandardSQLState;
 
 
 public abstract class Container

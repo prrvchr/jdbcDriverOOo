@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbc;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
@@ -58,12 +59,14 @@ public abstract class ConnectionSuper
                            String service,
                            String[] services,
                            DriverProvider provider,
+                           String url,
+                           PropertyValue[] info,
                            ResourceBasedEventLogger logger,
                            boolean enhanced,
                            boolean showsystem,
                            boolean usebookmark)
     {
-        super(ctx, service, services, provider, logger, enhanced, showsystem, usebookmark);
+        super(ctx, service, services, provider, url, info, logger, enhanced, showsystem, usebookmark);
     }
 
     // com.sun.star.lang.XComponent

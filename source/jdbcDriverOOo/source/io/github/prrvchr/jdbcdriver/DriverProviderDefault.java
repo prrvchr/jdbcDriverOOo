@@ -41,5 +41,4 @@ public final class DriverProviderDefault
         System.out.println("jdbcdriver.DriverProviderDefault() 1");
     }
 
-
 }

@@ -41,6 +41,7 @@ import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 
 

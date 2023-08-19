@@ -44,9 +44,14 @@ import com.sun.star.sdbc.XRow;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.CustomColumnMetaData;
+import io.github.prrvchr.jdbcdriver.CustomResultSet;
+import io.github.prrvchr.jdbcdriver.CustomResultSetMetaData;
+import io.github.prrvchr.jdbcdriver.CustomColumn;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
 
 
 public abstract class DatabaseMetaDataBase
@@ -1250,12 +1255,12 @@ public abstract class DatabaseMetaDataBase
                             }
                         }
                         // fill our own resultset
-                        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+                        ArrayList<CustomColumn[]> rows = new ArrayList<>();
                         XRow row = UnoRuntime.queryInterface(XRow.class, result);
                         while (result.next()) {
-                            CustomRowSet[] rowset = new CustomRowSet[7];
+                            CustomColumn[] rowset = new CustomColumn[7];
                             for (int i = 0; i < rowset.length; i++) {
-                                rowset[i] = new CustomRowSet(null, true);
+                                rowset[i] = new CustomColumn(null, true);
                             }
                             for (Map.Entry<Integer,Integer> column : columns.entrySet()) {
                                 String value = row.getString(column.getKey());
@@ -1366,9 +1371,9 @@ public abstract class DatabaseMetaDataBase
             System.out.println("sdbc.DatabaseMetaData.getTypeInfo() 1");
             java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
             while (resultset.next()) {
-                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + resultset.getString(1) + " - Type: " + resultset.getInt(2) + " - AutoIncrement: " + resultset.getBoolean(12));
+                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + resultset.getString(1) + " - Type: " + resultset.getInt(2) + " - CreateParam: " + resultset.getString(6) + " - AutoIncrement: " + resultset.getBoolean(12));
             }
-            return _getResultSet(m_Metadata.getTypeInfo(), "getTypeInfo");
+            return _getTypeInfo();
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -3142,168 +3147,186 @@ public abstract class DatabaseMetaDataBase
 
     // XDatabaseMetaData.getTypeInfo:
     protected XResultSet _getTypeInfo()
-            throws java.sql.SQLException
+            throws SQLException
     {
-        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
-        java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
-        while (resultset.next())
-        {
-            rows.add(_getTypeInfoRowSet(resultset));
+        ArrayList<CustomColumn[]> rows = new ArrayList<>();
+        java.sql.ResultSet resultset;
+        try {
+            resultset = m_Metadata.getTypeInfo();
+            while (resultset.next()) {
+                CustomColumn[] columns = _getTypeInfoRow(resultset);
+                rows.add(m_Connection.getTypeInfoRow(columns));
+            }
+            resultset.close();
+            CustomResultSet result = new CustomResultSet(_getTypeInfoMetadata(), rows);
+            while (result.next()) {
+                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + result.getString(1) + " - Type: " + result.getInt(2) + " - CreateParam: " + result.getString(6) + " - AutoIncrement: " + result.getBoolean(12));
+            }
+            rows = new ArrayList<>();
+            resultset = m_Metadata.getTypeInfo();
+            while (resultset.next())
+            {
+                CustomColumn[] columns = _getTypeInfoRow(resultset);
+                rows.add(m_Connection.getTypeInfoRow(columns));
+            }
+            resultset.close();
         }
-        resultset.close();
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
         return new CustomResultSet(_getTypeInfoMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getTypeInfoRowSet(java.sql.ResultSet result)
+    protected CustomColumn[] _getTypeInfoRow(java.sql.ResultSet result)
             throws java.sql.SQLException
     {
-        CustomRowSet[] row = new CustomRowSet[18];
-        row[0] = new CustomRowSet(result.getString(1), result.wasNull());
+        CustomColumn[] columns = new CustomColumn[18];
+        columns[0] = new CustomColumn(result.getString(1), result.wasNull());
         int datatype = m_Connection.getProvider().getDataType(result.getInt(2));
-        row[1] = new CustomRowSet(datatype);
-        row[2] = new CustomRowSet(result.getLong(3));
-        row[3] = new CustomRowSet(result.getString(4), result.wasNull());
-        row[4] = new CustomRowSet(result.getString(5), result.wasNull());
-        row[5] = new CustomRowSet(result.getString(6), result.wasNull());
-        row[6] = new CustomRowSet(result.getShort(7));
-        row[7] = new CustomRowSet(result.getBoolean(8));
-        row[8] = new CustomRowSet(result.getShort(9));
-        row[9] = new CustomRowSet(result.getBoolean(10));
-        row[10] = new CustomRowSet(result.getBoolean(11));
-        row[11] = new CustomRowSet(result.getBoolean(12));
-        row[12] = new CustomRowSet(result.getString(13), result.wasNull());
-        row[13] = new CustomRowSet(result.getShort(14));
-        row[14] = new CustomRowSet(result.getShort(15));
-        row[15] = new CustomRowSet(result.getLong(16));
-        row[16] = new CustomRowSet(result.getLong(17));
-        row[17] = new CustomRowSet(result.getLong(18));
-        System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TYPE_NAME: " + result.getString(1) + " - DATA_TYPE: " + result.getInt(2) + " / " + datatype + " - CREATE_PARAMS: " + result.getString(6) + " - AUTO_INCREMENT: " + result.getBoolean(12));
-        return row;
+        columns[1] = new CustomColumn(datatype);
+        columns[2] = new CustomColumn(result.getLong(3));
+        columns[3] = new CustomColumn(result.getString(4), result.wasNull());
+        columns[4] = new CustomColumn(result.getString(5), result.wasNull());
+        columns[5] = new CustomColumn(result.getString(6), result.wasNull());
+        columns[6] = new CustomColumn(result.getShort(7));
+        columns[7] = new CustomColumn(result.getBoolean(8));
+        columns[8] = new CustomColumn(result.getShort(9));
+        columns[9] = new CustomColumn(result.getBoolean(10));
+        columns[10] = new CustomColumn(result.getBoolean(11));
+        columns[11] = new CustomColumn(result.getBoolean(12));
+        columns[12] = new CustomColumn(result.getString(13), result.wasNull());
+        columns[13] = new CustomColumn(result.getShort(14));
+        columns[14] = new CustomColumn(result.getShort(15));
+        columns[15] = new CustomColumn(result.getLong(16));
+        columns[16] = new CustomColumn(result.getLong(17));
+        columns[17] = new CustomColumn(result.getLong(18));
+        //System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() TYPE_NAME: " + result.getString(1) + " - DATA_TYPE: " + result.getInt(2) + " / " + datatype + " - CREATE_PARAMS: " + result.getString(6) + " - AUTO_INCREMENT: " + result.getBoolean(12));
+        return columns;
     }
 
     protected XResultSetMetaData _getTypeInfoMetadata()
     {
-        CustomColumn[] columns = new CustomColumn[18];
-        columns[0] = new CustomColumn();
+        CustomColumnMetaData[] columns = new CustomColumnMetaData[18];
+        columns[0] = new CustomColumnMetaData();
         columns[0].setColumnName("TYPE_NAME");
         columns[0].setNullable(ColumnValue.NO_NULLS);
         columns[0].setColumnDisplaySize(3);
         columns[0].setPrecision(0);
         columns[0].setScale(0);
         columns[0].setColumnType(DataType.VARCHAR);
-        columns[1] = new CustomColumn();
+        columns[1] = new CustomColumnMetaData();
         columns[1].setColumnName("DATA_TYPE");
         columns[1].setNullable(ColumnValue.NO_NULLS);
         columns[1].setColumnDisplaySize(3);
         columns[1].setPrecision(0);
         columns[1].setScale(0);
         columns[1].setColumnType(DataType.SMALLINT);
-        columns[2] = new CustomColumn();
+        columns[2] = new CustomColumnMetaData();
         columns[2].setColumnName("PRECISION");
         columns[2].setNullable(ColumnValue.NO_NULLS);
         columns[2].setColumnDisplaySize(3);
         columns[2].setPrecision(0);
         columns[2].setScale(0);
         columns[2].setColumnType(DataType.INTEGER);
-        columns[3] = new CustomColumn();
+        columns[3] = new CustomColumnMetaData();
         columns[3].setColumnName("LITERAL_PREFIX");
         columns[3].setNullable(ColumnValue.NULLABLE);
         columns[3].setColumnDisplaySize(3);
         columns[3].setPrecision(0);
         columns[3].setScale(0);
         columns[3].setColumnType(DataType.VARCHAR);
-        columns[4] = new CustomColumn();
+        columns[4] = new CustomColumnMetaData();
         columns[4].setColumnName("LITERAL_SUFFIX");
         columns[4].setNullable(ColumnValue.NULLABLE);
         columns[4].setColumnDisplaySize(0);
         columns[4].setPrecision(0);
         columns[4].setScale(0);
         columns[4].setColumnType(DataType.VARCHAR);
-        columns[5] = new CustomColumn();
+        columns[5] = new CustomColumnMetaData();
         columns[5].setColumnName("CREATE_PARAMS");
         columns[5].setNullable(ColumnValue.NULLABLE);
         columns[5].setColumnDisplaySize(3);
         columns[5].setPrecision(0);
         columns[5].setScale(0);
         columns[5].setColumnType(DataType.VARCHAR);
-        columns[6] = new CustomColumn();
+        columns[6] = new CustomColumnMetaData();
         columns[6].setColumnName("NULLABLE");
         columns[6].setNullable(ColumnValue.NO_NULLS);
         columns[6].setColumnDisplaySize(0);
         columns[6].setPrecision(0);
         columns[6].setScale(0);
         columns[6].setColumnType(DataType.SMALLINT);
-        columns[7] = new CustomColumn();
+        columns[7] = new CustomColumnMetaData();
         columns[7].setColumnName("CASE_SENSITIVE");
         columns[7].setNullable(ColumnValue.NO_NULLS);
         columns[7].setColumnDisplaySize(3);
         columns[7].setPrecision(0);
         columns[7].setScale(0);
         columns[7].setColumnType(DataType.BOOLEAN);
-        columns[8] = new CustomColumn();
+        columns[8] = new CustomColumnMetaData();
         columns[8].setColumnName("SEARCHABLE");
         columns[8].setNullable(ColumnValue.NO_NULLS);
         columns[8].setColumnDisplaySize(0);
         columns[8].setPrecision(0);
         columns[8].setScale(0);
         columns[8].setColumnType(DataType.SMALLINT);
-        columns[9] = new CustomColumn();
+        columns[9] = new CustomColumnMetaData();
         columns[9].setColumnName("UNSIGNED_ATTRIBUTE");
         columns[9].setNullable(ColumnValue.NO_NULLS);
         columns[9].setColumnDisplaySize(3);
         columns[9].setPrecision(0);
         columns[9].setScale(0);
         columns[9].setColumnType(DataType.BOOLEAN);
-        columns[10] = new CustomColumn();
+        columns[10] = new CustomColumnMetaData();
         columns[10].setColumnName("FIXED_PREC_SCALE");
         columns[10].setNullable(ColumnValue.NO_NULLS);
         columns[10].setColumnDisplaySize(0);
         columns[10].setPrecision(0);
         columns[10].setScale(0);
         columns[10].setColumnType(DataType.BOOLEAN);
-        columns[11] = new CustomColumn();
+        columns[11] = new CustomColumnMetaData();
         columns[11].setColumnName("AUTO_INCREMENT");
         columns[11].setNullable(ColumnValue.NO_NULLS);
         columns[11].setColumnDisplaySize(3);
         columns[11].setPrecision(0);
         columns[11].setScale(0);
         columns[11].setColumnType(DataType.BOOLEAN);
-        columns[12] = new CustomColumn();
+        columns[12] = new CustomColumnMetaData();
         columns[12].setColumnName("LOCAL_TYPE_NAME");
         columns[12].setNullable(ColumnValue.NULLABLE);
         columns[12].setColumnDisplaySize(0);
         columns[12].setPrecision(0);
         columns[12].setScale(0);
         columns[12].setColumnType(DataType.VARCHAR);
-        columns[13] = new CustomColumn();
+        columns[13] = new CustomColumnMetaData();
         columns[13].setColumnName("MINIMUM_SCALE");
         columns[13].setNullable(ColumnValue.NO_NULLS);
         columns[13].setColumnDisplaySize(3);
         columns[13].setPrecision(0);
         columns[13].setScale(0);
         columns[13].setColumnType(DataType.SMALLINT);
-        columns[14] = new CustomColumn();
+        columns[14] = new CustomColumnMetaData();
         columns[14].setColumnName("MAXIMUM_SCALE");
         columns[14].setNullable(ColumnValue.NO_NULLS);
         columns[14].setColumnDisplaySize(0);
         columns[14].setPrecision(0);
         columns[14].setScale(0);
         columns[14].setColumnType(DataType.SMALLINT);
-        columns[15] = new CustomColumn();
+        columns[15] = new CustomColumnMetaData();
         columns[15].setColumnName("SQL_DATA_TYPE");
         columns[15].setNullable(ColumnValue.NO_NULLS);
         columns[15].setColumnDisplaySize(3);
         columns[15].setPrecision(0);
         columns[15].setScale(0);
         columns[15].setColumnType(DataType.INTEGER);
-        columns[16] = new CustomColumn();
+        columns[16] = new CustomColumnMetaData();
         columns[16].setColumnName("SQL_DATETIME_SUB");
         columns[16].setNullable(ColumnValue.NO_NULLS);
         columns[16].setColumnDisplaySize(0);
         columns[16].setPrecision(0);
         columns[16].setScale(0);
         columns[16].setColumnType(DataType.INTEGER);
-        columns[17] = new CustomColumn();
+        columns[17] = new CustomColumnMetaData();
         columns[17].setColumnName("NUM_PREC_RADIX");
         columns[17].setNullable(ColumnValue.NO_NULLS);
         columns[17].setColumnDisplaySize(0);
@@ -3317,29 +3340,29 @@ public abstract class DatabaseMetaDataBase
     protected XResultSet _getTableTypes()
         throws java.sql.SQLException
     {
-        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+        ArrayList<CustomColumn[]> rows = new ArrayList<>();
         java.sql.ResultSet resultset = m_Metadata.getTableTypes();
         while (resultset.next()) {
-            rows.add(_getTableTypesRowSet(resultset));
+            rows.add(_getTableTypesRow(resultset));
         }
         resultset.close();
         return new CustomResultSet(_getTableTypesMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getTableTypesRowSet(java.sql.ResultSet result)
+    protected CustomColumn[] _getTableTypesRow(java.sql.ResultSet result)
             throws java.sql.SQLException
         {
-            CustomRowSet[] row = new CustomRowSet[1];
+            CustomColumn[] row = new CustomColumn[1];
             String type = result.getString(1);
             System.out.println("sdbc.DatabaseMetaDataBase._getTableTypesRowSet() : " + type);
-            row[0] =  new CustomRowSet(_mapDatabaseTableTypes(type), result.wasNull());
+            row[0] =  new CustomColumn(_mapDatabaseTableTypes(type), result.wasNull());
             return row;
         }
 
     protected XResultSetMetaData _getTableTypesMetadata()
     {
-        CustomColumn[] columns = new CustomColumn[1];
-        columns[0] = new CustomColumn();
+        CustomColumnMetaData[] columns = new CustomColumnMetaData[1];
+        columns[0] = new CustomColumnMetaData();
         columns[0].setColumnName("TABLE_TYPE");
         columns[0].setNullable(ColumnValue.NO_NULLS);
         columns[0].setColumnDisplaySize(3);
@@ -3357,61 +3380,61 @@ public abstract class DatabaseMetaDataBase
                                     String[] types)
         throws java.sql.SQLException
     {
-        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+        ArrayList<CustomColumn[]> rows = new ArrayList<>();
         java.sql.ResultSet result = m_Metadata.getTables(catalog, schema, table, types);
         while (result.next())
         {
             System.out.println("sdbc.DatabaseMetaDataBase._getTables() " + result.getString(1) + "." + result.getString(2) + "." + result.getString(3)  + " - Type: " + result.getString(4) +  "\nRemarks: " + result.getString(5));
-            rows.add(_getTablesRowSet(result));
+            rows.add(_getTablesRow(result));
         }
         result.close();
         return new CustomResultSet(_getTablesMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getTablesRowSet(java.sql.ResultSet result)
+    protected CustomColumn[] _getTablesRow(java.sql.ResultSet result)
             throws java.sql.SQLException
         {
-            CustomRowSet[] row = new CustomRowSet[5];
-            row[0] = new CustomRowSet(result.getString(1), result.wasNull());
-            row[1] = new CustomRowSet(result.getString(2), result.wasNull());
-            row[2] = new CustomRowSet(result.getString(3), result.wasNull());
-            row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
-            row[4] = new CustomRowSet(result.getString(5), result.wasNull());
-           return row;
+            CustomColumn[] columns = new CustomColumn[5];
+            columns[0] = new CustomColumn(result.getString(1), result.wasNull());
+            columns[1] = new CustomColumn(result.getString(2), result.wasNull());
+            columns[2] = new CustomColumn(result.getString(3), result.wasNull());
+            columns[3] = new CustomColumn(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
+            columns[4] = new CustomColumn(result.getString(5), result.wasNull());
+           return columns;
         }
 
     private XResultSetMetaData _getTablesMetadata()
     {
-        CustomColumn[] columns = new CustomColumn[5];
-        columns[0] = new CustomColumn();
+        CustomColumnMetaData[] columns = new CustomColumnMetaData[5];
+        columns[0] = new CustomColumnMetaData();
         columns[0].setColumnName("TABLE_CAT");
         columns[0].setNullable(ColumnValue.NULLABLE);
         columns[0].setColumnDisplaySize(3);
         columns[0].setPrecision(0);
         columns[0].setScale(0);
         columns[0].setColumnType(DataType.VARCHAR);
-        columns[1] = new CustomColumn();
+        columns[1] = new CustomColumnMetaData();
         columns[1].setColumnName("TABLE_SCHEM");
         columns[1].setNullable(ColumnValue.NULLABLE);
         columns[1].setColumnDisplaySize(3);
         columns[1].setPrecision(0);
         columns[1].setScale(0);
         columns[1].setColumnType(DataType.VARCHAR);
-        columns[2] = new CustomColumn();
+        columns[2] = new CustomColumnMetaData();
         columns[2].setColumnName("TABLE_NAME");
         columns[2].setNullable(ColumnValue.NO_NULLS);
         columns[2].setColumnDisplaySize(3);
         columns[2].setPrecision(0);
         columns[2].setScale(0);
         columns[2].setColumnType(DataType.VARCHAR);
-        columns[3] = new CustomColumn();
+        columns[3] = new CustomColumnMetaData();
         columns[3].setColumnName("TABLE_TYPE");
         columns[3].setNullable(ColumnValue.NO_NULLS);
         columns[3].setColumnDisplaySize(3);
         columns[3].setPrecision(0);
         columns[3].setScale(0);
         columns[3].setColumnType(DataType.VARCHAR);
-        columns[4] = new CustomColumn();
+        columns[4] = new CustomColumnMetaData();
         columns[4].setColumnName("REMARKS");
         columns[4].setNullable(ColumnValue.NULLABLE);
         columns[4].setColumnDisplaySize(3);
@@ -3428,165 +3451,165 @@ public abstract class DatabaseMetaDataBase
         {
         System.out.println("sdbc.DatabaseMetaDataBase._getColumns() 1 Catalog: " + catalog + " - Schema: " + schema + " - Table: " + table + " - Column: " + column);
 
-        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+        ArrayList<CustomColumn[]> rows = new ArrayList<>();
             java.sql.ResultSet resultset = m_Metadata.getColumns(catalog, schema, table, column);
             while (resultset.next()) {
                 System.out.println("sdbc.DatabaseMetaDataBase._getColumns() 2");
-                rows.add(_getColumnsRowSet(resultset));
+                rows.add(_getColumnsRow(resultset));
             }
             resultset.close();
             System.out.println("sdbc.DatabaseMetaDataBase._getColumns() 3");
             return new CustomResultSet(_getColumnsMetadata(), rows);
         }
 
-    protected CustomRowSet[] _getColumnsRowSet(java.sql.ResultSet result)
+    protected CustomColumn[] _getColumnsRow(java.sql.ResultSet result)
             throws java.sql.SQLException
         {
-            CustomRowSet[] row = new CustomRowSet[18];
-            row[0] =  new CustomRowSet(result.getString(1), result.wasNull());
-            row[1] =  new CustomRowSet(result.getString(2), result.wasNull());
-            row[2] =  new CustomRowSet(result.getString(3), result.wasNull());
-            row[3] =  new CustomRowSet(result.getString(4), result.wasNull());
-            row[4] =  new CustomRowSet(m_Connection.getProvider().getDataType(result.getShort(5)));
-            row[5] =  new CustomRowSet(result.getString(6), result.wasNull());
-            row[6] =  new CustomRowSet(result.getLong(7));
-            row[7] =  new CustomRowSet(result.getString(8), result.wasNull());
-            row[8] =  new CustomRowSet(result.getLong(9));
-            row[9] =  new CustomRowSet(result.getLong(10));
-            row[10] = new CustomRowSet(result.getLong(11));
-            row[11] = new CustomRowSet(result.getString(12), result.wasNull());
-            row[12] = new CustomRowSet(result.getString(13), result.wasNull());
-            row[13] = new CustomRowSet(result.getLong(14));
-            row[14] = new CustomRowSet(result.getLong(15));
-            row[15] = new CustomRowSet(result.getLong(16));
-            row[16] = new CustomRowSet(result.getInt(17));
-            row[17] = new CustomRowSet(result.getString(18), result.wasNull());
-            return row;
+            CustomColumn[] columns = new CustomColumn[18];
+            columns[0] =  new CustomColumn(result.getString(1), result.wasNull());
+            columns[1] =  new CustomColumn(result.getString(2), result.wasNull());
+            columns[2] =  new CustomColumn(result.getString(3), result.wasNull());
+            columns[3] =  new CustomColumn(result.getString(4), result.wasNull());
+            columns[4] =  new CustomColumn(m_Connection.getProvider().getDataType(result.getShort(5)));
+            columns[5] =  new CustomColumn(result.getString(6), result.wasNull());
+            columns[6] =  new CustomColumn(result.getLong(7));
+            columns[7] =  new CustomColumn(result.getString(8), result.wasNull());
+            columns[8] =  new CustomColumn(result.getLong(9));
+            columns[9] =  new CustomColumn(result.getLong(10));
+            columns[10] = new CustomColumn(result.getLong(11));
+            columns[11] = new CustomColumn(result.getString(12), result.wasNull());
+            columns[12] = new CustomColumn(result.getString(13), result.wasNull());
+            columns[13] = new CustomColumn(result.getLong(14));
+            columns[14] = new CustomColumn(result.getLong(15));
+            columns[15] = new CustomColumn(result.getLong(16));
+            columns[16] = new CustomColumn(result.getInt(17));
+            columns[17] = new CustomColumn(result.getString(18), result.wasNull());
+            return columns;
         }
 
     protected XResultSetMetaData _getColumnsMetadata()
     {
-        CustomColumn[] columns = new CustomColumn[18];
-        columns[0] = new CustomColumn();
+        CustomColumnMetaData[] columns = new CustomColumnMetaData[18];
+        columns[0] = new CustomColumnMetaData();
         columns[0].setColumnName("TABLE_CAT");
         columns[0].setNullable(ColumnValue.NULLABLE);
         columns[0].setColumnDisplaySize(3);
         columns[0].setPrecision(0);
         columns[0].setScale(0);
         columns[0].setColumnType(DataType.VARCHAR);
-        columns[1] = new CustomColumn();
+        columns[1] = new CustomColumnMetaData();
         columns[1].setColumnName("TABLE_SCHEM");
         columns[1].setNullable(ColumnValue.NULLABLE);
         columns[1].setColumnDisplaySize(3);
         columns[1].setPrecision(0);
         columns[1].setScale(0);
         columns[1].setColumnType(DataType.VARCHAR);
-        columns[2] = new CustomColumn();
+        columns[2] = new CustomColumnMetaData();
         columns[2].setColumnName("TABLE_NAME");
         columns[2].setNullable(ColumnValue.NO_NULLS);
         columns[2].setColumnDisplaySize(3);
         columns[2].setPrecision(0);
         columns[2].setScale(0);
         columns[2].setColumnType(DataType.VARCHAR);
-        columns[3] = new CustomColumn();
+        columns[3] = new CustomColumnMetaData();
         columns[3].setColumnName("COLUMN_NAME");
         columns[3].setNullable(ColumnValue.NO_NULLS);
         columns[3].setColumnDisplaySize(3);
         columns[3].setPrecision(0);
         columns[3].setScale(0);
         columns[3].setColumnType(DataType.VARCHAR);
-        columns[4] = new CustomColumn();
+        columns[4] = new CustomColumnMetaData();
         columns[4].setColumnName("DATA_TYPE");
         columns[4].setNullable(ColumnValue.NO_NULLS);
         columns[4].setColumnDisplaySize(3);
         columns[4].setPrecision(0);
         columns[4].setScale(0);
         columns[4].setColumnType(DataType.SMALLINT);
-        columns[5] = new CustomColumn();
+        columns[5] = new CustomColumnMetaData();
         columns[5].setColumnName("TYPE_NAME");
         columns[5].setNullable(ColumnValue.NO_NULLS);
         columns[5].setColumnDisplaySize(3);
         columns[5].setPrecision(0);
         columns[5].setScale(0);
         columns[5].setColumnType(DataType.VARCHAR);
-        columns[6] = new CustomColumn();
+        columns[6] = new CustomColumnMetaData();
         columns[6].setColumnName("COLUMN_SIZE");
         columns[6].setNullable(ColumnValue.NO_NULLS);
         columns[6].setColumnDisplaySize(3);
         columns[6].setPrecision(0);
         columns[6].setScale(0);
         columns[6].setColumnType(DataType.INTEGER);
-        columns[7] = new CustomColumn();
+        columns[7] = new CustomColumnMetaData();
         columns[7].setColumnName("BUFFER_LENGTH");
         columns[7].setNullable(ColumnValue.NULLABLE);
         columns[7].setColumnDisplaySize(3);
         columns[7].setPrecision(0);
         columns[7].setScale(0);
         columns[7].setColumnType(DataType.INTEGER);
-        columns[8] = new CustomColumn();
+        columns[8] = new CustomColumnMetaData();
         columns[8].setColumnName("DECIMAL_DIGITS");
         columns[8].setNullable(ColumnValue.NO_NULLS);
         columns[8].setColumnDisplaySize(3);
         columns[8].setPrecision(0);
         columns[8].setScale(0);
         columns[8].setColumnType(DataType.INTEGER);
-        columns[9] = new CustomColumn();
+        columns[9] = new CustomColumnMetaData();
         columns[9].setColumnName("NUM_PREC_RADIX");
         columns[9].setNullable(ColumnValue.NO_NULLS);
         columns[9].setColumnDisplaySize(3);
         columns[9].setPrecision(0);
         columns[9].setScale(0);
         columns[9].setColumnType(DataType.INTEGER);
-        columns[10] = new CustomColumn();
+        columns[10] = new CustomColumnMetaData();
         columns[10].setColumnName("NULLABLE");
         columns[10].setNullable(ColumnValue.NO_NULLS);
         columns[10].setColumnDisplaySize(3);
         columns[10].setPrecision(0);
         columns[10].setScale(0);
         columns[10].setColumnType(DataType.INTEGER);
-        columns[11] = new CustomColumn();
+        columns[11] = new CustomColumnMetaData();
         columns[11].setColumnName("REMARKS");
         columns[11].setNullable(ColumnValue.NULLABLE);
         columns[11].setColumnDisplaySize(3);
         columns[11].setPrecision(0);
         columns[11].setScale(0);
         columns[11].setColumnType(DataType.VARCHAR);
-        columns[12] = new CustomColumn();
+        columns[12] = new CustomColumnMetaData();
         columns[12].setColumnName("COLUMN_DEF");
         columns[12].setNullable(ColumnValue.NULLABLE);
         columns[12].setColumnDisplaySize(3);
         columns[12].setPrecision(0);
         columns[12].setScale(0);
         columns[12].setColumnType(DataType.VARCHAR);
-        columns[13] = new CustomColumn();
+        columns[13] = new CustomColumnMetaData();
         columns[13].setColumnName("SQL_DATA_TYPE");
         columns[13].setNullable(ColumnValue.NULLABLE);
         columns[13].setColumnDisplaySize(3);
         columns[13].setPrecision(0);
         columns[13].setScale(0);
         columns[13].setColumnType(DataType.INTEGER);
-        columns[14] = new CustomColumn();
+        columns[14] = new CustomColumnMetaData();
         columns[14].setColumnName("SQL_DATETIME_SUB");
         columns[14].setNullable(ColumnValue.NULLABLE);
         columns[14].setColumnDisplaySize(3);
         columns[14].setPrecision(0);
         columns[14].setScale(0);
         columns[14].setColumnType(DataType.INTEGER);
-        columns[15] = new CustomColumn();
+        columns[15] = new CustomColumnMetaData();
         columns[15].setColumnName("CHAR_OCTET_LENGTH");
         columns[15].setNullable(ColumnValue.NO_NULLS);
         columns[15].setColumnDisplaySize(3);
         columns[15].setPrecision(0);
         columns[15].setScale(0);
         columns[15].setColumnType(DataType.INTEGER);
-        columns[16] = new CustomColumn();
+        columns[16] = new CustomColumnMetaData();
         columns[16].setColumnName("ORDINAL_POSITION");
         columns[16].setNullable(ColumnValue.NO_NULLS);
         columns[16].setColumnDisplaySize(3);
         columns[16].setPrecision(0);
         columns[16].setScale(0);
         columns[16].setColumnType(DataType.INTEGER);
-        columns[17] = new CustomColumn();
+        columns[17] = new CustomColumnMetaData();
         columns[17].setColumnName("IS_NULLABLE");
         columns[17].setNullable(ColumnValue.NO_NULLS);
         columns[17].setColumnDisplaySize(3);
@@ -3603,7 +3626,7 @@ public abstract class DatabaseMetaDataBase
                                            String table)
             throws SQLException
     {
-        ArrayList<CustomRowSet[]> rows = new ArrayList<>();
+        ArrayList<CustomColumn[]> rows = new ArrayList<>();
         String[] privileges = {"SELECT", "INSERT", "UPDATE", "DELETE",
                                "READ", "CREATE", "ALTER", "REFERENCE", "DROP"};
         XResultSet result = getTables(catalog, schema, table, new String[] {"VIEW", "TABLE", "%"});
@@ -3611,72 +3634,72 @@ public abstract class DatabaseMetaDataBase
         XRow row = UnoRuntime.queryInterface(XRow.class, result);
         while (result.next()) {
             for (String privilege : privileges) {
-                rows.add(_getPrivilegesRowSet(row, username, privilege));
+                rows.add(_getPrivilegesRow(row, username, privilege));
             }
         }
         return new CustomResultSet(_getTablesPrivilegesMetadata(), rows);
     }
 
-    protected CustomRowSet[] _getPrivilegesRowSet(XRow result, String username, String privilege)
+    protected CustomColumn[] _getPrivilegesRow(XRow result, String username, String privilege)
             throws SQLException
     {
-        CustomRowSet[] row = new CustomRowSet[7];
-        row[0] = new CustomRowSet(result.getString(1), result.wasNull());
-        row[1] = new CustomRowSet(result.getString(2), result.wasNull());
-        row[2] = new CustomRowSet(result.getString(3), result.wasNull());
-        row[3] = new CustomRowSet(null, true);
-        row[4] = new CustomRowSet(username, false);
-        row[5] = new CustomRowSet(privilege, false);
-        row[6] = new CustomRowSet("YES", false);
-        return row;
+        CustomColumn[] columns = new CustomColumn[7];
+        columns[0] = new CustomColumn(result.getString(1), result.wasNull());
+        columns[1] = new CustomColumn(result.getString(2), result.wasNull());
+        columns[2] = new CustomColumn(result.getString(3), result.wasNull());
+        columns[3] = new CustomColumn(null, true);
+        columns[4] = new CustomColumn(username, false);
+        columns[5] = new CustomColumn(privilege, false);
+        columns[6] = new CustomColumn("YES", false);
+        return columns;
     }
 
     private XResultSetMetaData _getTablesPrivilegesMetadata()
     {
-        CustomColumn[] columns = new CustomColumn[7];
-        columns[0] = new CustomColumn();
+        CustomColumnMetaData[] columns = new CustomColumnMetaData[7];
+        columns[0] = new CustomColumnMetaData();
         columns[0].setColumnName("TABLE_CAT");
         columns[0].setNullable(ColumnValue.NULLABLE);
         columns[0].setColumnDisplaySize(3);
         columns[0].setPrecision(0);
         columns[0].setScale(0);
         columns[0].setColumnType(DataType.VARCHAR);
-        columns[1] = new CustomColumn();
+        columns[1] = new CustomColumnMetaData();
         columns[1].setColumnName("TABLE_SCHEM");
         columns[1].setNullable(ColumnValue.NULLABLE);
         columns[1].setColumnDisplaySize(3);
         columns[1].setPrecision(0);
         columns[1].setScale(0);
         columns[1].setColumnType(DataType.VARCHAR);
-        columns[2] = new CustomColumn();
+        columns[2] = new CustomColumnMetaData();
         columns[2].setColumnName("TABLE_NAME");
         columns[2].setNullable(ColumnValue.NO_NULLS);
         columns[2].setColumnDisplaySize(3);
         columns[2].setPrecision(0);
         columns[2].setScale(0);
         columns[2].setColumnType(DataType.VARCHAR);
-        columns[3] = new CustomColumn();
+        columns[3] = new CustomColumnMetaData();
         columns[3].setColumnName("GRANTOR");
         columns[3].setNullable(ColumnValue.NULLABLE);
         columns[3].setColumnDisplaySize(0);
         columns[3].setPrecision(0);
         columns[3].setScale(0);
         columns[3].setColumnType(DataType.VARCHAR);
-        columns[4] = new CustomColumn();
+        columns[4] = new CustomColumnMetaData();
         columns[4].setColumnName("GRANTEE");
         columns[4].setNullable(ColumnValue.NO_NULLS);
         columns[4].setColumnDisplaySize(0);
         columns[4].setPrecision(0);
         columns[4].setScale(0);
         columns[4].setColumnType(DataType.VARCHAR);
-        columns[5] = new CustomColumn();
+        columns[5] = new CustomColumnMetaData();
         columns[5].setColumnName("PRIVILEGE");
         columns[5].setNullable(ColumnValue.NULLABLE);
         columns[5].setColumnDisplaySize(0);
         columns[5].setPrecision(0);
         columns[5].setScale(0);
         columns[5].setColumnType(DataType.VARCHAR);
-        columns[6] = new CustomColumn();
+        columns[6] = new CustomColumnMetaData();
         columns[6].setColumnName("IS_GRANTABLE");
         columns[6].setNullable(ColumnValue.NULLABLE);
         columns[6].setColumnDisplaySize(0);

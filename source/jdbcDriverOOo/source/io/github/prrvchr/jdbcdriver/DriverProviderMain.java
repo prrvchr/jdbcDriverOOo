@@ -39,7 +39,6 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -54,8 +53,6 @@ public abstract class DriverProviderMain
 
     static final boolean m_warnings = true;
     private java.sql.Connection m_connection = null;
-    private String m_url;
-    private PropertyValue[] m_info;
     protected List<String> m_properties = List.of("user", "password");
 
     // The constructor method:
@@ -97,18 +94,6 @@ public abstract class DriverProviderMain
     throws java.sql.SQLException
     {
         return  m_connection.getMetaData().supportsGetGeneratedKeys();
-    }
-
-    @Override
-    public boolean isAutoRetrievingEnabled()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "IsAutoRetrievingEnabled", false);
-    }
-
-    @Override
-    public String getAutoRetrievingStatement()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "AutoRetrievingStatement", "");
     }
 
     @Override
@@ -287,12 +272,6 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getAutoIncrementCreation()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "AutoIncrementCreation", "");
-    }
-
-    @Override
     public String getRevokeTableOrViewPrivileges()
     {
         return "REVOKE %s ON %s FROM %s";
@@ -323,35 +302,12 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean acceptsURL(final String url,
-                              final PropertyValue[] info)
+    public boolean acceptsURL(final String url)
     {
         if (url.startsWith(getSubProtocol())) {
-            registerURL(url, info);
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void registerURL(final String url,
-                            final PropertyValue[] info)
-    {
-        m_url = url;
-        m_info = info;
-    }
-
-    
-    @Override
-    public String getUrl()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "Url", m_url);
-    }
-
-    @Override
-    public PropertyValue[] getInfo()
-    {
-        return m_info;
     }
 
     @Override
@@ -391,22 +347,23 @@ public abstract class DriverProviderMain
 
     @Override
     public Properties getConnectionProperties(List<String> list,
-                                              PropertyValue[] info)
+                                              PropertyValue[] infos)
     {
         Properties properties = new Properties();
         System.out.println("DriverProviderMain.getConnectionProperties() 1");
-        for (PropertyValue property : info) {
-            Object value = property.Value;
+        for (PropertyValue info : infos) {
+            String name = info.Name;
+            Object value = info.Value;
             if (AnyConverter.isArray(value)) {
                 Object[] objects = (Object[]) AnyConverter.toArray(value);
-                System.out.println("DriverProviderMain.getConnectionProperties() 2 Name: " + property.Name + " - Value: " + Arrays.toString(objects));
+                System.out.println("DriverProviderMain.getConnectionProperties() 2 Name: " + name + " - Value: " + Arrays.toString(objects));
             }
             else {
-                System.out.println("DriverProviderMain.getConnectionProperties() 3 Name: " + property.Name + " - Value: " + value);
+                System.out.println("DriverProviderMain.getConnectionProperties() 3 Name: " + name + " - Value: " + value);
             }
-            if (list.contains(property.Name)) {
-                System.out.println("DriverProviderMain.getConnectionProperties() 4 Name: " + property.Name + " - Value: " + value);
-                properties.setProperty(property.Name, AnyConverter.toString(value));
+            if (list.contains(name)) {
+                System.out.println("DriverProviderMain.getConnectionProperties() 4 Name: " + name + " - Value: " + value);
+                properties.setProperty(name, AnyConverter.toString(value));
             }
         }
         return properties;
@@ -424,12 +381,6 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         return new DatabaseMetaData(connection);
-    }
-
-    @Override
-    public boolean isIgnoreCurrencyEnabled()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreCurrency", false);
     }
 
     @Override

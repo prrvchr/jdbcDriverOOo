@@ -99,8 +99,6 @@ public interface DriverProvider
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);
 
-    public String getAutoIncrementCreation();
-
     public String getCreateTableQuery();
 
 
@@ -111,12 +109,7 @@ public interface DriverProvider
 
     public boolean supportWarningsSupplier();
 
-    public boolean acceptsURL(String url,
-                              PropertyValue[] info);
-
-    public String getUrl();
-
-    public PropertyValue[] getInfo();
+    public boolean acceptsURL(String url);
 
     public String getLoggingLevel(XHierarchicalNameAccess driver);
 
@@ -129,18 +122,9 @@ public interface DriverProvider
     public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
 
-    public boolean isAutoRetrievingEnabled();
-
-    public String getAutoRetrievingStatement();
-
-    void registerURL(String url,
-                     PropertyValue[] info);
-
     public String getRevokeTableOrViewPrivileges();
 
     public String getRevokeRoleQuery();
-
-    public boolean isIgnoreCurrencyEnabled();
 
     public boolean supportCreateTableKeyParts();
 

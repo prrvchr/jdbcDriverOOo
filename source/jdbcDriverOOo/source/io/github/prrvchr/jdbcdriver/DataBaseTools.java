@@ -70,6 +70,8 @@ import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.KeyRule;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XDatabaseMetaData;
+import com.sun.star.sdbc.XResultSet;
+import com.sun.star.sdbc.XRow;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XColumnsSupplier;
@@ -90,7 +92,6 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
-import io.github.prrvchr.uno.sdbc.StandardSQLState;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 
 
@@ -544,7 +545,7 @@ public class DataBaseTools
             int precision = AnyConverter.toInt(column.getPropertyValue(PropertyIds.PRECISION.name));
             int scale = AnyConverter.toInt(column.getPropertyValue(PropertyIds.SCALE.name));
             boolean isAutoIncrement = AnyConverter.toBoolean(column.getPropertyValue(PropertyIds.ISAUTOINCREMENT.name));
-            System.out.println("DataBaseTools.getStandardColumnPartQuery() TYPENAME: " + typename + " - TYPE: " + datatype + " - PRECISION: " + precision + " - SCALE: " + scale);
+            System.out.println("DataBaseTools.getStandardColumnPartQuery() 1 TYPENAME: " + typename + " - TYPE: " + datatype + " - PRECISION: " + precision + " - SCALE: " + scale);
             
             // check if the user enter a specific string to create autoincrement values
             String autoIncrementValue = "";
@@ -555,32 +556,40 @@ public class DataBaseTools
             
             // look if we have to use precisions
             boolean useliteral = false;
-            int nativetype = 0;
             String prefix = "";
             String postfix = "";
             String createparams = "";
-            java.sql.ResultSet result = connection.getProvider().getConnection().getMetaData().getTypeInfo();
-            while (result.next()) {
-                String typename2cmp = result.getString(1);
-                nativetype = result.getShort(2);
-                int type2cmp = connection.getProvider().getDataType(nativetype);
-                //FIXME: Make sure prefix and suffix values are not null
-                prefix = result.getString(4);
-                prefix = result.wasNull() ? "" : prefix;
-                postfix = result.getString(5);
-                postfix = result.wasNull() ? "" : postfix;
-                createparams = result.getString(6);
-                // first identical type will be used if typename is empty
-                if (typename.isEmpty() && type2cmp == datatype) {
-                    typename = typename2cmp;
-                }
-                if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !result.wasNull() && !createparams.isEmpty()) {
-                    useliteral = true;
-                    break;
+            XResultSet resultset = null;
+            try {
+                resultset = connection.getMetaData().getTypeInfo();
+                if (resultset != null) {
+                    XRow result = UnoRuntime.queryInterface(XRow.class, resultset);
+                    while (resultset.next()) {
+                        String typename2cmp = result.getString(1);
+                        int type2cmp = result.getShort(2);
+                        //FIXME: Make sure prefix and suffix values are not null
+                        prefix = result.getString(4);
+                        prefix = result.wasNull() ? "" : prefix;
+                        postfix = result.getString(5);
+                        postfix = result.wasNull() ? "" : postfix;
+                        createparams = result.getString(6);
+                        createparams = result.wasNull() ? "" : createparams;
+                        // first identical type will be used if typename is empty
+                        if (typename.isEmpty() && type2cmp == datatype) {
+                            typename = typename2cmp;
+                        }
+                        System.out.println("DataBaseTools.getStandardColumnPartQuery() 2 typename: " + typename + " - typename2cmp: " + typename2cmp + " - type2cmp: " + type2cmp + " - datatype: " + datatype + " - createparams: " + createparams);
+                        if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !createparams.isEmpty()) {
+                            useliteral = true;
+                            System.out.println("DataBaseTools.getStandardColumnPartQuery() 2 useliteral: " + useliteral);
+                            break;
+                        }
+                    }
                 }
             }
-            result.close();
-            
+            finally {
+                Tools.close(resultset);
+            }
             int index = 0;
             if (!autoIncrementValue.isEmpty() && (index = typename.indexOf(autoIncrementValue)) != -1) {
                 typename = typename.substring(0, index);
@@ -589,15 +598,15 @@ public class DataBaseTools
             if ((precision > 0 || scale > 0) && useliteral) {
                 //FIXME: The original code coming from OpenOffice/main/connectivity/java check only for TIMESTAMP...
                 //FIXME: Now all temporal SQL types with fraction of a second are taken into account.
-                boolean timed = nativetype == Types.TIME ||
-                                nativetype == Types.TIME_WITH_TIMEZONE ||
-                                nativetype == Types.TIMESTAMP ||
-                                nativetype == Types.TIMESTAMP_WITH_TIMEZONE;
+                boolean timed = datatype == Types.TIME ||
+                                datatype == Types.TIME_WITH_TIMEZONE ||
+                                datatype == Types.TIMESTAMP ||
+                                datatype == Types.TIMESTAMP_WITH_TIMEZONE;
                 
                 //FIXME: The original code coming from OpenOffice/main/connectivity/java search only for parenthesis...
                 //FIXME: Now the insertion position takes into account the peculiarity of the data types WITH TIME ZONE
-                int insert =    nativetype == Types.TIME_WITH_TIMEZONE ||
-                                nativetype == Types.TIMESTAMP_WITH_TIMEZONE ?
+                int insert =    datatype == Types.TIME_WITH_TIMEZONE ||
+                                datatype == Types.TIMESTAMP_WITH_TIMEZONE ?
                                 typename.indexOf(' ') : typename.indexOf('(');
                 if (insert == -1) {
                     sql.append(typename);
@@ -623,7 +632,7 @@ public class DataBaseTools
                     sql.append(typename.substring(insert));
                 }
                 else {
-                    insert = typename.indexOf(')', ++insert);
+                    insert = typename.indexOf(')', insert);
                     sql.append(typename.substring(insert));
                 }
             }
@@ -656,9 +665,6 @@ public class DataBaseTools
         }
         catch (IllegalArgumentException | WrappedTargetException | UnknownPropertyException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
         }
         return sql.toString();
     }

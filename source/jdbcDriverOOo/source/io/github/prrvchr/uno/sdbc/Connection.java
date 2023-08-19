@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
@@ -45,12 +46,14 @@ public class Connection
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
+                      String url,
+                      PropertyValue[] info,
                       ResourceBasedEventLogger logger,
                       boolean enhanced,
                       boolean showsystem,
                       boolean usebookmark)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, showsystem, usebookmark);
+        super(ctx, m_service, m_services, provider, url, info, logger, enhanced, showsystem, usebookmark);
         System.out.println("sdbc.Connection() *************************");
     }
 

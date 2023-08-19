@@ -27,9 +27,11 @@ package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 
@@ -60,14 +62,14 @@ public abstract class PreparedStatementSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdbc.PreparedStatementSuper._getUseBookmarks():" + m_UseBookmarks);
+                    m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
                     return m_UseBookmarks;
                 }
             },
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    System.out.println("sdbc.PreparedStatementSuper._setUseBookmarks():" + (boolean) value);
+                    m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
                     m_UseBookmarks = (boolean) value;
                 }
             });

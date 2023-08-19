@@ -39,8 +39,11 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DataBaseTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
 import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
@@ -51,6 +54,7 @@ public abstract class TableContainerBase
 {
 
     protected final ConnectionSuper m_connection;
+    protected final ConnectionLog m_logger; 
 
     // The constructor method:
     public TableContainerBase(ConnectionSuper connection,
@@ -60,6 +64,18 @@ public abstract class TableContainerBase
     {
         super(connection, sensitive, names);
         m_connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.TABLES);
+    }
+
+    public int getObjectId()
+    {
+        return m_logger.getObjectId();
+    }
+
+    public void dispose()
+    {
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_DISPOSING);
+        super.dispose();
     }
 
     @Override
@@ -82,15 +98,14 @@ public abstract class TableContainerBase
     private void _createTable(XPropertySet descriptor)
         throws SQLException
     {
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            //XIntrospection mri = (XIntrospection) UnoRuntime.queryInterface(XIntrospection.class, UnoHelper.createService(m_connection.getComponentContext(), "mytools.Mri"));
-            //mri.inspect(descriptor);
-            String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
-            System.out.println("sdbcx.TableContainer._createTable() SQL: " + sql);
+        String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_CREATE_TABLE, sql);
+        try {
+            java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();
             statement.execute(sql);
+            statement.close();
         }
         catch (java.sql.SQLException e) {
-            m_connection.getLogger().log(LogLevel.SEVERE, e);
             UnoHelper.getSQLException(e, m_connection);
         }
     }
@@ -125,10 +140,8 @@ public abstract class TableContainerBase
         String schema = component.getSchema().isEmpty() ? null : component.getSchema();
         java.sql.DatabaseMetaData metadata = m_connection.getProvider().getConnection().getMetaData();
         return metadata.getTables(catalog, schema, component.getTable(), null);
-
     }
-    
-    
+
     @Override
     public void _removeElement(int index,
                                String name)

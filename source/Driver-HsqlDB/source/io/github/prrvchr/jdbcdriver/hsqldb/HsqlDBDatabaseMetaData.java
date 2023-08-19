@@ -28,9 +28,9 @@ package io.github.prrvchr.jdbcdriver.hsqldb;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.jdbcdriver.CustomColumn;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.CustomRowSet;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
@@ -64,11 +64,6 @@ public final class HsqlDBDatabaseMetaData
         {
             System.out.println("hsqldb.DatabaseMetaData.getTypeInfo()");
             return _getTypeInfo();
-        }
-        catch (java.sql.SQLException e)
-        {
-            System.out.println("hsqldb.DatabaseMetaData ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
             System.out.println("hsqldb.DatabaseMetaData ********************************* ERROR: " + e);
@@ -129,15 +124,15 @@ public final class HsqlDBDatabaseMetaData
 
 
     @Override
-    protected final CustomRowSet[] _getTablesRowSet(final java.sql.ResultSet result)
+    protected final CustomColumn[] _getTablesRow(final java.sql.ResultSet result)
         throws java.sql.SQLException
     {
-        CustomRowSet[] row = new CustomRowSet[5];
-        row[0] = new CustomRowSet(result.getString(1), result.wasNull());
-        row[1] = new CustomRowSet(result.getString(2), result.wasNull());
-        row[2] = new CustomRowSet(result.getString(3), result.wasNull());
-        row[3] = new CustomRowSet(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
-        row[4] = new CustomRowSet(result.getString(5), result.wasNull());
+        CustomColumn[] row = new CustomColumn[5];
+        row[0] = new CustomColumn(result.getString(1), result.wasNull());
+        row[1] = new CustomColumn(result.getString(2), result.wasNull());
+        row[2] = new CustomColumn(result.getString(3), result.wasNull());
+        row[3] = new CustomColumn(_mapDatabaseTableTypes(result.getString(4)), result.wasNull());
+        row[4] = new CustomColumn(result.getString(5), result.wasNull());
         //System.out.println("hsqldb.DatabaseMetaData._getTablesRowSet() Catalog: " + result.getString(1) + " Schema: " + result.getString(2) + " Table: " + result.getString(3));
         return row;
     }

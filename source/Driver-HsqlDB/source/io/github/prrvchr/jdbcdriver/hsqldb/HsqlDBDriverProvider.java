@@ -35,8 +35,8 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+//import io.github.prrvchr.uno.sdbc.ConnectionBase;
+//import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
 public final class HsqlDBDriverProvider
@@ -187,12 +187,12 @@ public final class HsqlDBDriverProvider
         }
     }
 
-    @Override
-    public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
-        return new HsqlDBDatabaseMetaData(connection);
-    }
+    //@Override
+    //public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
+    //    throws java.sql.SQLException
+    //{
+    //    return new HsqlDBDatabaseMetaData(connection);
+    //}
 
 
 }

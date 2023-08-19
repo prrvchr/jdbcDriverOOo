@@ -39,6 +39,7 @@ public final class ResultSetMetaData
 
     private final java.sql.ResultSetMetaData m_Metadata;
     private final ConnectionBase m_Connection;
+    private int m_count;
 
     // The constructor method:
     public ResultSetMetaData(ConnectionBase connection,
@@ -46,12 +47,14 @@ public final class ResultSetMetaData
     {
         m_Connection = connection;
         m_Metadata = metadata;
+        m_count = -1;
     }
 
 
     // com.sun.star.sdbc.XResultSetMetaData:
     @Override
-    public String getCatalogName(int index) throws SQLException
+    public String getCatalogName(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getCatalogName(index);
@@ -63,10 +66,14 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public int getColumnCount() throws SQLException
+    public int getColumnCount()
+        throws SQLException
     {
         try {
-            return m_Metadata.getColumnCount();
+            if (m_count == -1) {
+                m_count = m_Metadata.getColumnCount();
+            }
+            return m_count;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -74,7 +81,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public int getColumnDisplaySize(int index) throws SQLException
+    public int getColumnDisplaySize(int index)
+        throws SQLException
     {
         try {
             return m_Metadata.getColumnDisplaySize(index);
@@ -85,7 +93,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public String getColumnLabel(int index) throws SQLException
+    public String getColumnLabel(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getColumnLabel(index);
@@ -97,7 +106,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public String getColumnName(int index) throws SQLException
+    public String getColumnName(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getColumnName(index);
@@ -109,7 +119,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public String getColumnServiceName(int index) throws SQLException
+    public String getColumnServiceName(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getColumnClassName(index);
@@ -121,7 +132,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public int getColumnType(int index) throws SQLException
+    public int getColumnType(int index)
+        throws SQLException
     {
         try {
             return m_Connection.getProvider().getDataType(m_Metadata.getColumnType(index));
@@ -132,7 +144,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public String getColumnTypeName(int index) throws SQLException
+    public String getColumnTypeName(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getColumnTypeName(index);
@@ -144,29 +157,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public int getPrecision(int index) throws SQLException
-    {
-        try {
-            return m_Metadata.getPrecision(index);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public int getScale(int index) throws SQLException
-    {
-        try {
-            return m_Metadata.getScale(index);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public String getSchemaName(int index) throws SQLException
+    public String getSchemaName(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getSchemaName(index);
@@ -178,7 +170,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public String getTableName(int index) throws SQLException
+    public String getTableName(int index)
+        throws SQLException
     {
         try {
             String value = m_Metadata.getTableName(index);
@@ -190,12 +183,11 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public boolean isAutoIncrement(int index) throws SQLException
+    public boolean isCaseSensitive(int index)
+        throws SQLException
     {
         try {
-            boolean value = m_Metadata.isAutoIncrement(index);
-            System.out.println("sdbc.ResultSetMetaData.isAutoIncrement(): " + value);
-            return value;
+            return m_Metadata.isCaseSensitive(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -203,22 +195,11 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public boolean isCaseSensitive(int index) throws SQLException
+    public boolean isCurrency(int index)
+        throws SQLException
     {
         try {
-            boolean value = m_Metadata.isCaseSensitive(index);
-            return value;
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public boolean isCurrency(int index) throws SQLException
-    {
-        try {
-            if (m_Connection.getProvider().isIgnoreCurrencyEnabled()) {
+            if (m_Connection.isIgnoreCurrencyEnabled()) {
                 return false;
             }
             return m_Metadata.isCurrency(index);
@@ -229,12 +210,11 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public boolean isDefinitelyWritable(int index) throws SQLException
+    public boolean isAutoIncrement(int index)
+        throws SQLException
     {
         try {
-            boolean value = m_Metadata.isDefinitelyWritable(index);
-            System.out.println("sdbc.ResultSetMetaData.isDefinitelyWritable(): " + value);
-            return value;
+            return m_Metadata.isAutoIncrement(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -242,44 +222,8 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public int isNullable(int index) throws SQLException
-    {
-        try {
-            return m_Metadata.isNullable(index);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public boolean isReadOnly(int index) throws SQLException
-    {
-        try {
-            boolean value = m_Metadata.isReadOnly(index);
-            System.out.println("sdbc.ResultSetMetaData.isReadOnly(): " + value);
-            return value;
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public boolean isSearchable(int index) throws SQLException
-    {
-        try {
-            boolean value = m_Metadata.isSearchable(index);
-            System.out.println("sdbc.ResultSetMetaData.isSearchable(): " + value);
-            return value;
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
-    @Override
-    public boolean isSigned(int index) throws SQLException
+    public boolean isSigned(int index)
+        throws SQLException
     {
         try {
             return m_Metadata.isSigned(index);
@@ -290,12 +234,83 @@ public final class ResultSetMetaData
     }
 
     @Override
-    public boolean isWritable(int index) throws SQLException
+    public int getPrecision(int index)
+        throws SQLException
     {
         try {
-            boolean value = m_Metadata.isWritable(index);
-            System.out.println("sdbc.ResultSetMetaData.isWritable(): " + value);
-            return value;
+            return m_Metadata.getPrecision(index);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public int getScale(int index)
+        throws SQLException
+    {
+        try {
+            return m_Metadata.getScale(index);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public int isNullable(int index)
+        throws SQLException
+    {
+        try {
+            return m_Metadata.isNullable(index);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public boolean isSearchable(int index)
+        throws SQLException
+    {
+        try {
+            return m_Metadata.isSearchable(index);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public boolean isReadOnly(int index)
+        throws SQLException
+    {
+        try {
+            return m_Metadata.isReadOnly(index);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public boolean isDefinitelyWritable(int index)
+        throws SQLException
+    {
+        try {
+            return  m_Metadata.isDefinitelyWritable(index);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public boolean isWritable(int index)
+        throws SQLException
+    {
+        try {
+            return m_Metadata.isWritable(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

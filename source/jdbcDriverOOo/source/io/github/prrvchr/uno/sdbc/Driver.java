@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.registry.XRegistryKey;
@@ -52,6 +53,8 @@ public final class Driver
 
     protected ConnectionBase _getConnection(XComponentContext ctx,
                                             DriverProvider provider,
+                                            String url,
+                                            PropertyValue[] info,
                                             ResourceBasedEventLogger logger,
                                             boolean enhanced,
                                             boolean showsystem,
@@ -61,16 +64,16 @@ public final class Driver
         ConnectionBase connection = null;
         switch(service) {
         case CSS_SDBC_CONNECTION:
-            connection = new Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
+            connection = new Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
             break;
         case CSS_SDBCX_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdbcx.Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
+            connection = new io.github.prrvchr.uno.sdbcx.Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
             break;
         case CSS_SDB_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
+            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
             break;
         default:
-            connection = new Connection(ctx, provider, logger, enhanced, showsystem, usebookmark);
+            connection = new Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
         }
         return connection;
     }

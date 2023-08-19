@@ -90,7 +90,7 @@ public abstract class ColumnSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_table.getConnection().getProvider().getAutoIncrementCreation();
+                    return m_table.getConnection().getAutoIncrementCreation();
                 }
             }, null);
     }

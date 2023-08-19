@@ -34,7 +34,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XClob;
 
-//import org.apache.commons.io.input.ReaderInputStream;
+import io.github.prrvchr.jdbcdriver.ReaderInputStream;
 
 
 public class Clob

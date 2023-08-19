@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdb;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XChild;
 import com.sun.star.container.XNameAccess;
@@ -53,6 +54,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Group;
 import io.github.prrvchr.uno.sdbcx.GroupContainer;
 import io.github.prrvchr.uno.sdbcx.Statement;
+import io.github.prrvchr.uno.sdbcx.TableContainer;
 import io.github.prrvchr.uno.sdbcx.User;
 import io.github.prrvchr.uno.sdbcx.UserContainer;
 
@@ -78,12 +80,14 @@ public final class Connection
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
+                      String url,
+                      PropertyValue[] info,
                       ResourceBasedEventLogger logger,
                       boolean enhanced,
                       boolean showsystem,
                       boolean usebookmark)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, showsystem, usebookmark);
+        super(ctx, m_service, m_services, provider, url, info, logger, enhanced, showsystem, usebookmark);
         System.out.println("sdb.Connection() *************************");
     }
 
@@ -303,7 +307,10 @@ public final class Connection
     protected TableContainer _getTableContainer(List<String> names)
         throws ElementExistException
     {
-        return new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLECONTAINER);
+        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLECONTAINER_ID, tables.getObjectId());
+        return tables;
     }
 
 

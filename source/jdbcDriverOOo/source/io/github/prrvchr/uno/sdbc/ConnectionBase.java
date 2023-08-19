@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import com.sun.star.beans.PropertyValue;
@@ -41,19 +42,24 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
 import io.github.prrvchr.jdbcdriver.AutoRetrievingBase;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.CustomColumn;
+import io.github.prrvchr.jdbcdriver.CustomTypeInfo;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.Tools;
+import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
-import io.github.prrvchr.uno.sdbc.ConnectionLog.ObjectType;
 
 
 public abstract class ConnectionBase
@@ -67,12 +73,17 @@ public abstract class ConnectionBase
     private final String m_service;
     private final String[] m_services;
     protected final DriverProvider m_provider;
+    private String m_url;
+    private PropertyValue[] m_info;
     protected final ConnectionLog m_logger; 
     public final boolean m_enhanced;
     public final boolean m_showsystem;
     public final boolean m_usebookmark;
     protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
     private final AutoRetrievingBase m_autoretrieving = new AutoRetrievingBase();
+    private String m_typeinfosetting = "TypeInfoSettings";
+    private Object[] m_typeinfo = null;
+    private CustomTypeInfo m_typeinforows = null;
 
     
     // The constructor method:
@@ -80,6 +91,8 @@ public abstract class ConnectionBase
                           String service,
                           String[] services,
                           DriverProvider provider,
+                          String url,
+                          PropertyValue[] info,
                           ResourceBasedEventLogger logger,
                           boolean enhanced,
                           boolean showsystem,
@@ -88,14 +101,17 @@ public abstract class ConnectionBase
         m_xContext = ctx;
         m_service = service;
         m_services = services;
+        m_provider = provider;
+        m_url = url;
+        m_info = info;
+        _setTypeInfoSettings(info);
         m_enhanced = enhanced;
         m_showsystem = showsystem;
         m_usebookmark = usebookmark;
-        m_provider = provider;
-        m_autoretrieving.setAutoRetrievingEnabled(provider.isAutoRetrievingEnabled());
-        m_autoretrieving.setAutoRetrievingStatement(provider.getAutoRetrievingStatement());
+        m_autoretrieving.setAutoRetrievingEnabled(_isAutoRetrievingEnabled());
+        m_autoretrieving.setAutoRetrievingStatement(_getAutoRetrievingStatement());
         m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
-        m_logger.log(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, provider.getUrl());
+        m_logger.log(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
     }
 
     // com.sun.star.lang.XComponent
@@ -406,12 +422,12 @@ public abstract class ConnectionBase
 
     public String getUrl()
     {
-        return m_provider.getUrl();
+        return UnoHelper.getDefaultPropertyValue(m_info, "Url", m_url);
     }
 
     public PropertyValue[] getInfo()
     {
-        return m_provider.getInfo();
+        return m_info;
     }
 
     public boolean isEnhanced()
@@ -461,6 +477,63 @@ public abstract class ConnectionBase
             System.out.println("sdbc.ConnectionBase.checkDisposed() ERROR: **************************" + this.getClass().getName());
             throw new DisposedException();
         }
+    }
+
+    public String getAutoIncrementCreation()
+    {
+        return UnoHelper.getDefaultPropertyValue(m_info, "AutoIncrementCreation", "");
+    }
+
+    public boolean isIgnoreCurrencyEnabled()
+    {
+        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreCurrency", false);
+    }
+
+    public CustomColumn[] getTypeInfoRow(CustomColumn[] columns)
+            throws SQLException
+    {
+        if (!_hasTypeInfoSettings()) {
+            return columns;
+        }
+        if (m_typeinforows == null) {
+            m_typeinforows = new CustomTypeInfo(m_typeinfo);
+        }
+        return m_typeinforows.getTypeInfoRow(columns);
+    }
+
+    private boolean _isAutoRetrievingEnabled()
+    {
+        return UnoHelper.getDefaultPropertyValue(m_info, "IsAutoRetrievingEnabled", false);
+    }
+
+    private String _getAutoRetrievingStatement()
+    {
+        return UnoHelper.getDefaultPropertyValue(m_info, "AutoRetrievingStatement", "");
+    }
+
+    private void _setTypeInfoSettings(PropertyValue[] infos)
+    {
+        System.out.println("ConnectionBase._setTypeInfoSettings() 1");
+        for (PropertyValue info : m_info) {
+            String name = info.Name;
+            System.out.println("ConnectionBase._setTypeInfoSettings() 2 Name: '" + name + "'");
+            if (m_typeinfosetting.equals(name)) {
+                System.out.println("ConnectionBase._setTypeInfoSettings() 3 Name: " + name);
+                Object value = info.Value;
+                System.out.println("ConnectionBase._setTypeInfoSettings() 4 Name: " + name);
+                if (AnyConverter.isArray(value)) {
+                    Object[] objects = (Object[]) AnyConverter.toArray(value);
+                    m_typeinfo = objects;
+                    System.out.println("ConnectionBase._setTypeInfoSettings() 5 Name: " + name + " - Value: " + Arrays.toString(objects));
+                }
+            }
+        }
+        System.out.println("ConnectionBase._setTypeInfoSettings() 6");
+    }
+
+    private boolean _hasTypeInfoSettings()
+    {
+        return m_typeinfo != null;
     }
 
 

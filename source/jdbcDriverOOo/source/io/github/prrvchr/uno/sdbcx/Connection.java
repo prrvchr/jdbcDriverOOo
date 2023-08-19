@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.List;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
@@ -50,12 +51,14 @@ public class Connection
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
+                      String url,
+                      PropertyValue[] info,
                       ResourceBasedEventLogger logger,
                       boolean enhanced,
                       boolean showsystem,
                       boolean usebookmark)
     {
-        super(ctx, m_service, m_services, provider, logger, enhanced, showsystem, usebookmark);
+        super(ctx, m_service, m_services, provider, url, info, logger, enhanced, showsystem, usebookmark);
         System.out.println("sdbcx.Connection() *************************");
     }
 
@@ -91,7 +94,10 @@ public class Connection
     protected TableContainer _getTableContainer(List<String> names)
         throws ElementExistException
     {
-        return new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLECONTAINER);
+        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLECONTAINER_ID, tables.getObjectId());
+        return tables;
     }
 
 }

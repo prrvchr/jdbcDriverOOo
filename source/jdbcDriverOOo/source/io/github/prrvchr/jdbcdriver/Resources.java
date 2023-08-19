@@ -49,7 +49,7 @@ public class Resources {
     public static final int STR_COMMON_BASE                              = 1200;
     // = resource ids for log messages
     public static final int STR_LOG_MESSAGE_BASE                         = 10000;
-    public static final int STR_JDBC_LOG_MESSAGE_BASE                    = STR_LOG_MESSAGE_BASE + 500;
+    public static final int STR_JDBC_LOG_MESSAGE_BASE                    = STR_LOG_MESSAGE_BASE + 1000;
 
     public static final int STR_STRING_LENGTH_EXCEEDED                   = (STR_COMMON_BASE +  1);
     public static final int STR_CANNOT_CONVERT_STRING                    = (STR_COMMON_BASE +  2);
@@ -92,12 +92,7 @@ public class Resources {
 
     public static final int STR_LOG_DRIVER_CONNECTING_URL                = (STR_JDBC_LOG_MESSAGE_BASE +   1);
     public static final int STR_LOG_DRIVER_SUCCESS                       = (STR_JDBC_LOG_MESSAGE_BASE +   2);
-    public static final int STR_LOG_CREATE_STATEMENT                     = (STR_JDBC_LOG_MESSAGE_BASE +   3);
-    public static final int STR_LOG_CREATED_STATEMENT_ID                 = (STR_JDBC_LOG_MESSAGE_BASE +   4);
-    public static final int STR_LOG_PREPARE_STATEMENT                    = (STR_JDBC_LOG_MESSAGE_BASE +   5);
-    public static final int STR_LOG_PREPARED_STATEMENT_ID                = (STR_JDBC_LOG_MESSAGE_BASE +   6);
-    public static final int STR_LOG_PREPARE_CALL                         = (STR_JDBC_LOG_MESSAGE_BASE +   7);
-    public static final int STR_LOG_PREPARED_CALL_ID                     = (STR_JDBC_LOG_MESSAGE_BASE +   8);
+
     public static final int STR_LOG_NATIVE_SQL                           = (STR_JDBC_LOG_MESSAGE_BASE +   9);
     public static final int STR_LOG_LOADING_DRIVER                       = (STR_JDBC_LOG_MESSAGE_BASE +  10);
     public static final int STR_LOG_NO_DRIVER_CLASS                      = (STR_JDBC_LOG_MESSAGE_BASE +  11);
@@ -109,11 +104,10 @@ public class Resources {
     public static final int STR_LOG_GENERATED_VALUES_FALLBACK            = (STR_JDBC_LOG_MESSAGE_BASE +  17);
     public static final int STR_LOG_EXECUTE_STATEMENT                    = (STR_JDBC_LOG_MESSAGE_BASE +  18);
     public static final int STR_LOG_EXECUTE_QUERY                        = (STR_JDBC_LOG_MESSAGE_BASE +  19);
-    public static final int STR_LOG_CLOSING_STATEMENT                    = (STR_JDBC_LOG_MESSAGE_BASE +  20);
+
     public static final int STR_LOG_EXECUTE_UPDATE                       = (STR_JDBC_LOG_MESSAGE_BASE +  21);
     public static final int STR_LOG_UPDATE_COUNT                         = (STR_JDBC_LOG_MESSAGE_BASE +  22);
-    public static final int STR_LOG_RESULT_SET_CONCURRENCY               = (STR_JDBC_LOG_MESSAGE_BASE +  23);
-    public static final int STR_LOG_RESULT_SET_TYPE                      = (STR_JDBC_LOG_MESSAGE_BASE +  24);
+
     public static final int STR_LOG_FETCH_DIRECTION                      = (STR_JDBC_LOG_MESSAGE_BASE +  25);
     public static final int STR_LOG_FETCH_SIZE                           = (STR_JDBC_LOG_MESSAGE_BASE +  26);
     public static final int STR_LOG_SET_ESCAPE_PROCESSING                = (STR_JDBC_LOG_MESSAGE_BASE +  27);
@@ -146,15 +140,35 @@ public class Resources {
     public static final int STR_LOG_META_DATA_SUCCESS                    = (STR_JDBC_LOG_MESSAGE_BASE +  54);
     public static final int STR_LOG_THROWING_EXCEPTION                   = (STR_JDBC_LOG_MESSAGE_BASE +  55);
     public static final int STR_LOG_SETTING_SYSTEM_PROPERTY              = (STR_JDBC_LOG_MESSAGE_BASE +  56);
-    public static final int STR_LOG_CREATE_DATABASE_METADATA             = (STR_JDBC_LOG_MESSAGE_BASE +  57);
-    public static final int STR_LOG_CREATED_DATABASE_METADATA_ID         = (STR_JDBC_LOG_MESSAGE_BASE +  58);
+
+    // io.github.prrvchr.uno.sdbc.ConnectionBase:
+    public static final int STR_LOG_CREATE_DATABASE_METADATA             = (STR_JDBC_LOG_MESSAGE_BASE + 200);
+    public static final int STR_LOG_CREATED_DATABASE_METADATA_ID         = (STR_JDBC_LOG_MESSAGE_BASE + 201);
+
+    // io.github.prrvchr.uno.sdbc.StatementMain:
+    public static final int STR_LOG_CREATE_STATEMENT                     = (STR_JDBC_LOG_MESSAGE_BASE + 300);
+    public static final int STR_LOG_CREATED_STATEMENT_ID                 = (STR_JDBC_LOG_MESSAGE_BASE + 301);
+    public static final int STR_LOG_PREPARE_STATEMENT                    = (STR_JDBC_LOG_MESSAGE_BASE + 302);
+    public static final int STR_LOG_PREPARED_STATEMENT_ID                = (STR_JDBC_LOG_MESSAGE_BASE + 303);
+    public static final int STR_LOG_PREPARE_CALL                         = (STR_JDBC_LOG_MESSAGE_BASE + 304);
+    public static final int STR_LOG_PREPARED_CALL_ID                     = (STR_JDBC_LOG_MESSAGE_BASE + 305);
+    public static final int STR_LOG_STATEMENT_CLOSING                    = (STR_JDBC_LOG_MESSAGE_BASE + 306);
+
+    public static final int STR_LOG_STATEMENT_RESULTSET_CONCURRENCY      = (STR_JDBC_LOG_MESSAGE_BASE + 310);
+    public static final int STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY  = (STR_JDBC_LOG_MESSAGE_BASE + 311);
+    public static final int STR_LOG_STATEMENT_RESULTSET_TYPE             = (STR_JDBC_LOG_MESSAGE_BASE + 312);
+    public static final int STR_LOG_STATEMENT_SET_RESULTSET_TYPE         = (STR_JDBC_LOG_MESSAGE_BASE + 313);
+
+    // io.github.prrvchr.uno.sdbc.PreparedStatementSuper:
+    public static final int STR_LOG_STATEMENT_USEBOOKMARKS               = (STR_JDBC_LOG_MESSAGE_BASE + 320);
+    public static final int STR_LOG_STATEMENT_SET_USEBOOKMARKS           = (STR_JDBC_LOG_MESSAGE_BASE + 321);
 
     // io.github.prrvchr.uno.sdbc.ResultSetBase:
     public static final int STR_LOG_CREATE_RESULTSET                     = (STR_JDBC_LOG_MESSAGE_BASE + 400);
     public static final int STR_LOG_CREATED_RESULTSET_ID                 = (STR_JDBC_LOG_MESSAGE_BASE + 401);
     public static final int STR_LOG_CREATE_METADATA_RESULTSET            = (STR_JDBC_LOG_MESSAGE_BASE + 402);
     public static final int STR_LOG_CREATED_METADATA_RESULTSET_ID        = (STR_JDBC_LOG_MESSAGE_BASE + 403);
-    public static final int STR_LOG_CLOSING_RESULTSET                    = (STR_JDBC_LOG_MESSAGE_BASE + 404);
+    public static final int STR_LOG_RESULTSET_CLOSING                    = (STR_JDBC_LOG_MESSAGE_BASE + 404);
 
     // com.sun.star.sdbc.XResultSet:
     public static final int STR_LOG_RESULTSET_CURSORNAME                 = (STR_JDBC_LOG_MESSAGE_BASE + 410);
@@ -190,4 +204,12 @@ public class Resources {
     public static final int STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK  = (STR_JDBC_LOG_MESSAGE_BASE + 455);
     public static final int STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT = (STR_JDBC_LOG_MESSAGE_BASE + 456);
 
+    // io.github.prrvchr.uno.sdbcx.TableContainerBase:
+    public static final int STR_LOG_CREATE_TABLECONTAINER                = (STR_JDBC_LOG_MESSAGE_BASE + 500);
+    public static final int STR_LOG_CREATED_TABLECONTAINER_ID            = (STR_JDBC_LOG_MESSAGE_BASE + 501);
+    public static final int STR_LOG_TABLECONTAINER_DISPOSING             = (STR_JDBC_LOG_MESSAGE_BASE + 502);
+
+    public static final int STR_LOG_TABLECONTAINER_CREATE_TABLE          = (STR_JDBC_LOG_MESSAGE_BASE + 510);
+
+    
 }
