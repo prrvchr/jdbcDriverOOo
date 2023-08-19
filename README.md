@@ -4,7 +4,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][3]**
 
-# version [1.0.3][4]
+# version [1.0.4][4]
 
 ## Introduction:
 
@@ -48,7 +48,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** extension version 1.0.3.
+- Install ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** extension version 1.0.4.
 
 Restart LibreOffice / OpenOffice after installation.
 
@@ -289,7 +289,18 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Many other fix...
 
-### What remains to be done for version 1.0.3:
+### What has been done for version 1.0.4:
+
+- Support in the creation of tables of the [TypeInfoSettings][61] parameter allowing to recover the precision for SQL types:
+
+    - TIME
+    - TIMESTAMP
+    - TIME WITH TIME ZONE
+    - TIMESTAMP WITH TIME ZONE
+
+    This is only [integrated][62] for the [HsqlDB][63] driver at the moment.
+
+### What remains to be done for version 1.0.4:
 
 - Add new languages for internationalization...
 
@@ -355,3 +366,6 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [58]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetBase.java>
 [59]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetSuper.java>
 [60]: <https://bugs.documentfoundation.org/show_bug.cgi?id=156512>
+[61]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/JDBCConnectionProperties.html#TypeInfoSettings>
+[62]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/CustomTypeInfo.java>
+[63]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu#L332>
