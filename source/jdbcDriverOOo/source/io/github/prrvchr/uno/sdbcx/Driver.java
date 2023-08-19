@@ -124,7 +124,7 @@ public final class Driver
     {
         if (!acceptsURL(url)) {
             String message = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_URI_SYNTAX_ERROR, url);
-            m_logger.log(LogLevel.SEVERE, message);
+            m_logger.logp(LogLevel.SEVERE, message);
             throw new SQLException(message, this, StandardSQLState.SQL_UNABLE_TO_CONNECT.text(), 0, null);
         }
         XTablesSupplier tables = getDataDefinitionByConnection(connect(url, info));

@@ -111,14 +111,14 @@ public abstract class ConnectionBase
         m_autoretrieving.setAutoRetrievingEnabled(_isAutoRetrievingEnabled());
         m_autoretrieving.setAutoRetrievingStatement(_getAutoRetrievingStatement());
         m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
-        m_logger.log(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing()
     {
-        m_logger.log(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
             for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
@@ -187,9 +187,9 @@ public abstract class ConnectionBase
         checkDisposed();
         DatabaseMetaDataBase metadata = null;
         try {
-            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
+            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
             metadata = m_provider.getDatabaseMetaData(this);
-            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getObjectId());
+            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getObjectId());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

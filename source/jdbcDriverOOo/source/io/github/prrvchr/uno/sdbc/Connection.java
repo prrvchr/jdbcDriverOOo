@@ -59,28 +59,28 @@ public class Connection
 
     protected XStatement _getStatement()
     {
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         m_statements.put(statement, statement);
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getObjectId());
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
     {
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getObjectId());
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
     {
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getObjectId());
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getObjectId());
         return statement;
     }
 

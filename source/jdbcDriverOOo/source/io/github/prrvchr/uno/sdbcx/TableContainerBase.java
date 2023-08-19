@@ -74,7 +74,7 @@ public abstract class TableContainerBase
 
     public void dispose()
     {
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_DISPOSING);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_DISPOSING);
         super.dispose();
     }
 
@@ -99,7 +99,7 @@ public abstract class TableContainerBase
         throws SQLException
     {
         String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_CREATE_TABLE, sql);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_CREATE_TABLE, sql);
         try {
             java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();
             statement.execute(sql);

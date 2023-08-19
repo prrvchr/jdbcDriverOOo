@@ -146,7 +146,7 @@ public abstract class DriverBase
         throws SQLException
     {
         ConnectionBase connection = null;
-        m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
+        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
         if (acceptsURL(url)) {
             DriverProvider provider = _getDriverProvider(url, info);
             String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
@@ -185,7 +185,7 @@ public abstract class DriverBase
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
             connection = _getConnection(m_xContext, provider, url, info, m_logger, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
-            m_logger.log(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
+            m_logger.logp(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getObjectId());
             System.out.println("sdbc.DriverBase.connect() 4");
         }
         return connection;

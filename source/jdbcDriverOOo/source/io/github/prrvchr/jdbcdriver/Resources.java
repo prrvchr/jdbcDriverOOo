@@ -159,9 +159,13 @@ public class Resources {
     public static final int STR_LOG_STATEMENT_RESULTSET_TYPE             = (STR_JDBC_LOG_MESSAGE_BASE + 312);
     public static final int STR_LOG_STATEMENT_SET_RESULTSET_TYPE         = (STR_JDBC_LOG_MESSAGE_BASE + 313);
 
+    public static final int STR_LOG_STATEMENT_EXECUTE                    = (STR_JDBC_LOG_MESSAGE_BASE + 320);
+    public static final int STR_LOG_STATEMENT_EXECUTE_QUERY              = (STR_JDBC_LOG_MESSAGE_BASE + 321);
+    public static final int STR_LOG_STATEMENT_EXECUTE_UPDATE             = (STR_JDBC_LOG_MESSAGE_BASE + 322);
+
     // io.github.prrvchr.uno.sdbc.PreparedStatementSuper:
-    public static final int STR_LOG_STATEMENT_USEBOOKMARKS               = (STR_JDBC_LOG_MESSAGE_BASE + 320);
-    public static final int STR_LOG_STATEMENT_SET_USEBOOKMARKS           = (STR_JDBC_LOG_MESSAGE_BASE + 321);
+    public static final int STR_LOG_STATEMENT_USEBOOKMARKS               = (STR_JDBC_LOG_MESSAGE_BASE + 330);
+    public static final int STR_LOG_STATEMENT_SET_USEBOOKMARKS           = (STR_JDBC_LOG_MESSAGE_BASE + 331);
 
     // io.github.prrvchr.uno.sdbc.ResultSetBase:
     public static final int STR_LOG_CREATE_RESULTSET                     = (STR_JDBC_LOG_MESSAGE_BASE + 400);

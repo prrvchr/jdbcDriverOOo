@@ -62,14 +62,14 @@ public abstract class PreparedStatementSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
+                    m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
                     return m_UseBookmarks;
                 }
             },
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
+                    m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
                     m_UseBookmarks = (boolean) value;
                 }
             });

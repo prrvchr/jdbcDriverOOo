@@ -52,10 +52,10 @@ public final class CallableStatement
     throws SQLException
     {
         ResultSetBase resultset = null;
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this);
-            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
+            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
         }
         return resultset;
     }

@@ -3136,10 +3136,10 @@ public abstract class DatabaseMetaDataBase
         throws SQLException
     {
         ResultSetBase resultset = null;
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
         if (result != null) {
             resultset = new ResultSet(m_Connection, result);
-            m_logger.log(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getObjectId());
+            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getObjectId());
         }
         return resultset;
     }

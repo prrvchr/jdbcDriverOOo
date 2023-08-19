@@ -338,7 +338,7 @@ public abstract class StatementMain
     private synchronized void _setResultSetConcurrency(int value)
     {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
         m_ResultSetConcurrency = value;
         if (m_Statement != null) {
             try {
@@ -357,7 +357,7 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 int value = m_Statement.getResultSetConcurrency();
-                m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
+                m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
                 return value;
             }
             catch (java.sql.SQLException e) {
@@ -370,7 +370,7 @@ public abstract class StatementMain
     private synchronized void _setResultSetType(int value)
     {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
         m_ResultSetType = value;
         if (m_Statement != null) {
             try {
@@ -389,7 +389,7 @@ public abstract class StatementMain
         if (m_Statement != null) {
             try {
                 int value = m_Statement.getResultSetType();
-                m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
+                m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
                 return value;
             }
             catch (java.sql.SQLException e) {
@@ -441,7 +441,7 @@ public abstract class StatementMain
     @Override
     protected synchronized void postDisposing()
     {
-        m_logger.log(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
+        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
         super.postDisposing();
         if (m_Statement != null) {
             try {
