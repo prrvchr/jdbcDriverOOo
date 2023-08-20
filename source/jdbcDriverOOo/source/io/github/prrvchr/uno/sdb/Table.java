@@ -40,7 +40,7 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -225,7 +225,7 @@ public final class Table
                 XGroupsSupplier groups = (XGroupsSupplier) AnyConverter.toObject(XGroupsSupplier.class, getConnection().getUsers().getByName(name));
                 List<String> grantees = new ArrayList<>(List.of(name));
                 grantees.addAll(Arrays.asList(groups.getGroups().getElementNames()));
-                privileges = DataBaseTools.getTableOrViewPrivileges(getConnection(), grantees, m_CatalogName, m_SchemaName, getName());
+                privileges = DBTools.getTableOrViewPrivileges(getConnection(), grantees, m_CatalogName, m_SchemaName, getName());
             }
         }
         catch (NoSuchElementException | SQLException e) {

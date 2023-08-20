@@ -30,7 +30,7 @@ import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 

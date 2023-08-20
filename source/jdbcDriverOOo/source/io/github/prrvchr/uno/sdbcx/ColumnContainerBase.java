@@ -39,7 +39,7 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
@@ -86,8 +86,8 @@ public abstract class ColumnContainerBase
             return _cloneDescriptor(descriptor);
         }
         try {
-            String table = DataBaseTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, false, false, true);
-            String column = DataBaseTools.getStandardColumnPartQuery(_getConnection(), descriptor, null, m_table.getTypeCreatePattern());
+            String table = DBTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, false, false, true);
+            String column = DBTools.getStandardColumnPartQuery(_getConnection(), descriptor, null, m_table.getTypeCreatePattern());
             String sql = String.format("ALTER TABLE %s ADD %s", table, column);
             java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
             statement.execute(sql);
@@ -132,8 +132,8 @@ public abstract class ColumnContainerBase
             
             ExtraColumnInfo info = m_extrainfos.get(name);
             if (info == null) {
-                String composedName = DataBaseTools.composeTableNameForSelect(_getConnection(), m_table);
-                m_extrainfos = DataBaseTools.collectColumnInformation(_getConnection(), composedName, "*");
+                String composedName = DBTools.composeTableNameForSelect(_getConnection(), m_table);
+                m_extrainfos = DBTools.collectColumnInformation(_getConnection(), composedName, "*");
                 info = m_extrainfos.get(name);
             }
             if (info != null) {
@@ -143,7 +143,7 @@ public abstract class ColumnContainerBase
                 dataType = info.dataType;
             }
             
-            XNameAccess primaryKeyColumns = DataBaseTools.getPrimaryKeyColumns(m_table.getKeys());
+            XNameAccess primaryKeyColumns = DBTools.getPrimaryKeyColumns(m_table.getKeys());
             int nullable = description.nullable;
             if (nullable != ColumnValue.NO_NULLS && primaryKeyColumns != null && primaryKeyColumns.hasByName(name)) {
                 nullable = ColumnValue.NO_NULLS;
@@ -170,8 +170,8 @@ public abstract class ColumnContainerBase
         try {
             String quote = _getConnection().getProvider().getConnection().getMetaData().getIdentifierQuoteString();
             String sql = String.format("ALTER TABLE %s DROP %s",
-                    DataBaseTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, false, false, true),
-                    DataBaseTools.quoteName(quote, name));
+                    DBTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, false, false, true),
+                    DBTools.quoteName(quote, name));
             java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
             statement.execute(sql);
             statement.close();

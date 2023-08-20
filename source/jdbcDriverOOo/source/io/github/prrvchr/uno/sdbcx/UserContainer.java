@@ -31,7 +31,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -66,7 +66,7 @@ public class UserContainer
                                String name)
         throws SQLException
     {
-        String sql = DataBaseTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());
+        String sql = DBTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());
         System.out.println("sdbcx.UserContainer._createUser() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);
@@ -88,7 +88,7 @@ public class UserContainer
                                   String name)
         throws SQLException
     {
-        String sql = DataBaseTools.getDropUserQuery(m_connection, name, isCaseSensitive());
+        String sql = DBTools.getDropUserQuery(m_connection, name, isCaseSensitive());
         System.out.println("sdbcx.UserContainer._removeElement() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);

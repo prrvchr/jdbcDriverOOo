@@ -33,7 +33,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;

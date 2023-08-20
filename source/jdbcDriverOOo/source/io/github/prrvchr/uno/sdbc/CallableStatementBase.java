@@ -38,7 +38,7 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -288,7 +288,7 @@ public abstract class CallableStatementBase
     {
         try {
             _createStatement();
-            return DataBaseTools.getObject(_getCallableStatement().getObject(index), map);
+            return DBTools.getObject(_getCallableStatement().getObject(index), map);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getLoggedSQLException(this, m_logger, e);

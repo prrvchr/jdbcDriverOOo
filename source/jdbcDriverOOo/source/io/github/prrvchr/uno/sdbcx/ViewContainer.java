@@ -35,8 +35,8 @@ import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
@@ -66,7 +66,7 @@ public class ViewContainer
     {
         try {
             System.out.println("sdbcx.ViewContainer._appendElement() 1");
-            String sql = DataBaseTools.getCreateViewQuery(m_Connection, descriptor);
+            String sql = DBTools.getCreateViewQuery(m_Connection, descriptor);
             System.out.println("sdbcx.ViewContainer._appendElement() 2 SQL: '" + sql + "'");
             java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement();
             statement.execute(sql);
@@ -87,7 +87,7 @@ public class ViewContainer
     {
         System.out.println("sdbcx.ViewContainer._createElement() 1 Name: " + name);
         View view = null;
-        NameComponents component = DataBaseTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
+        NameComponents component = DBTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
         final String sql = m_Connection.getProvider().getViewQuery(component);
         final String command;
         final String option;
@@ -147,7 +147,7 @@ public class ViewContainer
             Object object = _getElement(index);
             XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
             UnoHelper.ensure(propertySet != null, "Object returned from view collection isn't an XPropertySet", m_Connection.getLogger());
-            String sql = String.format(m_Connection.getProvider().getDropViewQuery(), DataBaseTools.composeTableName(m_Connection, propertySet, ComposeRule.InTableDefinitions,
+            String sql = String.format(m_Connection.getProvider().getDropViewQuery(), DBTools.composeTableName(m_Connection, propertySet, ComposeRule.InTableDefinitions,
                     false, false, true));
             
             java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement();

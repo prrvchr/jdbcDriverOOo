@@ -59,7 +59,7 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -783,7 +783,7 @@ public abstract class ResultSetBase
     public Object getObject(int index, XNameAccess map) throws SQLException
     {
         try {
-            return DataBaseTools.getObject(m_ResultSet.getObject(index), map);
+            return DBTools.getObject(m_ResultSet.getObject(index), map);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getLoggedSQLException(this, m_logger, e);
@@ -1039,7 +1039,7 @@ public abstract class ResultSetBase
     @Override
     public void updateObject(int index, Object value) throws SQLException
     {
-        if (!DataBaseTools.updateObject(m_ResultSet, index, value)) {
+        if (!DBTools.updateObject(m_ResultSet, index, value)) {
             String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_COLUMN_TYPE,
                                                                                      this.getClass().getName(),
                                                                                      "updateObject()",

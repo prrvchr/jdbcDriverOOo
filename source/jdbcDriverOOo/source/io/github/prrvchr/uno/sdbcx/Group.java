@@ -37,7 +37,7 @@ import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -73,7 +73,7 @@ public class Group
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
-            privileges = DataBaseTools.getTableOrViewGrantablePrivileges(m_connection, grantees, name);
+            privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection, grantees, name);
         }
         return privileges;
     }
@@ -83,7 +83,7 @@ public class Group
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
-            privileges = DataBaseTools.getTableOrViewPrivileges(m_connection, grantees, name);
+            privileges = DBTools.getTableOrViewPrivileges(m_connection, grantees, name);
         }
         return privileges;
     }
@@ -91,14 +91,14 @@ public class Group
     @Override
     public void grantPrivileges(String name, int type, int privilege) throws SQLException {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            DataBaseTools.grantTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+            DBTools.grantTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
         }
     }
 
     @Override
     public void revokePrivileges(String name, int type, int privilege) throws SQLException {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            DataBaseTools.revokeTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+            DBTools.revokeTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
         }
     }
 

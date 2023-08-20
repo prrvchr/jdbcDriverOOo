@@ -28,7 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 
 
 public class IndexDescriptorContainer
@@ -54,7 +54,7 @@ public class IndexDescriptorContainer
         throws SQLException
     {
         XPropertySet newDescriptor = _cloneDescriptor(descriptor);
-        DataBaseTools.cloneDescriptorColumns(descriptor, newDescriptor);
+        DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
         return newDescriptor;
     }
 

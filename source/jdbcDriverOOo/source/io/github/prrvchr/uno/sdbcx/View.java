@@ -34,7 +34,7 @@ import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -113,7 +113,7 @@ public class View
     {
         try (java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement()){
             System.out.println("sdbcx.View.alterCommand() 1 : " + command);
-            String view = DataBaseTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, false, false, true);
+            String view = DBTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, false, false, true);
             for (String sql : m_Connection.getProvider().getAlterViewQueries(view, command)) {
                 statement.execute(sql);
             }

@@ -31,7 +31,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -58,7 +58,7 @@ public class UserGroupContainer
                                 String name)
         throws SQLException
     {
-        String sql = DataBaseTools.getGrantRoleQuery(m_connection, name, m_user, isCaseSensitive());
+        String sql = DBTools.getGrantRoleQuery(m_connection, name, m_user, isCaseSensitive());
         System.out.println("sdbcx.GroupUserContainer._createUser() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);
@@ -73,7 +73,7 @@ public class UserGroupContainer
                                   String name)
         throws SQLException
     {
-        String sql = DataBaseTools.getRevokeRoleQuery(m_connection, name, m_user, isCaseSensitive());
+        String sql = DBTools.getRevokeRoleQuery(m_connection, name, m_user, isCaseSensitive());
         System.out.println("sdbcx.UserGroupContainer._removeElement() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);

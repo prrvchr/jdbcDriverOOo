@@ -37,7 +37,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -123,7 +123,7 @@ public class Index
         IndexDescriptor descriptor = new IndexDescriptor(isCaseSensitive());
         UnoHelper.copyProperties(this, descriptor);
         try {
-            DataBaseTools.cloneDescriptorColumns(this, descriptor);
+            DBTools.cloneDescriptorColumns(this, descriptor);
         }
         catch (SQLException e) {
         }

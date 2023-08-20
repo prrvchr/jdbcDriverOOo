@@ -95,7 +95,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 
 
-public class DataBaseTools
+public class DBTools
 {
 
     private static class NameComponentSupport
@@ -463,7 +463,7 @@ public class DataBaseTools
                                              String pattern)
         throws SQLException
     {
-        String table = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
+        String table = DBTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
         List<String> parts = getCreateTableColumnParts(connection, descriptor, helper, pattern, table);
         if (connection.getProvider().supportCreateTableKeyParts()) {
             parts.addAll(getCreateTableKeyParts(connection, descriptor));
@@ -563,23 +563,19 @@ public class DataBaseTools
             try {
                 resultset = connection.getMetaData().getTypeInfo();
                 if (resultset != null) {
-                    XRow result = UnoRuntime.queryInterface(XRow.class, resultset);
+                    XRow row = UnoRuntime.queryInterface(XRow.class, resultset);
                     while (resultset.next()) {
-                        String typename2cmp = result.getString(1);
-                        int type2cmp = result.getShort(2);
-                        //FIXME: Make sure prefix and suffix values are not null
-                        prefix = result.getString(4);
-                        prefix = result.wasNull() ? "" : prefix;
-                        postfix = result.getString(5);
-                        postfix = result.wasNull() ? "" : postfix;
-                        createparams = result.getString(6);
-                        createparams = result.wasNull() ? "" : createparams;
+                        String typename2cmp = row.getString(1);
+                        int type2cmp = row.getShort(2);
+                        prefix = row.getString(4);
+                        postfix = row.getString(5);
+                        createparams = row.getString(6);
                         // first identical type will be used if typename is empty
                         if (typename.isEmpty() && type2cmp == datatype) {
                             typename = typename2cmp;
                         }
                         System.out.println("DataBaseTools.getStandardColumnPartQuery() 2 typename: " + typename + " - typename2cmp: " + typename2cmp + " - type2cmp: " + type2cmp + " - datatype: " + datatype + " - createparams: " + createparams);
-                        if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !createparams.isEmpty()) {
+                        if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !createparams.isEmpty() && !row.wasNull()) {
                             useliteral = true;
                             System.out.println("DataBaseTools.getStandardColumnPartQuery() 2 useliteral: " + useliteral);
                             break;
@@ -615,6 +611,7 @@ public class DataBaseTools
                     sql.append(typename.substring(0, insert));
                 }
                 sql.append('(');
+                
                 if (precision > 0 && !timed) {
                     sql.append(precision);
                     if (scale > 0 || (!pattern.isEmpty() && createparams.indexOf(pattern) != -1)) {
@@ -795,7 +792,7 @@ public class DataBaseTools
         throws SQLException
     {
         try {
-            String view = DataBaseTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
+            String view = DBTools.composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, false, false, true);
             String command = AnyConverter.toString(descriptor.getPropertyValue(PropertyIds.COMMAND.name));
             return String.format("CREATE VIEW %s AS %s", view, command);
         }
@@ -1102,7 +1099,7 @@ public class DataBaseTools
                                                         String name)
     throws SQLException
     {
-        NameComponents component = DataBaseTools.qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
+        NameComponents component = DBTools.qualifiedNameComponents(connection, name, ComposeRule.InDataManipulation);
         String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
         return _getTableOrViewPrivileges(connection, grantees, component, sql);
     }

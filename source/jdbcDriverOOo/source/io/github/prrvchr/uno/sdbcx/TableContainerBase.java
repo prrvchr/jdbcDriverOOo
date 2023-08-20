@@ -40,11 +40,11 @@ import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
@@ -82,8 +82,8 @@ public abstract class TableContainerBase
     protected String _getElementName(XPropertySet object)
         throws SQLException
     {
-        NameComponents components = DataBaseTools.getTableNameComponents(m_connection, object);
-        return DataBaseTools.composeTableName(m_connection, components.getCatalog(), components.getSchema(), components.getTable(), false, ComposeRule.InDataManipulation);
+        NameComponents components = DBTools.getTableNameComponents(m_connection, object);
+        return DBTools.composeTableName(m_connection, components.getCatalog(), components.getSchema(), components.getTable(), false, ComposeRule.InDataManipulation);
     }
 
     @Override
@@ -98,7 +98,7 @@ public abstract class TableContainerBase
     private void _createTable(XPropertySet descriptor)
         throws SQLException
     {
-        String sql = DataBaseTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
+        String sql = DBTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
         m_logger.logp(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_CREATE_TABLE, sql);
         try {
             java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();
@@ -115,7 +115,7 @@ public abstract class TableContainerBase
         throws SQLException
     {
         TableBase table = null;
-        NameComponents component = DataBaseTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
+        NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
         try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
             if (result.next()) {
                 String type = result.getString(4);
@@ -149,7 +149,7 @@ public abstract class TableContainerBase
     {
         try {
             Object object = _getElement(index);
-            NameComponents nameComponents = DataBaseTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
+            NameComponents nameComponents = DBTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
             boolean isView = false;
             XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
             if (propertySet != null) {
@@ -157,12 +157,12 @@ public abstract class TableContainerBase
             }
             if (isView) {
                 XDrop dropView = UnoRuntime.queryInterface(XDrop.class, m_connection.getViews());
-                String unquotedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
+                String unquotedName = DBTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
                                                                      nameComponents.getTable(), false, ComposeRule.InDataManipulation);
                 dropView.dropByName(unquotedName);
                 return;
             }
-            String composedName = DataBaseTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
+            String composedName = DBTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
                     nameComponents.getTable(), true, ComposeRule.InDataManipulation);
             String sql = String.format(m_connection.getProvider().getDropTableQuery(), composedName);
             System.out.println("TableContainer._removeElement() Query: " + sql);

@@ -46,7 +46,7 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
@@ -272,7 +272,7 @@ public abstract class PreparedStatementMain
     public void setObject(int index, Object value) throws SQLException
     {
         _createStatement();
-        if (!DataBaseTools.setObject(_getPreparedStatement(), index, value)) {
+        if (!DBTools.setObject(_getPreparedStatement(), index, value)) {
             String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_PARA_TYPE,
                                                                                      "$position$",
                                                                                      Integer.toString(index));

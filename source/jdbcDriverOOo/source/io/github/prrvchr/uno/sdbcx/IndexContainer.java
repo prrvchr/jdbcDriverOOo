@@ -41,7 +41,7 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
@@ -151,7 +151,7 @@ public class IndexContainer
             java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
             boolean isUnique = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISUNIQUE.name));
-            String composedName = DataBaseTools.composeTableName(_getConnection(), m_Table, ComposeRule.InIndexDefinitions, false, false, true);
+            String composedName = DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InIndexDefinitions, false, false, true);
             StringBuilder columnsText = new StringBuilder();
             String separator = "";
             XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
@@ -160,14 +160,14 @@ public class IndexContainer
                 columnsText.append(separator);
                 separator = ", ";
                 XPropertySet column = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                columnsText.append(DataBaseTools.quoteName(quote, AnyConverter.toString(column.getPropertyValue(PropertyIds.NAME.name))));
+                columnsText.append(DBTools.quoteName(quote, AnyConverter.toString(column.getPropertyValue(PropertyIds.NAME.name))));
                 // FIXME: ::dbtools::getBooleanDataSourceSetting( m_pTable->getConnection(), "AddIndexAppendix" );
                 boolean isAscending = AnyConverter.toBoolean(column.getPropertyValue(PropertyIds.ISASCENDING.name));
                 columnsText.append(isAscending ? " ASC" : " DESC");
             }
             String sql = String.format("CREATE %s INDEX %s ON %s (%s)",
                     isUnique ? "UNIQUE" : "",
-                    name.isEmpty() ? "" : DataBaseTools.quoteName(quote, name),
+                    name.isEmpty() ? "" : DBTools.quoteName(quote, name),
                     composedName,
                     columnsText.toString());
             java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
@@ -198,9 +198,9 @@ public class IndexContainer
         }
         name = elementName.substring(len + 1);
         try {
-            String composedName = DataBaseTools.composeTableName(_getConnection(), m_Table, ComposeRule.InTableDefinitions, false, false, true);
+            String composedName = DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InTableDefinitions, false, false, true);
             @SuppressWarnings("unused")
-            String indexName = DataBaseTools.composeTableName(_getConnection(), "", schema, name, true, ComposeRule.InIndexDefinitions);
+            String indexName = DBTools.composeTableName(_getConnection(), "", schema, name, true, ComposeRule.InIndexDefinitions);
             String sql = String.format("ALTER TABLE %s DROP CONSTRAINT %s", composedName, name);
             java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
             System.out.println("sdbcx.IndexContainer._removeElement() 1 Query: '" + sql + "' - Table: " + composedName);

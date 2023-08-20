@@ -37,7 +37,7 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbcx.TableContainerBase;
@@ -170,7 +170,7 @@ public abstract class ConnectionSuper
     protected String _buildName(java.sql.ResultSet result)
         throws SQLException
     {
-        return DataBaseTools.buildName(this, result, ComposeRule.InDataManipulation);
+        return DBTools.buildName(this, result, ComposeRule.InDataManipulation);
     }
 
     protected abstract TableContainerBase _getTableContainer(List<String> names) throws ElementExistException;

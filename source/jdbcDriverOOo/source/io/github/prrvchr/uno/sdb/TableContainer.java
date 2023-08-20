@@ -30,7 +30,7 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.TableContainerBase;
 

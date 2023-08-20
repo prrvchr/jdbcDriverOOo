@@ -38,7 +38,7 @@ import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;

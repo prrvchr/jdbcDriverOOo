@@ -244,7 +244,7 @@ public class DataBaseTableHelper
                             
                             keys.put(oldFkName, key);
                         }
-                        String referencedName = DataBaseTools.composeTableName(connection, catalogReturned, schemaReturned, nameReturned,
+                        String referencedName = DBTools.composeTableName(connection, catalogReturned, schemaReturned, nameReturned,
                                                                                false, ComposeRule.InDataManipulation);
                         keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
                         keyProperties.columnNames.add(foreignKeyColumn);

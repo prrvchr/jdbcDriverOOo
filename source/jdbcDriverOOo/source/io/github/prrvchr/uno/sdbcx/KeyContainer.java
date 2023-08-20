@@ -46,7 +46,7 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTools;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
@@ -141,22 +141,22 @@ public class KeyContainer
             
             java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
             String quote = metadata.getIdentifierQuoteString();
-            String tableName = DataBaseTools.doComposeTableName(_getConnection(), m_table.m_CatalogName, m_table.m_SchemaName,m_table.getName(), isCaseSensitive(), ComposeRule.InTableDefinitions);
+            String tableName = DBTools.doComposeTableName(_getConnection(), m_table.m_CatalogName, m_table.m_SchemaName,m_table.getName(), isCaseSensitive(), ComposeRule.InTableDefinitions);
 
             List<String> cols = new ArrayList<String>();
             XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
             for (int i = 0; i < columns.getCount(); i++) {
                 XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                cols.add(DataBaseTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.NAME.name))));
+                cols.add(DBTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.NAME.name))));
             }
             String sql = String.format("ALTER TABLE %s ADD %s (%s)", tableName, keyTypeString, String.join(",", cols));
             if (keyType == KeyType.FOREIGN) {
-                String quotedTableName = DataBaseTools.quoteTableName(_getConnection(), referencedName, ComposeRule.InTableDefinitions);
+                String quotedTableName = DBTools.quoteTableName(_getConnection(), referencedName, ComposeRule.InTableDefinitions);
                 cols = new ArrayList<String>();
                 for (int i = 0; i < columns.getCount(); i++) {
                     XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                    cols.add(DataBaseTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.RELATEDCOLUMN.name))));
+                    cols.add(DBTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.RELATEDCOLUMN.name))));
                 }
                 sql += String.format(" REFERENCES %s (%s) %s %s", quotedTableName, String.join(",", cols),
                                      getKeyRuleString(true, updateRule), getKeyRuleString(false, deleteRule));
@@ -229,7 +229,7 @@ public class KeyContainer
         }
         try {
             XPropertySet key = (XPropertySet) AnyConverter.toObject(XPropertySet.class, _getElement(index));
-            String tableName = DataBaseTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, true);
+            String tableName = DBTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, true);
             final int keyType;
             if (key != null) {
                 keyType = AnyConverter.toInt(key.getPropertyValue(PropertyIds.TYPE.name));
@@ -264,7 +264,7 @@ public class KeyContainer
                                      String name)
         throws SQLException
     {
-        return DataBaseTools.quoteName(connection.getMetaData().getIdentifierQuoteString(), name);
+        return DBTools.quoteName(connection.getMetaData().getIdentifierQuoteString(), name);
     }
 
     @Override
