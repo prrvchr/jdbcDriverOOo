@@ -621,15 +621,17 @@ public class DBTools
                 if (scale > 0 || (!pattern.isEmpty() && createparams.indexOf(pattern) != -1) || timed) {
                     sql.append(scale);
                 }
+                
                 if (insert == -1) {
                     sql.append(')');
                 }
-                else if (timed) {
-                    sql.append(')');
-                    sql.append(typename.substring(insert));
-                }
                 else {
-                    insert = typename.indexOf(')', insert);
+                    if (timed) {
+                        sql.append(')');
+                    }
+                    else {
+                        insert = typename.indexOf(')', insert);
+                    }
                     sql.append(typename.substring(insert));
                 }
             }
