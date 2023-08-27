@@ -47,7 +47,6 @@ public final class HsqlDBDriverProvider
     protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(Types.LONGNVARCHAR, Types.LONGVARCHAR),
                                                                             Map.entry(Types.NCHAR, Types.CHAR),
                                                                             Map.entry(Types.NVARCHAR, Types.VARCHAR),
-                                                                            Map.entry(Types.ROWID, Types.JAVA_OBJECT),
                                                                             Map.entry(Types.DATALINK, Types.VARCHAR),
                                                                             Map.entry(Types.SQLXML, Types.VARCHAR),
                                                                             Map.entry(Types.NCLOB, Types.CLOB),

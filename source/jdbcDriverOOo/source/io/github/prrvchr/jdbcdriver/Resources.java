@@ -145,6 +145,8 @@ public class Resources {
     public static final int STR_LOG_CREATE_DATABASE_METADATA             = (STR_JDBC_LOG_MESSAGE_BASE + 200);
     public static final int STR_LOG_CREATED_DATABASE_METADATA_ID         = (STR_JDBC_LOG_MESSAGE_BASE + 201);
 
+    public static final int STR_LOG_DATABASE_METADATA_DRIVER_VERSION     = (STR_JDBC_LOG_MESSAGE_BASE + 250);
+
     // io.github.prrvchr.uno.sdbc.StatementMain:
     public static final int STR_LOG_CREATE_STATEMENT                     = (STR_JDBC_LOG_MESSAGE_BASE + 300);
     public static final int STR_LOG_CREATED_STATEMENT_ID                 = (STR_JDBC_LOG_MESSAGE_BASE + 301);

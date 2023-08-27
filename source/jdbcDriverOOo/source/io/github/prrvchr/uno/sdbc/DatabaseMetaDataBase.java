@@ -445,6 +445,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             String value = m_Metadata.getDriverVersion();
+            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_DRIVER_VERSION, value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
