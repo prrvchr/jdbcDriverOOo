@@ -4,7 +4,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][3]**
 
-# version [1.0.4][4]
+# version [1.0.5][4]
 
 ## Introduction:
 
@@ -48,7 +48,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.4.
+- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.5.
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -300,7 +300,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
     Ceci n'est [integré][62] que pour le pilote [HsqlDB][63] pour le moment.
 
-### Que reste-t-il à faire pour la version 1.0.4:
+### Ce qui a été fait pour la version 1.0.5:
+
+- Le résultat de l'accès à la méthode [XDatabaseMetaData.getDriverVersion()][64] est désormais enregistré dans le fichier journal.
+
+### Que reste-t-il à faire pour la version 1.0.5:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -369,3 +373,4 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [61]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/JDBCConnectionProperties.html#TypeInfoSettings>
 [62]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/CustomTypeInfo.java>
 [63]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu#L332>
+[64]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DatabaseMetaDataBase.java#L444>
