@@ -28,18 +28,27 @@
 """
 
 from ..unotool import createService
+from ..unotool import getExtensionVersion
 
-from .oauth2config import g_oauth2
+from .configuration import g_identifier
+from .configuration import g_service
 
 
-def getRequest(ctx, scheme, name):
-    request = createService(ctx, g_oauth2)
-    if request is not None:
-        request.initializeSession(scheme, name)
+def getOAuth2(ctx, url='', name=''):
+    if url and name:
+        oauth2 = createService(ctx, g_service, url, name)
+    else:
+        oauth2 = createService(ctx, g_service)
+    return oauth2
+
+def getOAuth2Version(ctx):
+    version = getExtensionVersion(ctx, g_identifier)
+    return version
+
+def getRequest(ctx, url, name):
+    if url and name:
+        request = createService(ctx, g_service, url, name)
+    else:
+        request = createService(ctx, g_service)
     return request
 
-def getOAuth2(ctx, url, name):
-    oauth2 = createService(ctx, g_oauth2)
-    if oauth2 is not None:
-        oauth2.initializeSession(url, name)
-    return oauth2

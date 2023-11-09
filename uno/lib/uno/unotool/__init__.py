@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .unotool import checkVersion
 from .unotool import createMessageBox
 from .unotool import createService
 from .unotool import createWindow
@@ -44,11 +45,13 @@ from .unotool import getDialog
 from .unotool import getDialogUrl
 from .unotool import getDocument
 from .unotool import getExceptionMessage
+from .unotool import getExtensionVersion
 from .unotool import getFilePicker
 from .unotool import getFileSequence
 from .unotool import getFileUrl
 from .unotool import getInteractionHandler
 from .unotool import getInterfaceTypes
+from .unotool import getMimeTypeFactory
 from .unotool import getNamedValue
 from .unotool import getNamedValueSet
 from .unotool import getParentWindow
@@ -57,7 +60,9 @@ from .unotool import getProperty
 from .unotool import getPropertyValue
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
+from .unotool import getSequenceInputStream
 from .unotool import getSimpleFile
+from .unotool import getStreamSequence
 from .unotool import getStringResource
 from .unotool import getStringResourceWithLocation
 from .unotool import getTempFile

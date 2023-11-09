@@ -44,9 +44,10 @@ from com.sun.star.ucb.ConnectionMode import OFFLINE
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
-from six import binary_type, string_types
-import datetime
 import binascii
+import datetime
+from packaging import version
+from six import binary_type, string_types
 import traceback
 
 
@@ -87,6 +88,13 @@ def getUrlTransformer(ctx):
 
 def getInteractionHandler(ctx):
     return createService(ctx, 'com.sun.star.task.InteractionHandler')
+
+def getSequenceInputStream(ctx, sequence):
+    service = 'com.sun.star.io.SequenceInputStream'
+    return createService(ctx, service, sequence)
+
+def getMimeTypeFactory(ctx):
+    return createService(ctx, 'com.sun.star.datatransfer.MimeContentTypeFactory')
 
 def getUrlPresentation(ctx, location, password=False):
     url = uno.createUnoStruct('com.sun.star.util.URL')
@@ -134,23 +142,30 @@ def getExceptionMessage(exception):
     return message
 
 def getFileSequence(ctx, url, default=None):
-    length = 0
-    sequence = uno.ByteSequence(b'')
+    path = None
     fs = getSimpleFile(ctx)
     if fs.exists(url):
-        inputstream = fs.openFileRead(url)
-        size = fs.getSize(url)
-        length, sequence = _getSequence(inputstream, size)
+        path = url
     elif default is not None and fs.exists(default):
-        inputstream = fs.openFileRead(default)
-        size = fs.getSize(default)
-        length, sequence = _getSequence(inputstream, size)
-    return length, sequence
+        path = default
+    if path is None:
+        sequence = uno.ByteSequence(b'')
+    else:
+        sequence = getStreamSequence(fs.openFileRead(path))
+    return len(sequence), sequence
 
-def _getSequence(inputstream, length):
-    length, sequence = inputstream.readBytes(None, length)
-    inputstream.closeInput()
-    return length, sequence
+def getStreamSequence(stream, chunk=64*1024):
+    close = False
+    sequence = uno.ByteSequence(b'')
+    while not close:
+        count, buffer = stream.readBytes(None, chunk)
+        close = count != chunk
+        sequence += buffer
+    stream.closeInput()
+    return sequence
+
+def checkVersion(ver, minimum):
+    return version.parse(ver) >= version.parse(minimum)
 
 def hasInterface(component, interface):
     for t in getComponentTypes(component):
@@ -183,6 +198,14 @@ def getProperty(name, type=None, attributes=None, handle=-1):
     if attributes is not None:
         property.Attributes = attributes
     return property
+
+def getExtensionVersion(ctx, extension):
+    service = '/singletons/com.sun.star.deployment.PackageInformationProvider'
+    provider = ctx.getValueByName(service)
+    for name, version in provider.getExtensionList():
+        if name == extension:
+            return version
+    return None
 
 def getResourceLocation(ctx, identifier, path=None):
     service = '/singletons/com.sun.star.deployment.PackageInformationProvider'
