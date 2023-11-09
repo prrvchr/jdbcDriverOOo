@@ -48,7 +48,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version 1.0.5.
+- Installer l'extension ![jdbcDriverOOo logo][1] **[jdbcDriverOOo.oxt][24]** version [![Version][0]][24]
 
 Redémarrez LibreOffice / OpenOffice après l'installation.
 
@@ -310,6 +310,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Tout ce qui est bienvenu...
 
+[0]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.5>
 [1]: <img/jdbcDriverOOo.svg>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
@@ -333,7 +334,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [21]: <https://adoptium.net/releases.html?variant=openjdk11>
 [22]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
 [23]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
-[24]: <https://github.com/prrvchr/jdbcDriverOOo/raw/master/jdbcDriverOOo.oxt>
+[24]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
 [25]: <img/jdbcDriverOOo-1_fr.png>
 [26]: <img/jdbcDriverOOo-2_fr.png>
 [27]: <img/jdbcDriverOOo-3_fr.png>
