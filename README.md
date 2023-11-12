@@ -75,7 +75,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.
 If necessary, rename it before installing it.
 
-- Install ![jdbcDriverOOo logo][23] **[jdbcDriverOOo.oxt][24]** extension [![Version][25]][24]
+- ![jdbcDriverOOo logo][23] Install **[jdbcDriverOOo.oxt][24]** extension [![Version][25]][24]
 
 Restart LibreOffice / OpenOffice after installation.
 
