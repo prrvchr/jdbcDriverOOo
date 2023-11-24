@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.0.5][5]
+# version [1.0.6][5]
 
 ## Introduction:
 
