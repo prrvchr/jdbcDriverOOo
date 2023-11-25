@@ -335,7 +335,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - The result of accessing the [XDatabaseMetaData.getDriverVersion()][67] method is now recorded in the log file.
 
-### What remains to be done for version 1.0.5:
+### What has been done for version 1.0.6:
+
+- Added the Python package `packaging` to the extension's `pythonpath`. Thanks to [artem78][68] for allowing this correction by reporting this oversight in [issue #4][69].
+
+### What remains to be done for version 1.0.6:
 
 - Add new languages for internationalization...
 
@@ -345,7 +349,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-101>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-106>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -408,3 +412,5 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [65]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/CustomTypeInfo.java>
 [66]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu#L332>
 [67]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DatabaseMetaDataBase.java#L444>
+[68]: <https://github.com/artem78>
+[69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>

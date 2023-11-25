@@ -335,7 +335,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Le résultat de l'accès à la méthode [XDatabaseMetaData.getDriverVersion()][67] est désormais enregistré dans le fichier journal.
 
-### Que reste-t-il à faire pour la version 1.0.5:
+### Ce qui a été fait pour la version 1.0.6:
+
+- Ajout du paquet Python `packaging` dans le `pythonpath` de l'extension. Merci à [artem78][68] d'avoir permis cette correction en signalant cet oubli dans le [dysfonctionnement #4][69].
+
+### Que reste-t-il à faire pour la version 1.0.6:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -345,7 +349,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-101>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-106>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -408,3 +412,5 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [65]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/CustomTypeInfo.java>
 [66]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu#L332>
 [67]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DatabaseMetaDataBase.java#L444>
+[68]: <https://github.com/artem78>
+[69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
