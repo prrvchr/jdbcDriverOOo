@@ -103,7 +103,7 @@ public class IndexColumnContainer
             result.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         System.out.println("sdbcx.IndexColumnContainer._createElement() 7");
         return index;

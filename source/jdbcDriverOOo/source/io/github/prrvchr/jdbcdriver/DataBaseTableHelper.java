@@ -204,7 +204,7 @@ public class DataBaseTableHelper
             result.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, connection);
+            throw UnoHelper.getSQLException(e, connection);
         }
         if (name != null) {
             keys.put(name, new Key(table, sensitive, name, "", KeyType.PRIMARY, 0, 0, columns));
@@ -260,7 +260,7 @@ public class DataBaseTableHelper
             result.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, connection);
+            throw UnoHelper.getSQLException(e, connection);
         }        
         if (keyProperties != null) {
             Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
@@ -299,7 +299,7 @@ public class DataBaseTableHelper
             result.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, connection);
+            throw UnoHelper.getSQLException(e, connection);
         }        
         return names;
     }

@@ -72,7 +72,7 @@ public class GroupContainer
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
 
     }
@@ -95,7 +95,7 @@ public class GroupContainer
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
 
     }

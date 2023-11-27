@@ -66,13 +66,15 @@ public class User
 
     // com.sun.star.sdbcx.XUser:
     @Override
-    public void changePassword(String old, String password) throws SQLException {
+    public void changePassword(String old, String password)
+        throws SQLException
+    {
         String sql = DBTools.getChangeUserPasswordQuery(m_connection, getName(), password, isCaseSensitive());
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
     }
 

@@ -73,7 +73,7 @@ public class ViewContainer
             statement.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         // Append it to the tables container too:
         m_Connection.getTablesInternal().insertElement(name, null);
@@ -131,7 +131,7 @@ public class ViewContainer
                             component.getSchema(), component.getTable(), command, value);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         System.out.println("sdbcx.ViewContainer._createElement() 4");
         return view;
@@ -158,7 +158,7 @@ public class ViewContainer
             throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, exception);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

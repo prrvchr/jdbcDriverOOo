@@ -95,9 +95,8 @@ public abstract class ColumnContainerBase
             return _createElement(name);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
-        return null;
     }
 
 
@@ -153,7 +152,7 @@ public abstract class ColumnContainerBase
                                 isAutoIncrement, false, isCurrency);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_table);
+            throw UnoHelper.getSQLException(e, m_table);
         }
         return column;
     }
@@ -177,7 +176,7 @@ public abstract class ColumnContainerBase
             statement.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_table);
+            throw UnoHelper.getSQLException(e, m_table);
         }
     }
 

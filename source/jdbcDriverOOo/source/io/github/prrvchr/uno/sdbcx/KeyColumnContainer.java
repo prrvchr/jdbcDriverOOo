@@ -100,7 +100,7 @@ public class KeyColumnContainer
             }
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, this);
+            throw UnoHelper.getSQLException(e, this);
         }
         catch (java.lang.Exception e) {
             System.out.println("sdbcx.KeyColumnContainer._createElement() ERROR\n" + UnoHelper.getStackTrace(e));

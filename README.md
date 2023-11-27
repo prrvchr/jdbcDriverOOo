@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.0.6][5]
+# version [1.0.7][5]
 
 ## Introduction:
 
@@ -339,7 +339,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Added the Python package `packaging` to the extension's `pythonpath`. Thanks to [artem78][68] for allowing this correction by reporting this oversight in [issue #4][69].
 
-### What remains to be done for version 1.0.6:
+### What has been done for version 1.0.7:
+
+- Now the driver throws an exception if creating a new table fails. This is to address [bug #1][70] on the [HyperSQLOOo][24] extension.
+
+### What remains to be done for version 1.0.7:
 
 - Add new languages for internationalization...
 
@@ -349,7 +353,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-106>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-107>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -371,7 +375,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [24]: <https://prrvchr.github.io/HyperSQLOOo/>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.6#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.7#right>
 [28]: <img/jdbcDriverOOo-1.png>
 [29]: <img/jdbcDriverOOo-2.png>
 [30]: <img/jdbcDriverOOo-3.png>
@@ -414,3 +418,4 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [67]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DatabaseMetaDataBase.java#L444>
 [68]: <https://github.com/artem78>
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
+[70]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>

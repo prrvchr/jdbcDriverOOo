@@ -249,10 +249,10 @@ public class KeyContainer
             statement.close();
         }
         catch (WrappedTargetException | UnknownPropertyException e) {
-            UnoHelper.getSQLException(e, m_table);
+            throw UnoHelper.getSQLException(e, m_table);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_table);
+            throw UnoHelper.getSQLException(e, m_table);
         }
     }
     

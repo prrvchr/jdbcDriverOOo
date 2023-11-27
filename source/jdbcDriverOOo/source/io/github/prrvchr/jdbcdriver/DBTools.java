@@ -1139,7 +1139,7 @@ public class DBTools
             result.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e);
+            throw UnoHelper.getSQLException(e, null);
         }
         return privilege;
     }

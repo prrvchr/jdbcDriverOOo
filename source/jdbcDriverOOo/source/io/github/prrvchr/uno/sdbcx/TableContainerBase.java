@@ -106,7 +106,7 @@ public abstract class TableContainerBase
             statement.close();
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
     }
 
@@ -128,7 +128,7 @@ public abstract class TableContainerBase
             }
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
         return table;
     }
@@ -171,10 +171,10 @@ public abstract class TableContainerBase
             statement.close();
         }
         catch (WrappedTargetException | UnknownPropertyException | NoSuchElementException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
         catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+            throw UnoHelper.getSQLException(e, m_connection);
         }
     }
 
