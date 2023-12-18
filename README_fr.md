@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.0.7][5]
+# version [1.0.8][5]
 
 ## Introduction:
 
@@ -343,7 +343,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Désormais, le pilote lève une exception si la création d'une nouvelle table échoue. Ceci est pour répondre au [dysfonctionnement #1][70] sur l'extension [HyperSQLOOo][24].
 
-### Que reste-t-il à faire pour la version 1.0.7:
+### Ce qui a été fait pour la version 1.0.8:
+
+- Utilisation de la dernière version de l'API de journalisation.
+
+### Que reste-t-il à faire pour la version 1.0.8:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 

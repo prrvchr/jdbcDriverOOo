@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.0.7][5]
+# version [1.0.8][5]
 
 ## Introduction:
 
@@ -343,7 +343,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Now the driver throws an exception if creating a new table fails. This is to address [bug #1][70] on the [HyperSQLOOo][24] extension.
 
-### What remains to be done for version 1.0.7:
+### What has been done for version 1.0.8:
+
+- Using the latest version of the Logging API.
+
+### What remains to be done for version 1.0.8:
 
 - Add new languages for internationalization...
 

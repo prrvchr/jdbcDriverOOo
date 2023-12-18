@@ -203,10 +203,8 @@ class OptionsManager(unohelper.Base):
 
     def _getInfos(self):
         infos = OrderedDict()
-        version  = ' '.join(sys.version.split())
-        infos[111] = version
-        path = os.pathsep.join(sys.path)
-        infos[112] = path
+        infos['packaging'] =          ('__version__',     '23.1')
+        infos['six'] =                ('__version__',     '1.16.0')
         return infos
 
     def _initViewProtocol(self, driver=None):
