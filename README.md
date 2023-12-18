@@ -379,7 +379,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [24]: <https://prrvchr.github.io/HyperSQLOOo/>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.7#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.8#right>
 [28]: <img/jdbcDriverOOo-1.png>
 [29]: <img/jdbcDriverOOo-2.png>
 [30]: <img/jdbcDriverOOo-3.png>
