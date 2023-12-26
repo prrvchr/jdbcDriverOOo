@@ -92,6 +92,8 @@ class OptionsModel(unohelper.Base):
         root = self._getRootProtocol(False)
         self._driver = config.getByName(root)
         self._drivers = self._getDriverConfigurations(config, root)
+        self._logger = getLogger(ctx, 'Driver', g_basename)
+        self._logger.logprb(INFO, 'OptionsDialog', '__init__()', 101)
 
 # OptionsModel getter methods
     def getTabData(self):
@@ -303,11 +305,9 @@ class OptionsModel(unohelper.Base):
                 version = self._version % connection.getMetaData().getDriverVersion()
                 connection.close()
         except UnoException as e:
-            logger = getLogger(self._ctx, g_extension, g_basename)
-            logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 141, e.Message)
+            self._logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 111, e.Message)
         except Exception as e:
-            logger = getLogger(self._ctx, g_extension, g_basename)
-            logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 142, string(e), 'traceback.print_exc()')
+            self._logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 112, e, traceback.format_exc())
         return version
 
     def _updateArchive(self, driver, archive):
