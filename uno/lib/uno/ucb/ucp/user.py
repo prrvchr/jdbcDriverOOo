@@ -68,7 +68,9 @@ from .content import Content
 from .identifier import Identifier
 
 from .contenthelper import getContentInfo
+from .contenthelper import getExceptionMessage
 
+from ..configuration import g_extension
 from ..configuration import g_scheme
 from ..configuration import g_separator
 
@@ -79,6 +81,7 @@ import traceback
 
 class User():
     def __init__(self, ctx, source, logger, database, provider, sync, name, password=''):
+        method = '__init__()'
         self._ctx = ctx
         self._name = name
         self._sync = sync
@@ -95,30 +98,25 @@ class User():
             if request is None:
                 # If we have a Null value here then it means that the user has abandoned
                 # the OAuth2 Wizard, there is nothing more to do except throw an exception
-                msg = self._logger.resolveString(501, g_oauth2)
-                self._logger.logp(SEVERE, 'User', '__init__()', msg)
+                msg = self._getExceptionMessage(method, 501, name)
                 raise IllegalIdentifierException(msg, source)
         else:
             if not self.Provider.isOnLine():
-                msg = self._logger.resolveString(502, name)
-                self._logger.logp(SEVERE, 'User', '__init__()', msg)
+                msg = self._getExceptionMessage(method, 503, name)
                 raise IllegalIdentifierException(msg, source)
             request = getRequest(ctx, self.Provider.Scheme, name)
             if request is None:
                 # If we have a Null value here then it means that the user has abandoned
                 # the OAuth2 Wizard, there is nothing more to do except throw an exception
-                msg = self._logger.resolveString(501, g_oauth2)
-                self._logger.logp(SEVERE, 'User', '__init__()', msg)
+                msg = self._getExceptionMessage(method, 501, g_oauth2)
                 raise IllegalIdentifierException(msg, source)
             user, root = self.Provider.getUser(source, request, name)
             metadata = database.insertUser(user, root)
             if metadata is None:
-                msg = self._logger.resolveString(503, name)
-                self._logger.logp(SEVERE, 'User', '__init__()', msg)
+                msg = self._getExceptionMessage(method, 505, name)
                 raise IllegalIdentifierException(msg, source)
             if not database.createUser(name, password):
-                msg = self._logger.resolveString(504, name)
-                self._logger.logp(SEVERE, 'User', '__init__()', msg)
+                msg = self._getExceptionMessage(method, 507, name)
                 raise IllegalIdentifierException(msg, source)
         self.Request = request
         self.MetaData = metadata
@@ -130,7 +128,7 @@ class User():
         if new:
             # Start Replicator for pushing changes…
             self._sync.set()
-        self._logger.logprb(INFO, 'User', '__init__()', 505)
+        self._logger.logprb(INFO, 'User', method, 509)
 
     @property
     def Name(self):
@@ -206,10 +204,9 @@ class User():
             identifier += g_separator
         return identifier
 
-    def createNewContent(self, authority, parentid, path, title, contentype):
-        data = self._getNewContent(parentid, path, title, contentype)
+    def createNewContent(self, authority, parentid, path, title, link, contentype):
+        data = self._getNewContent(parentid, path, title, link, contentype)
         content = Content(self._ctx, self, authority, data, True)
-        print("User.createNewContent()")
         return content
 
     def getTargetUrl(self, itemid):
@@ -285,7 +282,7 @@ class User():
             self._factory = getUriFactory(self._ctx)
         return self._factory
 
-    def _getNewContent(self, parentid, path, title, contentype):
+    def _getNewContent(self, parentid, path, title, link, contentype):
         timestamp = currentUnoDateTime()
         isfolder = self.Provider.isFolder(contentype)
         isdocument = self.Provider.isDocument(contentype)
@@ -312,7 +309,7 @@ class User():
                 'TitleOnServer':         '',
                 'Id':                    itemid,
                 'Path':                  self._getPath(parentid, path, title),
-                'Link':                  '',
+                'Link':                  link,
                 'Trashed':               False,
                 'IsRoot':                False,
                 'IsLink':                False,
@@ -333,4 +330,7 @@ class User():
         else:
             path = g_separator
         return path
+
+    def _getExceptionMessage(self, method, code, *args):
+        return getExceptionMessage(self._ctx, self._logger, 'User', method, code, g_extension, *args)
 
