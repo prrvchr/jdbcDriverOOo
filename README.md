@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.0.8][5]
+# version [1.1.0][5]
 
 ## Introduction:
 
@@ -38,8 +38,8 @@
 This extension is the transcription in pure Java of the [java.sql.*][9] API to the [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] and [com.sun.star.sdb][12] API of UNO.
 It allows you to use the JDBC driver of your choice directly in Base.  
 It embeds the drivers for the following databases:
-- [HyperSQL or HsqlDB][13] version 2.72
-    The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
+- [HyperSQL or HsqlDB][13] version 2.7.2  
+  The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
 - [SQLite JDBC Driver][14] version 3.42.0.0
 - [MariaDB Connector/J][15] version 3.1.4
 - [H2 Database Engine][16] version 2.2.220 (2023-07-04)
@@ -61,6 +61,12 @@ ___
 jdbcDriverOOo is a JDBC driver written in Java.  
 Its use requires the [installation and configuration][21] in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium][22] as your Java installation source.
+
+**On Linux and macOS the Python packages** used by the extension, if already installed, may come from the system and therefore **may not be up to date**.  
+To ensure that your Python packages are up to date it is recommended to use the **System info** option in the Extension Options accessible by:  
+**Tools -> Options -> Base drivers -> JDBC driver -> View log -> System info**  
+If outdated packages appear, you can update them with the command:  
+`pip install package_name`
 
 If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug 139538][23]. To work around the problem, please **uninstall the packages** with commands:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
@@ -347,7 +353,14 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 - Using the latest version of the Logging API.
 
-### What remains to be done for version 1.0.8:
+### What has been done for version 1.1.0:
+
+- All Python packages necessary for the extension are now recorded in a [requirements.txt][71] file following [PEP 508][72].
+- Now if you are not on Windows then the Python packages necessary for the extension can be easily installed with the command:  
+  `pip install requirements.txt`
+- Modification of the [Requirement][73] section.
+
+### What remains to be done for version 1.1.0:
 
 - Add new languages for internationalization...
 
@@ -357,7 +370,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-107>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -379,7 +392,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [24]: <https://prrvchr.github.io/HyperSQLOOo/>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.8#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.0#right>
 [28]: <img/jdbcDriverOOo-1.png>
 [29]: <img/jdbcDriverOOo-2.png>
 [30]: <img/jdbcDriverOOo-3.png>
@@ -423,3 +436,6 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [68]: <https://github.com/artem78>
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
 [70]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
+[71]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
+[72]: <https://peps.python.org/pep-0508/>
+[73]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>

@@ -113,7 +113,7 @@ class AdminDispatch(unohelper.Base,
             state = SUCCESS
             manager.dispose()
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
         return state, None
 
@@ -125,7 +125,7 @@ class AdminDispatch(unohelper.Base,
             state = SUCCESS
             manager.dispose()
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
         return state, None
 

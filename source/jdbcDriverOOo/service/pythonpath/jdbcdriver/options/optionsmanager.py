@@ -70,12 +70,12 @@ class OptionsManager(unohelper.Base):
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
-        self._logger = LogManager(ctx, self._view.getLoggerParent(), self._getInfos(), g_identifier, 'Driver')
+        self._logmanager = LogManager(ctx, self._view.getLoggerParent(), 'requirements.txt', g_identifier, 'Driver')
         self._view.getTab().addTabPageContainerListener(self._listener)
         self._initView()
 
     def dispose(self):
-        self._logger.dispose()
+        self._logmanager.dispose()
         self._disposed = True
 
     # TODO: One shot disabler handler
@@ -102,12 +102,12 @@ class OptionsManager(unohelper.Base):
                     self._view.setVersion(versions[protocol])
 
     def saveSetting(self):
-        self._logger.saveSetting()
+        self._logmanager.saveSetting()
         if self._model.saveSetting() and self._model.isUpdated():
             self._view.disableDriverLevel()
 
     def loadSetting(self):
-        self._logger.loadSetting()
+        self._logmanager.loadSetting()
         # XXX: We need to exit from Add new Driver mode if needed...
         reboot = self._model.needReboot()
         self._view.exitAdd(reboot)
@@ -200,12 +200,6 @@ class OptionsManager(unohelper.Base):
         self._view.setSystemTable(system)
         self._view.setBookmark(bookmark)
         self._initViewProtocol()
-
-    def _getInfos(self):
-        infos = OrderedDict()
-        infos['packaging'] =          ('__version__',     '23.1')
-        infos['six'] =                ('__version__',     '1.16.0')
-        return infos
 
     def _initViewProtocol(self, driver=None):
         self._disableHandler()

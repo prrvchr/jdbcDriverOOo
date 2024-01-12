@@ -54,7 +54,7 @@ class NewUserHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -80,7 +80,7 @@ class PasswordHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -113,7 +113,7 @@ class UsersHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -137,7 +137,7 @@ class NewGroupHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
@@ -169,7 +169,7 @@ class GroupsHandler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Error: %s" % traceback.print_exc()
+            msg = "Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):

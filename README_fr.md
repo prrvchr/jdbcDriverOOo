@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.0.8][5]
+# version [1.1.0][5]
 
 ## Introduction:
 
@@ -38,8 +38,8 @@
 Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l'API [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] et [com.sun.star.sdb][12] de UNO.
 Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
 Elle embarque les pilotes pour les base de données suivantes:
-- [HyperSQL ou HsqlDB][13] version 2.72
-    Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
+- [HyperSQL ou HsqlDB][13] version 2.7.2  
+  Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
 - [SQLite JDBC Driver][14] version 3.42.0.0
 - [MariaDB Connector/J][15] version 3.1.4
 - [H2 Database Engine][16] version 2.2.220 (2023-07-04)
@@ -61,6 +61,12 @@ ___
 jdbcDriverOOo est un pilote JDBC écrit en Java.  
 Son utilisation nécessite [l'installation et la configuration][21] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
 Je vous recommande [Adoptium][22] comme source d'installation de Java.
+
+**Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
+Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
+**Outils -> Options -> Pilotes Base -> Pilote JDBC -> Voir journal -> Info système**  
+Si des packages obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
+`pip install nom_du_paquet`
 
 Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538][23]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
@@ -347,7 +353,14 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Utilisation de la dernière version de l'API de journalisation.
 
-### Que reste-t-il à faire pour la version 1.0.8:
+### Ce qui a été fait pour la version 1.1.0:
+
+- Tous les packages Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][71] suivant la [PEP 508][72].
+- Désormais si vous n'êtes pas sous Windows alors les packages Python nécessaires à l'extension peuvent être facilement installés avec la commande:  
+  `pip install requirements.txt`
+- Modification de la section [Prérequis][73].
+
+### Que reste-t-il à faire pour la version 1.1.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -357,7 +370,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-107>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -379,7 +392,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [24]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.0.8#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.0#right>
 [28]: <img/jdbcDriverOOo-1_fr.png>
 [29]: <img/jdbcDriverOOo-2_fr.png>
 [30]: <img/jdbcDriverOOo-3_fr.png>
@@ -423,3 +436,6 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [68]: <https://github.com/artem78>
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
 [70]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
+[71]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
+[72]: <https://peps.python.org/pep-0508/>
+[73]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
