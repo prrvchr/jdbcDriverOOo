@@ -1,0 +1,22 @@
+namespace: jdbcDriverOOo
+output:
+  file_path: ./Fluid-Attacks-Results.csv
+  format: CSV
+working_dir: .
+sast:
+  include:
+    - glob(source/Driver-Derby/source/*)
+    - glob(source/Driver-H2/source/*)
+    - glob(source/Driver-HsqlDB/source/*)
+    - glob(source/Driver-MariaDB/source/*)
+    - glob(source/Driver-SmallSQL/source/*)
+    - glob(source/Driver-SQLite/source/*)
+    - glob(source/jdbcDriverOOo/service/*.py)
+    - glob(source/jdbcDriverOOo/service/pythonpath/jdbcdriver/*)
+    - glob(source/jdbcDriverOOo/source/*)
+    - glob(source/UnoLogger/source/*)
+sca:
+  include:
+    - .
+language: EN
+strict: true
