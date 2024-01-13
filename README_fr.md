@@ -33,7 +33,7 @@
 
 ## Introduction:
 
-**jdbcDriverOOo** fait partie d'une [Suite][6] d'extensions [LibreOffice][7] et/ou [OpenOffice][8] permettant de vous offrir des services inovants dans ces suites bureautique.  
+**jdbcDriverOOo** fait partie d'une [Suite][6] d'extensions [LibreOffice][7] ~~et/ou [OpenOffice][8]~~ permettant de vous offrir des services inovants dans ces suites bureautique.  
 
 Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l'API [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] et [com.sun.star.sdb][12] de UNO.
 Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
@@ -62,17 +62,17 @@ jdbcDriverOOo est un pilote JDBC écrit en Java.
 Son utilisation nécessite [l'installation et la configuration][21] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
 Je vous recommande [Adoptium][22] comme source d'installation de Java.
 
-**Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
-Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
-**Outils -> Options -> Pilotes Base -> Pilote JDBC -> Voir journal -> Info système**  
-Si des packages obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
-`pip install nom_du_paquet`
-
 Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538][23]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
 - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
 
 Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][24].  
+
+**Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
+Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
+**Outils -> Options -> Pilotes Base -> Pilote JDBC -> Voir journal -> Info système**  
+Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
+`pip install --upgrade <package-name>`
 
 ___
 
@@ -83,7 +83,10 @@ Si nécessaire, renommez-le avant de l'installer.
 
 - ![jdbcDriverOOo logo][25] Installer l'extension **[jdbcDriverOOo.oxt][26]** [![Version][27]][26]
 
-Redémarrez LibreOffice / OpenOffice après l'installation.
+Redémarrez LibreOffice après l'installation.
+
+**Sous Windows, redémarrer LibreOffice peut ne pas suffire.**  
+Pour vous assurer que LibreOffice redémarre correctement, utilisez le Gestionnaire de tâche de Windows pour vérifier qu'aucun service LibreOffice n'est visible après l'arrêt de LibreOffice.
 
 ___
 

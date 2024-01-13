@@ -33,7 +33,7 @@
 
 ## Introduction:
 
-**jdbcDriverOOo** is part of a [Suite][6] of [LibreOffice][7] and/or [OpenOffice][8] extensions allowing to offer you innovative services in these office suites.  
+**jdbcDriverOOo** is part of a [Suite][6] of [LibreOffice][7] ~~and/or [OpenOffice][8]~~ extensions allowing to offer you innovative services in these office suites.  
 
 This extension is the transcription in pure Java of the [java.sql.*][9] API to the [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] and [com.sun.star.sdb][12] API of UNO.
 It allows you to use the JDBC driver of your choice directly in Base.  
@@ -62,17 +62,17 @@ jdbcDriverOOo is a JDBC driver written in Java.
 Its use requires the [installation and configuration][21] in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium][22] as your Java installation source.
 
-**On Linux and macOS the Python packages** used by the extension, if already installed, may come from the system and therefore **may not be up to date**.  
-To ensure that your Python packages are up to date it is recommended to use the **System info** option in the Extension Options accessible by:  
-**Tools -> Options -> Base drivers -> JDBC driver -> View log -> System info**  
-If outdated packages appear, you can update them with the command:  
-`pip install package_name`
-
 If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug 139538][23]. To work around the problem, please **uninstall the packages** with commands:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
 - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
 
 If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HyperSQLOOo][24] extension.  
+
+**On Linux and macOS the Python packages** used by the extension, if already installed, may come from the system and therefore **may not be up to date**.  
+To ensure that your Python packages are up to date it is recommended to use the **System Info** option in the extension Options accessible by:  
+**Tools -> Options -> Base drivers -> JDBC driver -> View log -> System Info**  
+If outdated packages appear, you can update them with the command:  
+`pip install --upgrade <package-name>`
 
 ___
 
@@ -83,7 +83,10 @@ If necessary, rename it before installing it.
 
 - ![jdbcDriverOOo logo][25] Install **[jdbcDriverOOo.oxt][26]** extension [![Version][27]][26]
 
-Restart LibreOffice / OpenOffice after installation.
+Restart LibreOffice after installation.
+
+**On Windows, restarting LibreOffice may not be enough.**  
+To ensure that LibreOffice restarts correctly, use the Windows Task Manager to verify that no LibreOffice services are visible after LibreOffice is shut down.
 
 ___
 
