@@ -35,8 +35,8 @@
     <src xlink:href="https://prrvchr.github.io/jdbcDriverOOo/jdbcDriverOOo.update.xml"/>
   </update-information>
   <publisher>
-    <name lang="en-US" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/">JDBC driver for LibreOffice / OpenOffice</name>
-    <name lang="fr-FR" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/README_fr">Le pilote JDBC pour LibreOffice / OpenOffice</name>
+    <name lang="en-US" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/">JDBC driver for LibreOffice</name>
+    <name lang="fr-FR" xlink:href="https://prrvchr.github.io/jdbcDriverOOo/README_fr">Le pilote JDBC pour LibreOffice</name>
   </publisher>
   <registration>
     <simple-license accept-by="admin" suppress-on-update="true">

@@ -59,10 +59,10 @@ ___
 ## Requirement:
 
 jdbcDriverOOo is a JDBC driver written in Java.  
-Its use requires the [installation and configuration][21] in LibreOffice / OpenOffice of a **JRE version 11 or later**.  
+Its use requires the [installation and configuration][21] in LibreOffice of a **JRE version 11 or later**.  
 I recommend [Adoptium][22] as your Java installation source.
 
-If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug 139538][23]. To work around the problem, please **uninstall the packages** with commands:
+If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug #139538][23]. To work around the problem, please **uninstall the packages** with commands:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
 - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
 
@@ -73,6 +73,8 @@ To ensure that your Python packages are up to date it is recommended to use the 
 **Tools -> Options -> Base drivers -> JDBC driver -> View log -> System Info**  
 If outdated packages appear, you can update them with the command:  
 `pip install --upgrade <package-name>`
+
+For more information see: [What has been done for version 1.1.0][71].
 
 ___
 
@@ -201,7 +203,7 @@ ___
 This driver was written to work around certain problems inherent in the UNO implementation of the JDBC driver built into LibreOffice / OpenOffice, namely: 
 
 - The inability to provide the path to the Java driver archive (hsqldb.jar) when loading the JDBC driver.
-- Not being able to use prepared SQL statements (PreparedStatement) see [bug 132195][39].
+- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][39].
 
 In order to take advantage of the latest features offered by databases and among others HsqlDB, it was necessary to write a new driver.
 
@@ -217,7 +219,7 @@ In order not to prevent the native JDBC driver from working, it loads when calli
 
 but uses the `jdbc:*` protocol internally to connect.
 
-It also provides functionality that the JDBC driver implemented in LibreOffice / OpenOffice does not provide, namely:
+It also provides functionality that the JDBC driver implemented in LibreOffice does not provide, namely:
 
 - The management of users, roles (groups) and privileges in Base.
 - The use of the SQL Array type in the queries.
@@ -358,10 +360,10 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 
 ### What has been done for version 1.1.0:
 
-- All Python packages necessary for the extension are now recorded in a [requirements.txt][71] file following [PEP 508][72].
+- All Python packages necessary for the extension are now recorded in a [requirements.txt][72] file following [PEP 508][73].
 - Now if you are not on Windows then the Python packages necessary for the extension can be easily installed with the command:  
   `pip install requirements.txt`
-- Modification of the [Requirement][73] section.
+- Modification of the [Requirement][74] section.
 
 ### What remains to be done for version 1.1.0:
 
@@ -439,6 +441,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice /
 [68]: <https://github.com/artem78>
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
 [70]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
-[71]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
-[72]: <https://peps.python.org/pep-0508/>
-[73]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>
+[71]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
+[72]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
+[73]: <https://peps.python.org/pep-0508/>
+[74]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>

@@ -59,10 +59,10 @@ ___
 ## Prérequis:
 
 jdbcDriverOOo est un pilote JDBC écrit en Java.  
-Son utilisation nécessite [l'installation et la configuration][21] dans LibreOffice / OpenOffice d'un **JRE version 11 ou ultérieure**.  
+Son utilisation nécessite [l'installation et la configuration][21] dans LibreOffice d'un **JRE version 11 ou ultérieure**.  
 Je vous recommande [Adoptium][22] comme source d'installation de Java.
 
-Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement 139538][23]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
+Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement #139538][23]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
 - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
 
@@ -73,6 +73,8 @@ Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utili
 **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Voir journal -> Info système**  
 Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
 `pip install --upgrade <package-name>`
+
+Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][71].
 
 ___
 
@@ -201,7 +203,7 @@ ___
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [bug 132195][39].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][39].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -217,7 +219,7 @@ Afin de ne pas empêcher le pilote JDBC natif de fonctionner, il se charge lors 
 
 mais utilise le protocole `jdbc:*` en interne pour se connecter.
 
-Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice / OpenOffice ne fournit pas, à savoir:
+Il permet également d'offrir des fonctionnalités que le pilote JDBC implémenté dans LibreOffice ne fournit pas, à savoir:
 
 - La gestion des utilisateurs, des roles (groupes) et des privilèges dans Base.
 - L'utilisation du type SQL Array dans les requêtes.
@@ -358,10 +360,10 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.1.0:
 
-- Tous les packages Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][71] suivant la [PEP 508][72].
-- Désormais si vous n'êtes pas sous Windows alors les packages Python nécessaires à l'extension peuvent être facilement installés avec la commande:  
+- Tous les paquets Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][72] suivant la [PEP 508][73].
+- Désormais si vous n'êtes pas sous Windows alors les paquets Python nécessaires à l'extension peuvent être facilement installés avec la commande:  
   `pip install requirements.txt`
-- Modification de la section [Prérequis][73].
+- Modification de la section [Prérequis][74].
 
 ### Que reste-t-il à faire pour la version 1.1.0:
 
@@ -439,6 +441,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [68]: <https://github.com/artem78>
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
 [70]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
-[71]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
-[72]: <https://peps.python.org/pep-0508/>
-[73]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
+[71]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
+[72]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
+[73]: <https://peps.python.org/pep-0508/>
+[74]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
