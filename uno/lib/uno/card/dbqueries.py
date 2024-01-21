@@ -830,25 +830,25 @@ CREATE PROCEDURE "MergeGroup"(IN AID VARCHAR(100),
 
     elif name == 'createMergeGroupMembers':
         query = """\
-CREATE PROCEDURE "MergeGroupMembers"(IN Gid INTEGER,
-                                     DateTime TIMESTAMP(6),
-                                     IN Members VARCHAR(100) ARRAY)
+CREATE PROCEDURE "MergeGroupMembers"(IN GID INTEGER,
+                                     IN DATETIME TIMESTAMP(6),
+                                     IN MEMBERS VARCHAR(100) ARRAY)
   SPECIFIC "MergeGroupMembers_1"
   MODIFIES SQL DATA
   BEGIN ATOMIC
-    DECLARE Index INTEGER DEFAULT 1;
-    DECLARE Cid INTEGER DEFAULT 1;
-    DELETE FROM "GroupCards" WHERE "Group"=Gid; 
-    WHILE Index <= CARDINALITY(Members) DO 
-      SELECT "Card" INTO Cid FROM "Cards" WHERE "Uri"=Members[Index];
-      IF Cid IS NOT NULL THEN
-        MERGE INTO "GroupCards" USING (VALUES(Gid,Cid,DateTime))
-          AS vals(x,y,z) ON "Group"=vals.x AND "Card"=vals.y
-            WHEN MATCHED THEN UPDATE SET "Modified"=vals.z
-            WHEN NOT MATCHED THEN INSERT ("Group","Card","Modified")
-              VALUES vals.x,vals.y,vals.z;
+    DECLARE INDEX INTEGER DEFAULT 1;
+    DECLARE CID INTEGER DEFAULT NULL;
+    DELETE FROM "GroupCards" WHERE "Group" = GID; 
+    WHILE INDEX <= CARDINALITY(MEMBERS) DO 
+      SELECT "Card" INTO CID FROM "Cards" WHERE "Uri" = MEMBERS[INDEX];
+      IF CID IS NOT NULL THEN
+        MERGE INTO "GroupCards" USING (VALUES(GID, CID, DATETIME))
+          AS vals(x, y, z) ON "Group" = vals.x AND "Card" = vals.y
+            WHEN MATCHED THEN UPDATE SET "Modified" = vals.z
+            WHEN NOT MATCHED THEN INSERT ("Group", "Card", "Modified")
+              VALUES vals.x, vals.y, vals.z;
       END IF;
-      SET Index = Index + 1;
+      SET INDEX = INDEX + 1;
     END WHILE;
   END"""
 

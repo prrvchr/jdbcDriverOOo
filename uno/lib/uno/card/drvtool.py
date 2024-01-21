@@ -27,62 +27,58 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
+from com.sun.star.sdbc import SQLException
 
-from ..unotool import getConfiguration
-from ..unotool import getResourceLocation
-from ..unotool import getSimpleFile
+from .database import DataBase
 
-from ..dbconfig  import g_folder
+from .datasource import DataSource
 
-from ..configuration import g_host
-from ..configuration import g_identifier
+from .cardtool import getLogException
+
+from .dbtool import getConnectionUrl
+
+from .unotool import checkVersion
+from .unotool import getExtensionVersion
+
+from .oauth2 import getOAuth2Version
+from .oauth2 import g_extension as g_oauth2ext
+from .oauth2 import g_version as g_oauth2ver
+
+from .jdbcdriver import g_extension as g_jdbcext
+from .jdbcdriver import g_identifier as g_jdbcid
+from .jdbcdriver import g_version as g_jdbcver
+
+from .configuration import g_extension
+from .configuration import g_host
+
+from .dbconfig import g_folder
+from .dbconfig import g_version
 
 import traceback
 
 
-class OptionsModel(unohelper.Base):
-    def __init__(self, ctx):
-        self._ctx = ctx
-        self._config = getConfiguration(ctx, g_identifier, True)
-        folder = g_folder + '/' + g_host
-        location = getResourceLocation(ctx, g_identifier, folder)
-        self._url = location + '.odb'
-        self._factor = 60
-
-    @property
-    def _Timeout(self):
-        timeout = self._config.getByName('ReplicateTimeout')
-        return timeout // self._factor
-    @property
-    def _ViewName(self):
-        return self._config.getByName('AddressBookName')
-
-# OptionsModel getter methods
-    def getViewData(self):
-        return self._Timeout, self._ViewName, self._hasDatasource()
-
-    def getTimeout(self):
-         return self._Timeout
-
-    def getViewName(self):
-        return self._ViewName
-
-    def getDatasourceUrl(self):
-        return self._url
-
-# OptionsModel setter methods
-    def setViewData(self, timeout, view):
-        if timeout != self._Timeout:
-            self._config.replaceByName('ReplicateTimeout', timeout * self._factor)
-        if view != self._ViewName:
-            self._config.replaceByName('AddressBookName', view)
-        if self._config.hasPendingChanges():
-            self._config.commitChanges()
-            return True
-        return False
-
-# OptionsModel private getter methods
-    def _hasDatasource(self):
-        return getSimpleFile(self._ctx).exists(self._url)
+def getDataSource(ctx, logger, source, cls, mtd):
+    oauth2 = getOAuth2Version(ctx)
+    driver = getExtensionVersion(ctx, g_jdbcid)
+    if oauth2 is None:
+        raise getLogException(logger, source, 1003, 1121, cls, mtd, g_oauth2ext, g_extension)
+    elif not checkVersion(oauth2, g_oauth2ver):
+        raise getLogException(logger, source, 1003, 1122, cls, mtd, g_oauth2ext, g_oauth2ver)
+    elif driver is None:
+        raise getLogException(logger, source, 1003, 1121, cls, mtd, g_jdbcext, g_extension)
+    elif not checkVersion(driver, g_jdbcver):
+        raise getLogException(logger, source, 1003, 1122, cls, mtd, g_jdbcext, g_jdbcver)
+    else:
+        path = g_folder + '/' + g_host
+        url = getConnectionUrl(ctx, path)
+        try:
+            database = DataBase(ctx, url)
+        except SQLException as e:
+            raise getLogException(logger, source, 1005, 1123, cls, mtd, url, e.Message)
+        else:
+            if not database.isUptoDate():
+                raise getLogException(logger, source, 1005, 1124, cls, mtd, database.Version, g_version)
+            else:
+                return DataSource(ctx, database)
+    return None
 
