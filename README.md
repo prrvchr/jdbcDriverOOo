@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.1.0][5]
+# version [1.1.1][5]
 
 ## Introduction:
 
@@ -365,7 +365,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
   `pip install requirements.txt`
 - Modification of the [Requirement][74] section.
 
-### What remains to be done for version 1.1.0:
+### What has been done for version 1.1.1:
+
+- The driver no longer uses Bookmarkable ResultSets for performance reasons in LibreOffice Base. This can be changed in the extension options.
+
+### What remains to be done for version 1.1.1:
 
 - Add new languages for internationalization...
 
@@ -397,7 +401,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [24]: <https://prrvchr.github.io/HyperSQLOOo/>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.0#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.1#right>
 [28]: <img/jdbcDriverOOo-1.png>
 [29]: <img/jdbcDriverOOo-2.png>
 [30]: <img/jdbcDriverOOo-3.png>
