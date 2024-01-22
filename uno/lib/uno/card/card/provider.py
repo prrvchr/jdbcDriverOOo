@@ -49,6 +49,10 @@ class Provider(object):
     def supportAddressBook(self):
         return False
 
+    # Currently only vCardOOo does not supports group
+    def supportGroup(self):
+        return True
+
     def parseDateTime(self, timestamp):
         datetime = uno.createUnoStruct('com.sun.star.util.DateTime')
         try:
@@ -118,11 +122,18 @@ class Provider(object):
     def parseCard(self, database):
         raise NotImplementedError
 
-    def raiseForStatus(self, response, source, mtd, code, name, user, url):
+    def raiseForStatus(self, source, response, mtd, code, parameter, user):
         status = response.StatusCode
         msg = response.Text
         response.close()
-        raise getSqlException(self._ctx, source, code, 1601, 'Provider', mtd, name, status, user, url, msg)
+        raise getSqlException(self._ctx, source, code, 1601, 'Provider', mtd,
+                              parameter.Name, status, user, parameter.Url, msg)
+
+    def getLoggerArgs(self, response, mtd, parameter, user):
+        status = response.StatusCode
+        msg = response.Text
+        response.close()
+        return ['Provider', mtd, 201, parameter.Name, status, user, parameter.Url, msg]
 
     # Can be overwritten method
     def syncGroups(self, database, user, addressbook, pages, count):

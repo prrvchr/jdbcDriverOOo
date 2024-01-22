@@ -82,8 +82,10 @@ class Replicator(Thread):
                 users, pages, total = self._syncCard(logger)
                 logger.logprb(INFO, cls, '_syncCard()', 103, users, pages, total)
                 if total > 0:
-                    users, pages, total = self._syncGroup(logger)
-                    logger.logprb(INFO, cls, '_syncGroup()', 104, users, pages, total)
+                    self._provider.parseCard(self._database)
+                    if self._provider.supportGroup():
+                        users, pages, total = self._syncGroup(logger)
+                        logger.logprb(INFO, cls, '_syncGroup()', 104, users, pages, total)
                 self._database.dispose()
                 if self._canceled:
                     continue
@@ -127,7 +129,6 @@ class Replicator(Thread):
         cls, mtd = 'Replicator', '_syncGroup()'
         users = pages = count = 0
         try:
-            self._provider.parseCard(self._database)
             for user in self._users.values():
                 if self._canceled:
                     break
