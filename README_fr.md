@@ -446,6 +446,6 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [69]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
 [70]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
 [71]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
-[72]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/requirements.txt>
+[72]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/requirements.txt>
 [73]: <https://peps.python.org/pep-0508/>
 [74]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
