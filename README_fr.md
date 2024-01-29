@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-# Documentation
+# [![jdbcDriverOOo logo][1]][2] Documentation
 
 **This [document][3] in English.**
 
@@ -139,6 +139,8 @@ Maintenant à vous d'en profiter...
 
 ### Comment mettre à jour le pilote JDBC:
 
+Si vous souhaitez mettre à jour une base de données HsqlDB intégrée (un seul fichier odb), veuillez vous référer à la section: [Comment migrer une base de données intégrée][33].
+
 Il est possible de mettre à jour le pilote JDBC (hsqldb.jar, h2.jar, derbytools.jar) vers une version plus récente.  
 Si vous utilisez HsqlDB comme base de données, procédez comme suit:
 1. Faite une copie (sauvegarde) du dossier contenant votre base de données.
@@ -158,27 +160,27 @@ Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateur
 
 La gestion des utilisateurs de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des utilisateurs**
 
-![jdbcDriverOOo screenshot 6][33]
+![jdbcDriverOOo screenshot 6][34]
 
 La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**  
 Si le privilège est hérité d'un rôle assigné, la case à cocher est de type à trois états.
 
-![jdbcDriverOOo screenshot 7][34]
+![jdbcDriverOOo screenshot 7][35]
 
 ### La gestion des rôles (groupes) dans Base:
 
 La gestion des rôles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
 
-![jdbcDriverOOo screenshot 8][35]
+![jdbcDriverOOo screenshot 8][36]
 
 La gestion des utilisateurs membres du groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Utilisateurs du groupe**
 
-![jdbcDriverOOo screenshot 9][36]
+![jdbcDriverOOo screenshot 9][37]
 
 La gestion des roles assignés au groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Roles du groupe**  
 Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que si le pilote LibreOffice / OpenOffice sous jacent le permet.
 
-![jdbcDriverOOo screenshot 10][37]
+![jdbcDriverOOo screenshot 10][38]
 
 ___
 
@@ -191,7 +193,7 @@ ___
 * Apache OpenOffice 4.1.13 - Lubuntu 22.04
 
 Je vous encourage en cas de problème :confused:  
-de créer un [dysfonctionnement][38]  
+de créer un [dysfonctionnement][20]  
 J'essaierai de le résoudre :smile:
 
 ___
@@ -407,12 +409,12 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [30]: <img/jdbcDriverOOo-3_fr.png>
 [31]: <img/jdbcDriverOOo-4_fr.png>
 [32]: <img/jdbcDriverOOo-5_fr.png>
-[33]: <img/jdbcDriverOOo-6_fr.png>
-[34]: <img/jdbcDriverOOo-7_fr.png>
-[35]: <img/jdbcDriverOOo-8_fr.png>
-[36]: <img/jdbcDriverOOo-9_fr.png>
-[37]: <img/jdbcDriverOOo-10_fr.png>
-[38]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
+[33]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-migrer-une-base-de-donn%C3%A9es-int%C3%A9gr%C3%A9e>
+[34]: <img/jdbcDriverOOo-6_fr.png>
+[35]: <img/jdbcDriverOOo-7_fr.png>
+[36]: <img/jdbcDriverOOo-8_fr.png>
+[37]: <img/jdbcDriverOOo-9_fr.png>
+[38]: <img/jdbcDriverOOo-10_fr.png>
 [39]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
 [40]: <https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912>
 [41]: <http://hsqldb.org/>

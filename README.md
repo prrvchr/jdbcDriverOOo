@@ -139,6 +139,8 @@ Have fun...
 
 ### How to update the JDBC driver:
 
+If you want to update an embedded HsqlDB database (single odb file), please refer to the section: [How to migrate an embedded database][33].
+
 It is possible to update the JDBC driver (hsqldb.jar, h2.jar, derbytools.jar) to a newer version.  
 If you use HsqlDB as database, follow these steps:
 1. Make a copy (backup) of the folder containing your database.
@@ -158,27 +160,27 @@ This driver allows in LibreOffice / OpenOffice Base the management of **users**,
 
 User management of the underlying database is accessible in Base via the menu: **Administration -> User administration**
 
-![jdbcDriverOOo screenshot 6][33]
+![jdbcDriverOOo screenshot 6][34]
 
 The privileges management of the users of the underlying database is accessible in this window by the button: **Change privileges**  
 If the privilege is inherited from an assigned role, the checkbox is a three-state type.
 
-![jdbcDriverOOo screenshot 7][34]
+![jdbcDriverOOo screenshot 7][35]
 
 ### Managing roles (groups) in Base:
 
 The management of the roles (groups) of the underlying database is accessible in Base via the menu: **Administration -> Group administration**
 
-![jdbcDriverOOo screenshot 8][35]
+![jdbcDriverOOo screenshot 8][36]
 
 The management of users who are members of the group of the underlying database is accessible in this window via the button: **Group users**
 
-![jdbcDriverOOo screenshot 9][36]
+![jdbcDriverOOo screenshot 9][37]
 
 The management of roles assigned to the group of the underlying database is accessible in this window via the button: **Group roles**  
 This functionality is an extension of the UNO API and will only be available if the underlying LibreOffice / OpenOffice driver allows it.
 
-![jdbcDriverOOo screenshot 10][37]
+![jdbcDriverOOo screenshot 10][38]
 
 ___
 
@@ -191,7 +193,7 @@ ___
 * Apache OpenOffice 4.1.13 - Lubuntu 22.04
 
 I encourage you in case of problem :confused:  
-to create an [issue][38]  
+to create an [issue][20]  
 I will try to solve it :smile:
 
 ___
@@ -407,12 +409,12 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [30]: <img/jdbcDriverOOo-3.png>
 [31]: <img/jdbcDriverOOo-4.png>
 [32]: <img/jdbcDriverOOo-5.png>
-[33]: <img/jdbcDriverOOo-6.png>
-[34]: <img/jdbcDriverOOo-7.png>
-[35]: <img/jdbcDriverOOo-8.png>
-[36]: <img/jdbcDriverOOo-9.png>
-[37]: <img/jdbcDriverOOo-10.png>
-[38]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
+[33]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-migrate-an-embedded-database>
+[34]: <img/jdbcDriverOOo-6.png>
+[35]: <img/jdbcDriverOOo-7.png>
+[36]: <img/jdbcDriverOOo-8.png>
+[37]: <img/jdbcDriverOOo-9.png>
+[38]: <img/jdbcDriverOOo-10.png>
 [39]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
 [40]: <https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912>
 [41]: <http://hsqldb.org/>
