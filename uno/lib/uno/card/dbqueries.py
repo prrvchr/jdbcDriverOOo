@@ -740,14 +740,18 @@ CREATE PROCEDURE "SelectMaps"()
     # The getTypes query allows to obtain the right label (column) for typed properties
     elif name == 'createSelectTypes':
         query = """\
-CREATE PROCEDURE "SelectTypes"()
+CREATE PROCEDURE "SelectTypes"(IN COMPOSE BOOLEAN)
   SPECIFIC "SelectTypes_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
   BEGIN ATOMIC
     DECLARE Rslt CURSOR WITH RETURN FOR 
       SELECT R."Path", R."Name", P."Path", 
-      ARRAY_AGG(JSON_OBJECT(T."Path" || P2."Path": COALESCE(T."Name", '') || P2."Name")) 
+      CASE WHEN COMPOSE THEN 
+        ARRAY_AGG(JSON_OBJECT(T."Path" || P2."Path": COALESCE(T."Name", '') || P2."Name")) 
+      ELSE
+        ARRAY_AGG(JSON_OBJECT(T."Path": COALESCE(T."Name", '') || P2."Name")) 
+      END
       FROM "Resources" AS R 
       INNER JOIN "Properties" AS P ON R."Resource"=P."Resource" 
       INNER JOIN "Resources" AS R2 ON R."Resource"=R2."Resource" 
@@ -795,7 +799,7 @@ CREATE PROCEDURE "SelectFields"()
 
     elif name == 'createSelectGroups':
         query = """\
-CREATE PROCEDURE "SelectGroups"(IN Aid Integer)
+CREATE PROCEDURE "SelectGroups"(IN Aid INTEGER)
   SPECIFIC "SelectGroups_1"
   READS SQL DATA
   DYNAMIC RESULT SETS 1
@@ -983,7 +987,7 @@ CREATE PROCEDURE "MergeCardGroups"(IN Book INTEGER,
     elif name == 'getLists':
         query = 'CALL "SelectLists"()'
     elif name == 'getTypes':
-        query = 'CALL "SelectTypes"()'
+        query = 'CALL "SelectTypes"(?)'
     elif name == 'getMaps':
         query = 'CALL "SelectMaps"()'
     elif name == 'getTmps':
