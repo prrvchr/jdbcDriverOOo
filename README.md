@@ -378,6 +378,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
   - Assign a description to table columns.
   - To modify the type of a column if the casting (CAST) of the data contained in this column allows it, otherwise you will be asked to replace this column which results in the deletion of the data...
 - All DDL commands (ie: `CREATE TABLE...`, `ALTER TABLE...`) that Base generates are now logged.
+- SQLite driver updated to latest version 3.45.1.0.
 - Many other fix...
 
 ### What remains to be done for version 1.1.2:

@@ -378,6 +378,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
   - D'attribuez une description aux colonnes des tables.
   - De modifier le type d'une colonne si le transtypage (CAST) des données contenues dans cette colonne le permet, sinon il vous sera proposé de remplacer cette colonne ce qui entraîne la suppression des données...
 - Toutes les commandes DDL (ie: `CREATE TABLE...`, `ALTER TABLE...`) générées par Base sont désormais enregistrées dans la journalisation.
+- Pilote SQLite mis à jour vers la dernière version 3.45.1.0.
 - Beaucoup d'autres correctifs...
 
 ### Que reste-t-il à faire pour la version 1.1.2:

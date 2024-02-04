@@ -522,7 +522,7 @@
             <node oor:name="Properties">
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/sqlite-jdbc-3.42.0.0.jar</value>
+                        <value>%origin%/driver/sqlite-jdbc-3.45.1.0.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
