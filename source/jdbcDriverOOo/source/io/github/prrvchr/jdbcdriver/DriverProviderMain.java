@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -35,8 +35,6 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
-import com.sun.star.uno.AnyConverter;
-import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -52,8 +50,15 @@ public abstract class DriverProviderMain
     private static String m_subprotocol;
 
     static final boolean m_warnings = true;
-    private java.sql.Connection m_connection = null;
-    protected List<String> m_properties = List.of("user", "password");
+    private java.sql.Connection _connection = null;
+    private boolean m_SupportsTransactions = true;
+    private boolean m_IsCatalogAtStart = true;
+    private String m_CatalogSeparator = "";
+    private String m_IdentifierQuoteString = "";
+    private boolean m_SupportsColumnDescription = false;
+    private boolean m_IsAutoRetrievingEnabled = false;
+    private boolean m_IsResultSetUpdatable = false;
+    private String m_AutoRetrievingStatement = "";
 
     // The constructor method:
     public DriverProviderMain(String subprotocol)
@@ -81,26 +86,10 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean isResultSetUpdatable(XInterface component)
-    throws java.sql.SQLException
+    public List<String> getAlterViewQueries(String view,
+                                            String command)
     {
-        java.sql.DatabaseMetaData metadata = m_connection.getMetaData();
-        return metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                                     java.sql.ResultSet.CONCUR_UPDATABLE);
-    }
-
-    @Override
-    public boolean supportGeneratedKeys(XInterface component)
-    throws java.sql.SQLException
-    {
-        return  m_connection.getMetaData().supportsGetGeneratedKeys();
-    }
-
-    @Override
-    public String[] getAlterViewQueries(String view,
-                                        String command)
-    {
-        String[] queries = {String.format("ALTER VIEW %s AS %s", view, command)};
+        List<String> queries = Arrays.asList(String.format("ALTER VIEW %s AS %s", view, command));
         return queries;
     }
 
@@ -252,9 +241,9 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getDropViewQuery()
+    public String getDropViewQuery(String view)
     {
-        return "DROP VIEW %s";
+        return String.format("DROP VIEW %s", view);
     }
 
     @Override
@@ -272,9 +261,12 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getRevokeTableOrViewPrivileges()
+    public String getRevokeTableOrViewPrivileges(List<String> privileges,
+                                                 String table,
+                                                 String grantee)
     {
-        return "REVOKE %s ON %s FROM %s";
+        String separator = ", ";
+        return String.format("REVOKE %s ON %s FROM %s", String.join(separator, privileges), table, grantee);
     }
 
     @Override
@@ -324,18 +316,76 @@ public abstract class DriverProviderMain
 
     @Override
     public void setConnection(final String location,
-                              final PropertyValue[] info,
+                              final PropertyValue[] infos,
                               String level)
         throws java.sql.SQLException
     {
-        String url = getConnectionUrl(location, level);
-        m_connection = DriverManager.getConnection(url, getConnectionProperties(m_properties, info));
+        try {
+            String url = getConnectionUrl(location, level);
+            _connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
+            java.sql.DatabaseMetaData metadata = _connection.getMetaData();
+            m_SupportsTransactions = metadata.supportsTransactions();
+            m_IsCatalogAtStart = metadata.isCatalogAtStart();
+            m_CatalogSeparator = metadata.getCatalogSeparator();
+            m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
+            m_SupportsColumnDescription = (boolean) getConnectionProperties(infos, "SupportsColumnDescription", false);
+            if (_getAutoRetrieving(metadata, infos)) {
+                m_AutoRetrievingStatement = (String) getConnectionProperties(infos, "AutoRetrievingStatement", "");
+                m_IsAutoRetrievingEnabled = !m_AutoRetrievingStatement.isBlank();
+            }
+            m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                                                           java.sql.ResultSet.CONCUR_UPDATABLE);
+        }
+        catch (Exception e) {
+            System.out.println("DriverProvider.setConnection() ERROR: " + e.getMessage());
+            for (StackTraceElement trace : e.getStackTrace()) {
+                System.out.println(trace);
+            }
+        }
     }
+
+    private boolean _getAutoRetrieving(java.sql.DatabaseMetaData metadata,
+                                       PropertyValue[] infos)
+        throws java.sql.SQLException
+    {
+        if (metadata.supportsGetGeneratedKeys()) {
+            return (boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", false);
+        }
+        return false;
+    }
+    // DatabaseMetadata cache data
+    public boolean supportsTransactions() {
+        return m_SupportsTransactions;
+    }
+    public boolean isCatalogAtStart() {
+        return m_IsCatalogAtStart;
+    }
+    public boolean isResultSetUpdatable() {
+        return m_IsResultSetUpdatable;
+    }
+    public String getCatalogSeparator() {
+        return m_CatalogSeparator;
+    }
+    public String getIdentifierQuoteString() {
+        return m_IdentifierQuoteString;
+    }
+
+    // connection infos cache data
+    public boolean supportsColumnDescription() {
+        return m_SupportsColumnDescription;
+    }
+    public boolean isAutoRetrievingEnabled() {
+        return m_IsAutoRetrievingEnabled;
+    }
+    public String getAutoRetrievingStatement() {
+        return m_AutoRetrievingStatement;
+    }
+
 
     @Override
     public java.sql.Connection getConnection()
     {
-        return m_connection;
+        return _connection;
     }
 
     @Override
@@ -346,27 +396,67 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public Properties getConnectionProperties(List<String> list,
-                                              PropertyValue[] infos)
+    public Properties getJavaConnectionProperties(PropertyValue[] infos)
     {
         Properties properties = new Properties();
-        System.out.println("DriverProviderMain.getConnectionProperties() 1");
         for (PropertyValue info : infos) {
-            String name = info.Name;
-            Object value = info.Value;
-            if (AnyConverter.isArray(value)) {
-                Object[] objects = (Object[]) AnyConverter.toArray(value);
-                System.out.println("DriverProviderMain.getConnectionProperties() 2 Name: " + name + " - Value: " + Arrays.toString(objects));
+            if (info.Name.equals("JavaDriverClass") ||
+                info.Name.equals("JavaDriverClassPath") ||
+                info.Name.equals("SystemProperties") ||
+                info.Name.equals("CharSet") ||
+                info.Name.equals("AppendTableAliasName") ||
+                info.Name.equals("AddIndexAppendix") ||
+                info.Name.equals("FormsCheckRequiredFields") ||
+                info.Name.equals("GenerateASBeforeCorrelationName") ||
+                info.Name.equals("EscapeDateTime") ||
+                info.Name.equals("ParameterNameSubstitution") ||
+                info.Name.equals("IsPasswordRequired") ||
+                info.Name.equals("IsAutoRetrievingEnabled") ||
+                info.Name.equals("AutoRetrievingStatement") ||
+                info.Name.equals("UseCatalogInSelect") ||
+                info.Name.equals("UseSchemaInSelect") ||
+                info.Name.equals("AutoIncrementCreation") ||
+                info.Name.equals("Extension") ||
+                info.Name.equals("NoNameLengthLimit") ||
+                info.Name.equals("EnableSQL92Check") ||
+                info.Name.equals("EnableOuterJoinEscape") ||
+                info.Name.equals("BooleanComparisonMode") ||
+                info.Name.equals("IgnoreCurrency") ||
+                info.Name.equals("TypeInfoSettings") ||
+                info.Name.equals("IgnoreDriverPrivileges") ||
+                info.Name.equals("ImplicitCatalogRestriction") ||
+                info.Name.equals("ImplicitSchemaRestriction") ||
+                info.Name.equals("SupportsTableCreation") ||
+                info.Name.equals("UseJava") ||
+                info.Name.equals("Authentication") ||
+                info.Name.equals("PreferDosLikeLineEnds") ||
+                info.Name.equals("PrimaryKeySupport") ||
+                info.Name.equals("RespectDriverResultSetType") ||
+                info.Name.equals("SupportsColumnDescription") ||
+                info.Name.equals("DriverLoggerLevel") ||
+                info.Name.equals("GeneratedValues") ||
+                info.Name.equals("InMemoryDataBase") ||
+                info.Name.equals("Type"))
+            {
+                continue;
             }
-            else {
-                System.out.println("DriverProviderMain.getConnectionProperties() 3 Name: " + name + " - Value: " + value);
-            }
-            if (list.contains(name)) {
-                System.out.println("DriverProviderMain.getConnectionProperties() 4 Name: " + name + " - Value: " + value);
-                properties.setProperty(name, AnyConverter.toString(value));
-            }
+            System.out.println("DriverProvider.getJavaConnectionProperties() ERROR*************: " + info.Name);
+            properties.setProperty(info.Name, String.format("%s", info.Value));
         }
         return properties;
+    }
+
+    public Object getConnectionProperties(PropertyValue[] infos,
+                                          String name,
+                                          Object value)
+    {
+        for (PropertyValue info : infos) {
+            System.out.println("DriverProviderMain.getConnectionProperties() Name: " + info.Name + " - Value: " + info.Value);
+            if (name.equals(info.Name)) {
+                value = info.Value;
+            }
+        }
+        return value;
     }
 
     @Override

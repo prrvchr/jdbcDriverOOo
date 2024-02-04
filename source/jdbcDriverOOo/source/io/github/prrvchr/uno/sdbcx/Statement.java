@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -81,10 +81,10 @@ public final class Statement
     throws SQLException
     {
         ResultSetBase resultset = null;
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getObjectId());
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;
     }

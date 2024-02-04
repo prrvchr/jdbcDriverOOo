@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -29,7 +29,9 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.logging.LogLevel;
 
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
@@ -58,7 +60,10 @@ public class TableContainer
                               String type,
                               String remarks)
     {
-        return new Table(m_connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
+        Table table = new Table(m_connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
+        return table;
     }
 
 

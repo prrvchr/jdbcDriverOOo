@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,7 +27,6 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.List;
 
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
@@ -35,7 +34,6 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XDrop;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
@@ -43,7 +41,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
@@ -64,50 +62,59 @@ public abstract class TableContainerBase
     {
         super(connection, sensitive, names);
         m_connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.TABLES);
+        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.TABLECONTAINER);
     }
 
-    public int getObjectId()
+    public ConnectionLog getLogger()
     {
-        return m_logger.getObjectId();
+        return m_logger;
     }
 
     public void dispose()
     {
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_DISPOSING);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_TABLES_DISPOSING);
         super.dispose();
     }
 
     @Override
-    protected String _getElementName(XPropertySet object)
-        throws SQLException
+    public String _getElementName(List<String> names,
+                                  XPropertySet descriptor)
+        throws SQLException, ElementExistException
     {
-        NameComponents components = DBTools.getTableNameComponents(m_connection, object);
-        return DBTools.composeTableName(m_connection, components.getCatalog(), components.getSchema(), components.getTable(), false, ComposeRule.InDataManipulation);
+        String name = DBTools.composeTableName(m_connection, descriptor, ComposeRule.InTableDefinitions, false);
+        System.out.println("TableContainer._getElementName() table name: " + name);
+        if (names.contains(name)) {
+            throw new ElementExistException();
+        }
+        return name;
     }
-
+    
     @Override
     public XPropertySet _appendElement(XPropertySet descriptor,
                                        String name)
         throws SQLException
     {
-        _createTable(descriptor);
-        return _createElement(name);
+        XPropertySet table = null;
+        if (_createTable(descriptor, name)) {
+            table = _createElement(name);
+        }
+        return table;
     }
 
-    private void _createTable(XPropertySet descriptor)
+    private boolean _createTable(XPropertySet descriptor, String name)
         throws SQLException
     {
-        String sql = DBTools.getCreateTableQuery(m_connection, descriptor, null, "(M,D)");
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_TABLECONTAINER_CREATE_TABLE, sql);
-        try {
-            java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();
-            statement.execute(sql);
-            statement.close();
+        String table = DBTools.composeTableName(m_connection, descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
+        List<String> queries = DBTools.getCreateTableQueries(m_connection, descriptor, table, isCaseSensitive());
+        String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
+        if (!description.isEmpty()) {
+            queries.add(DBTools.getCommentQuery("TABLE", table, description));
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
+        if (!queries.isEmpty()) {
+            return DBTools.executeDDLQueries(m_connection, queries, m_logger, this.getClass().getName(),
+                                             "_createTable", Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name);
         }
+        return false;
     }
 
     @Override
@@ -119,10 +126,8 @@ public abstract class TableContainerBase
         try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
             if (result.next()) {
                 String type = result.getString(4);
-                System.out.println("TableContainerBase._createElement() 1 Type: " + type);
                 type = result.wasNull() ? "" : m_connection.getProvider().getTableType(type);
                 String remarks = result.getString(5);
-                System.out.println("TableContainerBase._createElement() 1 Remarks: " + remarks);
                 remarks = result.wasNull() ? "" : remarks;
                 table = _getTable(component, type, remarks);
             }
@@ -148,32 +153,25 @@ public abstract class TableContainerBase
         throws SQLException
     {
         try {
-            Object object = _getElement(index);
-            NameComponents nameComponents = DBTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
-            boolean isView = false;
-            XPropertySet propertySet = UnoRuntime.queryInterface(XPropertySet.class, object);
-            if (propertySet != null) {
-                isView = AnyConverter.toString(propertySet.getPropertyValue(PropertyIds.TYPE.name)).equals("VIEW");
+            boolean isview = false;
+            XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, _getElement(index));
+            if (descriptor != null) {
+                isview = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPE).equals("VIEW");
             }
-            if (isView) {
-                XDrop dropView = UnoRuntime.queryInterface(XDrop.class, m_connection.getViews());
-                String unquotedName = DBTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
-                                                                     nameComponents.getTable(), false, ComposeRule.InDataManipulation);
-                dropView.dropByName(unquotedName);
+            if (isview) {
+                XDrop views = UnoRuntime.queryInterface(XDrop.class, m_connection.getViews());
+                views.dropByName(name);
                 return;
             }
-            String composedName = DBTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
-                    nameComponents.getTable(), true, ComposeRule.InDataManipulation);
-            String sql = String.format(m_connection.getProvider().getDropTableQuery(), composedName);
-            System.out.println("TableContainer._removeElement() Query: " + sql);
-            java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement();
-            statement.execute(sql);
-            statement.close();
+            NameComponents nameComponents = DBTools.qualifiedNameComponents(m_connection, name, ComposeRule.InDataManipulation);
+            String table = DBTools.composeTableName(m_connection, nameComponents.getCatalog(), nameComponents.getSchema(),
+                                                    nameComponents.getTable(), isCaseSensitive(), ComposeRule.InDataManipulation);
+            String query = String.format(m_connection.getProvider().getDropTableQuery(), table);
+            System.out.println("TableContainer._removeElement() Query: " + query);
+            DBTools.executeDDLQuery(m_connection, query, m_logger,  this.getClass().getName(),
+                                     "_removeElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
         }
-        catch (WrappedTargetException | UnknownPropertyException | NoSuchElementException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
-        }
-        catch (java.sql.SQLException e) {
+        catch (WrappedTargetException | NoSuchElementException e) {
             throw UnoHelper.getSQLException(e, m_connection);
         }
     }

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -37,7 +37,7 @@ public enum PropertyIds {
     FETCHSIZE(8, "FetchSize"),
     ESCAPEPROCESSING(9, "EscapeProcessing"),
     USEBOOKMARKS (10, "UseBookmarks"),
-    
+
     // Column
     NAME (11, "Name"),
     TYPE (12, "Type"),
@@ -87,7 +87,7 @@ public enum PropertyIds {
     FIELDTYPE (56, "FieldType"),
     VALUE (57, "Value"),
     ACTIVE_CONNECTION (58, "ActiveConnection"),
-    
+
     ALIGN (59, "Align"),
     WIDTH (60, "Width"),
     POSITION (61, "Position"),

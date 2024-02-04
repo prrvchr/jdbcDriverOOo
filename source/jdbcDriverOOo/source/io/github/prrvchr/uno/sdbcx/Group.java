@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -30,76 +30,31 @@ import java.util.List;
 
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.PrivilegeObject;
-import com.sun.star.sdbcx.XAuthorizable;
-import com.sun.star.sdbcx.XGroupsSupplier;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.XUsersSupplier;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
 
 public class Group
-    extends Descriptor
-    implements XUsersSupplier,
-               XGroupsSupplier,
-               XAuthorizable
+    extends Role
+    implements XUsersSupplier
 {
 
     private static final String m_service = Group.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Group"};
 
-    private Connection m_connection;
     private UserContainer m_users;
-    private GroupContainer m_groups;
-
 
     // The constructor method:
     public Group(Connection connection,
                  boolean sensitive,
                  String name)
     {
-        super(m_service, m_services, sensitive, name);
-        m_connection = connection;
-    }
-
-
-    // com.sun.star.sdbcx.XAuthorizable:
-    @Override
-    public int getGrantablePrivileges(String name, int type) throws SQLException {
-        int privileges = 0;
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            List<String> grantees = new ArrayList<>(List.of(getName()));
-            privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection, grantees, name);
-        }
-        return privileges;
-    }
-
-    @Override
-    public int getPrivileges(String name, int type) throws SQLException {
-        int privileges = 0;
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            List<String> grantees = new ArrayList<>(List.of(getName()));
-            privileges = DBTools.getTableOrViewPrivileges(m_connection, grantees, name);
-        }
-        return privileges;
-    }
-
-    @Override
-    public void grantPrivileges(String name, int type, int privilege) throws SQLException {
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            DBTools.grantTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-        }
-    }
-
-    @Override
-    public void revokePrivileges(String name, int type, int privilege) throws SQLException {
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            DBTools.revokeTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-        }
+        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.GROUP);
     }
 
 
@@ -118,8 +73,7 @@ public class Group
         return null;
     }
 
-
-    private UserContainer _refreshUsers()
+    private Users _refreshUsers()
         throws ElementExistException
     {
         ArrayList<String> users = new ArrayList<>();
@@ -135,44 +89,28 @@ public class Group
         catch (java.sql.SQLException e) {
             UnoHelper.getSQLException(e, m_connection);
         }
-        return new GroupUserContainer(m_connection, isCaseSensitive(), users, getName());
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLE);
+        Users role = new Users(m_connection, isCaseSensitive(), users, this);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLE_ID, role.getLogger().getObjectId());
+        return role;
     }
 
-
-    // com.sun.star.sdbcx.XGroupsSupplier:
+    // Private methods:
     @Override
-    public XNameAccess getGroups() {
-        try {
-            if (m_groups == null) {
-                m_groups = _refreshGroups();
-            }
-            return m_groups;
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Group.getGroups() ERROR: " + UnoHelper.getStackTrace(e));
-        }
-        return null;
+    protected void _addGrantees(List<String> grantees) {
+        // TODO: pass
     }
 
-
-    private GroupContainer _refreshGroups()
-        throws ElementExistException
+    @Override
+    protected int _getGrantPrivilegesResource()
     {
-        ArrayList<String> groups = new ArrayList<>();
-        String sql = m_connection.getProvider().getUserGroupsQuery();
-        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
-            statement.setString(1, getName());
-            java.sql.ResultSet result = statement.executeQuery();
-            while(result.next()) {
-                String group = result.getString(1);
-                groups.add(group);
-            }
-            result.close();
-        }
-        catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
-        }
-        return new UserGroupContainer(m_connection, isCaseSensitive(), groups, getName());
+        return Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY;
+    }
+
+    @Override
+    protected int _getRevokePrivilegesResource()
+    {
+        return Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY;
     }
 
 }

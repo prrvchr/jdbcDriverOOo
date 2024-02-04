@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -74,7 +74,7 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
                     return m_IsBookmarkable;
                 }
             }, null);
@@ -82,7 +82,7 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
                     return m_CanUpdateInsertedRows;
                 }
             }, null);
@@ -111,7 +111,7 @@ public abstract class ResultSetSuper
                 compare = CompareBookmark.EQUAL;
             }
         }
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
         return compare;
     }
 
@@ -120,7 +120,7 @@ public abstract class ResultSetSuper
     throws SQLException
     {
         int row = getRow();
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, Integer.toString(row));
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, Integer.toString(row));
         return row;
     }
 
@@ -155,7 +155,7 @@ public abstract class ResultSetSuper
                 moved = relative(count);
             }
             int bookmark = AnyConverter.toInt(object);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(bookmark), Boolean.toString(moved));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(bookmark), Boolean.toString(moved));
         }
         catch (IllegalArgumentException e) { }
         return moved;
@@ -169,11 +169,11 @@ public abstract class ResultSetSuper
         try {
             int bookmark = AnyConverter.toInt(object);
             if (m_insert) {
-                m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT, Integer.toString(bookmark));
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT, Integer.toString(bookmark));
                 moveToCurrentRow();
             }
             moved = absolute(bookmark);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
         }
         catch (IllegalArgumentException e) { }
         return moved;

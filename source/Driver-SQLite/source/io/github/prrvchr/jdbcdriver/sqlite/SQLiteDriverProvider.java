@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -26,6 +26,8 @@
 package io.github.prrvchr.jdbcdriver.sqlite;
 
 import java.sql.Types;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -86,12 +88,11 @@ public final class SQLiteDriverProvider
     }
 
     @Override
-    public String[] getAlterViewQueries(String view,
-                                        String command)
+    public List<String> getAlterViewQueries(String view,
+                                            String command)
     {
-        String drop = String.format("DROP VIEW %s", view);
-        String create = String.format("CREATE VIEW %s AS %s", view, command);
-        String[] queries = {drop, create};
+        List<String> queries = Arrays.asList(String.format(String.format("DROP VIEW %s", view),
+                                             String.format("CREATE VIEW %s AS %s", view, command)));
         return queries;
     }
 

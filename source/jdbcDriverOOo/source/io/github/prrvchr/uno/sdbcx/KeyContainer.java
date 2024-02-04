@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -73,7 +73,7 @@ public class KeyContainer
             try {
                 System.out.println("sdbcx.KeyContainer() 3 Columns count: " + cols.getCount());
                 for (int i = 0; i < cols.getCount(); i++) {
-                    XPropertySet properties = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, cols.getByIndex(i));
+                    XPropertySet properties = UnoRuntime.queryInterface(XPropertySet.class, cols.getByIndex(i));
                     System.out.println("sdbcx.KeyContainer() 4 Columns name: " + AnyConverter.toString(properties.getPropertyValue(PropertyIds.NAME.name)));
                 }
             }
@@ -107,11 +107,29 @@ public class KeyContainer
         System.out.println("sdbcx.KeyContainer._createElement() 4");
         return key;
     }
+
+    @Override
+    public String _getElementName(List<String> names,
+                                  XPropertySet descriptor)
+        throws SQLException, ElementExistException
+    {
+        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        if (names.contains(name)) {
+            throw new ElementExistException();
+        }
+        return _createKey(descriptor, name);
+    }
+
     @Override
     protected XPropertySet _appendElement(XPropertySet descriptor,
                                           String name)
-        throws SQLException,
-               ElementExistException
+        throws SQLException
+    {
+        return _createElement(name);
+    }
+
+    private String _createKey(XPropertySet descriptor, String name)
+            throws SQLException, ElementExistException
     {
         if (_getConnection() == null) {
             return null;
@@ -140,8 +158,8 @@ public class KeyContainer
             }
             
             java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            String tableName = DBTools.doComposeTableName(_getConnection(), m_table.m_CatalogName, m_table.m_SchemaName,m_table.getName(), isCaseSensitive(), ComposeRule.InTableDefinitions);
+            String quote = _getConnection().getProvider().getIdentifierQuoteString();
+            String tableName = DBTools.composeTableName(_getConnection(), m_table.m_CatalogName, m_table.m_SchemaName, m_table.getName(), isCaseSensitive(), ComposeRule.InTableDefinitions);
 
             List<String> cols = new ArrayList<String>();
             XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
@@ -152,7 +170,7 @@ public class KeyContainer
             }
             String sql = String.format("ALTER TABLE %s ADD %s (%s)", tableName, keyTypeString, String.join(",", cols));
             if (keyType == KeyType.FOREIGN) {
-                String quotedTableName = DBTools.quoteTableName(_getConnection(), referencedName, ComposeRule.InTableDefinitions);
+                String quotedTableName = DBTools.quoteTableName(_getConnection(), referencedName, ComposeRule.InTableDefinitions, isCaseSensitive());
                 cols = new ArrayList<String>();
                 for (int i = 0; i < columns.getCount(); i++) {
                     XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
@@ -187,7 +205,7 @@ public class KeyContainer
             }
             result.close(); 
             m_keys.put(newname, new Key(m_table, isCaseSensitive(), newname, referencedName, keyType, updateRule, deleteRule, new ArrayList<String>()));
-            return _createElement(newname);
+            return newname;
         }
         catch (WrappedTargetException | UnknownPropertyException | IndexOutOfBoundsException | PropertyVetoException e) {
             throw UnoHelper.getSQLException(e, m_table);
@@ -229,7 +247,7 @@ public class KeyContainer
         }
         try {
             XPropertySet key = (XPropertySet) AnyConverter.toObject(XPropertySet.class, _getElement(index));
-            String tableName = DBTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, true);
+            String tableName = DBTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive());
             final int keyType;
             if (key != null) {
                 keyType = AnyConverter.toInt(key.getPropertyValue(PropertyIds.TYPE.name));
@@ -374,7 +392,7 @@ public class KeyContainer
         System.out.println("sdbcx.ColumnContainer() 1");
         try {
             while (iter.hasMoreElements()) {
-                XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
+                XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
                 System.out.println("sdbcx.ColumnContainer() 2"); 
                 String name = (String) descriptor.getPropertyValue("Name");
                 Key key = new Key(m_Connection, table, descriptor, name);

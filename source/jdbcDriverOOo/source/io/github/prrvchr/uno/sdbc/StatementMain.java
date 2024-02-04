@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -34,16 +34,16 @@ import com.sun.star.sdbc.XCloseable;
 import com.sun.star.sdbc.XGeneratedResultSet;
 import com.sun.star.sdbc.XMultipleResults;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
@@ -66,7 +66,7 @@ public abstract class StatementMain
     protected ConnectionBase m_Connection;
     protected final ConnectionLog m_logger;
     protected java.sql.Statement m_Statement = null;
-    protected XStatement m_GeneratedStatement;
+    protected java.sql.Statement m_GeneratedStatement = null;
     protected String m_Sql;
 
     private String m_CursorName = "";
@@ -90,13 +90,13 @@ public abstract class StatementMain
         m_service = service;
         m_services = services;
         m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.STATEMENT);
+        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.STATEMENT);
         registerProperties();
     }
 
-    public int getObjectId()
+    public ConnectionLog getLogger()
     {
-        return m_logger.getObjectId();
+        return m_logger;
     }
 
     private void registerProperties() {
@@ -209,6 +209,10 @@ public abstract class StatementMain
     protected abstract void _createStatement() throws SQLException;
     protected abstract XResultSet _getResultSet(java.sql.ResultSet resultset) throws SQLException;
 
+    protected boolean _isInsertQuery()
+    {
+        return m_Sql.toUpperCase().startsWith("INSERT ");
+    }
 
     protected void _setStatement()
         throws java.sql.SQLException
@@ -302,6 +306,7 @@ public abstract class StatementMain
     private synchronized void _setMaxRows(int value)
         throws WrappedTargetException
     {
+        System.out.println("StatementMain._setMaxRows() Value: " + value);
         m_MaxRows = value;
         if (m_Statement != null) {
             try {
@@ -338,65 +343,53 @@ public abstract class StatementMain
     private synchronized void _setResultSetConcurrency(int value)
     {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
         m_ResultSetConcurrency = value;
         if (m_Statement != null) {
-            try {
-                m_Statement.close();
-            }
-            catch (java.sql.SQLException e) {
-                UnoHelper.getSQLException(e, this);
-            }
-            finally {
-                m_Statement = null;
-            }
+            m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY_ERROR, value);
+        }
+        else {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
         }
     }
     private int _getResultSetConcurrency()
     {
+        int value = m_ResultSetConcurrency;
         if (m_Statement != null) {
             try {
-                int value = m_Statement.getResultSetConcurrency();
-                m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
-                return value;
+                value = m_Statement.getResultSetConcurrency();
             }
             catch (java.sql.SQLException e) {
                 UnoHelper.getSQLException(e, this);
             }
         }
-        return m_ResultSetConcurrency;
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
+        return value;
     }
 
     private synchronized void _setResultSetType(int value)
     {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
         m_ResultSetType = value;
         if (m_Statement != null) {
-            try {
-                m_Statement.close();
-            }
-            catch (java.sql.SQLException e) {
-                UnoHelper.getSQLException(e, this);
-            }
-            finally {
-                m_Statement = null;
-            }
+            m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE_ERROR, value);
+        }
+        else {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
         }
     }
     private int _getResultSetType()
     {
+        int value = m_ResultSetType;
         if (m_Statement != null) {
             try {
-                int value = m_Statement.getResultSetType();
-                m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
-                return value;
+                value = m_Statement.getResultSetType();
             }
             catch (java.sql.SQLException e) {
                 UnoHelper.getSQLException(e, this);
             }
         }
-        return m_ResultSetType;
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
+        return value;
     }
 
 
@@ -441,18 +434,21 @@ public abstract class StatementMain
     @Override
     protected synchronized void postDisposing()
     {
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
         super.postDisposing();
-        if (m_Statement != null) {
-            try {
+        try {
+            if (m_Statement != null) {
                 m_Statement.close();
             }
-            catch (java.sql.SQLException e) {
-                m_logger.logp(LogLevel.WARNING, e);
+            if (m_GeneratedStatement != null) {
+                m_GeneratedStatement.close();
             }
-            m_Statement = null;
         }
-        UnoHelper.disposeComponent(m_GeneratedStatement);
+        catch (java.sql.SQLException e) {
+            m_logger.logp(LogLevel.WARNING, e);
+        }
+        //m_Statement = null;
+        //m_GeneratedStatement = null;
     }
 
 
@@ -481,25 +477,27 @@ public abstract class StatementMain
 
     // com.sun.star.sdbc.XGeneratedResultSet:
     @Override
-    public XResultSet getGeneratedValues()
-            throws SQLException
+    public XResultSet getGeneratedValues() throws SQLException
     {
-        System.out.println("StatementMain.getGeneratedValues() ******************************************");
-        _createStatement();
+        checkDisposed();
         XResultSet result = null;
-        try {
-            result = _getResultSet(m_Statement.getGeneratedKeys());
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        if (result == null) {
-            if (m_Connection.isAutoRetrievingEnabled()) {
-                String statement = m_Connection.getTransformedGeneratedStatement(m_Sql);
-                if (!statement.isEmpty()) {
-                    UnoHelper.disposeComponent(m_GeneratedStatement);
-                    m_GeneratedStatement = m_Connection.createStatement();
-                    result = m_GeneratedStatement.executeQuery(statement);
+        if (_isInsertQuery()) {
+            String table = DBTools.getQueryTableName(m_Sql, " INTO ");
+            if (!table.isBlank()) {
+                String keys = DBTools.getGeneratedKeys(m_Statement, table);
+                if (!keys.isBlank()) {
+                    String query = String.format(m_Connection.getProvider().getAutoRetrievingStatement(), table, keys);
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES, query);
+                    try {
+                        if (m_GeneratedStatement != null) {
+                            m_GeneratedStatement.close();
+                        }
+                        m_GeneratedStatement = m_Connection.getProvider().getConnection().createStatement();
+                        result = new ResultSet(m_Connection, m_GeneratedStatement.executeQuery(query));
+                    }
+                    catch (java.sql.SQLException e) {
+                        throw UnoHelper.getSQLException(e, this);
+                    }
                 }
             }
         }
@@ -543,6 +541,5 @@ public abstract class StatementMain
             throw UnoHelper.getSQLException(e, this);
         }
     }
-
 
 }

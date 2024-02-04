@@ -21,7 +21,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -245,7 +245,7 @@ public class DataBaseTableHelper
                             keys.put(oldFkName, key);
                         }
                         String referencedName = DBTools.composeTableName(connection, catalogReturned, schemaReturned, nameReturned,
-                                                                               false, ComposeRule.InDataManipulation);
+                                                                         sensitive, ComposeRule.InDataManipulation);
                         keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
                         keyProperties.columnNames.add(foreignKeyColumn);
                         oldFkName = fkName;

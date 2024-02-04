@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -29,9 +29,14 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -41,6 +46,7 @@ public class GroupContainer
 {
 
     protected final Connection m_connection;
+    private final ConnectionLog m_logger; 
 
     // The constructor method:
     public GroupContainer(Connection connection,
@@ -48,40 +54,67 @@ public class GroupContainer
                           List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
-        m_connection = connection;
+        this(connection, sensitive, names, LoggerObjectType.GROUPCONTAINER);
     }
 
+    public GroupContainer(Connection connection,
+                          boolean sensitive,
+                          List<String> names,
+                          LoggerObjectType type)
+        throws ElementExistException
+    {
+        super(connection, sensitive, names);
+        m_connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), type);
+    }
+
+    public ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+
+    @Override
+    public String _getElementName(List<String> names,
+                                  XPropertySet descriptor)
+        throws SQLException, ElementExistException
+    {
+        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        if (names.contains(name)) {
+            throw new ElementExistException();
+        }
+        return name;
+    }
 
     @Override
     protected XPropertySet _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        _createGroup(descriptor, name);
-        return _createElement(name);
+        XPropertySet group = null;
+        if (_createGroup(descriptor, name)) {
+            group = _createElement(name);
+        }
+        return group;
     }
 
-    protected void _createGroup(XPropertySet descriptor,
-                                String name)
+    protected boolean _createGroup(XPropertySet descriptor,
+                                   String name)
         throws SQLException
     {
-        String sql = DBTools.getCreateGroupQuery(m_connection, descriptor, name, isCaseSensitive());
-        System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + sql);
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            statement.execute(sql);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
-        }
-
+        String query = DBTools.getCreateGroupQuery(m_connection, descriptor, name, isCaseSensitive());
+        System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
+        return DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
+                                       "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
     }
 
     @Override
     protected XPropertySet _createElement(String name)
         throws SQLException
     {
-        return new Group(m_connection, isCaseSensitive(), name);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
+        Group goup = new Group(m_connection, isCaseSensitive(), name);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, goup.getLogger().getObjectId());
+        return goup;
     }
 
     @Override

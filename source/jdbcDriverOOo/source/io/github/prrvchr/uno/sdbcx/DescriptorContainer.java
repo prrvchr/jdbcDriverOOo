@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -25,9 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.List;
+
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
@@ -64,6 +69,18 @@ public abstract class DescriptorContainer
     @Override
     protected void _refresh()
     {
+    }
+
+    @Override
+    public String _getElementName(List<String> names,
+                                  XPropertySet descriptor)
+        throws SQLException, ElementExistException
+    {
+        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        if (names.contains(name)) {
+            throw new ElementExistException();
+        }
+        return name;
     }
     
     @Override

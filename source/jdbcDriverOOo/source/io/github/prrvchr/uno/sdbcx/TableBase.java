@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -41,11 +41,17 @@ import com.sun.star.sdbcx.XAlterTable;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.sdbcx.XIndexesSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -61,6 +67,8 @@ public abstract class TableBase
                XDataDescriptorFactory
 {
 
+    protected final ConnectionSuper m_connection;
+    protected final ConnectionLog m_logger; 
     private ColumnContainerBase m_columns = null;
     private KeyContainer m_keys = null;
     private IndexContainer m_indexes = null;
@@ -72,10 +80,13 @@ public abstract class TableBase
     // The constructor method:
     public TableBase(String service,
                      String[] services,
+                     ConnectionSuper connection,
                      boolean sensitive,
                      String name)
     {
         super(service, services, sensitive, name);
+        m_connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.TABLE);
         registerProperties();
     }
 
@@ -109,6 +120,11 @@ public abstract class TableBase
                     return m_Type;
                 }
             }, null);
+    }
+
+    public ConnectionLog getLogger()
+    {
+        return m_logger;
     }
 
     
@@ -167,19 +183,54 @@ public abstract class TableBase
 
     // com.sun.star.sdbcx.XAlterTable:
     @Override
-    public void alterColumnByIndex(int index, XPropertySet properties)
+    public void alterColumnByIndex(int index, XPropertySet newcolumn)
         throws SQLException, IndexOutOfBoundsException
     {
-        // TODO Auto-generated method stub
-        System.out.println("sdbcx.TableBase.alterColumnByIndex()");
+        XPropertySet oldcolumn = null;
+        try {
+            oldcolumn = (XPropertySet) AnyConverter.toObject(XPropertySet.class, m_columns.getByIndex(index));
+        }
+        catch (WrappedTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println("sdbcx.TableBase.alterColumnByIndex() 1");
+        if (oldcolumn != null) {
+            System.out.println("sdbcx.TableBase.alterColumnByIndex() 2");
+            String table = DBTools.composeTableName(getConnection(), this, ComposeRule.InTableDefinitions, false);
+            System.out.println("TableBase.alterColumnByIndex() table: " + table);
+            List<String> queries = DBTools.getAlterColumnQueries(getConnection(), this, oldcolumn, newcolumn, isCaseSensitive());
+            if (!queries.isEmpty()) {
+                DBTools.executeDDLQueries(getConnection(), queries, m_logger, this.getClass().getName(),
+                                          "alterColumnByIndex", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table);
+                m_columns = _refreshColumns();
+            }
+        }
     }
 
     @Override
-    public void alterColumnByName(String name, XPropertySet properties)
+    public void alterColumnByName(String name, XPropertySet newcolumn)
         throws SQLException, NoSuchElementException
     {
-        // TODO Auto-generated method stub
+        XPropertySet oldcolumn = null;
+        try {
+            oldcolumn = (XPropertySet) AnyConverter.toObject(XPropertySet.class, m_columns.getByName(name));
+        }
+        catch (WrappedTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         System.out.println("sdbcx.TableBase.alterColumnByName()");
+        if (oldcolumn != null) {
+            String table = DBTools.composeTableName(getConnection(), this, ComposeRule.InTableDefinitions, false);
+            System.out.println("TableBase.alterColumnByName() table: " + table);
+            List<String> queries = DBTools.getAlterColumnQueries(getConnection(), this, oldcolumn, newcolumn, isCaseSensitive());
+            if (!queries.isEmpty()) {
+                DBTools.executeDDLQueries(getConnection(), queries, m_logger, this.getClass().getName(),
+                                          "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table);
+                m_columns = _refreshColumns();
+            }
+        }
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -246,11 +297,6 @@ public abstract class TableBase
     public String getSchema()
     {
         return m_SchemaName.isEmpty() ? null : m_SchemaName;
-    }
-
-    public String getTypeCreatePattern()
-    {
-        return "";
     }
 
     public abstract ConnectionSuper getConnection();

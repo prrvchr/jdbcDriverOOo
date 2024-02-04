@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -53,62 +53,69 @@ import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 public class ConnectionLog
     extends ResourceBasedEventLogger
 {
-    public static enum ObjectType
-    {
-        CONNECTION,
-        METADATA,
-        STATEMENT,
-        RESULTSET,
-        TABLES,
-        VIEWS,
-        GROUPS,
-        USERS
-    }
 
     private static final AtomicInteger[] uniqueIds;
 
     static
     {
-        uniqueIds = new AtomicInteger[ObjectType.values().length];
+        uniqueIds = new AtomicInteger[LoggerObjectType.values().length];
         for (int i = 0; i < uniqueIds.length; i++) {
             uniqueIds[i] = new AtomicInteger(0);
         }
     }
 
-    private final int m_id;
+    private final String m_id;
 
     public ConnectionLog(ResourceBasedEventLogger logger,
-                         ObjectType type)
+                         LoggerObjectType type)
     {
         super(logger);
-        m_id = uniqueIds[type.ordinal()].getAndIncrement();
+        m_id = String.format("%s #%s", type.name, uniqueIds[type.ordinal()].getAndIncrement());
     }
 
-    public int getObjectId() {
+    public String getObjectId() {
         return m_id;
     }
 
     @Override
-    public boolean log(int level,
-                       int id,
-                       Object... arguments)
+    public boolean logrb(int level,
+                         int id,
+                         Object... arguments)
     {
-        Object[] args = new Object[arguments.length + 1];
-        args[0] = m_id;
-        System.arraycopy(arguments, 0, args, 1, arguments.length);
-        return super.log(level, id, args);
+        return super.logrb(level, id, _getArgs(arguments));
     }
 
     @Override
-    public boolean logp(int level,
-                        int id,
-                        Object... arguments)
+    public boolean logprb(int level,
+                          int id,
+                          Object... arguments)
+    {
+        StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+        return super.logprb(level, caller, id, _getArgs(arguments));
+    }
+
+    @Override
+    public boolean logprb(int level,
+                          String cls,
+                          String method,
+                          int id,
+                          Object... arguments)
+    {
+        return super.logprb(level, cls, method, id, _getArgs(arguments));
+    }
+
+    @Override
+    public String getStringResource(int id, Object... arguments)
+    {
+        return super.getStringResource(id, _getArgs(arguments));
+    }
+
+    private Object[] _getArgs(Object[] arguments)
     {
         Object[] args = new Object[arguments.length + 1];
         args[0] = m_id;
         System.arraycopy(arguments, 0, args, 1, arguments.length);
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-        return super.logp(level, caller, id, args);
+        return args;
     }
 
 }

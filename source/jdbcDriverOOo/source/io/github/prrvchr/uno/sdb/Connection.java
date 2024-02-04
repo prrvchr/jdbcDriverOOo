@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -54,7 +54,6 @@ import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Group;
 import io.github.prrvchr.uno.sdbcx.GroupContainer;
 import io.github.prrvchr.uno.sdbcx.Statement;
-import io.github.prrvchr.uno.sdbcx.TableContainer;
 import io.github.prrvchr.uno.sdbcx.User;
 import io.github.prrvchr.uno.sdbcx.UserContainer;
 
@@ -213,30 +212,30 @@ public final class Connection
 
     protected XStatement _getStatement()
     {
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         m_statements.put(statement, statement);
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getObjectId());
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
         throws SQLException
     {
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getObjectId());
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
         throws SQLException
     {
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getObjectId());
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
@@ -266,7 +265,9 @@ public final class Connection
             System.out.println("sdb.Connection._refreshUsers() 2");
             result.close();
             if (m_Users == null) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
                 m_Users = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, m_Users.getLogger().getObjectId());
             }
             else {
                 m_Users.refill(names);
@@ -293,7 +294,9 @@ public final class Connection
             }
             result.close();
             if (m_Groups == null) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
                 m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, m_Groups.getLogger().getObjectId());
             }
             else {
                 m_Groups.refill(names);
@@ -307,9 +310,9 @@ public final class Connection
     protected TableContainer _getTableContainer(List<String> names)
         throws ElementExistException
     {
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLECONTAINER);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
         TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLECONTAINER_ID, tables.getObjectId());
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID, tables.getLogger().getObjectId());
         return tables;
     }
 

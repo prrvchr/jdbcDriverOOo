@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -26,6 +26,8 @@
 package io.github.prrvchr.jdbcdriver.h2;
 
 import java.sql.Types;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.star.container.NoSuchElementException;
@@ -92,10 +94,10 @@ public final class H2DriverProvider
     }
 
     @Override
-    public String[] getAlterViewQueries(String view,
-                                        String command)
+    public List<String> getAlterViewQueries(String view,
+                                            String command)
     {
-        String[] queries = {String.format("CREATE OR REPLACE VIEW %s AS %s", view, command)};
+        List<String> queries = Arrays.asList(String.format("CREATE OR REPLACE VIEW %s AS %s", view, command));
         return queries;
     }
 
@@ -126,9 +128,9 @@ public final class H2DriverProvider
     }
 
     @Override
-    public String getDropViewQuery()
+    public String getDropViewQuery(String view)
     {
-        return "DROP VIEW %s IF EXISTS;";
+        return String.format("DROP VIEW %s IF EXISTS;", view);
     }
 
     @Override

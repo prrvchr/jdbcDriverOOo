@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XIndexAccess;
@@ -43,6 +42,7 @@ import com.sun.star.uno.UnoRuntime;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
@@ -138,46 +138,74 @@ public class IndexContainer
         return primary;
     }
 
+    @Override
+    public String _getElementName(List<String> names,
+                                  XPropertySet descriptor)
+        throws SQLException, ElementExistException
+    {
+        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        if (names.contains(name)) {
+            throw new ElementExistException();
+        }
+        return name;
+    }
 
     @Override
     protected XPropertySet _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
+        XPropertySet index = null;
+        if (_createIndex(descriptor, name)) {
+            index = _createElement(name);
+        }
+        return index;
+        
+    }
+
+    protected boolean _createIndex(XPropertySet descriptor,
+                                   String name)
+        throws SQLException
+    {
         try {
             if (_getConnection() == null) {
-                return null;
+                return false;
             }
-            java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
-            String quote = metadata.getIdentifierQuoteString();
-            boolean isUnique = AnyConverter.toBoolean(descriptor.getPropertyValue(PropertyIds.ISUNIQUE.name));
-            String composedName = DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InIndexDefinitions, false, false, true);
-            StringBuilder columnsText = new StringBuilder();
-            String separator = "";
-            XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-            XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
+            String separator = ", ";
+            String quote = _getConnection().getProvider().getIdentifierQuoteString();
+            boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
+            String table = DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InIndexDefinitions, false, false, isCaseSensitive());
+            XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+            XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
+            List<String> indexes = new ArrayList<String>();
             for (int i = 0; i < columns.getCount(); i++) {
-                columnsText.append(separator);
-                separator = ", ";
                 XPropertySet column = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                columnsText.append(DBTools.quoteName(quote, AnyConverter.toString(column.getPropertyValue(PropertyIds.NAME.name))));
+                String index = DBTools.quoteName(quote, DBTools.getDescriptorStringValue(column, PropertyIds.NAME), isCaseSensitive());
                 // FIXME: ::dbtools::getBooleanDataSourceSetting( m_pTable->getConnection(), "AddIndexAppendix" );
-                boolean isAscending = AnyConverter.toBoolean(column.getPropertyValue(PropertyIds.ISASCENDING.name));
-                columnsText.append(isAscending ? " ASC" : " DESC");
+                String ascending = DBTools.getDescriptorBooleanValue(column, PropertyIds.ISASCENDING) ? " ASC" : " DESC";
+                indexes.add(index + ascending);
             }
-            String sql = String.format("CREATE %s INDEX %s ON %s (%s)",
-                    isUnique ? "UNIQUE" : "",
-                    name.isEmpty() ? "" : DBTools.quoteName(quote, name),
-                    composedName,
-                    columnsText.toString());
-            java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
-            statement.execute(sql);
-            return _createElement(name);
+            if (!indexes.isEmpty()) {
+                StringBuilder buffer = new StringBuilder("CREATE ");
+                if (unique) buffer.append("UNIQUE ");
+                buffer.append("INDEX ");
+                if (!name.isEmpty()) {
+                    buffer.append(DBTools.quoteName(quote, name, isCaseSensitive()));
+                    buffer.append(" ON ");
+                }
+                else {
+                    buffer.append("ON ");
+                }
+                buffer.append(table);
+                buffer.append(" (");
+                buffer.append(String.join(separator, indexes));
+                buffer.append(")");
+                return DBTools.executeDDLQuery(_getConnection(), buffer.toString(), m_Table.getLogger(),
+                                               "IndexContainer", "_appendElement", Resources.STR_LOG_INDEX_CREATE_QUERY);
+            }
+            return false;
         }
-        catch (WrappedTargetException | UnknownPropertyException | IndexOutOfBoundsException e) {
-            throw UnoHelper.getSQLException(e, m_Table);
-        }
-        catch (java.sql.SQLException e) {
+        catch (WrappedTargetException | IndexOutOfBoundsException e) {
             throw UnoHelper.getSQLException(e, m_Table);
         }
     }
@@ -191,25 +219,19 @@ public class IndexContainer
             return;
         }
         String name;
+        @SuppressWarnings("unused")
         String schema = "";
         int len = elementName.indexOf('.');
         if (len >= 0) {
             schema = elementName.substring(0, len);
         }
         name = elementName.substring(len + 1);
-        try {
-            String composedName = DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InTableDefinitions, false, false, true);
-            @SuppressWarnings("unused")
-            String indexName = DBTools.composeTableName(_getConnection(), "", schema, name, true, ComposeRule.InIndexDefinitions);
-            String sql = String.format("ALTER TABLE %s DROP CONSTRAINT %s", composedName, name);
-            java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
-            System.out.println("sdbcx.IndexContainer._removeElement() 1 Query: '" + sql + "' - Table: " + composedName);
-            statement.execute(sql);
-            statement.close();
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_Table);
-        }
+        StringBuilder buffer = new StringBuilder("ALTER TABLE ");
+        buffer.append(DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive()));
+        buffer.append(" DROP CONSTRAINT ");
+        buffer.append(name);
+        DBTools.executeDDLQuery(_getConnection(), buffer.toString(), m_Table.getLogger(),
+                                 "IndexContainer", "_removeElement", Resources.STR_LOG_INDEX_REMOVE_QUERY);
     }
 
     public ConnectionSuper _getConnection()
@@ -278,7 +300,7 @@ public class IndexContainer
         System.out.println("sdbcx.ColumnContainer() 1");
         try {
             while (iter.hasMoreElements()) {
-                XPropertySet descriptor = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
+                XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
                 System.out.println("sdbcx.ColumnContainer() 2"); 
                 String name = (String) descriptor.getPropertyValue("Name");
                 Index index = new Index(m_Connection, descriptor, name);

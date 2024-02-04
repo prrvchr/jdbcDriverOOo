@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.List;
+
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
@@ -34,10 +36,12 @@ import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
@@ -49,7 +53,8 @@ public class View
     private static final String m_service = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
 
-    private ConnectionSuper m_Connection;
+    private final ConnectionSuper m_Connection;
+    private final ConnectionLog m_logger; 
 
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
@@ -67,6 +72,7 @@ public class View
     {
         super(m_service, m_services, sensitive, name);
         m_Connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.VIEW);
         m_CatalogName = catalog;
         m_SchemaName = schema;
         m_Command = command;
@@ -106,21 +112,26 @@ public class View
             }, null);
     }
 
+    public ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+
     // com.sun.star.sdbcx.XAlterView
     @Override
     public void alterCommand(String command)
         throws SQLException
     {
-        try (java.sql.Statement statement = m_Connection.getProvider().getConnection().createStatement()){
+        if (!m_Command.equals(command)) {
             System.out.println("sdbcx.View.alterCommand() 1 : " + command);
-            String view = DBTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, false, false, true);
-            for (String sql : m_Connection.getProvider().getAlterViewQueries(view, command)) {
-                statement.execute(sql);
+            String view = DBTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, isCaseSensitive());
+            List<String> queries =  m_Connection.getProvider().getAlterViewQueries(view, command);
+            if (!queries.isEmpty()) {
+                String name = DBTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, false);
+                DBTools.executeDDLQueries(m_Connection, queries, m_logger, this.getClass().getName(),
+                                          "alterCommand", Resources.STR_LOG_VIEW_ALTER_QUERY, name);
+                m_Command = command;
             }
-            m_Command = command;
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_Connection);
         }
     }
 

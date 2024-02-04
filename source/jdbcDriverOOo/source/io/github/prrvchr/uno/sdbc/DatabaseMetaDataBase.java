@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -50,7 +50,7 @@ import io.github.prrvchr.jdbcdriver.CustomResultSet;
 import io.github.prrvchr.jdbcdriver.CustomResultSetMetaData;
 import io.github.prrvchr.jdbcdriver.CustomColumn;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -74,15 +74,15 @@ public abstract class DatabaseMetaDataBase
     {
         m_Connection = connection;
         m_Metadata = metadata;
-        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.METADATA);
+        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.METADATA);
     }
 
-    public int getObjectId()
+    public ConnectionLog getLogger()
     {
-        return m_logger.getObjectId();
+        return m_logger;
     }
 
-    // com.sun.star.sdbc.XDatabaseMetaData2:
+    // com.sun.star.sdbc.XDatabaseMetaData2
     @Override
     public PropertyValue[] getConnectionInfo()
     {
@@ -445,7 +445,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             String value = m_Metadata.getDriverVersion();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_DRIVER_VERSION, value);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_DRIVER_VERSION, value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -3137,10 +3137,10 @@ public abstract class DatabaseMetaDataBase
         throws SQLException
     {
         ResultSetBase resultset = null;
-        m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
         if (result != null) {
             resultset = new ResultSet(m_Connection, result);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getObjectId());
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;
     }

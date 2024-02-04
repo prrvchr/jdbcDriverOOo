@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ContainerEvent;
 import com.sun.star.container.ElementExistException;
@@ -54,12 +53,10 @@ import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.sdbcx.XDrop;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.lang.ServiceInfo;
@@ -301,8 +298,7 @@ public abstract class Container
 
     @Override
     public void dropByName(String name)
-        throws SQLException,
-               NoSuchElementException
+        throws SQLException, NoSuchElementException
     {
         System.out.println("sdbcx.Container.dropByName() 1 Class: " + this.getClass().getName() + " - Name: " + name);
         synchronized (m_lock) {
@@ -326,34 +322,24 @@ public abstract class Container
     // com.sun.star.sdbcx.XAppend
     @Override
     public void appendByDescriptor(XPropertySet descriptor)
-        throws SQLException,
-               ElementExistException
+        throws SQLException, ElementExistException
     {
-        System.out.println("sdbcx.Container.appendByDescriptor() 1");
         ContainerEvent event;
         Iterator<?> iterator;
         synchronized (m_lock) {
-            String name = _getElementName(descriptor);
-            System.out.println("sdbcx.Container.appendByDescriptor() 2: Class: " + this.getClass().getName() + " - Name: " + name);
-            if (m_Elements.containsKey(name)) {
-                 throw new ElementExistException();
-            }
-            System.out.println("sdbcx.Container.appendByDescriptor() 3");
+            
+            String name = _getElementName(m_Names, descriptor);
             XPropertySet element = _appendElement(descriptor, name);
-            System.out.println("sdbcx.Container.appendByDescriptor() 4");
             if (element == null) {
-                System.out.println("sdbcx.Container.appendByDescriptor() ERROR ***************************" + name);
                 String error = String.format("Table: %s can't be created!!!", name);
                 throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
-            name = _getElementName(element);
-            XPropertySet value = m_Elements.get(name);
-            if (value == null) {
-                System.out.println("sdbcx.Container.appendByDescriptor() ***************************" + name);
-                // XXX: This can happen when the derived class does not include it itself
-                m_Elements.put(name, element);
-                m_Names.add(name);
+            if (m_Elements.get(name) != null) {
+                throw new ElementExistException();
             }
+            m_Elements.put(name, element);
+            m_Names.add(name);
+
             // notify our container listeners
             event = new ContainerEvent(this, name, element, null);
             iterator = m_container.iterator();
@@ -361,18 +347,6 @@ public abstract class Container
         while (iterator.hasNext()) {
             XContainerListener listener = (XContainerListener) iterator.next();
             listener.elementInserted(event);
-        }
-        System.out.println("sdbcx.Container.appendByDescriptor() 5");
-    }
-
-    protected String _getElementName(XPropertySet object)
-        throws SQLException
-    {
-        try {
-            return AnyConverter.toString(object.getPropertyValue(PropertyIds.NAME.name));
-        }
-        catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
-            throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -413,9 +387,9 @@ public abstract class Container
 
 
     // Abstract protected methods
-    protected abstract XPropertySet _appendElement(XPropertySet descriptor, String name)
-        throws SQLException,
-               ElementExistException;
+    protected abstract String _getElementName(List<String> names, XPropertySet descriptor)
+            throws SQLException, ElementExistException;
+    protected abstract XPropertySet _appendElement(XPropertySet descriptor, String name) throws SQLException;
     protected abstract XPropertySet _createElement(String name) throws SQLException;
     protected abstract void _removeElement(int index, String name) throws SQLException;
     protected abstract void _refresh();

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -55,7 +55,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.Tools;
-import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -110,15 +110,15 @@ public abstract class ConnectionBase
         m_usebookmark = usebookmark;
         m_autoretrieving.setAutoRetrievingEnabled(_isAutoRetrievingEnabled());
         m_autoretrieving.setAutoRetrievingStatement(_getAutoRetrievingStatement());
-        m_logger = new ConnectionLog(logger, ObjectType.CONNECTION);
-        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
+        m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
+        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing()
     {
-        m_logger.logp(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
+        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
             for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
@@ -187,9 +187,9 @@ public abstract class ConnectionBase
         checkDisposed();
         DatabaseMetaDataBase metadata = null;
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
             metadata = m_provider.getDatabaseMetaData(this);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getObjectId());
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getLogger().getObjectId());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -413,11 +413,6 @@ public abstract class ConnectionBase
     public ConnectionLog getLogger()
     {
         return m_logger;
-    }
-
-    public int getObjectId()
-    {
-        return m_logger.getObjectId();
     }
 
     public String getUrl()

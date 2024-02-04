@@ -1,10 +1,7 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -25,37 +22,59 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.uno.sdbcx;
 
-import uno
-import unohelper
+import java.util.List;
 
-from com.sun.star.uno import XAdapter
-from com.sun.star.uno import XInterface
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.container.ElementExistException;
+import com.sun.star.sdbc.SQLException;
 
-#from weakref import ref
-import traceback
+import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.sdb.Connection;
 
 
-class Adapter(XAdapter):
-    def __init__(self, adapted, references):
-        print("Adapter.__init__() 1")
-        self._adapted = ref(adapted)
-        print("Adapter.__init__() 2")
-        self._references = references
-        print("Adapter.__init__() 3")
+public class Users
+    extends UserContainer
+{
 
-# XAdapter
-    def queryAdapted(self):
-        return self._adapted()
-    def addReference(self, reference):
-        self._references.append(reference)
-    def removeReference(self, reference):
-        if reference in self._references:
-            self._references.remove(reference)
+    private final Group m_Group;
 
-# XInterface
-    def acquire(self):
-        pass
-    def release(self):
-        pass
+    // The constructor method:
+    public Users(Connection connection,
+                    boolean sensitive,
+                    List<String> names,
+                    Group group)
+        throws ElementExistException
+    {
+        super(connection, sensitive, names, LoggerObjectType.USERS);
+        m_Group = group;
+    }
+
+    @Override
+    protected boolean _createUser(XPropertySet descriptor,
+                                  String name)
+        throws SQLException
+    {
+        String query = DBTools.getGrantRoleQuery(m_connection, m_Group.getName(), name, isCaseSensitive());
+        System.out.println("sdbcx.GroupUserContainer._createUser() SQL: " + query);
+        return DBTools.executeDDLQuery(m_connection, query, m_Group.getLogger(), this.getClass().getName(),
+                                       "_createUser", Resources.STR_LOG_USERROLE_CREATE_USER_QUERY, name);
+    }
+
+    @Override
+    protected void _removeElement(int index,
+                                  String name)
+        throws SQLException
+    {
+        String query = DBTools.getRevokeRoleQuery(m_connection, m_Group.getName(), name, isCaseSensitive());
+        System.out.println("sdbcx.GroupUserContainer._removeElement() SQL: " + query);
+        DBTools.executeDDLQuery(m_connection, query, m_Group.getLogger(), this.getClass().getName(),
+                                "_removeElement", Resources.STR_LOG_USERROLE_REMOVE_USER_QUERY, name);
+    }
+
+
+}

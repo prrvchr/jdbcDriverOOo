@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -63,7 +63,7 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.ConnectionLog.ObjectType;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.beans.PropertySet;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
@@ -89,12 +89,22 @@ public abstract class ResultSetBase
     private final String[] m_services;
     protected ConnectionBase m_Connection;
     protected final ConnectionLog m_logger;
-    private StatementMain m_Statement;
     protected java.sql.ResultSet m_ResultSet;
+    private StatementMain m_Statement;
     protected boolean m_insert = false;
 
 
     // The constructor method:
+
+    public ResultSetBase(String service,
+                         String[] services,
+                         ConnectionBase connection,
+                         java.sql.ResultSet resultset)
+        throws SQLException
+    {
+        this(service, services, connection, resultset, null);
+    }
+
     public ResultSetBase(String service,
                          String[] services,
                          ConnectionBase connection,
@@ -105,10 +115,15 @@ public abstract class ResultSetBase
         m_service = service;
         m_services = services;
         m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), ObjectType.RESULTSET);
-        m_Statement = statement;
         m_ResultSet = resultset;
+        m_Statement = statement;
+        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.RESULTSET);
         registerProperties();
+    }
+
+    public ConnectionLog getLogger()
+    {
+        return m_logger;
     }
 
     private void registerProperties() {
@@ -170,7 +185,7 @@ public abstract class ResultSetBase
             if (cursor == null) {
                 cursor = "";
             }
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
             return cursor;
         }
         catch (java.sql.SQLException e) {
@@ -182,7 +197,7 @@ public abstract class ResultSetBase
     {
         try {
             int direction = m_ResultSet.getFetchDirection();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
             return direction;
         }
         catch (java.sql.SQLException e) {
@@ -194,7 +209,7 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
             m_ResultSet.setFetchDirection(direction);
         }
         catch (java.sql.SQLException e) {
@@ -207,7 +222,7 @@ public abstract class ResultSetBase
     {
         try {
             int size = m_ResultSet.getFetchSize();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
             return size;
         }
         catch (java.sql.SQLException e) {
@@ -219,7 +234,7 @@ public abstract class ResultSetBase
         throws WrappedTargetException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
             m_ResultSet.setFetchSize(size);
         }
         catch (java.sql.SQLException e) {
@@ -232,7 +247,7 @@ public abstract class ResultSetBase
     {
         try {
             int concurrency = m_ResultSet.getConcurrency();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
             return concurrency;
         }
         catch (java.sql.SQLException e) {
@@ -245,7 +260,7 @@ public abstract class ResultSetBase
     {
         try {
             int type = m_ResultSet.getType();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
             return type;
         }
         catch (java.sql.SQLException e) {
@@ -254,18 +269,16 @@ public abstract class ResultSetBase
         
     }
 
-    public int getObjectId()
-    {
-        return m_logger.getObjectId();
-    }
-
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing()
     {
-        // FIXME: If we use logging here then it may produce Fatal exception: Signal 11 (SIGSEGV)
-        // FIXME: m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
+        if (m_Statement != null) {
+            // FIXME: If we use logging and this ResultSet come from DatabaseMetaData
+            // FIXME: then it may produce Fatal exception: Signal 11 (SIGSEGV)
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
+        }
         super.postDisposing();
         if (m_ResultSet != null) {
             try {
@@ -307,7 +320,7 @@ public abstract class ResultSetBase
     {
         try {
             boolean moved = m_ResultSet.absolute(row);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row), Boolean.toString(moved));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row), Boolean.toString(moved));
             return moved;
         }
         catch (java.sql.SQLException e) {
@@ -431,7 +444,7 @@ public abstract class ResultSetBase
     {
         try {
             boolean next = m_ResultSet.next();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
             return next;
         }
         catch (java.sql.SQLException e) {
@@ -467,7 +480,7 @@ public abstract class ResultSetBase
     {
         try {
             boolean moved = m_ResultSet.relative(row);
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row), Boolean.toString(moved));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row), Boolean.toString(moved));
             return moved;
         }
         catch (java.sql.SQLException e) {
@@ -480,7 +493,7 @@ public abstract class ResultSetBase
     {
         try {
             boolean deleted = m_ResultSet.rowDeleted();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
             return deleted;
         }
         catch (java.sql.SQLException e) {
@@ -493,7 +506,7 @@ public abstract class ResultSetBase
     {
         try {
             boolean inserted = m_ResultSet.rowInserted();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
             return inserted;
         }
         catch (java.sql.SQLException e) {
@@ -506,7 +519,7 @@ public abstract class ResultSetBase
     {
         try {
             boolean updated = m_ResultSet.rowUpdated();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
             return updated;
         }
         catch (java.sql.SQLException e) {
@@ -559,7 +572,7 @@ public abstract class ResultSetBase
     {
         try {
             m_ResultSet.insertRow();
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW, Boolean.toString(m_ResultSet.rowInserted()));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW, Boolean.toString(m_ResultSet.rowInserted()));
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -570,7 +583,7 @@ public abstract class ResultSetBase
     public void updateRow() throws SQLException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
             m_ResultSet.updateRow();
         }
         catch (java.sql.SQLException e) {
@@ -582,7 +595,7 @@ public abstract class ResultSetBase
     public void deleteRow() throws SQLException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
             m_ResultSet.deleteRow();
         }
         catch (java.sql.SQLException e) {
@@ -594,7 +607,7 @@ public abstract class ResultSetBase
     public void cancelRowUpdates() throws SQLException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
             // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
             // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
             // FIXME: this method is called on a closed result set; the result set concurrency is CONCUR_READ_ONLY 
@@ -616,7 +629,7 @@ public abstract class ResultSetBase
     public void moveToInsertRow() throws SQLException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
             m_ResultSet.moveToInsertRow();
             m_insert = true;
         }
@@ -629,7 +642,7 @@ public abstract class ResultSetBase
     public void moveToCurrentRow() throws SQLException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENTROW);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENTROW);
             m_ResultSet.moveToCurrentRow();
             m_insert = false;
         }
@@ -821,7 +834,7 @@ public abstract class ResultSetBase
             if (value == null) {
                 value = "";
             }
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString", Integer.toString(index));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString", Integer.toString(index));
             return value;
         }
         catch (java.sql.SQLException e) {
@@ -959,7 +972,7 @@ public abstract class ResultSetBase
     public void updateString(int index, String value) throws SQLException
     {
         try {
-            m_logger.logp(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_PARAMETER, "updateString", Integer.toString(index), value);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_PARAMETER, "updateString", Integer.toString(index), value);
             m_ResultSet.updateString(index, value);
         }
         catch (java.sql.SQLException e) {

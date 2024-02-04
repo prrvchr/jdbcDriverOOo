@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -31,7 +31,6 @@ import java.util.Properties;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -55,15 +54,29 @@ public interface DriverProvider
                               String level)
         throws java.sql.SQLException;
 
+    // DataBaseMetadata cache data
+    public boolean supportsTransactions();
+    public boolean isCatalogAtStart();
+    public boolean isResultSetUpdatable();
+    public String getCatalogSeparator();
+    public String getIdentifierQuoteString();
+
     public boolean isCaseSensitive(String string);
 
-    public boolean isResultSetUpdatable(XInterface component)
-        throws java.sql.SQLException;
+    // Does the underlying database driver support Commenting Objects (ie:COMMENT ON TABLE..)
+    // Default value is false. see: http://hsqldb.org/doc/2.0/guide/guide.html#dbc_commenting
+    public boolean supportsColumnDescription();
 
-    public boolean supportGeneratedKeys(XInterface component)
-        throws java.sql.SQLException;
+    // Does the underlying database driver support java.sql.Statement.getGeneratedValues()
+    // Default value is false.
+    public boolean isAutoRetrievingEnabled();
 
-    public String[] getAlterViewQueries(String view, String command);
+    // If the underlying database driver support java.sql.Statement.getGeneratedValues()
+    // You must provide the SQL SELECT command which will be used (ie: SELECT * FROM %s WHERE %s)
+    // The name of the table as well as the predicates will be provided by the driver
+    public String getAutoRetrievingStatement();
+
+    public List<String> getAlterViewQueries(String view, String command);
 
     public int getDataType(int type);
 
@@ -91,7 +104,7 @@ public interface DriverProvider
 
     public String getDropTableQuery();
 
-    public String getDropViewQuery();
+    public String getDropViewQuery(String view);
 
     public String getDropColumnQuery(ConnectionBase connection,
                                      ColumnBase column);
@@ -113,8 +126,11 @@ public interface DriverProvider
 
     public String getLoggingLevel(XHierarchicalNameAccess driver);
 
-    public Properties getConnectionProperties(List<String> list,
-                                              PropertyValue[] info);
+    public Properties getJavaConnectionProperties(PropertyValue[] infos);
+
+    public Object getConnectionProperties(PropertyValue[] infos,
+                                          String name,
+                                          Object value);
 
     public void setSystemProperties(String level)
         throws SQLException;
@@ -122,7 +138,9 @@ public interface DriverProvider
     public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
 
-    public String getRevokeTableOrViewPrivileges();
+    public String getRevokeTableOrViewPrivileges(List<String> privileges,
+                                                 String table,
+                                                 String grantee);
 
     public String getRevokeRoleQuery();
 

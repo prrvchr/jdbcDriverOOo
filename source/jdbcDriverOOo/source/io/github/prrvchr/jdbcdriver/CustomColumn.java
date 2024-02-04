@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -321,172 +321,173 @@ public class CustomColumn{
         final Type type = AnyConverter.getType(any);
         
         switch (type.getTypeClass().getValue()) {
-        case TypeClass.VOID_value:
-            setNull();
-            break;
-        case TypeClass.BOOLEAN_value: {
-            boolean value = false;
-            try {
-                value = AnyConverter.toBoolean(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
+            case TypeClass.VOID_value: {
+                setNull();
+                break;
             }
-            setBoolean(value);
-            break;
-        }
-        case TypeClass.CHAR_value: {
-            char value = 0;
-            try {
-                value = AnyConverter.toChar(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setString(Character.toString(value));
-            break;
-        }
-        case TypeClass.STRING_value: {
-            String value = "";
-            try {
-                value = AnyConverter.toString(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setString(value);
-            break;
-        }
-        case TypeClass.FLOAT_value: {
-            float value = 0.0f;
-            try {
-                value = AnyConverter.toFloat(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setFloat(value);
-            break;
-        }
-        case TypeClass.DOUBLE_value: {
-            double value = 0.0;
-            try {
-                value = AnyConverter.toDouble(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setDouble(value);
-            break;
-        }
-        case TypeClass.BYTE_value: {
-            byte value = 0;
-            try {
-                value = AnyConverter.toByte(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setInt8(value);
-            break;
-        }
-        case TypeClass.SHORT_value: {
-            short value = 0;
-            try {
-                AnyConverter.toShort(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setInt16(value);
-            break;
-        }
-        case TypeClass.UNSIGNED_SHORT_value: {
-            short value = 0;
-            try {
-                AnyConverter.toUnsignedShort(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setInt16(value);
-            setSigned(false);
-            break;
-        }
-        case TypeClass.LONG_value: {
-            int value = 0;
-            try {
-                value = AnyConverter.toInt(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setInt32(value);
-            break;
-        }
-        case TypeClass.UNSIGNED_LONG_value: {
-            int value = 0;
-            try {
-                value = AnyConverter.toUnsignedInt(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setInt32(value);
-            setSigned(false);
-            break;
-        }
-        case TypeClass.HYPER_value: {
-            long value = 0;
-            try {
-                value = AnyConverter.toLong(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setLong(value);
-            break;
-        }
-        case TypeClass.UNSIGNED_HYPER_value: {
-            long value = 0;
-            try {
-                value = AnyConverter.toUnsignedLong(any);
-            } catch (IllegalArgumentException illegalArgumentException) {
-            }
-            setLong(value);
-            setSigned(false);
-            break;
-        }
-        case TypeClass.ENUM_value: {
-            // FIXME: is this how an enum is unboxed from Any?
-            int value = 0;
-            try {
-                Object object = AnyConverter.toObject(type, any);
-                if (object instanceof com.sun.star.uno.Enum) {
-                    value = ((com.sun.star.uno.Enum)object).getValue();
+            case TypeClass.BOOLEAN_value: {
+                boolean value = false;
+                try {
+                    value = AnyConverter.toBoolean(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
                 }
-            } catch (IllegalArgumentException illegalArgumentException) {
+                setBoolean(value);
+                break;
             }
-            setInt32(value);
-            break;
-        }
-        case TypeClass.SEQUENCE_value: {
-            byte[] value = new byte[0];
-            try {
-                Object array = AnyConverter.toArray(value);
-                if (array instanceof byte[]) {
-                    value = (byte[]) array;
+            case TypeClass.CHAR_value: {
+                char value = 0;
+                try {
+                    value = AnyConverter.toChar(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
                 }
-            } catch (IllegalArgumentException illegalArgumentException) {
+                setString(Character.toString(value));
+                break;
             }
-            setSequence(value);
-            break;
-        }
-        case TypeClass.STRUCT_value:
-        case TypeClass.INTERFACE_value: {
-            try {
-                Object object = AnyConverter.toObject(Object.class, any);
-                if (object instanceof Date) {
-                    setDate((Date)object);
-                } else if (object instanceof Time) {
-                    setTime((Time)object);
-                } else if (object instanceof DateTime) {
-                    setDateTime((DateTime)object);
-                } else {
-                    XClob clob = UnoRuntime.queryInterface(XClob.class, object);
-                    if (clob != null) {
-                        setAny(clob);
+            case TypeClass.STRING_value: {
+                String value = "";
+                try {
+                    value = AnyConverter.toString(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setString(value);
+                break;
+            }
+            case TypeClass.FLOAT_value: {
+                float value = 0.0f;
+                try {
+                    value = AnyConverter.toFloat(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setFloat(value);
+                break;
+            }
+            case TypeClass.DOUBLE_value: {
+                double value = 0.0;
+                try {
+                    value = AnyConverter.toDouble(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setDouble(value);
+                break;
+            }
+            case TypeClass.BYTE_value: {
+                byte value = 0;
+                try {
+                    value = AnyConverter.toByte(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setInt8(value);
+                break;
+            }
+            case TypeClass.SHORT_value: {
+                short value = 0;
+                try {
+                    AnyConverter.toShort(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setInt16(value);
+                break;
+            }
+            case TypeClass.UNSIGNED_SHORT_value: {
+                short value = 0;
+                try {
+                    AnyConverter.toUnsignedShort(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setInt16(value);
+                setSigned(false);
+                break;
+            }
+            case TypeClass.LONG_value: {
+                int value = 0;
+                try {
+                    value = AnyConverter.toInt(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setInt32(value);
+                break;
+            }
+            case TypeClass.UNSIGNED_LONG_value: {
+                int value = 0;
+                try {
+                    value = AnyConverter.toUnsignedInt(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setInt32(value);
+                setSigned(false);
+                break;
+            }
+            case TypeClass.HYPER_value: {
+                long value = 0;
+                try {
+                    value = AnyConverter.toLong(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setLong(value);
+                break;
+            }
+            case TypeClass.UNSIGNED_HYPER_value: {
+                long value = 0;
+                try {
+                    value = AnyConverter.toUnsignedLong(any);
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setLong(value);
+                setSigned(false);
+                break;
+            }
+            case TypeClass.ENUM_value: {
+                // FIXME: is this how an enum is unboxed from Any?
+                int value = 0;
+                try {
+                    Object object = AnyConverter.toObject(type, any);
+                    if (object instanceof com.sun.star.uno.Enum) {
+                        value = ((com.sun.star.uno.Enum)object).getValue();
+                    }
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setInt32(value);
+                break;
+            }
+            case TypeClass.SEQUENCE_value: {
+                byte[] value = new byte[0];
+                try {
+                    Object array = AnyConverter.toArray(value);
+                    if (array instanceof byte[]) {
+                        value = (byte[]) array;
+                    }
+                } catch (IllegalArgumentException illegalArgumentException) {
+                }
+                setSequence(value);
+                break;
+            }
+            case TypeClass.STRUCT_value:
+            case TypeClass.INTERFACE_value: {
+                try {
+                    Object object = AnyConverter.toObject(Object.class, any);
+                    if (object instanceof Date) {
+                        setDate((Date)object);
+                    } else if (object instanceof Time) {
+                        setTime((Time)object);
+                    } else if (object instanceof DateTime) {
+                        setDateTime((DateTime)object);
                     } else {
-                        XBlob blob = UnoRuntime.queryInterface(XBlob.class, object);
-                        if (blob != null) {
-                            setAny(blob);
+                        XClob clob = UnoRuntime.queryInterface(XClob.class, object);
+                        if (clob != null) {
+                            setAny(clob);
+                        } else {
+                            XBlob blob = UnoRuntime.queryInterface(XBlob.class, object);
+                            if (blob != null) {
+                                setAny(blob);
+                            }
                         }
                     }
+                } catch (IllegalArgumentException illegalArgumentException) {
                 }
-            } catch (IllegalArgumentException illegalArgumentException) {
+                break;
             }
-            break;
-        }
-        default:
-            // unknown type
+            default:
+                // unknown type
         }
     }
 

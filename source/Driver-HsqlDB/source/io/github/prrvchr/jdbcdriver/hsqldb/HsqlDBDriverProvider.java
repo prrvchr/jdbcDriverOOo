@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -26,6 +26,7 @@
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.sql.Types;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -87,9 +88,12 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public String getRevokeTableOrViewPrivileges()
+    public String getRevokeTableOrViewPrivileges(List<String> privileges,
+                                                 String table,
+                                                 String grantee)
     {
-        return "REVOKE %s ON %s FROM %s CASCADE";
+        String separator = ", ";
+        return String.format("REVOKE %s ON %s FROM %s CASCADE", String.join(separator, privileges), table, grantee);
     }
 
     @Override
@@ -118,9 +122,9 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public String getDropViewQuery()
+    public String getDropViewQuery(String view)
     {
-        return "DROP VIEW %s IF EXISTS;";
+        return String.format("DROP VIEW %s IF EXISTS;", view);
     }
 
     @Override

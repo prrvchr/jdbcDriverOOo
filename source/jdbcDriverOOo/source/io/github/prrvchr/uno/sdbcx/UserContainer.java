@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -29,9 +29,14 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 
@@ -41,6 +46,7 @@ public class UserContainer
 {
 
     protected final Connection m_connection;
+    private final ConnectionLog m_logger; 
 
     // The constructor method:
     public UserContainer(Connection connection,
@@ -48,39 +54,67 @@ public class UserContainer
                          List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
-        m_connection = connection;
+        this(connection, sensitive, names, LoggerObjectType.USERCONTAINER);
     }
 
+    public UserContainer(Connection connection,
+                         boolean sensitive,
+                         List<String> names,
+                         LoggerObjectType type)
+        throws ElementExistException
+    {
+        super(connection, sensitive, names);
+        m_connection = connection;
+        m_logger = new ConnectionLog(connection.getLogger(), type);
+    }
+
+    public ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+
+    @Override
+    public String _getElementName(List<String> names,
+                                  XPropertySet descriptor)
+        throws SQLException, ElementExistException
+    {
+        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        if (names.contains(name)) {
+            throw new ElementExistException();
+        }
+        return name;
+    }
 
     @Override
     protected XPropertySet _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        _createUser(descriptor, name);
-        return _createElement(name);
+        XPropertySet user = null;
+        if (_createUser(descriptor, name)) {
+            user = _createElement(name);
+        }
+        return user;
     }
 
-    protected void _createUser(XPropertySet descriptor,
-                               String name)
+    protected boolean _createUser(XPropertySet descriptor,
+                                  String name)
         throws SQLException
     {
-        String sql = DBTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());
-        System.out.println("sdbcx.UserContainer._createUser() SQL: " + sql);
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            statement.execute(sql);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
-        }
+        String query = DBTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());
+        System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
+        return DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
+                                       "_createView", Resources.STR_LOG_USERS_CREATE_USER_QUERY, name);
     }
 
     @Override
     protected XPropertySet _createElement(String name)
         throws SQLException
     {
-        return new User(m_connection, isCaseSensitive(), name);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
+        User user = new User(m_connection, isCaseSensitive(), name);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, user.getLogger().getObjectId());
+        return user;
     }
 
     @Override

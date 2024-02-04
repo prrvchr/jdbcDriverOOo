@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -31,6 +31,7 @@ import java.util.List;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XViewsSupplier;
@@ -39,6 +40,7 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbcx.TableContainerBase;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
@@ -156,7 +158,9 @@ public abstract class ConnectionSuper
             }
             result.close();
             if (m_Views == null) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEWS);
                 m_Views = new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEWS_ID, m_Views.getLogger().getObjectId());
             }
             else {
                 m_Views.refill(names);
