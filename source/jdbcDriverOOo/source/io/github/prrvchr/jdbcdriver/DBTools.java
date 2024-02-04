@@ -1663,11 +1663,11 @@ public class DBTools
     }
 
     public static String getQueryTableName(String query,
-                                           String pattern)
+                                           String prefix)
     {
         String table = "";
-        int index = query.toUpperCase().indexOf(pattern);
-        query = query.substring(index + pattern.length());
+        int index = query.toUpperCase().indexOf(prefix);
+        query = query.substring(index + prefix.length());
 
         int nonspace;
         for (nonspace = 0; nonspace < query.length();) {

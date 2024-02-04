@@ -481,12 +481,13 @@ public abstract class StatementMain
     {
         checkDisposed();
         XResultSet result = null;
-        if (_isInsertQuery()) {
+        String statement = m_Connection.getProvider().getAutoRetrievingStatement();
+        if (_isInsertQuery() && !statement.isBlank()) {
             String table = DBTools.getQueryTableName(m_Sql, " INTO ");
             if (!table.isBlank()) {
                 String keys = DBTools.getGeneratedKeys(m_Statement, table);
                 if (!keys.isBlank()) {
-                    String query = String.format(m_Connection.getProvider().getAutoRetrievingStatement(), table, keys);
+                    String query = String.format(statement, table, keys);
                     m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES, query);
                     try {
                         if (m_GeneratedStatement != null) {

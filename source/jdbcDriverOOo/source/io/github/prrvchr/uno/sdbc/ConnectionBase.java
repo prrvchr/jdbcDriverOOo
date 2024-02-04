@@ -47,7 +47,6 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
-import io.github.prrvchr.jdbcdriver.AutoRetrievingBase;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.CustomColumn;
 import io.github.prrvchr.jdbcdriver.CustomTypeInfo;
@@ -80,7 +79,6 @@ public abstract class ConnectionBase
     public final boolean m_showsystem;
     public final boolean m_usebookmark;
     protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
-    private final AutoRetrievingBase m_autoretrieving = new AutoRetrievingBase();
     private String m_typeinfosetting = "TypeInfoSettings";
     private Object[] m_typeinfo = null;
     private CustomTypeInfo m_typeinforows = null;
@@ -108,8 +106,6 @@ public abstract class ConnectionBase
         m_enhanced = enhanced;
         m_showsystem = showsystem;
         m_usebookmark = usebookmark;
-        m_autoretrieving.setAutoRetrievingEnabled(_isAutoRetrievingEnabled());
-        m_autoretrieving.setAutoRetrievingStatement(_getAutoRetrievingStatement());
         m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
         m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
     }
@@ -430,14 +426,6 @@ public abstract class ConnectionBase
         return m_enhanced;
     }
 
-    public boolean isAutoRetrievingEnabled() {
-        return m_autoretrieving.isAutoRetrievingEnabled();
-    }
-
-    public String getTransformedGeneratedStatement(String sql) {
-        return m_autoretrieving.getTransformedGeneratedStatement(this, sql);
-    }
-
     public XComponentContext getComponentContext()
     {
         return m_xContext;
@@ -494,16 +482,6 @@ public abstract class ConnectionBase
             m_typeinforows = new CustomTypeInfo(m_typeinfo);
         }
         return m_typeinforows.getTypeInfoRow(columns);
-    }
-
-    private boolean _isAutoRetrievingEnabled()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "IsAutoRetrievingEnabled", false);
-    }
-
-    private String _getAutoRetrievingStatement()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "AutoRetrievingStatement", "");
     }
 
     private void _setTypeInfoSettings(PropertyValue[] infos)
