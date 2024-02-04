@@ -413,7 +413,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [24]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.1#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.2#right>
 [28]: <img/jdbcDriverOOo-1_fr.png>
 [29]: <img/jdbcDriverOOo-2_fr.png>
 [30]: <img/jdbcDriverOOo-3_fr.png>
