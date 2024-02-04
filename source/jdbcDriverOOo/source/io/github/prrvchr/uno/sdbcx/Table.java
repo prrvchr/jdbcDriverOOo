@@ -70,7 +70,6 @@ public final class Table
     @Override
     public XPropertySet createDataDescriptor()
     {
-        System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
         TableDescriptor descriptor = new TableDescriptor(true);
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);

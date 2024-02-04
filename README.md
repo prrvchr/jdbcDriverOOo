@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.1.1][5]
+# version [1.1.2][5]
 
 ## Introduction:
 
@@ -371,7 +371,16 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 
 - The driver no longer uses Bookmarkable ResultSets for performance reasons in LibreOffice Base. This can be changed in the extension options.
 
-### What remains to be done for version 1.1.1:
+### What has been done for version 1.1.2:
+
+- Implementation of the UNO interface [com.sun.star.sdbc.XGeneratedResultSet][75]. This interface allows, when inserting several rows (ie: `INSERT INTO mytable (Column1, Column2) VALUES (data1, data2), (data1, data2), ...`) into a table with an auto-incremented primary key, to retrieve a ResultSet from the rows inserted into the table and therefore gives you access to the auto-generated keys in one go.
+- Implementation of the UNO interface [com.sun.star.sdbcx.XAlterTable][76]. This interface allows the modification of columns in a table. With HsqlDB it is now possible in Base:
+  - Assign a description to table columns.
+  - To modify the type of a column if the casting (CAST) of the data contained in this column allows it, otherwise you will be asked to replace this column which results in the deletion of the data...
+- All DDL commands (ie: `CREATE TABLE...`, `ALTER TABLE...`) that Base generates are now logged.
+- Many other fix...
+
+### What remains to be done for version 1.1.2:
 
 - Add new languages for internationalization...
 
@@ -451,3 +460,5 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [72]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/requirements.txt>
 [73]: <https://peps.python.org/pep-0508/>
 [74]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>
+[75]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/XGeneratedResultSet.html>
+[76]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XAlterTable.html>

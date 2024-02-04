@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.1.1][5]
+# version [1.1.2][5]
 
 ## Introduction:
 
@@ -371,7 +371,16 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Le pilote n'utilise plus de jeux de résultats (ResultSet) pouvant être mis en signet (Bookmarkable) pour des raisons de performances dans LibreOffice Base. Ceci peut être changé dans les options d'extension.
 
-### Que reste-t-il à faire pour la version 1.1.1:
+### Ce qui a été fait pour la version 1.1.2:
+
+- Implementation de l'interface UNO [com.sun.star.sdbc.XGeneratedResultSet][75]. Cette interface permet, lors d'une insertion de plusieurs lignes (ie: `INSERT INTO matable (Colonne1, Colonne2) VALUES (valeur1, valeur2), (valeur1, valeur2), ...`) dans une table disposant d'une clé primaire auto-incrémentée, de récupérer un ensemble de résultats à partir des lignes insérées dans la table et vous donne donc accès aux clés générées automatiquement en un seul coup.
+- Implémentation de l'interface UNO [com.sun.star.sdbcx.XAlterTable][76]. Cette interface permet la modification des colonnes d'une table. Avec HsqlDB, il est maintenant possible dans Base:
+  - D'attribuez une description aux colonnes des tables.
+  - De modifier le type d'une colonne si le transtypage (CAST) des données contenues dans cette colonne le permet, sinon il vous sera proposé de remplacer cette colonne ce qui entraîne la suppression des données...
+- Toutes les commandes DDL (ie: `CREATE TABLE...`, `ALTER TABLE...`) générées par Base sont désormais enregistrées dans la journalisation.
+- Beaucoup d'autres correctifs...
+
+### Que reste-t-il à faire pour la version 1.1.2:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -451,3 +460,5 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [72]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/requirements.txt>
 [73]: <https://peps.python.org/pep-0508/>
 [74]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
+[75]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/XGeneratedResultSet.html>
+[76]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XAlterTable.html>

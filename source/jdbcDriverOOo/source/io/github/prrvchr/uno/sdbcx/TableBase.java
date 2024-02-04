@@ -172,12 +172,10 @@ public abstract class TableBase
     // com.sun.star.sdbcx.XIndexesSupplier
     @Override
     public XNameAccess getIndexes() {
-        System.out.println("sdbcx.TableBase.getIndexes() 1");
         checkDisposed();
         if (m_indexes == null) {
             m_indexes = _refreshIndexes();
         }
-        System.out.println("sdbcx.TableBase.getIndexes() 2");
         return m_indexes;
     }
 
@@ -186,19 +184,16 @@ public abstract class TableBase
     public void alterColumnByIndex(int index, XPropertySet newcolumn)
         throws SQLException, IndexOutOfBoundsException
     {
+        checkDisposed();
         XPropertySet oldcolumn = null;
         try {
             oldcolumn = (XPropertySet) AnyConverter.toObject(XPropertySet.class, m_columns.getByIndex(index));
         }
         catch (WrappedTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), getConnection());
         }
-        System.out.println("sdbcx.TableBase.alterColumnByIndex() 1");
         if (oldcolumn != null) {
-            System.out.println("sdbcx.TableBase.alterColumnByIndex() 2");
             String table = DBTools.composeTableName(getConnection(), this, ComposeRule.InTableDefinitions, false);
-            System.out.println("TableBase.alterColumnByIndex() table: " + table);
             List<String> queries = DBTools.getAlterColumnQueries(getConnection(), this, oldcolumn, newcolumn, isCaseSensitive());
             if (!queries.isEmpty()) {
                 DBTools.executeDDLQueries(getConnection(), queries, m_logger, this.getClass().getName(),
@@ -212,18 +207,16 @@ public abstract class TableBase
     public void alterColumnByName(String name, XPropertySet newcolumn)
         throws SQLException, NoSuchElementException
     {
+        checkDisposed();
         XPropertySet oldcolumn = null;
         try {
             oldcolumn = (XPropertySet) AnyConverter.toObject(XPropertySet.class, m_columns.getByName(name));
         }
         catch (WrappedTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), getConnection());
         }
-        System.out.println("sdbcx.TableBase.alterColumnByName()");
         if (oldcolumn != null) {
             String table = DBTools.composeTableName(getConnection(), this, ComposeRule.InTableDefinitions, false);
-            System.out.println("TableBase.alterColumnByName() table: " + table);
             List<String> queries = DBTools.getAlterColumnQueries(getConnection(), this, oldcolumn, newcolumn, isCaseSensitive());
             if (!queries.isEmpty()) {
                 DBTools.executeDDLQueries(getConnection(), queries, m_logger, this.getClass().getName(),
