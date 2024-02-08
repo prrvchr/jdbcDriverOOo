@@ -98,6 +98,7 @@ public final class SQLiteDatabaseMetaData
     {
         try
         {
+            System.out.println("sqlite.DatabaseMetaData.getTables()");
             System.out.println("sqlite.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
             return _getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
         }
@@ -115,6 +116,7 @@ public final class SQLiteDatabaseMetaData
     protected final CustomColumn[] _getTablesRow(final java.sql.ResultSet result)
             throws java.sql.SQLException
         {
+            System.out.println("sqlite.DatabaseMetaData._getTablesRowSet()");
             CustomColumn[] row = new CustomColumn[5];
             String catalog = result.getString(1);
             row[0] = new CustomColumn(catalog, result.wasNull());

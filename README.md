@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.1.2][5]
+# version [1.1.3][5]
 
 ## Introduction:
 
@@ -40,7 +40,7 @@ It allows you to use the JDBC driver of your choice directly in Base.
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][13] version 2.7.2  
   The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
-- [SQLite JDBC Driver][14] version 3.42.0.0
+- [SQLite JDBC Driver][14] version 3.45.1.3-SNAPSHOT
 - [MariaDB Connector/J][15] version 3.1.4
 - [H2 Database Engine][16] version 2.2.220 (2023-07-04)
 - [Apache Derby][17] version 10.15.2.0
@@ -381,7 +381,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - SQLite driver updated to latest version 3.45.1.0.
 - Many other fix...
 
-### What remains to be done for version 1.1.2:
+### What has been done for version 1.1.3:
+
+- SQLite driver updated to latest version 3.45.1.3-SNAPSHOT. This new JDBC 4.1 compatible version allows the use of the [com.sun.star.sdbc.XGeneratedResultSet][75] interface.
+
+### What remains to be done for version 1.1.3:
 
 - Add new languages for internationalization...
 
@@ -413,7 +417,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [24]: <https://prrvchr.github.io/HyperSQLOOo/>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.2#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.3#right>
 [28]: <img/jdbcDriverOOo-1.png>
 [29]: <img/jdbcDriverOOo-2.png>
 [30]: <img/jdbcDriverOOo-3.png>

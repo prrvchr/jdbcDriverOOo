@@ -35,6 +35,7 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 public interface DriverProvider
@@ -67,6 +68,11 @@ public interface DriverProvider
     // Default value is false. see: http://hsqldb.org/doc/2.0/guide/guide.html#dbc_commenting
     public boolean supportsColumnDescription();
 
+    // Where the underlying database driver put auto-increment column declaration in table creation:
+    // - In the column definition (false)
+    // - In the primary key definition (true)
+    public boolean isAutoIncrementIsPrimaryKey();
+
     // Does the underlying database driver support java.sql.Statement.getGeneratedValues()
     // Default value is false.
     public boolean isAutoRetrievingEnabled();
@@ -75,6 +81,11 @@ public interface DriverProvider
     // You must provide the SQL SELECT command which will be used (ie: SELECT * FROM %s WHERE %s)
     // The name of the table as well as the predicates will be provided by the driver
     public String getAutoRetrievingStatement();
+
+    public java.sql.ResultSet getGeneratedKeys(StatementMain statement, String method, String sql)
+        throws java.sql.SQLException;
+
+    public int getGeneratedKeysOption();
 
     public List<String> getAlterViewQueries(String view, String command);
 

@@ -54,16 +54,17 @@ public abstract class PreparedStatementBase
         checkDisposed();
         if (m_Statement == null) {
             try {
-                if ( m_Connection.getProvider().isAutoRetrievingEnabled() && _isInsertQuery()) {
-                    System.out.println("sdbc.PreparedStatementBase._createStatement() ******************* SQL: <" + m_Sql + ">");
-                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-                }
-                else if (m_Connection.getProvider().isResultSetUpdatable() &&
-                        (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
-                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
+                if (m_Connection.getProvider().isResultSetUpdatable() &&
+                        (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||
+                         m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
+                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql,
+                                                                                              m_ResultSetType,
+                                                                                              m_ResultSetConcurrency);
                 }
                 else {
-                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql);
+                    System.out.println("sdbc.PreparedStatementBase._createStatement() ******************* SQL: <" + m_Sql + ">");
+                    int option = m_Connection.getProvider().getGeneratedKeysOption();
+                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, option);
                 }
                 _setStatement();
             } 

@@ -413,9 +413,9 @@ public class DBTools
         try {
             NameComponents component = new NameComponents();
             XPropertySetInfo info = table.getPropertySetInfo();
-            if (info != null && info.hasPropertyByName(PropertyIds.NAME.name)) {
-                if (info.hasPropertyByName(PropertyIds.CATALOGNAME.name)
-                        && info.hasPropertyByName(PropertyIds.SCHEMANAME.name)) {
+            if (info != null && hasDescriptorProperty(info, PropertyIds.NAME)) {
+                if (hasDescriptorProperty(info, PropertyIds.CATALOGNAME) &&
+                    hasDescriptorProperty(info, PropertyIds.SCHEMANAME)) {
                     component.setCatalog(getDescriptorStringValue(table, PropertyIds.CATALOGNAME));
                     component.setSchema(getDescriptorStringValue(table, PropertyIds.SCHEMANAME));
                 }
@@ -550,6 +550,7 @@ public class DBTools
         throws SQLException
     {
         String separator = ", ";
+        boolean hasAutoIncrement = false;
         List<String> parts = new ArrayList<String>();
         List<String> queries = new ArrayList<String>();
         try {
@@ -576,14 +577,19 @@ public class DBTools
                         queries.add(getCommentQuery("COLUMN", name, comment));
                     }
                 }
-                parts.add(getStandardColumnPartQuery(connection, column, sensitive));
+                final StringBuilder buffer = new StringBuilder();
+                hasAutoIncrement |= _getStandardColumnPartQuery(buffer, connection, column, sensitive);
+                parts.add(buffer.toString());
             }
         }
         catch (IllegalArgumentException | WrappedTargetException | IndexOutOfBoundsException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
 
-        if (connection.getProvider().supportCreateTableKeyParts()) {
+        System.out.println("DataBaseTools.getCreateTableQueries() 1 isAutoIncrementIsPrimaryKey: " + connection.getProvider().isAutoIncrementIsPrimaryKey());
+        // The primary key will not be created if one of the columns is auto increment
+        // and the auto increment are primary keys (ie: Sqlite)
+        if (!connection.getProvider().isAutoIncrementIsPrimaryKey() || !hasAutoIncrement) {
             parts.addAll(getCreateTableKeyParts(connection, descriptor, sensitive));
         }
         queries.add(0, String.format(connection.getProvider().getCreateTableQuery(), table, String.join(separator, parts)));
@@ -601,12 +607,25 @@ public class DBTools
      *      
      * @throws SQLException
      */
+
     public static String getStandardColumnPartQuery(ConnectionSuper connection,
                                                     XPropertySet column,
                                                     boolean sensitive)
         throws SQLException
     {
         final StringBuilder buffer = new StringBuilder();
+        _getStandardColumnPartQuery(buffer, connection, column, sensitive);
+        return buffer.toString();
+
+    }
+
+    private static boolean _getStandardColumnPartQuery(StringBuilder buffer,
+                                                      ConnectionSuper connection,
+                                                      XPropertySet column,
+                                                      boolean sensitive)
+        throws SQLException
+    {
+        boolean hasAutoIncrementValue = false;
         try {
             String name = getDescriptorStringValue(column, PropertyIds.NAME);
             buffer.append(quoteName(connection, name, sensitive));
@@ -616,13 +635,14 @@ public class DBTools
             int precision = getDescriptorIntegerValue(column, PropertyIds.PRECISION);
             int scale = getDescriptorIntegerValue(column, PropertyIds.SCALE);
             boolean isAutoIncrement = getDescriptorBooleanValue(column, PropertyIds.ISAUTOINCREMENT);
+            String autoIncrementValue = "";
             System.out.println("DataBaseTools.getStandardColumnPartQuery() 1 TYPENAME: " + typename + " - TYPE: " + datatype + " - PRECISION: " + precision + " - SCALE: " + scale);
             
-            // check if the user enter a specific string to create autoincrement values
-            String autoIncrementValue = "";
-            XPropertySetInfo columnPropertiesInfo = column.getPropertySetInfo();
-            if (columnPropertiesInfo != null && columnPropertiesInfo.hasPropertyByName(PropertyIds.AUTOINCREMENTCREATION.name)) {
+            // Check if the user enter a specific string to create auto increment values
+            XPropertySetInfo info = column.getPropertySetInfo();
+            if (info != null && hasDescriptorProperty(info, PropertyIds.AUTOINCREMENTCREATION)) {
                 autoIncrementValue = getDescriptorStringValue(column, PropertyIds.AUTOINCREMENTCREATION);
+                hasAutoIncrementValue = !autoIncrementValue.isEmpty();
             }
             
             // look if we have to use precisions
@@ -658,7 +678,7 @@ public class DBTools
                 Tools.close(resultset);
             }
             int index = 0;
-            if (!autoIncrementValue.isEmpty() && (index = typename.indexOf(autoIncrementValue)) != -1) {
+            if (hasAutoIncrementValue && (index = typename.indexOf(autoIncrementValue)) != -1) {
                 typename = typename.substring(0, index);
             }
             
@@ -723,7 +743,7 @@ public class DBTools
                 buffer.append(" NOT NULL");
             }
             
-            if (isAutoIncrement && !autoIncrementValue.isEmpty()) {
+            if (isAutoIncrement && hasAutoIncrementValue) {
                 buffer.append(' ');
                 buffer.append(autoIncrementValue);
             }
@@ -731,7 +751,7 @@ public class DBTools
         catch (IllegalArgumentException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
-        return buffer.toString();
+        return hasAutoIncrementValue;
     }
 
     /** creates the keys parts of SQL CREATE TABLE statement.
@@ -1592,6 +1612,12 @@ public class DBTools
         return (lifetime != RowIdLifetime.ROWID_UNSUPPORTED);
     }
 
+    public static boolean hasDescriptorProperty(XPropertySetInfo properties,
+                                                PropertyIds pid)
+    {
+        return properties.hasPropertyByName(pid.name);
+    }
+
     public static String getDescriptorStringValue(XPropertySet properties,
                                                   PropertyIds pid)
     {
@@ -1662,28 +1688,42 @@ public class DBTools
         }
     }
 
-    public static String getQueryTableName(String query,
-                                           String prefix)
+    public static String getQueryTableName(String query)
     {
         String table = "";
-        int index = query.toUpperCase().indexOf(prefix);
-        query = query.substring(index + prefix.length());
+        int index = _getIndexTableName(query);
+        if (index != -1) {
+            query = query.substring(index);
 
-        int nonspace;
-        for (nonspace = 0; nonspace < query.length();) {
-            int ch = query.codePointAt(nonspace);
-            if (ch != ' ') {
-                break;
+            int nonspace;
+            for (nonspace = 0; nonspace < query.length();) {
+                int ch = query.codePointAt(nonspace);
+                if (ch != ' ') {
+                    break;
+                }
+                nonspace += Character.charCount(ch);
             }
-            nonspace += Character.charCount(ch);
-        }
-        query = query.substring(nonspace);
-        int nextspace = query.indexOf(' ');
-        
-        if (nextspace >= 0) {
-            table = query.substring(0, nextspace);
+            query = query.substring(nonspace);
+            int nextspace = query.indexOf(' ');
+            
+            if (nextspace >= 0) {
+                table = query.substring(0, nextspace);
+            }
         }
         return table;
+    }
+
+    private static int _getIndexTableName(String query) {
+        int index = -1;
+        if (query.trim().toUpperCase().startsWith("INSERT ")) {
+            index = query.toUpperCase().indexOf(" INTO ");
+            if (index != -1) index += 6;
+        }
+        else if (query.trim().toUpperCase().startsWith("UPDATE ")) {
+            index = query.toUpperCase().indexOf("UPDATE ");
+            if (index != -1) index += 7;
+        }
+        return index;
     }
 
     public static String getGeneratedKeys(java.sql.Statement statement,

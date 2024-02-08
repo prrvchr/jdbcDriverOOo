@@ -74,7 +74,7 @@ public abstract class PreparedStatementMain
         super(service, services, connection);
     }
 
-    protected java.sql.PreparedStatement _getPreparedStatement()
+    public java.sql.PreparedStatement getPreparedStatement()
     {
         return (java.sql.PreparedStatement) m_Statement;
     }
@@ -86,7 +86,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().clearParameters();
+            getPreparedStatement().clearParameters();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -98,8 +98,8 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.Array array = _getPreparedStatement().getConnection().createArrayOf(value.getBaseTypeName(), value.getArray(null));
-            _getPreparedStatement().setArray(index, array);
+            java.sql.Array array = getPreparedStatement().getConnection().createArrayOf(value.getBaseTypeName(), value.getArray(null));
+            getPreparedStatement().setArray(index, array);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -112,7 +112,7 @@ public abstract class PreparedStatementMain
         try {
             _createStatement();
             InputStream input = new XInputStreamToInputStreamAdapter(value);
-            _getPreparedStatement().setBinaryStream(index, input, lenght);
+            getPreparedStatement().setBinaryStream(index, input, lenght);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -124,9 +124,9 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.Blob blob = _getPreparedStatement().getConnection().createBlob();
+            java.sql.Blob blob = getPreparedStatement().getConnection().createBlob();
             blob.setBytes(1, value.getBytes(1, (int) value.length()));
-            _getPreparedStatement().setBlob(index, blob);
+            getPreparedStatement().setBlob(index, blob);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -138,7 +138,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setBoolean(index, value);
+            getPreparedStatement().setBoolean(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -150,7 +150,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setByte(index, value);
+            getPreparedStatement().setByte(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -162,7 +162,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setBytes(index, value);
+            getPreparedStatement().setBytes(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -174,7 +174,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setCharacterStream(index, new java.io.InputStreamReader(new XInputStreamToInputStreamAdapter(value)), lenght);
+            getPreparedStatement().setCharacterStream(index, new java.io.InputStreamReader(new XInputStreamToInputStreamAdapter(value)), lenght);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -186,9 +186,9 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.Clob clob = _getPreparedStatement().getConnection().createClob();
+            java.sql.Clob clob = getPreparedStatement().getConnection().createClob();
             clob.setString(1, value.toString());
-            _getPreparedStatement().setClob(index, clob);
+            getPreparedStatement().setClob(index, clob);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -201,7 +201,7 @@ public abstract class PreparedStatementMain
         try {
             _createStatement();
             java.sql.Date date = java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value));
-            _getPreparedStatement().setDate(index, date);
+            getPreparedStatement().setDate(index, date);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -213,7 +213,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setDouble(index, value);
+            getPreparedStatement().setDouble(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -225,7 +225,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setFloat(index, value);
+            getPreparedStatement().setFloat(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -237,7 +237,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setInt(index, value);
+            getPreparedStatement().setInt(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -249,7 +249,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setLong(index, value);
+            getPreparedStatement().setLong(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -261,7 +261,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setNull(index, type);
+            getPreparedStatement().setNull(index, type);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -272,7 +272,7 @@ public abstract class PreparedStatementMain
     public void setObject(int index, Object value) throws SQLException
     {
         _createStatement();
-        if (!DBTools.setObject(_getPreparedStatement(), index, value)) {
+        if (!DBTools.setObject(getPreparedStatement(), index, value)) {
             String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_PARA_TYPE,
                                                                                      "$position$",
                                                                                      Integer.toString(index));
@@ -286,7 +286,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setObject(index, null);
+            getPreparedStatement().setObject(index, null);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -298,7 +298,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setObject(index, value, type, scale);
+            getPreparedStatement().setObject(index, value, type, scale);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -316,7 +316,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setShort(index, value);
+            getPreparedStatement().setShort(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -328,7 +328,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().setString(index, value);
+            getPreparedStatement().setString(index, value);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -341,7 +341,7 @@ public abstract class PreparedStatementMain
         try {
             _createStatement();
             java.sql.Time time = java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value));
-            _getPreparedStatement().setTime(index, time);
+            getPreparedStatement().setTime(index, time);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -354,7 +354,7 @@ public abstract class PreparedStatementMain
         try {
             _createStatement();
             java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value));
-            _getPreparedStatement().setTimestamp(index, timestamp);
+            getPreparedStatement().setTimestamp(index, timestamp);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -368,7 +368,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().addBatch();
+            getPreparedStatement().addBatch();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -380,7 +380,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            _getPreparedStatement().clearBatch();
+            getPreparedStatement().clearBatch();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -392,7 +392,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            return _getPreparedStatement().executeBatch();
+            return getPreparedStatement().executeBatch();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -406,7 +406,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            return _getPreparedStatement().execute();
+            return getPreparedStatement().execute();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -418,7 +418,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            return _getResultSet(_getPreparedStatement().executeQuery());
+            return _getResultSet(getPreparedStatement().executeQuery());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -430,13 +430,12 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            return _getPreparedStatement().executeUpdate();
+            return getPreparedStatement().executeUpdate();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
-
 
     @Override
     public XConnection getConnection() throws SQLException
@@ -451,7 +450,7 @@ public abstract class PreparedStatementMain
     {
         try {
             _createStatement();
-            java.sql.ResultSetMetaData metadata = _getPreparedStatement().getMetaData();
+            java.sql.ResultSetMetaData metadata = getPreparedStatement().getMetaData();
             return metadata != null ? new ResultSetMetaData(m_Connection, metadata) : null;
         }
         catch (java.sql.SQLException e) {

@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.1.2][5]
+# version [1.1.3][5]
 
 ## Introduction:
 
@@ -40,7 +40,7 @@ Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][13] version 2.7.2  
   Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
-- [SQLite JDBC Driver][14] version 3.42.0.0
+- [SQLite JDBC Driver][14] version 3.45.1.3-SNAPSHOT
 - [MariaDB Connector/J][15] version 3.1.4
 - [H2 Database Engine][16] version 2.2.220 (2023-07-04)
 - [Apache Derby][17] version 10.15.2.0
@@ -381,7 +381,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Pilote SQLite mis à jour vers la dernière version 3.45.1.0.
 - Beaucoup d'autres correctifs...
 
-### Que reste-t-il à faire pour la version 1.1.2:
+### Ce qui a été fait pour la version 1.1.3:
+
+- Pilote SQLite mis à jour vers la dernière version 3.45.1.3-SNAPSHOT. Cette nouvelle version compatible JDBC 4.1 permet l'utilisation de l'interface [com.sun.star.sdbc.XGeneratedResultSet][75].
+
+### Que reste-t-il à faire pour la version 1.1.3:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -413,7 +417,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [24]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [25]: <img/jdbcDriverOOo.svg#middle>
 [26]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.2#right>
+[27]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.3#right>
 [28]: <img/jdbcDriverOOo-1_fr.png>
 [29]: <img/jdbcDriverOOo-2_fr.png>
 [30]: <img/jdbcDriverOOo-3_fr.png>
