@@ -383,7 +383,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.1.3:
 
-- Pilote SQLite mis à jour vers la dernière version 3.45.1.3-SNAPSHOT. Cette nouvelle version compatible JDBC 4.1 permet l'utilisation de l'interface [com.sun.star.sdbc.XGeneratedResultSet][75].
+- Pilote SQLite mis à jour vers la dernière version [SQLite-jdbc-3.45.1.3-SNAPSHOT.jar][77]. Ce nouveau pilote a été implémenté pour supporter une partie des spécifications JDBC 4.1 et plus particulièrement l'interface `java.sql.Statement.getGeneratedKeys()` et permet l'utilisation de l'interface [com.sun.star.sdbc.XGeneratedResultSet][75].
 
 ### Que reste-t-il à faire pour la version 1.1.3:
 
@@ -467,3 +467,4 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [74]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
 [75]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/XGeneratedResultSet.html>
 [76]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XAlterTable.html>
+[77]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.3-SNAPSHOT.jar>

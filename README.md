@@ -383,7 +383,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 
 ### What has been done for version 1.1.3:
 
-- SQLite driver updated to latest version 3.45.1.3-SNAPSHOT. This new JDBC 4.1 compatible version allows the use of the [com.sun.star.sdbc.XGeneratedResultSet][75] interface.
+- SQLite driver updated to latest version [SQLite-jdbc-3.45.1.3-SNAPSHOT.jar][77]. This new driver has been implemented to support part of the JDBC 4.1 specifications and more particularly the `java.sql.Statement.getGeneratedKeys()` interface and allows the use of the [com.sun.star.sdbc.XGeneratedResultSet][75] interface.
 
 ### What remains to be done for version 1.1.3:
 
@@ -467,3 +467,4 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [74]: <https://prrvchr.github.io/jdbcDriverOOo/#requirement>
 [75]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/XGeneratedResultSet.html>
 [76]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XAlterTable.html>
+[77]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.3-SNAPSHOT.jar>
