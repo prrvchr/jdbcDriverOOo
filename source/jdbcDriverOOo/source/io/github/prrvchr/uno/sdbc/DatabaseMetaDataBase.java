@@ -1222,7 +1222,7 @@ public abstract class DatabaseMetaDataBase
         try {
             XResultSet result = null;
             System.out.println("sdbc.DatabaseMetaData.getTablePrivileges()");
-            if (_isIgnoreDriverPrivilegesEnabled()) {
+            if (m_Connection.getProvider().ignoreDriverPrivileges()) {
                 System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 2 ***********************************");
                 result = _getTablePrivileges(catalog, schema, table);
             }
@@ -1292,11 +1292,6 @@ public abstract class DatabaseMetaDataBase
             }
             return null;
         }
-    }
-
-    private final boolean _isIgnoreDriverPrivilegesEnabled()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_Connection.getInfo(), "IgnoreDriverPrivileges", false);
     }
 
     @Override

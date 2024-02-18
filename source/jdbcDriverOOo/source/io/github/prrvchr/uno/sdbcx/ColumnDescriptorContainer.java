@@ -28,17 +28,14 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 
 public class ColumnDescriptorContainer
-    extends DescriptorContainer
+    extends ColumnDescriptorContainerBase
 {
-
-    protected TableDescriptorBase m_table;
     
     // The constructor method:
     public ColumnDescriptorContainer(TableDescriptorBase table,
                                      boolean sensitive)
     {
         super(table, sensitive);
-        m_table = table;
         System.out.println("sdbcx.ColumnDescriptorContainer() ***************************************************");
     }
 

@@ -42,6 +42,7 @@ public class TableDescriptor
 
     public ColumnDescriptorContainer _getColumnDescriptorContainer(boolean sensitive)
     {
+        System.out.println("sdbcx.TableDescriptor._getColumnDescriptorContainer()");
         return new ColumnDescriptorContainer(this, sensitive);
     };
 

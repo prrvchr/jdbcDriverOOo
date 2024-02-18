@@ -35,7 +35,6 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 public interface DriverProvider
@@ -77,13 +76,14 @@ public interface DriverProvider
     // Default value is false.
     public boolean isAutoRetrievingEnabled();
 
+    // Does the underlying database driver support rights management on users and groups
+    // Default value is true (ie: no support).
+    public boolean ignoreDriverPrivileges();
+
     // If the underlying database driver support java.sql.Statement.getGeneratedValues()
     // You must provide the SQL SELECT command which will be used (ie: SELECT * FROM %s WHERE %s)
     // The name of the table as well as the predicates will be provided by the driver
     public String getAutoRetrievingStatement();
-
-    public java.sql.ResultSet getGeneratedKeys(StatementMain statement, String method, String sql)
-        throws java.sql.SQLException;
 
     public int getGeneratedKeysOption();
 

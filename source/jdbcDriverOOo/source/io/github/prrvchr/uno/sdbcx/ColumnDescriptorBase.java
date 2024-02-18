@@ -54,151 +54,151 @@ public abstract class ColumnDescriptorBase
                                 boolean sensitive)
     {
         super(service, services, sensitive);
-        System.out.println("sdbcx.descriptors.ColumnDescriptor()");
         registerProperties();
+        System.out.println("sdbcx.ColumnDescriptorBase()");
     }
 
     private void registerProperties() {
         registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_Type;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_Type = (int) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_Type;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_Type = (int) value;
+                }
+            });
         registerProperty(PropertyIds.TYPENAME.name, PropertyIds.TYPENAME.id, Type.STRING,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_TypeName;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_TypeName = (String) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_TypeName;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_TypeName = (String) value;
+                }
+            });
         registerProperty(PropertyIds.PRECISION.name, PropertyIds.PRECISION.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_Precision;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_Precision = (Integer) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_Precision;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_Precision = (Integer) value;
+                }
+            });
         registerProperty(PropertyIds.SCALE.name, PropertyIds.SCALE.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_Scale;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_Scale = (Integer) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_Scale;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_Scale = (Integer) value;
+                }
+            });
         registerProperty(PropertyIds.ISNULLABLE.name, PropertyIds.ISNULLABLE.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_IsNullable;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_IsNullable = (Integer) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_IsNullable;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_IsNullable = (Integer) value;
+                }
+            });
         registerProperty(PropertyIds.ISAUTOINCREMENT.name, PropertyIds.ISAUTOINCREMENT.id, Type.BOOLEAN,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_IsAutoIncrement;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_IsAutoIncrement = (Boolean) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_IsAutoIncrement;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_IsAutoIncrement = (Boolean) value;
+                }
+            });
         registerProperty(PropertyIds.ISROWVERSION.name, PropertyIds.ISROWVERSION.id, Type.BOOLEAN,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_IsRowVersion;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_IsRowVersion = (Boolean) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_IsRowVersion;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_IsRowVersion = (Boolean) value;
+                }
+            });
         registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_Description;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_Description = (String) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_Description;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_Description = (String) value;
+                }
+            });
         registerProperty(PropertyIds.DEFAULTVALUE.name, PropertyIds.DEFAULTVALUE.id, Type.STRING,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_DefaultValue;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_DefaultValue = (String) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_DefaultValue;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_DefaultValue = (String) value;
+                }
+            });
         registerProperty(PropertyIds.ISCURRENCY.name, PropertyIds.ISCURRENCY.id, Type.BOOLEAN,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() {
-                        return m_IsCurrency;
-                        
-                    }
-                },
-                new PropertySetter() {
-                    @Override
-                    public void setValue(Object value) {
-                        m_IsCurrency = (Boolean) value;
-                    }
-                });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_IsCurrency;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_IsCurrency = (Boolean) value;
+                }
+            });
     }
 
 

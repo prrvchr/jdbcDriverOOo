@@ -168,9 +168,10 @@ public class Resources {
     public static final int STR_LOG_STATEMENT_EXECUTE_QUERY                    = (STR_JDBC_LOG_MESSAGE_BASE +  321);
     public static final int STR_LOG_STATEMENT_EXECUTE_UPDATE                   = (STR_JDBC_LOG_MESSAGE_BASE +  322);
 
-    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_QUERY           = (STR_JDBC_LOG_MESSAGE_BASE +  325);
-    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_RESULT          = (STR_JDBC_LOG_MESSAGE_BASE +  326);
-    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  327);
+    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_TABLE           = (STR_JDBC_LOG_MESSAGE_BASE +  325);
+    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_QUERY           = (STR_JDBC_LOG_MESSAGE_BASE +  326);
+    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_RESULT          = (STR_JDBC_LOG_MESSAGE_BASE +  327);
+    public static final int STR_LOG_STATEMENT_GENERATED_VALUES_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  328);
 
     // io.github.prrvchr.uno.sdbc.PreparedStatementSuper:
     public static final int STR_LOG_STATEMENT_USEBOOKMARKS                     = (STR_JDBC_LOG_MESSAGE_BASE +  330);

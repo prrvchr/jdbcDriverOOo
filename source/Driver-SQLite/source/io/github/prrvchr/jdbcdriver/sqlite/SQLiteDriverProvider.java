@@ -36,9 +36,6 @@ import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
-//import io.github.prrvchr.uno.sdbc.PreparedStatementMain;
-//import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class SQLiteDriverProvider
@@ -115,20 +112,5 @@ public final class SQLiteDriverProvider
     {
         return false;
     }
-
-    @Override
-    public java.sql.ResultSet getGeneratedKeys(StatementMain statement, String method, String query)
-        throws java.sql.SQLException
-    {
-        java.sql.ResultSet result;
-        if (statement.getStatement() != null) {
-            result = statement.getStatement().getGeneratedKeys();
-        }
-        else {
-            result = statement.getGeneratedStatement().executeQuery("SELECT 1 WHERE 0 = 1");
-        }
-        return result;
-    }
-
 
 }

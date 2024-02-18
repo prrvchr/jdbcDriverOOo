@@ -35,12 +35,11 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 import io.github.prrvchr.uno.sdbcx.ColumnSuper;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
-public class Column
+public final class Column
     extends ColumnSuper
 {
     private static final String m_service = Column.class.getName();

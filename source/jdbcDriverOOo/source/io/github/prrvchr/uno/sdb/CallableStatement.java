@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
-public class CallableStatement
+public final class CallableStatement
     extends CallableStatementSuper
     implements XColumnsSupplier
 {
@@ -44,8 +44,10 @@ public class CallableStatement
     private static final String m_service = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.CallableStatement",
                                                 "com.sun.star.sdbc.CallableStatement",
+                                                "com.sun.star.sdbcx.CallableStatement",
                                                 "com.sun.star.sdb.PreparedStatement",
-                                                "com.sun.star.sdbc.PreparedStatement"};
+                                                "com.sun.star.sdbc.PreparedStatement",
+                                                "com.sun.star.sdbcx.PreparedStatement"};
 
     // The constructor method:
     public CallableStatement(Connection connection,

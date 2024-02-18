@@ -76,13 +76,12 @@ class AdminManager(unohelper.Base):
         self._ctx = ctx
         datasource = connection.getParent().Name
         tables = connection.getTables()
-        users = connection.getUsers()
-        user = users.getByName(connection.getMetaData().getUserName())
         self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
         self._view = view
         window = self._view.getGridWindow()
         url = getResourceLocation(ctx, g_identifier, g_extension)
         model = GridModel(ctx, grantees, tables, self._flags, recursive, isuser, url)
+        user = connection.getMetaData().getUserName()
         self._model = AdminModel(ctx, datasource, model, window, GridListener(self), url, user, members, tables, self._flags, 'AdminGrid')
         self._dialog = None
         self._disabled = True

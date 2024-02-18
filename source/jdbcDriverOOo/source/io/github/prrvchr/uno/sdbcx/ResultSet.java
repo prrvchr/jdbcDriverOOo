@@ -36,7 +36,7 @@ public final class ResultSet
     extends ResultSetSuper
 {
     private static final String m_service = ResultSet.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet", 
+    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet",
                                                 "com.sun.star.sdbcx.ResultSet"};
 
     // The constructor method:

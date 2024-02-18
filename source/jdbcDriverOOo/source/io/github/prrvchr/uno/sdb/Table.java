@@ -25,24 +25,21 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import com.sun.star.awt.FontDescriptor;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.XGroupsSupplier;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.TableBase;
@@ -57,7 +54,7 @@ public final class Table
                                                 "com.sun.star.sdbcx.Table"};
 
     private Integer m_Privileges = null;
-    /*private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
+    //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
     protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
@@ -65,7 +62,7 @@ public final class Table
     protected int m_TextColor = 0;
     protected String m_HavingClause = "";
     protected FontDescriptor m_FontDescriptor = null;
-    protected String m_GroupBy = "";*/
+    protected String m_GroupBy = "";
 
     // The constructor method:
     public Table(ConnectionSuper connection,
@@ -91,12 +88,12 @@ public final class Table
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     if (m_Privileges == null) {
-                        m_Privileges = _getPrivileges();
+                        m_Privileges = DBTools.getPrivileges(getConnection(), m_CatalogName, m_SchemaName, getName());
                     }
                     return m_Privileges;
                 }
             }, null);
-        /*registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
+        registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
@@ -199,7 +196,7 @@ public final class Table
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
                     m_GroupBy = (String) value;
                 }
-            });*/
+            });
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -211,29 +208,6 @@ public final class Table
             UnoHelper.copyProperties(this, descriptor);
         }
         return descriptor;
-    }
-
-    private int _getPrivileges()
-        throws WrappedTargetException
-    {
-        int privileges = 0;
-        try {
-            String name = getConnection().getMetaData().getUserName();
-            if (name != null && !name.isBlank()) {
-                XGroupsSupplier groups = (XGroupsSupplier) AnyConverter.toObject(XGroupsSupplier.class, getConnection().getUsers().getByName(name));
-                List<String> grantees = new ArrayList<>(List.of(name));
-                grantees.addAll(Arrays.asList(groups.getGroups().getElementNames()));
-                privileges = DBTools.getTableOrViewPrivileges(getConnection(), grantees, m_CatalogName, m_SchemaName, getName());
-            }
-        }
-        catch (NoSuchElementException | SQLException e) {
-            System.out.println("sdb.Table._getPrivileges() 7 ERROR ******************");
-            throw UnoHelper.getWrappedException(e);
-        }
-        catch (Exception e) {
-            System.out.println("sdb.Table._getPrivileges() 8 ERROR ******************");
-        }
-        return privileges;
     }
 
     public Connection getConnection()

@@ -55,7 +55,7 @@ import traceback
 
 class AdminModel(unohelper.Base):
     def __init__(self, ctx, datasource, model, window, listener, url, user, members, tables, flags, setting):
-        self._grantee = '';
+        self._grantee = ''
         self._user = user
         self._members = members
         self._tables = tables
@@ -102,7 +102,7 @@ class AdminModel(unohelper.Base):
         return self.isNameValid(user) and self.isPasswordConfirmed(pwd, confirmation)
 
     def isPasswordValid(self, pwd):
-        return len(pwd)
+        return len(pwd) > 0
 
     def isPasswordConfirmed(self, pwd, confirmation):
         return pwd == confirmation
@@ -233,7 +233,7 @@ class AdminModel(unohelper.Base):
         return True
 
     def _isRemovable(self, user):
-        return self._grid.Model.isGroup() or self._user.getPropertyValue('Name') != user
+        return self._grid.Model.isGroup() or self._user != user
 
 # GroupModel StringResource methods
     def _getTableHeader(self):

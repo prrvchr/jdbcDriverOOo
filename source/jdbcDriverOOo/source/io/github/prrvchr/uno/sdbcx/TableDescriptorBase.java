@@ -44,7 +44,7 @@ public abstract class TableDescriptorBase
                XKeysSupplier
 {
 
-    private ColumnDescriptorContainer m_columns;
+    private ColumnDescriptorContainerBase m_columns;
     private KeyDescriptorContainer m_keys;
     private String m_CatalogName = "";
     private String m_SchemaName = "";
@@ -62,7 +62,7 @@ public abstract class TableDescriptorBase
         System.out.println("sdbcx.descriptors.TableDescriptorBase()");
     }
 
-    public abstract ColumnDescriptorContainer _getColumnDescriptorContainer(boolean sensitive);
+    public abstract ColumnDescriptorContainerBase _getColumnDescriptorContainer(boolean sensitive);
 
     private void registerProperties() {
         registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING,

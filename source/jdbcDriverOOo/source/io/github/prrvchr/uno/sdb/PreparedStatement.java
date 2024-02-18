@@ -43,7 +43,8 @@ public final class PreparedStatement
 
     private static final String m_service = PreparedStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.PreparedStatement",
-                                          "com.sun.star.sdbc.PreparedStatement"};
+                                                "com.sun.star.sdbc.PreparedStatement",
+                                                "com.sun.star.sdbcx.PreparedStatement"};
 
     // The constructor method:
     public PreparedStatement(Connection connection,

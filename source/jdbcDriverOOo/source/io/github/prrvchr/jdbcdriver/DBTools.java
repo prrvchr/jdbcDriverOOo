@@ -59,6 +59,7 @@ import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
@@ -76,6 +77,7 @@ import com.sun.star.sdbc.XRow;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.XInterface;
 import com.sun.star.uno.Any;
@@ -94,6 +96,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 
@@ -1688,90 +1691,6 @@ public class DBTools
         }
     }
 
-    public static String getQueryTableName(String query)
-    {
-        String table = "";
-        int index = _getIndexTableName(query);
-        if (index != -1) {
-            query = query.substring(index);
-
-            int nonspace;
-            for (nonspace = 0; nonspace < query.length();) {
-                int ch = query.codePointAt(nonspace);
-                if (ch != ' ') {
-                    break;
-                }
-                nonspace += Character.charCount(ch);
-            }
-            query = query.substring(nonspace);
-            int nextspace = query.indexOf(' ');
-            
-            if (nextspace >= 0) {
-                table = query.substring(0, nextspace);
-            }
-        }
-        return table;
-    }
-
-    private static int _getIndexTableName(String query) {
-        int index = -1;
-        if (query.trim().toUpperCase().startsWith("INSERT ")) {
-            index = query.toUpperCase().indexOf(" INTO ");
-            if (index != -1) index += 6;
-        }
-        else if (query.trim().toUpperCase().startsWith("UPDATE ")) {
-            index = query.toUpperCase().indexOf("UPDATE ");
-            if (index != -1) index += 7;
-        }
-        return index;
-    }
-
-    public static String getGeneratedKeys(java.sql.Statement statement,
-                                          String table)
-    {
-        String keys = "";
-        try(java.sql.ResultSet result = statement.getGeneratedKeys()) {
-            java.sql.ResultSetMetaData metadata = result.getMetaData();
-            int count = metadata.getColumnCount();
-            List<String> rows = new ArrayList<String>();
-            while (result.next()) {
-                List<String> columns = new ArrayList<String>();
-                for (int i = 1; i <= count; i++) {
-                    StringBuilder buffer = new StringBuilder(5);
-                    buffer.append(table);
-                    buffer.append(".");
-                    buffer.append(statement.enquoteIdentifier(metadata.getColumnName(i), true));
-                    buffer.append(" = ");
-                    String value = String.format("%s", result.getObject(i));
-                    if (metadata.getColumnClassName(i).equals("java.lang.String")) {
-                        value = statement.enquoteLiteral(value);
-                    }
-                    buffer.append(value);
-                    columns.add(buffer.toString());
-                }
-                String row = null;
-                if (columns.size() > 1) {
-                    StringBuilder buffer = new StringBuilder(3);
-                    buffer.append("(");
-                    buffer.append(String.join(" AND ", columns));
-                    buffer.append(")");
-                    row = buffer.toString();
-                }
-                else if (!columns.isEmpty()){
-                    row = columns.get(0);
-                }
-                if (row != null) {
-                    rows.add(row);
-                }
-            }
-            keys = String.join(" OR ", rows);
-        }
-        catch (java.sql.SQLException e) { 
-            // pass
-        }
-        return keys;
-    }
-
     public static String getCommentQuery(String on, String name, String comment) {
         StringBuilder buffer = new StringBuilder("COMMENT ON ");
         buffer.append(on);
@@ -1957,4 +1876,105 @@ public class DBTools
         }
         return list.toArray(new Object[list.size()]);
     }
+
+
+    public static java.sql.ResultSet getGeneratedKeys(StatementMain statement,
+                                                      String method,
+                                                      String sql,
+                                                      String upsert)
+        throws java.sql.SQLException
+    {
+        int resource;
+        String query = "SELECT 1 WHERE 0 = 1";
+        if (statement.getStatement() != null) {
+            //String sql = provider.getAutoRetrievingStatement();
+            if (sql.isBlank()) {
+                return statement.getStatement().getGeneratedKeys();
+            }
+            DBQueryParser parser = new DBQueryParser(upsert);
+            if (parser.isExecuteUpdateStatement() && parser.hasTable()) {
+                String table = parser.getTable();
+                resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
+                statement.getLogger().logprb(LogLevel.FINE, statement.getClass().getName(), method, resource, table, upsert);
+                String keys = getGeneratedKeys(statement.getStatement());
+                if (!keys.isBlank()) {
+                    query = String.format(sql, table, keys);
+                }
+            }
+        }
+        resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
+        statement.getLogger().logprb(LogLevel.FINE, statement.getClass().getName(), method, resource, query);
+        return statement.getGeneratedStatement().executeQuery(query);
+    }
+
+    private static String getGeneratedKeys(java.sql.Statement statement)
+    {
+        String keys = "";
+        try(java.sql.ResultSet result = statement.getGeneratedKeys()) {
+            java.sql.ResultSetMetaData metadata = result.getMetaData();
+            int count = metadata.getColumnCount();
+            List<String> rows = new ArrayList<String>();
+            while (result.next()) {
+                List<String> columns = new ArrayList<String>();
+                for (int i = 1; i <= count; i++) {
+                    StringBuilder buffer = new StringBuilder(5);
+                    buffer.append(statement.enquoteIdentifier(metadata.getColumnName(i), true));
+                    buffer.append(" = ");
+                    String value = String.format("%s", result.getObject(i));
+                    if (metadata.getColumnClassName(i).equals("java.lang.String")) {
+                        value = statement.enquoteLiteral(value);
+                    }
+                    buffer.append(value);
+                    columns.add(buffer.toString());
+                }
+                String row = null;
+                if (columns.size() > 1) {
+                    StringBuilder buffer = new StringBuilder(3);
+                    buffer.append("(");
+                    buffer.append(String.join(" AND ", columns));
+                    buffer.append(")");
+                    row = buffer.toString();
+                }
+                else if (!columns.isEmpty()){
+                    row = columns.get(0);
+                }
+                if (row != null) {
+                    rows.add(row);
+                }
+            }
+            keys = String.join(" OR ", rows);
+        }
+        catch (java.sql.SQLException e) { 
+            // pass
+        }
+        return keys;
+    }
+
+    public static int getPrivileges(Connection connection,
+                             String catalog,
+                             String schema,
+                             String table)
+        throws WrappedTargetException
+    {
+        int privileges = 0;
+        try {
+            String name = connection.getMetaData().getUserName();
+            if (name != null && !name.isBlank()) {
+                XGroupsSupplier groups = (XGroupsSupplier) AnyConverter.toObject(XGroupsSupplier.class, connection.getUsers().getByName(name));
+                List<String> grantees = new ArrayList<>(List.of(name));
+                grantees.addAll(Arrays.asList(groups.getGroups().getElementNames()));
+                privileges = getTableOrViewPrivileges(connection, grantees, catalog, schema, table);
+            }
+        }
+        catch (NoSuchElementException | SQLException e) {
+            System.out.println("DBTools.getPrivileges() 1 ERROR ******************");
+            throw UnoHelper.getWrappedException(e);
+        }
+        catch (Exception e) {
+            System.out.println("DBTools.getPrivileges() 2 ERROR ******************");
+        }
+        return privileges;
+    }
+
+
 }

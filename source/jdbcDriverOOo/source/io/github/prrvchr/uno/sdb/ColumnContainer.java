@@ -37,7 +37,7 @@ import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 import io.github.prrvchr.uno.sdbcx.TableBase;
 
 
-public class ColumnContainer
+public final class ColumnContainer
     extends ColumnContainerBase
 {
 

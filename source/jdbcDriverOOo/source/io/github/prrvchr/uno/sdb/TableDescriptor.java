@@ -33,8 +33,8 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbcx.ColumnDescriptorContainer;
 import io.github.prrvchr.uno.sdbcx.TableDescriptorBase;
+import io.github.prrvchr.uno.sdbcx.ColumnDescriptorContainer;
 
 
 public final class TableDescriptor
@@ -43,9 +43,8 @@ public final class TableDescriptor
 
     private static final String m_service = TableDescriptor.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.TableDescriptor",
-                                                "com.sun.star.sdb.DataSettings",
-                                                "com.sun.star.sdbcx.TableDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
+                                                "com.sun.star.sdbcx.TableDescriptor"};
+    private Integer m_Privileges = 0;
     private String m_Filter = "";
     private boolean m_ApplyFilter;
     private String m_Order = "";
@@ -65,6 +64,19 @@ public final class TableDescriptor
 
 
     private void registerProperties() {
+        registerProperty(PropertyIds.PRIVILEGES.name, PropertyIds.PRIVILEGES.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Privileges;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_Privileges = (int) value;
+                }
+            });
         registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
             new PropertyGetter() {
                 @Override

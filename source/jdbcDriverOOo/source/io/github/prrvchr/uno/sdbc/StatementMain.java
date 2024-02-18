@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
@@ -40,6 +43,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -486,18 +490,33 @@ public abstract class StatementMain
     public XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
+        ResultSetBase resultset = null;
         try {
-            java.sql.ResultSet result =  m_Connection.getProvider().getGeneratedKeys(this, "getGeneratedValues", m_Sql);
+            String sql = m_Connection.getProvider().getAutoRetrievingStatement();
+            java.sql.ResultSet result = DBTools.getGeneratedKeys(this, "getGeneratedValues", sql, m_Sql);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            resultset = new ResultSet(m_Connection, result);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count);
-            return new ResultSet(m_Connection, result);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, _getColumnNames(result, count));
         }
         catch (java.sql.SQLException e) {
             m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
             throw UnoHelper.getSQLException(e, this);
         }
+        return resultset;
     }
 
+    private String _getColumnNames(java.sql.ResultSet result,
+                                   int count)
+        throws java.sql.SQLException 
+    {
+        List<String> names = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            names.add(result.getMetaData().getColumnName(i));
+        }
+        return String.join(", ", names);
+    }
 
     // com.sun.star.sdbc.XMultipleResults:
     @Override

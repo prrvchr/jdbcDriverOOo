@@ -37,7 +37,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.TableContainerBase;
 
 
-public class TableContainer
+public final class TableContainer
     extends TableContainerBase
 {
 

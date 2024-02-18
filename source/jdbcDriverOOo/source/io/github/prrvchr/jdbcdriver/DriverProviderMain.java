@@ -33,7 +33,6 @@ import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
-import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 
@@ -41,7 +40,6 @@ import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
-import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
 
 public abstract class DriverProviderMain
@@ -62,6 +60,7 @@ public abstract class DriverProviderMain
     private boolean m_IsAutoRetrievingEnabled = false;
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
+    private boolean m_IgnoreDriverPrivileges = true;
 
     // The constructor method:
     public DriverProviderMain(String subprotocol)
@@ -323,30 +322,22 @@ public abstract class DriverProviderMain
                               String level)
         throws java.sql.SQLException
     {
-        try {
-            String url = getConnectionUrl(location, level);
-            _connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
-            java.sql.DatabaseMetaData metadata = _connection.getMetaData();
-            m_SupportsTransactions = metadata.supportsTransactions();
-            m_IsCatalogAtStart = metadata.isCatalogAtStart();
-            m_CatalogSeparator = metadata.getCatalogSeparator();
-            m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
-            m_SupportsColumnDescription = (boolean) getConnectionProperties(infos, "SupportsColumnDescription", false);
-            m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
-            if (_getAutoRetrieving(metadata, infos)) {
-                m_AutoRetrievingStatement = (String) getConnectionProperties(infos, "AutoRetrievingStatement", "");
-                m_IsAutoRetrievingEnabled = !m_AutoRetrievingStatement.isBlank();
-            }
-            m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                                                           java.sql.ResultSet.CONCUR_UPDATABLE);
-            System.out.println("DriverProvider.setConnection() AutoIncrementIsPrimaryKey: " + m_IsAutoIncrementIsPrimaryKey);
+        String url = getConnectionUrl(location, level);
+        _connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
+        java.sql.DatabaseMetaData metadata = _connection.getMetaData();
+        m_SupportsTransactions = metadata.supportsTransactions();
+        m_IsCatalogAtStart = metadata.isCatalogAtStart();
+        m_CatalogSeparator = metadata.getCatalogSeparator();
+        m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
+        m_SupportsColumnDescription = (boolean) getConnectionProperties(infos, "SupportsColumnDescription", false);
+        m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
+        m_IgnoreDriverPrivileges = (boolean) getConnectionProperties(infos, "IgnoreDriverPrivileges", true);
+        if (_getAutoRetrieving(metadata, infos)) {
+            m_AutoRetrievingStatement = (String) getConnectionProperties(infos, "AutoRetrievingStatement", "");
+            m_IsAutoRetrievingEnabled = (boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", false);
         }
-        catch (Exception e) {
-            System.out.println("DriverProvider.setConnection() ERROR: " + e.getMessage());
-            for (StackTraceElement trace : e.getStackTrace()) {
-                System.out.println(trace);
-            }
-        }
+        m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                                                       java.sql.ResultSet.CONCUR_UPDATABLE);
     }
 
     private boolean _getAutoRetrieving(java.sql.DatabaseMetaData metadata,
@@ -393,26 +384,8 @@ public abstract class DriverProviderMain
     public String getAutoRetrievingStatement() {
         return m_AutoRetrievingStatement;
     }
-
-    public java.sql.ResultSet getGeneratedKeys(StatementMain statement, String method, String upsert)
-        throws java.sql.SQLException
-    {
-        String query = "SELECT 1 WHERE 0 = 1";
-        if (statement.getStatement() != null) {
-            String sql = getAutoRetrievingStatement();
-            if (!sql.isBlank()) {
-                String table = DBTools.getQueryTableName(upsert);
-                if (!table.isBlank()) {
-                    String keys = DBTools.getGeneratedKeys(statement.getStatement(), table);
-                    if (!keys.isBlank()) {
-                        query = String.format(sql, table, keys);
-                    }
-                }
-            }
-        }
-        int resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
-        statement.getLogger().logprb(LogLevel.FINE, statement.getClass().getName(), method, resource, query);
-        return statement.getGeneratedStatement().executeQuery(query);
+    public boolean ignoreDriverPrivileges() {
+        return m_IgnoreDriverPrivileges;
     }
 
     public int getGeneratedKeysOption()

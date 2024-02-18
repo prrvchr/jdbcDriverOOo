@@ -32,7 +32,6 @@ import com.sun.star.container.ElementExistException;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.ColumnContainer;
 import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
