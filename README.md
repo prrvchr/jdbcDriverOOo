@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.1.4][5]
+# version [1.1.5][5]
 
 ## Introduction:
 
@@ -393,7 +393,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - From now on, only the HsqlDB driver has access in Base to the administration of user and group rights. This is determined by the `IgnoreDriverPrivileges` setting in the [Drivers.xcu][80] file.
 - Many improvements.
 
-### What remains to be done for version 1.1.4:
+### What has been done for version 1.1.5:
+
+- You can now edit a view in SQL mode with the SQLite driver. For drivers that do not support view alteration, views are deleted and then recreated.
+
+### What remains to be done for version 1.1.5:
 
 - Add new languages for internationalization...
 
@@ -403,7 +407,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-112>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -426,7 +430,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [25]: <https://prrvchr.github.io/HyperSQLOOo/>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.4#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.5#right>
 [29]: <img/jdbcDriverOOo-1.png>
 [30]: <img/jdbcDriverOOo-2.png>
 [31]: <img/jdbcDriverOOo-3.png>

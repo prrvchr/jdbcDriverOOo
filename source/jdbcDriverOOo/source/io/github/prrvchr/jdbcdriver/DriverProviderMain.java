@@ -27,7 +27,6 @@ package io.github.prrvchr.jdbcdriver;
 
 import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -61,6 +60,8 @@ public abstract class DriverProviderMain
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
     private boolean m_IgnoreDriverPrivileges = true;
+    private Object[] m_AlterViewCommands = {"DROP VIEW %s", "CREATE VIEW %s AS %s"};
+    private Object[] m_TypeInfoSettings = null;
 
     // The constructor method:
     public DriverProviderMain(String subprotocol)
@@ -91,7 +92,10 @@ public abstract class DriverProviderMain
     public List<String> getAlterViewQueries(String view,
                                             String command)
     {
-        List<String> queries = Arrays.asList(String.format("ALTER VIEW %s AS %s", view, command));
+        List<String> queries = new ArrayList<>();
+        for (Object sql : m_AlterViewCommands) {
+            queries.add(String.format(sql.toString(), view, command));
+        }
         return queries;
     }
 
@@ -332,6 +336,8 @@ public abstract class DriverProviderMain
         m_SupportsColumnDescription = (boolean) getConnectionProperties(infos, "SupportsColumnDescription", false);
         m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
         m_IgnoreDriverPrivileges = (boolean) getConnectionProperties(infos, "IgnoreDriverPrivileges", true);
+        m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", m_AlterViewCommands);
+        m_TypeInfoSettings = (Object[]) getConnectionProperties(infos, "TypeInfoSettings", null);
         if (_getAutoRetrieving(metadata, infos)) {
             m_AutoRetrievingStatement = (String) getConnectionProperties(infos, "AutoRetrievingStatement", "");
             m_IsAutoRetrievingEnabled = (boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", false);
@@ -386,6 +392,9 @@ public abstract class DriverProviderMain
     }
     public boolean ignoreDriverPrivileges() {
         return m_IgnoreDriverPrivileges;
+    }
+    public Object[] getTypeInfoSettings() {
+        return m_TypeInfoSettings;
     }
 
     public int getGeneratedKeysOption()
@@ -450,13 +459,14 @@ public abstract class DriverProviderMain
                 info.Name.equals("DriverLoggerLevel") ||
                 info.Name.equals("AutoIncrementIsPrimaryKey") ||
                 info.Name.equals("InMemoryDataBase") ||
+                info.Name.equals("AlterViewCommands") ||
                 info.Name.equals("Type") ||
                 info.Name.equals("Url") ||
                 info.Name.equals("ConnectionService"))
             {
                 continue;
             }
-            System.out.println("DriverProvider.getJavaConnectionProperties() ERROR*************: " + info.Name);
+            System.out.println("DriverProvider.getJavaConnectionProperties() *********************: " + info.Name);
             properties.setProperty(info.Name, String.format("%s", info.Value));
         }
         return properties;
@@ -467,7 +477,6 @@ public abstract class DriverProviderMain
                                           Object value)
     {
         for (PropertyValue info : infos) {
-            System.out.println("DriverProviderMain.getConnectionProperties() Name: " + info.Name + " - Value: " + info.Value);
             if (name.equals(info.Name)) {
                 value = info.Value;
                 break;

@@ -43,7 +43,6 @@ public final class SQLiteDatabaseMetaData
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("sqlite.DatabaseMetaData() 1");
     }
 
     @Override

@@ -85,6 +85,8 @@ public interface DriverProvider
     // The name of the table as well as the predicates will be provided by the driver
     public String getAutoRetrievingStatement();
 
+    public Object[] getTypeInfoSettings();
+
     public int getGeneratedKeysOption();
 
     public List<String> getAlterViewQueries(String view, String command);

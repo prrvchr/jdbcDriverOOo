@@ -26,8 +26,6 @@
 package io.github.prrvchr.jdbcdriver.h2;
 
 import java.sql.Types;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.star.container.NoSuchElementException;
@@ -91,14 +89,6 @@ public final class H2DriverProvider
             return false;
         }
         return true;
-    }
-
-    @Override
-    public List<String> getAlterViewQueries(String view,
-                                            String command)
-    {
-        List<String> queries = Arrays.asList(String.format("CREATE OR REPLACE VIEW %s AS %s", view, command));
-        return queries;
     }
 
     public String getTableType(String type)

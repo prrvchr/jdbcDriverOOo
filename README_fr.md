@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.1.4][5]
+# version [1.1.5][5]
 
 ## Introduction:
 
@@ -393,7 +393,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Désormais, seul le pilote HsqlDB a accès dans Base à l'administration des droits des utilisateurs et des groupes. Ceci est déterminé par le paramètre `IgnoreDriverPrivileges` dans le fichier [Drivers.xcu][80].
 - De nombreuses améliorations.
 
-### Que reste-t-il à faire pour la version 1.1.4:
+### Ce qui a été fait pour la version 1.1.5:
+
+- Vous pouvez désormais éditer une vue en mode SQL avec le pilote SQLite. Pour les pilotes qui ne prennent pas en charge la modification des vues, les vues sont supprimées puis recréées.
+
+### Que reste-t-il à faire pour la version 1.1.5:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -403,7 +407,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-112>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -426,7 +430,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.4#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.5#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>

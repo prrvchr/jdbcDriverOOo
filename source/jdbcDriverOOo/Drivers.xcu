@@ -308,6 +308,11 @@
                         <value oor:separator=",">COLUMN(2) = 92,COLUMN(6) = SCALE,COLUMN(2) = 92,COLUMN(14) = 0,COLUMN(2) = 92,COLUMN(15) = 9,COLUMN(2) = 93,COLUMN(6) = SCALE,COLUMN(2) = 93,COLUMN(14) = 0,COLUMN(2) = 93,COLUMN(15) = 9,COLUMN(2) = 2013,COLUMN(6) = SCALE,COLUMN(2) = 2013,COLUMN(14) = 0,COLUMN(2) = 2013,COLUMN(15) = 9,COLUMN(2) = 2014,COLUMN(6) = SCALE,COLUMN(2) = 2014,COLUMN(14) = 0,COLUMN(2) = 2014,COLUMN(15) = 9</value>
                     </prop>
                 </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator=",">ALTER VIEW %s AS %s</value>
+                    </prop>
+                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/hsqldb-2.7.2.jar</value>
@@ -366,6 +371,11 @@
                 <value xml:lang="fr-FR">Pilote H2</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator=",">CREATE OR REPLACE VIEW %s AS %s</value>
+                    </prop>
+                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/h2-2.2.224.jar</value>
@@ -424,6 +434,11 @@
                 <value xml:lang="fr-FR">Pilote MariaDB</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator=",">ALTER VIEW %s AS %s</value>
+                    </prop>
+                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/mariadb-java-client-3.3.2.jar</value>
@@ -470,6 +485,11 @@
                 <node oor:name="TypeInfoSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator=",">COLUMN(1) = int2,COLUMN(12) = 1,COLUMN(1) = int4,COLUMN(12) = 1,COLUMN(1) = int8,COLUMN(12) = 1</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator=",">CREATE OR REPLACE VIEW %s AS %s</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">

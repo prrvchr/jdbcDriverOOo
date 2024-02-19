@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 import com.sun.star.beans.PropertyValue;
@@ -42,7 +41,6 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbc.XWarningsSupplier;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
@@ -79,11 +77,9 @@ public abstract class ConnectionBase
     public final boolean m_showsystem;
     public final boolean m_usebookmark;
     protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
-    private String m_typeinfosetting = "TypeInfoSettings";
-    private Object[] m_typeinfo = null;
     private CustomTypeInfo m_typeinforows = null;
 
-    
+
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
                           String service,
@@ -102,7 +98,6 @@ public abstract class ConnectionBase
         m_provider = provider;
         m_url = url;
         m_info = info;
-        _setTypeInfoSettings(info);
         m_enhanced = enhanced;
         m_showsystem = showsystem;
         m_usebookmark = usebookmark;
@@ -475,39 +470,14 @@ public abstract class ConnectionBase
     public CustomColumn[] getTypeInfoRow(CustomColumn[] columns)
             throws SQLException
     {
-        if (!_hasTypeInfoSettings()) {
+        Object [] typeinfo = m_provider.getTypeInfoSettings();
+        if (typeinfo == null) {
             return columns;
         }
         if (m_typeinforows == null) {
-            m_typeinforows = new CustomTypeInfo(m_typeinfo);
+            m_typeinforows = new CustomTypeInfo(typeinfo);
         }
         return m_typeinforows.getTypeInfoRow(columns);
     }
-
-    private void _setTypeInfoSettings(PropertyValue[] infos)
-    {
-        System.out.println("ConnectionBase._setTypeInfoSettings() 1");
-        for (PropertyValue info : m_info) {
-            String name = info.Name;
-            System.out.println("ConnectionBase._setTypeInfoSettings() 2 Name: '" + name + "'");
-            if (m_typeinfosetting.equals(name)) {
-                System.out.println("ConnectionBase._setTypeInfoSettings() 3 Name: " + name);
-                Object value = info.Value;
-                System.out.println("ConnectionBase._setTypeInfoSettings() 4 Name: " + name);
-                if (AnyConverter.isArray(value)) {
-                    Object[] objects = (Object[]) AnyConverter.toArray(value);
-                    m_typeinfo = objects;
-                    System.out.println("ConnectionBase._setTypeInfoSettings() 5 Name: " + name + " - Value: " + Arrays.toString(objects));
-                }
-            }
-        }
-        System.out.println("ConnectionBase._setTypeInfoSettings() 6");
-    }
-
-    private boolean _hasTypeInfoSettings()
-    {
-        return m_typeinfo != null;
-    }
-
 
 }

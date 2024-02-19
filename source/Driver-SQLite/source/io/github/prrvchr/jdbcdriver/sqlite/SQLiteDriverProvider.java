@@ -26,8 +26,6 @@
 package io.github.prrvchr.jdbcdriver.sqlite;
 
 import java.sql.Types;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 
@@ -83,15 +81,6 @@ public final class SQLiteDriverProvider
             sql = sql.substring(index + sep.length());
         }
         return sql;
-    }
-
-    @Override
-    public List<String> getAlterViewQueries(String view,
-                                            String command)
-    {
-        List<String> queries = Arrays.asList(String.format(String.format("DROP VIEW %s", view),
-                                             String.format("CREATE VIEW %s AS %s", view, command)));
-        return queries;
     }
 
     @Override
