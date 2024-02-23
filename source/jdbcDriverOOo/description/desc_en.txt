@@ -1,1 +1,1 @@
-The JDBC 4.1 driver finally available in LibreOffice
+The pure Java JDBC 4.1 driver for LibreOffice

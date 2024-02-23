@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -46,10 +46,10 @@
 package io.github.prrvchr.jdbcdriver;
 
 public class Resources {
-    public static final int STR_COMMON_BASE                              = 1200;
+    public static final int STR_COMMON_BASE                               = 1200;
     // = resource ids for log messages
-    public static final int STR_LOG_MESSAGE_BASE                         = 10000;
-    public static final int STR_JDBC_LOG_MESSAGE_BASE                    = STR_LOG_MESSAGE_BASE + 1000;
+    public static final int STR_LOG_MESSAGE_BASE                          = 10000;
+    public static final int STR_JDBC_LOG_MESSAGE_BASE                     = STR_LOG_MESSAGE_BASE + 1000;
 
     public static final int STR_STRING_LENGTH_EXCEEDED                         = (STR_COMMON_BASE +  1);
     public static final int STR_CANNOT_CONVERT_STRING                          = (STR_COMMON_BASE +  2);
@@ -141,7 +141,7 @@ public class Resources {
     public static final int STR_LOG_THROWING_EXCEPTION                         = (STR_JDBC_LOG_MESSAGE_BASE +   55);
     public static final int STR_LOG_SETTING_SYSTEM_PROPERTY                    = (STR_JDBC_LOG_MESSAGE_BASE +   56);
 
-    // io.github.prrvchr.uno.sdbc.ConnectionBase:
+    // io.github.prrvchr.uno.sdbc.ConnectionMain:
     public static final int STR_LOG_CREATE_DATABASE_METADATA                   = (STR_JDBC_LOG_MESSAGE_BASE +  200);
     public static final int STR_LOG_CREATED_DATABASE_METADATA_ID               = (STR_JDBC_LOG_MESSAGE_BASE +  201);
 
@@ -233,8 +233,15 @@ public class Resources {
     public static final int STR_LOG_CREATED_TABLE_ID                           = (STR_JDBC_LOG_MESSAGE_BASE +  601);
     public static final int STR_LOG_TABLE_DISPOSING                            = (STR_JDBC_LOG_MESSAGE_BASE +  602);
 
-    public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY                   = (STR_JDBC_LOG_MESSAGE_BASE +  610);
-    public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR             = (STR_JDBC_LOG_MESSAGE_BASE +  611);
+    public static final int STR_LOG_TABLE_RENAME_QUERY                         = (STR_JDBC_LOG_MESSAGE_BASE +  605);
+    public static final int STR_LOG_TABLE_RENAME_QUERY_ERROR                   = (STR_JDBC_LOG_MESSAGE_BASE +  606);
+    public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FEATURE_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  607);
+    public static final int STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  608);
+    public static final int STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  609);
+    public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  610);
+
+    public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY                   = (STR_JDBC_LOG_MESSAGE_BASE +  615);
+    public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR             = (STR_JDBC_LOG_MESSAGE_BASE +  616);
 
     public static final int STR_LOG_COLUMN_ALTER_QUERY                         = (STR_JDBC_LOG_MESSAGE_BASE +  620);
     public static final int STR_LOG_COLUMN_ALTER_QUERY_ERROR                   = (STR_JDBC_LOG_MESSAGE_BASE +  621);
@@ -259,8 +266,15 @@ public class Resources {
     public static final int STR_LOG_CREATED_VIEW_ID                            = (STR_JDBC_LOG_MESSAGE_BASE +  801);
     public static final int STR_LOG_VIEW_DISPOSING                             = (STR_JDBC_LOG_MESSAGE_BASE +  802);
 
-    public static final int STR_LOG_VIEW_ALTER_QUERY                           = (STR_JDBC_LOG_MESSAGE_BASE +  810);
-    public static final int STR_LOG_VIEW_ALTER_QUERY_ERROR                     = (STR_JDBC_LOG_MESSAGE_BASE +  811);
+    public static final int STR_LOG_VIEW_RENAME_QUERY                          = (STR_JDBC_LOG_MESSAGE_BASE +  805);
+    public static final int STR_LOG_VIEW_RENAME_QUERY_ERROR                    = (STR_JDBC_LOG_MESSAGE_BASE +  806);
+    public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  807);
+    public static final int STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  808);
+    public static final int STR_LOG_VIEW_RENAME_DUPLICATE_VIEW_NAME_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  809);
+    public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  810);
+
+    public static final int STR_LOG_VIEW_ALTER_QUERY                           = (STR_JDBC_LOG_MESSAGE_BASE +  815);
+    public static final int STR_LOG_VIEW_ALTER_QUERY_ERROR                     = (STR_JDBC_LOG_MESSAGE_BASE +  816);
 
     public static final int STR_LOG_CREATE_USERS                               = (STR_JDBC_LOG_MESSAGE_BASE + 1000);
     public static final int STR_LOG_CREATED_USERS_ID                           = (STR_JDBC_LOG_MESSAGE_BASE + 1001);

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,68 +23,49 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.sdb;
 
-import java.util.Arrays;
-import java.util.List;
+import com.sun.star.beans.PropertyVetoException;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.uno.Type;
 
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.XUser;
-
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
-public class User
-    extends Role
-    implements XUser
+public class UserDescriptor
+    extends Descriptor
 {
 
-    private static final String m_service = User.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+    private static final String m_service = UserDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.UserDescriptor"};
 
+    private String m_Password = "";
 
     // The constructor method:
-    public User(Connection connection,
-                boolean sensitive,
-                String name)
+    public UserDescriptor(boolean sensitive)
     {
-        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.USER);
+        super(m_service, m_services, sensitive);
+        registerProperties();
     }
 
-    // com.sun.star.sdbcx.XUser:
-    @Override
-    public void changePassword(String old, String password)
-        throws SQLException
-    {
-        String sql = DBTools.getChangeUserPasswordQuery(m_connection, getName(), password, isCaseSensitive());
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            statement.execute(sql);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
-        }
+    private void registerProperties() {
+        registerProperty(PropertyIds.PASSWORD.name, PropertyIds.PASSWORD.id, Type.STRING,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Password;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_Password = (String) value;
+                }
+            });
     }
 
-    // Private methods:
-    @Override
-    protected void _addGrantees(List<String> grantees) {
-        grantees.addAll(Arrays.asList(getGroups().getElementNames()));
-    }
-
-    @Override
-    protected int _getGrantPrivilegesResource()
-    {
-        return Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
-    }
-
-    @Override
-    protected int _getRevokePrivilegesResource()
-    {
-        return Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
-    }
 
 }

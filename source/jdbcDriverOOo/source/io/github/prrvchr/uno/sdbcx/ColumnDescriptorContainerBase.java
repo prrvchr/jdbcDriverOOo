@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -25,9 +25,12 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.sdbc.SQLException;
+
 
 public abstract class ColumnDescriptorContainerBase
-    extends DescriptorContainer
+    extends DescriptorContainer<ColumnDescriptorSuper>
 {
 
     protected TableDescriptorBase m_table;
@@ -40,5 +43,14 @@ public abstract class ColumnDescriptorContainerBase
         m_table = table;
         System.out.println("sdbcx.ColumnDescriptorContainerBase() ***************************************************");
     }
+
+    @Override
+    protected ColumnDescriptorSuper _appendElement(XPropertySet descriptor,
+                                                   String name)
+        throws SQLException
+    {
+        return (ColumnDescriptorSuper) _cloneDescriptor(descriptor);
+    }
+
 
 }

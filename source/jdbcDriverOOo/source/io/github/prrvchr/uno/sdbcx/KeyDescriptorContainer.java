@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -32,7 +32,7 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 
 
 public class KeyDescriptorContainer
-    extends DescriptorContainer
+    extends DescriptorContainer<KeyDescriptor>
 {
 
     // The constructor method:
@@ -50,15 +50,15 @@ public class KeyDescriptorContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
-                                          String name)
+    protected KeyDescriptor _appendElement(XPropertySet descriptor,
+                                           String name)
         throws SQLException
     {
         System.out.println("sdbcx.descriptors.KeyDescriptorContainer._appendElement() 1");
         XPropertySet newDescriptor = _cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
         System.out.println("sdbcx.descriptors.KeyDescriptorContainer._appendElement() 2");
-        return newDescriptor;
+        return (KeyDescriptor) newDescriptor;
     }
 
 

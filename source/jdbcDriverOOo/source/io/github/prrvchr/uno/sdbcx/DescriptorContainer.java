@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -38,19 +38,22 @@ import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
-public abstract class DescriptorContainer
-    extends Container
+public abstract class DescriptorContainer<T>
+    extends Container<T>
 {
+    private static final String m_service = DescriptorContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Descriptors",
+                                                "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public DescriptorContainer(Object lock,
                                boolean sensitive)
     {
-        super(lock, sensitive);
+        super(m_service, m_services, lock, sensitive);
     }
 
     @Override
-    protected XPropertySet _createElement(String name)
+    protected T _createElement(String name)
         throws SQLException
     {
         // This should never be called. DescriptorContainer always starts off empty,
@@ -83,13 +86,5 @@ public abstract class DescriptorContainer
         return name;
     }
     
-    @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
-                                          String name)
-        throws SQLException
-    {
-        return _cloneDescriptor(descriptor);
-    }
-
 
 }

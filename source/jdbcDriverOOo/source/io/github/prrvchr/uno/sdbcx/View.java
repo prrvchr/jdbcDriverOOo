@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -32,32 +32,23 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterView;
-import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class View
-    extends Descriptor
-    implements XAlterView,
-               XRename
+    extends TableMain
+    implements XAlterView
 {
     private static final String m_service = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
 
-    private final ConnectionSuper m_Connection;
-    private final ConnectionLog m_logger; 
-
-    protected String m_CatalogName = "";
-    protected String m_SchemaName = "";
     private String m_Command = "";
     private int m_CheckOption;
 
@@ -70,11 +61,7 @@ public class View
                 String command,
                 int option)
     {
-        super(m_service, m_services, sensitive, name);
-        m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.VIEW);
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
+        super(m_service, m_services, connection, catalog, schema, sensitive, name, LoggerObjectType.VIEW);
         m_Command = command;
         m_CheckOption = option;
         registerProperties();
@@ -82,20 +69,6 @@ public class View
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_CatalogName;
-                }
-            }, null);
-        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_SchemaName;
-                }
-            }, null);
         registerProperty(PropertyIds.COMMAND.name, PropertyIds.COMMAND.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
@@ -112,11 +85,6 @@ public class View
             }, null);
     }
 
-    public ConnectionLog getLogger()
-    {
-        return m_logger;
-    }
-
     // com.sun.star.sdbcx.XAlterView
     @Override
     public void alterCommand(String command)
@@ -124,11 +92,11 @@ public class View
     {
         if (!m_Command.equals(command)) {
             System.out.println("sdbcx.View.alterCommand() 1 : " + command);
-            String view = DBTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, isCaseSensitive());
-            List<String> queries =  m_Connection.getProvider().getAlterViewQueries(view, command);
+            String view = DBTools.composeTableName(m_connection, this, ComposeRule.InTableDefinitions, isCaseSensitive());
+            List<String> queries =  m_connection.getProvider().getAlterViewQueries(view, command);
             if (!queries.isEmpty()) {
-                String name = DBTools.composeTableName(m_Connection, this, ComposeRule.InTableDefinitions, false);
-                DBTools.executeDDLQueries(m_Connection, queries, m_logger, this.getClass().getName(),
+                String name = DBTools.composeTableName(m_connection, this, ComposeRule.InTableDefinitions, false);
+                DBTools.executeDDLQueries(m_connection, queries, m_logger, this.getClass().getName(),
                                           "alterCommand", Resources.STR_LOG_VIEW_ALTER_QUERY, name);
                 m_Command = command;
             }

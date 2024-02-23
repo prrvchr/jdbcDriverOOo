@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.sdb;
 
 import java.util.List;
 
@@ -38,15 +38,18 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbcx.Container;
 
 
 public class UserContainer
-    extends Container
+    extends Container<User>
 {
-
+    private static final String m_service = UserContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Users",
+                                                "com.sun.star.sdbcx.Container"};
     protected final Connection m_connection;
     private final ConnectionLog m_logger; 
+
 
     // The constructor method:
     public UserContainer(Connection connection,
@@ -63,7 +66,7 @@ public class UserContainer
                          LoggerObjectType type)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
+        super(m_service, m_services, connection, sensitive, names);
         m_connection = connection;
         m_logger = new ConnectionLog(connection.getLogger(), type);
     }
@@ -86,11 +89,11 @@ public class UserContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected User _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        XPropertySet user = null;
+        User user = null;
         if (_createUser(descriptor, name)) {
             user = _createElement(name);
         }
@@ -108,7 +111,7 @@ public class UserContainer
     }
 
     @Override
-    protected XPropertySet _createElement(String name)
+    protected User _createElement(String name)
         throws SQLException
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
@@ -116,6 +119,7 @@ public class UserContainer
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, user.getLogger().getObjectId());
         return user;
     }
+
 
     @Override
     protected void _removeElement(int index,

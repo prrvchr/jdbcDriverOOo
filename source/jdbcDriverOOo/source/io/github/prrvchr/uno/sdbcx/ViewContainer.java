@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -36,22 +36,20 @@ import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class ViewContainer
-    extends Container
+    extends TableContainerMain<View>
 {
-
-    private final ConnectionSuper m_Connection;
-    private final ConnectionLog m_logger; 
+    private static final String m_service = ViewContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Views",
+                                                "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public ViewContainer(ConnectionSuper connection,
@@ -59,15 +57,27 @@ public class ViewContainer
                          List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
-        m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.VIEWCONTAINER);
-
+        super(m_service, m_services, connection, sensitive, names, LoggerObjectType.VIEWCONTAINER);
     }
 
-    public ConnectionLog getLogger()
+    public void dispose()
     {
-        return m_logger;
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_VIEWS_DISPOSING);
+        super.dispose();
+    }
+
+    @Override
+    protected boolean _createDataBaseElement(XPropertySet descriptor, String name)
+        throws SQLException
+    {
+        String query = DBTools.getCreateViewQuery(m_Connection, descriptor, isCaseSensitive());
+        System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
+        if (DBTools.executeDDLQuery(m_Connection, query, m_logger, this.getClass().getName(),
+                                    "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
+            m_Connection.getTablesInternal().insertElement(name, null);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -83,11 +93,11 @@ public class ViewContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected View _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        XPropertySet view = null;
+        View view = null;
         System.out.println("sdbcx.ViewContainer._appendElement() 1");
         if (_createView(descriptor, name)) {
             // Append it to the tables container too:
@@ -109,7 +119,7 @@ public class ViewContainer
     }
 
     @Override
-    protected XPropertySet _createElement(String name)
+    protected View _createElement(String name)
         throws SQLException
     {
         View view = null;

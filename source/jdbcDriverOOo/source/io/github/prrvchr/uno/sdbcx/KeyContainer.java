@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -49,23 +49,25 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class KeyContainer
-    extends Container
+    extends Container<Key>
 {
+    private static final String m_service = KeyContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Keys",
+                                                "com.sun.star.sdbcx.Container"};
 
-    protected final TableBase m_table;
+    protected final TableSuper m_table;
     private Map<String, Key> m_keys;
 
     // The constructor method:
-    public KeyContainer(TableBase table,
+    public KeyContainer(TableSuper table,
                         boolean sensitive,
                         Map<String, Key> keys)
         throws ElementExistException
     {
-        super(table, sensitive, Arrays.asList(keys.keySet().toArray(new String[keys.size()])));
+        super(m_service, m_services, table, sensitive, Arrays.asList(keys.keySet().toArray(new String[keys.size()])));
         System.out.println("sdbcx.KeyContainer() 1");
         for (Map.Entry<String, Key> entry : keys.entrySet()) {
             System.out.println("sdbcx.KeyContainer() 2 Key: " + entry.getKey() + " => " + entry.getValue().m_ReferencedTable);
@@ -90,7 +92,7 @@ public class KeyContainer
     }
 
     @Override
-    protected XPropertySet _createElement(String name)
+    protected Key _createElement(String name)
         throws SQLException
     {
         System.out.println("sdbcx.KeyContainer._createElement() 1 Name: " + name);
@@ -121,7 +123,7 @@ public class KeyContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected Key _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {

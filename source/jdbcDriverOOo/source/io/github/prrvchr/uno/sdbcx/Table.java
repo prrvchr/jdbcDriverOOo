@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -32,11 +32,10 @@ import com.sun.star.container.ElementExistException;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public final class Table
-    extends TableBase
+    extends TableSuper
 {
 
     private static final String m_service = Table.class.getName();
@@ -51,9 +50,7 @@ public final class Table
                  String type,
                  String remarks)
     {
-        super(m_service, m_services, connection, sensitive, name);
-        m_CatalogName = catalog;
-        m_SchemaName= schema;
+        super(m_service, m_services, connection, catalog, schema, sensitive, name);
         m_Type = type;
         m_Description = remarks;
     }

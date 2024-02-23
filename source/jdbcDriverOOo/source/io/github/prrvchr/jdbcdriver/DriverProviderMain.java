@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -26,6 +26,7 @@
 package io.github.prrvchr.jdbcdriver;
 
 import java.sql.DriverManager;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -60,6 +61,7 @@ public abstract class DriverProviderMain
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
     private boolean m_IgnoreDriverPrivileges = true;
+    private Object[] m_RenameTableCommands = null;
     private Object[] m_AlterViewCommands = {"DROP VIEW %s", "CREATE VIEW %s AS %s"};
     private Object[] m_TypeInfoSettings = null;
 
@@ -95,6 +97,36 @@ public abstract class DriverProviderMain
         List<String> queries = new ArrayList<>();
         for (Object sql : m_AlterViewCommands) {
             queries.add(String.format(sql.toString(), view, command));
+        }
+        return queries;
+    }
+
+    @Override
+    public boolean supportRenamingTable() {
+        return m_RenameTableCommands != null;
+    }
+
+    public boolean hasMultiRenameQueries()
+    {
+        return supportRenamingTable() &&
+               m_RenameTableCommands.length > 1 &&
+               !m_RenameTableCommands[1].toString().isBlank();
+    }
+
+    @Override
+    public List<String> getRenameTableQueries(boolean reversed, Object... args)
+    {
+        List<String> queries = new ArrayList<>();
+        if (reversed) {
+            for (int i = m_RenameTableCommands.length - 1; i >= 0; i--) {
+                Object sql = m_RenameTableCommands[i];
+                queries.add(MessageFormat.format(sql.toString(), args));
+            }
+        }
+        else {
+            for (Object sql : m_RenameTableCommands) {
+                queries.add(MessageFormat.format(sql.toString(), args));
+            }
         }
         return queries;
     }
@@ -337,6 +369,7 @@ public abstract class DriverProviderMain
         m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
         m_IgnoreDriverPrivileges = (boolean) getConnectionProperties(infos, "IgnoreDriverPrivileges", true);
         m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", m_AlterViewCommands);
+        m_RenameTableCommands = (Object[]) getConnectionProperties(infos, "RenameTableCommands", null);
         m_TypeInfoSettings = (Object[]) getConnectionProperties(infos, "TypeInfoSettings", null);
         if (_getAutoRetrieving(metadata, infos)) {
             m_AutoRetrievingStatement = (String) getConnectionProperties(infos, "AutoRetrievingStatement", "");
@@ -346,20 +379,21 @@ public abstract class DriverProviderMain
                                                                        java.sql.ResultSet.CONCUR_UPDATABLE);
     }
 
+
     private boolean _getAutoRetrieving(java.sql.DatabaseMetaData metadata,
                                        PropertyValue[] infos)
         throws java.sql.SQLException
     {
-        boolean support = false;
-        System.out.println("DriverProvider._getAutoRetrieving() 1");
-        // We cannot validate the option if the underlying driver
-        // does not support the getGeneratedValues() method
-        if (metadata.supportsGetGeneratedKeys()) {
-            support = (boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", false);
+        Boolean support = false;
+        support = (Boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", null);
+        // FIXME: If IsAutoRetrievingEnabled is not set, we retrieve the option from the underlying metadata driver.
+        // FIXME: This allows you to correct possible failures of certain drivers (ie: like for Derby)
+        if (support == null) {
+            support = metadata.supportsGetGeneratedKeys();
         }
-        System.out.println("DriverProvider._getAutoRetrieving() 2 Support: " + String.valueOf(support));
         return support;
     }
+
     // DatabaseMetadata cache data
     public boolean supportsTransactions() {
         return m_SupportsTransactions;

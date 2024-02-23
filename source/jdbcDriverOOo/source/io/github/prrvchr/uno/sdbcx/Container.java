@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -58,11 +58,11 @@ import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.lang.ServiceInfo;
 
 
-public abstract class Container
+public abstract class Container<T>
     extends WeakBase
     implements XServiceInfo,
                XContainer,
@@ -76,13 +76,13 @@ public abstract class Container
                XColumnLocate
 {
 
-    private static final String m_service = Container.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
-    private TreeMap<String, XPropertySet> m_Elements;
-    private List<String> m_Names;
+    private final String m_service;
+    private final String[] m_services;
+    protected TreeMap<String, T> m_Elements;
+    protected List<String> m_Names;
     private boolean m_sensitive;
-    private InterfaceContainer m_container = new InterfaceContainer();
-    private InterfaceContainer m_refresh = new InterfaceContainer();
+    protected InterfaceContainer m_container = new InterfaceContainer();
+    protected InterfaceContainer m_refresh = new InterfaceContainer();
     protected Object m_lock;
     private Comparator<String> caseSensitiveComparator = new Comparator<String>() {
         @Override
@@ -97,38 +97,32 @@ public abstract class Container
     };
 
     // The constructor method:
-    public Container(Object lock,
+    public Container(String service,
+                     String[] services,
+                     Object lock,
                      boolean sensitive)
     {
+        m_service = service;
+        m_services = services;
         m_lock = lock;
         m_sensitive = sensitive;
         m_Elements = new TreeMap<>(caseSensitiveComparator);
         m_Names = new ArrayList<String>();
     }
-    public Container(Object lock,
+    public Container(String service,
+                     String[] services,
+                     Object lock,
                      boolean sensitive,
                      List<String> names)
         throws ElementExistException
     {
-        this(lock, sensitive);
+        this(service, services, lock, sensitive);
         for (String name : names) {
             if (m_Elements.containsKey(name)) {
                 throw new ElementExistException(name, this);
             }
             m_Elements.put(name, null);
             m_Names.add(name);
-        }
-    }
-
-
-    public void refill(List<String> names)
-    {
-        // We only add new elements, as per the C++ implementation.
-        for (String name : names) {
-            if (!m_Elements.containsKey(name)) {
-                m_Elements.put(name, null);
-                m_Names.add(name);
-            }
         }
     }
 
@@ -141,7 +135,7 @@ public abstract class Container
         m_container.disposeAndClear(event);
         m_refresh.disposeAndClear(event);
         synchronized (m_lock) {
-            for (XPropertySet element : m_Elements.values()) {
+            for (T element : m_Elements.values()) {
                 UnoHelper.disposeComponent(element);
             }
             m_Elements.clear();
@@ -176,7 +170,7 @@ public abstract class Container
         System.out.println("sdbcx.Container.refresh() 1 Class: " + this.getClass().getName());
         Iterator<?> iterator;
         synchronized (m_lock) {
-            for (XPropertySet element : m_Elements.values()) {
+            for (T element : m_Elements.values()) {
                 UnoHelper.disposeComponent(element);
             }
             m_Elements.clear();
@@ -329,7 +323,7 @@ public abstract class Container
         synchronized (m_lock) {
             
             String name = _getElementName(m_Names, descriptor);
-            XPropertySet element = _appendElement(descriptor, name);
+            T element = _appendElement(descriptor, name);
             if (element == null) {
                 String error = String.format("Table: %s can't be created!!!", name);
                 throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -388,19 +382,53 @@ public abstract class Container
 
     // Abstract protected methods
     protected abstract String _getElementName(List<String> names, XPropertySet descriptor)
-            throws SQLException, ElementExistException;
-    protected abstract XPropertySet _appendElement(XPropertySet descriptor, String name) throws SQLException;
-    protected abstract XPropertySet _createElement(String name) throws SQLException;
+        throws SQLException, ElementExistException;
+    protected abstract T _appendElement(XPropertySet descriptor, String name) throws SQLException;
+    protected abstract T _createElement(String name) throws SQLException;
     protected abstract void _removeElement(int index, String name) throws SQLException;
     protected abstract void _refresh();
 
-
     // Protected methods
+    public boolean isCaseSensitive()
+    {
+        return m_sensitive;
+    }
+
+    public void refill(List<String> names)
+    {
+        // We only add new elements, as per the C++ implementation.
+        for (String name : names) {
+            if (!m_Elements.containsKey(name)) {
+                m_Elements.put(name, null);
+                m_Names.add(name);
+            }
+        }
+    }
+
+    protected T getElement(int index)
+    {
+        synchronized (m_lock) {
+            T element = null;
+            String name = m_Names.get(index);
+            if (name != null) {
+                element = m_Elements.get(name);
+            }
+            return element;
+        }
+    }
+
+    protected T getElement(String name)
+    {
+        synchronized (m_lock) {
+            return  m_Elements.get(name);
+        }
+    }
+
     protected Object _getElement(int index)
         throws WrappedTargetException
     {
         String name = m_Names.get(index);
-        XPropertySet element = m_Elements.get(name);
+        T element = m_Elements.get(name);
         if (element == null) {
             try {
                 element = _createElement(name);
@@ -433,7 +461,7 @@ public abstract class Container
             _removeElement(index, name);
         }
         m_Names.remove(index);
-        XPropertySet element = m_Elements.remove(name);
+        T element = m_Elements.remove(name);
         UnoHelper.disposeComponent(element);
         ContainerEvent event = new ContainerEvent(this, name, null, null);
         for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext(); ) {
@@ -442,25 +470,10 @@ public abstract class Container
         }
     }
 
-    public boolean isCaseSensitive() {
-        return m_sensitive;
-    }
-
     protected XPropertySet _cloneDescriptor(XPropertySet descriptor) {
         XPropertySet element = _createDescriptor();
         UnoHelper.copyProperties(descriptor, element);
         return element;
-    }
-
-    public void insertElement(String name,
-                              XPropertySet element)
-    {
-        synchronized (m_lock) {
-            if (!m_Elements.containsKey(name)) {
-                m_Elements.put(name, element);
-                m_Names.add(name);
-            }
-        }
     }
 
     protected abstract XPropertySet _createDescriptor();

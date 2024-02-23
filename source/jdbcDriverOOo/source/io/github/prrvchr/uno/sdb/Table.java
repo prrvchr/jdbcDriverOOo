@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -34,27 +34,29 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
+import com.sun.star.sdbcx.Privilege;
 
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
-import io.github.prrvchr.uno.sdbcx.TableBase;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
+import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public final class Table
-    extends TableBase
+    extends TableSuper
 {
 
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
 
-    private Integer m_Privileges = null;
-    //private int m_Privileges = Privilege.SELECT | Privilege.INSERT | Privilege.UPDATE | Privilege.DELETE | Privilege.READ | Privilege.CREATE | Privilege.ALTER | Privilege.REFERENCE | Privilege.DROP;
+    private Integer m_Privileges = Privilege.SELECT | Privilege.INSERT    | Privilege.UPDATE |
+                                   Privilege.DELETE | Privilege.READ      | Privilege.CREATE |
+                                   Privilege.ALTER  | Privilege.REFERENCE | Privilege.DROP;
     protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
@@ -73,9 +75,7 @@ public final class Table
                  String type,
                  String remarks)
     {
-        super(m_service, m_services, connection, sensitive, name);
-        super.m_CatalogName = catalog;
-        super.m_SchemaName= schema;
+        super(m_service, m_services, connection, catalog, schema, sensitive, name);
         super.m_Type = type;
         super.m_Description = remarks;
         registerProperties();
@@ -87,10 +87,10 @@ public final class Table
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    if (m_Privileges == null) {
-                        m_Privileges = DBTools.getPrivileges(getConnection(), m_CatalogName, m_SchemaName, getName());
+                    if (m_connection.getProvider().ignoreDriverPrivileges()) {
+                        return m_Privileges;
                     }
-                    return m_Privileges;
+                    return DBTools.getPrivileges(getConnection(), m_CatalogName, m_SchemaName, getName());
                 }
             }, null);
         registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,

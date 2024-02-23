@@ -1,1 +1,1 @@
-Le pilote JDBC 4.1 enfin disponible dans LibreOffice
+Le pilote JDBC 4.1 pur Java pour LibreOffice

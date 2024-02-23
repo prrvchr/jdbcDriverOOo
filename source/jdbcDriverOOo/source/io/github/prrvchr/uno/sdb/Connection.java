@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -50,12 +50,8 @@ import com.sun.star.uno.XComponentContext;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
-import io.github.prrvchr.uno.sdbcx.Group;
-import io.github.prrvchr.uno.sdbcx.GroupContainer;
+import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Statement;
-import io.github.prrvchr.uno.sdbcx.User;
-import io.github.prrvchr.uno.sdbcx.UserContainer;
 
 
 public final class Connection

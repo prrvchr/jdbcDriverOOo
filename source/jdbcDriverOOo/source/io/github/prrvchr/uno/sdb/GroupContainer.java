@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.sdb;
 
 import java.util.List;
 
@@ -38,12 +38,16 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdb.Connection;
+import io.github.prrvchr.uno.sdbcx.Container;
 
 
 public class GroupContainer
-    extends Container
+    extends Container<Group>
 {
+    private static final String m_service = GroupContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Groups",
+                                                "com.sun.star.sdbcx.Container"};
+
 
     protected final Connection m_connection;
     private final ConnectionLog m_logger; 
@@ -63,7 +67,7 @@ public class GroupContainer
                           LoggerObjectType type)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
+        super(m_service, m_services, connection, sensitive, names);
         m_connection = connection;
         m_logger = new ConnectionLog(connection.getLogger(), type);
     }
@@ -86,11 +90,11 @@ public class GroupContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected Group _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        XPropertySet group = null;
+        Group group = null;
         if (_createGroup(descriptor, name)) {
             group = _createElement(name);
         }
@@ -108,7 +112,7 @@ public class GroupContainer
     }
 
     @Override
-    protected XPropertySet _createElement(String name)
+    protected Group _createElement(String name)
         throws SQLException
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -41,25 +41,27 @@ import com.sun.star.sdbcx.XAlterTable;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.sdbcx.XIndexesSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public abstract class TableBase
-    extends Descriptor
+public abstract class TableSuper
+    extends TableMain
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
@@ -67,45 +69,27 @@ public abstract class TableBase
                XDataDescriptorFactory
 {
 
-    protected final ConnectionSuper m_connection;
-    protected final ConnectionLog m_logger; 
     private ColumnContainerBase m_columns = null;
     private KeyContainer m_keys = null;
     private IndexContainer m_indexes = null;
-    protected String m_CatalogName = "";
-    protected String m_SchemaName = "";
     protected String m_Description = "";
     protected String m_Type = "";
 
     // The constructor method:
-    public TableBase(String service,
+    public TableSuper(String service,
                      String[] services,
                      ConnectionSuper connection,
+                     String catalog,
+                     String schema,
                      boolean sensitive,
                      String name)
     {
-        super(service, services, sensitive, name);
-        m_connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.TABLE);
+        super(service, services, connection, catalog, schema, sensitive, name, LoggerObjectType.TABLE);
         registerProperties();
     }
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_CatalogName;
-                }
-            }, null);
-        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_SchemaName;
-                }
-            }, null);
         registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
@@ -122,12 +106,11 @@ public abstract class TableBase
             }, null);
     }
 
-    public ConnectionLog getLogger()
+    protected ColumnContainerBase getColumnsInternal()
     {
-        return m_logger;
+        return m_columns;
     }
 
-    
     @Override
     protected void postDisposing() {
         super.postDisposing();
@@ -146,6 +129,7 @@ public abstract class TableBase
     @Override
     public XNameAccess getColumns()
     {
+        checkDisposed();
         try {
             if (m_columns == null) {
                 m_columns = _refreshColumns();
@@ -245,6 +229,49 @@ public abstract class TableBase
         }
     }
 
+
+    // com.sun.star.sdbcx.XRename
+    // TODO: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
+    // TODO: connectivity/source/drivers/postgresql/pq_xtable.cxx#L136
+    @Override
+    public void rename(String name)
+        throws SQLException,
+               ElementExistException
+    {
+        boolean isview = m_Type.toUpperCase().contains("VIEW");
+        int resource = isview ? Resources.STR_LOG_VIEW_RENAME_QUERY : Resources.STR_LOG_TABLE_RENAME_QUERY;
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        String oldname = DBTools.composeTableName(m_connection, this, rule, false);
+        System.out.println("sdbcx.TableBase.rename() 1");
+        if (!m_connection.getProvider().supportRenamingTable()) {
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 2, oldname);
+            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+        }
+        System.out.println("sdbcx.TableBase.rename() 2");
+        NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, rule);
+        if (isview) {
+            System.out.println("sdbcx.TableBase.rename() 3");
+            View view = m_connection.getViewsInternal().getElement(oldname);
+            if (view == null) {
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 3, oldname);
+                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            }
+            view.rename(name);
+            m_SchemaName = component.getSchema();
+            System.out.println("sdbcx.TableBase.rename() 4");
+        }
+        else {
+            System.out.println("sdbcx.TableBase.rename() 5");
+            rename(component, oldname, name, rule, resource);
+            m_SchemaName = component.getSchema();
+            System.out.println("sdbcx.TableBase.rename() 6");
+        }
+        m_Name = component.getTable();
+        m_connection.getTablesInternal().rename(oldname, name, resource);
+        System.out.println("sdbcx.TableBase.rename() 7");
+    }
+
+
     private IndexContainer _refreshIndexes()
     {
         try {
@@ -273,26 +300,6 @@ public abstract class TableBase
             return null;
         }
     }
-
-    public String getCatalogName()
-    {
-        return m_CatalogName;
-    }
-    public String getSchemaName()
-    {
-        return m_SchemaName;
-    }
-
-    public String getCatalog()
-    {
-        return m_CatalogName.isEmpty() ? null : m_CatalogName;
-    }
-    public String getSchema()
-    {
-        return m_SchemaName.isEmpty() ? null : m_SchemaName;
-    }
-
-    public abstract ConnectionSuper getConnection();
 
     protected abstract ColumnContainerBase _getColumnContainer(List<ColumnDescription> descriptions) throws ElementExistException;
 

@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.1.5][5]
+# version [1.1.6][5]
 
 ## Introduction:
 
@@ -397,7 +397,11 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 
 - You can now edit a view in SQL mode with the SQLite driver. For drivers that do not support view alteration, views are deleted and then recreated.
 
-### What remains to be done for version 1.1.5:
+### What has been done for version 1.1.6:
+
+You can now rename tables and views in Base. The configuration required for renaming for each embedded JDBC driver is stored only in the Drivers.xcu file. All JDBC drivers integrated into jdbcDriverOOo are capable of renaming tables or views and even some allow modifying the catalog or schema.
+
+### What remains to be done for version 1.1.6:
 
 - Add new languages for internationalization...
 
@@ -407,7 +411,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-112>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-116>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -430,7 +434,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [25]: <https://prrvchr.github.io/HyperSQLOOo/>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.5#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.6#right>
 [29]: <img/jdbcDriverOOo-1.png>
 [30]: <img/jdbcDriverOOo-2.png>
 [31]: <img/jdbcDriverOOo-3.png>

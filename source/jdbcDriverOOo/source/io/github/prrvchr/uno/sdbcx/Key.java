@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -37,7 +37,7 @@ import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public class Key
@@ -50,7 +50,7 @@ public class Key
     private static final String[] m_services = {"com.sun.star.sdbcx.Key"};
     
     protected KeyColumnContainer m_columns = null;
-    private final TableBase m_table;
+    private final TableSuper m_table;
     
     public int m_Type;
     protected String m_ReferencedTable;
@@ -58,7 +58,7 @@ public class Key
     protected int m_DeleteRule;
 
     // The constructor method:
-    public Key(TableBase table,
+    public Key(TableSuper table,
                boolean sensitive,
                String name,
                String reference,
@@ -145,7 +145,7 @@ public class Key
         return new KeyDescriptor(isCaseSensitive());
     }
 
-    public TableBase getTable()
+    public TableSuper getTable()
     {
         return m_table;
     }

@@ -21,7 +21,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -57,9 +57,9 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
+import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Key;
-import io.github.prrvchr.uno.sdbcx.TableBase;
+import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public class DataBaseTableHelper
@@ -95,7 +95,7 @@ public class DataBaseTableHelper
     }
 
     public static List<ColumnDescription> readColumns(ConnectionSuper connection,
-                                                      TableBase table)
+                                                      TableSuper table)
         throws java.sql.SQLException
     {
         List<ColumnDescription> descriptions = collectColumnDescriptions(connection, table);
@@ -108,7 +108,7 @@ public class DataBaseTableHelper
     }
 
     private static List<ColumnDescription> collectColumnDescriptions(ConnectionSuper connection,
-                                                                     TableBase table)
+                                                                     TableSuper table)
         throws java.sql.SQLException
     {
         List<ColumnDescription> columns = new ArrayList<>();
@@ -163,7 +163,7 @@ public class DataBaseTableHelper
 
     public static Map<String, Key> readKeys(ConnectionSuper connection,
                                             boolean sensitive,
-                                            TableBase table)
+                                            TableSuper table)
         throws SQLException,
                ElementExistException
     {
@@ -174,7 +174,7 @@ public class DataBaseTableHelper
     }
 
     private static void readPrimaryKey(ConnectionSuper connection,
-                                       TableBase table,
+                                       TableSuper table,
                                        boolean sensitive,
                                        Map<String, Key> keys)
         throws SQLException,
@@ -212,7 +212,7 @@ public class DataBaseTableHelper
     }
 
     private static void readForeignKeys(ConnectionSuper connection,
-                                        TableBase table,
+                                        TableSuper table,
                                         boolean sensitive,
                                         Map<String, Key> keys)
         throws SQLException,
@@ -270,7 +270,7 @@ public class DataBaseTableHelper
     }
 
     public static ArrayList<String> readIndexes(ConnectionSuper connection,
-                                                TableBase table)
+                                                TableSuper table)
         throws SQLException
     {
         ArrayList<String> names = new ArrayList<>();

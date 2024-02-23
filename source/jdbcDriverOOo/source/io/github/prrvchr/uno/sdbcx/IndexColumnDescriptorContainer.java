@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -25,10 +25,12 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.sdbc.SQLException;
 
 public class IndexColumnDescriptorContainer
-    extends DescriptorContainer
+    extends DescriptorContainer<IndexColumnDescriptor>
 {
 
     // The constructor method:
@@ -43,5 +45,14 @@ public class IndexColumnDescriptorContainer
     protected XPropertySet _createDescriptor() {
         return new IndexColumnDescriptor(isCaseSensitive());
     }
+
+    @Override
+    protected IndexColumnDescriptor _appendElement(XPropertySet descriptor,
+                                                   String name)
+        throws SQLException
+    {
+        return (IndexColumnDescriptor) _cloneDescriptor(descriptor);
+    }
+
 
 }

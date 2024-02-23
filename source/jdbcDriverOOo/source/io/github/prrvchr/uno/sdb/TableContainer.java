@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -31,15 +31,20 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
+import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.TableContainerBase;
 
 
 public final class TableContainer
     extends TableContainerBase
 {
+    private static final String m_service = TableContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdb.Tables",
+                                                "com.sun.star.sdbcx.Tables",
+                                                "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public TableContainer(ConnectionSuper connection,
@@ -47,7 +52,12 @@ public final class TableContainer
                           List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
+        super(m_service, m_services, connection, sensitive, names);
+    }
+
+    protected ConnectionLog getLogger()
+    {
+        return m_logger;
     }
 
     @Override
@@ -62,7 +72,7 @@ public final class TableContainer
                               String remarks)
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
-        Table table = new Table(m_connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
+        Table table = new Table(m_Connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
         return table;
     }

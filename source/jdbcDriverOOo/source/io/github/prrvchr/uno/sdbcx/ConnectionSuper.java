@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +42,7 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
-import io.github.prrvchr.uno.sdbcx.TableContainerBase;
-import io.github.prrvchr.uno.sdbcx.ViewContainer;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public abstract class ConnectionSuper
@@ -110,6 +109,11 @@ public abstract class ConnectionSuper
     public synchronized TableContainerBase getTablesInternal()
     {
         return m_Tables;
+    }
+
+    protected synchronized ViewContainer getViewsInternal()
+    {
+        return m_Views;
     }
 
     public synchronized void _refresh()

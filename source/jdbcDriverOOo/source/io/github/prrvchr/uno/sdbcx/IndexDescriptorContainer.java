@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -32,7 +32,7 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 
 
 public class IndexDescriptorContainer
-    extends DescriptorContainer
+    extends DescriptorContainer<IndexDescriptor>
 {
 
     // The constructor method:
@@ -49,13 +49,13 @@ public class IndexDescriptorContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected IndexDescriptor _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
         XPropertySet newDescriptor = _cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
-        return newDescriptor;
+        return (IndexDescriptor) newDescriptor;
     }
 
 

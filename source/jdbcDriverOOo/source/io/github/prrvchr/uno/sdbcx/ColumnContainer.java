@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -36,14 +36,17 @@ import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 public class ColumnContainer
     extends ColumnContainerBase
 {
+    private static final String m_service = ColumnContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Columns",
+                                                "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
-    public ColumnContainer(TableBase table,
+    public ColumnContainer(TableSuper table,
                            boolean sensitive,
                            List<ColumnDescription> descriptions)
         throws ElementExistException
     {
-        super(table, sensitive, descriptions);
+        super(m_service, m_services, table, sensitive, descriptions);
     }
 
     @Override

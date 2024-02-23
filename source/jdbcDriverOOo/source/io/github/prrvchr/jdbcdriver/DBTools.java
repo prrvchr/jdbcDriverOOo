@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -95,10 +95,11 @@ import io.github.prrvchr.css.util.TimeWithTimezone;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
-import io.github.prrvchr.uno.sdbcx.TableBase;
+import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
+import io.github.prrvchr.uno.sdbcx.TableSuper;
+import io.github.prrvchr.uno.sdbcx.TableMain;
 
 
 public class DBTools
@@ -162,36 +163,44 @@ public class DBTools
         }
     }
 
+
     public static NameComponentSupport getNameComponentSupport(ConnectionBase connection,
                                                                ComposeRule rule)
         throws SQLException
     {
         try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            switch (rule) {
-            case InTableDefinitions:
-                return new NameComponentSupport(metadata.supportsCatalogsInTableDefinitions(),
-                                                metadata.supportsSchemasInTableDefinitions());
-            case InIndexDefinitions:
-                return new NameComponentSupport(metadata.supportsCatalogsInIndexDefinitions(),
-                                                metadata.supportsSchemasInIndexDefinitions());
-            case InDataManipulation:
-                return new NameComponentSupport(metadata.supportsCatalogsInDataManipulation(),
-                                                metadata.supportsSchemasInDataManipulation());
-            case InProcedureCalls:
-                return new NameComponentSupport(metadata.supportsCatalogsInProcedureCalls(),
-                                                metadata.supportsSchemasInProcedureCalls());
-            case InPrivilegeDefinitions:
-                return new NameComponentSupport(metadata.supportsCatalogsInPrivilegeDefinitions(),
-                                                metadata.supportsSchemasInPrivilegeDefinitions());
-            case Complete:
-                return new NameComponentSupport(true, true);
-            default:
-                throw new UnsupportedOperationException("Invalid/unknown enum value");
-            }
+            return getNameComponentSupport(connection.getProvider(), rule);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
+        }
+    }
+
+    public static NameComponentSupport getNameComponentSupport(DriverProvider provider,
+                                                               ComposeRule rule)
+        throws java.sql.SQLException
+    {
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        switch (rule) {
+        case InTableDefinitions:
+            return new NameComponentSupport(metadata.supportsCatalogsInTableDefinitions(),
+                                            metadata.supportsSchemasInTableDefinitions());
+        case InIndexDefinitions:
+            return new NameComponentSupport(metadata.supportsCatalogsInIndexDefinitions(),
+                                            metadata.supportsSchemasInIndexDefinitions());
+        case InDataManipulation:
+            return new NameComponentSupport(metadata.supportsCatalogsInDataManipulation(),
+                                            metadata.supportsSchemasInDataManipulation());
+        case InProcedureCalls:
+            return new NameComponentSupport(metadata.supportsCatalogsInProcedureCalls(),
+                                            metadata.supportsSchemasInProcedureCalls());
+        case InPrivilegeDefinitions:
+            return new NameComponentSupport(metadata.supportsCatalogsInPrivilegeDefinitions(),
+                                            metadata.supportsSchemasInPrivilegeDefinitions());
+        case Complete:
+            return new NameComponentSupport(true, true);
+        default:
+            throw new UnsupportedOperationException("Invalid/unknown enum value");
         }
     }
 
@@ -374,6 +383,37 @@ public class DBTools
         return buffer.toString();
     }
 
+    public static Object[] getRenameTableArguments(ConnectionSuper connection,
+                                                   NameComponents newname,
+                                                   TableMain table,
+                                                   String fullname,
+                                                   boolean reversed,
+                                                   ComposeRule rule,
+                                                   boolean sensitive)
+        throws SQLException
+    {
+        List<String> args = new ArrayList<>();
+        // TODO: {0} quoted full old table name
+        args.add(quoteTableName(connection, fullname, rule, sensitive));
+        // TODO: {1} quoted new schema name
+        args.add(quoteName(connection, newname.getSchema(), sensitive));
+        // TODO: {2} quoted full old table name overwritten with the new schema name
+        args.add(composeTableName(connection, table.getCatalogName(), newname.getSchema(), table.getName(), sensitive, rule));
+        // TODO: {3} quoted new table name
+        args.add(quoteName(connection, newname.getTable(), sensitive));
+        // TODO: {4} quoted full old table name overwritten with the new table name
+        args.add(composeTableName(connection, table.getCatalogName(), table.getSchemaName(), newname.getTable(), sensitive, rule));
+        // TODO: {5} quoted full new table name
+        args.add(composeTableName(connection, newname.getCatalog(), newname.getSchema(), newname.getTable(), sensitive, rule));
+        if (reversed) {
+            String buffers = args.get(0);
+            args.set(0, args.get(4));
+            args.set(4, args.get(2));
+            args.set(2, buffers);
+        }
+        return args.toArray(new Object[0]);
+    }
+
     /** composes a table name for usage in a SELECT statement
      *
      * This includes quoting of the table as indicated by the connection's meta data, plus respecting
@@ -473,7 +513,7 @@ public class DBTools
 
     /** quote the given table name (which may contain a catalog and a schema) according to the rules provided by the meta data
      */
-    public static String quoteTableName(ConnectionSuper connection,
+    public static String quoteTableName(ConnectionBase connection,
                                         String name,
                                         ComposeRule rule,
                                         boolean sensitive)
@@ -486,13 +526,22 @@ public class DBTools
         return name;
     }
 
+    /** unquote the given table name (which may contain a catalog and a schema)
+     */
+    public static String unQuoteTableName(ConnectionSuper connection,
+                                          String name)
+    {
+        String quote = connection.getProvider().getIdentifierQuoteString();
+        return name.replace(quote, "");
+    }
+
     /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
      * @param metadata     meta data describing the connection where you got the table name from
      * @param name     fully qualified table name
      * @param rule       where do you need the name for
      * @return the NameComponents object with the catalog, schema and table
      */
-    public static NameComponents qualifiedNameComponents(ConnectionSuper connection,
+    public static NameComponents qualifiedNameComponents(ConnectionBase connection,
                                                          String name,
                                                          ComposeRule rule)
         throws SQLException
@@ -1703,7 +1752,7 @@ public class DBTools
     }
 
     public static List<String> getAlterColumnQueries(ConnectionSuper connection,
-                                                     TableBase table,
+                                                     TableSuper table,
                                                      XPropertySet descriptor1,
                                                      XPropertySet descriptor2,
                                                      boolean sensitive)
@@ -1951,9 +2000,9 @@ public class DBTools
     }
 
     public static int getPrivileges(Connection connection,
-                             String catalog,
-                             String schema,
-                             String table)
+                                    String catalog,
+                                    String schema,
+                                    String table)
         throws WrappedTargetException
     {
         int privileges = 0;

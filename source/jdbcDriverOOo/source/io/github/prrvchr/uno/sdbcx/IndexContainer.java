@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -44,28 +44,30 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class IndexContainer
-    extends Container
+    extends Container<Index>
 {
+    private static final String m_service = IndexContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Indexes",
+                                                "com.sun.star.sdbcx.Container"};
 
-    private final TableBase m_Table;
+    private final TableSuper m_Table;
 
     // The constructor method:
-    public IndexContainer(TableBase table,
+    public IndexContainer(TableSuper table,
                           boolean sensitive,
                           List<String> indexes)
     throws ElementExistException
     {
-        super(table, sensitive, indexes);
+        super(m_service, m_services, table, sensitive, indexes);
         m_Table = table;
     }
 
 
     @Override
-    protected XPropertySet _createElement(String name)
+    protected Index _createElement(String name)
         throws SQLException
     {
         Index index = null;
@@ -126,7 +128,7 @@ public class IndexContainer
     }
     
     private static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,
-                                             TableBase table,
+                                             TableSuper table,
                                              String name)
         throws java.sql.SQLException
     {
@@ -151,11 +153,11 @@ public class IndexContainer
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected Index _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        XPropertySet index = null;
+        Index index = null;
         if (_createIndex(descriptor, name)) {
             index = _createElement(name);
         }

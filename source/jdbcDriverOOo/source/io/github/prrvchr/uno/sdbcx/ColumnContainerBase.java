@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -49,25 +49,26 @@ import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public abstract class ColumnContainerBase
-    extends Container
+    extends Container<ColumnSuper>
 {
 
     private Map<String, ColumnDescription> m_descriptions = new HashMap<>();
     private Map<String, ExtraColumnInfo> m_extrainfos = new HashMap<>();
-    protected final TableBase m_table;
+    protected final TableSuper m_table;
 
 
     // The constructor method:
-    public ColumnContainerBase(TableBase table,
+    public ColumnContainerBase(String service,
+                               String[] services,
+                               TableSuper table,
                                boolean sensitive,
                                List<ColumnDescription> descriptions)
         throws ElementExistException
     {
-        super(table, sensitive, toColumnNames(descriptions));
+        super(service, services, table, sensitive, toColumnNames(descriptions));
         m_table = table;
         for (ColumnDescription description : descriptions) {
             m_descriptions.put(description.columnName, description);
@@ -96,11 +97,11 @@ public abstract class ColumnContainerBase
     }
 
     @Override
-    protected XPropertySet _appendElement(XPropertySet descriptor,
+    protected ColumnSuper _appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        XPropertySet column = null;
+        ColumnSuper column = null;
         if (_createColumn(descriptor, name)) {
             column = _createElement(name);
         }

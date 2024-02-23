@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,33 +23,67 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.lang;
+package io.github.prrvchr.uno.sdb;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.XUser;
+
+import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public final class ServiceInfo
+public class User
+    extends Role
+    implements XUser
 {
 
-    // com.sun.star.lang.XServiceInfo:
-    public static String getImplementationName(final String name)
+    private static final String m_service = User.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+
+
+    // The constructor method:
+    public User(Connection connection,
+                boolean sensitive,
+                String name)
     {
-        return name;
+        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.USER);
     }
 
-    public static String[] getSupportedServiceNames(final String[] services)
+    // com.sun.star.sdbcx.XUser:
+    @Override
+    public void changePassword(String old, String password)
+        throws SQLException
     {
-        return services.clone();
-    }
-
-    public static boolean supportsService(final String[] services,
-                                          final String service)
-    {
-        for (int i = 0; i < services.length; i++)
-        {
-            if (service.equals(services[i]))
-                return true;
+        String sql = DBTools.getChangeUserPasswordQuery(m_connection, getName(), password, isCaseSensitive());
+        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            statement.execute(sql);
         }
-        return false;
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, m_connection);
+        }
     }
 
+    // Private methods:
+    @Override
+    protected void _addGrantees(List<String> grantees) {
+        grantees.addAll(Arrays.asList(getGroups().getElementNames()));
+    }
+
+    @Override
+    protected int _getGrantPrivilegesResource()
+    {
+        return Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
+    }
+
+    @Override
+    protected int _getRevokePrivilegesResource()
+    {
+        return Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
+    }
 
 }

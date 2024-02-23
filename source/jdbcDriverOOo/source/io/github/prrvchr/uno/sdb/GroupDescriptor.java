@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,57 +23,21 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.sdb;
 
-import java.util.List;
+import io.github.prrvchr.uno.sdbcx.Descriptor;
 
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
-import com.sun.star.sdbc.SQLException;
-
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.sdb.Connection;
-
-
-public class Users
-    extends UserContainer
+public class GroupDescriptor
+    extends Descriptor
 {
 
-    private final Group m_Group;
+    private static final String m_service = GroupDescriptor.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.GroupDescriptor"};
 
     // The constructor method:
-    public Users(Connection connection,
-                    boolean sensitive,
-                    List<String> names,
-                    Group group)
-        throws ElementExistException
+    public GroupDescriptor(boolean sensitive)
     {
-        super(connection, sensitive, names, LoggerObjectType.USERS);
-        m_Group = group;
-    }
-
-    @Override
-    protected boolean _createUser(XPropertySet descriptor,
-                                  String name)
-        throws SQLException
-    {
-        String query = DBTools.getGrantRoleQuery(m_connection, m_Group.getName(), name, isCaseSensitive());
-        System.out.println("sdbcx.GroupUserContainer._createUser() SQL: " + query);
-        return DBTools.executeDDLQuery(m_connection, query, m_Group.getLogger(), this.getClass().getName(),
-                                       "_createUser", Resources.STR_LOG_USERROLE_CREATE_USER_QUERY, name);
-    }
-
-    @Override
-    protected void _removeElement(int index,
-                                  String name)
-        throws SQLException
-    {
-        String query = DBTools.getRevokeRoleQuery(m_connection, m_Group.getName(), name, isCaseSensitive());
-        System.out.println("sdbcx.GroupUserContainer._removeElement() SQL: " + query);
-        DBTools.executeDDLQuery(m_connection, query, m_Group.getLogger(), this.getClass().getName(),
-                                "_removeElement", Resources.STR_LOG_USERROLE_REMOVE_USER_QUERY, name);
+        super(m_service, m_services, sensitive);
     }
 
 

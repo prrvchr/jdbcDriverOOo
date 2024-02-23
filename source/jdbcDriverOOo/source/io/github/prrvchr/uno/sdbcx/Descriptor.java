@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -32,10 +32,10 @@ import com.sun.star.lang.XServiceInfo;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.beans.PropertySet;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.lang.ServiceInfo;
+import io.github.prrvchr.uno.helper.PropertySet;
+import io.github.prrvchr.uno.helper.ServiceInfo;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public abstract class Descriptor
@@ -45,7 +45,7 @@ public abstract class Descriptor
 
     private final String m_service;
     private final String[] m_services;
-    private String m_Name;
+    protected String m_Name;
     private final boolean m_sensitive;
 
     // The constructor method:

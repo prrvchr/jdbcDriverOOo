@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -1216,7 +1216,7 @@ public abstract class DatabaseMetaDataBase
         }
     }
 
-    @Override
+    //@Override
     public XResultSet getTablePrivileges(Object catalog, String schema, String table) throws SQLException
     {
         try {
@@ -1224,7 +1224,7 @@ public abstract class DatabaseMetaDataBase
             System.out.println("sdbc.DatabaseMetaData.getTablePrivileges()");
             if (m_Connection.getProvider().ignoreDriverPrivileges()) {
                 System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 2 ***********************************");
-                result = _getTablePrivileges(catalog, schema, table);
+                result = generateOwnTablePrivileges(catalog, schema, table);
             }
             else {
                 java.sql.ResultSet resultset = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
@@ -3617,9 +3617,9 @@ public abstract class DatabaseMetaDataBase
 
 
     // XDatabaseMetaData.getTablePrivileges:
-    private XResultSet _getTablePrivileges(Object catalog,
-                                           String schema,
-                                           String table)
+    private XResultSet generateOwnTablePrivileges(Object catalog,
+                                                  String schema,
+                                                  String table)
             throws SQLException
     {
         ArrayList<CustomColumn[]> rows = new ArrayList<>();
@@ -3738,6 +3738,5 @@ public abstract class DatabaseMetaDataBase
 
     abstract protected String _mapDatabaseTableTypes(String type);
     abstract protected String _mapDatabaseTableTypes(String catalog, String schema, String type);
-
 
 }

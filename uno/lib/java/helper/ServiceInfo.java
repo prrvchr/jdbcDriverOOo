@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,20 +23,32 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.helper;
 
 
-public class GroupDescriptor
-    extends Descriptor
+public final class ServiceInfo
 {
 
-    private static final String m_service = GroupDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.GroupDescriptor"};
-
-    // The constructor method:
-    public GroupDescriptor(boolean sensitive)
+    // com.sun.star.lang.XServiceInfo:
+    public static String getImplementationName(final String name)
     {
-        super(m_service, m_services, sensitive);
+        return name;
+    }
+
+    public static String[] getSupportedServiceNames(final String[] services)
+    {
+        return services.clone();
+    }
+
+    public static boolean supportsService(final String[] services,
+                                          final String service)
+    {
+        for (int i = 0; i < services.length; i++)
+        {
+            if (service.equals(services[i]))
+                return true;
+        }
+        return false;
     }
 
 

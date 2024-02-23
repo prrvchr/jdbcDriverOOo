@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -34,12 +34,14 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class IndexColumnContainer
-    extends Container
+    extends Container<IndexColumn>
 {
+    private static final String m_service = IndexColumnContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumns",
+                                                "com.sun.star.sdbcx.Container"};
 
     private final Index m_index;
 
@@ -49,7 +51,7 @@ public class IndexColumnContainer
                                 List<String> columns)
         throws ElementExistException
     {
-        super(index.getTable(), true, columns);
+        super(m_service, m_services, index.getTable(), true, columns);
         m_index = index;
         System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
     }

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -39,8 +39,8 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.beans.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public class Index
@@ -53,7 +53,7 @@ public class Index
     private static final String[] m_services = {"com.sun.star.sdbcx.Index"};
     
     protected IndexColumnContainer m_columns = null;
-    protected final TableBase m_table;
+    protected final TableSuper m_table;
     
     protected String m_Catalog;
     protected boolean m_IsUnique;
@@ -61,7 +61,7 @@ public class Index
     protected boolean m_IsClustered;
 
     // The constructor method:
-    public Index(TableBase table,
+    public Index(TableSuper table,
                  boolean sensitive,
                  String name,
                  String catalog,
@@ -139,7 +139,7 @@ public class Index
     }
 
 
-    public TableBase getTable()
+    public TableSuper getTable()
     {
         return m_table;
     }

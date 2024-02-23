@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -33,12 +33,14 @@ import com.sun.star.logging.LogLevel;
 
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
-import io.github.prrvchr.uno.sdbc.ConnectionSuper;
 
 
 public class TableContainer
     extends TableContainerBase
 {
+    private static final String m_service = TableContainer.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Tables",
+                                                "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public TableContainer(ConnectionSuper connection,
@@ -46,7 +48,7 @@ public class TableContainer
                           List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names);
+        super(m_service, m_services, connection, sensitive, names);
     }
 
     @Override
@@ -61,7 +63,7 @@ public class TableContainer
                               String remarks)
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
-        Table table = new Table(m_connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
+        Table table = new Table(m_Connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
         return table;
     }

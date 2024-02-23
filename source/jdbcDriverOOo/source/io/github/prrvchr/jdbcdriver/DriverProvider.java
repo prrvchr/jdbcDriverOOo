@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║ 
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -67,6 +67,9 @@ public interface DriverProvider
     // Default value is false. see: http://hsqldb.org/doc/2.0/guide/guide.html#dbc_commenting
     public boolean supportsColumnDescription();
 
+    // Does the underlying database driver support renaming table and view.
+    public boolean supportRenamingTable();
+
     // Where the underlying database driver put auto-increment column declaration in table creation:
     // - In the column definition (false)
     // - In the primary key definition (true)
@@ -80,6 +83,8 @@ public interface DriverProvider
     // Default value is true (ie: no support).
     public boolean ignoreDriverPrivileges();
 
+    public boolean hasMultiRenameQueries();
+
     // If the underlying database driver support java.sql.Statement.getGeneratedValues()
     // You must provide the SQL SELECT command which will be used (ie: SELECT * FROM %s WHERE %s)
     // The name of the table as well as the predicates will be provided by the driver
@@ -88,6 +93,8 @@ public interface DriverProvider
     public Object[] getTypeInfoSettings();
 
     public int getGeneratedKeysOption();
+
+    public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
     public List<String> getAlterViewQueries(String view, String command);
 
