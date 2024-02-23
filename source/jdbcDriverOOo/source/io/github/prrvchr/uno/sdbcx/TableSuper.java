@@ -242,33 +242,26 @@ public abstract class TableSuper
         int resource = isview ? Resources.STR_LOG_VIEW_RENAME_QUERY : Resources.STR_LOG_TABLE_RENAME_QUERY;
         ComposeRule rule = ComposeRule.InDataManipulation;
         String oldname = DBTools.composeTableName(m_connection, this, rule, false);
-        System.out.println("sdbcx.TableBase.rename() 1");
         if (!m_connection.getProvider().supportRenamingTable()) {
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 2, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
-        System.out.println("sdbcx.TableBase.rename() 2");
         NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, rule);
         if (isview) {
-            System.out.println("sdbcx.TableBase.rename() 3");
             View view = m_connection.getViewsInternal().getElement(oldname);
             if (view == null) {
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 3, oldname);
-                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+                throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
             }
             view.rename(name);
             m_SchemaName = component.getSchema();
-            System.out.println("sdbcx.TableBase.rename() 4");
         }
         else {
-            System.out.println("sdbcx.TableBase.rename() 5");
             rename(component, oldname, name, rule, resource);
             m_SchemaName = component.getSchema();
-            System.out.println("sdbcx.TableBase.rename() 6");
         }
         m_Name = component.getTable();
         m_connection.getTablesInternal().rename(oldname, name, resource);
-        System.out.println("sdbcx.TableBase.rename() 7");
     }
 
 

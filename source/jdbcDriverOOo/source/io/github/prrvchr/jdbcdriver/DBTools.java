@@ -1841,26 +1841,29 @@ public class DBTools
                                           Object... arguments)
         throws SQLException
     {
+        if (query.isBlank()) {
+            return false;
+        }
         boolean autocommit = false;
         boolean support = connection.getProvider().supportsTransactions();
-        java.sql.Connection con = connection.getProvider().getConnection();
-        try (java.sql.Statement statement = con.createStatement()) {
+        java.sql.Connection jdbc = connection.getProvider().getConnection();
+        try (java.sql.Statement statement = jdbc.createStatement()) {
             if (support) {
-                autocommit = con.getAutoCommit();
-                con.setAutoCommit(false);
+                autocommit = jdbc.getAutoCommit();
+                jdbc.setAutoCommit(false);
             }
             System.out.println("DBTools.executeStatement 2 Query: " + query);
             logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
             statement.executeUpdate(query);
             if (support) {
-                con.commit();
-                con.setAutoCommit(autocommit);
+                jdbc.commit();
+                jdbc.setAutoCommit(autocommit);
             }
         }
         catch (java.sql.SQLException e) {
             if (support) {
                 try {
-                    con.rollback();
+                    jdbc.rollback();
                 }
                 catch (java.sql.SQLException ex) {
                     // pass
@@ -1883,6 +1886,7 @@ public class DBTools
                                             Object... arguments)
         throws SQLException
     {
+        int count = 0;
         boolean autocommit = false;
         boolean support = connection.getProvider().supportsTransactions();
         java.sql.Connection con = connection.getProvider().getConnection();
@@ -1892,9 +1896,13 @@ public class DBTools
                 con.setAutoCommit(false);
             }
             for (String query : queries) {
+                if (query.isBlank()) {
+                    continue;
+                }
                 System.out.println("DBTools.executeStatements 2 Query: " + query);
                 logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
                 statement.executeUpdate(query);
+                count ++;
             }
             if (support) {
                 con.commit();
@@ -1914,7 +1922,7 @@ public class DBTools
             logger.logp(LogLevel.SEVERE, cls, method, message);
             throw new SQLException(message);
         }
-        return true;
+        return count > 0;
     }
 
     private static Object[] _addToArgs(Object[] arguments, Object... options)

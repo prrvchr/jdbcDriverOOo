@@ -115,8 +115,8 @@ public abstract class TableMain
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 4, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
         }
+        String fname = newname;
         boolean reversed = false;
-        boolean duplicate = false;
         boolean fullchange = false;
         boolean multiquery = m_connection.getProvider().hasMultiRenameQueries();
         // FIXME: We have 2 commands for moving and renaming and we need to find the right order to execute queries
@@ -128,14 +128,10 @@ public abstract class TableMain
             reversed = m_connection.getTablesInternal().hasByName(name);
             if (reversed) {
                 // FIXME: try to rename first
-                name = DBTools.composeTableName(m_connection, m_CatalogName, m_SchemaName, component.getTable(), false, rule);
+                fname = DBTools.composeTableName(m_connection, m_CatalogName, m_SchemaName, component.getTable(), false, rule);
             }
-            else {
-                name = newname;
-            }
-            duplicate = m_connection.getTablesInternal().hasByName(name);
         }
-        if (duplicate) {
+        if (m_connection.getTablesInternal().hasByName(fname)) {
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 5, oldname, newname);
             throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
         }

@@ -32,13 +32,17 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterView;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
@@ -85,6 +89,7 @@ public class View
             }, null);
     }
 
+
     // com.sun.star.sdbcx.XAlterView
     @Override
     public void alterCommand(String command)
@@ -103,14 +108,25 @@ public class View
         }
     }
 
+
     // com.sun.star.sdbcx.XRename
     @Override
     public void rename(String name)
         throws SQLException,
                ElementExistException
     {
-        System.out.println("sdbcx.View.rename() 1 : " + name);
+        int resource = Resources.STR_LOG_VIEW_RENAME_QUERY;
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        String oldname = DBTools.composeTableName(m_connection, this, rule, false);
+        if (!m_connection.getProvider().supportRenamingTable()) {
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 2, oldname);
+            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+        }
+        NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, rule);
+        rename(component, oldname, name, rule, resource);
+        m_SchemaName = component.getSchema();
+        m_Name = component.getTable();
+        m_connection.getViewsInternal().rename(oldname, name, resource);
     }
-
 
 }
