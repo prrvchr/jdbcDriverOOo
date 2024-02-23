@@ -399,8 +399,8 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 
 ### What has been done for version 1.1.6:
 
-- You can now rename tables and views in Base. The configuration required for renaming for each embedded JDBC driver is stored only in the Drivers.xcu file.
-- All JDBC drivers integrated into jdbcDriverOOo are capable of renaming tables or views and even some allow modifying the catalog or schema.
+- You can now rename tables and views in Base. All the configuration required for renaming for each embedded JDBC driver is stored only in the [Drivers.xcu][80] file.
+- All JDBC drivers integrated into jdbcDriverOOo are capable of renaming tables or views and even some (ie: MariaDB and PostgreSQL) allow modifying the catalog or schema.
 - Many improvements.
 
 ### What remains to be done for version 1.1.6:

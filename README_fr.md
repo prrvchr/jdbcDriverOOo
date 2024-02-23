@@ -399,8 +399,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.1.6:
 
-- Vous pouvez désormais renommer les tables et les vues dans Base. La configuration nécessaire au renommage pour chaque pilote JDBC intégré est stockée uniquement dans le fichier Drivers.xcu.
-- Tous les pilotes JDBC intégrés à jdbcDriverOOo sont capables de renommer des tables ou des vues et même certains permettent de modifier le catalogue ou le schéma.
+- Vous pouvez désormais renommer les tables et les vues dans Base. Toute la configuration nécessaire au renommage pour chaque pilote JDBC intégré est stockée uniquement dans le fichier [Drivers.xcu][80].
+- Tous les pilotes JDBC intégrés à jdbcDriverOOo sont capables de renommer des tables ou des vues et même certains (ie: MariaDB et PostgreSQL) permettent de modifier le catalogue ou le schéma.
 - De nombreuses améliorations.
 
 ### Que reste-t-il à faire pour la version 1.1.6:
