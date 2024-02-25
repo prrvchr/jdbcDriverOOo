@@ -50,6 +50,7 @@ public class Resources {
     // = resource ids for log messages
     public static final int STR_LOG_MESSAGE_BASE                          = 10000;
     public static final int STR_JDBC_LOG_MESSAGE_BASE                     = STR_LOG_MESSAGE_BASE + 1000;
+    public static final int STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET        = 200;
 
     public static final int STR_STRING_LENGTH_EXCEEDED                         = (STR_COMMON_BASE +  1);
     public static final int STR_CANNOT_CONVERT_STRING                          = (STR_COMMON_BASE +  2);
@@ -237,8 +238,9 @@ public class Resources {
     public static final int STR_LOG_TABLE_RENAME_QUERY_ERROR                   = (STR_JDBC_LOG_MESSAGE_BASE +  606);
     public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FEATURE_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  607);
     public static final int STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  608);
-    public static final int STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  609);
-    public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  610);
+    public static final int STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  609);
+    public static final int STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  610);
+    public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  611);
 
     public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY                   = (STR_JDBC_LOG_MESSAGE_BASE +  615);
     public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR             = (STR_JDBC_LOG_MESSAGE_BASE +  616);
@@ -270,8 +272,9 @@ public class Resources {
     public static final int STR_LOG_VIEW_RENAME_QUERY_ERROR                    = (STR_JDBC_LOG_MESSAGE_BASE +  806);
     public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  807);
     public static final int STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  808);
-    public static final int STR_LOG_VIEW_RENAME_DUPLICATE_VIEW_NAME_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  809);
-    public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  810);
+    public static final int STR_LOG_VIEW_RENAME_OPERATION_CANCELLED_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  809);
+    public static final int STR_LOG_VIEW_RENAME_DUPLICATE_VIEW_NAME_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  810);
+    public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  811);
 
     public static final int STR_LOG_VIEW_ALTER_QUERY                           = (STR_JDBC_LOG_MESSAGE_BASE +  815);
     public static final int STR_LOG_VIEW_ALTER_QUERY_ERROR                     = (STR_JDBC_LOG_MESSAGE_BASE +  816);

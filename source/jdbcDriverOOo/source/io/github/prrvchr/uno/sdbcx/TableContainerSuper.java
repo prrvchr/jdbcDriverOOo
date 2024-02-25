@@ -30,11 +30,8 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.XDrop;
-import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTools;
@@ -45,12 +42,12 @@ import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class TableContainerBase
+public abstract class TableContainerSuper
     extends TableContainerMain<TableSuper>
 {
 
     // The constructor method:
-    public TableContainerBase(String service,
+    public TableContainerSuper(String service,
                               String[] services,
                               ConnectionSuper connection,
                               boolean sensitive,
@@ -73,8 +70,8 @@ public abstract class TableContainerBase
         String table = DBTools.composeTableName(m_Connection, descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
         List<String> queries = DBTools.getCreateTableQueries(m_Connection, descriptor, table, isCaseSensitive());
         String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
-        if (!description.isEmpty()) {
-            queries.add(DBTools.getCommentQuery("TABLE", table, description));
+        if (!description.isEmpty() && m_Connection.getProvider().supportsTableDescription()) {
+            queries.add(m_Connection.getProvider().getTableDescriptionQuery(table, description));
         }
         if (!queries.isEmpty()) {
             return DBTools.executeDDLQueries(m_Connection, queries, m_logger, this.getClass().getName(),
@@ -132,25 +129,27 @@ public abstract class TableContainerBase
         throws SQLException
     {
         try {
+            System.out.println("TableContainer._removeElement() 1 Name " + name);
             boolean isview = false;
-            XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, _getElement(index));
-            if (descriptor != null) {
-                isview = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPE).equals("VIEW");
+            TableSuper element = getElement(name);
+            System.out.println("TableContainer._removeElement() 2 element " + element.m_Type);
+            if (element != null) {
+                isview = element.m_Type.toUpperCase().contains("VIEW");
             }
             if (isview) {
-                XDrop views = UnoRuntime.queryInterface(XDrop.class, m_Connection.getViews());
+                ViewContainer views = m_Connection.getViewsInternal();
                 views.dropByName(name);
                 return;
             }
-            NameComponents nameComponents = DBTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
-            String table = DBTools.composeTableName(m_Connection, nameComponents.getCatalog(), nameComponents.getSchema(),
-                                                    nameComponents.getTable(), isCaseSensitive(), ComposeRule.InDataManipulation);
-            String query = String.format(m_Connection.getProvider().getDropTableQuery(), table);
-            System.out.println("TableContainer._removeElement() Query: " + query);
-            DBTools.executeDDLQuery(m_Connection, query, m_logger,  this.getClass().getName(),
-                                     "_removeElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
+            NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection, name, ComposeRule.InDataManipulation);
+            String table = DBTools.getTableName(m_Connection, cpt.getCatalog(), cpt.getSchema(),
+                                                cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
+            String query = DBTools.getDropTableQuery(table);
+            System.out.println("TableContainer._removeElement() 3 Query: " + query);
+            DBTools.executeDDLQuery(m_Connection, query, m_logger, this.getClass().getName(),
+                                    "_removeElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
         }
-        catch (WrappedTargetException | NoSuchElementException e) {
+        catch (NoSuchElementException e) {
             throw UnoHelper.getSQLException(e, m_Connection);
         }
     }
@@ -164,11 +163,6 @@ public abstract class TableContainerBase
                 m_Names.add(name);
             }
         }
-    }
-
-    public synchronized void _refresh()
-    {
-        m_Connection._refresh();
     }
 
     protected abstract TableSuper _getTable(NameComponents component,

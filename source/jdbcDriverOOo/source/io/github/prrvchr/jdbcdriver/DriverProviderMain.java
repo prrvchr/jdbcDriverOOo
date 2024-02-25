@@ -36,7 +36,6 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -55,14 +54,17 @@ public abstract class DriverProviderMain
     private boolean m_IsCatalogAtStart = true;
     private String m_CatalogSeparator = "";
     private String m_IdentifierQuoteString = "";
-    private boolean m_SupportsColumnDescription = false;
+    private String m_TableDescriptionCommand = null;
+    private String m_ColumnDescriptionCommand = null;
     private boolean m_IsAutoIncrementIsPrimaryKey = false;
     private boolean m_IsAutoRetrievingEnabled = false;
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
     private boolean m_IgnoreDriverPrivileges = true;
+    private boolean m_SupportRenameView = true;
     private Object[] m_RenameTableCommands = null;
-    private Object[] m_AlterViewCommands = {"DROP VIEW %s", "CREATE VIEW %s AS %s"};
+    private Object[] m_ViewDefinitionCommands = null;
+    private Object[] m_AlterViewCommands = null;
     private Object[] m_TypeInfoSettings = null;
 
     // The constructor method:
@@ -91,44 +93,115 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public List<String> getAlterViewQueries(String view,
-                                            String command)
+    public String getColumnDescriptionQuery(String column, String description) {
+        return MessageFormat.format(m_ColumnDescriptionCommand, column, description);
+    }
+
+    @Override
+    public String getTableDescriptionQuery(String table, String description) {
+        return MessageFormat.format(m_TableDescriptionCommand, table, description);
+    }
+
+    @Override
+    public List<String> getAlterViewQueries(Object... arguments)
     {
-        List<String> queries = new ArrayList<>();
-        for (Object sql : m_AlterViewCommands) {
-            queries.add(String.format(sql.toString(), view, command));
+        return getDDLQueriesCommand(m_AlterViewCommands, null, false, arguments);
+    }
+
+    @Override
+    public List<String> getRenameTableQueries(boolean reverse,
+                                              Object... arguments)
+    {
+        return getDDLQueriesCommand(m_RenameTableCommands, null, reverse, arguments);
+    }
+
+
+    @Override
+    public List<String> getViewDefinitionQuery(List<Integer[]> positions,
+                                               Object... arguments)
+    {
+        return getDDLQueriesCommand(m_ViewDefinitionCommands, positions, false, arguments);
+    }
+
+    private List<String> getDDLQueriesCommand(Object[] commands,
+                                              List<Integer[]> positions,
+                                              boolean reversed,
+                                              Object... arguments)
+    {
+        int count = 0;
+        boolean simple = positions == null;
+        List<String> queries = new ArrayList<String>();
+        if (reversed) {
+            for (int i = commands.length - 1; i >= 0; i--) {
+                setDDLQueryCommand(queries, commands[i].toString(), simple, count, arguments);
+                count ++;
+            }
+        }
+        else {
+            for (Object command : commands) {
+                Integer[] position = setDDLQueryCommand(queries, command.toString(), simple, count, arguments);
+                if (!simple && position != null) {
+                    positions.add(position);
+                }
+                count ++;
+            }
         }
         return queries;
+    }
+
+    private Integer[] setDDLQueryCommand(List<String> queries,
+                                         String command,
+                                         boolean simple,
+                                         int count,
+                                         Object... arguments)
+    {
+        if (simple || count % 2 == 0) {
+            // XXX: Some commands may be empty, we need to filter such command.
+            if (!command.isBlank()) {
+                queries.add(MessageFormat.format(command, arguments));
+            }
+            return null;
+        }
+        List<Integer> positions = new ArrayList<Integer>();
+        // XXX: For the parameterized PrepareStatement, we need to get the positions of the parameters
+        String sql = command.replaceAll("\\s","");
+        if (sql.chars().allMatch(Character::isDigit)) {
+            char[] position = sql.toCharArray();
+            for (int i = 0; i < position.length; i ++) {
+                positions.add(position[i] - '0');
+            }
+        }
+        return positions.toArray(new Integer[0]);
+    }
+
+    public boolean supportRenameView() {
+        return m_SupportRenameView;
+    }
+
+    private boolean _supportRenamingTable() {
+        return m_RenameTableCommands != null;
     }
 
     @Override
     public boolean supportRenamingTable() {
-        return m_RenameTableCommands != null;
-    }
-
-    public boolean hasMultiRenameQueries()
-    {
-        return supportRenamingTable() &&
-               m_RenameTableCommands.length > 1 &&
-               !m_RenameTableCommands[1].toString().isBlank();
+        return _supportRenamingTable() && m_RenameTableCommands.length > 0;
     }
 
     @Override
-    public List<String> getRenameTableQueries(boolean reversed, Object... args)
+    public boolean canRenameAndMove() {
+        return _supportRenamingTable() && m_RenameTableCommands.length > 1;
+    }
+
+    @Override
+    public boolean hasMultiRenameQueries()
     {
-        List<String> queries = new ArrayList<>();
-        if (reversed) {
-            for (int i = m_RenameTableCommands.length - 1; i >= 0; i--) {
-                Object sql = m_RenameTableCommands[i];
-                queries.add(MessageFormat.format(sql.toString(), args));
-            }
-        }
-        else {
-            for (Object sql : m_RenameTableCommands) {
-                queries.add(MessageFormat.format(sql.toString(), args));
-            }
-        }
-        return queries;
+        return canRenameAndMove() && !m_RenameTableCommands[1].toString().isBlank();
+    }
+
+
+    @Override
+    public boolean supportViewDefinition() {
+        return m_ViewDefinitionCommands != null && m_ViewDefinitionCommands.length > 1;
     }
 
     @Override
@@ -152,26 +225,6 @@ public abstract class DriverProviderMain
     public String getTableType(String type)
     {
         return type;
-    }
-
-    @Override
-    public String getViewQuery(NameComponents component)
-    {
-        final StringBuilder sql = new StringBuilder("SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE ");
-        if (!component.getCatalog().isEmpty()) {
-            sql.append("TABLE_CATALOG = ? AND ");
-        }
-        if (!component.getSchema().isEmpty()) {
-            sql.append("TABLE_SCHEMA = ? AND ");
-        }
-        sql.append("TABLE_NAME = ?");
-        return sql.toString();
-    }
-
-    @Override
-    public String getViewCommand(String sql)
-    {
-        return sql;
     }
 
     @Override
@@ -273,18 +326,6 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getDropTableQuery()
-    {
-        return "DROP TABLE %s";
-    }
-
-    @Override
-    public String getDropViewQuery(String view)
-    {
-        return String.format("DROP VIEW %s", view);
-    }
-
-    @Override
     public String getDropColumnQuery(ConnectionBase connection,
                                      ColumnBase column)
     {
@@ -311,24 +352,6 @@ public abstract class DriverProviderMain
     public String getRevokeRoleQuery()
     {
         return "REVOKE %s FROM %s";
-    }
-
-    @Override
-    public String getCreateTableQuery()
-    {
-        return "CREATE TABLE %s (%s)";
-    }
-
-    @Override
-    public String getTableCommentQuery()
-    {
-        return "COMMENT ON %s IS '%s'";
-    }
-
-    @Override
-    public String getColumnCommentQuery()
-    {
-        return "COMMENT ON %s IS '%s'";
     }
 
     @Override
@@ -365,10 +388,13 @@ public abstract class DriverProviderMain
         m_IsCatalogAtStart = metadata.isCatalogAtStart();
         m_CatalogSeparator = metadata.getCatalogSeparator();
         m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
-        m_SupportsColumnDescription = (boolean) getConnectionProperties(infos, "SupportsColumnDescription", false);
+        m_ColumnDescriptionCommand = (String) getConnectionProperties(infos, "ColumnDescriptionCommand", null);
+        m_TableDescriptionCommand = (String) getConnectionProperties(infos, "TableDescriptionCommand", null);
         m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
         m_IgnoreDriverPrivileges = (boolean) getConnectionProperties(infos, "IgnoreDriverPrivileges", true);
-        m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", m_AlterViewCommands);
+        m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", null);
+        m_ViewDefinitionCommands = (Object[]) getConnectionProperties(infos, "ViewDefinitionCommands", null);
+        m_SupportRenameView = (boolean) getConnectionProperties(infos, "SupportRenameView", true);
         m_RenameTableCommands = (Object[]) getConnectionProperties(infos, "RenameTableCommands", null);
         m_TypeInfoSettings = (Object[]) getConnectionProperties(infos, "TypeInfoSettings", null);
         if (_getAutoRetrieving(metadata, infos)) {
@@ -413,7 +439,10 @@ public abstract class DriverProviderMain
 
     // connection infos cache data
     public boolean supportsColumnDescription() {
-        return m_SupportsColumnDescription;
+        return m_ColumnDescriptionCommand != null;
+    }
+    public boolean supportsTableDescription() {
+        return m_TableDescriptionCommand != null;
     }
     public boolean isAutoRetrievingEnabled() {
         return m_IsAutoRetrievingEnabled;
@@ -489,11 +518,15 @@ public abstract class DriverProviderMain
                 info.Name.equals("PreferDosLikeLineEnds") ||
                 info.Name.equals("PrimaryKeySupport") ||
                 info.Name.equals("RespectDriverResultSetType") ||
-                info.Name.equals("SupportsColumnDescription") ||
+                info.Name.equals("ColumnDescriptionCommand") ||
+                info.Name.equals("TableDescriptionCommand") ||
                 info.Name.equals("DriverLoggerLevel") ||
                 info.Name.equals("AutoIncrementIsPrimaryKey") ||
                 info.Name.equals("InMemoryDataBase") ||
                 info.Name.equals("AlterViewCommands") ||
+                info.Name.equals("SupportRenameView") ||
+                info.Name.equals("RenameTableCommands") ||
+                info.Name.equals("ViewDefinitionCommands") ||
                 info.Name.equals("Type") ||
                 info.Name.equals("Url") ||
                 info.Name.equals("ConnectionService"))

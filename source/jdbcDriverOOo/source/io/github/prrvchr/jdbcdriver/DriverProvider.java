@@ -32,7 +32,6 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
@@ -67,6 +66,10 @@ public interface DriverProvider
     // Default value is false. see: http://hsqldb.org/doc/2.0/guide/guide.html#dbc_commenting
     public boolean supportsColumnDescription();
 
+    // Does the underlying database driver support Commenting Objects (ie:COMMENT ON COLUMN..)
+    // Default value is false. see: http://hsqldb.org/doc/2.0/guide/guide.html#dbc_commenting
+    public boolean supportsTableDescription();
+
     // Does the underlying database driver support renaming table and view.
     public boolean supportRenamingTable();
 
@@ -85,6 +88,12 @@ public interface DriverProvider
 
     public boolean hasMultiRenameQueries();
 
+    public boolean canRenameAndMove();
+    
+    public boolean supportRenameView();
+    
+    public boolean supportViewDefinition();
+
     // If the underlying database driver support java.sql.Statement.getGeneratedValues()
     // You must provide the SQL SELECT command which will be used (ie: SELECT * FROM %s WHERE %s)
     // The name of the table as well as the predicates will be provided by the driver
@@ -96,7 +105,13 @@ public interface DriverProvider
 
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
-    public List<String> getAlterViewQueries(String view, String command);
+    public List<String> getAlterViewQueries(Object... args);
+
+    public String getColumnDescriptionQuery(String column, String description);
+
+    public String getTableDescriptionQuery(String table, String description);
+
+    public List<String> getViewDefinitionQuery(List<Integer[]> positions, Object... args);
 
     public int getDataType(int type);
 
@@ -105,10 +120,6 @@ public interface DriverProvider
     public String[] getViewTypes(boolean showsystem);
 
     public String getTableType(String type);
-
-    public String getViewQuery(NameComponents component);
-
-    public String getViewCommand(String string);
 
     public String getUserQuery();
 
@@ -122,23 +133,11 @@ public interface DriverProvider
 
     public List<String> getPrivileges(int privilege);
 
-    public String getDropTableQuery();
-
-    public String getDropViewQuery(String view);
-
     public String getDropColumnQuery(ConnectionBase connection,
                                      ColumnBase column);
 
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);
-
-    public String getCreateTableQuery();
-
-
-    public String getTableCommentQuery();
-
-
-    public String getColumnCommentQuery();
 
     public boolean supportWarningsSupplier();
 

@@ -48,6 +48,7 @@ package io.github.prrvchr.jdbcdriver;
 import java.io.InputStream;
 import java.sql.RowIdLifetime;
 import java.sql.Types;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -280,12 +281,26 @@ public class DBTools
         return buffer.toString();
     }
 
-    public static String composeTableName(ConnectionSuper connection,
-                                          String catalog,
-                                          String schema,
-                                          String table,
-                                          boolean sensitive,
-                                          ComposeRule rule)
+    public static String getTableName(ConnectionSuper connection,
+                                      TableMain table,
+                                      ComposeRule rule,
+                                      boolean sensitive)
+        throws SQLException
+    {
+        return getTableName(connection,
+                            table.getCatalogName(),
+                            table.getSchemaName(),
+                            table.getName(),
+                            rule,
+                            sensitive);
+    }
+
+    public static String getTableName(ConnectionSuper connection,
+                                      String catalog,
+                                      String schema,
+                                      String table,
+                                      ComposeRule rule,
+                                      boolean sensitive)
         throws SQLException
     {
         NameComponentSupport support = getNameComponentSupport(connection, rule);
@@ -389,27 +404,96 @@ public class DBTools
                                                    String fullname,
                                                    boolean reversed,
                                                    ComposeRule rule,
-                                                   boolean sensitive)
+                                                   boolean sensitive,
+                                                   boolean identifier)
         throws SQLException
     {
         List<String> args = new ArrayList<>();
-        // TODO: {0} quoted full old table name
-        args.add(quoteTableName(connection, fullname, rule, sensitive));
-        // TODO: {1} quoted new schema name
-        args.add(quoteName(connection, newname.getSchema(), sensitive));
-        // TODO: {2} quoted full old table name overwritten with the new schema name
-        args.add(composeTableName(connection, table.getCatalogName(), newname.getSchema(), table.getName(), sensitive, rule));
-        // TODO: {3} quoted new table name
-        args.add(quoteName(connection, newname.getTable(), sensitive));
-        // TODO: {4} quoted full old table name overwritten with the new table name
-        args.add(composeTableName(connection, table.getCatalogName(), table.getSchemaName(), newname.getTable(), sensitive, rule));
-        // TODO: {5} quoted full new table name
-        args.add(composeTableName(connection, newname.getCatalog(), newname.getSchema(), newname.getTable(), sensitive, rule));
+        // TODO: {0} quoted / unquoted full old table name
+        args.add(identifier ? quoteTableName(connection, fullname, rule, sensitive) : fullname);
+        // TODO: {1} quoted / unquoted new schema name
+        args.add(identifier ? quoteName(connection, newname.getSchema(), sensitive) : newname.getSchema());
+        // TODO: {2} quoted / unquoted full old table name overwritten with the new schema name
+        if (identifier)
+            args.add(getTableName(connection, table.getCatalogName(), newname.getSchema(), table.getName(), rule, identifier));
+        else
+            args.add(getTableName(connection, table.getCatalogName(), newname.getSchema(), table.getName(), rule, false));
+        // TODO: {3} quoted / unquoted new table name
+        args.add(identifier ? quoteName(connection, newname.getTable(), sensitive) : newname.getTable());
+        // TODO: {4} quoted / unquoted full old table name overwritten with the new table name
+        if (identifier)
+            args.add(getTableName(connection, table.getCatalogName(), table.getSchemaName(), newname.getTable(), rule, sensitive));
+        else
+            args.add(getTableName(connection, table.getCatalogName(), table.getSchemaName(), newname.getTable(), rule, false));
+        // TODO: {5} quoted / unquoted new catalog name
+        args.add(identifier ? quoteName(connection, newname.getCatalog(), sensitive) : newname.getCatalog());
+        // TODO: {6} quoted / unquoted full old table name overwritten with the new catalog name
+        if (identifier)
+            args.add(getTableName(connection, newname.getCatalog(), table.getSchemaName(), table.getName(), rule, sensitive));
+        else
+            args.add(getTableName(connection, newname.getCatalog(), table.getSchemaName(), table.getName(), rule, false));
+        // TODO: {7} quoted / unquoted full new table name
+        if (identifier)
+            args.add(getTableName(connection, newname.getCatalog(), newname.getSchema(), newname.getTable(), rule, sensitive));
+        else
+            args.add(getTableName(connection, newname.getCatalog(), newname.getSchema(), newname.getTable(), rule, false));
         if (reversed) {
             String buffers = args.get(0);
             args.set(0, args.get(4));
             args.set(4, args.get(2));
             args.set(2, buffers);
+        }
+        return args.toArray(new Object[0]);
+    }
+
+    public static Object[] getAlterViewArguments(ConnectionSuper connection,
+                                                 NameComponents component,
+                                                 String fullname,
+                                                 String command,
+                                                 ComposeRule rule,
+                                                 boolean sensitive,
+                                                 boolean identifier)
+        throws SQLException
+    {
+        List<String> args = new ArrayList<>();
+        // TODO: {0} quoted / unquoted full view name
+        args.add(identifier ? quoteTableName(connection, fullname, rule, sensitive) : fullname);
+        // TODO: {1} quoted / unquoted catalog view name
+        args.add(identifier ? quoteName(connection, component.getCatalog(), sensitive) : component.getCatalog());
+        // TODO: {2} quoted / unquoted schema view name
+        args.add(identifier ? quoteName(connection, component.getSchema(), sensitive) : component.getSchema());
+        // TODO: {3} quoted / unquoted view name
+        args.add(identifier ? quoteName(connection, component.getTable(), sensitive) : component.getTable());
+        // TODO: {4} raw view command
+        args.add(command);
+        for (String arg : args) {
+            System.out.println("sdbcx.View.getAlterViewArguments() Args: '" + arg + "'");
+        }
+        return args.toArray(new Object[0]);
+    }
+
+
+    public static Object[] getViewDefinitionArguments(ConnectionSuper connection,
+                                                      NameComponents component,
+                                                      String fullname,
+                                                      ComposeRule rule,
+                                                      boolean sensitive,
+                                                      boolean identifier)
+        throws SQLException
+    {
+        List<String> args = new ArrayList<>();
+        // TODO: {0} quoted / unquoted  full view name
+        args.add(identifier ? quoteTableName(connection, fullname, rule, sensitive) : fullname);
+        // TODO: {1} quoted / unquoted  catalog view name
+        args.add(identifier ? quoteName(connection, component.getCatalog(), sensitive) : component.getCatalog());
+        // TODO: {2} quoted / unquoted  schema view name
+        args.add(identifier ? quoteName(connection, component.getSchema(), sensitive) : component.getSchema());
+        // TODO: {3} quoted / unquoted  view name
+        args.add(identifier ? quoteName(connection, component.getTable(), sensitive) : component.getTable());
+        // TODO: {4} quoted literal 'SELECT '
+        args.add("'SELECT '");
+        for (String arg : args) {
+            System.out.println("sdbcx.ViewContainer.getViewDefinitionArguments() Args: '" + arg + "'");
         }
         return args.toArray(new Object[0]);
     }
@@ -430,7 +514,7 @@ public class DBTools
     {
         boolean usecatalog = UnoHelper.getDefaultPropertyValue(connection.getInfo(), "UseCatalogInSelect", true);
         boolean useschema = UnoHelper.getDefaultPropertyValue(connection.getInfo(), "UseSchemaInSelect", true);
-        return composeTableName(connection, usecatalog ? catalog : "", useschema ? schema : "", table, sensitive, ComposeRule.InDataManipulation);
+        return getTableName(connection, usecatalog ? catalog : "", useschema ? schema : "", table, ComposeRule.InDataManipulation, sensitive);
     }
 
     /** composes a table name for usage in a SELECT statement
@@ -626,7 +710,7 @@ public class DBTools
                     String comment = getDescriptorStringValue(column, PropertyIds.DESCRIPTION);
                     if (!comment.isEmpty()) {
                         String name = composeColumnName(connection, table, getDescriptorStringValue(column, PropertyIds.NAME), sensitive);
-                        queries.add(getCommentQuery("COLUMN", name, comment));
+                        queries.add(connection.getProvider().getColumnDescriptionQuery(name, comment));
                     }
                 }
                 final StringBuilder buffer = new StringBuilder();
@@ -644,7 +728,7 @@ public class DBTools
         if (!connection.getProvider().isAutoIncrementIsPrimaryKey() || !hasAutoIncrement) {
             parts.addAll(getCreateTableKeyParts(connection, descriptor, sensitive));
         }
-        queries.add(0, String.format(connection.getProvider().getCreateTableQuery(), table, String.join(separator, parts)));
+        queries.add(0, getCreateTableQuery(table, String.join(separator, parts)));
         return queries;
     }
 
@@ -855,8 +939,8 @@ public class DBTools
                             
                             String referencedTable = getDescriptorStringValue(columnProperties, PropertyIds.REFERENCEDTABLE);
                             NameComponents nameComponents = qualifiedNameComponents(connection, referencedTable, ComposeRule.InDataManipulation);
-                            String composedName = composeTableName(connection, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(),
-                                                                   true, ComposeRule.InTableDefinitions);
+                            String composedName = getTableName(connection, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(),
+                                                                   ComposeRule.InTableDefinitions, true);
                             if (composedName.isEmpty()) {
                                 throw new SQLException();
                             }
@@ -937,12 +1021,62 @@ public class DBTools
         try {
             String view = composeTableName(connection, descriptor, ComposeRule.InTableDefinitions, sensitive);
             String command = getDescriptorStringValue(descriptor, PropertyIds.COMMAND);
-            return String.format("CREATE VIEW %s AS %s", view, command);
+            return getCreateViewQuery(view, command);
         }
         catch (IllegalArgumentException e) {
             throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), connection);
         }
     }
+
+    /** creates a SQL CREATE VIEW statement
+     *
+     * @param view
+     *    The full cotted view name.
+     * @param command
+     *    The command of the new view.
+     *
+     * @return
+     *   The CREATE VIEW statement.
+     */
+    public static String getCreateViewQuery(ConnectionSuper connection,
+                                            NameComponents component,
+                                            String command,
+                                            ComposeRule rule,
+                                            boolean sensitive)
+        throws SQLException
+    {
+        String name = composeTableName(connection, component.getCatalog(), component.getSchema(), component.getTable(), sensitive, rule);
+        return getCreateViewQuery(name, command);
+    }
+
+    private static String getCreateTableQuery(String table,
+                                             String columns)
+        throws SQLException
+    {
+        return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_TABLE, table, columns);
+    }
+
+
+    public static String getDropTableQuery(String table)
+        throws SQLException
+    {
+        return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_TABLE, table);
+    }
+
+
+    private static String getCreateViewQuery(String view,
+                                             String command)
+        throws SQLException
+    {
+        return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_VIEW, view, command);
+    }
+
+    public static String getDropViewQuery(String view)
+        throws SQLException
+    {
+        return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_VIEW, view);
+    }
+
 
     /** creates a SQL CREATE USER statement
      *
@@ -1645,7 +1779,7 @@ public class DBTools
             if (result.wasNull()) {
                 table = "";
             }
-            return composeTableName(connection, catalog, schema, table, false, rule);
+            return getTableName(connection, catalog, schema, table, rule, false);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, connection);
@@ -1740,17 +1874,6 @@ public class DBTools
         }
     }
 
-    public static String getCommentQuery(String on, String name, String comment) {
-        StringBuilder buffer = new StringBuilder("COMMENT ON ");
-        buffer.append(on);
-        buffer.append(" ");
-        buffer.append(name);
-        buffer.append(" IS '");
-        buffer.append(comment.replace("'","''"));
-        buffer.append("'");
-        return buffer.toString();
-    }
-
     public static List<String> getAlterColumnQueries(ConnectionSuper connection,
                                                      TableSuper table,
                                                      XPropertySet descriptor1,
@@ -1826,7 +1949,7 @@ public class DBTools
                 StringBuilder buffer = new StringBuilder(name);
                 buffer.append(".");
                 buffer.append(quoteName(quote, name2, sensitive));
-                queries.add(getCommentQuery("COLUMN", buffer.toString(), comment2));
+                queries.add(connection.getProvider().getColumnDescriptionQuery(buffer.toString(), comment2));
             }
         }
         return queries;
@@ -1834,6 +1957,22 @@ public class DBTools
 
     public static boolean executeDDLQuery(ConnectionSuper connection,
                                           String query,
+                                          ConnectionLog logger,
+                                          String cls,
+                                          String method,
+                                          int resource,
+                                          Object... args)
+        throws SQLException
+    {
+        Object[] parameters =  new Object[]{};
+        Integer[] positions = new Integer[]{};
+        return executeDDLQuery(connection, query, parameters, positions, logger, cls, method, resource, args);
+    }
+
+    public static boolean executeDDLQuery(ConnectionSuper connection,
+                                          String query,
+                                          Object[] parameters,
+                                          Integer[] positions,
                                           ConnectionLog logger,
                                           String cls,
                                           String method,
@@ -1847,14 +1986,14 @@ public class DBTools
         boolean autocommit = false;
         boolean support = connection.getProvider().supportsTransactions();
         java.sql.Connection jdbc = connection.getProvider().getConnection();
-        try (java.sql.Statement statement = jdbc.createStatement()) {
+        try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
             if (support) {
                 autocommit = jdbc.getAutoCommit();
                 jdbc.setAutoCommit(false);
             }
             System.out.println("DBTools.executeStatement 2 Query: " + query);
-            logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
-            statement.executeUpdate(query);
+            executeUpdate(statement, parameters, positions, logger,
+                          query, cls, method, resource, arguments);
             if (support) {
                 jdbc.commit();
                 jdbc.setAutoCommit(autocommit);
@@ -1883,36 +2022,57 @@ public class DBTools
                                             String cls,
                                             String method,
                                             int resource,
+                                            Object... args)
+        throws SQLException
+    {
+        Object[] parameters =  new Object[]{};
+        List<Integer[]> positions = new ArrayList<Integer[]>();
+        return executeDDLQueries(connection, queries, parameters, positions, logger, cls, method, resource, args);
+    }
+
+    public static boolean executeDDLQueries(ConnectionSuper connection,
+                                            List<String> queries,
+                                            Object[] parameters,
+                                            List<Integer[]> positions,
+                                            ConnectionLog logger,
+                                            String cls,
+                                            String method,
+                                            int resource,
                                             Object... arguments)
         throws SQLException
     {
         int count = 0;
+        int index = 0;
         boolean autocommit = false;
         boolean support = connection.getProvider().supportsTransactions();
-        java.sql.Connection con = connection.getProvider().getConnection();
-        try (java.sql.Statement statement = con.createStatement()) {
+        java.sql.Connection jdbc = connection.getProvider().getConnection();
+        try {
             if (support) {
-                autocommit = con.getAutoCommit();
-                con.setAutoCommit(false);
+                autocommit = jdbc.getAutoCommit();
+                jdbc.setAutoCommit(false);
             }
             for (String query : queries) {
                 if (query.isBlank()) {
+                    index ++;
                     continue;
                 }
-                System.out.println("DBTools.executeStatements 2 Query: " + query);
-                logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
-                statement.executeUpdate(query);
-                count ++;
+                try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
+                    Integer[] position = (positions.size() > index) ? positions.get(index) : new Integer[]{};
+                    executeUpdate(statement, parameters, position, logger,
+                                  query, cls, method, resource, arguments);
+                    index ++;
+                    count ++;
+                }
             }
             if (support) {
-                con.commit();
-                con.setAutoCommit(autocommit);
+                jdbc.commit();
+                jdbc.setAutoCommit(autocommit);
             }
         }
         catch (java.sql.SQLException e) {
             if (support) {
                 try {
-                    con.rollback();
+                    jdbc.rollback();
                 }
                 catch (java.sql.SQLException ex) {
                     // pass
@@ -1925,15 +2085,33 @@ public class DBTools
         return count > 0;
     }
 
+    private static void executeUpdate(java.sql.PreparedStatement statement,
+                                      Object[] parameters,
+                                      Integer[] positions,
+                                      ConnectionLog logger,
+                                      String query,
+                                      String cls,
+                                      String method,
+                                      int resource,
+                                      Object... arguments)
+        throws java.sql.SQLException
+    {
+        int i = 1;
+        for (int position : positions) {
+            statement.setString(i++, (String) parameters[position]);
+        }
+        logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
+        statement.executeUpdate();
+    }
+
     private static Object[] _addToArgs(Object[] arguments, Object... options)
     {
         List<Object> list = new ArrayList<Object>(Arrays.asList(arguments));
         for (Object option : options) {
             list.add(option);
         }
-        return list.toArray(new Object[list.size()]);
+        return list.toArray(new Object[0]);
     }
-
 
     public static java.sql.ResultSet getGeneratedKeys(StatementMain statement,
                                                       String method,

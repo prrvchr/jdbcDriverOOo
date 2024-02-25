@@ -53,7 +53,7 @@ public class View
     private static final String m_service = View.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.View"};
 
-    private String m_Command = "";
+    protected String m_Command = "";
     private int m_CheckOption;
 
     // The constructor method:
@@ -96,11 +96,16 @@ public class View
         throws SQLException
     {
         if (!m_Command.equals(command)) {
-            System.out.println("sdbcx.View.alterCommand() 1 : " + command);
-            String view = DBTools.composeTableName(m_connection, this, ComposeRule.InTableDefinitions, isCaseSensitive());
-            List<String> queries =  m_connection.getProvider().getAlterViewQueries(view, command);
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            System.out.println("sdbcx.View.alterCommand() 1 Command : " + command);
+            String view = DBTools.getTableName(m_connection, getCatalogName(), getSchemaName(), m_Name, rule, false);
+            //String view = DBTools.composeTableName(m_connection, this, rule, isCaseSensitive());
+            NameComponents component = DBTools.qualifiedNameComponents(m_connection, view, rule);
+            System.out.println("sdbcx.View.alterCommand() 2 View name: " + view);
+            Object[] arguments = DBTools.getAlterViewArguments(m_connection, component, view, command, rule, isCaseSensitive(), true);
+            List<String> queries =  m_connection.getProvider().getAlterViewQueries(arguments);
             if (!queries.isEmpty()) {
-                String name = DBTools.composeTableName(m_connection, this, ComposeRule.InTableDefinitions, false);
+                String name = DBTools.composeTableName(m_connection, this, rule, false);
                 DBTools.executeDDLQueries(m_connection, queries, m_logger, this.getClass().getName(),
                                           "alterCommand", Resources.STR_LOG_VIEW_ALTER_QUERY, name);
                 m_Command = command;
@@ -115,18 +120,20 @@ public class View
         throws SQLException,
                ElementExistException
     {
-        int resource = Resources.STR_LOG_VIEW_RENAME_QUERY;
+        
         ComposeRule rule = ComposeRule.InDataManipulation;
         String oldname = DBTools.composeTableName(m_connection, this, rule, false);
         if (!m_connection.getProvider().supportRenamingTable()) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 2, oldname);
+            int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
+        int offset = Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET;
         NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, rule);
-        rename(component, oldname, name, rule, resource);
+        rename(component, oldname, name, rule, offset);
         m_SchemaName = component.getSchema();
         m_Name = component.getTable();
-        m_connection.getViewsInternal().rename(oldname, name, resource);
+        m_connection.getViewsInternal().rename(oldname, name, offset);
     }
 
 }

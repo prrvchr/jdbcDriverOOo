@@ -40,6 +40,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.SharedResources;
@@ -105,48 +106,58 @@ public abstract class TableMain
     public abstract void rename(String name) throws SQLException, ElementExistException;
 
     // Here we execute the SQL command allowing you to move and/or rename a table or view
-    protected void rename(NameComponents component, String oldname, String newname,
-                          ComposeRule rule, int resource)
+    protected void rename(NameComponents cpt, String oldname, String newname,
+                          ComposeRule rule, int offset)
         throws SQLException
     {
-        boolean moved = !m_CatalogName.equals(component.getCatalog()) || !m_SchemaName.equals(component.getSchema());
-        boolean renamed = !m_Name.equals(component.getTable());
+        boolean moved = !m_CatalogName.equals(cpt.getCatalog()) || !m_SchemaName.equals(cpt.getSchema());
+        boolean renamed = !m_Name.equals(cpt.getTable());
         if (!moved && !renamed) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 4, oldname);
+            int resource = Resources.STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR + offset;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
         }
+        // FIXME: Any driver capable of changing catalog or schema must have at least 2 commands...
+        // FIXME: If the driver can do this in a single command (like MariaDB) then it is necessary
+        // FIXME: to warn by leaving an empty field after the first two that the SQL query requests
+        if (moved && !m_connection.getProvider().canRenameAndMove()) {
+            int resource = Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR + offset;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+            throw new SQLException(msg, this, StandardSQLState.SQL_FUNCTION_NOT_SUPPORTED.text(), 0, Any.VOID);
+        }
+
         String fname = newname;
         boolean reversed = false;
         boolean fullchange = false;
         boolean multiquery = m_connection.getProvider().hasMultiRenameQueries();
+
         // FIXME: We have 2 commands for moving and renaming and we need to find the right order to execute queries
         // FIXME: ie: change first the catalog / schema and after the table name or the reverse if possible...
         if (multiquery && moved && renamed) {
             // FIXME: try to move first
             fullchange = true;
-            String name = DBTools.composeTableName(m_connection, component.getCatalog(), component.getSchema(), m_Name, false, rule);
+            String name = DBTools.getTableName(m_connection, cpt.getCatalog(), cpt.getSchema(), m_Name, rule, false);
             reversed = m_connection.getTablesInternal().hasByName(name);
             if (reversed) {
                 // FIXME: try to rename first
-                fname = DBTools.composeTableName(m_connection, m_CatalogName, m_SchemaName, component.getTable(), false, rule);
+                fname = DBTools.getTableName(m_connection, m_CatalogName, m_SchemaName, cpt.getTable(), rule, false);
             }
         }
+
+        // FIXME: If the move action is not atomic (performed by 2 commands) then it may not be possible
+        // FIXME: since adjacent actions may encounter a conflict of already existing names.
         if (m_connection.getTablesInternal().hasByName(fname)) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 5, oldname, newname);
+            int resource = Resources.STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR + offset;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname, newname);
             throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
         }
-        Object[] args = DBTools.getRenameTableArguments(m_connection, component, this,
-                                                        oldname, reversed, rule, isCaseSensitive());
-        List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, args);
-        // FIXME: Any driver capable of changing catalog or schema must have at least 2 commands...
-        // FIXME: If the driver can do this in a single command (like MariaDB) then it is necessary
-        // FIXME: to provide a second empty command that will not be processed.
-        if (queries.size() == 1 && moved) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 6, oldname);
-            throw new SQLException(msg, this, StandardSQLState.SQL_FUNCTION_NOT_SUPPORTED.text(), 0, Any.VOID);
-        }
+
+        Object[] parameters = DBTools.getRenameTableArguments(m_connection, cpt, this, oldname, 
+                                                              reversed, rule, isCaseSensitive(), true);
+        List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
         boolean changed = true;
         boolean skipped = true;
+        int resource = Resources.STR_LOG_TABLE_RENAME_QUERY + offset;
         if (fullchange) {
             changed &= DBTools.executeDDLQueries(m_connection, queries, m_logger,
                                                  this.getClass().getName(), "rename", resource, newname);
@@ -165,7 +176,8 @@ public abstract class TableMain
             }
         }
         if (!changed || skipped) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 4, oldname);
+            resource = Resources.STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR + offset;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
         }
     }

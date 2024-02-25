@@ -52,7 +52,7 @@ public abstract class ConnectionSuper
 
 {
 
-    private TableContainerBase m_Tables = null;
+    private TableContainerSuper m_Tables = null;
     private ViewContainer m_Views = null;
 
     // The constructor method:
@@ -106,7 +106,7 @@ public abstract class ConnectionSuper
     }
 
 
-    public synchronized TableContainerBase getTablesInternal()
+    public synchronized TableContainerSuper getTablesInternal()
     {
         return m_Tables;
     }
@@ -181,7 +181,7 @@ public abstract class ConnectionSuper
         return DBTools.buildName(this, result, ComposeRule.InDataManipulation);
     }
 
-    protected abstract TableContainerBase _getTableContainer(List<String> names) throws ElementExistException;
+    protected abstract TableContainerSuper _getTableContainer(List<String> names) throws ElementExistException;
 
 
 }

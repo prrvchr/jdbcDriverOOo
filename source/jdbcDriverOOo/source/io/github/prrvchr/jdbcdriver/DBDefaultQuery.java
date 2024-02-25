@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -23,24 +22,35 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<description
-  xmlns="http://openoffice.org/extensions/update/2006"
-  xmlns:xlink="http://www.w3.org/1999/xlink">
-    <identifier value="io.github.prrvchr.jdbcDriverOOo"/>
-    <version value="1.2.0"/>
-    <update-download>
-        <src xlink:href="https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt"/>
-    </update-download>
-    <dependencies xmlns:dep="http://openoffice.org/extensions/description/2006">
-        <dep:OpenOffice.org-minimal-version value="4.1" dep:name="OpenOffice.org 4.1"/>
-    </dependencies>
-    <publisher>
-        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo/" lang="en">jdbcDriverOOo</name>
-        <name xlink:href="https://prrvchr.github.io/jdbcDriverOOo/README_fr" lang="fr">jdbcDriverOOo</name>
-    </publisher>
-    <release-notes>
-        <src xlink:href="https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-120" lang="en"/>
-        <src xlink:href="https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120" lang="fr"/>
-    </release-notes>
-</description>
+*/
+/**************************************************************
+ * 
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ *************************************************************/
+package io.github.prrvchr.jdbcdriver;
+
+public class DBDefaultQuery {
+
+    public static final String STR_QUERY_CREATE_VIEW                  = "CREATE VIEW {0} AS {1}";
+    public static final String STR_QUERY_DROP_VIEW                    = "DROP VIEW {0}";
+
+    public static final String STR_QUERY_CREATE_TABLE                 = "CREATE TABLE {0} ({1})";
+    public static final String STR_QUERY_DROP_TABLE                   = "DROP TABLE {0}";
+
+}

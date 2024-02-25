@@ -36,7 +36,7 @@ import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 
 
 public class TableContainer
-    extends TableContainerBase
+    extends TableContainerSuper
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Tables",

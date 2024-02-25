@@ -406,25 +406,35 @@ public abstract class Container<T>
     }
 
     protected T getElement(int index)
+        throws SQLException
     {
         synchronized (m_lock) {
-            T element = null;
-            String name = m_Names.get(index);
-            if (name != null) {
-                element = m_Elements.get(name);
+            try {
+                return _getElement(index);
             }
-            return element;
+            catch (WrappedTargetException e) {
+                throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            }
         }
     }
 
     protected T getElement(String name)
+        throws SQLException
     {
         synchronized (m_lock) {
-            return  m_Elements.get(name);
+            if (!m_Names.contains(name)) {
+                return null;
+            }
+            try {
+                return  _getElement(m_Names.indexOf(name));
+            }
+            catch (WrappedTargetException e) {
+                throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            }
         }
     }
 
-    protected Object _getElement(int index)
+    private T _getElement(int index)
         throws WrappedTargetException
     {
         String name = m_Names.get(index);

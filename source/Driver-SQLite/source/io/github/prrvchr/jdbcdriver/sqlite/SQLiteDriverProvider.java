@@ -31,7 +31,6 @@ import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -63,29 +62,6 @@ public final class SQLiteDriverProvider
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
         }
-        return type;
-    }
-
-    @Override
-    public String getViewQuery(NameComponents component)
-    {
-        return "SELECT sql, 'NONE' FROM sqlite_master WHERE type='view' AND name=?";
-    }
-
-    @Override
-    public String getViewCommand(String sql)
-    {
-        String sep = " AS ";
-        int index = sql.indexOf(sep);
-        if (index != -1) {
-            sql = sql.substring(index + sep.length());
-        }
-        return sql;
-    }
-
-    @Override
-    public String getTableType(String type)
-    {
         return type;
     }
 

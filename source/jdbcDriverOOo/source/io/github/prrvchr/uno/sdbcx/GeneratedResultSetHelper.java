@@ -80,6 +80,7 @@ public final class GeneratedResultSetHelper
     public static String[] getGeneratedColumns(ConnectionSuper connection,
                                                DriverProvider provider,
                                                String sql)
+        throws SQLException
     {
         String[] columns = null;
         if (connection.supportsService("com.sun.star.sdbcx.Connection") &&

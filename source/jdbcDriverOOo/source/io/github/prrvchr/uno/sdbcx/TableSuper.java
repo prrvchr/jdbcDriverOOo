@@ -239,29 +239,46 @@ public abstract class TableSuper
                ElementExistException
     {
         boolean isview = m_Type.toUpperCase().contains("VIEW");
-        int resource = isview ? Resources.STR_LOG_VIEW_RENAME_QUERY : Resources.STR_LOG_TABLE_RENAME_QUERY;
+        // FIXME: Table and View use the same functions to rename but we need a custom message for both,
+        // FIXME: we use an offset for that.
+        int offset = isview ? Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET : 0;
+
         ComposeRule rule = ComposeRule.InDataManipulation;
         String oldname = DBTools.composeTableName(m_connection, this, rule, false);
         if (!m_connection.getProvider().supportRenamingTable()) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 2, oldname);
+            int resource = Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FEATURE_ERROR + offset;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
         NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, rule);
         if (isview) {
-            View view = m_connection.getViewsInternal().getElement(oldname);
+            ViewContainer views = m_connection.getViewsInternal();
+            View view = views.getElement(oldname);
             if (view == null) {
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 3, oldname);
+                int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR + offset;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
             }
-            view.rename(name);
+            if (m_connection.getProvider().supportRenameView()) {
+                view.rename(name);
+            }
+            // FIXME: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
+            // FIXME: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
+            else {
+                m_connection.getViewsInternal().removeElement(view);
+                String query = DBTools.getCreateViewQuery(m_connection, component, view.m_Command, rule, isCaseSensitive());
+                DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
+                                        "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
+                views.rename(oldname, name, offset);
+            }
             m_SchemaName = component.getSchema();
         }
         else {
-            rename(component, oldname, name, rule, resource);
+            rename(component, oldname, name, rule, offset);
             m_SchemaName = component.getSchema();
         }
         m_Name = component.getTable();
-        m_connection.getTablesInternal().rename(oldname, name, resource);
+        m_connection.getTablesInternal().rename(oldname, name, offset);
     }
 
 

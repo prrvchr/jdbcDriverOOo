@@ -41,6 +41,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
@@ -72,12 +73,13 @@ abstract class TableContainerMain<T>
 
     // FIXME: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
     // FIXME: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
-    protected void rename(String oldname, String newname, int resource)
+    protected void rename(String oldname, String newname, int offset)
         throws SQLException
     {
         synchronized (m_Connection) {
             if (!m_Elements.containsKey(oldname) || !m_Names.contains(oldname)) {
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource + 3, oldname);
+                int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR + offset;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
             }
             T element = m_Elements.remove(oldname);

@@ -112,18 +112,6 @@ public final class H2DriverProvider
     }
 
     @Override
-    public String getDropTableQuery()
-    {
-        return "DROP TABLE %s IF EXISTS;";
-    }
-
-    @Override
-    public String getDropViewQuery(String view)
-    {
-        return String.format("DROP VIEW %s IF EXISTS;", view);
-    }
-
-    @Override
     public String getLoggingLevel(XHierarchicalNameAccess driver)
     {
         String level = "-1";

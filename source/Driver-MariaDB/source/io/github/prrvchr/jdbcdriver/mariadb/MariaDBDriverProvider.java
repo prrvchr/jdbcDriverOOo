@@ -83,11 +83,6 @@ public final class MariaDBDriverProvider
         }
     }
 
-    public String getTableType(String type)
-    {
-        return type;
-    }
-
     @Override
     public String getUserQuery()
     {

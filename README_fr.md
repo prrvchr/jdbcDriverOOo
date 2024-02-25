@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.1.6][5]
+# version [1.2.0][5]
 
 ## Introduction:
 
@@ -403,7 +403,16 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Tous les pilotes JDBC intégrés à jdbcDriverOOo sont capables de renommer des tables ou des vues et même certains (ie: MariaDB et PostgreSQL) permettent de modifier le catalogue ou le schéma.
 - De nombreuses améliorations.
 
-### Que reste-t-il à faire pour la version 1.1.6:
+### Ce qui a été fait pour la version 1.2.0:
+
+- Tous les pilotes intégrés à l'extension sont **désormais entièrement fonctionnels dans Base** pour la gestion des tables et des vues.
+- Des fonctions intelligentes sont appelées pour:
+  - Le déplacement avec renommage des tables, pour les drivers le permettant et utilisant deux commandes SQL, l'ordre des commandes SQL sera optimisé (PostgreSQL).
+  - Le Renommage d'une vue, si le pilote ne le supporte pas, elle sera supprimée puis recréée (SQLite).
+- Utilisation de [classe générique Java][82] pour la gestion des conteneurs utilisés pour la gestion des [tables][83], des [vues][84], des [colonnes][85], des [clefs][86] et des [indexes][87]. L'utilisation de classes génériques dans les [conteneurs][88] permettra de se passer de l'interface UNO XPropertySet et de pouvoir retranscrire le code existant en Java pur.
+- De nombreuses améliorations.
+
+### Que reste-t-il à faire pour la version 1.2.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -413,7 +422,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-116>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -436,7 +445,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.6#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.0#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>
@@ -490,3 +499,10 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [79]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.6-SNAPSHOT.jar>
 [80]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu>
 [81]: <https://jira.mariadb.org/browse/CONJ-1160>
+[82]: <https://fr.wikibooks.org/wiki/Programmation_Java/Types_g%C3%A9n%C3%A9riques>
+[83]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/TableContainerSuper.java>
+[84]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ViewContainer.java>
+[85]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ColumnContainerBase.java>
+[86]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
+[87]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
+[88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>

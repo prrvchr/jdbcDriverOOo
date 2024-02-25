@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.1.6][5]
+# version [1.2.0][5]
 
 ## Introduction:
 
@@ -403,7 +403,16 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - All JDBC drivers integrated into jdbcDriverOOo are capable of renaming tables or views and even some (ie: MariaDB and PostgreSQL) allow modifying the catalog or schema.
 - Many improvements.
 
-### What remains to be done for version 1.1.6:
+### What has been done for version 1.2.0:
+
+- All drivers integrated into the extension are **now fully functional in Base** for managing tables and views.
+- Smart functions are called to:
+  - Move with renaming of tables, for drivers allowing it and using two SQL commands, the order of the SQL commands will be optimized (PostgreSQL).
+  - Rename a view if the driver does not support it it will be deleted then recreated (SQLite).
+- Use of [generic Java class][82] for managing containers used for managing [tables][83], [views][84], [columns][85], [keys][86] and [indexes][87]. The use of generic classes for [container][88] will make it possible to do without the UNO XPropertySet interface and to be able to transcribe the existing code into pure Java.
+- Many improvements.
+
+### What remains to be done for version 1.2.0:
 
 - Add new languages for internationalization...
 
@@ -413,7 +422,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-116>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-120>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -436,7 +445,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [25]: <https://prrvchr.github.io/HyperSQLOOo/>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.1.6#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.0#right>
 [29]: <img/jdbcDriverOOo-1.png>
 [30]: <img/jdbcDriverOOo-2.png>
 [31]: <img/jdbcDriverOOo-3.png>
@@ -490,3 +499,10 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [79]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.6-SNAPSHOT.jar>
 [80]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu>
 [81]: <https://jira.mariadb.org/browse/CONJ-1160>
+[82]: <https://en.wikibooks.org/wiki/Java_Programming/Generics>
+[83]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/TableContainerSuper.java>
+[84]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ViewContainer.java>
+[85]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ColumnContainerBase.java>
+[86]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
+[87]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
+[88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>

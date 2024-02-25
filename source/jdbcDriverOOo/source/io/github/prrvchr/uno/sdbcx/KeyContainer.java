@@ -161,7 +161,8 @@ public class KeyContainer
             
             java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
             String quote = _getConnection().getProvider().getIdentifierQuoteString();
-            String tableName = DBTools.composeTableName(_getConnection(), m_table.m_CatalogName, m_table.m_SchemaName, m_table.getName(), isCaseSensitive(), ComposeRule.InTableDefinitions);
+            ComposeRule rule = ComposeRule.InTableDefinitions;
+            String tableName = DBTools.getTableName(_getConnection(), m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), rule, isCaseSensitive());
 
             List<String> cols = new ArrayList<String>();
             XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
@@ -247,29 +248,24 @@ public class KeyContainer
         if (connection == null) {
             return;
         }
-        try {
-            XPropertySet key = (XPropertySet) AnyConverter.toObject(XPropertySet.class, _getElement(index));
-            String tableName = DBTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive());
-            final int keyType;
-            if (key != null) {
-                keyType = AnyConverter.toInt(key.getPropertyValue(PropertyIds.TYPE.name));
-            }
-            else {
-                keyType = KeyType.PRIMARY;
-            }
-            final String sql;
-            if (keyType == KeyType.PRIMARY) {
-                sql = String.format("ALTER TABLE %s DROP PRIMARY KEY", tableName);
-            }
-            else {
-                sql = String.format("ALTER TABLE %s %s %s", tableName, getDropForeignKey(), getForeignKeyName(connection, name));
-            }
-            java.sql.Statement statement = connection.getProvider().getConnection().createStatement();
-            statement.execute(sql);
-            statement.close();
+        Key key = getElement(index);
+        String tableName = DBTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive());
+        final int keyType;
+        if (key != null) {
+            keyType = key.m_Type;
         }
-        catch (WrappedTargetException | UnknownPropertyException e) {
-            throw UnoHelper.getSQLException(e, m_table);
+        else {
+            keyType = KeyType.PRIMARY;
+        }
+        final String sql;
+        if (keyType == KeyType.PRIMARY) {
+            sql = String.format("ALTER TABLE %s DROP PRIMARY KEY", tableName);
+        }
+        else {
+            sql = String.format("ALTER TABLE %s %s %s", tableName, getDropForeignKey(), getForeignKeyName(connection, name));
+        }
+        try (java.sql.Statement statement = connection.getProvider().getConnection().createStatement()) {
+            statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, m_table);
