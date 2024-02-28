@@ -29,10 +29,11 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 
 
-public class PreparedStatement
+public final class PreparedStatement
     extends PreparedStatementBase
 {
 
@@ -58,6 +59,14 @@ public class PreparedStatement
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;
+    }
+
+
+    @Override
+    protected java.sql.ResultSet getGeneratedResult(String command)
+        throws SQLException, java.sql.SQLException
+    {
+        return DBTools.getGeneratedResult(getStatement(), getGeneratedStatement(), getLogger(), this.getClass().getName(), "getGeneratedValues", command, m_Sql);
     }
 
 

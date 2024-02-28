@@ -29,7 +29,7 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
-public class IndexColumnDescriptorContainer
+public final class IndexColumnDescriptorContainer
     extends DescriptorContainer<IndexColumnDescriptor>
 {
 
@@ -42,12 +42,12 @@ public class IndexColumnDescriptorContainer
     }
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet createDescriptor() {
         return new IndexColumnDescriptor(isCaseSensitive());
     }
 
     @Override
-    protected IndexColumnDescriptor _appendElement(XPropertySet descriptor,
+    protected IndexColumnDescriptor appendElement(XPropertySet descriptor,
                                                    String name)
         throws SQLException
     {

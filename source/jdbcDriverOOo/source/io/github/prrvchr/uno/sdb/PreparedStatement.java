@@ -32,8 +32,8 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
+import io.github.prrvchr.uno.sdbcx.PreparedStatementSuper;
 
 
 public final class PreparedStatement
@@ -76,6 +76,7 @@ public final class PreparedStatement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
+        System.out.println("sdb.PreparedStatement._getResultSet()");
         ResultSetBase resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {

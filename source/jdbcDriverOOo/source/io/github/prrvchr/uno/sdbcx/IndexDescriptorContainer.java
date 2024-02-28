@@ -31,7 +31,7 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.DBTools;
 
 
-public class IndexDescriptorContainer
+public final class IndexDescriptorContainer
     extends DescriptorContainer<IndexDescriptor>
 {
 
@@ -44,12 +44,12 @@ public class IndexDescriptorContainer
     }
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet createDescriptor() {
         return new IndexDescriptor(isCaseSensitive());
     }
 
     @Override
-    protected IndexDescriptor _appendElement(XPropertySet descriptor,
+    protected IndexDescriptor appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {

@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public class KeyDescriptor
+public final class KeyDescriptor
     extends Descriptor
     implements XColumnsSupplier
 {

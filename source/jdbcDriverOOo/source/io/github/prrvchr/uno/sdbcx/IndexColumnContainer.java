@@ -36,7 +36,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class IndexColumnContainer
+public final class IndexColumnContainer
     extends Container<IndexColumn>
 {
     private static final String m_service = IndexColumnContainer.class.getName();
@@ -57,13 +57,13 @@ public class IndexColumnContainer
     }
 
     @Override
-    protected XPropertySet _createDescriptor()
+    protected XPropertySet createDescriptor()
     {
         return new IndexColumnDescriptor(isCaseSensitive());
     }
     
     @Override
-    protected IndexColumn _createElement(String name)
+    protected IndexColumn createElement(String name)
         throws SQLException
     {
         IndexColumn index = null;
@@ -120,7 +120,7 @@ public class IndexColumnContainer
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -132,7 +132,7 @@ public class IndexColumnContainer
     }
 
     @Override
-    protected IndexColumn _appendElement(XPropertySet descriptor,
+    protected IndexColumn appendElement(XPropertySet descriptor,
                                          String name)
         throws SQLException
     {
@@ -141,7 +141,7 @@ public class IndexColumnContainer
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {

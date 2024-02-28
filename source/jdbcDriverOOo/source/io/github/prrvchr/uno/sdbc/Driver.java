@@ -33,7 +33,6 @@ import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.ConnectionService;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 
 
 public final class Driver
@@ -55,7 +54,6 @@ public final class Driver
                                             DriverProvider provider,
                                             String url,
                                             PropertyValue[] info,
-                                            ResourceBasedEventLogger logger,
                                             boolean enhanced,
                                             boolean showsystem,
                                             boolean usebookmark,
@@ -64,16 +62,16 @@ public final class Driver
         ConnectionBase connection = null;
         switch(service) {
         case CSS_SDBC_CONNECTION:
-            connection = new Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
             break;
         case CSS_SDBCX_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdbcx.Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new io.github.prrvchr.uno.sdbcx.Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
             break;
         case CSS_SDB_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
             break;
         default:
-            connection = new Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
         }
         return connection;
     }

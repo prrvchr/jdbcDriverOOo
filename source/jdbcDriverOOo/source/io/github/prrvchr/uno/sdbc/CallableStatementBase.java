@@ -43,7 +43,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class CallableStatementBase
-    extends PreparedStatementMain
+    extends PreparedStatementMain<java.sql.CallableStatement>
     implements XOutParameters,
                XRow
 {
@@ -63,33 +63,29 @@ public abstract class CallableStatementBase
     }
 
     @Override
-    protected void _createStatement()
+    protected java.sql.CallableStatement getStatement()
         throws SQLException
     {
         checkDisposed();
         if (m_Statement == null) {
             try {
+                java.sql.CallableStatement statement;
                 if (m_Connection.getProvider().isResultSetUpdatable() &&
                    (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
-                    m_Statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
+                    statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
                 } 
                 else {
-                    m_Statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql);
+                    statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql);
                 }
-                _setStatement();
+                m_Statement = setStatement(statement);
             } 
             catch (java.sql.SQLException e) {
-                System.out.println("sdbc.CallableStatementBase._createStatement() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
+                System.out.println("sdbc.CallableStatementBase.getStatement() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
                 throw UnoHelper.getSQLException(e, this);
             }
         }
+        return m_Statement;
     }
-
-    protected java.sql.CallableStatement _getCallableStatement()
-    {
-        return (java.sql.CallableStatement) m_Statement;
-    }
-
 
     // com.sun.star.sdbc.XOutParameters:
     @Override
@@ -97,8 +93,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            _getCallableStatement().registerOutParameter(index, type, scale);
+            getStatement().registerOutParameter(index, type, scale);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -110,8 +105,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            _getCallableStatement().registerOutParameter(index, type, name);
+            getStatement().registerOutParameter(index, type, name);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -125,8 +119,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Array array = _getCallableStatement().getArray(index);
+            java.sql.Array array = getStatement().getArray(index);
             return (array != null) ? new Array(m_Connection, array) : null;
         }
         catch (java.sql.SQLException e) {
@@ -137,7 +130,6 @@ public abstract class CallableStatementBase
     @Override
     public XInputStream getBinaryStream(int index) throws SQLException
     {
-        _createStatement();
         XBlob blob = getBlob(index);
         return (blob != null) ? blob.getBinaryStream() : null;
     }
@@ -147,8 +139,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Blob blob = _getCallableStatement().getBlob(index);
+            java.sql.Blob blob = getStatement().getBlob(index);
             return (blob != null) ? new Blob(m_Connection, blob) : null;
         }
         catch (java.sql.SQLException e) {
@@ -161,8 +152,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getBoolean(index);
+            return getStatement().getBoolean(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -174,8 +164,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getByte(index);
+            return getStatement().getByte(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -187,8 +176,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-           return _getCallableStatement().getBytes(index);
+           return getStatement().getBytes(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -198,7 +186,6 @@ public abstract class CallableStatementBase
     @Override
     public XInputStream getCharacterStream(int index) throws SQLException
     {
-        _createStatement();
         XClob clob = getClob(index);
         return (clob != null) ? clob.getCharacterStream() : null;
     }
@@ -208,8 +195,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Clob clob = _getCallableStatement().getClob(index);
+            java.sql.Clob clob = getStatement().getClob(index);
             return (clob != null) ? new Clob(m_Connection, clob) : null;
         }
         catch (java.sql.SQLException e) {
@@ -222,8 +208,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Date value = _getCallableStatement().getDate(index);
+            java.sql.Date value = getStatement().getDate(index);
             return (value != null) ? UnoHelper.getUnoDate(value.toLocalDate()) : new Date();
         }
         catch (java.sql.SQLException e) {
@@ -236,8 +221,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getDouble(index);
+            return getStatement().getDouble(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -249,8 +233,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getFloat(index);
+            return getStatement().getFloat(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -262,8 +245,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getInt(index);
+            return getStatement().getInt(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -275,8 +257,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getLong(index);
+            return getStatement().getLong(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -287,8 +268,7 @@ public abstract class CallableStatementBase
     public Object getObject(int index, XNameAccess map) throws SQLException
     {
         try {
-            _createStatement();
-            return DBTools.getObject(_getCallableStatement().getObject(index), map);
+            return DBTools.getObject(getStatement().getObject(index), map);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getLoggedSQLException(this, m_logger, e);
@@ -300,8 +280,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Ref ref = _getCallableStatement().getRef(index);
+            java.sql.Ref ref = getStatement().getRef(index);
             return ref != null ? new Ref(ref) : null;
         }
         catch (java.sql.SQLException e) {
@@ -314,8 +293,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().getShort(index);
+            return getStatement().getShort(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -327,8 +305,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            String value = _getCallableStatement().getString(index);
+            String value = getStatement().getString(index);
             return (value != null) ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -341,8 +318,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Time value = _getCallableStatement().getTime(index);
+            java.sql.Time value = getStatement().getTime(index);
             return (value != null) ? UnoHelper.getUnoTime(value.toLocalTime()) : new Time();
         }
         catch (java.sql.SQLException e) {
@@ -355,8 +331,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            java.sql.Timestamp value = _getCallableStatement().getTimestamp(index);
+            java.sql.Timestamp value = getStatement().getTimestamp(index);
             return (value != null) ? UnoHelper.getUnoDateTime(value.toLocalDateTime()) : new DateTime();
         }
         catch (java.sql.SQLException e) {
@@ -369,8 +344,7 @@ public abstract class CallableStatementBase
     {
         try
         {
-            _createStatement();
-            return _getCallableStatement().wasNull();
+            return getStatement().wasNull();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

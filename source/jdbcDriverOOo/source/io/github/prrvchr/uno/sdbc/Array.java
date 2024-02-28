@@ -34,7 +34,7 @@ import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 
-public class Array
+public final class Array
     extends ComponentBase
     implements XArray
 {

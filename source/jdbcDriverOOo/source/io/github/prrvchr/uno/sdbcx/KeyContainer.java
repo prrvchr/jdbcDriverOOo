@@ -51,7 +51,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class KeyContainer
+public final class KeyContainer
     extends Container<Key>
 {
     private static final String m_service = KeyContainer.class.getName();
@@ -92,7 +92,7 @@ public class KeyContainer
     }
 
     @Override
-    protected Key _createElement(String name)
+    protected Key createElement(String name)
         throws SQLException
     {
         System.out.println("sdbcx.KeyContainer._createElement() 1 Name: " + name);
@@ -111,7 +111,7 @@ public class KeyContainer
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -119,21 +119,21 @@ public class KeyContainer
         if (names.contains(name)) {
             throw new ElementExistException();
         }
-        return _createKey(descriptor, name);
+        return createKey(descriptor, name);
     }
 
     @Override
-    protected Key _appendElement(XPropertySet descriptor,
+    protected Key appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
-        return _createElement(name);
+        return createElement(name);
     }
 
-    private String _createKey(XPropertySet descriptor, String name)
+    private String createKey(XPropertySet descriptor, String name)
             throws SQLException, ElementExistException
     {
-        if (_getConnection() == null) {
+        if (getConnection() == null) {
             return null;
         }
         try {
@@ -159,10 +159,10 @@ public class KeyContainer
                 deleteRule = AnyConverter.toInt(descriptor.getPropertyValue(PropertyIds.DELETERULE.name));
             }
             
-            java.sql.DatabaseMetaData metadata = _getConnection().getProvider().getConnection().getMetaData();
-            String quote = _getConnection().getProvider().getIdentifierQuoteString();
+            java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+            String quote = getConnection().getProvider().getIdentifierQuoteString();
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            String tableName = DBTools.getTableName(_getConnection(), m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), rule, isCaseSensitive());
+            String tableName = DBTools.buildName(getConnection().getProvider(), m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), rule, isCaseSensitive());
 
             List<String> cols = new ArrayList<String>();
             XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
@@ -173,7 +173,7 @@ public class KeyContainer
             }
             String sql = String.format("ALTER TABLE %s ADD %s (%s)", tableName, keyTypeString, String.join(",", cols));
             if (keyType == KeyType.FOREIGN) {
-                String quotedTableName = DBTools.quoteTableName(_getConnection(), referencedName, ComposeRule.InTableDefinitions, isCaseSensitive());
+                String quotedTableName = DBTools.quoteTableName(getConnection().getProvider(), referencedName, ComposeRule.InTableDefinitions, isCaseSensitive());
                 cols = new ArrayList<String>();
                 for (int i = 0; i < columns.getCount(); i++) {
                     XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
@@ -182,7 +182,7 @@ public class KeyContainer
                 sql += String.format(" REFERENCES %s (%s) %s %s", quotedTableName, String.join(",", cols),
                                      getKeyRuleString(true, updateRule), getKeyRuleString(false, deleteRule));
             }
-            java.sql.Statement statement = _getConnection().getProvider().getConnection().createStatement();
+            java.sql.Statement statement = getConnection().getProvider().getConnection().createStatement();
             System.out.println("sdbcx.KeyContainer._appendElement() SQL: " + sql);
             statement.execute(sql);
             statement.close();
@@ -240,7 +240,7 @@ public class KeyContainer
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
@@ -249,22 +249,22 @@ public class KeyContainer
             return;
         }
         Key key = getElement(index);
-        String tableName = DBTools.composeTableName(connection, m_table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive());
-        final int keyType;
-        if (key != null) {
-            keyType = key.m_Type;
-        }
-        else {
-            keyType = KeyType.PRIMARY;
-        }
-        final String sql;
-        if (keyType == KeyType.PRIMARY) {
-            sql = String.format("ALTER TABLE %s DROP PRIMARY KEY", tableName);
-        }
-        else {
-            sql = String.format("ALTER TABLE %s %s %s", tableName, getDropForeignKey(), getForeignKeyName(connection, name));
-        }
         try (java.sql.Statement statement = connection.getProvider().getConnection().createStatement()) {
+            String tableName = DBTools.composeTableName(connection.getProvider(), m_table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive());
+            final int keyType;
+            if (key != null) {
+                keyType = key.m_Type;
+            }
+            else {
+                keyType = KeyType.PRIMARY;
+            }
+            final String sql;
+            if (keyType == KeyType.PRIMARY) {
+                sql = String.format("ALTER TABLE %s DROP PRIMARY KEY", tableName);
+            }
+            else {
+                sql = String.format("ALTER TABLE %s %s %s", tableName, getDropForeignKey(), getForeignKeyName(connection, name));
+            }
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
@@ -289,125 +289,15 @@ public class KeyContainer
     }
     
 
-    public ConnectionSuper _getConnection()
+    protected ConnectionSuper getConnection()
     {
         return m_table.getConnection();
     }
 
     @Override
-    protected XPropertySet _createDescriptor()
+    protected XPropertySet createDescriptor()
     {
         return new KeyDescriptor(isCaseSensitive());
     }
-
-
-    /*    // The constructor method:
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableDescriptorBase()
-    public KeyContainer(TableBase table)
-    {
-        super(m_name, m_services, table.m_Connection);
-        System.out.println("sdbcx.KeyContainer()");
-        m_table = table;
-    }
-
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableBase()
-    public KeyContainer(Connection connection,
-                        TableBase table1,
-                        schemacrawler.schema.Table table)
-    {
-        super(m_name, m_services, connection);
-        m_table = table1;
-        try {
-            if (table.hasPrimaryKey()) {
-                for (PrimaryKey key : table.getAlternateKeys()) {
-                    m_Elements.add(new Key(m_Connection, table1, key));
-                }
-            }
-            if (table.hasForeignKeys()) {
-                for (ForeignKey key : table.getForeignKeys()) {
-                    m_Elements.add(new Key(m_Connection, table1, key));
-                }
-            }
-            System.out.println("sdbcx.KeyContainer.refresh() Number of Key: " + getCount());
-        }
-        catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println("sdbcx.KeyContainer(): " + getCount());
-    }
-
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableBase()
-    public KeyContainer(Connection connection,
-                        TableBase table)
-    {
-        super(m_name, m_services, connection);
-        m_table = table;
-        try {
-            Map<String, Key> keys = new LinkedHashMap<String, Key>();
-            java.sql.ResultSet result = m_Connection.getWrapper().getMetaData().getPrimaryKeys(null, table.m_SchemaName, table.m_Name);
-            while (result.next()) {
-                String column = result.getString(4);
-                int position = result.getShort(5);
-                String name = result.getString(6);
-                if (keys.containsKey(name)) {
-                    System.out.println("sdbcx.KeyContainer.refresh() Add Keycolumn to Key: " + column + " - Name: " + name);
-                    keys.get(name)._addColumn(new KeyColumn(m_Connection, table, column, position));
-                }
-                else {
-                    System.out.println("sdbcx.KeyContainer.refresh() Create New Key: " + column + " - Name: " + name);
-                    Key key = new Key(m_Connection, table, name, column, position);
-                    keys.put(name, key);
-                    m_Elements.add(key);
-                }
-            }
-            System.out.println("sdbcx.KeyContainer.refresh() Number of Key: " + getCount());
-            result.close();
-        }
-        catch (UnknownPropertyException | WrappedTargetException | NoSuchElementException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println("sdbcx.KeyContainer(): " + getCount());
-    }
-    // XXX: Constructor called from methods:
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableBase()
-    // XXX: - io.github.prrvchr.uno.sdbcx.TableDescriptorBase()
-    public KeyContainer(Connection connection,
-                        XIndexAccess keys,
-                        TableBase table)
-    {
-        super(m_name, m_services, connection);
-        m_table = table;
-        XEnumeration iter = ((XEnumerationAccess) UnoRuntime.queryInterface(XEnumerationAccess.class, keys)).createEnumeration();
-        System.out.println("sdbcx.ColumnContainer() 1");
-        try {
-            while (iter.hasMoreElements()) {
-                XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, iter.nextElement());
-                System.out.println("sdbcx.ColumnContainer() 2"); 
-                String name = (String) descriptor.getPropertyValue("Name");
-                Key key = new Key(m_Connection, table, descriptor, name);
-                m_Elements.add(key);
-            }
-        }
-        catch (NoSuchElementException | WrappedTargetException | UnknownPropertyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        System.out.println("sdbcx.KeyContainer(): " + getCount());
-    }*/
-
 
 }

@@ -49,7 +49,7 @@ public class SmallSQLResultSet
     }
     public SmallSQLResultSet(final ConnectionBase connection,
                              final java.sql.ResultSet resultset,
-                             final StatementMain statement)
+                             final StatementMain<?> statement)
         throws SQLException
     {
         super(m_name, m_services, connection, resultset, statement);

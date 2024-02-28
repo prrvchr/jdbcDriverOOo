@@ -65,13 +65,6 @@ public final class MariaDBDriverProvider
     }
 
     @Override
-    public String[] getTableTypes()
-    {
-        System.out.println("mariadb.MariaDBDriverProvider.getTableTypes() 1");
-        return new String[]{"TABLE", "VIEW"};
-    }
-
-    @Override
     public String[] getViewTypes(final boolean showsystem)
     {
         System.out.println("mariadb.MariaDBDriverProvider.getViewTypes() 1");

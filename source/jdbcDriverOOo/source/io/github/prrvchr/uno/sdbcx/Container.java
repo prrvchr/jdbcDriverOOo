@@ -309,7 +309,7 @@ public abstract class Container<T>
     @Override
     public XPropertySet createDataDescriptor() {
         synchronized (m_lock) {
-            return _createDescriptor();
+            return createDescriptor();
         }
     }
 
@@ -322,8 +322,8 @@ public abstract class Container<T>
         Iterator<?> iterator;
         synchronized (m_lock) {
             
-            String name = _getElementName(m_Names, descriptor);
-            T element = _appendElement(descriptor, name);
+            String name = getElementName(m_Names, descriptor);
+            T element = appendElement(descriptor, name);
             if (element == null) {
                 String error = String.format("Table: %s can't be created!!!", name);
                 throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -381,11 +381,11 @@ public abstract class Container<T>
 
 
     // Abstract protected methods
-    protected abstract String _getElementName(List<String> names, XPropertySet descriptor)
+    protected abstract String getElementName(List<String> names, XPropertySet descriptor)
         throws SQLException, ElementExistException;
-    protected abstract T _appendElement(XPropertySet descriptor, String name) throws SQLException;
-    protected abstract T _createElement(String name) throws SQLException;
-    protected abstract void _removeElement(int index, String name) throws SQLException;
+    protected abstract T appendElement(XPropertySet descriptor, String name) throws SQLException;
+    protected abstract T createElement(String name) throws SQLException;
+    protected abstract void removeElement(int index, String name) throws SQLException;
     protected abstract void _refresh();
 
     // Protected methods
@@ -401,6 +401,33 @@ public abstract class Container<T>
             if (!m_Elements.containsKey(name)) {
                 m_Elements.put(name, null);
                 m_Names.add(name);
+            }
+        }
+    }
+
+    protected void replaceElement(String oldname, String newname)
+        throws SQLException
+    {
+        synchronized (m_lock) {
+            T element = null;
+            if (newname.equals(oldname)) {
+                element = m_Elements.get(oldname);
+            }
+            else {
+                element = m_Elements.remove(oldname);
+                //element.setName(newname);
+                m_Elements.put(newname, element);
+                m_Names.set(m_Names.indexOf(oldname), newname);
+            }
+            ContainerEvent event = new ContainerEvent(this, newname, element, oldname);
+            for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext();) {
+                XContainerListener listener = (XContainerListener) iterator.next();
+                listener.elementReplaced(event);
+            }
+            EventObject event2 = new EventObject(this);
+            for (Iterator<?> iterator2 = m_refresh.iterator(); iterator2.hasNext();) {
+                XRefreshListener listener = (XRefreshListener) iterator2.next();
+                listener.refreshed(event2);
             }
         }
     }
@@ -441,7 +468,7 @@ public abstract class Container<T>
         T element = m_Elements.get(name);
         if (element == null) {
             try {
-                element = _createElement(name);
+                element = createElement(name);
             }
             catch (SQLException e) {
                 try {
@@ -468,7 +495,7 @@ public abstract class Container<T>
     {
         String name = m_Names.get(index);
         if (really) {
-            _removeElement(index, name);
+            removeElement(index, name);
         }
         m_Names.remove(index);
         T element = m_Elements.remove(name);
@@ -481,12 +508,12 @@ public abstract class Container<T>
     }
 
     protected XPropertySet _cloneDescriptor(XPropertySet descriptor) {
-        XPropertySet element = _createDescriptor();
+        XPropertySet element = createDescriptor();
         UnoHelper.copyProperties(descriptor, element);
         return element;
     }
 
-    protected abstract XPropertySet _createDescriptor();
+    protected abstract XPropertySet createDescriptor();
 
 
 }

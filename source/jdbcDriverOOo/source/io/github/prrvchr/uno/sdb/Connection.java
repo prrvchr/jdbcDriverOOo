@@ -47,11 +47,12 @@ import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Statement;
+import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
 
 public final class Connection
@@ -72,17 +73,25 @@ public final class Connection
     private UserContainer m_Users = null;
     private GroupContainer m_Groups = null;
 
+    protected DriverProvider getProvider()
+    {
+        return m_provider;
+    }
+    protected ConnectionLog getLogger()
+    {
+        return m_provider.getLogger();
+    }
+
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
                       String url,
                       PropertyValue[] info,
-                      ResourceBasedEventLogger logger,
                       boolean enhanced,
                       boolean showsystem,
                       boolean usebookmark)
     {
-        super(ctx, m_service, m_services, provider, url, info, logger, enhanced, showsystem, usebookmark);
+        super(ctx, m_service, m_services, provider, url, info, enhanced, showsystem, usebookmark);
         System.out.println("sdb.Connection() *************************");
     }
 
@@ -200,44 +209,50 @@ public final class Connection
         return m_Groups;
     }
 
-
-    public synchronized UserContainer getUsersInternal()
+    protected synchronized UserContainer getUsersInternal()
     {
+        checkDisposed();
+        if (m_Users == null) {
+            _refreshUsers();
+        }
         return m_Users;
     }
 
+    @Override
     protected XStatement _getStatement()
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         m_statements.put(statement, statement);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
+    @Override
     protected XPreparedStatement _getPreparedStatement(String sql)
         throws SQLException
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
+    @Override
     protected XPreparedStatement _getCallableStatement(String sql)
         throws SQLException
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
-    public synchronized void _refresh()
+    public synchronized void refresh()
     {
-        super._refresh();
+        super.refresh();
         _refreshUsers();
         _refreshGroups();
     }
@@ -261,9 +276,9 @@ public final class Connection
             System.out.println("sdb.Connection._refreshUsers() 2");
             result.close();
             if (m_Users == null) {
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
                 m_Users = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, m_Users.getLogger().getObjectId());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, m_Users.getLogger().getObjectId());
             }
             else {
                 m_Users.refill(names);
@@ -290,9 +305,9 @@ public final class Connection
             }
             result.close();
             if (m_Groups == null) {
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
                 m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, m_Groups.getLogger().getObjectId());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, m_Groups.getLogger().getObjectId());
             }
             else {
                 m_Groups.refill(names);
@@ -303,14 +318,18 @@ public final class Connection
         }
     }
 
-    protected TableContainer _getTableContainer(List<String> names)
+    @Override
+    protected TableContainer getTableContainer(List<String> names)
         throws ElementExistException
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
-        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID, tables.getLogger().getObjectId());
-        return tables;
+        return  new TableContainer(this, getProvider().isCaseSensitive(null), names);
     }
 
+    @Override
+    protected ViewContainer getViewContainer(List<String> names)
+        throws ElementExistException
+    {
+        return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+    }
 
 }

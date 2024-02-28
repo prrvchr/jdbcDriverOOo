@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.2.0][5]
+# version [1.2.1][5]
 
 ## Introduction:
 
@@ -412,7 +412,14 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - Use of [generic Java class][82] for managing containers used for managing [tables][83], [views][84], [columns][85], [keys][86] and [indexes][87]. The use of generic classes for [container][88] will make it possible to do without the UNO XPropertySet interface and to be able to transcribe the existing code into pure Java.
 - Many improvements.
 
-### What remains to be done for version 1.2.0:
+### What has been done for version 1.2.1:
+
+- Generalization of generic Java classes for all classes needing to be shared at the UNO API level (ie: sdb, sdbc and sdbcx).
+- We can now rename table columns in SQLite.
+- It is also possible to rename the columns declared as primary key in all embedded drivers.
+- Many improvements.
+
+### What remains to be done for version 1.2.1:
 
 - Add new languages for internationalization...
 
@@ -445,7 +452,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [25]: <https://prrvchr.github.io/HyperSQLOOo/>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.0#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.1#right>
 [29]: <img/jdbcDriverOOo-1.png>
 [30]: <img/jdbcDriverOOo-2.png>
 [31]: <img/jdbcDriverOOo-3.png>

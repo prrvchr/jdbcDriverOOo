@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.2.0][5]
+# version [1.2.1][5]
 
 ## Introduction:
 
@@ -412,7 +412,14 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Utilisation de [classe générique Java][82] pour la gestion des conteneurs utilisés pour la gestion des [tables][83], des [vues][84], des [colonnes][85], des [clefs][86] et des [indexes][87]. L'utilisation de classes génériques dans les [conteneurs][88] permettra de se passer de l'interface UNO XPropertySet et de pouvoir retranscrire le code existant en Java pur.
 - De nombreuses améliorations.
 
-### Que reste-t-il à faire pour la version 1.2.0:
+### Ce qui a été fait pour la version 1.2.1:
+
+- Généralisation des classes Java génériques pour toutes les classes devant être partagées au niveau de l'API UNO (ie: sdb, sdbc et sdbcx).
+- On peut désormais renommer les colonnes des tables sous SQLite.
+- Il est également possible de renommer les colonnes déclarées comme clé primaire dans tous les pilotes embarqués.
+- De nombreuses améliorations.
+
+### Que reste-t-il à faire pour la version 1.2.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -445,7 +452,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.0#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.1#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>

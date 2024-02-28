@@ -47,10 +47,14 @@ package io.github.prrvchr.jdbcdriver;
 
 public class DBDefaultQuery {
 
+    public static final String STR_QUERY_EMPTY_RESULTSET              = "SELECT 1 WHERE 0 = 1";
+
     public static final String STR_QUERY_CREATE_VIEW                  = "CREATE VIEW {0} AS {1}";
     public static final String STR_QUERY_DROP_VIEW                    = "DROP VIEW {0}";
 
     public static final String STR_QUERY_CREATE_TABLE                 = "CREATE TABLE {0} ({1})";
     public static final String STR_QUERY_DROP_TABLE                   = "DROP TABLE {0}";
+
+    public static final String STR_QUERY_RENAME_COLUMN                = "ALTER TABLE {0} ALTER COLUMN {1} RENAME TO {2}";
 
 }

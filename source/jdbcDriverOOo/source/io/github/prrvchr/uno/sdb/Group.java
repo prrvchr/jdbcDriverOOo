@@ -38,7 +38,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class Group
+public final class Group
     extends Role
     implements XUsersSupplier
 {

@@ -46,7 +46,7 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class IndexContainer
+public final class IndexContainer
     extends Container<Index>
 {
     private static final String m_service = IndexContainer.class.getName();
@@ -67,7 +67,7 @@ public class IndexContainer
 
 
     @Override
-    protected Index _createElement(String name)
+    protected Index createElement(String name)
         throws SQLException
     {
         Index index = null;
@@ -141,7 +141,7 @@ public class IndexContainer
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -153,20 +153,20 @@ public class IndexContainer
     }
 
     @Override
-    protected Index _appendElement(XPropertySet descriptor,
+    protected Index appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
         Index index = null;
-        if (_createIndex(descriptor, name)) {
-            index = _createElement(name);
+        if (createIndex(descriptor, name)) {
+            index = createElement(name);
         }
         return index;
         
     }
 
-    protected boolean _createIndex(XPropertySet descriptor,
-                                   String name)
+    protected boolean createIndex(XPropertySet descriptor,
+                                  String name)
         throws SQLException
     {
         try {
@@ -176,7 +176,7 @@ public class IndexContainer
             String separator = ", ";
             String quote = _getConnection().getProvider().getIdentifierQuoteString();
             boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
-            String table = DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InIndexDefinitions, false, false, isCaseSensitive());
+            String table = DBTools.composeTableName(_getConnection().getProvider(), m_Table, ComposeRule.InIndexDefinitions, false, false, isCaseSensitive());
             XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
             List<String> indexes = new ArrayList<String>();
@@ -202,18 +202,21 @@ public class IndexContainer
                 buffer.append(" (");
                 buffer.append(String.join(separator, indexes));
                 buffer.append(")");
-                return DBTools.executeDDLQuery(_getConnection(), buffer.toString(), m_Table.getLogger(),
+                return DBTools.executeDDLQuery(_getConnection().getProvider(), buffer.toString(), m_Table.getLogger(),
                                                "IndexContainer", "_appendElement", Resources.STR_LOG_INDEX_CREATE_QUERY);
             }
             return false;
         }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
         catch (WrappedTargetException | IndexOutOfBoundsException e) {
-            throw UnoHelper.getSQLException(e, m_Table);
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String elementName)
         throws SQLException
     {
@@ -228,12 +231,17 @@ public class IndexContainer
             schema = elementName.substring(0, len);
         }
         name = elementName.substring(len + 1);
-        StringBuilder buffer = new StringBuilder("ALTER TABLE ");
-        buffer.append(DBTools.composeTableName(_getConnection(), m_Table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive()));
-        buffer.append(" DROP CONSTRAINT ");
-        buffer.append(name);
-        DBTools.executeDDLQuery(_getConnection(), buffer.toString(), m_Table.getLogger(),
-                                 "IndexContainer", "_removeElement", Resources.STR_LOG_INDEX_REMOVE_QUERY);
+        try {
+            StringBuilder buffer = new StringBuilder("ALTER TABLE ");
+            buffer.append(DBTools.composeTableName(_getConnection().getProvider(), m_Table, ComposeRule.InTableDefinitions, false, false, isCaseSensitive()));
+            buffer.append(" DROP CONSTRAINT ");
+            buffer.append(name);
+            DBTools.executeDDLQuery(_getConnection().getProvider(), buffer.toString(), m_Table.getLogger(),
+                                     "IndexContainer", "_removeElement", Resources.STR_LOG_INDEX_REMOVE_QUERY);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     public ConnectionSuper _getConnection()
@@ -249,7 +257,7 @@ public class IndexContainer
 
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet createDescriptor() {
         return new IndexDescriptor(isCaseSensitive());
     }
 

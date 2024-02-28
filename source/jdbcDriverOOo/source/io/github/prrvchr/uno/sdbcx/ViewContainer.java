@@ -44,12 +44,17 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class ViewContainer
+public final class ViewContainer
     extends TableContainerMain<View>
 {
     private static final String m_service = ViewContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Views",
                                                 "com.sun.star.sdbcx.Container"};
+
+    @Override
+    protected Connection getConnection() {
+        return (Connection) m_Connection;
+    }
 
     // The constructor method:
     public ViewContainer(ConnectionSuper connection,
@@ -67,77 +72,84 @@ public class ViewContainer
     }
 
     @Override
-    protected boolean _createDataBaseElement(XPropertySet descriptor, String name)
+    protected boolean createDataBaseElement(XPropertySet descriptor, String name)
         throws SQLException
     {
-        String query = DBTools.getCreateViewQuery(m_Connection, descriptor, isCaseSensitive());
-        System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
-        if (DBTools.executeDDLQuery(m_Connection, query, m_logger, this.getClass().getName(),
-                                    "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
-            m_Connection.getTablesInternal().insertElement(name, null);
-            return true;
+        try {
+            String query = DBTools.getCreateViewQuery(m_Connection.getProvider(), descriptor, isCaseSensitive());
+            System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
+            if (DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
+                                        "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
+                m_Connection.getTablesInternal().insertElement(name, null);
+                return true;
+            }
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
         return false;
     }
 
     @Override
-    protected View _createElement(String name)
+    protected View createElement(String name)
         throws SQLException
     {
         String command = "";
         int option = CheckOption.NONE;
         ComposeRule rule = ComposeRule.InDataManipulation;
-        NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection, name, rule);
-        if (m_Connection.getProvider().supportViewDefinition()) {
-            List<Integer[]> positions = new ArrayList<Integer[]>();
-            Object[] parameters = DBTools.getViewDefinitionArguments(m_Connection, cpt, name, rule, isCaseSensitive(), true);
-            List<String> queries = m_Connection.getProvider().getViewDefinitionQuery(positions, parameters);
-            if (!queries.isEmpty() && !positions.isEmpty()) {
-                parameters = DBTools.getViewDefinitionArguments(m_Connection, cpt, name, rule, isCaseSensitive(), false);
-                try (java.sql.PreparedStatement smt = m_Connection.getProvider().getConnection().prepareStatement(queries.get(0)))
-                {
-                    int i = 1;
-                    for (int position : positions.get(0)) {
-                        smt.setString(i++, (String) parameters[position]);
-                    }
-                    String value = "NONE";
-                    try (java.sql.ResultSet result = smt.executeQuery())
+        try {
+            NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, rule);
+            if (m_Connection.getProvider().supportViewDefinition()) {
+                List<Integer[]> positions = new ArrayList<Integer[]>();
+                Object[] parameters = DBTools.getViewDefinitionArguments(m_Connection.getProvider(), cpt, name, rule, isCaseSensitive(), true);
+                List<String> queries = m_Connection.getProvider().getViewDefinitionQuery(positions, parameters);
+                if (!queries.isEmpty() && !positions.isEmpty()) {
+                    parameters = DBTools.getViewDefinitionArguments(m_Connection.getProvider(), cpt, name, rule, isCaseSensitive(), false);
+                    try (java.sql.PreparedStatement smt = m_Connection.getProvider().getConnection().prepareStatement(queries.get(0)))
                     {
-                        // FIXME: The query used comes from the Drivers.xcu file ViewDefinitionCommands property,
-                        // FIXME: it must return at least one column for the view's SQL command.
-                        // FIXME: If only one column is provided then the Check_Option value defaults to None.
-                        if (result.next()) {
-                            command = result.getString(1);
-                            if (result.getMetaData().getColumnCount() > 1) {
-                                value = result.getString(2);
+                        int i = 1;
+                        for (int position : positions.get(0)) {
+                            smt.setString(i++, (String) parameters[position]);
+                        }
+                        String value = "NONE";
+                        try (java.sql.ResultSet result = smt.executeQuery())
+                        {
+                            // FIXME: The query used comes from the Drivers.xcu file ViewDefinitionCommands property,
+                            // FIXME: it must return at least one column for the view's SQL command.
+                            // FIXME: If only one column is provided then the Check_Option value defaults to None.
+                            if (result.next()) {
+                                command = result.getString(1);
+                                if (result.getMetaData().getColumnCount() > 1) {
+                                    value = result.getString(2);
+                                }
                             }
                         }
+                        if ("NONE".startsWith(value)) {
+                            option = CheckOption.NONE;
+                        }
+                        else if ("LOCAL".startsWith(value)) {
+                            option = CheckOption.LOCAL;
+                        }
+                        else if ("CASCADED".startsWith(value)) {
+                            option = CheckOption.CASCADE;
+                        }
                     }
-                    if ("NONE".startsWith(value)) {
-                        option = CheckOption.NONE;
-                    }
-                    else if ("LOCAL".startsWith(value)) {
-                        option = CheckOption.LOCAL;
-                    }
-                    else if ("CASCADED".startsWith(value)) {
-                        option = CheckOption.CASCADE;
-                    }
-                }
-                catch (java.sql.SQLException e) {
-                    throw UnoHelper.getSQLException(e, this);
                 }
             }
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
+            View view = new View(m_Connection, isCaseSensitive(), cpt.getCatalog(),
+                                 cpt.getSchema(), cpt.getTable(), command, option);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
+            return view;
         }
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
-        View view = new View(m_Connection, isCaseSensitive(), cpt.getCatalog(),
-                             cpt.getSchema(), cpt.getTable(), command, option);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
-        return view;
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    protected void _removeElement(int index,
-                                  String name)
+    protected void removeElement(int index,
+                                 String name)
         throws SQLException
     {
         View view = getElement(index);
@@ -151,16 +163,21 @@ public class ViewContainer
     protected void removeElement(View view)
         throws SQLException
     {
-        System.out.println("ViewContainer.removeElement() 1 Name: " + view.getName());
-        String table = DBTools.getTableName(m_Connection, view, ComposeRule.InTableDefinitions, isCaseSensitive());
-        System.out.println("ViewContainer.removeElement() 2 Name: " + table);
-        String query = DBTools.getDropViewQuery(table);
-        DBTools.executeDDLQuery(m_Connection, query, m_logger, this.getClass().getName(),
-                                "removeElement", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
+        try {
+            System.out.println("ViewContainer.removeElement() 1 Name: " + view.getName());
+            String table = DBTools.buildName(m_Connection.getProvider(), view, ComposeRule.InTableDefinitions, isCaseSensitive());
+            System.out.println("ViewContainer.removeElement() 2 Name: " + table);
+            String query = DBTools.getDropViewQuery(table);
+            DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
+                                    "removeElement", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet createDescriptor() {
         return new ViewDescriptor(isCaseSensitive());
     }
 

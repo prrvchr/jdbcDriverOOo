@@ -118,11 +118,11 @@ public abstract class Descriptor
         return m_Name;
     }
     
-    public void setName(String name) {
+    protected void setName(String name) {
         m_Name = name;
     }
     
-    public boolean isCaseSensitive() {
+    protected boolean isCaseSensitive() {
         return m_sensitive;
     }
 

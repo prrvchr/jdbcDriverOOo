@@ -36,6 +36,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -49,7 +50,9 @@ public abstract class DriverProviderMain
     private static String m_subprotocol;
 
     static final boolean m_warnings = true;
-    private java.sql.Connection _connection = null;
+    protected ConnectionLog m_logger;
+    private PropertyValue[] m_infos;
+    private java.sql.Statement m_statement = null;
     private boolean m_SupportsTransactions = true;
     private boolean m_IsCatalogAtStart = true;
     private String m_CatalogSeparator = "";
@@ -62,10 +65,21 @@ public abstract class DriverProviderMain
     private String m_AutoRetrievingStatement = "";
     private boolean m_IgnoreDriverPrivileges = true;
     private boolean m_SupportRenameView = true;
+    private String m_RenameColumnCommand = null;
     private Object[] m_RenameTableCommands = null;
     private Object[] m_ViewDefinitionCommands = null;
     private Object[] m_AlterViewCommands = null;
     private Object[] m_TypeInfoSettings = null;
+
+    @Override
+    public ConnectionLog getLogger() {
+        return m_logger;
+    }
+
+    @Override
+    public PropertyValue[] getInfos() {
+        return m_infos;
+    }
 
     // The constructor method:
     public DriverProviderMain(String subprotocol)
@@ -115,6 +129,11 @@ public abstract class DriverProviderMain
         return getDDLQueriesCommand(m_RenameTableCommands, null, reverse, arguments);
     }
 
+    public String getRenameColumnQuery() {
+        return m_RenameColumnCommand != null ?
+               m_RenameColumnCommand :
+               DBDefaultQuery.STR_QUERY_RENAME_COLUMN;
+    }
 
     @Override
     public List<String> getViewDefinitionQuery(List<Integer[]> positions,
@@ -210,9 +229,13 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String[] getTableTypes()
+    public String[] getTableTypes(final boolean showsystem)
     {
-        return new String[]{"TABLE", "VIEW"};
+        String[] types = null;
+        if (!showsystem) {
+            types = new String[]{"TABLE", "VIEW"};
+        }
+        return types;
     }
 
     @Override
@@ -376,14 +399,17 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public void setConnection(final String location,
+    public void setConnection(ResourceBasedEventLogger logger,
+                              final String location,
                               final PropertyValue[] infos,
                               String level)
         throws java.sql.SQLException
     {
+        m_infos = infos;
+        m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
         String url = getConnectionUrl(location, level);
-        _connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
-        java.sql.DatabaseMetaData metadata = _connection.getMetaData();
+        java.sql.Connection connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
+        java.sql.DatabaseMetaData metadata = connection.getMetaData();
         m_SupportsTransactions = metadata.supportsTransactions();
         m_IsCatalogAtStart = metadata.isCatalogAtStart();
         m_CatalogSeparator = metadata.getCatalogSeparator();
@@ -395,6 +421,7 @@ public abstract class DriverProviderMain
         m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", null);
         m_ViewDefinitionCommands = (Object[]) getConnectionProperties(infos, "ViewDefinitionCommands", null);
         m_SupportRenameView = (boolean) getConnectionProperties(infos, "SupportRenameView", true);
+        m_RenameColumnCommand = (String) getConnectionProperties(infos, "RenameColumnCommand", null);
         m_RenameTableCommands = (Object[]) getConnectionProperties(infos, "RenameTableCommands", null);
         m_TypeInfoSettings = (Object[]) getConnectionProperties(infos, "TypeInfoSettings", null);
         if (_getAutoRetrieving(metadata, infos)) {
@@ -403,6 +430,7 @@ public abstract class DriverProviderMain
         }
         m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
                                                                        java.sql.ResultSet.CONCUR_UPDATABLE);
+        m_statement = connection.createStatement();
     }
 
 
@@ -470,9 +498,34 @@ public abstract class DriverProviderMain
 
     @Override
     public java.sql.Connection getConnection()
+        throws java.sql.SQLException
     {
-        return _connection;
+        if (m_statement != null) {
+            return m_statement.getConnection();
+        }
+        return null;
     }
+    public java.sql.Statement getStatement()
+        throws java.sql.SQLException
+    {
+        if (m_statement != null) {
+            return m_statement;
+        }
+        return null;
+    }
+
+    @Override
+    public void closeConnection()
+        throws java.sql.SQLException
+    {
+        if (m_statement != null) {
+            java.sql.Connection connection = m_statement.getConnection();
+            m_statement.close();
+            m_statement = null;
+            connection.close();
+        }
+    }
+
 
     @Override
     public String getConnectionUrl(String location,

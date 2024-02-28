@@ -42,7 +42,7 @@ public final class ResultSet
     // The constructor method:
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     StatementMain statement,
+                     StatementMain<?> statement,
                      boolean bookmark)
     throws SQLException
     {

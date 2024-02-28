@@ -32,8 +32,8 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
+import io.github.prrvchr.uno.sdbcx.CallableStatementSuper;
 
 
 public final class CallableStatement
@@ -79,10 +79,10 @@ public final class CallableStatement
         throws SQLException
     {
         ResultSetBase resultset = null;
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;
     }

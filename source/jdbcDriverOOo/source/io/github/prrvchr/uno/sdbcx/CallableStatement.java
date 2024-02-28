@@ -31,12 +31,11 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.CallableStatementSuper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
-public class CallableStatement
+public final class CallableStatement
     extends CallableStatementSuper
 {
     private static final String m_service = CallableStatement.class.getName();

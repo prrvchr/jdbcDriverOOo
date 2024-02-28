@@ -43,7 +43,6 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -54,7 +53,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class StatementMain
+public abstract class StatementMain<S extends java.sql.Statement>
     extends PropertySet
     implements XServiceInfo,
                XWarningsSupplier,
@@ -68,8 +67,7 @@ public abstract class StatementMain
     private final String[] m_services;
     protected ConnectionBase m_Connection;
     protected final ConnectionLog m_logger;
-    protected java.sql.Statement m_Statement = null;
-    protected java.sql.Statement m_GeneratedStatement = null;
+    protected S m_Statement = null;
     protected String m_Sql = "";
 
     private String m_CursorName = "";
@@ -92,7 +90,7 @@ public abstract class StatementMain
         m_service = service;
         m_services = services;
         m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.STATEMENT);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.STATEMENT);
         registerProperties();
     }
 
@@ -101,18 +99,10 @@ public abstract class StatementMain
         return m_logger;
     }
 
-    public java.sql.Statement getStatement()
-    {
-        return m_Statement;
-    }
-
     public java.sql.Statement getGeneratedStatement()
         throws java.sql.SQLException
     {
-        if (m_GeneratedStatement == null) {
-            m_GeneratedStatement = m_Connection.getProvider().getConnection().createStatement();
-        }
-        return m_GeneratedStatement;
+        return m_Connection.getProvider().getStatement();
     }
 
     private void registerProperties() {
@@ -222,22 +212,24 @@ public abstract class StatementMain
             });
     }
 
-    protected abstract void _createStatement() throws SQLException;
-    protected abstract XResultSet _getResultSet(java.sql.ResultSet resultset) throws SQLException;
 
-    protected void _setStatement()
+    protected abstract S getStatement() throws SQLException;
+    protected abstract XResultSet _getResultSet(java.sql.ResultSet resultset) throws SQLException;
+    protected abstract java.sql.ResultSet getGeneratedResult(String query) throws java.sql.SQLException, SQLException;
+
+    protected S setStatement(S statement)
         throws java.sql.SQLException
     {
         if (!m_CursorName.isBlank()) {
-            m_Statement.setCursorName(m_CursorName);
+            statement.setCursorName(m_CursorName);
         }
-        m_Statement.setFetchDirection(m_FetchDirection);
-        m_Statement.setFetchSize(m_FetchSize);
-        m_Statement.setMaxFieldSize(m_MaxFieldSize);
-        m_Statement.setMaxRows(m_MaxRows);
-        m_Statement.setQueryTimeout(m_QueryTimeout);
+        statement.setFetchDirection(m_FetchDirection);
+        statement.setFetchSize(m_FetchSize);
+        statement.setMaxFieldSize(m_MaxFieldSize);
+        statement.setMaxRows(m_MaxRows);
+        statement.setQueryTimeout(m_QueryTimeout);
+        return statement;
     }
-
 
     private synchronized void _setCursorName(String cursor)
         throws WrappedTargetException
@@ -427,6 +419,7 @@ public abstract class StatementMain
     @Override
     public void clearWarnings() throws SQLException
     {
+        // XXX: clearWargnings() should not prevent the Statement from lazy loading
         if (m_Connection.getProvider().supportWarningsSupplier())
             WarningsSupplier.clearWarnings(m_Statement, this);
     }
@@ -434,6 +427,7 @@ public abstract class StatementMain
     @Override
     public Object getWarnings() throws SQLException
     {
+        // XXX: getWarnings() should not prevent the Statement from lazy loading
         if (m_Connection.getProvider().supportWarningsSupplier())
             return WarningsSupplier.getWarnings(m_Statement, this);
          return Any.VOID;
@@ -450,15 +444,11 @@ public abstract class StatementMain
             if (m_Statement != null) {
                 m_Statement.close();
             }
-            if (m_GeneratedStatement != null) {
-                m_GeneratedStatement.close();
-            }
         }
         catch (java.sql.SQLException e) {
             m_logger.logp(LogLevel.WARNING, e);
         }
         //m_Statement = null;
-        //m_GeneratedStatement = null;
     }
 
 
@@ -476,8 +466,7 @@ public abstract class StatementMain
     public void cancel()
     {
         try {
-            _createStatement();
-            m_Statement.cancel();
+            getStatement().cancel();
         }
         catch (SQLException | java.sql.SQLException e) {
             System.out.println("StatementMain.cancel() ERROR");
@@ -492,8 +481,8 @@ public abstract class StatementMain
         checkDisposed();
         ResultSetBase resultset = null;
         try {
-            String sql = m_Connection.getProvider().getAutoRetrievingStatement();
-            java.sql.ResultSet result = DBTools.getGeneratedKeys(this, "getGeneratedValues", sql, m_Sql);
+            String command = m_Connection.getProvider().getAutoRetrievingStatement();
+            java.sql.ResultSet result = getGeneratedResult(command);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset = new ResultSet(m_Connection, result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
@@ -523,8 +512,7 @@ public abstract class StatementMain
     public boolean getMoreResults() throws SQLException
     {
         try {
-            _createStatement();
-            return m_Statement.getMoreResults();
+            return getStatement().getMoreResults();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -535,8 +523,7 @@ public abstract class StatementMain
     public XResultSet getResultSet() throws SQLException
     {
         try {
-            _createStatement();
-            return _getResultSet(m_Statement.getResultSet());
+            return _getResultSet(getStatement().getResultSet());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -547,8 +534,7 @@ public abstract class StatementMain
     public int getUpdateCount() throws SQLException
     {
         try {
-            _createStatement();
-            return m_Statement.getUpdateCount();
+            return getStatement().getUpdateCount();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

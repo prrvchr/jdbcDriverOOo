@@ -26,113 +26,64 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.container.XIndexAccess;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbcx.XKeysSupplier;
+import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
-import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
 
 
-public abstract class TableDescriptorBase
-    extends Descriptor
-    implements XColumnsSupplier,
-               XKeysSupplier
+public abstract class PreparedStatementSuper
+    extends PreparedStatementBase
 {
 
-    private ColumnDescriptorContainerBase m_columns;
-    private KeyDescriptorContainer m_keys;
-    private String m_CatalogName = "";
-    private String m_SchemaName = "";
-    private String m_Description = "";
+    protected boolean m_UseBookmarks = false;
+
 
     // The constructor method:
-    public TableDescriptorBase(String service,
-                               String[] services,
-                               boolean sensitive)
+    // XXX: Constructor called from methods:
+    // XXX: - io.github.prrvchr.uno.sdb.PreparedStatement()
+    // XXX: - io.github.prrvchr.uno.sdbcx.PreparedStatement()
+    public PreparedStatementSuper(String service,
+                                  String[] services,
+                                  ConnectionBase connection,
+                                  String sql)
     {
-        super(service, services, sensitive);
-        m_columns = _getColumnDescriptorContainer(sensitive);
-        m_keys = new KeyDescriptorContainer(this, sensitive);
+        super(service, services, connection, sql);
         registerProperties();
-        System.out.println("sdbcx.descriptors.TableDescriptorBase()");
+        System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }
-
-    public abstract ColumnDescriptorContainerBase _getColumnDescriptorContainer(boolean sensitive);
 
     private void registerProperties() {
-        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING,
+        registerProperty(PropertyIds.USEBOOKMARKS.name, PropertyIds.USEBOOKMARKS.id, Type.BOOLEAN,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_CatalogName;
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
+                    return m_UseBookmarks;
                 }
             },
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_CatalogName = (String) value;
-                }
-            });
-        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_SchemaName;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_SchemaName = (String) value;
-                }
-            });
-        registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Description;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Description = (String) value;
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
+                    m_UseBookmarks = (boolean) value;
                 }
             });
     }
 
-
-
-    // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
-    public XNameAccess getColumns()
+    protected java.sql.ResultSet getGeneratedResult(String command)
+        throws SQLException, java.sql.SQLException
     {
-        System.out.println("sdbcx.descriptors.TableDescriptorBase.getColumns()");
-        return m_columns;
+        // XXX: At this level of API (sdbcx or sdb) normally a ResultSet with all columns is already available... 
+        return getStatement().getGeneratedKeys();
     }
-
-
-    // com.sun.star.sdbcx.XKeysSupplier:
-    @Override
-    public XIndexAccess getKeys() {
-        System.out.println("sdbcx.descriptors.TableDescriptorBase.getKeys()");
-        return m_keys;
-    }
-
-    // 
-    public String getCatalogName()
-    {
-        return m_CatalogName;
-    }
-    public String getSchemaName()
-    {
-        return m_SchemaName;
-    }
-
 
 }

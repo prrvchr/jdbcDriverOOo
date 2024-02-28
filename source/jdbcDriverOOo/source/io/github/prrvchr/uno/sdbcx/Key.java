@@ -40,7 +40,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public class Key
+public final class Key
     extends Descriptor
     implements XColumnsSupplier,
                XDataDescriptorFactory
@@ -111,11 +111,15 @@ public class Key
             }, null);
     }
 
+    protected KeyColumnContainer getColumnsInternal() {
+        return m_columns;
+    }
+
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
     public XNameAccess getColumns()
     {
-        return m_columns;
+        return getColumnsInternal();
     }
 
 

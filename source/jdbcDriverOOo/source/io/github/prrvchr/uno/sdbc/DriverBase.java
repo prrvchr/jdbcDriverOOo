@@ -164,7 +164,7 @@ public abstract class DriverBase
             }
             UnoHelper.disposeComponent(config);
             try {
-                provider.setConnection(location, info, level);
+                provider.setConnection(m_logger, location, info, level);
             }
             catch(java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
@@ -184,8 +184,8 @@ public abstract class DriverBase
             System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
-            connection = _getConnection(m_xContext, provider, url, info, m_logger, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
-            m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getLogger().getObjectId());
+            connection = _getConnection(m_xContext, provider, url, info, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
+            m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getProvider().getLogger().getObjectId());
             System.out.println("sdbc.DriverBase.connect() 4");
         }
         return connection;
@@ -420,6 +420,9 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, "", new String[0]));
+        properties.add(new DriverPropertyInfo("ColumnDescriptionCommand", "Column description setting statement.", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("TableDescriptionCommand", "Table description setting statement.", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("ViewDefinitionCommands", "preparedstatement query for retrieving view's SQL command.", false, "", new String[0]));
         //if (!m_enhanced) {
         properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices));
         //}
@@ -454,7 +457,6 @@ public abstract class DriverBase
                                                      DriverProvider provider,
                                                      String url,
                                                      PropertyValue[] info,
-                                                     ResourceBasedEventLogger logger,
                                                      boolean enhanced,
                                                      boolean showsystem,
                                                      boolean usebookmark,

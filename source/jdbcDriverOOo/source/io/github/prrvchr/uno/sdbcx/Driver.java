@@ -42,7 +42,6 @@ import io.github.prrvchr.jdbcdriver.ConnectionService;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DriverBase;
@@ -70,7 +69,6 @@ public final class Driver
                                             DriverProvider provider,
                                             String url,
                                             PropertyValue[] info,
-                                            ResourceBasedEventLogger logger,
                                             boolean enhanced,
                                             boolean showsystem,
                                             boolean usebookmark,
@@ -79,13 +77,13 @@ public final class Driver
         ConnectionBase connection = null;
         switch(service) {
         case CSS_SDBCX_CONNECTION:
-            connection = new Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
             break;
         case CSS_SDB_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
             break;
         default:
-            connection = new Connection(ctx, provider, url, info, logger, enhanced, showsystem, usebookmark);
+            connection = new Connection(ctx, provider, url, info, enhanced, showsystem, usebookmark);
         }
         return connection;
     }

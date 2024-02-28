@@ -37,7 +37,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class User
+public final class User
     extends Role
     implements XUser
 {
@@ -59,8 +59,8 @@ public class User
     public void changePassword(String old, String password)
         throws SQLException
     {
-        String sql = DBTools.getChangeUserPasswordQuery(m_connection, getName(), password, isCaseSensitive());
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            String sql = DBTools.getChangeUserPasswordQuery(m_connection.getProvider(), getName(), password, isCaseSensitive());
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {

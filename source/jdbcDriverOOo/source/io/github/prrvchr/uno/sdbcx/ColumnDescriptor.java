@@ -25,22 +25,81 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.uno.Type;
 
-public class ColumnDescriptor
-    extends ColumnDescriptorSuper
+import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+
+public final class ColumnDescriptor
+    extends ColumnDescriptorBase
 {
-
     private static final String m_service = ColumnDescriptor.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.ColumnDescriptor"};
 
+    private String m_Catalog;
+    private String m_Schema;
+    private String m_Table;
+
+    protected String m_AutoIncrementCreation = "";
+
     // The constructor method:
     public ColumnDescriptor(String catalog,
-                            String schema,
-                            String table,
-                            boolean sensitive)
+                                 String schema,
+                                 String table,
+                                 boolean sensitive)
     {
-        super(m_service, m_services, catalog, schema, table, sensitive);
-        System.out.println("sdbcx.ColumnDescriptor()");
+        super(m_service, m_services, sensitive);
+        m_Catalog = catalog;
+        m_Schema = schema;
+        m_Table = table;
+        registerProperties();
+        System.out.println("sdbcx.descriptors.ColumnDescriptorSuper()");
     }
+
+    private void registerProperties() {
+        // FIXME: Although these properties are not in the UNO API, they are claimed by
+        // FIXME: LibreOffice/Base and necessary to obtain tables whose contents can be edited in Base
+        short attribute = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, attribute,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Catalog;
+                }
+            }, null);
+        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, attribute,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Schema;
+                }
+            }, null);
+        registerProperty(PropertyIds.TABLENAME.name, PropertyIds.TABLENAME.id, Type.STRING, attribute,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Table;
+                }
+            }, null);
+        
+        registerProperty(PropertyIds.AUTOINCREMENTCREATION.name, PropertyIds.AUTOINCREMENTCREATION.id, Type.STRING,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() {
+                    return m_AutoIncrementCreation;
+                    
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) {
+                    m_AutoIncrementCreation = (String) value;
+                }
+            });
+    }
+
 
 }

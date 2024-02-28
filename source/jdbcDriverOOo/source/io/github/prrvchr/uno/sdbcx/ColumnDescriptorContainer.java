@@ -26,23 +26,38 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.sdbc.SQLException;
 
-public class ColumnDescriptorContainer
-    extends ColumnDescriptorContainerBase
+
+public final class ColumnDescriptorContainer
+    extends DescriptorContainer<ColumnDescriptor>
 {
-    
+
+    protected TableDescriptor m_table;
+
     // The constructor method:
-    public ColumnDescriptorContainer(TableDescriptorBase table,
+    public ColumnDescriptorContainer(TableDescriptor table,
                                      boolean sensitive)
     {
         super(table, sensitive);
+        m_table = table;
         System.out.println("sdbcx.ColumnDescriptorContainer() ***************************************************");
     }
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected ColumnDescriptor appendElement(XPropertySet descriptor,
+                                                  String name)
+        throws SQLException
+    {
+        return (ColumnDescriptor) _cloneDescriptor(descriptor);
+    }
+
+
+    @Override
+    protected XPropertySet createDescriptor() {
         System.out.println("sdbcx.ColumnDescriptorContainer._createDescriptor()");
         return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
     }
+
 
 }

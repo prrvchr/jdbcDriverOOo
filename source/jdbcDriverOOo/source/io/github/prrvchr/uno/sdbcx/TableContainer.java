@@ -35,15 +35,15 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 
 
-public class TableContainer
-    extends TableContainerSuper
+public final class TableContainer
+    extends TableContainerSuper<Table>
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Tables",
                                                 "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
-    public TableContainer(ConnectionSuper connection,
+    public TableContainer(Connection connection,
                           boolean sensitive,
                           List<String> names)
         throws ElementExistException
@@ -51,16 +51,23 @@ public class TableContainer
         super(m_service, m_services, connection, sensitive, names);
     }
 
+
     @Override
-    protected XPropertySet _createDescriptor()
+    protected Connection getConnection() {
+        return (Connection) m_Connection;
+    }
+
+
+    @Override
+    protected XPropertySet createDescriptor()
     {
         System.out.println("sdbcx.TableContainer._createDescriptor()");
         return new TableDescriptor(isCaseSensitive());
     }
 
-    protected Table _getTable(NameComponents component,
-                              String type,
-                              String remarks)
+    protected Table getTable(NameComponents component,
+                             String type,
+                             String remarks)
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
         Table table = new Table(m_Connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);

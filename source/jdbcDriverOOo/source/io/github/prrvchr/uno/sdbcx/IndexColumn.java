@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public class IndexColumn
+public final class IndexColumn
     extends ColumnBase
 {
     private static final String m_service = IndexColumn.class.getName();

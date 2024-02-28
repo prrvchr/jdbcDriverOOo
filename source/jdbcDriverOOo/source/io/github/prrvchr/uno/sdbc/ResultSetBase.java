@@ -90,7 +90,7 @@ public abstract class ResultSetBase
     protected ConnectionBase m_Connection;
     protected final ConnectionLog m_logger;
     protected java.sql.ResultSet m_ResultSet;
-    private StatementMain m_Statement;
+    private StatementMain<?> m_Statement;
     protected boolean m_insert = false;
 
 
@@ -109,7 +109,7 @@ public abstract class ResultSetBase
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet resultset,
-                         StatementMain statement)
+                         StatementMain<?> statement)
         throws SQLException
     {
         m_service = service;
@@ -117,7 +117,7 @@ public abstract class ResultSetBase
         m_Connection = connection;
         m_ResultSet = resultset;
         m_Statement = statement;
-        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.RESULTSET);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.RESULTSET);
         registerProperties();
     }
 
@@ -1084,6 +1084,7 @@ public abstract class ResultSetBase
     @Override
     public XResultSetMetaData getMetaData() throws SQLException
     {
+        System.out.println("sdbc.ResultSetBase.getMetaData() 1");
         try {
             java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
             return (metadata != null) ? new ResultSetMetaData(m_Connection, metadata) : null;

@@ -43,7 +43,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public class Index
+public final class Index
     extends Descriptor
     implements XColumnsSupplier,
                XDataDescriptorFactory

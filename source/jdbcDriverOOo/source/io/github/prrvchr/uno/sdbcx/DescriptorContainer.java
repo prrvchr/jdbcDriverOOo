@@ -53,7 +53,7 @@ public abstract class DescriptorContainer<T>
     }
 
     @Override
-    protected T _createElement(String name)
+    protected T createElement(String name)
         throws SQLException
     {
         // This should never be called. DescriptorContainer always starts off empty,
@@ -63,7 +63,7 @@ public abstract class DescriptorContainer<T>
     }
     
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
@@ -75,7 +75,7 @@ public abstract class DescriptorContainer<T>
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {

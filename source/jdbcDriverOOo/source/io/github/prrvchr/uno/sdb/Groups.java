@@ -33,9 +33,10 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
-public class Groups
+public final class Groups
     extends GroupContainer
 {
 
@@ -57,21 +58,31 @@ public class Groups
                                    String name)
         throws SQLException
     {
-        String query = DBTools.getGrantRoleQuery(m_connection, name, m_role.getName(), isCaseSensitive());
+        String query = DBTools.getGrantRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
         System.out.println("sdbcx.UserGroupContainer._createUser() SQL: " + query);
-        return DBTools.executeDDLQuery(m_connection, query, m_role.getLogger(), this.getClass().getName(),
-                                       "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
+        try {
+            return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_role.getLogger(), this.getClass().getName(),
+                                           "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
-        String query = DBTools.getRevokeRoleQuery(m_connection, name, m_role.getName(), isCaseSensitive());
+        String query = DBTools.getRevokeRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
         System.out.println("sdbcx.UserGroupContainer._removeElement() SQL: " + query);
-        DBTools.executeDDLQuery(m_connection, query, m_role.getLogger(), this.getClass().getName(),
-                                "_removeElement", Resources.STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY, name);
+        try {
+            DBTools.executeDDLQuery(m_connection.getProvider(), query, m_role.getLogger(), this.getClass().getName(),
+                                    "_removeElement", Resources.STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY, name);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
 }

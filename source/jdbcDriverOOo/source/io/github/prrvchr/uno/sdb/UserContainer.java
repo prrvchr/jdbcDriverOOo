@@ -50,6 +50,19 @@ public class UserContainer
     protected final Connection m_connection;
     private final ConnectionLog m_logger; 
 
+    @Override
+    protected User getElement(int index)
+        throws SQLException
+    {
+        return super.getElement(index);
+    }
+    @Override
+    protected User getElement(String name)
+        throws SQLException
+    {
+        return super.getElement(name);
+    }
+
 
     // The constructor method:
     public UserContainer(Connection connection,
@@ -68,7 +81,7 @@ public class UserContainer
     {
         super(m_service, m_services, connection, sensitive, names);
         m_connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), type);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
     public ConnectionLog getLogger()
@@ -77,7 +90,7 @@ public class UserContainer
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -89,13 +102,13 @@ public class UserContainer
     }
 
     @Override
-    protected User _appendElement(XPropertySet descriptor,
+    protected User appendElement(XPropertySet descriptor,
                                           String name)
         throws SQLException
     {
         User user = null;
         if (_createUser(descriptor, name)) {
-            user = _createElement(name);
+            user = createElement(name);
         }
         return user;
     }
@@ -104,14 +117,19 @@ public class UserContainer
                                   String name)
         throws SQLException
     {
-        String query = DBTools.getCreateUserQuery(m_connection, descriptor, name, isCaseSensitive());
-        System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
-        return DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
-                                       "_createView", Resources.STR_LOG_USERS_CREATE_USER_QUERY, name);
+        try {
+            String query = DBTools.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
+            return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                                           "_createView", Resources.STR_LOG_USERS_CREATE_USER_QUERY, name);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    protected User _createElement(String name)
+    protected User createElement(String name)
         throws SQLException
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
@@ -122,13 +140,13 @@ public class UserContainer
 
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
-        String sql = DBTools.getDropUserQuery(m_connection, name, isCaseSensitive());
-        System.out.println("sdbcx.UserContainer._removeElement() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            String sql = DBTools.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
+            System.out.println("sdbcx.UserContainer._removeElement() SQL: " + sql);
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
@@ -139,11 +157,11 @@ public class UserContainer
     @Override
     protected void _refresh()
     {
-        m_connection._refresh();
+        m_connection.refresh();
     }
 
     @Override
-    protected XPropertySet _createDescriptor()
+    protected XPropertySet createDescriptor()
     {
         return new UserDescriptor(isCaseSensitive());
     }

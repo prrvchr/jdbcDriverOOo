@@ -30,13 +30,17 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class KeyColumnContainer
+public final class KeyColumnContainer
     extends Container<KeyColumn>
 {
     private static final String m_service = IndexContainer.class.getName();
@@ -59,7 +63,7 @@ public class KeyColumnContainer
 
     
     @Override
-    protected KeyColumn _createElement(String name)
+    protected KeyColumn createElement(String name)
         throws SQLException
     {
         KeyColumn column = null;
@@ -68,38 +72,41 @@ public class KeyColumnContainer
             String schema = m_key.getTable().getSchema();
             String table = m_key.getTable().getName();
             System.out.println("sdbcx.KeyColumnContainer._createElement() 1 : " + catalog + "." + schema + "." + table + "." + name);
-            java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getImportedKeys(catalog, schema, table);
             String refColumnName = "";
-            System.out.println("sdbcx.KeyColumnContainer._createElement() 2 Name: " + name + " - Key: " + m_key.getName());
-            while (result.next()) {
-                System.out.println("sdbcx.KeyColumnContainer._createElement() 3 Name: " + result.getString(8) + " - Key: " + result.getString(12));
-                if (result.getString(8).equals(name) && m_key.getName().equals(result.getString(12))) {
-                    refColumnName = result.getString(4);
-                    System.out.println("sdbcx.KeyColumnContainer._createElement() 4");
-                    break;
+            try (java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getImportedKeys(catalog, schema, table))
+            {
+                System.out.println("sdbcx.KeyColumnContainer._createElement() 2 Name: " + name + " - Key: " + m_key.getName());
+                while (result.next()) {
+                    System.out.println("sdbcx.KeyColumnContainer._createElement() 3 Name: " + result.getString(8) + " - Key: " + result.getString(12));
+                    if (name.equals(result.getString(8)) && m_key.getName().equals(result.getString(12))) {
+                        refColumnName = result.getString(4);
+                        System.out.println("sdbcx.KeyColumnContainer._createElement() 4");
+                        break;
+                    }
                 }
             }
-            result.close();
             // now describe the column name and set its related column
-            result = getConnection().getProvider().getConnection().getMetaData().getColumns(catalog, schema, table, name);
-            System.out.println("sdbcx.KeyColumnContainer._createElement() 5");
-            if (result.next()) {
-                System.out.println("sdbcx.KeyColumnContainer._createElement() 6 Name: " + name + " - Column: " + result.getString(4));
-                if (result.getString(4).equals(name)) {
-                    int dataType = getConnection().getProvider().getDataType(result.getInt(5));
-                    String typeName = result.getString(6);
-                    int size = result.getInt(7);
-                    int dec = result.getInt(9);
-                    int nul = result.getInt(11);
-                    String columnDef = "";
-                    try {
-                        columnDef = result.getString(13);
-                    } 
-                    catch (java.sql.SQLException e) {
-                        // sometimes we get an error when asking for this param
+            try (java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getColumns(catalog, schema, table, name))
+            {
+                System.out.println("sdbcx.KeyColumnContainer._createElement() 5");
+                if (result.next()) {
+                    System.out.println("sdbcx.KeyColumnContainer._createElement() 6 Name: " + name + " - Column: " + result.getString(4));
+                    if (result.getString(4).equals(name)) {
+                        int dataType = getConnection().getProvider().getDataType(result.getInt(5));
+                        String typeName = result.getString(6);
+                        int size = result.getInt(7);
+                        int dec = result.getInt(9);
+                        int nul = result.getInt(11);
+                        String columnDef = "";
+                        try {
+                            columnDef = result.getString(13);
+                        }
+                        catch (java.sql.SQLException e) {
+                            // sometimes we get an error when asking for this param
+                        }
+                        System.out.println("sdbcx.KeyColumnContainer._createElement() 7");
+                        column = new KeyColumn(m_key.getTable(), isCaseSensitive(), name, typeName, "", columnDef, nul, size, dec, dataType, false, false, false, refColumnName);
                     }
-                    System.out.println("sdbcx.KeyColumnContainer._createElement() 7");
-                    column = new KeyColumn(m_key.getTable(), isCaseSensitive(), name, typeName, "", columnDef, nul, size, dec, dataType, false, false, false, refColumnName);
                 }
             }
         }
@@ -114,7 +121,7 @@ public class KeyColumnContainer
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -126,14 +133,14 @@ public class KeyColumnContainer
     }
 
     @Override
-    protected KeyColumn _appendElement(XPropertySet descriptor, String name)
+    protected KeyColumn appendElement(XPropertySet descriptor, String name)
         throws SQLException
     {
         throw new SQLException("Cannot change a key's columns, please delete and re-create the key instead");
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
@@ -142,7 +149,7 @@ public class KeyColumnContainer
 
     
     @Override
-    protected XPropertySet _createDescriptor()
+    protected XPropertySet createDescriptor()
     {
         return new KeyColumnDescriptor(isCaseSensitive());
     }
@@ -151,7 +158,21 @@ public class KeyColumnContainer
     protected void _refresh()
     {
     }
-    
+
+    protected void rename(String oldname, String newname)
+        throws SQLException
+    {
+        System.out.println("KeyColumnContainer.rename() OldName: " + oldname + " - NewName: " + newname);
+        synchronized (getConnection()) {
+            if (!m_Elements.containsKey(oldname) || !m_Names.contains(oldname)) {
+                int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+                throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
+            }
+            getElement(oldname).setName(newname);
+            replaceElement(oldname, newname);
+        }
+    }
 
     public ConnectionSuper getConnection()
     {

@@ -38,10 +38,11 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
@@ -49,11 +50,19 @@ public abstract class ConnectionSuper
     extends ConnectionBase
     implements XTablesSupplier,
                XViewsSupplier
-
 {
 
-    private TableContainerSuper m_Tables = null;
+    private TableContainerSuper<?> m_Tables = null;
     private ViewContainer m_Views = null;
+
+    protected DriverProvider getProvider()
+    {
+        return m_provider;
+    }
+    protected ConnectionLog getLogger()
+    {
+        return m_provider.getLogger();
+    }
 
     // The constructor method:
     public ConnectionSuper(XComponentContext ctx,
@@ -62,12 +71,11 @@ public abstract class ConnectionSuper
                            DriverProvider provider,
                            String url,
                            PropertyValue[] info,
-                           ResourceBasedEventLogger logger,
                            boolean enhanced,
                            boolean showsystem,
                            boolean usebookmark)
     {
-        super(ctx, service, services, provider, url, info, logger, enhanced, showsystem, usebookmark);
+        super(ctx, service, services, provider, url, info, enhanced, showsystem, usebookmark);
     }
 
     // com.sun.star.lang.XComponent
@@ -82,64 +90,64 @@ public abstract class ConnectionSuper
         super.postDisposing();
     }
 
-
     // com.sun.star.sdbcx.XTablesSupplier:
     @Override
     public synchronized XNameAccess getTables()
     {
-        checkDisposed();
-        if (m_Tables == null) {
-            _refreshTables();
-        }
-        return m_Tables;
+        return getTablesInternal();
     }
 
     // com.sun.star.sdbcx.XViewsSupplier:
     @Override
     public synchronized XNameAccess getViews()
     {
-        checkDisposed();
-        if (m_Views == null) {
-            _refreshViews();
-        }
-        return m_Views;
+        return getViewsInternal();
     }
 
-
-    public synchronized TableContainerSuper getTablesInternal()
+    // Protected methods
+    protected synchronized TableContainerSuper<?> getTablesInternal()
     {
+        checkDisposed();
+        if (m_Tables == null) {
+            refreshTables();
+        }
         return m_Tables;
     }
 
     protected synchronized ViewContainer getViewsInternal()
     {
+        checkDisposed();
+        if (m_Views == null) {
+            refreshViews();
+        }
         return m_Views;
     }
 
-    public synchronized void _refresh()
+    protected synchronized void refresh()
     {
         checkDisposed();
-        _refreshTables();
-        _refreshViews();
+        refreshTables();
+        refreshViews();
     }
 
-    private void _refreshTables()
+    private void refreshTables()
     {
         try {
             // FIXME: It is preferable to display all the entities of the underlying database.
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
-            String[] types = (m_showsystem) ? null : m_provider.getTableTypes();
-            System.out.println("sdbc.ConnectionSuper._refreshTables() Show Sytem Table: " + m_showsystem);
-            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getTables(null, null, "%", types);
             List<String> names = new ArrayList<>();
-            while (result.next()) {
-                String name = _buildName(result);
-                names.add(name);
+            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
+            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes(m_showsystem)))
+            {
+                while (result.next()) {
+                    String name = buildName(result);
+                    names.add(name);
+                }
             }
-            result.close();
             if (m_Tables == null) {
-                m_Tables = _getTableContainer(names);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
+                m_Tables = getTableContainer(names);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID, m_Tables.getLogger().getObjectId());
             }
             else {
                 m_Tables.refill(names);
@@ -150,21 +158,21 @@ public abstract class ConnectionSuper
         }
     }
 
-    public void _refreshViews() {
+    public void refreshViews() {
         try {
-            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getTables(null, null, "%", m_provider.getViewTypes(m_showsystem));
             List<String> names = new ArrayList<>();
-            while (result.next()) {
-                String name = _buildName(result);
-                System.out.println("sdb.Connection._refreshViews() View Name: " + name);
-                names.add(name);
+            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
+            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes(m_showsystem)))
+            {
+                while (result.next()) {
+                    String name = buildName(result);
+                    names.add(name);
+                }
             }
-            result.close();
             if (m_Views == null) {
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEWS);
-                m_Views = new ViewContainer(this, getProvider().isCaseSensitive(null), names);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEWS_ID, m_Views.getLogger().getObjectId());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEWS);
+                m_Views = getViewContainer(names);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEWS_ID, m_Views.getLogger().getObjectId());
             }
             else {
                 m_Views.refill(names);
@@ -175,13 +183,18 @@ public abstract class ConnectionSuper
         }
     }
 
-    protected String _buildName(java.sql.ResultSet result)
+    protected String buildName(java.sql.ResultSet result)
         throws SQLException
     {
-        return DBTools.buildName(this, result, ComposeRule.InDataManipulation);
+        try {
+            return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
-    protected abstract TableContainerSuper _getTableContainer(List<String> names) throws ElementExistException;
-
+    protected abstract TableContainerSuper<?> getTableContainer(List<String> names) throws ElementExistException;
+    protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
 
 }

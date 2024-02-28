@@ -42,12 +42,13 @@ import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper;
+import io.github.prrvchr.jdbcdriver.DBTableHelper;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -59,6 +60,7 @@ public abstract class ColumnContainerBase
     private Map<String, ExtraColumnInfo> m_extrainfos = new HashMap<>();
     protected final TableSuper m_table;
 
+protected abstract TableSuper getTable();
 
     // The constructor method:
     public ColumnContainerBase(String service,
@@ -85,7 +87,7 @@ public abstract class ColumnContainerBase
     }
 
     @Override
-    protected String _getElementName(List<String> names,
+    protected String getElementName(List<String> names,
                                      XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -97,18 +99,18 @@ public abstract class ColumnContainerBase
     }
 
     @Override
-    protected ColumnSuper _appendElement(XPropertySet descriptor,
-                                          String name)
+    protected ColumnSuper appendElement(XPropertySet descriptor,
+                                            String name)
         throws SQLException
     {
         ColumnSuper column = null;
-        if (_createColumn(descriptor, name)) {
-            column = _createElement(name);
+        if (createColumn(descriptor, name)) {
+            column = createElement(name);
         }
         return column;
     }
 
-    private boolean _createColumn(XPropertySet descriptor, String name)
+    private boolean createColumn(XPropertySet descriptor, String name)
         throws SQLException
     {
 
@@ -120,17 +122,23 @@ public abstract class ColumnContainerBase
                 | PropertyVetoException | WrappedTargetException e) {
             throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
-        String table = DBTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, false);
-        List<String> queries = DBTools.getAlterColumnQueries(_getConnection(), m_table, oldcolumn, descriptor, isCaseSensitive());
-        if (!queries.isEmpty()) {
-            return DBTools.executeDDLQueries(_getConnection(), queries, m_table.getLogger(), this.getClass().getName(),
-                                             "_appendElement", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
+        try {
+            String table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, false);
+            List<String> queries = new ArrayList<String>();
+            DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), m_table, oldcolumn, descriptor, false, isCaseSensitive());
+            if (!queries.isEmpty()) {
+                return DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_table.getLogger(), this.getClass().getName(),
+                                                 "_appendElement", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
+            }
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
         return false;
     }
 
     @Override
-    protected ColumnSuper _createElement(String name)
+    protected ColumnSuper createElement(String name)
         throws SQLException
     {
         ColumnSuper column = null;
@@ -145,7 +153,7 @@ public abstract class ColumnContainerBase
             ColumnDescription description = m_descriptions.get(name);
             if (description == null) {
                 // could be a recently added column. Refresh:
-                List<ColumnDescription> newcolumns = DataBaseTableHelper.readColumns(_getConnection(), m_table);
+                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(getConnection().getProvider(), m_table);
                 for (ColumnDescription newcolumn : newcolumns) {
                     if (newcolumn.columnName.equals(name)) {
                         m_descriptions.put(name, newcolumn);
@@ -160,8 +168,8 @@ public abstract class ColumnContainerBase
             
             ExtraColumnInfo info = m_extrainfos.get(name);
             if (info == null) {
-                String composedName = DBTools.composeTableNameForSelect(_getConnection(), m_table, isCaseSensitive());
-                m_extrainfos = DBTools.collectColumnInformation(_getConnection(), composedName, "*");
+                String composedName = DBTools.composeTableNameForSelect(getConnection().getProvider(), m_table, isCaseSensitive());
+                m_extrainfos = DBTools.collectColumnInformation(getConnection().getProvider(), composedName, "*");
                 info = m_extrainfos.get(name);
             }
             if (info != null) {
@@ -176,7 +184,7 @@ public abstract class ColumnContainerBase
             if (nullable != ColumnValue.NO_NULLS && primaryKeyColumns != null && primaryKeyColumns.hasByName(name)) {
                 nullable = ColumnValue.NO_NULLS;
             }
-            column = _getColumn(name, description.typeName, description.defaultValue, description.remarks,
+            column = getColumn(name, description.typeName, description.defaultValue, description.remarks,
                                 nullable, description.columnSize, description.decimalDigits, description.type,
                                 isAutoIncrement, false, isCurrency);
         }
@@ -187,20 +195,25 @@ public abstract class ColumnContainerBase
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
-        UnoHelper.ensure(m_table, "Table is null!", _getConnection().getLogger());
+        UnoHelper.ensure(m_table, "Table is null!", getConnection().getLogger());
         if (m_table == null) {
             return;
         }
-        String quote = _getConnection().getProvider().getIdentifierQuoteString();
-        StringBuilder buffer = new StringBuilder("ALTER TABLE ");
-        buffer.append(DBTools.composeTableName(_getConnection(), m_table, ComposeRule.InTableDefinitions, isCaseSensitive()));
-        buffer.append(DBTools.quoteName(quote, name));
-        DBTools.executeDDLQuery(_getConnection(), buffer.toString(), m_table.getLogger(),
-                                 "ColumnContainer", "_removeElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY);
+        try {
+            String quote = getConnection().getProvider().getIdentifierQuoteString();
+            StringBuilder buffer = new StringBuilder("ALTER TABLE ");
+            buffer.append(DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, isCaseSensitive()));
+            buffer.append(DBTools.quoteName(quote, name));
+            DBTools.executeDDLQuery(getConnection().getProvider(), buffer.toString(), m_table.getLogger(),
+                                     "ColumnContainer", "_removeElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     /// The XDatabaseMetaData.getColumns() data stored in columnDescriptions doesn't provide everything we need, so this class stores the rest.
@@ -211,30 +224,29 @@ public abstract class ColumnContainerBase
         public int dataType;
     }
 
-    
     @Override
     protected void _refresh() {
         m_extrainfos.clear();
         // FIXME: won't help
-        m_table._refreshColumns();
+        m_table.refreshColumns();
     }
 
-    public ConnectionSuper _getConnection()
+    public ConnectionSuper getConnection()
     {
         return m_table.getConnection();
     }
 
-    protected abstract ColumnSuper _getColumn(String name,
-                                              String typename,
-                                              String defaultvalue,
-                                              String description,
-                                              int nullable,
-                                              int precision,
-                                              int scale,
-                                              int type,
-                                              boolean autoincrement,
-                                              boolean rowversion,
-                                              boolean currency);
+    protected abstract ColumnSuper getColumn(String name,
+                                             String typename,
+                                             String defaultvalue,
+                                             String description,
+                                             int nullable,
+                                             int precision,
+                                             int scale,
+                                             int type,
+                                             boolean autoincrement,
+                                             boolean rowversion,
+                                             boolean currency);
 
 
 }

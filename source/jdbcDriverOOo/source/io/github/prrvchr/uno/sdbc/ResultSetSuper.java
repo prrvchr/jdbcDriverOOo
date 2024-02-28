@@ -59,7 +59,7 @@ public abstract class ResultSetSuper
                           String[] services,
                           ConnectionBase connection,
                           java.sql.ResultSet resultset,
-                          StatementMain statement,
+                          StatementMain<?> statement,
                           boolean bookmark)
     throws SQLException
     {

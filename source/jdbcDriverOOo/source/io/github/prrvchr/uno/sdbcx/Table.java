@@ -30,7 +30,7 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -40,6 +40,11 @@ public final class Table
 
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
+
+    @Override
+    protected Connection getConnection() {
+        return (Connection) m_connection;
+    }
 
     // The constructor method:
     public Table(ConnectionSuper connection,
@@ -55,13 +60,6 @@ public final class Table
         m_Description = remarks;
     }
 
-
-    public ConnectionSuper getConnection()
-    {
-        return m_connection;
-    }
-
-
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor()
@@ -73,7 +71,7 @@ public final class Table
         return descriptor;
     }
 
-    protected ColumnContainer _getColumnContainer(List<ColumnDescription> descriptions)
+    protected ColumnContainer getColumnContainer(List<ColumnDescription> descriptions)
             throws ElementExistException
     {
         return new ColumnContainer(this, isCaseSensitive(), descriptions);

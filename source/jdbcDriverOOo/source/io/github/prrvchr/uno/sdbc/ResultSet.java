@@ -28,7 +28,7 @@ package io.github.prrvchr.uno.sdbc;
 import com.sun.star.sdbc.SQLException;
 
 
-public class ResultSet
+public final class ResultSet
     extends ResultSetBase
 {
     private static final String m_service = ResultSet.class.getName();
@@ -44,7 +44,7 @@ public class ResultSet
     }
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     StatementMain statement)
+                     StatementMain<?> statement)
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement);

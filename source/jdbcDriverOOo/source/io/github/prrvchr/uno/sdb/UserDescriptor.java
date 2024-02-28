@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
-public class UserDescriptor
+public final class UserDescriptor
     extends Descriptor
 {
 

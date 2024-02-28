@@ -44,6 +44,7 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
@@ -57,6 +58,8 @@ public abstract class TableMain
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
 
+    protected abstract ConnectionSuper getConnection();
+
     // The constructor method:
     public TableMain(String service,
                      String[] services,
@@ -69,7 +72,7 @@ public abstract class TableMain
     {
         super(service, services, sensitive, name);
         m_connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), logtype);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
         m_CatalogName = catalog;
         m_SchemaName = schema;
         registerProperties();
@@ -130,50 +133,56 @@ public abstract class TableMain
         boolean reversed = false;
         boolean fullchange = false;
         boolean multiquery = m_connection.getProvider().hasMultiRenameQueries();
-
-        // FIXME: We have 2 commands for moving and renaming and we need to find the right order to execute queries
-        // FIXME: ie: change first the catalog / schema and after the table name or the reverse if possible...
-        if (multiquery && moved && renamed) {
-            // FIXME: try to move first
-            fullchange = true;
-            String name = DBTools.getTableName(m_connection, cpt.getCatalog(), cpt.getSchema(), m_Name, rule, false);
-            reversed = m_connection.getTablesInternal().hasByName(name);
-            if (reversed) {
-                // FIXME: try to rename first
-                fname = DBTools.getTableName(m_connection, m_CatalogName, m_SchemaName, cpt.getTable(), rule, false);
-            }
-        }
-
-        // FIXME: If the move action is not atomic (performed by 2 commands) then it may not be possible
-        // FIXME: since adjacent actions may encounter a conflict of already existing names.
-        if (m_connection.getTablesInternal().hasByName(fname)) {
-            int resource = Resources.STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR + offset;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname, newname);
-            throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
-        }
-
-        Object[] parameters = DBTools.getRenameTableArguments(m_connection, cpt, this, oldname, 
-                                                              reversed, rule, isCaseSensitive(), true);
-        List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
         boolean changed = true;
         boolean skipped = true;
-        int resource = Resources.STR_LOG_TABLE_RENAME_QUERY + offset;
-        if (fullchange) {
-            changed &= DBTools.executeDDLQueries(m_connection, queries, m_logger,
-                                                 this.getClass().getName(), "rename", resource, newname);
-            skipped &= false;
+        int resource;
+
+        try {
+            // FIXME: We have 2 commands for moving and renaming and we need to find the right order to execute queries
+            // FIXME: ie: change first the catalog / schema and after the table name or the reverse if possible...
+            if (multiquery && moved && renamed) {
+                // FIXME: try to move first
+                fullchange = true;
+                String name = DBTools.buildName(m_connection.getProvider(), cpt.getCatalog(), cpt.getSchema(), m_Name, rule, false);
+                reversed = m_connection.getTablesInternal().hasByName(name);
+                if (reversed) {
+                    // FIXME: try to rename first
+                    fname = DBTools.buildName(m_connection.getProvider(), m_CatalogName, m_SchemaName, cpt.getTable(), rule, false);
+                }
+            }
+    
+            // FIXME: If the move action is not atomic (performed by 2 commands) then it may not be possible
+            // FIXME: since adjacent actions may encounter a conflict of already existing names.
+            if (m_connection.getTablesInternal().hasByName(fname)) {
+                resource = Resources.STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR + offset;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname, newname);
+                throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
+            }
+    
+            Object[] parameters = DBTools.getRenameTableArguments(m_connection.getProvider(), cpt, this, oldname, 
+                                                                  reversed, rule, isCaseSensitive(), true);
+            List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
+            resource = Resources.STR_LOG_TABLE_RENAME_QUERY + offset;
+            if (fullchange) {
+                changed &= DBTools.executeDDLQueries(m_connection.getProvider(), queries, m_logger,
+                                                     this.getClass().getName(), "rename", resource, newname);
+                skipped &= false;
+            }
+            else {
+                if (!multiquery || moved) {
+                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), queries.get(0), m_logger,
+                                                       this.getClass().getName(), "rename", resource, newname);
+                    skipped &= false;
+                }
+                if (multiquery && renamed) {
+                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), queries.get(1), m_logger,
+                                                       this.getClass().getName(), "rename", resource, newname);
+                    skipped &= false;
+                }
+            }
         }
-        else {
-            if (!multiquery || moved) {
-                changed &= DBTools.executeDDLQuery(m_connection, queries.get(0), m_logger,
-                                                   this.getClass().getName(), "rename", resource, newname);
-                skipped &= false;
-            }
-            if (multiquery && renamed) {
-                changed &= DBTools.executeDDLQuery(m_connection, queries.get(1), m_logger,
-                                                   this.getClass().getName(), "rename", resource, newname);
-                skipped &= false;
-            }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
         if (!changed || skipped) {
             resource = Resources.STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR + offset;
@@ -198,11 +207,6 @@ public abstract class TableMain
     public String getSchema()
     {
         return m_SchemaName.isEmpty() ? null : m_SchemaName;
-    }
-
-    protected ConnectionSuper getConnection()
-    {
-        return m_connection;
     }
 
 }

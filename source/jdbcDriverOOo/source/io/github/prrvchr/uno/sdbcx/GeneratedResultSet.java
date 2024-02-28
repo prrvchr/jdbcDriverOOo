@@ -26,9 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
@@ -44,7 +41,7 @@ import io.github.prrvchr.uno.sdbc.ResultSet;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
-public final class GeneratedResultSetHelper
+public final class GeneratedResultSet
 {
     public final static XResultSet getGeneratedValues(ConnectionBase connection,
                                                       java.sql.Statement statement,
@@ -67,7 +64,7 @@ public final class GeneratedResultSetHelper
             resultset = new ResultSet(connection, result);
             logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
-            logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, _getColumnNames(result, count));
+            logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, DBTools.getGeneratedColumnNames(result, count));
             System.out.println("StatementMain.getGeneratedKeys() 2");
         }
         catch (java.sql.SQLException e) {
@@ -87,7 +84,7 @@ public final class GeneratedResultSetHelper
             connection.getProvider().isAutoRetrievingEnabled()) {
             DBQueryParser parser = new DBQueryParser(sql);
             if (parser.isExecuteUpdateStatement() && parser.hasTable()) {
-                String name = DBTools.unQuoteTableName(connection, parser.getTable());
+                String name = DBTools.unQuoteTableName(connection.getProvider(), parser.getTable());
                 TableSuper table = connection.getTablesInternal().getElement(name);
                 if (table != null) {
                     columns = table.getColumnsInternal().getElementNames();
@@ -95,16 +92,6 @@ public final class GeneratedResultSetHelper
             }
         }
         return columns;
-    }
-
-    private static String _getColumnNames(java.sql.ResultSet result, int count)
-        throws java.sql.SQLException 
-    {
-        List<String> names = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
-            names.add(result.getMetaData().getColumnName(i));
-        }
-        return String.join(", ", names);
     }
 
 }

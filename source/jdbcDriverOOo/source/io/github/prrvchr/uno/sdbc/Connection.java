@@ -25,64 +25,72 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 
 
-public class Connection
+public final class Connection
     extends ConnectionBase
 {
 
     private static final String m_service = Connection.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Connection"};
 
+    protected DriverProvider getProvider()
+    {
+        return m_provider;
+    }
+    protected ConnectionLog getLogger()
+    {
+        return m_provider.getLogger();
+    }
+
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
                       String url,
                       PropertyValue[] info,
-                      ResourceBasedEventLogger logger,
                       boolean enhanced,
                       boolean showsystem,
                       boolean usebookmark)
     {
-        super(ctx, m_service, m_services, provider, url, info, logger, enhanced, showsystem, usebookmark);
+        super(ctx, m_service, m_services, provider, url, info, enhanced, showsystem, usebookmark);
         System.out.println("sdbc.Connection() *************************");
     }
 
     protected XStatement _getStatement()
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         m_statements.put(statement, statement);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getPreparedStatement(String sql)
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
 
     protected XPreparedStatement _getCallableStatement(String sql)
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         m_statements.put(statement, statement);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
         return statement;
     }
-
 
 }

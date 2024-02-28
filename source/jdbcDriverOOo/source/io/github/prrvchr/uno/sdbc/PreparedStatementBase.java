@@ -31,7 +31,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class PreparedStatementBase
-    extends PreparedStatementMain
+    extends PreparedStatementMain<java.sql.PreparedStatement>
 {
 
     // The constructor method:
@@ -48,31 +48,35 @@ public abstract class PreparedStatementBase
     }
 
     @Override
-    protected void _createStatement()
+    protected java.sql.PreparedStatement getStatement()
         throws SQLException
     {
         checkDisposed();
+        System.out.println("sdbc.PreparedStatementBase.getStatement() 1");
         if (m_Statement == null) {
             try {
+                java.sql.PreparedStatement statement;
                 if (m_Connection.getProvider().isResultSetUpdatable() &&
                         (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||
                          m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
-                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql,
-                                                                                              m_ResultSetType,
-                                                                                              m_ResultSetConcurrency);
+                    statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql,
+                                                                                            m_ResultSetType,
+                                                                                            m_ResultSetConcurrency);
                 }
                 else {
-                    System.out.println("sdbc.PreparedStatementBase._createStatement() ******************* SQL: <" + m_Sql + ">");
+                    System.out.println("sdbc.PreparedStatementBase.getStatement()() ******************* SQL: <" + m_Sql + ">");
                     int option = m_Connection.getProvider().getGeneratedKeysOption();
-                    m_Statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, option);
+                    statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, option);
                 }
-                _setStatement();
+                m_Statement = setStatement(statement);
             } 
             catch (java.sql.SQLException e) {
-                System.out.println("sdbc.PreparedStatementBase._createStatement() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
+                System.out.println("sdbc.PreparedStatementBase.getStatement()() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
                 throw UnoHelper.getSQLException(e, this);
             }
         }
+        System.out.println("sdbc.PreparedStatementBase.getStatement() 2");
+        return m_Statement;
     }
 
 

@@ -368,6 +368,11 @@
                         <value>COMMENT ON COLUMN {0} IS {1}</value>
                     </prop>
                 </node>
+<!--                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node> -->
             </node>
         </node>
 
@@ -621,6 +626,11 @@
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">ALTER TABLE {0} RENAME TO {7}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
                     </prop>
                 </node>
                 <node oor:name="SupportRenameView" oor:op="replace">

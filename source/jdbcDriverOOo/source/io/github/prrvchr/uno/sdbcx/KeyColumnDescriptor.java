@@ -34,7 +34,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public class KeyColumnDescriptor
+public final class KeyColumnDescriptor
     extends ColumnDescriptorBase
 {
 

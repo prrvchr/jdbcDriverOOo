@@ -31,7 +31,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
 
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
@@ -44,33 +44,39 @@ public final class ColumnContainer
     private static final String[] m_services = {"com.sun.star.sdbcx.Columns",
                                                 "com.sun.star.sdbcx.Container"};
 
+    @Override
+    protected Table getTable() {
+        return (Table) m_table;
+    }
+
     // The constructor method:
-    public ColumnContainer(TableSuper table,
+    public ColumnContainer(TableSuper tableSuper,
                            boolean sensitive,
                            List<ColumnDescription> descriptions)
         throws ElementExistException
     {
-        super(m_service, m_services, table, sensitive, descriptions);
+        super(m_service, m_services, tableSuper, sensitive, descriptions);
     }
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet createDescriptor() {
         return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
     }
 
-    protected Column _getColumn(String name,
-                                String typename,
-                                String defaultvalue,
-                                String description,
-                                int nullable,
-                                int precision,
-                                int scale,
-                                int type,
-                                boolean autoincrement,
-                                boolean rowversion,
-                                boolean currency)
+    @Override
+    protected Column getColumn(String name,
+                               String typename,
+                               String defaultvalue,
+                               String description,
+                               int nullable,
+                               int precision,
+                               int scale,
+                               int type,
+                               boolean autoincrement,
+                               boolean rowversion,
+                               boolean currency)
     {
-        return new Column(m_table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        return new Column(getTable(), isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
 }

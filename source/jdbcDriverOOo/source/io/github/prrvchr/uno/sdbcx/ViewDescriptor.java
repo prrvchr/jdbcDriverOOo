@@ -31,7 +31,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
-public class ViewDescriptor
+public final class ViewDescriptor
     extends Descriptor
 {
 

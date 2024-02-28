@@ -65,10 +65,10 @@ public abstract class Role
     {
         super(service, services, sensitive, name);
         m_connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), type);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
-    public ConnectionLog getLogger()
+    protected ConnectionLog getLogger()
     {
         return m_logger;
     }
@@ -80,7 +80,12 @@ public abstract class Role
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
             _addGrantees(grantees);
-            privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection, grantees, name);
+            try {
+                privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
         return privileges;
     }
@@ -93,7 +98,12 @@ public abstract class Role
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
             _addGrantees(grantees);
-            privileges = DBTools.getTableOrViewPrivileges(m_connection, grantees, name);
+            try {
+                privileges = DBTools.getTableOrViewPrivileges(m_connection.getProvider(), grantees, name);
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
         return privileges;
     }
@@ -105,9 +115,14 @@ public abstract class Role
         throws SQLException
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            String query = DBTools.getGrantPrivilegesQuery(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-            DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
-                                    "grantPrivileges", _getGrantPrivilegesResource(), getName(), name);
+            try {
+                String query = DBTools.getGrantPrivilegesQuery(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+                DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                                        "grantPrivileges", _getGrantPrivilegesResource(), getName(), name);
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
     }
 
@@ -118,9 +133,15 @@ public abstract class Role
         throws SQLException
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            String query = DBTools.revokeTableOrViewPrivileges(m_connection, getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-            DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
-                                    "revokePrivileges", _getRevokePrivilegesResource(), getName(), name);
+            String query;
+            try {
+                query = DBTools.revokeTableOrViewPrivileges(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+                DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                        "revokePrivileges", _getRevokePrivilegesResource(), getName(), name);
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
     }
 

@@ -32,7 +32,7 @@ import com.sun.star.sdbc.XRef;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class Ref
+public final class Ref
     extends WeakBase
     implements XRef
 {

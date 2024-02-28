@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Wrapper;
 
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.SQLWarning;
@@ -37,11 +38,11 @@ import com.sun.star.uno.XInterface;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-final class WarningsSupplier
+public final class WarningsSupplier
 {
 
-    static void clearWarnings(final java.sql.Wrapper wrapper,
-                              final XInterface component)
+    public static void clearWarnings(final Wrapper wrapper,
+                                     final XInterface component)
         throws SQLException
     {
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
@@ -63,9 +64,8 @@ final class WarningsSupplier
         }
     }
 
-
-    static Object getWarnings(final java.sql.Wrapper wrapper,
-                              final XInterface component)
+    public static Object getWarnings(final Wrapper wrapper,
+                                     final XInterface component)
         throws SQLException
     {
         java.sql.SQLWarning warning = null;
@@ -89,7 +89,6 @@ final class WarningsSupplier
         return _getWarnings(warning, component);
     }
 
-
     private static Object _getWarnings(java.sql.SQLWarning warning, XInterface component)
     {
         if (warning != null)
@@ -106,6 +105,5 @@ final class WarningsSupplier
         warning.NextException = _getWarnings(w.getNextWarning(), component);
         return warning;
     }
-
 
 }

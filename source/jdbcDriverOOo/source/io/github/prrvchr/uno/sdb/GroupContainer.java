@@ -69,7 +69,7 @@ public class GroupContainer
     {
         super(m_service, m_services, connection, sensitive, names);
         m_connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), type);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
     public ConnectionLog getLogger()
@@ -78,7 +78,7 @@ public class GroupContainer
     }
 
     @Override
-    public String _getElementName(List<String> names,
+    public String getElementName(List<String> names,
                                   XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
@@ -90,13 +90,13 @@ public class GroupContainer
     }
 
     @Override
-    protected Group _appendElement(XPropertySet descriptor,
-                                          String name)
+    protected Group appendElement(XPropertySet descriptor,
+                                  String name)
         throws SQLException
     {
         Group group = null;
         if (_createGroup(descriptor, name)) {
-            group = _createElement(name);
+            group = createElement(name);
         }
         return group;
     }
@@ -105,14 +105,19 @@ public class GroupContainer
                                    String name)
         throws SQLException
     {
-        String query = DBTools.getCreateGroupQuery(m_connection, descriptor, name, isCaseSensitive());
+        String query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
         System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
-        return DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
-                                       "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
+        try {
+            return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                                           "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
-    protected Group _createElement(String name)
+    protected Group createElement(String name)
         throws SQLException
     {
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
@@ -122,11 +127,11 @@ public class GroupContainer
     }
 
     @Override
-    protected void _removeElement(int index,
+    protected void removeElement(int index,
                                   String name)
         throws SQLException
     {
-        String sql = DBTools.getDropGroupQuery(m_connection, name, isCaseSensitive());
+        String sql = DBTools.getDropGroupQuery(m_connection.getProvider(), name, isCaseSensitive());
         System.out.println("sdbcx.GroupContainer._removeElement() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             statement.execute(sql);
@@ -140,11 +145,11 @@ public class GroupContainer
     @Override
     protected void _refresh()
     {
-        m_connection._refresh();
+        m_connection.refresh();
     }
 
     @Override
-    protected XPropertySet _createDescriptor()
+    protected XPropertySet createDescriptor()
     {
         return new GroupDescriptor(isCaseSensitive());
     }

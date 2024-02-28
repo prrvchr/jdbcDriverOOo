@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,19 +43,19 @@ import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.sdbcx.XIndexesSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper;
+import io.github.prrvchr.jdbcdriver.DBTableHelper;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
@@ -77,12 +78,12 @@ public abstract class TableSuper
 
     // The constructor method:
     public TableSuper(String service,
-                     String[] services,
-                     ConnectionSuper connection,
-                     String catalog,
-                     String schema,
-                     boolean sensitive,
-                     String name)
+                      String[] services,
+                      ConnectionSuper connection,
+                      String catalog,
+                      String schema,
+                      boolean sensitive,
+                      String name)
     {
         super(service, services, connection, catalog, schema, sensitive, name, LoggerObjectType.TABLE);
         registerProperties();
@@ -108,7 +109,29 @@ public abstract class TableSuper
 
     protected ColumnContainerBase getColumnsInternal()
     {
+        checkDisposed();
+        if (m_columns == null) {
+            m_columns = refreshColumns();
+        }
         return m_columns;
+    }
+
+    protected KeyContainer getKeysInternal()
+    {
+        checkDisposed();
+        if (m_keys == null) {
+            m_keys = refreshKeys();
+        }
+        return m_keys;
+    }
+
+    protected IndexContainer getIndexesInternal()
+    {
+        checkDisposed();
+        if (m_indexes == null) {
+            m_indexes = refreshIndexes();
+        }
+        return m_indexes;
     }
 
     @Override
@@ -129,38 +152,20 @@ public abstract class TableSuper
     @Override
     public XNameAccess getColumns()
     {
-        checkDisposed();
-        try {
-            if (m_columns == null) {
-                m_columns = _refreshColumns();
-            }
-            return m_columns;
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.TableBase.getColumns() 2" + UnoHelper.getStackTrace(e));
-        }
-        return null;
+        return getColumnsInternal();
     }
 
     // com.sun.star.sdbcx.XKeysSupplier:
     @Override
     public XIndexAccess getKeys() {
-        checkDisposed();
-        if (m_keys == null) {
-            m_keys = _refreshKeys();
-        }
-        return m_keys;
+        return getKeysInternal();
     }
 
 
     // com.sun.star.sdbcx.XIndexesSupplier
     @Override
     public XNameAccess getIndexes() {
-        checkDisposed();
-        if (m_indexes == null) {
-            m_indexes = _refreshIndexes();
-        }
-        return m_indexes;
+        return getIndexesInternal();
     }
 
     // com.sun.star.sdbcx.XAlterTable:
@@ -169,22 +174,7 @@ public abstract class TableSuper
         throws SQLException, IndexOutOfBoundsException
     {
         checkDisposed();
-        XPropertySet oldcolumn = null;
-        try {
-            oldcolumn = (XPropertySet) AnyConverter.toObject(XPropertySet.class, m_columns.getByIndex(index));
-        }
-        catch (WrappedTargetException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), getConnection());
-        }
-        if (oldcolumn != null) {
-            String table = DBTools.composeTableName(getConnection(), this, ComposeRule.InTableDefinitions, false);
-            List<String> queries = DBTools.getAlterColumnQueries(getConnection(), this, oldcolumn, newcolumn, isCaseSensitive());
-            if (!queries.isEmpty()) {
-                DBTools.executeDDLQueries(getConnection(), queries, m_logger, this.getClass().getName(),
-                                          "alterColumnByIndex", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table);
-                m_columns = _refreshColumns();
-            }
-        }
+        alterColumn(m_columns.getElement(index), newcolumn);
     }
 
     @Override
@@ -192,34 +182,82 @@ public abstract class TableSuper
         throws SQLException, NoSuchElementException
     {
         checkDisposed();
-        XPropertySet oldcolumn = null;
-        try {
-            oldcolumn = (XPropertySet) AnyConverter.toObject(XPropertySet.class, m_columns.getByName(name));
-        }
-        catch (WrappedTargetException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), getConnection());
-        }
+        alterColumn(m_columns.getElement(name), newcolumn);
+    }
+
+    private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
+        throws SQLException
+    {
         if (oldcolumn != null) {
-            String table = DBTools.composeTableName(getConnection(), this, ComposeRule.InTableDefinitions, false);
-            List<String> queries = DBTools.getAlterColumnQueries(getConnection(), this, oldcolumn, newcolumn, isCaseSensitive());
-            if (!queries.isEmpty()) {
-                DBTools.executeDDLQueries(getConnection(), queries, m_logger, this.getClass().getName(),
-                                          "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table);
-                m_columns = _refreshColumns();
+            try {
+                boolean executed = false;
+                String oldname = oldcolumn.getName();
+                KeyColumnContainer keys = getKeyColumnContainer(oldname);
+                boolean alterpk = keys != null;
+                List<String> queries = new ArrayList<String>();
+                boolean renamed = DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
+                if (!queries.isEmpty()) {
+                    String table = DBTools.buildName(getConnection().getProvider(), this, ComposeRule.InTableDefinitions);
+                    executed = DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_logger, this.getClass().getName(),
+                                                         "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table);
+                }
+                if (executed) {
+                    String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+                    if (renamed) { 
+                        if (alterpk) {
+                            // XXX: If the renamed column is a primary key we need to rename the Key name to.
+                            keys.rename(oldcolumn.getName(), newname);
+                        }
+                        m_columns.getElement(oldname).setName(newname);
+                    }
+                    m_columns.replaceElement(oldname, newname);
+                    
+                }
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
             }
         }
     }
 
+    private KeyColumnContainer getKeyColumnContainer(String oldname)
+        throws SQLException
+    {
+        // FIXME: Here we search and retrieve the first primary key having this column.
+        KeyColumnContainer container = null;
+        KeyContainer keys = getKeysInternal();
+        for (String keyname : keys.getElementNames()) {
+            Key key = keys.getElement(keyname);
+            KeyColumnContainer columns = key.getColumnsInternal();
+            for (String name : columns.getElementNames()) {
+                if (oldname.equals(name)) {
+                    container = columns;
+                    break;
+                }
+            }
+            if (container != null) {
+                break;
+            }
+        }
+        return container;
+    }
+
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public abstract XPropertySet createDataDescriptor();
+    public XPropertySet createDataDescriptor()
+    {
+        TableDescriptor descriptor = new TableDescriptor(isCaseSensitive());
+        synchronized (this) {
+            UnoHelper.copyProperties(this, descriptor);
+        }
+        return descriptor;
+    }
 
-
-    protected ColumnContainerBase _refreshColumns()
+    protected ColumnContainerBase refreshColumns()
     {
         try {
-            List<ColumnDescription> columns = DataBaseTableHelper.readColumns(getConnection(), this);
-            return _getColumnContainer(columns);
+            List<ColumnDescription> columns = DBColumnHelper.readColumns(getConnection().getProvider(), this);
+            return getColumnContainer(columns);
         }
         catch (ElementExistException e) {
             return null;
@@ -242,75 +280,73 @@ public abstract class TableSuper
         // FIXME: Table and View use the same functions to rename but we need a custom message for both,
         // FIXME: we use an offset for that.
         int offset = isview ? Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET : 0;
-
         ComposeRule rule = ComposeRule.InDataManipulation;
-        String oldname = DBTools.composeTableName(m_connection, this, rule, false);
-        if (!m_connection.getProvider().supportRenamingTable()) {
-            int resource = Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FEATURE_ERROR + offset;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
-        }
-        NameComponents component = DBTools.qualifiedNameComponents(m_connection, name, rule);
-        if (isview) {
-            ViewContainer views = m_connection.getViewsInternal();
-            View view = views.getElement(oldname);
-            if (view == null) {
-                int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR + offset;
+        try {
+            String oldname = DBTools.composeTableName(m_connection.getProvider(), this, rule, false);
+            if (!m_connection.getProvider().supportRenamingTable()) {
+                int resource = Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FEATURE_ERROR + offset;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-                throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
+                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            if (m_connection.getProvider().supportRenameView()) {
-                view.rename(name);
+            NameComponents component = DBTools.qualifiedNameComponents(m_connection.getProvider(), name, rule);
+            if (isview) {
+                ViewContainer views = m_connection.getViewsInternal();
+                View view = views.getElement(oldname);
+                if (view == null) {
+                    int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR + offset;
+                    String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+                    throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
+                }
+                if (m_connection.getProvider().supportRenameView()) {
+                    view.rename(name);
+                }
+                // FIXME: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
+                // FIXME: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
+                else {
+                    m_connection.getViewsInternal().removeElement(view);
+                    String query = DBTools.getCreateViewQuery(m_connection.getProvider(), component, view.m_Command, rule, isCaseSensitive());
+                        DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                                                "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
+                    views.rename(oldname, name, offset);
+                }
+                m_SchemaName = component.getSchema();
             }
-            // FIXME: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
-            // FIXME: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
             else {
-                m_connection.getViewsInternal().removeElement(view);
-                String query = DBTools.getCreateViewQuery(m_connection, component, view.m_Command, rule, isCaseSensitive());
-                DBTools.executeDDLQuery(m_connection, query, m_logger, this.getClass().getName(),
-                                        "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
-                views.rename(oldname, name, offset);
+                rename(component, oldname, name, rule, offset);
+                m_SchemaName = component.getSchema();
             }
-            m_SchemaName = component.getSchema();
+            m_Name = component.getTable();
+            m_connection.getTablesInternal().rename(oldname, name, offset);
         }
-        else {
-            rename(component, oldname, name, rule, offset);
-            m_SchemaName = component.getSchema();
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
-        m_Name = component.getTable();
-        m_connection.getTablesInternal().rename(oldname, name, offset);
     }
 
 
-    private IndexContainer _refreshIndexes()
+    private IndexContainer refreshIndexes()
     {
         try {
-            List<String> indexes = DataBaseTableHelper.readIndexes(getConnection(), this);
+            List<String> indexes = DBColumnHelper.readIndexes(getConnection().getProvider(), this);
             System.out.println("sdbcx.TableBase._refreshIndexes() Index Count: " + indexes.size());
             return new IndexContainer(this, isCaseSensitive(), indexes);
         }
-        catch (ElementExistException e) {
-            return null;
-        }
-        catch (SQLException e) {
+        catch (java.sql.SQLException | SQLException | ElementExistException e) {
             return null;
         }
     }
 
-    private KeyContainer _refreshKeys() {
+    private KeyContainer refreshKeys() {
         try {
-            Map<String, Key> keys = DataBaseTableHelper.readKeys(getConnection(), isCaseSensitive(), this);
+            Map<String, Key> keys = DBColumnHelper.readKeys(getConnection().getProvider(), isCaseSensitive(), this);
             System.out.println("sdbcx.TableBase._refreshKeys() Key Count: " + keys.size());
             return new KeyContainer(this, isCaseSensitive(), keys);
         }
-        catch (ElementExistException e) {
-            return null;
-        }
-        catch (SQLException e) {
+        catch (java.sql.SQLException | SQLException | ElementExistException e) {
             return null;
         }
     }
 
-    protected abstract ColumnContainerBase _getColumnContainer(List<ColumnDescription> descriptions) throws ElementExistException;
+    protected abstract ColumnContainerBase getColumnContainer(List<ColumnDescription> descriptions) throws ElementExistException;
 
 }

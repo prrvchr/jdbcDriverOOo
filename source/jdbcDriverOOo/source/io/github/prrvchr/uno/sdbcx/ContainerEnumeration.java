@@ -55,7 +55,7 @@ import com.sun.star.lang.XEventListener;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.uno.UnoRuntime;
 
-public class ContainerEnumeration
+public final class ContainerEnumeration
     extends WeakBase
     implements XEnumeration,
     XEventListener

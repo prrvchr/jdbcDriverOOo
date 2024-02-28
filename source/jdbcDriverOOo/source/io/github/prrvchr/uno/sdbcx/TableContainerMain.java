@@ -25,17 +25,12 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ContainerEvent;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.XContainerListener;
-import com.sun.star.lang.EventObject;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
-import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
@@ -44,9 +39,10 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-abstract class TableContainerMain<T>
+abstract class TableContainerMain<T extends TableMain>
     extends Container<T>
 {
     protected final ConnectionSuper m_Connection;
@@ -63,13 +59,15 @@ abstract class TableContainerMain<T>
     {
         super(service, services, connection, sensitive, names);
         m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getLogger(), logtype);
+        m_logger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
     }
 
     protected ConnectionLog getLogger()
     {
         return m_logger;
     }
+
+    protected abstract ConnectionSuper getConnection();
 
     // FIXME: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
     // FIXME: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
@@ -82,27 +80,21 @@ abstract class TableContainerMain<T>
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
             }
-            T element = m_Elements.remove(oldname);
-            m_Elements.put(newname, element);
-            m_Names.set(m_Names.indexOf(oldname), newname);
-            ContainerEvent event = new ContainerEvent(this, newname, element, oldname);
-            for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext();) {
-                XContainerListener listener = (XContainerListener) iterator.next();
-                listener.elementReplaced(event);
-            }
-            EventObject event2 = new EventObject(this);
-            for (Iterator<?> iterator2 = m_refresh.iterator(); iterator2.hasNext();) {
-                XRefreshListener listener = (XRefreshListener) iterator2.next();
-                listener.refreshed(event2);
-            }
+            replaceElement(oldname, newname);
         }
     }
 
     @Override
-    public String _getElementName(List<String> names, XPropertySet descriptor)
+    public String getElementName(List<String> names, XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
-        String name = DBTools.composeTableName(m_Connection, descriptor, ComposeRule.InTableDefinitions, false);
+        String name;
+        try {
+            name = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
         if (names.contains(name)) {
             throw new ElementExistException();
         }
@@ -110,22 +102,22 @@ abstract class TableContainerMain<T>
     }
 
     @Override
-    protected T _appendElement(XPropertySet descriptor,
-                               String name)
+    protected T appendElement(XPropertySet descriptor,
+                              String name)
         throws SQLException
     {
         T element = null;
-        if (_createDataBaseElement(descriptor, name)) {
-           element = _createElement(name);
+        if (createDataBaseElement(descriptor, name)) {
+           element = createElement(name);
         }
         return element;
     }
 
     @Override
     protected void _refresh() {
-        m_Connection._refresh();
+        m_Connection.refresh();
     }
 
-    abstract boolean _createDataBaseElement(XPropertySet descriptor, String name) throws SQLException;
+    abstract boolean createDataBaseElement(XPropertySet descriptor, String name) throws SQLException;
 
 }

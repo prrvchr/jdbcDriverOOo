@@ -29,7 +29,7 @@ import com.sun.star.beans.XPropertySet;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 
-public class Column
+public final class Column
     extends ColumnSuper
 {
     private static final String m_service = Column.class.getName();
@@ -54,7 +54,6 @@ public class Column
     }
 
     // XDataDescriptorFactory
-    
     @Override
     public XPropertySet createDataDescriptor()
     {

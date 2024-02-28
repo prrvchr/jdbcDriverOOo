@@ -89,5 +89,13 @@ public final class Statement
         return resultset;
     }
 
+    @Override
+    protected java.sql.ResultSet getGeneratedResult(String command)
+        throws SQLException, java.sql.SQLException
+    {
+        // XXX: At this level of API (sdbcx or sdb) normally a ResultSet with all columns is already available... 
+        return getStatement().getGeneratedKeys();
+    }
+
 
 }

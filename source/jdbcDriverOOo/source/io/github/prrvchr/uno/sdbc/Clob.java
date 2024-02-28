@@ -37,7 +37,7 @@ import com.sun.star.sdbc.XClob;
 import io.github.prrvchr.jdbcdriver.ReaderInputStream;
 
 
-public class Clob
+public final class Clob
     extends ComponentBase
     implements XClob
 {

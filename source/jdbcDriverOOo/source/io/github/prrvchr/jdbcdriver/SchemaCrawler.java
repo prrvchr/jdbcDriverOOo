@@ -92,8 +92,8 @@ public final class SchemaCrawler
                 .withLimitOptions(limit.toOptions())
                 .withLoadOptions(load.toOptions());
             System.out.println("SchemaCrawler.getTables() 2");
-            final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection.getProvider().getConnection());
-            schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(connection.getProvider().getConnection(), retrieval, options);
+            final SchemaRetrievalOptions retrieval = SchemaCrawlerUtility.matchSchemaRetrievalOptions(provider.getConnection());
+            schemacrawler.crawl.SchemaCrawler crawler = new schemacrawler.crawl.SchemaCrawler(provider.getConnection(), retrieval, options);
             final Catalog catalog = crawler.crawl();
             //final Catalog catalog = getCatalog(connection, options);
             System.out.println("SchemaCrawler.getTables() 3: " + catalog);

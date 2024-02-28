@@ -27,7 +27,7 @@ package io.github.prrvchr.uno.sdb;
 
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
-public class GroupDescriptor
+public final class GroupDescriptor
     extends Descriptor
 {
 

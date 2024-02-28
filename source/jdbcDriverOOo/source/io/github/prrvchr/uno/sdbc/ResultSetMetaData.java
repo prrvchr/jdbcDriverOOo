@@ -48,6 +48,7 @@ public final class ResultSetMetaData
         m_Connection = connection;
         m_Metadata = metadata;
         m_count = -1;
+        System.out.println("sdbc.ResultSetMetaData() 1");
     }
 
 

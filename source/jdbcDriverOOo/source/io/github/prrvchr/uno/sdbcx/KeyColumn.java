@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public class KeyColumn
+public final class KeyColumn
     extends ColumnBase
 {
     private static final String m_service = KeyColumn.class.getName();
@@ -77,7 +77,7 @@ public class KeyColumn
             }, null);
     }
 
-    
+
     @Override
     public XPropertySet createDataDescriptor() {
         KeyColumnDescriptor descriptor = new KeyColumnDescriptor(isCaseSensitive());
@@ -85,6 +85,13 @@ public class KeyColumn
             UnoHelper.copyProperties(this, descriptor);
         }
         return descriptor;
+    }
+
+    // XXX: Called from KeyColumnContainer.rename(String oldname, String newname)
+    protected void setName(String newname)
+    {
+        System.out.println("sdbcx.KeyColumn.rename() *************************************");
+        m_Name = newname;
     }
 
 

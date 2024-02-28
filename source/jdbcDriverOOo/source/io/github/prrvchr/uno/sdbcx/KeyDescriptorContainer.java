@@ -31,7 +31,7 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.DBTools;
 
 
-public class KeyDescriptorContainer
+public final class KeyDescriptorContainer
     extends DescriptorContainer<KeyDescriptor>
 {
 
@@ -44,13 +44,13 @@ public class KeyDescriptorContainer
     }
 
     @Override
-    protected XPropertySet _createDescriptor() {
+    protected XPropertySet createDescriptor() {
         System.out.println("sdbcx.descriptors.KeyDescriptorContainer._createDescriptor() 1");
         return new KeyDescriptor(isCaseSensitive());
     }
 
     @Override
-    protected KeyDescriptor _appendElement(XPropertySet descriptor,
+    protected KeyDescriptor appendElement(XPropertySet descriptor,
                                            String name)
         throws SQLException
     {

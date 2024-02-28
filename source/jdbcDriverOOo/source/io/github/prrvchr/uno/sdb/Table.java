@@ -25,24 +25,25 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.sun.star.awt.FontDescriptor;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.Privilege;
 
-import io.github.prrvchr.jdbcdriver.DataBaseTableHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
@@ -66,8 +67,20 @@ public final class Table
     protected FontDescriptor m_FontDescriptor = null;
     protected String m_GroupBy = "";
 
+    @Override
+    protected Connection getConnection() {
+        return (Connection) m_connection;
+    }
+    @Override
+    protected ColumnContainer getColumnContainer(List<ColumnDescription> descriptions)
+            throws ElementExistException
+    {
+        return new ColumnContainer(this, isCaseSensitive(), descriptions);
+    }
+
+
     // The constructor method:
-    public Table(ConnectionSuper connection,
+    public Table(Connection connection,
                  boolean sensitive,
                  String catalog,
                  String schema,
@@ -81,16 +94,46 @@ public final class Table
         registerProperties();
     }
 
+
+    private int getPrivileges()
+        throws WrappedTargetException
+    {
+        int privileges = m_Privileges;
+        try {
+            String name = getConnection().getProvider().getConnection().getMetaData().getUserName();
+            if (name != null && !name.isBlank()) {
+                UserContainer users = getConnection().getUsersInternal();
+                if (users.hasByName(name)) {
+                    User user = users.getElement(name);
+                    List<String> grantees = new ArrayList<>(List.of(name));
+                    grantees.addAll(Arrays.asList(user.getGroups().getElementNames()));
+                    privileges = DBTools.getTableOrViewPrivileges(getConnection().getProvider(), grantees, m_CatalogName, m_SchemaName, getName());
+                }
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("DBTools.getPrivileges() 1 ERROR ******************");
+            throw UnoHelper.getWrappedException(e);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("DBTools.getPrivileges() 2 ERROR ******************");
+        }
+        return privileges;
+    }
+
+
+
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
         registerProperty(PropertyIds.PRIVILEGES.name, PropertyIds.PRIVILEGES.id, Type.LONG, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    if (m_connection.getProvider().ignoreDriverPrivileges()) {
+                    if (getConnection().getProvider().ignoreDriverPrivileges()) {
                         return m_Privileges;
                     }
-                    return DBTools.getPrivileges(getConnection(), m_CatalogName, m_SchemaName, getName());
+                    return getPrivileges();
                 }
             }, null);
         registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
@@ -198,28 +241,5 @@ public final class Table
                 }
             });
     }
-
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public XPropertySet createDataDescriptor()
-    {
-        TableDescriptor descriptor = new TableDescriptor(isCaseSensitive());
-        synchronized (this) {
-            UnoHelper.copyProperties(this, descriptor);
-        }
-        return descriptor;
-    }
-
-    public Connection getConnection()
-    {
-        return (Connection) m_connection;
-    }
-
-    protected ColumnContainer _getColumnContainer(List<ColumnDescription> descriptions)
-            throws ElementExistException
-    {
-        return new ColumnContainer(this, isCaseSensitive(), descriptions);
-    }
-
 
 }

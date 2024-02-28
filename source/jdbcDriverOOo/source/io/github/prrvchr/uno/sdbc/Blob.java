@@ -35,7 +35,7 @@ import com.sun.star.sdbc.XBlob;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public class Blob
+public final class Blob
     extends ComponentBase
     implements XBlob
 {

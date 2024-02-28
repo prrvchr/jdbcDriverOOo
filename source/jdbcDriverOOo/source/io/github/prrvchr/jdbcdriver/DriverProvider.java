@@ -32,6 +32,7 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 import io.github.prrvchr.uno.sdbcx.ColumnBase;
@@ -43,12 +44,21 @@ public interface DriverProvider
 
     public String getSubProtocol();
 
-    public java.sql.Connection getConnection();
+    public java.sql.Connection getConnection() throws java.sql.SQLException;
+
+    public java.sql.Statement getStatement() throws java.sql.SQLException;
+
+    public void closeConnection() throws java.sql.SQLException;
+
+    public ConnectionLog getLogger();
+
+    public PropertyValue[] getInfos();
 
     public String getConnectionUrl(String location,
                                    String level);
 
-    public void setConnection(String url,
+    public void setConnection(ResourceBasedEventLogger logger,
+                              String url,
                               PropertyValue[] info,
                               String level)
         throws java.sql.SQLException;
@@ -105,6 +115,8 @@ public interface DriverProvider
 
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
+    public String getRenameColumnQuery();
+
     public List<String> getAlterViewQueries(Object... args);
 
     public String getColumnDescriptionQuery(String column, String description);
@@ -115,7 +127,7 @@ public interface DriverProvider
 
     public int getDataType(int type);
 
-    public String[] getTableTypes();
+    public String[] getTableTypes(boolean showsystem);
 
     public String[] getViewTypes(boolean showsystem);
 

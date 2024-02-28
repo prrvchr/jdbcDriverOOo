@@ -41,20 +41,20 @@ public abstract class ColumnSuper
 
     // The constructor method:
     public ColumnSuper(String service,
-                      String[] services,
-                      TableSuper table,
-                      boolean sensitive,
-                      String name,
-                      final String typename,
-                      final String defaultvalue,
-                      final String description,
-                      final int nullable,
-                      final int precision,
-                      final int scale,
-                      final int type,
-                      final boolean autoincrement,
-                      final boolean rowversion,
-                      final boolean currency)
+                       String[] services,
+                       TableSuper table,
+                       boolean sensitive,
+                       String name,
+                       final String typename,
+                       final String defaultvalue,
+                       final String description,
+                       final int nullable,
+                       final int precision,
+                       final int scale,
+                       final int type,
+                       final boolean autoincrement,
+                       final boolean rowversion,
+                       final boolean currency)
     {
         super(service, services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();

@@ -31,7 +31,6 @@ import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.PreparedStatementSuper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 

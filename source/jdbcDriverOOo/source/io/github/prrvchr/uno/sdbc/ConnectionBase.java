@@ -52,8 +52,6 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.Tools;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -72,13 +70,14 @@ public abstract class ConnectionBase
     protected final DriverProvider m_provider;
     private String m_url;
     private PropertyValue[] m_info;
-    protected final ConnectionLog m_logger; 
-    public final boolean m_enhanced;
-    public final boolean m_showsystem;
-    public final boolean m_usebookmark;
-    protected final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
+    protected final boolean m_enhanced;
+    protected final boolean m_showsystem;
+    protected final boolean m_usebookmark;
+    protected final WeakMap<StatementMain<?>, StatementMain<?>> m_statements = new WeakMap<StatementMain<?>, StatementMain<?>>();
     private CustomTypeInfo m_typeinforows = null;
 
+    protected abstract DriverProvider getProvider();
+    protected abstract ConnectionLog getLogger();
 
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
@@ -87,7 +86,6 @@ public abstract class ConnectionBase
                           DriverProvider provider,
                           String url,
                           PropertyValue[] info,
-                          ResourceBasedEventLogger logger,
                           boolean enhanced,
                           boolean showsystem,
                           boolean usebookmark)
@@ -101,27 +99,25 @@ public abstract class ConnectionBase
         m_enhanced = enhanced;
         m_showsystem = showsystem;
         m_usebookmark = usebookmark;
-        m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
-        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
+        System.out.println("ConnectionBase() 1");
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing()
     {
-        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
-            for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
-                StatementMain statement = it.next();
+            for (Iterator<StatementMain<?>> it = m_statements.keySet().iterator(); it.hasNext();) {
+                StatementMain<?> statement = it.next();
                 it.remove();
                 statement.dispose();
             }
-            if (getProvider().getConnection() != null) {
-                getProvider().getConnection().close();
-            }
+            getProvider().closeConnection();
         }
         catch (java.sql.SQLException e) {
-            m_logger.logp(LogLevel.WARNING, e);
+            getLogger().logp(LogLevel.WARNING, e);
             System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
     }
@@ -152,8 +148,14 @@ public abstract class ConnectionBase
         throws SQLException
     {
         checkDisposed();
-        if (m_provider.supportWarningsSupplier()) {
-            WarningsSupplier.clearWarnings(getProvider().getConnection(), this);
+        if (getProvider().supportWarningsSupplier()) {
+            try {
+                
+                WarningsSupplier.clearWarnings(getProvider().getConnection(), this);
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
     }
 
@@ -163,8 +165,13 @@ public abstract class ConnectionBase
         throws SQLException
     {
         checkDisposed();
-        if (m_provider.supportWarningsSupplier()) {
-            return WarningsSupplier.getWarnings(getProvider().getConnection(), this);
+        if (getProvider().supportWarningsSupplier()) {
+            try {
+                return WarningsSupplier.getWarnings(getProvider().getConnection(), this);
+            }
+            catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
         return Any.VOID;
     }
@@ -178,12 +185,15 @@ public abstract class ConnectionBase
         checkDisposed();
         DatabaseMetaDataBase metadata = null;
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
-            metadata = m_provider.getDatabaseMetaData(this);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getLogger().getObjectId());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
+            metadata = getProvider().getDatabaseMetaData(this);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID, metadata.getLogger().getObjectId());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
+        }
+        catch (java.lang.Exception e) {
+            e.printStackTrace();
         }
         return metadata;
     }
@@ -396,16 +406,6 @@ public abstract class ConnectionBase
 
     }
 
-    public DriverProvider getProvider()
-    {
-        return m_provider;
-    }
-
-    public ConnectionLog getLogger()
-    {
-        return m_logger;
-    }
-
     public String getUrl()
     {
         return UnoHelper.getDefaultPropertyValue(m_info, "Url", m_url);
@@ -444,7 +444,7 @@ public abstract class ConnectionBase
             return substitution.substituteVariables(sql, true);
         }
         catch (com.sun.star.uno.Exception e) {
-            throw Tools.toUnoExceptionLogged(this, m_logger, e);
+            throw Tools.toUnoExceptionLogged(this, getLogger(), e);
         }
     }
 
@@ -470,7 +470,7 @@ public abstract class ConnectionBase
     public CustomColumn[] getTypeInfoRow(CustomColumn[] columns)
             throws SQLException
     {
-        Object [] typeinfo = m_provider.getTypeInfoSettings();
+        Object [] typeinfo = getProvider().getTypeInfoSettings();
         if (typeinfo == null) {
             return columns;
         }

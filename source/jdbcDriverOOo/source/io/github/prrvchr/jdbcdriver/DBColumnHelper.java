@@ -57,12 +57,11 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.Key;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
-public class DataBaseTableHelper
+public class DBColumnHelper
 {
 
     public static class ColumnDescription
@@ -94,12 +93,12 @@ public class DataBaseTableHelper
         }
     }
 
-    public static List<ColumnDescription> readColumns(ConnectionSuper connection,
+    public static List<ColumnDescription> readColumns(DriverProvider provider,
                                                       TableSuper table)
         throws java.sql.SQLException
     {
-        List<ColumnDescription> descriptions = collectColumnDescriptions(connection, table);
-        sanitizeColumnDescriptions(connection, descriptions);
+        List<ColumnDescription> descriptions = collectColumnDescriptions(provider, table);
+        sanitizeColumnDescriptions(provider, descriptions);
         List<ColumnDescription> columns = new ArrayList<>(descriptions);
         for (ColumnDescription description : descriptions) {
             columns.set(description.ordinalPosition - 1, description);
@@ -107,16 +106,16 @@ public class DataBaseTableHelper
         return columns;
     }
 
-    private static List<ColumnDescription> collectColumnDescriptions(ConnectionSuper connection,
+    private static List<ColumnDescription> collectColumnDescriptions(DriverProvider provider,
                                                                      TableSuper table)
         throws java.sql.SQLException
     {
         List<ColumnDescription> columns = new ArrayList<>();
-        java.sql.ResultSet result = connection.getProvider().getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%");
+        java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%");
         while (result.next()) {
             ColumnDescription description = new ColumnDescription();
             description.columnName = result.getString(4);
-            description.type = connection.getProvider().getDataType(result.getInt(5));
+            description.type = provider.getDataType(result.getInt(5));
             description.typeName = result.getString(6);
             description.columnSize = result.getInt(7);
             int decimalDigits = result.getInt(9);
@@ -133,7 +132,7 @@ public class DataBaseTableHelper
         return columns;
     }
 
-    private static void sanitizeColumnDescriptions(ConnectionSuper connection,
+    private static void sanitizeColumnDescriptions(DriverProvider provider,
                                                    List<ColumnDescription> descriptions)
     {
         if (descriptions.isEmpty()) {
@@ -152,7 +151,7 @@ public class DataBaseTableHelper
         // and it needs to be a continuous range
         boolean hasgaps = (max - ordinals.iterator().next() + 1) != descriptions.size();
         // if that's not the case, normalize it
-        UnoHelper.ensure(!hasduplicates && !hasgaps, "database provided invalid ORDINAL_POSITION values!", connection.getLogger());
+        UnoHelper.ensure(!hasduplicates && !hasgaps, "database provided invalid ORDINAL_POSITION values!", provider.getLogger());
         // what's left is that the range might not be from 1 to <column count>, but for instance
         // 0 to <column count>-1.
         int offset = ordinals.iterator().next() - 1;
@@ -161,107 +160,100 @@ public class DataBaseTableHelper
         }
     }
 
-    public static Map<String, Key> readKeys(ConnectionSuper connection,
+    public static Map<String, Key> readKeys(DriverProvider provider,
                                             boolean sensitive,
                                             TableSuper table)
-        throws SQLException,
+        throws java.sql.SQLException,
+               SQLException,
                ElementExistException
     {
         Map<String, Key> keys = new TreeMap<>();
-        readPrimaryKey(connection, table, sensitive, keys);
-        readForeignKeys(connection, table, sensitive, keys);
+        readPrimaryKey(provider, table, sensitive, keys);
+        readForeignKeys(provider, table, sensitive, keys);
         return keys;
     }
 
-    private static void readPrimaryKey(ConnectionSuper connection,
+    private static void readPrimaryKey(DriverProvider provider,
                                        TableSuper table,
                                        boolean sensitive,
                                        Map<String, Key> keys)
-        throws SQLException,
+        throws java.sql.SQLException,
+               SQLException,
                ElementExistException
     {
         ArrayList<String> columns = new ArrayList<>();
         String name = null;
         boolean fetched = false;
-        try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName());
-            while (result.next()) {
-                String column = result.getString(4);
-                columns.add(column);
-                if (!fetched) {
-                    fetched = true;
-                    String pk = result.getString(6);
-                    if (result.wasNull()) {
-                        name = String.format("PK_%s_%s", table.getName(), column);
-                    }
-                    else {
-                        name = pk;
-                    }
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName());
+        while (result.next()) {
+            String column = result.getString(4);
+            columns.add(column);
+            if (!fetched) {
+                fetched = true;
+                String pk = result.getString(6);
+                if (result.wasNull()) {
+                    name = String.format("PK_%s_%s", table.getName(), column);
                 }
-                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + name);
+                else {
+                    name = pk;
+                }
             }
-            result.close();
+            System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + name);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }
+        result.close();
         if (name != null) {
             keys.put(name, new Key(table, sensitive, name, "", KeyType.PRIMARY, 0, 0, columns));
         }
     }
 
-    private static void readForeignKeys(ConnectionSuper connection,
+    private static void readForeignKeys(DriverProvider provider,
                                         TableSuper table,
                                         boolean sensitive,
                                         Map<String, Key> keys)
-        throws SQLException,
+        throws java.sql.SQLException,
+               SQLException,
                ElementExistException
     {
         String oldFkName = "";
         KeyProperties keyProperties = null;
-        try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getName());
-            while (result.next()) {
-                String catalogReturned = result.getString(1);
-                if (result.wasNull()) {
-                    catalogReturned = "";
-                }
-                String schemaReturned = result.getString(2);
-                String nameReturned = result.getString(3);
-                
-                String foreignKeyColumn = result.getString(8);
-                int updateRule = result.getInt(10);
-                int deleteRule = result.getInt(11);
-                String fkName = result.getString(12);
-                
-                if (!result.wasNull() && !fkName.isEmpty()) {
-                    if (!oldFkName.equals(fkName)) {
-                        if (keyProperties != null) {
-                            Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
-                                              keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
-                            
-                            keys.put(oldFkName, key);
-                        }
-                        String referencedName = DBTools.getTableName(connection, catalogReturned, schemaReturned, nameReturned,
-                                                                     ComposeRule.InDataManipulation, sensitive);
-                        keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
-                        keyProperties.columnNames.add(foreignKeyColumn);
-                        oldFkName = fkName;
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getName());
+        while (result.next()) {
+            String catalogReturned = result.getString(1);
+            if (result.wasNull()) {
+                catalogReturned = "";
+            }
+            String schemaReturned = result.getString(2);
+            String nameReturned = result.getString(3);
+            
+            String foreignKeyColumn = result.getString(8);
+            int updateRule = result.getInt(10);
+            int deleteRule = result.getInt(11);
+            String fkName = result.getString(12);
+            
+            if (!result.wasNull() && !fkName.isEmpty()) {
+                if (!oldFkName.equals(fkName)) {
+                    if (keyProperties != null) {
+                        Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
+                                          keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
+                        
+                        keys.put(oldFkName, key);
                     }
-                    else {
-                        if (keyProperties != null) {
-                            keyProperties.columnNames.add(foreignKeyColumn);
-                        }
+                    String referencedName = DBTools.buildName(provider, catalogReturned, schemaReturned, nameReturned,
+                                                                 ComposeRule.InDataManipulation, sensitive);
+                    keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
+                    keyProperties.columnNames.add(foreignKeyColumn);
+                    oldFkName = fkName;
+                }
+                else {
+                    if (keyProperties != null) {
+                        keyProperties.columnNames.add(foreignKeyColumn);
                     }
                 }
             }
-            result.close();
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }        
+        result.close();
         if (keyProperties != null) {
             Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
                               keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
@@ -269,38 +261,34 @@ public class DataBaseTableHelper
         }
     }
 
-    public static ArrayList<String> readIndexes(ConnectionSuper connection,
+    public static ArrayList<String> readIndexes(DriverProvider provider,
                                                 TableSuper table)
-        throws SQLException
+        throws java.sql.SQLException,
+               SQLException
     {
         ArrayList<String> names = new ArrayList<>();
-        String separator = connection.getMetaData().getCatalogSeparator();
-        try {
-            java.sql.DatabaseMetaData metadata = connection.getProvider().getConnection().getMetaData();
-            java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getName(), false, false);
-            String previous = "";
-            System.out.println("sdbcx.IndexContainer.readIndexes() 1");
-            while (result.next()) {
-                System.out.println("sdbcx.IndexContainer.readIndexes() Qualifier: " + result.getString(5) + " - Name: " + result.getString(6));
-                String name = result.getString(5);
-                if (!result.wasNull() && !name.isEmpty()) {
-                    name += separator;
-                }
-                name += result.getString(6);
-                if (!name.isEmpty()) {
-                    // don't insert the name if the last one we inserted was the same
-                    if (!previous.equals(name)) {
-                        System.out.println("sdbcx.IndexContainer.readIndexes() add Name: " + name);
-                        names.add(name);
-                        previous = name;
-                    }
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        String separator = metadata.getCatalogSeparator();
+        java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getName(), false, false);
+        String previous = "";
+        System.out.println("sdbcx.IndexContainer.readIndexes() 1");
+        while (result.next()) {
+            System.out.println("sdbcx.IndexContainer.readIndexes() Qualifier: " + result.getString(5) + " - Name: " + result.getString(6));
+            String name = result.getString(5);
+            if (!result.wasNull() && !name.isEmpty()) {
+                name += separator;
+            }
+            name += result.getString(6);
+            if (!name.isEmpty()) {
+                // don't insert the name if the last one we inserted was the same
+                if (!previous.equals(name)) {
+                    System.out.println("sdbcx.IndexContainer.readIndexes() add Name: " + name);
+                    names.add(name);
+                    previous = name;
                 }
             }
-            result.close();
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, connection);
-        }        
+        result.close();
         return names;
     }
 

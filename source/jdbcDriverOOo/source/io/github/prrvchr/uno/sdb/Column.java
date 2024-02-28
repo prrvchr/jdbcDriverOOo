@@ -35,8 +35,8 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 import io.github.prrvchr.uno.sdbcx.ColumnSuper;
-import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public final class Column
@@ -57,7 +57,7 @@ public final class Column
     private String m_ControlDefault = "";
 
     // The constructor method:
-    public Column(final TableSuper table,
+    public Column(final Table table,
                   final boolean sensitive,
                   final String name,
                   final String typeName,
