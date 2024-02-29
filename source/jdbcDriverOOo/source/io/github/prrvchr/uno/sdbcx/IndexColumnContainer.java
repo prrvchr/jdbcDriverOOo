@@ -141,11 +141,11 @@ public final class IndexColumnContainer
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
-        System.out.println("sdbcx.IndexColumnContainer._removeElement() *********************************");
+        System.out.println("sdbcx.IndexColumnContainer.removeDataBaseElement() *********************************");
         throw new SQLException("Unsupported");
     }
 

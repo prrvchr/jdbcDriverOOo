@@ -174,7 +174,6 @@ public final class IndexContainer
                 return false;
             }
             String separator = ", ";
-            String quote = _getConnection().getProvider().getIdentifierQuoteString();
             boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
             String table = DBTools.composeTableName(_getConnection().getProvider(), m_Table, ComposeRule.InIndexDefinitions, false, false, isCaseSensitive());
             XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
@@ -182,7 +181,7 @@ public final class IndexContainer
             List<String> indexes = new ArrayList<String>();
             for (int i = 0; i < columns.getCount(); i++) {
                 XPropertySet column = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                String index = DBTools.quoteName(quote, DBTools.getDescriptorStringValue(column, PropertyIds.NAME), isCaseSensitive());
+                String index = DBTools.enquoteIdentifier(_getConnection().getProvider(), DBTools.getDescriptorStringValue(column, PropertyIds.NAME), isCaseSensitive());
                 // FIXME: ::dbtools::getBooleanDataSourceSetting( m_pTable->getConnection(), "AddIndexAppendix" );
                 String ascending = DBTools.getDescriptorBooleanValue(column, PropertyIds.ISASCENDING) ? " ASC" : " DESC";
                 indexes.add(index + ascending);
@@ -192,7 +191,7 @@ public final class IndexContainer
                 if (unique) buffer.append("UNIQUE ");
                 buffer.append("INDEX ");
                 if (!name.isEmpty()) {
-                    buffer.append(DBTools.quoteName(quote, name, isCaseSensitive()));
+                    buffer.append(DBTools.enquoteIdentifier(_getConnection().getProvider(), name, isCaseSensitive()));
                     buffer.append(" ON ");
                 }
                 else {
@@ -216,8 +215,8 @@ public final class IndexContainer
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String elementName)
+    protected void removeDataBaseElement(int index,
+                                         String elementName)
         throws SQLException
     {
         if (_getConnection() == null) {
@@ -237,7 +236,7 @@ public final class IndexContainer
             buffer.append(" DROP CONSTRAINT ");
             buffer.append(name);
             DBTools.executeDDLQuery(_getConnection().getProvider(), buffer.toString(), m_Table.getLogger(),
-                                     "IndexContainer", "_removeElement", Resources.STR_LOG_INDEX_REMOVE_QUERY);
+                                     "IndexContainer", "removeDataBaseElement", Resources.STR_LOG_INDEX_REMOVE_QUERY);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

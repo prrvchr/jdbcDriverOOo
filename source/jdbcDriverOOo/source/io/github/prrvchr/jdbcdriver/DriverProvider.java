@@ -115,7 +115,13 @@ public interface DriverProvider
 
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
-    public String getRenameColumnQuery();
+    public String getRenameColumnQuery(String command);
+
+    public String getColumnSetTypeQuery();
+
+    public boolean hasColumnSetTypeQuery();
+
+    public String getColumnResetDefaultQuery(String command);
 
     public List<String> getAlterViewQueries(Object... args);
 
@@ -173,7 +179,7 @@ public interface DriverProvider
                                                  String table,
                                                  String grantee);
 
-    public String getRevokeRoleQuery();
+    public String getRevokeRoleQuery(String command);
 
     public boolean supportCreateTableKeyParts();
 

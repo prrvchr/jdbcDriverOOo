@@ -154,15 +154,15 @@ public abstract class TableContainerSuper<T extends TableSuper>
         }
 
     @Override
-    public void removeElement(int index,
-                               String name)
+    public void removeDataBaseElement(int index,
+                                      String name)
         throws SQLException
     {
         try {
-            System.out.println("TableContainer._removeElement() 1 Name " + name);
+            System.out.println("TableContainer.removeDataBaseElement() 1 Name " + name);
             boolean isview = false;
             TableSuper element = getElement(name);
-            System.out.println("TableContainer._removeElement() 2 element " + element.m_Type);
+            System.out.println("TableContainer.removeDataBaseElement() 2 element " + element.m_Type);
             if (element != null) {
                 isview = element.m_Type.toUpperCase().contains("VIEW");
             }
@@ -175,9 +175,9 @@ public abstract class TableContainerSuper<T extends TableSuper>
             String table = DBTools.buildName(m_Connection.getProvider(), cpt.getCatalog(), cpt.getSchema(),
                                                 cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
             String query = DBTools.getDropTableQuery(table);
-            System.out.println("TableContainer._removeElement() 3 Query: " + query);
+            System.out.println("TableContainer.removeDataBaseElement() 3 Query: " + query);
             DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
-                                    "_removeElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
+                                    "removeDataBaseElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

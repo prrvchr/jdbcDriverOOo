@@ -188,36 +188,54 @@ public abstract class TableSuper
     private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
         throws SQLException
     {
+        System.out.println("TableSuper.alterColumn() 1 ***************************");
         if (oldcolumn != null) {
             try {
-                boolean executed = false;
                 String oldname = oldcolumn.getName();
                 KeyColumnContainer keys = getKeyColumnContainer(oldname);
                 boolean alterpk = keys != null;
                 List<String> queries = new ArrayList<String>();
-                boolean renamed = DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
+                byte result = DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
                 if (!queries.isEmpty()) {
                     String table = DBTools.buildName(getConnection().getProvider(), this, ComposeRule.InTableDefinitions);
-                    executed = DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_logger, this.getClass().getName(),
-                                                         "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table);
-                }
-                if (executed) {
-                    String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
-                    if (renamed) { 
-                        if (alterpk) {
-                            // XXX: If the renamed column is a primary key we need to rename the Key name to.
-                            keys.rename(oldcolumn.getName(), newname);
+                    if (DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_logger, this.getClass().getName(),
+                                                  "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table))
+                    {
+                        // Column have changed its name
+                        if ((result & 1) == 1) {
+                            String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+                            if (alterpk) {
+                                // XXX: If the renamed column is a primary key we need to rename the Key name to.
+                                keys.rename(oldname, newname);
+                            }
+                            oldcolumn.setName(newname);
+                            m_columns.replaceElement(oldname, newname);
                         }
-                        m_columns.getElement(oldname).setName(newname);
+                        // Column have changed its type
+                        if ((result & 2) == 2) {
+                            oldcolumn.m_Type = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE);
+                            oldcolumn.m_TypeName = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME);
+                        }
+                        // Column have changed its default value
+                        if ((result & 4) == 4) {
+                            oldcolumn.m_DefaultValue = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE);
+                        }
+                        // Column have changed its not null constraint
+                        if ((result & 8) == 8) {
+                            oldcolumn.m_IsNullable = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE);
+                        }
+                        // Column have changed its description value
+                        if ((result & 16) == 16) {
+                            oldcolumn.m_Description = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION);
+                        }
                     }
-                    m_columns.replaceElement(oldname, newname);
-                    
                 }
             }
             catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
             }
         }
+        System.out.println("TableSuper.alterColumn() 2 ***************************");
     }
 
     private KeyColumnContainer getKeyColumnContainer(String oldname)
@@ -303,7 +321,7 @@ public abstract class TableSuper
                 // FIXME: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
                 // FIXME: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
                 else {
-                    m_connection.getViewsInternal().removeElement(view);
+                    m_connection.getViewsInternal().removeView(view);
                     String query = DBTools.getCreateViewQuery(m_connection.getProvider(), component, view.m_Command, rule, isCaseSensitive());
                         DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
                                                 "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
@@ -331,7 +349,7 @@ public abstract class TableSuper
             System.out.println("sdbcx.TableBase._refreshIndexes() Index Count: " + indexes.size());
             return new IndexContainer(this, isCaseSensitive(), indexes);
         }
-        catch (java.sql.SQLException | SQLException | ElementExistException e) {
+        catch (java.sql.SQLException | ElementExistException e) {
             return null;
         }
     }
@@ -342,7 +360,7 @@ public abstract class TableSuper
             System.out.println("sdbcx.TableBase._refreshKeys() Key Count: " + keys.size());
             return new KeyContainer(this, isCaseSensitive(), keys);
         }
-        catch (java.sql.SQLException | SQLException | ElementExistException e) {
+        catch (java.sql.SQLException | ElementExistException e) {
             return null;
         }
     }

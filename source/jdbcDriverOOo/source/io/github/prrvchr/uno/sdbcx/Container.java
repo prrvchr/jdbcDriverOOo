@@ -219,7 +219,7 @@ public abstract class Container<T>
                 throw new NoSuchElementException();
             }
         }
-        return _getElement(m_Names.indexOf(name));
+        return getElementByIndex(m_Names.indexOf(name));
     }
 
     @Override
@@ -265,7 +265,7 @@ public abstract class Container<T>
         if (index < 0 || index >= getCount()) {
             throw new IndexOutOfBoundsException();
         }
-        return _getElement(index);
+        return getElementByIndex(index);
     }
 
     @Override
@@ -287,7 +287,7 @@ public abstract class Container<T>
                 throw new IndexOutOfBoundsException();
             }
         }
-        _removeElement(index);
+        removeElement(index);
     }
 
     @Override
@@ -301,7 +301,7 @@ public abstract class Container<T>
                 throw new NoSuchElementException();
             }
         }
-        _removeElement(m_Names.indexOf(name));
+        removeElement(m_Names.indexOf(name));
     }
 
 
@@ -385,7 +385,7 @@ public abstract class Container<T>
         throws SQLException, ElementExistException;
     protected abstract T appendElement(XPropertySet descriptor, String name) throws SQLException;
     protected abstract T createElement(String name) throws SQLException;
-    protected abstract void removeElement(int index, String name) throws SQLException;
+    protected abstract void removeDataBaseElement(int index, String name) throws SQLException;
     protected abstract void _refresh();
 
     // Protected methods
@@ -437,7 +437,7 @@ public abstract class Container<T>
     {
         synchronized (m_lock) {
             try {
-                return _getElement(index);
+                return getElementByIndex(index);
             }
             catch (WrappedTargetException e) {
                 throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -453,7 +453,7 @@ public abstract class Container<T>
                 return null;
             }
             try {
-                return  _getElement(m_Names.indexOf(name));
+                return  getElementByIndex(m_Names.indexOf(name));
             }
             catch (WrappedTargetException e) {
                 throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -461,7 +461,7 @@ public abstract class Container<T>
         }
     }
 
-    private T _getElement(int index)
+    private T getElementByIndex(int index)
         throws WrappedTargetException
     {
         String name = m_Names.get(index);
@@ -472,7 +472,7 @@ public abstract class Container<T>
             }
             catch (SQLException e) {
                 try {
-                    _removeElement(index, false);
+                    removeElement(index, false);
                 }
                 catch (Exception ignored) {
                 }
@@ -483,19 +483,19 @@ public abstract class Container<T>
         return element;
     }
 
-    private void _removeElement(int index)
+    private void removeElement(int index)
         throws SQLException
     {
-        _removeElement(index, true);
+        removeElement(index, true);
     }
 
-    private void _removeElement(int index,
-                                boolean really)
+    private void removeElement(int index,
+                               boolean really)
         throws SQLException
     {
         String name = m_Names.get(index);
         if (really) {
-            removeElement(index, name);
+            removeDataBaseElement(index, name);
         }
         m_Names.remove(index);
         T element = m_Elements.remove(name);
@@ -507,7 +507,7 @@ public abstract class Container<T>
         }
     }
 
-    protected XPropertySet _cloneDescriptor(XPropertySet descriptor) {
+    protected XPropertySet cloneDescriptor(XPropertySet descriptor) {
         XPropertySet element = createDescriptor();
         UnoHelper.copyProperties(descriptor, element);
         return element;

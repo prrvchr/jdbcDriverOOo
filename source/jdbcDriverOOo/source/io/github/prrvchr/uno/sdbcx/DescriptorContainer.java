@@ -63,8 +63,8 @@ public abstract class DescriptorContainer<T>
     }
     
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
     }

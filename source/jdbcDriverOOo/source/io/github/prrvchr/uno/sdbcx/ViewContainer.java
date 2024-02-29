@@ -148,28 +148,28 @@ public final class ViewContainer
     }
 
     @Override
-    protected void removeElement(int index,
-                                 String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
         View view = getElement(index);
         if (view == null) {
             throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
-        removeElement(view);
+        removeView(view);
     }
 
     // Can be called from TableSuper.rename(String name)
-    protected void removeElement(View view)
+    protected void removeView(View view)
         throws SQLException
     {
         try {
-            System.out.println("ViewContainer.removeElement() 1 Name: " + view.getName());
+            System.out.println("ViewContainer.removeView() 1 Name: " + view.getName());
             String table = DBTools.buildName(m_Connection.getProvider(), view, ComposeRule.InTableDefinitions, isCaseSensitive());
-            System.out.println("ViewContainer.removeElement() 2 Name: " + table);
+            System.out.println("ViewContainer.removeView() 2 Name: " + table);
             String query = DBTools.getDropViewQuery(table);
             DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
-                                    "removeElement", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
+                                    "removeView", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

@@ -43,16 +43,16 @@ public abstract class ColumnBase
 {
 
     protected final TableSuper m_table;
-    private int m_Type;
+    protected int m_Type;
     private int m_Precision;
     private int m_Scale;
-    private int m_IsNullable;
+    protected int m_IsNullable;
     private boolean m_IsCurrency;
     private boolean m_IsAutoIncrement;
     private boolean m_IsRowVersion;
-    private String m_TypeName = "";
-    private String m_Description = "";
-    private String m_DefaultValue = "";
+    protected String m_TypeName = "";
+    protected String m_Description = "";
+    protected String m_DefaultValue = "";
 
     // The constructor method:
     public ColumnBase(String service,

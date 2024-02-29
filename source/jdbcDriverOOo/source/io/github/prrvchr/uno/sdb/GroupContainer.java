@@ -105,9 +105,9 @@ public class GroupContainer
                                    String name)
         throws SQLException
     {
-        String query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
-        System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
         try {
+            String query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
                                            "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
         }
@@ -127,13 +127,13 @@ public class GroupContainer
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
-        String sql = DBTools.getDropGroupQuery(m_connection.getProvider(), name, isCaseSensitive());
-        System.out.println("sdbcx.GroupContainer._removeElement() SQL: " + sql);
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+            String sql = DBTools.getDropGroupQuery(m_connection.getProvider(), name, isCaseSensitive());
+            System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + sql);
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {

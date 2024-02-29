@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,7 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -100,7 +102,7 @@ protected abstract TableSuper getTable();
 
     @Override
     protected ColumnSuper appendElement(XPropertySet descriptor,
-                                            String name)
+                                        String name)
         throws SQLException
     {
         ColumnSuper column = null;
@@ -195,8 +197,8 @@ protected abstract TableSuper getTable();
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
         UnoHelper.ensure(m_table, "Table is null!", getConnection().getLogger());
@@ -204,12 +206,12 @@ protected abstract TableSuper getTable();
             return;
         }
         try {
-            String quote = getConnection().getProvider().getIdentifierQuoteString();
-            StringBuilder buffer = new StringBuilder("ALTER TABLE ");
-            buffer.append(DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, isCaseSensitive()));
-            buffer.append(DBTools.quoteName(quote, name));
-            DBTools.executeDDLQuery(getConnection().getProvider(), buffer.toString(), m_table.getLogger(),
-                                     "ColumnContainer", "_removeElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY);
+            String table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, isCaseSensitive());
+            String column = DBTools.enquoteIdentifier(getConnection().getProvider(), name, isCaseSensitive());
+            String query = MessageFormat.format(DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_COLUMN, table, column);
+            table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, false);
+            DBTools.executeDDLQuery(getConnection().getProvider(), query, m_table.getLogger(), "ColumnContainer",
+                                    "removeDataBaseElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

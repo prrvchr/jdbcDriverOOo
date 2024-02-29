@@ -49,7 +49,7 @@ public final class ColumnDescriptorContainer
                                                   String name)
         throws SQLException
     {
-        return (ColumnDescriptor) _cloneDescriptor(descriptor);
+        return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
 
 

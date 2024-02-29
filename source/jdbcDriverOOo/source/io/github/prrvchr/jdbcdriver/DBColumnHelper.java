@@ -53,7 +53,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.sun.star.container.ElementExistException;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -111,24 +110,26 @@ public class DBColumnHelper
         throws java.sql.SQLException
     {
         List<ColumnDescription> columns = new ArrayList<>();
-        java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%");
-        while (result.next()) {
-            ColumnDescription description = new ColumnDescription();
-            description.columnName = result.getString(4);
-            description.type = provider.getDataType(result.getInt(5));
-            description.typeName = result.getString(6);
-            description.columnSize = result.getInt(7);
-            int decimalDigits = result.getInt(9);
-            description.decimalDigits = result.wasNull() ? 0 : decimalDigits;
-            description.nullable = result.getInt(11);
-            String remarks = result.getString(12);
-            description.remarks = result.wasNull() ? "" : remarks;
-            String defaultValue = result.getString(13);
-            description.defaultValue = result.wasNull() ? "" : defaultValue;
-            description.ordinalPosition = result.getInt(17);
-            columns.add(description);
+        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%"))
+        {
+            while (result.next()) {
+                ColumnDescription description = new ColumnDescription();
+                description.columnName = result.getString(4);
+                description.type = provider.getDataType(result.getInt(5));
+                description.typeName = result.getString(6);
+                int ivalue = result.getInt(7);
+                description.columnSize = result.wasNull() ? 0 : ivalue;
+                ivalue = result.getInt(9);
+                description.decimalDigits = result.wasNull() ? 0 : ivalue;
+                description.nullable = result.getInt(11);
+                String svalue = result.getString(12);
+                description.remarks = result.wasNull() ? "" : svalue;
+                svalue = result.getString(13);
+                description.defaultValue = result.wasNull() ? "" : svalue;
+                description.ordinalPosition = result.getInt(17);
+                columns.add(description);
+            }
         }
-        result.close();
         return columns;
     }
 
@@ -164,7 +165,6 @@ public class DBColumnHelper
                                             boolean sensitive,
                                             TableSuper table)
         throws java.sql.SQLException,
-               SQLException,
                ElementExistException
     {
         Map<String, Key> keys = new TreeMap<>();
@@ -178,30 +178,30 @@ public class DBColumnHelper
                                        boolean sensitive,
                                        Map<String, Key> keys)
         throws java.sql.SQLException,
-               SQLException,
                ElementExistException
     {
         ArrayList<String> columns = new ArrayList<>();
         String name = null;
         boolean fetched = false;
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-        java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName());
-        while (result.next()) {
-            String column = result.getString(4);
-            columns.add(column);
-            if (!fetched) {
-                fetched = true;
-                String pk = result.getString(6);
-                if (result.wasNull()) {
-                    name = String.format("PK_%s_%s", table.getName(), column);
+        try (java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName()))
+        {
+            while (result.next()) {
+                String column = result.getString(4);
+                columns.add(column);
+                if (!fetched) {
+                    fetched = true;
+                    String pk = result.getString(6);
+                    if (result.wasNull()) {
+                        name = String.format("PK_%s_%s", table.getName(), column);
+                    }
+                    else {
+                        name = pk;
+                    }
                 }
-                else {
-                    name = pk;
-                }
+                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + name);
             }
-            System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + name);
         }
-        result.close();
         if (name != null) {
             keys.put(name, new Key(table, sensitive, name, "", KeyType.PRIMARY, 0, 0, columns));
         }
@@ -212,48 +212,47 @@ public class DBColumnHelper
                                         boolean sensitive,
                                         Map<String, Key> keys)
         throws java.sql.SQLException,
-               SQLException,
                ElementExistException
     {
         String oldFkName = "";
         KeyProperties keyProperties = null;
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-        java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getName());
-        while (result.next()) {
-            String catalogReturned = result.getString(1);
-            if (result.wasNull()) {
-                catalogReturned = "";
-            }
-            String schemaReturned = result.getString(2);
-            String nameReturned = result.getString(3);
-            
-            String foreignKeyColumn = result.getString(8);
-            int updateRule = result.getInt(10);
-            int deleteRule = result.getInt(11);
-            String fkName = result.getString(12);
-            
-            if (!result.wasNull() && !fkName.isEmpty()) {
-                if (!oldFkName.equals(fkName)) {
-                    if (keyProperties != null) {
-                        Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
-                                          keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
-                        
-                        keys.put(oldFkName, key);
-                    }
-                    String referencedName = DBTools.buildName(provider, catalogReturned, schemaReturned, nameReturned,
-                                                                 ComposeRule.InDataManipulation, sensitive);
-                    keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
-                    keyProperties.columnNames.add(foreignKeyColumn);
-                    oldFkName = fkName;
-                }
-                else {
-                    if (keyProperties != null) {
+        try (java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getName()))
+        {
+            while (result.next()) {
+                String value = result.getString(1);
+                String catalogReturned = result.wasNull() ? "" : value;
+                value = result.getString(2);
+                String schemaReturned = result.wasNull() ? "" : value;
+                String nameReturned = result.getString(3);
+                
+                String foreignKeyColumn = result.getString(8);
+                int updateRule = result.getInt(10);
+                int deleteRule = result.getInt(11);
+                String fkName = result.getString(12);
+                
+                if (!result.wasNull() && !fkName.isEmpty()) {
+                    if (!oldFkName.equals(fkName)) {
+                        if (keyProperties != null) {
+                            Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
+                                              keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
+                            
+                            keys.put(oldFkName, key);
+                        }
+                        String referencedName = DBTools.buildName(provider, catalogReturned, schemaReturned, nameReturned,
+                                                                  ComposeRule.InDataManipulation, sensitive);
+                        keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
                         keyProperties.columnNames.add(foreignKeyColumn);
+                        oldFkName = fkName;
+                    }
+                    else {
+                        if (keyProperties != null) {
+                            keyProperties.columnNames.add(foreignKeyColumn);
+                        }
                     }
                 }
             }
         }
-        result.close();
         if (keyProperties != null) {
             Key key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
                               keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
@@ -263,32 +262,32 @@ public class DBColumnHelper
 
     public static ArrayList<String> readIndexes(DriverProvider provider,
                                                 TableSuper table)
-        throws java.sql.SQLException,
-               SQLException
+        throws java.sql.SQLException
     {
         ArrayList<String> names = new ArrayList<>();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         String separator = metadata.getCatalogSeparator();
-        java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getName(), false, false);
-        String previous = "";
         System.out.println("sdbcx.IndexContainer.readIndexes() 1");
-        while (result.next()) {
-            System.out.println("sdbcx.IndexContainer.readIndexes() Qualifier: " + result.getString(5) + " - Name: " + result.getString(6));
-            String name = result.getString(5);
-            if (!result.wasNull() && !name.isEmpty()) {
-                name += separator;
-            }
-            name += result.getString(6);
-            if (!name.isEmpty()) {
-                // don't insert the name if the last one we inserted was the same
-                if (!previous.equals(name)) {
-                    System.out.println("sdbcx.IndexContainer.readIndexes() add Name: " + name);
-                    names.add(name);
-                    previous = name;
+        try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getName(), false, false))
+        {
+            String previous = "";
+            while (result.next()) {
+                System.out.println("sdbcx.IndexContainer.readIndexes() Qualifier: " + result.getString(5) + " - Name: " + result.getString(6));
+                String name = result.getString(5);
+                if (!result.wasNull() && !name.isEmpty()) {
+                    name += separator;
+                }
+                name += result.getString(6);
+                if (!name.isEmpty()) {
+                    // don't insert the name if the last one we inserted was the same
+                    if (!previous.equals(name)) {
+                        System.out.println("sdbcx.IndexContainer.readIndexes() add Name: " + name);
+                        names.add(name);
+                        previous = name;
+                    }
                 }
             }
         }
-        result.close();
         return names;
     }
 

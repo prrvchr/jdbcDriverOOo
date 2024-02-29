@@ -72,11 +72,99 @@ import io.github.prrvchr.uno.sdbcx.TableSuper;
 public class DBTableHelper
 {
 
+    private static class ColumnProperties
+    {
+        String newname;
+        String oldidentifier = "";
+        String newidentifier;
+        StringBuilder columntype;
+        String defaultvalue;
+        boolean isautoincrement;
+        String autoincrement;
+        boolean notnull;
+        ColumnProperties(DriverProvider provider, String name, boolean sensitive)
+            throws java.sql.SQLException
+        {
+            this(provider.getStatement().enquoteIdentifier(name, sensitive), name);
+        }
+        ColumnProperties(DriverProvider provider, String name1, String name2, boolean sensitive)
+            throws java.sql.SQLException
+        {
+            // XXX: If it's a new column then name1 is empty...
+            this(provider.getStatement().enquoteIdentifier(name1.isBlank() ? name2 : name1, sensitive),
+                 provider.getStatement().enquoteIdentifier(name2, sensitive),
+                 name2);
+        }
+        private ColumnProperties(String identifier, String name)
+                throws java.sql.SQLException
+        {
+            this(identifier, identifier, name);
+        }
+        private ColumnProperties(String identifier1, String identifier2, String name)
+            throws java.sql.SQLException
+        {
+            newname = name;
+            oldidentifier = identifier1;
+            newidentifier = identifier2;
+            columntype = new StringBuilder();
+            defaultvalue = "";
+            isautoincrement = false;
+            autoincrement = "";
+            notnull = false;
+        }
+        public String toString() {
+            StringBuilder buffer = new StringBuilder(newidentifier);
+            buffer.append(" ");
+            buffer.append(columntype.toString());
+            if (!defaultvalue.isBlank()) {
+                buffer.append(" DEFAULT ");
+                buffer.append(defaultvalue);
+            }
+            if (notnull) {
+                buffer.append(" NOT NULL");
+            }
+            if (isautoincrement) {
+                buffer.append(" ");
+                buffer.append(autoincrement);
+            }
+            return buffer.toString();
+        }
+        public Object[] getQueryArguments(String table)
+            throws java.sql.SQLException
+        {
+            List<String> buffer = new ArrayList<String>();
+            buffer.add(table);
+            buffer.add(oldidentifier);
+            buffer.add(newidentifier);
+            buffer.add(columntype.toString());
+            if (defaultvalue.isBlank()) {
+                buffer.add("");
+            }
+            else {
+                buffer.add("DEFAULT " + defaultvalue);
+            }
+            if (notnull) {
+                buffer.add("NOT NULL");
+            }
+            else {
+                buffer.add("");
+            }
+            if (isautoincrement) {
+                buffer.add(autoincrement);
+            }
+            else {
+                buffer.add("");
+            }
+            return buffer.toArray(new String[0]);
+        }
+    }
+
+
     /** creates a SQL CREATE TABLE statement
      *
      * @param provider
      *      The driver provider.
-     * @param descriptor
+     * @param property
      *      The descriptor of the new table.
      * @param table
      *      The name of the new table.
@@ -84,159 +172,213 @@ public class DBTableHelper
      *      Is identifier case sensitive.
      * @return
      *   The CREATE TABLE statement.
-     * @throws SQLException
-     * @throws java.sql.SQLException 
+     * @throws java.sql.SQLException
+     * @throws SQLException 
+     * @throws IllegalArgumentException 
+     * @throws WrappedTargetException 
+     * @throws IndexOutOfBoundsException 
      * @throws UnknownPropertyException 
      */
     public static List<String> getCreateTableQueries(DriverProvider provider,
-                                                     XPropertySet descriptor,
+                                                     XPropertySet property,
                                                      String table,
                                                      boolean sensitive)
         throws java.sql.SQLException, SQLException, IllegalArgumentException, WrappedTargetException, IndexOutOfBoundsException, UnknownPropertyException
     {
         String separator = ", ";
-        System.out.println("DBTableHelper.getCreateTableQueries() 1");
         boolean hasAutoIncrement = false;
         List<String> parts = new ArrayList<String>();
-        System.out.println("DBTableHelper.getCreateTableQueries() 2");
         List<String> queries = new ArrayList<String>();
         XIndexAccess columns = null;
-        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, property);
         if (supplier != null) {
-            System.out.println("DBTableHelper.getCreateTableQueries() 3");
             columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
         }
         if (columns == null || columns.getCount() <= 0) {
-            System.out.println("DBTableHelper.getCreateTableQueries() 4");
             String message = String.format("The '%s' table has no columns, it is not possible to create the table", table);
             throw new SQLException(message);
         }
-        System.out.println("DBTableHelper.getCreateTableQueries() 5");
         int count = columns.getCount();
         for (int i = 0; i < count; i++) {
-            XPropertySet column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
-            if (column == null) {
+            XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
+            if (descriptor == null) {
                 continue;
             }
-            
-            System.out.println("DBTools.getCreateTableQueries() 1 supportsColumnDescription: " + provider.supportsColumnDescription());
+            ColumnProperties column = getStandardColumnProperties(provider, descriptor, sensitive);
             if (provider.supportsColumnDescription()) {
-                String comment = DBTools.getDescriptorStringValue(column, PropertyIds.DESCRIPTION);
+                String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
                 if (!comment.isEmpty()) {
-                    System.out.println("DBTableHelper.getCreateTableQueries() 2");
-                    String name = DBTools.composeColumnName(provider, table, DBTools.getDescriptorStringValue(column, PropertyIds.NAME), sensitive);
-                    String query = provider.getColumnDescriptionQuery(name, comment);
-                    System.out.println("DBTableHelper.getCreateTableQueries() 3 Description query: " + query);
+                    String query = provider.getColumnDescriptionQuery(DBTools.composeColumnName(provider, table, column.newname, sensitive), comment);
                     queries.add(query);
                 }
             }
-            final StringBuilder buffer = new StringBuilder();
-            hasAutoIncrement |= getStandardColumnPartQuery(buffer, provider, column, sensitive);
-            parts.add(buffer.toString());
+            hasAutoIncrement |= column.isautoincrement;
+            parts.add(column.toString());
         }
 
-        System.out.println("DBTableHelper.getCreateTableQueries() 1 isAutoIncrementIsPrimaryKey: " + provider.isAutoIncrementIsPrimaryKey());
         // The primary key will not be created if one of the columns is auto increment
         // and the auto increment are primary keys (ie: Sqlite)
         if (!provider.isAutoIncrementIsPrimaryKey() || !hasAutoIncrement) {
-            parts.addAll(getCreateTableKeyParts(provider, descriptor, sensitive));
+            parts.addAll(getCreateTableKeyParts(provider, property, sensitive));
         }
         queries.add(0, getCreateTableQuery(table, String.join(separator, parts)));
         return queries;
     }
 
-
-
-    public static boolean getAlterColumnQueries(List<String> queries,
-                                                DriverProvider provider,
-                                                TableSuper table,
-                                                XPropertySet descriptor1,
-                                                XPropertySet descriptor2,
-                                                boolean alterpk,
-                                                boolean sensitive)
+    /** creates a SQL Column part statement
+    *
+    * @param queries
+    *      The queries to add to.
+    * @param provider
+    *      The driver provider.
+    * @param table
+    *      The table of the column.
+    * @param descriptor1
+    *      The descriptor of the old column.
+    * @param descriptor2
+    *      The descriptor of the new column.
+    * @param alterpk
+    *      Is the modified column primary key.
+    * @param sensitive
+    *      Is identifier case sensitive.
+    * @return
+    *      The binary result (ie: 1 -> renamed, 2 -> type changed ...)
+    * @throws java.sql.SQLException
+    * @throws SQLException 
+    * @throws IllegalArgumentException 
+    * @throws WrappedTargetException 
+    * @throws IndexOutOfBoundsException 
+    * @throws UnknownPropertyException 
+    */
+    // XXX: This method is called from 2 places:
+    // XXX: - ColumnContainerBase.createColumn() for any new column.
+    // XXX: - TableSuper.alterColumn() for already existing columns.
+    public static byte getAlterColumnQueries(List<String> queries,
+                                             DriverProvider provider,
+                                             TableSuper table,
+                                             XPropertySet descriptor1,
+                                             XPropertySet descriptor2,
+                                             boolean alterpk,
+                                             boolean sensitive)
         throws java.sql.SQLException, SQLException
     // TODO: see: libreoffice/connectivity/source/drivers/postgresql/
     // TODO: file: pq_xcolumns.cxx method: void alterColumnByDescriptor()
     // FIXME: Added the possibility of changing column type if the contained data can be cast
     // FIXME: Added the possibility of renaming a primary key
     {
-        boolean renamed = false;
-        String name = DBTools.composeTableName(provider, table, ComposeRule.InTableDefinitions, sensitive);
-        String quote = provider.getIdentifierQuoteString();
-        String name1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.NAME);
-        String name2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.NAME);
+        System.out.println("DBTableHelper.getAlterColumnQueries() Descriptor1: " + descriptor1);
 
+        String query;
+        // XXX: Result is binary result (ie: 1 -> renamed, 2 -> type changed ...)
+        byte result = 0;
+        String name = DBTools.composeTableName(provider, table, ComposeRule.InTableDefinitions, sensitive);
+        String name1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.NAME);
+
+        ColumnProperties column = getStandardColumnProperties(provider, name1, descriptor2, sensitive);
+        Object[] arguments = column.getQueryArguments(name);
         if (name1.isEmpty()) {
-            // create a new column
-            StringBuilder buffer = new StringBuilder("ALTER TABLE ");
-            buffer.append(name);
-            buffer.append(" ADD COLUMN ");
-            buffer.append(getStandardColumnPartQuery(provider, descriptor2, sensitive));
-            queries.add(buffer.toString());
+            // Create a new column
+            query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_COLUMN;
+            queries.add(MessageFormat.format(query, name, column.toString()));
         }
         else {
-            if(!name1.equals(name2)) {
-                // rename a column
-                String query = provider.getRenameColumnQuery();
-                String oldname = DBTools.quoteName(quote, name1, sensitive);
-                String newname = DBTools.quoteName(quote, name2, sensitive);
-                queries.add(MessageFormat.format(query, name, oldname, newname));
-                renamed = true;
+            // Modify an existing column
+            if (!name1.equals(column.newname)) {
+                // Rename a column
+                query = provider.getRenameColumnQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_RENAME);
+                queries.add(MessageFormat.format(query, arguments));
+                result += 1;
             }
 
             String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
             String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
+            boolean typechanged = !type2.equals(type1);
+            boolean alldone = !provider.hasColumnSetTypeQuery();
+            if (typechanged) {
+                // FIXME: Does the underlying driver have a specific command to change the type?
+                if (alldone) {
+                    query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN;
+                }
+                else {
+                    query = provider.getColumnSetTypeQuery();
+                }
+                queries.add(MessageFormat.format(query, arguments));
+                result += 2;
+            }
+            alldone &= typechanged;
             String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
             String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
-            if (!type2.equals(type1) || !default2.equals(default1)) {
-                StringBuilder buffer = new StringBuilder("ALTER TABLE ");
-                buffer.append(name);
-                buffer.append(" ALTER COLUMN ");
-                buffer.append(getStandardColumnPartQuery(provider, descriptor2, sensitive));
-                queries.add(buffer.toString());
-            }
-            else {
-                int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
-                int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
-                if (!(alterpk && renamed) && (nullable2 != nullable1)) {
-                    StringBuilder buffer = new StringBuilder("ALTER TABLE ");
-                    buffer.append(name);
-                    buffer.append(" ALTER COLUMN ");
-                    buffer.append(DBTools.quoteName(quote, name2, sensitive));
-                    if (nullable2 == ColumnValue.NO_NULLS) {
-                        buffer.append(" SET ");
-                    }
-                    else {
-                        buffer.append(" DROP ");
-                    }
-                    buffer.append(" NOT NULL");
-                    queries.add(buffer.toString());
+            //FIXME: Primary key column don't have to handle Default property
+            if (!alterpk && !alldone && !default2.equals(default1)) {
+                if (default2.isBlank()) {
+                    query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_RESET_DEFAULT;
+                    query = provider.getColumnResetDefaultQuery(query);
                 }
+                else {
+                    query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_SET_DEFAULT;
+                }
+                queries.add(MessageFormat.format(query, arguments));
+                result += 4;
+            }
+            int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
+            int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
+            //FIXME: Primary key column don't have to handle Not Null property
+            if (!alterpk && !alldone && (nullable2 != nullable1)) {
+                if (nullable2 == ColumnValue.NO_NULLS) {
+                    query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_SET_NOT_NULL;
+                }
+                else {
+                    query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_RESET_NOT_NULL;
+                }
+                queries.add(MessageFormat.format(query, arguments));
+                result += 8;
             }
         }
-
-        System.out.println("DBTableHelper.getAlterColumnQueries() 1 supportsColumnDescription: " + provider.supportsColumnDescription());
-        //if (provider.supportsColumnDescription()) {
-        if (true) {
+        if (provider.supportsColumnDescription()) {
             String comment1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DESCRIPTION);
             String comment2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
-            System.out.println("DBTableHelper.getAlterColumnQueries() 2 Comment1: " + comment1 + " - Comment2: " + comment2);
+            System.out.println("DBTableHelper.getAlterColumnQueries() 11 Comment1: " + comment1 + " - Comment2: " + comment2);
             if (!comment2.equals(comment1)) {
                 StringBuilder buffer = new StringBuilder(name);
                 buffer.append(".");
-                buffer.append(DBTools.quoteName(quote, name2, sensitive));
-                String query = provider.getColumnDescriptionQuery(buffer.toString(), comment2);
+                buffer.append(column.newidentifier);
+                String comment = provider.getStatement().enquoteLiteral(comment2);
+                query = provider.getColumnDescriptionQuery(buffer.toString(), comment);
                 queries.add(query);
+                result += 16;
             }
         }
-        return renamed;
+        for (String q: queries) {
+            System.out.println("DBTableHelper.getAlterColumnQueries() Query: " + q);
+        }
+        return result;
     }
 
+    private static ColumnProperties getStandardColumnProperties(DriverProvider provider,
+                                                                XPropertySet descriptor,
+                                                                boolean sensitive)
+        throws java.sql.SQLException, SQLException, IllegalArgumentException
+    {
+        String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        ColumnProperties column = new ColumnProperties(provider, newname, sensitive);
+        return getStandardColumnProperties(provider, column, descriptor);
+    }
+
+    private static ColumnProperties getStandardColumnProperties(DriverProvider provider,
+                                                                String oldname,
+                                                                XPropertySet descriptor,
+                                                                boolean sensitive)
+        throws java.sql.SQLException, SQLException, IllegalArgumentException
+    {
+        String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
+        ColumnProperties column = new ColumnProperties(provider, oldname, newname, sensitive);
+        return getStandardColumnProperties(provider, column, descriptor);
+    }
 
     /** creates the standard sql statement for the column part of statement.
      * @param provider
      *      The driver provider.
-     * @param column
+     * @param descriptor
      *      The descriptor of the column.
      * @param sensitive
      *      Is identifier case sensitive.
@@ -245,43 +387,27 @@ public class DBTableHelper
      * @throws IllegalArgumentException 
      */
 
-    private static String getStandardColumnPartQuery(DriverProvider provider,
-                                                    XPropertySet column,
-                                                    boolean sensitive)
+    private static ColumnProperties getStandardColumnProperties(DriverProvider provider,
+                                                                ColumnProperties column,
+                                                                XPropertySet descriptor)
         throws java.sql.SQLException, SQLException, IllegalArgumentException
     {
-        final StringBuilder buffer = new StringBuilder();
-        getStandardColumnPartQuery(buffer, provider, column, sensitive);
-        return buffer.toString();
-
-    }
-
-    private static boolean getStandardColumnPartQuery(StringBuilder buffer,
-                                                      DriverProvider provider,
-                                                      XPropertySet column,
-                                                      boolean sensitive)
-        throws java.sql.SQLException, SQLException, IllegalArgumentException
-    {
-        boolean hasAutoIncrementValue = false;
-        String name = DBTools.getDescriptorStringValue(column, PropertyIds.NAME);
-        buffer.append(DBTools.quoteName(provider, name, sensitive));
-        buffer.append(' ');
-        String typename = DBTools.getDescriptorStringValue(column, PropertyIds.TYPENAME);
-        int datatype = DBTools.getDescriptorIntegerValue(column, PropertyIds.TYPE);
-        int precision = DBTools.getDescriptorIntegerValue(column, PropertyIds.PRECISION);
-        int scale = DBTools.getDescriptorIntegerValue(column, PropertyIds.SCALE);
-        boolean isAutoIncrement = DBTools.getDescriptorBooleanValue(column, PropertyIds.ISAUTOINCREMENT);
+        boolean isAutoIncrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
+        String typename = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPENAME);
+        int datatype = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+        int precision = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.PRECISION);
+        int scale = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.SCALE);
         String autoIncrementValue = "";
         System.out.println("DBTableHelper.getStandardColumnPartQuery() 1 TYPENAME: " + typename + " - TYPE: " + datatype + " - PRECISION: " + precision + " - SCALE: " + scale);
         
         // Check if the user enter a specific string to create auto increment values
-        XPropertySetInfo info = column.getPropertySetInfo();
+        XPropertySetInfo info = descriptor.getPropertySetInfo();
         if (info != null && DBTools.hasDescriptorProperty(info, PropertyIds.AUTOINCREMENTCREATION)) {
-            autoIncrementValue = DBTools.getDescriptorStringValue(column, PropertyIds.AUTOINCREMENTCREATION);
-            hasAutoIncrementValue = !autoIncrementValue.isEmpty();
+            autoIncrementValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.AUTOINCREMENTCREATION);
+            column.isautoincrement = !autoIncrementValue.isEmpty();
         }
         
-        // look if we have to use precisions
+        // Look if we have to use precisions (ie: SCALE).
         boolean useliteral = false;
         String prefix = "";
         String postfix = "";
@@ -300,20 +426,18 @@ public class DBTableHelper
                 if (typename.isEmpty() && type2cmp == datatype) {
                     typename = typename2cmp;
                 }
-                System.out.println("DBTableHelper.getStandardColumnPartQuery() 2 typename: " + typename + " - typename2cmp: " + typename2cmp + " - type2cmp: " + type2cmp + " - datatype: " + datatype + " - createparams: " + createparams);
                 if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !createparams.isBlank() && !result.wasNull()) {
                     useliteral = true;
-                    System.out.println("DBTableHelper.getStandardColumnPartQuery() 2 useliteral: " + useliteral);
                     break;
                 }
             }
         }
         int index = 0;
-        if (hasAutoIncrementValue && (index = typename.indexOf(autoIncrementValue)) != -1) {
+        if (column.isautoincrement && (index = typename.indexOf(autoIncrementValue)) != -1) {
             typename = typename.substring(0, index);
         }
-        
-        if ((precision > 0 || scale > 0) && useliteral) {
+        // XXX: For type that use precisions we need to compose the type name...
+        if (useliteral && (precision > 0 || scale > 0)) {
             //FIXME: The original code coming from OpenOffice/main/connectivity/java check only for TIMESTAMP...
             //FIXME: Now all temporal SQL types with fraction of a second are taken into account.
             boolean timed = datatype == Types.TIME ||
@@ -327,58 +451,56 @@ public class DBTableHelper
                             datatype == Types.TIMESTAMP_WITH_TIMEZONE ?
                             typename.indexOf(' ') : typename.indexOf('(');
             if (insert == -1) {
-                buffer.append(typename);
+                column.columntype.append(typename);
             }
             else {
-                buffer.append(typename.substring(0, insert));
+                column.columntype.append(typename.substring(0, insert));
             }
-            buffer.append('(');
+            column.columntype.append('(');
             
             if (precision > 0 && !timed) {
-                buffer.append(precision);
+                column.columntype.append(precision);
                 if (scale > 0) {
-                    buffer.append(',');
+                    column.columntype.append(',');
                 }
             }
             if (scale > 0 || timed) {
-                buffer.append(scale);
+                column.columntype.append(scale);
             }
             
             if (insert == -1) {
-                buffer.append(')');
+                column.columntype.append(')');
             }
             else {
                 if (timed) {
-                    buffer.append(')');
+                    column.columntype.append(')');
                 }
                 else {
                     insert = typename.indexOf(')', insert);
                 }
-                buffer.append(typename.substring(insert));
+                column.columntype.append(typename.substring(insert));
             }
         }
+        // XXX: For type that don't use precisions simply add the type name
         else {
-            buffer.append(typename); // simply add the type name
+            column.columntype.append(typename);
         }
-        
-        String defaultvalue = DBTools.getDescriptorStringValue(column, PropertyIds.DEFAULTVALUE);
-        System.out.println("DBTableHelper.getStandardColumnPartQuery() DEFAULT: " + defaultvalue + " - PREFIX: " + prefix + " - POSTFIX: " + postfix + " - PARAM: " + createparams);
-        if (!defaultvalue.isEmpty()) {
-            buffer.append(" DEFAULT ");
-            buffer.append(prefix);
-            buffer.append(defaultvalue);
-            buffer.append(postfix);
+
+        // FIXME: Auto-increment take precedence on Default Value and Not Null property
+        String defaultvalue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DEFAULTVALUE);
+        int isnullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.ISNULLABLE);
+        if (isAutoIncrement && column.isautoincrement) {
+            column.autoincrement = autoIncrementValue;
         }
-        int isnullable = DBTools.getDescriptorIntegerValue(column, PropertyIds.ISNULLABLE);
-        if (isnullable == ColumnValue.NO_NULLS) {
-            buffer.append(" NOT NULL");
+        else {
+            if (isnullable == ColumnValue.NO_NULLS) {
+                column.notnull = true;
+            }
+            if (!defaultvalue.isEmpty()) {
+                column.defaultvalue = prefix + defaultvalue + postfix;
+            }
         }
-        
-        if (isAutoIncrement && hasAutoIncrementValue) {
-            buffer.append(' ');
-            buffer.append(autoIncrementValue);
-        }
-        return hasAutoIncrementValue;
+        return column;
     }
 
     /** creates the keys parts of SQL CREATE TABLE statement.
@@ -468,20 +590,20 @@ public class DBTableHelper
     private static String getColumnNames(DriverProvider provider,
                                          XIndexAccess columns,
                                          boolean sensitive)
-        throws SQLException,
+        throws java.sql.SQLException,
+               SQLException,
                WrappedTargetException,
                UnknownPropertyException,
                IllegalArgumentException,
                IndexOutOfBoundsException
     {
         String separator = ", ";
-        String quote = provider.getIdentifierQuoteString();
         List<String> names = new ArrayList<String>();
         for (int i = 0; i < columns.getCount(); i++) {
             XPropertySet properties = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
             if (properties != null) {
                 String name = DBTools.getDescriptorStringValue(properties, PropertyIds.NAME);
-                names.add(DBTools.quoteName(quote, name, sensitive));
+                names.add(provider.getStatement().enquoteIdentifier(name, sensitive));
             }
         }
         StringBuilder buffer = new StringBuilder(" (");

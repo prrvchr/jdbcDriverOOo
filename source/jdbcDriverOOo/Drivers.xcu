@@ -323,6 +323,16 @@
                         <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
                     </prop>
                 </node>
+                <node oor:name="RevokeRoleCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} FROM {1} RESTRICT</value>
+                    </prop>
+                </node>
+                <node oor:name="ColumnResetDefaultCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} SET DEFAULT NULL</value>
+                    </prop>
+                </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>%origin%/driver/hsqldb-2.7.2.jar</value>
@@ -368,11 +378,11 @@
                         <value>COMMENT ON COLUMN {0} IS {1}</value>
                     </prop>
                 </node>
-<!--                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                <node oor:name="SupportsColumnDescription" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
-                </node> -->
+                </node>
             </node>
         </node>
 
@@ -530,6 +540,16 @@
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">ALTER TABLE {0} SET SCHEMA {1}|ALTER TABLE {2} RENAME TO {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="ColumnSetTypeCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3}</value>
                     </prop>
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">

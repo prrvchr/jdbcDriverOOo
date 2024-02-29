@@ -51,7 +51,7 @@ public final class IndexColumnDescriptorContainer
                                                    String name)
         throws SQLException
     {
-        return (IndexColumnDescriptor) _cloneDescriptor(descriptor);
+        return (IndexColumnDescriptor) cloneDescriptor(descriptor);
     }
 
 

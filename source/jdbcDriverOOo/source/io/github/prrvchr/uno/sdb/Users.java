@@ -71,15 +71,15 @@ public final class Users
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
         try {
             String query = DBTools.getRevokeRoleQuery(m_connection.getProvider(), m_Group.getName(), name, isCaseSensitive());
-            System.out.println("sdbcx.GroupUserContainer._removeElement() SQL: " + query);
+            System.out.println("sdbcx.GroupUserContainer.removeDataBaseElement() SQL: " + query);
             DBTools.executeDDLQuery(m_connection.getProvider(), query, m_Group.getLogger(), this.getClass().getName(),
-                                    "_removeElement", Resources.STR_LOG_USERROLE_REMOVE_USER_QUERY, name);
+                                    "removeDataBaseElement", Resources.STR_LOG_USERROLE_REMOVE_USER_QUERY, name);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

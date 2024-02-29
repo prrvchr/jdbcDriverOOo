@@ -1363,25 +1363,7 @@ public abstract class DatabaseMetaDataBase
     @Override
     public XResultSet getTypeInfo() throws SQLException
     {
-        try {
-            System.out.println("sdbc.DatabaseMetaData.getTypeInfo() 1");
-            java.sql.ResultSet resultset = m_Metadata.getTypeInfo();
-            while (resultset.next()) {
-                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + resultset.getString(1) + " - Type: " + resultset.getInt(2) + " - CreateParam: " + resultset.getString(6) + " - AutoIncrement: " + resultset.getBoolean(12));
-            }
-            return _getTypeInfo();
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace()) {
-                System.out.println(trace);
-            }
-            return null;
-        }
+        return _getTypeInfo();
     }
 
     @Override

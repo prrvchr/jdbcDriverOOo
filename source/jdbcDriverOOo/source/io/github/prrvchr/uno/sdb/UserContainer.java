@@ -140,13 +140,13 @@ public class UserContainer
 
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
             String sql = DBTools.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
-            System.out.println("sdbcx.UserContainer._removeElement() SQL: " + sql);
+            System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + sql);
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {

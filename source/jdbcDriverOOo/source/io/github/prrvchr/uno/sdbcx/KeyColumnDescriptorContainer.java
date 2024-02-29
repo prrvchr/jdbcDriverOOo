@@ -50,7 +50,7 @@ public final class KeyColumnDescriptorContainer
                                                  String name)
         throws SQLException
     {
-        return (KeyColumnDescriptor) _cloneDescriptor(descriptor);
+        return (KeyColumnDescriptor) cloneDescriptor(descriptor);
     }
 
 

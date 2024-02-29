@@ -160,7 +160,6 @@ public final class KeyContainer
             }
             
             java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
-            String quote = getConnection().getProvider().getIdentifierQuoteString();
             ComposeRule rule = ComposeRule.InTableDefinitions;
             String tableName = DBTools.buildName(getConnection().getProvider(), m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), rule, isCaseSensitive());
 
@@ -169,7 +168,7 @@ public final class KeyContainer
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
             for (int i = 0; i < columns.getCount(); i++) {
                 XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                cols.add(DBTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.NAME.name))));
+                cols.add(getConnection().getProvider().getStatement().enquoteIdentifier(DBTools.getDescriptorStringValue(columnProperties, PropertyIds.NAME), isCaseSensitive()));
             }
             String sql = String.format("ALTER TABLE %s ADD %s (%s)", tableName, keyTypeString, String.join(",", cols));
             if (keyType == KeyType.FOREIGN) {
@@ -177,7 +176,7 @@ public final class KeyContainer
                 cols = new ArrayList<String>();
                 for (int i = 0; i < columns.getCount(); i++) {
                     XPropertySet columnProperties = (XPropertySet) AnyConverter.toObject(XPropertySet.class, columns.getByIndex(i));
-                    cols.add(DBTools.quoteName(quote, AnyConverter.toString(columnProperties.getPropertyValue(PropertyIds.RELATEDCOLUMN.name))));
+                    cols.add(getConnection().getProvider().getStatement().enquoteIdentifier(DBTools.getDescriptorStringValue(columnProperties, PropertyIds.RELATEDCOLUMN), isCaseSensitive()));
                 }
                 sql += String.format(" REFERENCES %s (%s) %s %s", quotedTableName, String.join(",", cols),
                                      getKeyRuleString(true, updateRule), getKeyRuleString(false, deleteRule));
@@ -240,8 +239,8 @@ public final class KeyContainer
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
         ConnectionSuper connection = m_table.getConnection();
@@ -278,9 +277,9 @@ public final class KeyContainer
     }
     private String getForeignKeyName(ConnectionSuper connection,
                                      String name)
-        throws SQLException
+        throws java.sql.SQLException
     {
-        return DBTools.quoteName(connection.getMetaData().getIdentifierQuoteString(), name);
+        return DBTools.enquoteIdentifier(connection.getProvider(), name, isCaseSensitive());
     }
 
     @Override

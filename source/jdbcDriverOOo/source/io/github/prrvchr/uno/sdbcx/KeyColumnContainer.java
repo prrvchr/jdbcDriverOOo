@@ -140,8 +140,8 @@ public final class KeyColumnContainer
     }
 
     @Override
-    protected void removeElement(int index,
-                                  String name)
+    protected void removeDataBaseElement(int index,
+                                         String name)
         throws SQLException
     {
         throw new SQLException("Cannot change a key's columns, please delete and re-create the key instead");

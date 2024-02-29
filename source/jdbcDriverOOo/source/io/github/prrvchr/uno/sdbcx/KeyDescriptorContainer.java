@@ -55,7 +55,7 @@ public final class KeyDescriptorContainer
         throws SQLException
     {
         System.out.println("sdbcx.descriptors.KeyDescriptorContainer._appendElement() 1");
-        XPropertySet newDescriptor = _cloneDescriptor(descriptor);
+        XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
         System.out.println("sdbcx.descriptors.KeyDescriptorContainer._appendElement() 2");
         return (KeyDescriptor) newDescriptor;

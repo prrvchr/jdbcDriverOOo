@@ -53,7 +53,7 @@ public final class IndexDescriptorContainer
                                           String name)
         throws SQLException
     {
-        XPropertySet newDescriptor = _cloneDescriptor(descriptor);
+        XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
         return (IndexDescriptor) newDescriptor;
     }

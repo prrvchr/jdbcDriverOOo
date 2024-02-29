@@ -97,13 +97,6 @@ public final class HsqlDBDriverProvider
     }
 
     @Override
-    public String getRevokeRoleQuery()
-    {
-        return "REVOKE %s FROM %s RESTRICT";
-    }
-
-    
-    @Override
     public String getUserQuery()
     {
         return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS;";

@@ -66,6 +66,9 @@ public abstract class DriverProviderMain
     private boolean m_IgnoreDriverPrivileges = true;
     private boolean m_SupportRenameView = true;
     private String m_RenameColumnCommand = null;
+    private String m_ColumnSetTypeCommand = null;
+    private String m_ColumnResetDefaultCommand = null;
+    private String m_RevokeRoleCommand = null;
     private Object[] m_RenameTableCommands = null;
     private Object[] m_ViewDefinitionCommands = null;
     private Object[] m_AlterViewCommands = null;
@@ -129,10 +132,36 @@ public abstract class DriverProviderMain
         return getDDLQueriesCommand(m_RenameTableCommands, null, reverse, arguments);
     }
 
-    public String getRenameColumnQuery() {
+    @Override
+    public String getRenameColumnQuery(String command) {
         return m_RenameColumnCommand != null ?
                m_RenameColumnCommand :
-               DBDefaultQuery.STR_QUERY_RENAME_COLUMN;
+               command;
+    }
+
+    @Override
+    public boolean hasColumnSetTypeQuery() {
+        return m_ColumnSetTypeCommand != null;
+    }
+
+    @Override
+    public String getColumnResetDefaultQuery(String command) {
+        return m_ColumnResetDefaultCommand != null ?
+               m_ColumnResetDefaultCommand :
+               command;
+    }
+
+    @Override
+    public String getColumnSetTypeQuery() {
+        return m_ColumnSetTypeCommand;
+    }
+
+    @Override
+    public String getRevokeRoleQuery(String command)
+    {
+        return m_RevokeRoleCommand != null ?
+                m_RevokeRoleCommand :
+                command;
     }
 
     @Override
@@ -372,12 +401,6 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getRevokeRoleQuery()
-    {
-        return "REVOKE %s FROM %s";
-    }
-
-    @Override
     public boolean acceptsURL(final String url)
     {
         if (url.startsWith(getSubProtocol())) {
@@ -422,6 +445,9 @@ public abstract class DriverProviderMain
         m_ViewDefinitionCommands = (Object[]) getConnectionProperties(infos, "ViewDefinitionCommands", null);
         m_SupportRenameView = (boolean) getConnectionProperties(infos, "SupportRenameView", true);
         m_RenameColumnCommand = (String) getConnectionProperties(infos, "RenameColumnCommand", null);
+        m_ColumnSetTypeCommand = (String) getConnectionProperties(infos, "ColumnSetTypeCommand", null);
+        m_ColumnResetDefaultCommand = (String) getConnectionProperties(infos, "ColumnResetDefaultCommand", null);
+        m_RevokeRoleCommand =(String) getConnectionProperties(infos, "RevokeRoleCommand", null);
         m_RenameTableCommands = (Object[]) getConnectionProperties(infos, "RenameTableCommands", null);
         m_TypeInfoSettings = (Object[]) getConnectionProperties(infos, "TypeInfoSettings", null);
         if (_getAutoRetrieving(metadata, infos)) {
