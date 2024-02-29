@@ -150,7 +150,7 @@ public abstract class TableMain
                     fname = DBTools.buildName(m_connection.getProvider(), m_CatalogName, m_SchemaName, cpt.getTable(), rule, false);
                 }
             }
-    
+
             // FIXME: If the move action is not atomic (performed by 2 commands) then it may not be possible
             // FIXME: since adjacent actions may encounter a conflict of already existing names.
             if (m_connection.getTablesInternal().hasByName(fname)) {
@@ -158,7 +158,7 @@ public abstract class TableMain
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname, newname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
-    
+
             Object[] parameters = DBTools.getRenameTableArguments(m_connection.getProvider(), cpt, this, oldname, 
                                                                   reversed, rule, isCaseSensitive(), true);
             List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);

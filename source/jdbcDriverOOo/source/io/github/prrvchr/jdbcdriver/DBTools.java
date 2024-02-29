@@ -542,8 +542,8 @@ public class DBTools
                                            boolean sensitive)
         throws java.sql.SQLException
     {
-        
-        if (sensitive) {
+        // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
+        if (sensitive && !name.isBlank()) {
             name = provider.getStatement().enquoteIdentifier(name, sensitive);
         }
         return name;
@@ -1547,8 +1547,10 @@ public class DBTools
                     index ++;
                     continue;
                 }
+                System.out.println("DBTools.executeDDLQueries() 1");
                 try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
                     Integer[] position = (positions.size() > index) ? positions.get(index) : new Integer[]{};
+                    System.out.println("DBTools.executeDDLQueries() 2");
                     executeUpdate(statement, parameters, position, logger,
                                   query, cls, method, resource, arguments);
                     index ++;
@@ -1596,6 +1598,7 @@ public class DBTools
             statement.setString(i++, (String) parameters[position]);
         }
         logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
+        System.out.println("DBTools.executeUpdate() 1 Query: " + query);
         statement.executeUpdate();
     }
 
