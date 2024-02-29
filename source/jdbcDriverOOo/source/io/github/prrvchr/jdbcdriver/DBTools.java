@@ -542,7 +542,11 @@ public class DBTools
                                            boolean sensitive)
         throws java.sql.SQLException
     {
-        return provider.getStatement().enquoteIdentifier(name, sensitive);
+        
+        if (sensitive) {
+            name = provider.getStatement().enquoteIdentifier(name, sensitive);
+        }
+        return name;
     }
 
     /** quote the given table name (which may contain a catalog and a schema) according to the rules provided by the meta data

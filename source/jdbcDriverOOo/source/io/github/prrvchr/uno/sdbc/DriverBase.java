@@ -406,25 +406,27 @@ public abstract class DriverBase
         }
         String[] boolchoices = {"false", "true"};
         List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
+        // XXX: Name, Description, IsRequired, Value, Choices
         properties.add(new DriverPropertyInfo("JavaDriverClass", "The JDBC driver class name.", true, "", new String[0]));
         properties.add(new DriverPropertyInfo("JavaDriverClassPath", "The class path where to look for the JDBC driver.", true, "", new String[0]));
         properties.add(new DriverPropertyInfo("SystemProperties", "Additional properties to set at java.lang.System before loading the driver.", true, "", new String[0]));
-        properties.add(new DriverPropertyInfo("ParameterNameSubstitution", "Change named parameters with '?'.", false, "false", boolchoices));
-        properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled", "Retrieve generated values.", false, "false", boolchoices));
+        properties.add(new DriverPropertyInfo("ParameterNameSubstitution", "Change named parameters with '?'.", false, "false", boolchoices.clone()));
+        properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled", "Retrieve generated values.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("AutoRetrievingStatement", "Auto-increment statement.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("GenerateASBeforeCorrelationName", "Generate AS before table correlation names.", false, "true", boolchoices));
-        properties.add(new DriverPropertyInfo("IgnoreCurrency", "Ignore the currency field from the ResultsetMetaData.", false, "false", boolchoices));
-        properties.add(new DriverPropertyInfo("EscapeDateTime", "Escape date time format.", false, "true", boolchoices));
+        properties.add(new DriverPropertyInfo("GenerateASBeforeCorrelationName", "Generate AS before table correlation names.", false, "true", boolchoices.clone()));
+        properties.add(new DriverPropertyInfo("IgnoreCurrency", "Ignore the currency field from the ResultsetMetaData.", false, "false", boolchoices.clone()));
+        properties.add(new DriverPropertyInfo("EscapeDateTime", "Escape date time format.", false, "true", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("AlterViewCommands", "Provides the necessary commands to alter a view", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, "", new String[0]));
         properties.add(new DriverPropertyInfo("ColumnDescriptionCommand", "Column description setting statement.", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("SupportColumnDescription", "Column description setting statement.", false, "true", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("TableDescriptionCommand", "Table description setting statement.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ViewDefinitionCommands", "preparedstatement query for retrieving view's SQL command.", false, "", new String[0]));
         //if (!m_enhanced) {
-        properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices));
+        properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices.clone()));
         //}
         return properties.toArray(new DriverPropertyInfo[0]);
     }

@@ -415,8 +415,9 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 ### Ce qui a été fait pour la version 1.2.1:
 
 - Résolution d'une régression interdisant la suppression de colonnes dans une table.
+- Mise à jour du pilote mariadb-java-client-3.3.3.jar.
 - Généralisation des classes Java génériques pour toutes les classes devant être partagées au niveau de l'API UNO (ie: sdb, sdbc et sdbcx).
-- On peut désormais renommer les colonnes des tables sous SQLite.
+- On peut désormais renommer les colonnes des tables sous SQLite et MariaDB.
 - Il est également possible de renommer les colonnes déclarées comme clé primaire dans tous les pilotes embarqués.
 - De nombreuses améliorations.
 

@@ -479,6 +479,11 @@
                         <value oor:separator="|">RENAME TABLE {0} TO {7}|</value>
                     </prop>
                 </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
@@ -486,7 +491,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/mariadb-java-client-3.3.2.jar</value>
+                        <value>%origin%/driver/mariadb-java-client-3.3.3.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">

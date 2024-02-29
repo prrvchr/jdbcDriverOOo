@@ -415,8 +415,9 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 ### What has been done for version 1.2.1:
 
 - Resolution of a regression prohibiting the deletion of columns in a table.
+- Updated mariadb-java-client-3.3.3.jar driver.
 - Generalization of generic Java classes for all classes needing to be shared at the UNO API level (ie: sdb, sdbc and sdbcx).
-- We can now rename table columns in SQLite.
+- We can now rename table columns in SQLite and MariaDB.
 - It is also possible to rename the columns declared as primary key in all embedded drivers.
 - Many improvements.
 
