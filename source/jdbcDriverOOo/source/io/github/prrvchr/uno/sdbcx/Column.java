@@ -36,7 +36,7 @@ public final class Column
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
 
     // The constructor method:
-    public Column(final TableSuper table,
+    public Column(final TableSuper<?> table,
                   final boolean sensitive,
                   final String name,
                   final String typename,

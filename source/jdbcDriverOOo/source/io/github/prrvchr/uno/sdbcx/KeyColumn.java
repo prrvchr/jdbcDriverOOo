@@ -44,7 +44,7 @@ public final class KeyColumn
     private String m_RelatedColumn;
 
     // The constructor method:
-    public KeyColumn(TableSuper table,
+    public KeyColumn(TableSuper<?> table,
                      final boolean sensitive,
                      final String name,
                      final String typename,

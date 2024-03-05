@@ -31,15 +31,15 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.CallableStatementBase;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
-public abstract class CallableStatementSuper
-    extends CallableStatementBase
+public abstract class CallableStatementSuper<C extends ConnectionSuper>
+    extends CallableStatementBase<C>
 {
 
     protected boolean m_UseBookmarks  = false;
@@ -51,7 +51,7 @@ public abstract class CallableStatementSuper
     // XXX: - io.github.prrvchr.uno.sdbcx.CallableStatement()
     public CallableStatementSuper(String service,
                                   String[] services,
-                                  ConnectionBase connection,
+                                  C connection,
                                   String sql)
     {
         super(service, services, connection, sql);
@@ -74,6 +74,11 @@ public abstract class CallableStatementSuper
                     m_UseBookmarks = (boolean) value;
                 }
             });
+    }
+
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
     }
 
     @Override

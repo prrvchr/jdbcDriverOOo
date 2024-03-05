@@ -41,7 +41,7 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][13] version 2.7.2  
   Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
 - [SQLite JDBC Driver][14] version 3.45.1.6-SNAPSHOT
-- [MariaDB Connector/J][15] version 3.3.2
+- [MariaDB Connector/J][15] version 3.3.3
 - [PostgreSQL JDBC Driver][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
@@ -421,7 +421,14 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Il est également possible de renommer les colonnes déclarées comme clé primaire dans tous les pilotes embarqués.
 - De nombreuses améliorations.
 
-### Que reste-t-il à faire pour la version 1.2.1:
+### Ce qui a été fait pour la version 1.2.2:
+
+- Mise en place de la gestion des index.
+- Renommer une colonne déclarée comme clé primaire renommera également l'index associé à la clé primaire.
+- Seuls les membres des classes Java répondant à l'API UNO ont un niveau de visibilité public, tous les autres membres ont une visibilité protégée ou privée.
+- Résolution de nombreux problèmes et régressions.
+
+### Que reste-t-il à faire pour la version 1.2.2:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -454,7 +461,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.1#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.2#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>

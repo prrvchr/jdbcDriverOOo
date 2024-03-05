@@ -39,7 +39,7 @@ import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 
 
 public final class TableContainer
-    extends TableContainerSuper<Table>
+    extends TableContainerSuper<Table, Connection>
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Tables",
@@ -55,15 +55,10 @@ public final class TableContainer
         super(m_service, m_services, connection, sensitive, names);
     }
 
-    // XXX: To keep access to logger protected we need this access
+    // XXX: To keep access to logger in protected mode we need this access
     @Override
     protected ConnectionLog getLogger() {
-        return m_logger;
-    }
-
-    @Override
-    protected Connection getConnection() {
-        return (Connection) m_Connection;
+        return super.getLogger();
     }
 
     @Override
@@ -77,9 +72,9 @@ public final class TableContainer
                               String type,
                               String remarks)
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
         Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
         return table;
     }
 

@@ -53,7 +53,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class StatementMain<S extends java.sql.Statement>
+public abstract class StatementMain<S extends java.sql.Statement, C extends ConnectionBase>
     extends PropertySet
     implements XServiceInfo,
                XWarningsSupplier,
@@ -65,7 +65,7 @@ public abstract class StatementMain<S extends java.sql.Statement>
 
     private final String m_service;
     private final String[] m_services;
-    protected ConnectionBase m_Connection;
+    protected C m_Connection;
     protected final ConnectionLog m_logger;
     protected S m_Statement = null;
     protected String m_Sql = "";
@@ -85,7 +85,7 @@ public abstract class StatementMain<S extends java.sql.Statement>
     // The constructor method:
     public StatementMain(String service,
                          String[] services,
-                         ConnectionBase connection)
+                         C connection)
     {
         m_service = service;
         m_services = services;
@@ -94,7 +94,12 @@ public abstract class StatementMain<S extends java.sql.Statement>
         registerProperties();
     }
 
-    public ConnectionLog getLogger()
+    protected C getConnectionInternal()
+    {
+        return m_Connection;
+    }
+
+    protected ConnectionLog getLogger()
     {
         return m_logger;
     }
@@ -479,12 +484,12 @@ public abstract class StatementMain<S extends java.sql.Statement>
     public XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         try {
             String command = m_Connection.getProvider().getAutoRetrievingStatement();
             java.sql.ResultSet result = getGeneratedResult(command);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            resultset = new ResultSet(m_Connection, result);
+            resultset = new ResultSet(getConnectionInternal(), result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, _getColumnNames(result, count));

@@ -33,6 +33,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.XComponentContext;
@@ -52,16 +53,16 @@ public abstract class ConnectionSuper
                XViewsSupplier
 {
 
-    private TableContainerSuper<?> m_Tables = null;
+    private TableContainerSuper<?,?> m_Tables = null;
     private ViewContainer m_Views = null;
 
     protected DriverProvider getProvider()
     {
-        return m_provider;
+        return super.getProvider();
     }
     protected ConnectionLog getLogger()
     {
-        return m_provider.getLogger();
+        return super.getLogger();
     }
 
     // The constructor method:
@@ -70,12 +71,9 @@ public abstract class ConnectionSuper
                            String[] services,
                            DriverProvider provider,
                            String url,
-                           PropertyValue[] info,
-                           boolean enhanced,
-                           boolean showsystem,
-                           boolean usebookmark)
+                           PropertyValue[] info)
     {
-        super(ctx, service, services, provider, url, info, enhanced, showsystem, usebookmark);
+        super(ctx, service, services, provider, url, info);
     }
 
     // com.sun.star.lang.XComponent
@@ -105,7 +103,7 @@ public abstract class ConnectionSuper
     }
 
     // Protected methods
-    protected synchronized TableContainerSuper<?> getTablesInternal()
+    protected synchronized TableContainerSuper<?,?> getTablesInternal()
     {
         checkDisposed();
         if (m_Tables == null) {
@@ -130,6 +128,19 @@ public abstract class ConnectionSuper
         refreshViews();
     }
 
+    @Override
+    protected XStatement _getStatement()
+    {
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        Statement statement = new Statement(this);
+        getStatements().put(statement, statement);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        return statement;
+    }
+
+    protected abstract TableContainerSuper<?,?> getTableContainer(List<String> names) throws ElementExistException;
+    protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
+
     private void refreshTables()
     {
         try {
@@ -137,7 +148,7 @@ public abstract class ConnectionSuper
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
             List<String> names = new ArrayList<>();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes(m_showsystem)))
+            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes()))
             {
                 while (result.next()) {
                     String name = buildName(result);
@@ -158,11 +169,11 @@ public abstract class ConnectionSuper
         }
     }
 
-    public void refreshViews() {
+    private void refreshViews() {
         try {
             List<String> names = new ArrayList<>();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes(m_showsystem)))
+            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes()))
             {
                 while (result.next()) {
                     String name = buildName(result);
@@ -183,7 +194,7 @@ public abstract class ConnectionSuper
         }
     }
 
-    protected String buildName(java.sql.ResultSet result)
+    private String buildName(java.sql.ResultSet result)
         throws SQLException
     {
         try {
@@ -193,8 +204,5 @@ public abstract class ConnectionSuper
             throw UnoHelper.getSQLException(e, this);
         }
     }
-
-    protected abstract TableContainerSuper<?> getTableContainer(List<String> names) throws ElementExistException;
-    protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
 
 }

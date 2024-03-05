@@ -29,13 +29,13 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.ResultSetSuper;
+import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class ResultSet
-    extends ResultSetSuper
+    extends ResultSetSuper<Connection>
     implements XColumnsSupplier
 {
     private static final String m_service = ResultSet.class.getName();
@@ -45,9 +45,9 @@ public final class ResultSet
 
 
     // The constructor method:
-    public ResultSet(ConnectionBase connection,
+    public ResultSet(Connection connection,
                      java.sql.ResultSet resultset,
-                     StatementMain<?> statement,
+                     StatementMain<?,?> statement,
                      boolean bookmark)
     throws SQLException
     {
@@ -55,6 +55,11 @@ public final class ResultSet
         System.out.println("sdb.ResultSet() 1");
     }
 
+    @Override
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
+    }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override

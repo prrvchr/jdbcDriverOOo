@@ -85,14 +85,14 @@ public class DBTableHelper
         ColumnProperties(DriverProvider provider, String name, boolean sensitive)
             throws java.sql.SQLException
         {
-            this(provider.getStatement().enquoteIdentifier(name, sensitive), name);
+            this(DBTools.enquoteIdentifier(provider, name, sensitive), name);
         }
         ColumnProperties(DriverProvider provider, String name1, String name2, boolean sensitive)
             throws java.sql.SQLException
         {
             // XXX: If it's a new column then name1 is empty...
-            this(provider.getStatement().enquoteIdentifier(name1.isBlank() ? name2 : name1, sensitive),
-                 provider.getStatement().enquoteIdentifier(name2, sensitive),
+            this(DBTools.enquoteIdentifier(provider, name1.isBlank() ? name2 : name1, sensitive),
+                 DBTools.enquoteIdentifier(provider, name2, sensitive),
                  name2);
         }
         private ColumnProperties(String identifier, String name)
@@ -255,7 +255,7 @@ public class DBTableHelper
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static byte getAlterColumnQueries(List<String> queries,
                                              DriverProvider provider,
-                                             TableSuper table,
+                                             TableSuper<?> table,
                                              XPropertySet descriptor1,
                                              XPropertySet descriptor2,
                                              boolean alterpk,
@@ -603,7 +603,7 @@ public class DBTableHelper
             XPropertySet properties = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
             if (properties != null) {
                 String name = DBTools.getDescriptorStringValue(properties, PropertyIds.NAME);
-                names.add(provider.getStatement().enquoteIdentifier(name, sensitive));
+                names.add(DBTools.enquoteIdentifier(provider, name, sensitive));
             }
         }
         StringBuilder buffer = new StringBuilder(" (");

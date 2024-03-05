@@ -31,13 +31,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbcx.PreparedStatementSuper;
 
 
 public final class PreparedStatement
-    extends PreparedStatementSuper
+    extends PreparedStatementSuper<Connection>
     implements XColumnsSupplier
 {
 
@@ -54,6 +54,10 @@ public final class PreparedStatement
         System.out.println("sdb.PreparedStatement() 1: '" + sql + "'");
     }
 
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
+    }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
@@ -77,10 +81,10 @@ public final class PreparedStatement
         throws SQLException
     {
         System.out.println("sdb.PreparedStatement._getResultSet()");
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
-            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
+            resultset =  new ResultSet(getConnectionInternal(), result, this, m_UseBookmarks);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;

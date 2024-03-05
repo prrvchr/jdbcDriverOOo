@@ -42,7 +42,7 @@ public abstract class ColumnSuper
     // The constructor method:
     public ColumnSuper(String service,
                        String[] services,
-                       TableSuper table,
+                       TableSuper<?> table,
                        boolean sensitive,
                        String name,
                        final String typename,
@@ -90,7 +90,7 @@ public abstract class ColumnSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_table.getConnection().getAutoIncrementCreation();
+                    return m_table.getConnection().getProvider().getAutoIncrementCreation();
                 }
             }, null);
     }

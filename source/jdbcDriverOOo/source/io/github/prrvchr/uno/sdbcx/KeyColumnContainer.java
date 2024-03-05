@@ -30,13 +30,7 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -121,21 +115,10 @@ public final class KeyColumnContainer
     }
 
     @Override
-    public String getElementName(List<String> names,
-                                  XPropertySet descriptor)
-        throws SQLException, ElementExistException
-    {
-        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
-        if (names.contains(name)) {
-            throw new ElementExistException();
-        }
-        return name;
-    }
-
-    @Override
-    protected KeyColumn appendElement(XPropertySet descriptor, String name)
+    protected KeyColumn appendElement(XPropertySet descriptor)
         throws SQLException
     {
+        System.out.println("sdbcx.KeyColumnContainer.appendElement() ******************************************");
         throw new SQLException("Cannot change a key's columns, please delete and re-create the key instead");
     }
 
@@ -144,6 +127,7 @@ public final class KeyColumnContainer
                                          String name)
         throws SQLException
     {
+        System.out.println("sdbcx.KeyColumnContainer.removeDataBaseElement() ******************************************");
         throw new SQLException("Cannot change a key's columns, please delete and re-create the key instead");
     }
 
@@ -155,21 +139,14 @@ public final class KeyColumnContainer
     }
 
     @Override
-    protected void _refresh()
+    protected void refreshInternal()
     {
     }
 
-    protected void rename(String oldname, String newname)
+    protected void renameKeyColumn(String oldname, String newname)
         throws SQLException
     {
-        System.out.println("KeyColumnContainer.rename() OldName: " + oldname + " - NewName: " + newname);
-        synchronized (getConnection()) {
-            if (!m_Elements.containsKey(oldname) || !m_Names.contains(oldname)) {
-                int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-                throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
-            }
-            getElement(oldname).setName(newname);
+        if (hasByName(oldname)) {
             replaceElement(oldname, newname);
         }
     }

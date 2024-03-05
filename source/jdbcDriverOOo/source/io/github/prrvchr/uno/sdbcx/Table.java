@@ -35,19 +35,14 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Table
-    extends TableSuper
+    extends TableSuper<Connection>
 {
 
     private static final String m_service = Table.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
 
-    @Override
-    protected Connection getConnection() {
-        return (Connection) m_connection;
-    }
-
     // The constructor method:
-    public Table(ConnectionSuper connection,
+    public Table(Connection connection,
                  boolean sensitive,
                  String catalog,
                  String schema,

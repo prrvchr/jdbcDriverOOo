@@ -31,19 +31,17 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
 public final class CallableStatement
-    extends CallableStatementSuper
+    extends CallableStatementSuper<Connection>
 {
     private static final String m_service = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement",
                                                 "com.sun.star.sdbcx.CallableStatement"};
 
     // The constructor method:
-    public CallableStatement(ConnectionBase connection,
+    public CallableStatement(Connection connection,
                              String sql)
     {
         super(m_service, m_services, connection, sql);
@@ -54,7 +52,7 @@ public final class CallableStatement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);

@@ -41,7 +41,6 @@ import com.sun.star.sdb.XSQLQueryComposer;
 import com.sun.star.sdb.XSQLQueryComposerFactory;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
-import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.Exception;
@@ -51,7 +50,6 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
-import io.github.prrvchr.uno.sdbcx.Statement;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
 
@@ -75,23 +73,20 @@ public final class Connection
 
     protected DriverProvider getProvider()
     {
-        return m_provider;
+        return super.getProvider();
     }
     protected ConnectionLog getLogger()
     {
-        return m_provider.getLogger();
+        return super.getLogger();
     }
 
     // The constructor method:
     public Connection(XComponentContext ctx,
                       DriverProvider provider,
                       String url,
-                      PropertyValue[] info,
-                      boolean enhanced,
-                      boolean showsystem,
-                      boolean usebookmark)
+                      PropertyValue[] info)
     {
-        super(ctx, m_service, m_services, provider, url, info, enhanced, showsystem, usebookmark);
+        super(ctx, m_service, m_services, provider, url, info);
         System.out.println("sdb.Connection() *************************");
     }
 
@@ -219,22 +214,12 @@ public final class Connection
     }
 
     @Override
-    protected XStatement _getStatement()
-    {
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
-        Statement statement = new Statement(this);
-        m_statements.put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
-        return statement;
-    }
-
-    @Override
     protected XPreparedStatement _getPreparedStatement(String sql)
         throws SQLException
     {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
-        m_statements.put(statement, statement);
+        getStatements().put(statement, statement);
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
         return statement;
     }
@@ -245,7 +230,7 @@ public final class Connection
     {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
-        m_statements.put(statement, statement);
+        getStatements().put(statement, statement);
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
         return statement;
     }
@@ -329,7 +314,7 @@ public final class Connection
     protected ViewContainer getViewContainer(List<String> names)
         throws ElementExistException
     {
-        return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+       return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
     }
 
 }

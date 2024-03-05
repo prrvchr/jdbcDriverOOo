@@ -25,20 +25,15 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.List;
 
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
-public abstract class DescriptorContainer<T>
+public abstract class DescriptorContainer<T extends Descriptor>
     extends Container<T>
 {
     private static final String m_service = DescriptorContainer.class.getName();
@@ -70,21 +65,8 @@ public abstract class DescriptorContainer<T>
     }
     
     @Override
-    protected void _refresh()
+    protected void refreshInternal()
     {
     }
-
-    @Override
-    public String getElementName(List<String> names,
-                                  XPropertySet descriptor)
-        throws SQLException, ElementExistException
-    {
-        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
-        if (names.contains(name)) {
-            throw new ElementExistException();
-        }
-        return name;
-    }
-    
 
 }

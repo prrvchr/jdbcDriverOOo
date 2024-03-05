@@ -200,7 +200,7 @@ public final class ResultSetMetaData
         throws SQLException
     {
         try {
-            if (m_Connection.isIgnoreCurrencyEnabled()) {
+            if (m_Connection.getProvider().isIgnoreCurrencyEnabled()) {
                 return false;
             }
             return m_Metadata.isCurrency(index);

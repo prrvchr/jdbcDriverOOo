@@ -36,20 +36,17 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.ResultSet;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
 
 
 public final class GeneratedResultSet
 {
-    public final static XResultSet getGeneratedValues(ConnectionBase connection,
+    public final static XResultSet getGeneratedValues(ConnectionSuper connection,
                                                       java.sql.Statement statement,
                                                       ConnectionLog logger)
         throws SQLException
     {
         //statement.checkDisposed();
-        ResultSetBase resultset = null;
+        ResultSetSuper<?> resultset = null;
         java.sql.ResultSet result;
         try {
             if (connection.supportsService("com.sun.star.sdbcx.Connection")) {
@@ -85,7 +82,7 @@ public final class GeneratedResultSet
             DBQueryParser parser = new DBQueryParser(sql);
             if (parser.isExecuteUpdateStatement() && parser.hasTable()) {
                 String name = DBTools.unQuoteTableName(connection.getProvider(), parser.getTable());
-                TableSuper table = connection.getTablesInternal().getElement(name);
+                TableSuper<?> table = connection.getTablesInternal().getElement(name);
                 if (table != null) {
                     columns = table.getColumnsInternal().getElementNames();
                 }

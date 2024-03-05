@@ -34,7 +34,6 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -84,29 +83,17 @@ public class UserContainer
         m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
-    public ConnectionLog getLogger()
+    protected ConnectionLog getLogger()
     {
         return m_logger;
     }
 
     @Override
-    public String getElementName(List<String> names,
-                                  XPropertySet descriptor)
-        throws SQLException, ElementExistException
-    {
-        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
-        if (names.contains(name)) {
-            throw new ElementExistException();
-        }
-        return name;
-    }
-
-    @Override
-    protected User appendElement(XPropertySet descriptor,
-                                          String name)
+    protected User appendElement(XPropertySet descriptor)
         throws SQLException
     {
         User user = null;
+        String name = getElementName(descriptor);
         if (_createUser(descriptor, name)) {
             user = createElement(name);
         }
@@ -155,7 +142,7 @@ public class UserContainer
     }
 
     @Override
-    protected void _refresh()
+    protected void refreshInternal()
     {
         m_connection.refresh();
     }

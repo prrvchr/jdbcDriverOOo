@@ -3113,7 +3113,7 @@ public abstract class DatabaseMetaDataBase
                                        String method)
         throws SQLException
     {
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
         if (result != null) {
             resultset = new ResultSet(m_Connection, result);
@@ -3133,7 +3133,7 @@ public abstract class DatabaseMetaDataBase
             resultset = m_Metadata.getTypeInfo();
             while (resultset.next()) {
                 CustomColumn[] columns = _getTypeInfoRow(resultset);
-                rows.add(m_Connection.getTypeInfoRow(columns));
+                rows.add(m_Connection.getProvider().getTypeInfoRow(columns));
             }
             resultset.close();
             CustomResultSet result = new CustomResultSet(_getTypeInfoMetadata(), rows);
@@ -3145,7 +3145,7 @@ public abstract class DatabaseMetaDataBase
             while (resultset.next())
             {
                 CustomColumn[] columns = _getTypeInfoRow(resultset);
-                rows.add(m_Connection.getTypeInfoRow(columns));
+                rows.add(m_Connection.getProvider().getTypeInfoRow(columns));
             }
             resultset.close();
         }

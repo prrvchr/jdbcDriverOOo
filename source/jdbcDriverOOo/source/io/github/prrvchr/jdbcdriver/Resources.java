@@ -229,7 +229,7 @@ public class Resources {
     public static final int STR_LOG_TABLES_REMOVE_TABLE_QUERY                  = (STR_JDBC_LOG_MESSAGE_BASE +  512);
     public static final int STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR            = (STR_JDBC_LOG_MESSAGE_BASE +  513);
 
-    // io.github.prrvchr.uno.sdbcx.TableBase:
+    // io.github.prrvchr.uno.sdbcx.TableSuper:
     public static final int STR_LOG_CREATE_TABLE                               = (STR_JDBC_LOG_MESSAGE_BASE +  600);
     public static final int STR_LOG_CREATED_TABLE_ID                           = (STR_JDBC_LOG_MESSAGE_BASE +  601);
     public static final int STR_LOG_TABLE_DISPOSING                            = (STR_JDBC_LOG_MESSAGE_BASE +  602);
@@ -250,10 +250,23 @@ public class Resources {
     public static final int STR_LOG_COLUMN_REMOVE_QUERY                        = (STR_JDBC_LOG_MESSAGE_BASE +  622);
     public static final int STR_LOG_COLUMN_REMOVE_QUERY_ERROR                  = (STR_JDBC_LOG_MESSAGE_BASE +  623);
 
-    public static final int STR_LOG_INDEX_CREATE_QUERY                         = (STR_JDBC_LOG_MESSAGE_BASE +  630);
-    public static final int STR_LOG_INDEX_CREATE_QUERY_ERROR                   = (STR_JDBC_LOG_MESSAGE_BASE +  631);
-    public static final int STR_LOG_INDEX_REMOVE_QUERY                         = (STR_JDBC_LOG_MESSAGE_BASE +  632);
-    public static final int STR_LOG_INDEX_REMOVE_QUERY_ERROR                   = (STR_JDBC_LOG_MESSAGE_BASE +  633);
+    public static final int STR_LOG_CREATE_KEYS                                = (STR_JDBC_LOG_MESSAGE_BASE +  630);
+    public static final int STR_LOG_CREATED_KEYS_ID                            = (STR_JDBC_LOG_MESSAGE_BASE +  631);
+    public static final int STR_LOG_KEYS_DISPOSING                             = (STR_JDBC_LOG_MESSAGE_BASE +  632);
+
+    public static final int STR_LOG_KEYS_CREATE_KEY_QUERY                      = (STR_JDBC_LOG_MESSAGE_BASE +  640);
+    public static final int STR_LOG_KEYS_CREATE_KEY_QUERY_ERROR                = (STR_JDBC_LOG_MESSAGE_BASE +  641);
+    public static final int STR_LOG_KEYS_REMOVE_KEY_QUERY                      = (STR_JDBC_LOG_MESSAGE_BASE +  642);
+    public static final int STR_LOG_KEYS_REMOVE_KEY_QUERY_ERROR                = (STR_JDBC_LOG_MESSAGE_BASE +  643);
+
+    public static final int STR_LOG_CREATE_INDEXES                             = (STR_JDBC_LOG_MESSAGE_BASE +  660);
+    public static final int STR_LOG_CREATED_INDEXES_ID                         = (STR_JDBC_LOG_MESSAGE_BASE +  661);
+    public static final int STR_LOG_INDEXES_DISPOSING                          = (STR_JDBC_LOG_MESSAGE_BASE +  662);
+
+    public static final int STR_LOG_INDEXES_CREATE_INDEX_QUERY                 = (STR_JDBC_LOG_MESSAGE_BASE +  670);
+    public static final int STR_LOG_INDEXES_CREATE_INDEX_QUERY_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  671);
+    public static final int STR_LOG_INDEXES_REMOVE_INDEX_QUERY                 = (STR_JDBC_LOG_MESSAGE_BASE +  672);
+    public static final int STR_LOG_INDEXES_REMOVE_INDEX_QUERY_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  673);
 
     public static final int STR_LOG_CREATE_VIEWS                               = (STR_JDBC_LOG_MESSAGE_BASE +  700);
     public static final int STR_LOG_CREATED_VIEWS_ID                           = (STR_JDBC_LOG_MESSAGE_BASE +  701);

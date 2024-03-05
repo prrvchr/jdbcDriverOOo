@@ -31,16 +31,16 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
 
 
-public abstract class PreparedStatementSuper
-    extends PreparedStatementBase
+public abstract class PreparedStatementSuper<C extends ConnectionSuper>
+    extends PreparedStatementBase<C>
 {
 
     protected boolean m_UseBookmarks = false;
@@ -52,7 +52,7 @@ public abstract class PreparedStatementSuper
     // XXX: - io.github.prrvchr.uno.sdbcx.PreparedStatement()
     public PreparedStatementSuper(String service,
                                   String[] services,
-                                  ConnectionBase connection,
+                                  C connection,
                                   String sql)
     {
         super(service, services, connection, sql);
@@ -76,6 +76,11 @@ public abstract class PreparedStatementSuper
                     m_UseBookmarks = (boolean) value;
                 }
             });
+    }
+
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
     }
 
     @Override

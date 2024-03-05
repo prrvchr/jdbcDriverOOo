@@ -37,6 +37,7 @@ import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterTable;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
@@ -61,8 +62,8 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public abstract class TableSuper
-    extends TableMain
+public abstract class TableSuper<C extends ConnectionSuper>
+    extends TableMain<C>
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
@@ -79,7 +80,7 @@ public abstract class TableSuper
     // The constructor method:
     public TableSuper(String service,
                       String[] services,
-                      ConnectionSuper connection,
+                      C connection,
                       String catalog,
                       String schema,
                       boolean sensitive,
@@ -111,7 +112,7 @@ public abstract class TableSuper
     {
         checkDisposed();
         if (m_columns == null) {
-            m_columns = refreshColumns();
+            refreshColumns();
         }
         return m_columns;
     }
@@ -120,7 +121,7 @@ public abstract class TableSuper
     {
         checkDisposed();
         if (m_keys == null) {
-            m_keys = refreshKeys();
+            refreshKeys();
         }
         return m_keys;
     }
@@ -129,7 +130,7 @@ public abstract class TableSuper
     {
         checkDisposed();
         if (m_indexes == null) {
-            m_indexes = refreshIndexes();
+            refreshIndexes();
         }
         return m_indexes;
     }
@@ -188,27 +189,25 @@ public abstract class TableSuper
     private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
         throws SQLException
     {
-        System.out.println("TableSuper.alterColumn() 1 ***************************");
         if (oldcolumn != null) {
             try {
                 String oldname = oldcolumn.getName();
-                KeyColumnContainer keys = getKeyColumnContainer(oldname);
-                boolean alterpk = keys != null;
+                boolean alterpk = isPrimaryKeyColumn(oldname);
                 List<String> queries = new ArrayList<String>();
                 byte result = DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
                 if (!queries.isEmpty()) {
                     String table = DBTools.buildName(getConnection().getProvider(), this, ComposeRule.InTableDefinitions);
-                    if (DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_logger, this.getClass().getName(),
+                    if (DBTools.executeDDLQueries(getConnection().getProvider(), queries, getLogger(), this.getClass().getName(),
                                                   "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table))
                     {
                         // Column have changed its name
                         if ((result & 1) == 1) {
                             String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
                             if (alterpk) {
-                                // XXX: If the renamed column is a primary key we need to rename the Key name to.
-                                keys.rename(oldname, newname);
+                                // XXX: If the renamed column is a primary key we need to rename the Key column name to.
+                                // XXX: Renaming the primary key should rename the associated Index column name as well.
+                                getKeysInternal().renameKeyColumn(oldname, newname);
                             }
-                            oldcolumn.setName(newname);
                             m_columns.replaceElement(oldname, newname);
                         }
                         // Column have changed its type
@@ -232,32 +231,23 @@ public abstract class TableSuper
                 }
             }
             catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
+                System.out.println("sdbcx.TableSuper.alterColumn() ERROR Message: " + e.getMessage());
+                throw UnoHelper.getSQLException(e, getConnection());
             }
         }
-        System.out.println("TableSuper.alterColumn() 2 ***************************");
     }
 
-    private KeyColumnContainer getKeyColumnContainer(String oldname)
+    private boolean isPrimaryKeyColumn(String oldname)
         throws SQLException
     {
         // FIXME: Here we search and retrieve the first primary key having this column.
-        KeyColumnContainer container = null;
         KeyContainer keys = getKeysInternal();
-        for (String keyname : keys.getElementNames()) {
-            Key key = keys.getElement(keyname);
-            KeyColumnContainer columns = key.getColumnsInternal();
-            for (String name : columns.getElementNames()) {
-                if (oldname.equals(name)) {
-                    container = columns;
-                    break;
-                }
-            }
-            if (container != null) {
-                break;
+        for (String name : keys.getElementNames()) {
+            if (keys.getElement(name).getColumnsInternal().hasByName(oldname)) {
+                return true;
             }
         }
-        return container;
+        return false;
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -270,21 +260,6 @@ public abstract class TableSuper
         }
         return descriptor;
     }
-
-    protected ColumnContainerBase refreshColumns()
-    {
-        try {
-            List<ColumnDescription> columns = DBColumnHelper.readColumns(getConnection().getProvider(), this);
-            return getColumnContainer(columns);
-        }
-        catch (ElementExistException e) {
-            return null;
-        }
-        catch (java.sql.SQLException e) {
-            return null;
-        }
-    }
-
 
     // com.sun.star.sdbcx.XRename
     // TODO: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
@@ -300,68 +275,108 @@ public abstract class TableSuper
         int offset = isview ? Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET : 0;
         ComposeRule rule = ComposeRule.InDataManipulation;
         try {
-            String oldname = DBTools.composeTableName(m_connection.getProvider(), this, rule, false);
-            if (!m_connection.getProvider().supportRenamingTable()) {
+            String oldname = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
+            if (!getConnection().getProvider().supportRenamingTable()) {
                 int resource = Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FEATURE_ERROR + offset;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            NameComponents component = DBTools.qualifiedNameComponents(m_connection.getProvider(), name, rule);
+            NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
             if (isview) {
-                ViewContainer views = m_connection.getViewsInternal();
+                ViewContainer views = getConnection().getViewsInternal();
                 View view = views.getElement(oldname);
                 if (view == null) {
                     int resource = Resources.STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR + offset;
                     String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                     throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
                 }
-                if (m_connection.getProvider().supportRenameView()) {
-                    view.rename(name);
-                }
                 // FIXME: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
                 // FIXME: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
+                if (getConnection().getProvider().supportRenameView()) {
+                    view.rename(name);
+                }
                 else {
-                    m_connection.getViewsInternal().removeView(view);
-                    String query = DBTools.getCreateViewQuery(m_connection.getProvider(), component, view.m_Command, rule, isCaseSensitive());
-                        DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
-                                                "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
+                    getConnection().getViewsInternal().removeView(view);
+                    String query = DBTools.getCreateViewQuery(getConnection().getProvider(), component, view.m_Command, rule, isCaseSensitive());
+                        DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
+                                                "rename", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
                     views.rename(oldname, name, offset);
                 }
                 m_SchemaName = component.getSchema();
+                m_CatalogName = component.getCatalog();
             }
             else {
                 rename(component, oldname, name, rule, offset);
                 m_SchemaName = component.getSchema();
+                m_CatalogName = component.getCatalog();
             }
             m_Name = component.getTable();
-            m_connection.getTablesInternal().rename(oldname, name, offset);
+            getConnection().getTablesInternal().rename(oldname, name, offset);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
-
-    private IndexContainer refreshIndexes()
+    protected void refreshColumns()
     {
         try {
-            List<String> indexes = DBColumnHelper.readIndexes(getConnection().getProvider(), this);
-            System.out.println("sdbcx.TableBase._refreshIndexes() Index Count: " + indexes.size());
-            return new IndexContainer(this, isCaseSensitive(), indexes);
+            List<ColumnDescription> columns = DBColumnHelper.readColumns(getConnection().getProvider(), this);
+            if (m_columns == null) {
+                m_columns = getColumnContainer(columns);
+            }
+            else {
+                m_columns.refill(getColumnName(columns));
+            }
         }
         catch (java.sql.SQLException | ElementExistException e) {
-            return null;
+            throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
 
-    private KeyContainer refreshKeys() {
+    private List<String> getColumnName(List<ColumnDescription> descriptions) {
+        List<String> columns = new ArrayList<>();
+        for (ColumnDescription column: descriptions) {
+            columns.add(column.columnName);
+        }
+        return columns;
+    }
+
+    protected void refreshKeys()
+    {
         try {
-            Map<String, Key> keys = DBColumnHelper.readKeys(getConnection().getProvider(), isCaseSensitive(), this);
-            System.out.println("sdbcx.TableBase._refreshKeys() Key Count: " + keys.size());
-            return new KeyContainer(this, isCaseSensitive(), keys);
+            Map<String, Key> keys = DBColumnHelper.readKeys(getConnection().getProvider(), this, isCaseSensitive());
+            System.out.println("sdbcx.TableSuper.refreshKeys() Key Count: " + keys.size());
+            if (m_keys == null) {
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
+                m_keys = new KeyContainer(this, isCaseSensitive(), keys);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_KEYS_ID, m_keys.getLogger().getObjectId());
+            }
+            else {
+                m_keys.refill(new ArrayList<String>(keys.keySet()));
+            }
         }
         catch (java.sql.SQLException | ElementExistException e) {
-            return null;
+            throw new com.sun.star.uno.RuntimeException("Error", e);
+        }
+    }
+
+    protected void refreshIndexes()
+    {
+        try {
+            List<String> indexes = DBColumnHelper.readIndexes(getConnection().getProvider(), this);
+            System.out.println("sdbcx.TableSuper.refreshIndexes() Index Count: " + indexes.size());
+            if (m_indexes == null) {
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_INDEXES);
+                m_indexes = new IndexContainer(this, isCaseSensitive(), indexes);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_INDEXES_ID, m_indexes.getLogger().getObjectId());
+            }
+            else {
+                m_indexes.refill(indexes);
+            }
+        }
+        catch (java.sql.SQLException | ElementExistException e) {
+            throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
 

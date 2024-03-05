@@ -47,14 +47,14 @@ import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class TableContainerSuper<T extends TableSuper>
-    extends TableContainerMain<T>
+public abstract class TableContainerSuper<T extends TableSuper<?>, C extends ConnectionSuper>
+    extends TableContainerMain<T, C>
 {
 
     // The constructor method:
     public TableContainerSuper(String service,
                                String[] services,
-                               ConnectionSuper connection,
+                               C connection,
                                boolean sensitive,
                                List<String> names)
         throws ElementExistException
@@ -64,7 +64,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
 
     public void dispose()
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_TABLES_DISPOSING);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_TABLES_DISPOSING);
         super.dispose();
     }
 
@@ -86,7 +86,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 System.out.println("TableContainerSuper._createDataBaseElement() 3 Queries: " + query);
             }
             if (!queries.isEmpty()) {
-                return DBTools.executeDDLQueries(m_Connection.getProvider(), queries, m_logger, this.getClass().getName(),
+                return DBTools.executeDDLQueries(m_Connection.getProvider(), queries, getLogger(), this.getClass().getName(),
                                                  "_createTable", Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name);
             }
         }
@@ -94,31 +94,13 @@ public abstract class TableContainerSuper<T extends TableSuper>
             throw UnoHelper.getSQLException(e1, this);
         }
         catch (IllegalArgumentException | WrappedTargetException | IndexOutOfBoundsException | UnknownPropertyException e) {
-            //
+            throw new SQLException(e);
         }
         catch (java.lang.Exception e2) {
             e2.printStackTrace();
+            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e2), this);
         }
         return false;
-    }
-
-    @Override
-    public String getElementName(List<String> names,
-                                  XPropertySet descriptor)
-        throws SQLException, ElementExistException
-    {
-        String name;
-        try {
-            name = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("TableContainer._getElementName() table name: " + name);
-        if (names.contains(name)) {
-            throw new ElementExistException();
-        }
-        return name;
     }
 
     @Override
@@ -161,7 +143,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
         try {
             System.out.println("TableContainer.removeDataBaseElement() 1 Name " + name);
             boolean isview = false;
-            TableSuper element = getElement(name);
+            T element = getElement(name);
             System.out.println("TableContainer.removeDataBaseElement() 2 element " + element.m_Type);
             if (element != null) {
                 isview = element.m_Type.toUpperCase().contains("VIEW");
@@ -176,7 +158,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
                                                 cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
             String query = DBTools.getDropTableQuery(table);
             System.out.println("TableContainer.removeDataBaseElement() 3 Query: " + query);
-            DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
+            DBTools.executeDDLQuery(m_Connection.getProvider(), query, getLogger(), this.getClass().getName(),
                                     "removeDataBaseElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
         }
         catch (java.sql.SQLException e) {
@@ -187,20 +169,8 @@ public abstract class TableContainerSuper<T extends TableSuper>
         }
     }
 
-    protected void insertElement(String name,
-                                 T element)
-    {
-        synchronized (m_Connection) {
-            if (!m_Elements.containsKey(name)) {
-                m_Elements.put(name, element);
-                m_Names.add(name);
-            }
-        }
-    }
-
     protected abstract T getTable(NameComponents component,
                                   String type,
                                   String remarks);
-
 
 }

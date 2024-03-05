@@ -37,6 +37,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -53,19 +54,27 @@ public abstract class DriverProviderMain
     protected ConnectionLog m_logger;
     private PropertyValue[] m_infos;
     private java.sql.Statement m_statement = null;
+    private CustomTypeInfo m_typeinforows = null;
+    protected boolean m_enhanced;
+    protected boolean m_showsystem;
+    protected boolean m_usebookmark;
     private boolean m_SupportsTransactions = true;
     private boolean m_IsCatalogAtStart = true;
     private String m_CatalogSeparator = "";
     private String m_IdentifierQuoteString = "";
+    private String m_AutoIncrementCreation = "";
     private String m_TableDescriptionCommand = null;
     private String m_ColumnDescriptionCommand = null;
+    private boolean m_AddIndexAppendix = false;
     private boolean m_IsAutoIncrementIsPrimaryKey = false;
     private boolean m_IsAutoRetrievingEnabled = false;
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
     private boolean m_IgnoreDriverPrivileges = true;
+    private boolean m_IgnoreCurrency = false;
     private boolean m_SupportRenameView = true;
     private String m_RenameColumnCommand = null;
+    private String m_DropIndexCommand = null;
     private String m_ColumnSetTypeCommand = null;
     private String m_ColumnResetDefaultCommand = null;
     private String m_RevokeRoleCommand = null;
@@ -110,6 +119,18 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public String getAutoIncrementCreation()
+    {
+        return m_AutoIncrementCreation;
+    }
+
+    @Override
+    public boolean isIgnoreCurrencyEnabled()
+    {
+        return m_IgnoreCurrency;
+    }
+
+    @Override
     public String getColumnDescriptionQuery(String column, String description) {
         return MessageFormat.format(m_ColumnDescriptionCommand, column, description);
     }
@@ -136,6 +157,14 @@ public abstract class DriverProviderMain
     public String getRenameColumnQuery(String command) {
         return m_RenameColumnCommand != null ?
                m_RenameColumnCommand :
+               command;
+    }
+
+
+    @Override
+    public String getDropIndexQuery(String command) {
+        return m_DropIndexCommand != null ?
+               m_DropIndexCommand :
                command;
     }
 
@@ -246,6 +275,10 @@ public abstract class DriverProviderMain
         return canRenameAndMove() && !m_RenameTableCommands[1].toString().isBlank();
     }
 
+    public boolean isEnhanced()
+    {
+        return m_enhanced;
+    }
 
     @Override
     public boolean supportViewDefinition() {
@@ -258,17 +291,17 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String[] getTableTypes(final boolean showsystem)
+    public String[] getTableTypes()
     {
         String[] types = null;
-        if (!showsystem) {
+        if (!m_showsystem) {
             types = new String[]{"TABLE", "VIEW"};
         }
         return types;
     }
 
     @Override
-    public String[] getViewTypes(final boolean showsystem)
+    public String[] getViewTypes()
     {
         return new String[]{"VIEW"};
     }
@@ -423,6 +456,8 @@ public abstract class DriverProviderMain
 
     @Override
     public void setConnection(ResourceBasedEventLogger logger,
+                              XHierarchicalNameAccess config,
+                              final boolean enhanced,
                               final String location,
                               final PropertyValue[] infos,
                               String level)
@@ -430,6 +465,9 @@ public abstract class DriverProviderMain
     {
         m_infos = infos;
         m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
+        m_showsystem = UnoHelper.getConfigurationOption(config, "ShowSystemTable", false);
+        m_usebookmark = UnoHelper.getConfigurationOption(config, "UseBookmark", true);
+        m_enhanced = enhanced;
         String url = getConnectionUrl(location, level);
         java.sql.Connection connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
         java.sql.DatabaseMetaData metadata = connection.getMetaData();
@@ -437,14 +475,18 @@ public abstract class DriverProviderMain
         m_IsCatalogAtStart = metadata.isCatalogAtStart();
         m_CatalogSeparator = metadata.getCatalogSeparator();
         m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
+        m_AutoIncrementCreation = (String) getConnectionProperties(infos, "AutoIncrementCreation", "");
         m_ColumnDescriptionCommand = (String) getConnectionProperties(infos, "ColumnDescriptionCommand", null);
         m_TableDescriptionCommand = (String) getConnectionProperties(infos, "TableDescriptionCommand", null);
         m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
         m_IgnoreDriverPrivileges = (boolean) getConnectionProperties(infos, "IgnoreDriverPrivileges", true);
+        m_IgnoreCurrency = (boolean) getConnectionProperties(infos, "IgnoreCurrency", false);
+        m_AddIndexAppendix = (boolean) getConnectionProperties(infos, "AddIndexAppendix", false);
         m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", null);
         m_ViewDefinitionCommands = (Object[]) getConnectionProperties(infos, "ViewDefinitionCommands", null);
         m_SupportRenameView = (boolean) getConnectionProperties(infos, "SupportRenameView", true);
         m_RenameColumnCommand = (String) getConnectionProperties(infos, "RenameColumnCommand", null);
+        m_DropIndexCommand = (String) getConnectionProperties(infos, "DropIndexCommand", null);
         m_ColumnSetTypeCommand = (String) getConnectionProperties(infos, "ColumnSetTypeCommand", null);
         m_ColumnResetDefaultCommand = (String) getConnectionProperties(infos, "ColumnResetDefaultCommand", null);
         m_RevokeRoleCommand =(String) getConnectionProperties(infos, "RevokeRoleCommand", null);
@@ -509,6 +551,9 @@ public abstract class DriverProviderMain
     }
     public boolean ignoreDriverPrivileges() {
         return m_IgnoreDriverPrivileges;
+    }
+    public boolean addIndexAppendix() {
+        return m_AddIndexAppendix;
     }
     public Object[] getTypeInfoSettings() {
         return m_TypeInfoSettings;
@@ -649,6 +694,20 @@ public abstract class DriverProviderMain
     public boolean supportCreateTableKeyParts()
     {
         return true;
+    }
+
+    @Override
+    public CustomColumn[] getTypeInfoRow(CustomColumn[] columns)
+        throws SQLException
+    {
+        Object [] typeinfo = getTypeInfoSettings();
+        if (typeinfo == null) {
+            return columns;
+        }
+        if (m_typeinforows == null) {
+            m_typeinforows = new CustomTypeInfo(typeinfo);
+        }
+        return m_typeinforows.getTypeInfoRow(columns);
     }
 
 }

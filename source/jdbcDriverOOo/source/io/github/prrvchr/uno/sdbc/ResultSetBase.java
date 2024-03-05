@@ -72,7 +72,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class ResultSetBase
+public abstract class ResultSetBase<C extends ConnectionBase>
     extends PropertySet
     implements XServiceInfo,
                XCloseable,
@@ -87,10 +87,10 @@ public abstract class ResultSetBase
 
     private final String m_service;
     private final String[] m_services;
-    protected ConnectionBase m_Connection;
-    protected final ConnectionLog m_logger;
+    private C m_Connection;
+    private final ConnectionLog m_logger;
     protected java.sql.ResultSet m_ResultSet;
-    private StatementMain<?> m_Statement;
+    private StatementMain<?,?> m_Statement;
     protected boolean m_insert = false;
 
 
@@ -98,7 +98,7 @@ public abstract class ResultSetBase
 
     public ResultSetBase(String service,
                          String[] services,
-                         ConnectionBase connection,
+                         C connection,
                          java.sql.ResultSet resultset)
         throws SQLException
     {
@@ -107,9 +107,9 @@ public abstract class ResultSetBase
 
     public ResultSetBase(String service,
                          String[] services,
-                         ConnectionBase connection,
+                         C connection,
                          java.sql.ResultSet resultset,
-                         StatementMain<?> statement)
+                         StatementMain<?,?> statement)
         throws SQLException
     {
         m_service = service;
@@ -121,7 +121,12 @@ public abstract class ResultSetBase
         registerProperties();
     }
 
-    public ConnectionLog getLogger()
+    protected C getConnection()
+    {
+        return m_Connection;
+    }
+
+    protected ConnectionLog getLogger()
     {
         return m_logger;
     }

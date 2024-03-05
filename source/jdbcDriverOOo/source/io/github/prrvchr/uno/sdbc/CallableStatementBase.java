@@ -42,8 +42,8 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class CallableStatementBase
-    extends PreparedStatementMain<java.sql.CallableStatement>
+public abstract class CallableStatementBase<C extends ConnectionBase>
+    extends PreparedStatementMain<java.sql.CallableStatement, C>
     implements XOutParameters,
                XRow
 {
@@ -54,7 +54,7 @@ public abstract class CallableStatementBase
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementSuper()
     public CallableStatementBase(String service,
                                  String[] services,
-                                 ConnectionBase connection,
+                                 C connection,
                                  String sql)
     {
         super(service, services, connection);

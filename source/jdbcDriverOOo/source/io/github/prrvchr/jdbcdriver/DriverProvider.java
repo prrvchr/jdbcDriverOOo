@@ -58,6 +58,8 @@ public interface DriverProvider
                                    String level);
 
     public void setConnection(ResourceBasedEventLogger logger,
+                              XHierarchicalNameAccess config,
+                              boolean enhanced,
                               String url,
                               PropertyValue[] info,
                               String level)
@@ -71,6 +73,8 @@ public interface DriverProvider
     public String getIdentifierQuoteString();
 
     public boolean isCaseSensitive(String string);
+
+    public boolean isEnhanced();
 
     // Does the underlying database driver support Commenting Objects (ie:COMMENT ON TABLE..)
     // Default value is false. see: http://hsqldb.org/doc/2.0/guide/guide.html#dbc_commenting
@@ -109,6 +113,12 @@ public interface DriverProvider
     // The name of the table as well as the predicates will be provided by the driver
     public String getAutoRetrievingStatement();
 
+    public String getAutoIncrementCreation();
+
+    public boolean isIgnoreCurrencyEnabled();
+
+    public boolean addIndexAppendix();
+
     public Object[] getTypeInfoSettings();
 
     public int getGeneratedKeysOption();
@@ -116,6 +126,8 @@ public interface DriverProvider
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
     public String getRenameColumnQuery(String command);
+
+    public String getDropIndexQuery(String command);
 
     public String getColumnSetTypeQuery();
 
@@ -133,9 +145,9 @@ public interface DriverProvider
 
     public int getDataType(int type);
 
-    public String[] getTableTypes(boolean showsystem);
+    public String[] getTableTypes();
 
-    public String[] getViewTypes(boolean showsystem);
+    public String[] getViewTypes();
 
     public String getTableType(String type);
 
@@ -183,4 +195,5 @@ public interface DriverProvider
 
     public boolean supportCreateTableKeyParts();
 
+    public CustomColumn[] getTypeInfoRow(CustomColumn[] columns) throws SQLException;
 }

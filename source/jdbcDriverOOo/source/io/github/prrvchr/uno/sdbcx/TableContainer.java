@@ -36,7 +36,7 @@ import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 
 
 public final class TableContainer
-    extends TableContainerSuper<Table>
+    extends TableContainerSuper<Table, Connection>
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Tables",
@@ -51,13 +51,6 @@ public final class TableContainer
         super(m_service, m_services, connection, sensitive, names);
     }
 
-
-    @Override
-    protected Connection getConnection() {
-        return (Connection) m_Connection;
-    }
-
-
     @Override
     protected XPropertySet createDescriptor()
     {
@@ -69,9 +62,9 @@ public final class TableContainer
                              String type,
                              String remarks)
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
-        Table table = new Table(m_Connection, isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
+        Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
         return table;
     }
 

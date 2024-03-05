@@ -27,28 +27,32 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.ResultSetSuper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class ResultSet
-    extends ResultSetSuper
+    extends ResultSetSuper<ConnectionSuper>
 {
     private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet",
                                                 "com.sun.star.sdbcx.ResultSet"};
 
     // The constructor method:
-    public ResultSet(ConnectionBase connection,
+    public ResultSet(ConnectionSuper connection,
+                     java.sql.ResultSet resultset)
+        throws SQLException
+    {
+        this(connection, resultset, null, false);
+    }
+
+    public ResultSet(ConnectionSuper connection,
                      java.sql.ResultSet resultset,
-                     StatementMain<?> statement,
+                     StatementMain<?,?> statement,
                      boolean bookmark)
-    throws SQLException
+        throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement, bookmark);
         System.out.println("sdbcx.ResultSet() 1");
     }
-
 
 }

@@ -65,10 +65,10 @@ public final class MariaDBDriverProvider
     }
 
     @Override
-    public String[] getViewTypes(final boolean showsystem)
+    public String[] getViewTypes()
     {
         System.out.println("mariadb.MariaDBDriverProvider.getViewTypes() 1");
-        if (showsystem) {
+        if (m_showsystem) {
             return new String[]{"VIEW", "SYSTEM VIEW"};
         }
         else {

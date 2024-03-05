@@ -49,8 +49,7 @@ public final class IndexDescriptorContainer
     }
 
     @Override
-    protected IndexDescriptor appendElement(XPropertySet descriptor,
-                                          String name)
+    protected IndexDescriptor appendElement(XPropertySet descriptor)
         throws SQLException
     {
         XPropertySet newDescriptor = cloneDescriptor(descriptor);

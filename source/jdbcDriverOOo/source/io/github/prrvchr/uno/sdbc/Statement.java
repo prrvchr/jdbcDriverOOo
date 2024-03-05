@@ -34,7 +34,7 @@ import io.github.prrvchr.jdbcdriver.Resources;
 
 
 public final class Statement
-extends StatementBase
+extends StatementBase<ConnectionBase>
 {
     private static final String m_service = Statement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Statement"};
@@ -49,7 +49,7 @@ extends StatementBase
     protected XResultSet _getResultSet(java.sql.ResultSet result)
     throws SQLException
     {
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this);

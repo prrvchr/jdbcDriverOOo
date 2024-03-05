@@ -52,7 +52,6 @@ public final class SmallSQLDatabaseMetaData
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("smallsql.SmallSQLDatabaseProvider() 1");
     }
 
 

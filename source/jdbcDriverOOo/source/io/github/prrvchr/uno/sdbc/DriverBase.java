@@ -44,7 +44,6 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDriver;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -163,12 +162,6 @@ public abstract class DriverBase
                 _registerDriver(config, _getUrlProtocol(url), info);
             }
             UnoHelper.disposeComponent(config);
-            try {
-                provider.setConnection(m_logger, location, info, level);
-            }
-            catch(java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
-            }
             System.out.println("sdbc.DriverBase.connect() 1");
             try {
                 config = UnoHelper.getConfiguration(m_xContext, m_identifier);
@@ -176,60 +169,23 @@ public abstract class DriverBase
             catch (Exception e) {
                 throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
+            try {
+                provider.setConnection(m_logger, config, m_enhanced, location, info, level);
+            }
+            catch(java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
             String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-            service = _getOptionsConfiguration(config, "ConnectionService", service);
-            boolean showsystem = _getOptionsConfiguration(config, "ShowSystemTable", false);
-            boolean usebookmark = _getOptionsConfiguration(config, "UseBookmark", true);
+            service = UnoHelper.getConfigurationOption(config, "ConnectionService", service);
             UnoHelper.disposeComponent(config);
             System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
-            connection = _getConnection(m_xContext, provider, url, info, m_enhanced, showsystem, usebookmark, ConnectionService.fromString(service));
+            connection = _getConnection(m_xContext, provider, url, info, ConnectionService.fromString(service));
             m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getProvider().getLogger().getObjectId());
             System.out.println("sdbc.DriverBase.connect() 4");
         }
         return connection;
-    }
-
-    private String _getOptionsConfiguration(XHierarchicalNameAccess config,
-                                            String property,
-                                            String value)
-    {
-        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 1");
-        String option = value;
-        try {
-            if (config.hasByHierarchicalName(property)) {
-                System.out.println("sdbc.DriverBase._getOptionsConfiguration() 2");
-                option = AnyConverter.toString(config.getByHierarchicalName(property));
-            }
-        }
-        catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 3");
-        return option;
-    }
-
-    private boolean _getOptionsConfiguration(XHierarchicalNameAccess config,
-                                             String property,
-                                             boolean value)
-    {
-        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 1");
-        boolean option = value;
-        try {
-            if (config.hasByHierarchicalName(property)) {
-                System.out.println("sdbc.DriverBase._getOptionsConfiguration() 2");
-                option = AnyConverter.toBoolean(config.getByHierarchicalName(property));
-            }
-        }
-        catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return option;
-        }
-        System.out.println("sdbc.DriverBase._getOptionsConfiguration() 3");
-        return option;
     }
 
     private String _getUrlProtocol(final String url)
@@ -424,10 +380,9 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("ColumnDescriptionCommand", "Column description setting statement.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("SupportColumnDescription", "Column description setting statement.", false, "true", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("TableDescriptionCommand", "Table description setting statement.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("ViewDefinitionCommands", "preparedstatement query for retrieving view's SQL command.", false, "", new String[0]));
-        //if (!m_enhanced) {
+        properties.add(new DriverPropertyInfo("ViewDefinitionCommands", "Preparedstatement query for retrieving view's SQL command.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices.clone()));
-        //}
+        properties.add(new DriverPropertyInfo("AddIndexAppendix", "Add an appendix (ASC or DESC) when creating the index.", true, "true", boolchoices.clone()));
         return properties.toArray(new DriverPropertyInfo[0]);
     }
 
@@ -459,9 +414,6 @@ public abstract class DriverBase
                                                      DriverProvider provider,
                                                      String url,
                                                      PropertyValue[] info,
-                                                     boolean enhanced,
-                                                     boolean showsystem,
-                                                     boolean usebookmark,
                                                      ConnectionService service);
 
 

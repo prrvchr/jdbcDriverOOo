@@ -31,13 +31,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbcx.CallableStatementSuper;
 
 
 public final class CallableStatement
-    extends CallableStatementSuper
+    extends CallableStatementSuper<Connection>
     implements XColumnsSupplier
 {
 
@@ -57,6 +57,10 @@ public final class CallableStatement
         System.out.println("sdb.CallableStatement() 1");
     }
 
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
+    }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
@@ -78,10 +82,10 @@ public final class CallableStatement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
-            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
+            resultset =  new ResultSet(getConnectionInternal(), result, this, m_UseBookmarks);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;

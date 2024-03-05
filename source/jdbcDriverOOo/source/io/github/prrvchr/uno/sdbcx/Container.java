@@ -57,12 +57,14 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
+import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class Container<T>
+public abstract class Container<T extends Descriptor>
     extends WeakBase
     implements XServiceInfo,
                XContainer,
@@ -78,8 +80,8 @@ public abstract class Container<T>
 
     private final String m_service;
     private final String[] m_services;
-    protected TreeMap<String, T> m_Elements;
-    protected List<String> m_Names;
+    private TreeMap<String, T> m_Elements;
+    private List<String> m_Names;
     private boolean m_sensitive;
     protected InterfaceContainer m_container = new InterfaceContainer();
     protected InterfaceContainer m_refresh = new InterfaceContainer();
@@ -175,7 +177,7 @@ public abstract class Container<T>
             }
             m_Elements.clear();
             m_Names.clear();
-            _refresh();
+            refreshInternal();
             iterator = m_refresh.iterator();
         }
         if (iterator == null) {
@@ -281,7 +283,7 @@ public abstract class Container<T>
         throws SQLException,
                IndexOutOfBoundsException
     {
-        System.out.println("sdbcx.Container.dropByIndex()");
+        System.out.println("sdbcx.Container.dropByIndex() 1 Class: " + this.getClass().getName() + " Index: " + index);
         synchronized (m_lock) {
             if (index < 0 || index >= getCount()) {
                 throw new IndexOutOfBoundsException();
@@ -318,23 +320,22 @@ public abstract class Container<T>
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
+        System.out.println("sdbcx.Container.appendByDescriptor() Class: " + this.getClass().getName());
         ContainerEvent event;
         Iterator<?> iterator;
         synchronized (m_lock) {
-            
-            String name = getElementName(m_Names, descriptor);
-            T element = appendElement(descriptor, name);
+            T element = appendElement(descriptor);
             if (element == null) {
+                String name = getElementName(descriptor);
                 String error = String.format("Table: %s can't be created!!!", name);
                 throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
-            if (m_Elements.get(name) != null) {
-                throw new ElementExistException();
-            }
+            // XXX: appendElement() can change the name!!!
+            String name = getElementName(descriptor);
             m_Elements.put(name, element);
             m_Names.add(name);
 
-            // notify our container listeners
+            // XXX: notify our container listeners
             event = new ContainerEvent(this, name, element, null);
             iterator = m_container.iterator();
         }
@@ -342,6 +343,13 @@ public abstract class Container<T>
             XContainerListener listener = (XContainerListener) iterator.next();
             listener.elementInserted(event);
         }
+    }
+
+    // XXX: For all container but TableContainerMain has its own method
+    protected String getElementName(XPropertySet descriptor)
+        throws SQLException
+    {
+        return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 
     // com.sun.star.container.XContainer:
@@ -381,12 +389,10 @@ public abstract class Container<T>
 
 
     // Abstract protected methods
-    protected abstract String getElementName(List<String> names, XPropertySet descriptor)
-        throws SQLException, ElementExistException;
-    protected abstract T appendElement(XPropertySet descriptor, String name) throws SQLException;
+    protected abstract T appendElement(XPropertySet descriptor) throws SQLException;
     protected abstract T createElement(String name) throws SQLException;
     protected abstract void removeDataBaseElement(int index, String name) throws SQLException;
-    protected abstract void _refresh();
+    protected abstract void refreshInternal();
 
     // Protected methods
     public boolean isCaseSensitive()
@@ -408,26 +414,32 @@ public abstract class Container<T>
     protected void replaceElement(String oldname, String newname)
         throws SQLException
     {
+        // XXX: We can set the name only for simple name (ie: column, index...)
+        replaceElement(oldname, newname, true);
+    }
+
+    protected void replaceElement(String oldname, String newname, boolean rename)
+        throws SQLException
+    {
         synchronized (m_lock) {
-            T element = null;
-            if (newname.equals(oldname)) {
-                element = m_Elements.get(oldname);
-            }
-            else {
-                element = m_Elements.remove(oldname);
-                //element.setName(newname);
+            if (!newname.equals(oldname)) {
+                T element = m_Elements.remove(oldname);
+                // XXX: We cannot set the name of composed names (ie: table and view)
+                if (element != null && rename) {
+                    element.setName(newname);
+                }
                 m_Elements.put(newname, element);
                 m_Names.set(m_Names.indexOf(oldname), newname);
-            }
-            ContainerEvent event = new ContainerEvent(this, newname, element, oldname);
-            for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext();) {
-                XContainerListener listener = (XContainerListener) iterator.next();
-                listener.elementReplaced(event);
-            }
-            EventObject event2 = new EventObject(this);
-            for (Iterator<?> iterator2 = m_refresh.iterator(); iterator2.hasNext();) {
-                XRefreshListener listener = (XRefreshListener) iterator2.next();
-                listener.refreshed(event2);
+                ContainerEvent event = new ContainerEvent(this, newname, element, oldname);
+                for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext();) {
+                    XContainerListener listener = (XContainerListener) iterator.next();
+                    listener.elementReplaced(event);
+                }
+                EventObject event2 = new EventObject(this);
+                for (Iterator<?> iterator2 = m_refresh.iterator(); iterator2.hasNext();) {
+                    XRefreshListener listener = (XRefreshListener) iterator2.next();
+                    listener.refreshed(event2);
+                }
             }
         }
     }
@@ -453,12 +465,19 @@ public abstract class Container<T>
                 return null;
             }
             try {
-                return  getElementByIndex(m_Names.indexOf(name));
+                return getElementByIndex(m_Names.indexOf(name));
             }
             catch (WrappedTargetException e) {
                 throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
         }
+    }
+
+    protected void removeElement(String name,
+                                 boolean really)
+        throws SQLException
+    {
+        removeElement(m_Names.indexOf(name), really);
     }
 
     private T getElementByIndex(int index)
@@ -489,8 +508,8 @@ public abstract class Container<T>
         removeElement(index, true);
     }
 
-    private void removeElement(int index,
-                               boolean really)
+    protected void removeElement(int index,
+                                 boolean really)
         throws SQLException
     {
         String name = m_Names.get(index);
@@ -515,5 +534,16 @@ public abstract class Container<T>
 
     protected abstract XPropertySet createDescriptor();
 
+
+    protected void insertElement(String name,
+                                 T element)
+    {
+        synchronized (m_lock) {
+            if (!m_Elements.containsKey(name)) {
+                m_Elements.put(name, element);
+                m_Names.add(name);
+            }
+        }
+    }
 
 }

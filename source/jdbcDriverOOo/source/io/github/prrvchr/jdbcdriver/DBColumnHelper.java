@@ -53,6 +53,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.sun.star.container.ElementExistException;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -93,7 +94,7 @@ public class DBColumnHelper
     }
 
     public static List<ColumnDescription> readColumns(DriverProvider provider,
-                                                      TableSuper table)
+                                                      TableSuper<?> table)
         throws java.sql.SQLException
     {
         List<ColumnDescription> descriptions = collectColumnDescriptions(provider, table);
@@ -106,7 +107,7 @@ public class DBColumnHelper
     }
 
     private static List<ColumnDescription> collectColumnDescriptions(DriverProvider provider,
-                                                                     TableSuper table)
+                                                                     TableSuper<?> table)
         throws java.sql.SQLException
     {
         List<ColumnDescription> columns = new ArrayList<>();
@@ -161,20 +162,127 @@ public class DBColumnHelper
         }
     }
 
+    public static Key readKey(DriverProvider provider,
+                              TableSuper<?> table,
+                              String name,
+                              boolean sensitive)
+        throws SQLException,
+               ElementExistException
+    {
+        try {
+            Key key = readPrimaryKey(provider, table, name, sensitive);
+            if (key == null) {
+                key = readForeignKey(provider, table, name, sensitive);
+            }
+            return key;
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, table);
+        }
+    }
+
+    private static Key readPrimaryKey(DriverProvider provider,
+                                      TableSuper<?> table,
+                                      String name,
+                                      boolean sensitive)
+        throws java.sql.SQLException,
+               ElementExistException
+    {
+        Key key = null;
+        ArrayList<String> columns = new ArrayList<>();
+        String keyname = null;
+        boolean fetched = false;
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        try (java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getName()))
+        {
+            while (result.next()) {
+                String column = result.getString(4);
+                columns.add(column);
+                if (!fetched) {
+                    fetched = true;
+                    String pk = result.getString(6);
+                    if (result.wasNull()) {
+                        keyname = String.format("PK_%s_%s", table.getName(), column);
+                    }
+                    else {
+                        keyname = pk;
+                    }
+                }
+                System.out.println("DataBaseTableHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + name);
+            }
+        }
+        if (keyname != null && keyname.equals(name)) {
+            key = new Key(table, sensitive, name, "", KeyType.PRIMARY, 0, 0, columns);
+        }
+        return key;
+    }
+
+    private static Key readForeignKey(DriverProvider provider,
+                                      TableSuper<?> table,
+                                      String name,
+                                      boolean sensitive)
+        throws java.sql.SQLException,
+               ElementExistException
+    {
+        Key key = null;
+        String oldFkName = "";
+        KeyProperties keyProperties = null;
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        try (java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getName()))
+        {
+            while (result.next()) {
+                String value = result.getString(1);
+                String catalogReturned = result.wasNull() ? "" : value;
+                value = result.getString(2);
+                String schemaReturned = result.wasNull() ? "" : value;
+                String nameReturned = result.getString(3);
+                
+                String foreignKeyColumn = result.getString(8);
+                int updateRule = result.getInt(10);
+                int deleteRule = result.getInt(11);
+                String fkName = result.getString(12);
+                
+                if (!result.wasNull() && !fkName.isEmpty()) {
+                    if (!oldFkName.equals(fkName)) {
+                        if (keyProperties != null && oldFkName.equals(name)) {
+                            break;
+                        }
+                        String referencedName = DBTools.buildName(provider, catalogReturned, schemaReturned, nameReturned,
+                                                                  ComposeRule.InDataManipulation, sensitive);
+                        keyProperties = new KeyProperties(referencedName, KeyType.FOREIGN, updateRule, deleteRule);
+                        keyProperties.columnNames.add(foreignKeyColumn);
+                        oldFkName = fkName;
+                    }
+                    else {
+                        if (keyProperties != null) {
+                            keyProperties.columnNames.add(foreignKeyColumn);
+                        }
+                    }
+                }
+            }
+        }
+        if (keyProperties != null && oldFkName.equals(name)) {
+            key = new Key(table, sensitive, oldFkName, keyProperties.referencedTable, keyProperties.type,
+                          keyProperties.updateRule, keyProperties.deleteRule, keyProperties.columnNames);
+        }
+        return key;
+    }
+
+
     public static Map<String, Key> readKeys(DriverProvider provider,
-                                            boolean sensitive,
-                                            TableSuper table)
+                                            TableSuper<?> table,
+                                            boolean sensitive)
         throws java.sql.SQLException,
                ElementExistException
     {
         Map<String, Key> keys = new TreeMap<>();
-        readPrimaryKey(provider, table, sensitive, keys);
+        readPrimaryKeys(provider, table, sensitive, keys);
         readForeignKeys(provider, table, sensitive, keys);
         return keys;
     }
 
-    private static void readPrimaryKey(DriverProvider provider,
-                                       TableSuper table,
+    private static void readPrimaryKeys(DriverProvider provider,
+                                       TableSuper<?> table,
                                        boolean sensitive,
                                        Map<String, Key> keys)
         throws java.sql.SQLException,
@@ -208,7 +316,7 @@ public class DBColumnHelper
     }
 
     private static void readForeignKeys(DriverProvider provider,
-                                        TableSuper table,
+                                        TableSuper<?> table,
                                         boolean sensitive,
                                         Map<String, Key> keys)
         throws java.sql.SQLException,
@@ -261,7 +369,7 @@ public class DBColumnHelper
     }
 
     public static ArrayList<String> readIndexes(DriverProvider provider,
-                                                TableSuper table)
+                                                TableSuper<?> table)
         throws java.sql.SQLException
     {
         ArrayList<String> names = new ArrayList<>();
@@ -291,5 +399,22 @@ public class DBColumnHelper
         return names;
     }
 
+    public static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,
+                                            String catalog,
+                                            String schema,
+                                            String table,
+                                            String name)
+        throws java.sql.SQLException
+    {
+        boolean primary = false;
+        try (java.sql.ResultSet result = metadata.getPrimaryKeys(catalog, schema, table))
+        {
+            // XXX: There can be only one primary key
+            if (result.next()) {
+                primary = name.equals(result.getString(6));
+            }
+        }
+        return primary;
+    }
 
 }

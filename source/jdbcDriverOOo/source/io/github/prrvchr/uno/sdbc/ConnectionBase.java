@@ -46,8 +46,6 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.CustomColumn;
-import io.github.prrvchr.jdbcdriver.CustomTypeInfo;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -64,20 +62,13 @@ public abstract class ConnectionBase
                XConnection
 {
 
-    protected final XComponentContext m_xContext;
+    private final XComponentContext m_xContext;
     private final String m_service;
     private final String[] m_services;
-    protected final DriverProvider m_provider;
+    private final DriverProvider m_provider;
     private String m_url;
     private PropertyValue[] m_info;
-    protected final boolean m_enhanced;
-    protected final boolean m_showsystem;
-    protected final boolean m_usebookmark;
-    protected final WeakMap<StatementMain<?>, StatementMain<?>> m_statements = new WeakMap<StatementMain<?>, StatementMain<?>>();
-    private CustomTypeInfo m_typeinforows = null;
-
-    protected abstract DriverProvider getProvider();
-    protected abstract ConnectionLog getLogger();
+    private final WeakMap<StatementMain<?,?>, StatementMain<?,?>> m_statements = new WeakMap<StatementMain<?,?>, StatementMain<?,?>>();
 
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
@@ -85,10 +76,7 @@ public abstract class ConnectionBase
                           String[] services,
                           DriverProvider provider,
                           String url,
-                          PropertyValue[] info,
-                          boolean enhanced,
-                          boolean showsystem,
-                          boolean usebookmark)
+                          PropertyValue[] info)
     {
         m_xContext = ctx;
         m_service = service;
@@ -96,11 +84,21 @@ public abstract class ConnectionBase
         m_provider = provider;
         m_url = url;
         m_info = info;
-        m_enhanced = enhanced;
-        m_showsystem = showsystem;
-        m_usebookmark = usebookmark;
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
         System.out.println("ConnectionBase() 1");
+    }
+
+    protected DriverProvider getProvider()
+    {
+        return m_provider;
+    }
+    protected ConnectionLog getLogger()
+    {
+        return m_provider.getLogger();
+    }
+    protected WeakMap<StatementMain<?,?>, StatementMain<?,?>> getStatements()
+    {
+        return m_statements;
     }
 
     // com.sun.star.lang.XComponent
@@ -109,8 +107,8 @@ public abstract class ConnectionBase
     {
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
-            for (Iterator<StatementMain<?>> it = m_statements.keySet().iterator(); it.hasNext();) {
-                StatementMain<?> statement = it.next();
+            for (Iterator<StatementMain<?,?>> it = m_statements.keySet().iterator(); it.hasNext();) {
+                StatementMain<?,?> statement = it.next();
                 it.remove();
                 statement.dispose();
             }
@@ -416,11 +414,6 @@ public abstract class ConnectionBase
         return m_info;
     }
 
-    public boolean isEnhanced()
-    {
-        return m_enhanced;
-    }
-
     public XComponentContext getComponentContext()
     {
         return m_xContext;
@@ -455,29 +448,6 @@ public abstract class ConnectionBase
             System.out.println("sdbc.ConnectionBase.checkDisposed() ERROR: **************************" + this.getClass().getName());
             throw new DisposedException();
         }
-    }
-
-    public String getAutoIncrementCreation()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "AutoIncrementCreation", "");
-    }
-
-    public boolean isIgnoreCurrencyEnabled()
-    {
-        return UnoHelper.getDefaultPropertyValue(m_info, "IgnoreCurrency", false);
-    }
-
-    public CustomColumn[] getTypeInfoRow(CustomColumn[] columns)
-            throws SQLException
-    {
-        Object [] typeinfo = getProvider().getTypeInfoSettings();
-        if (typeinfo == null) {
-            return columns;
-        }
-        if (m_typeinforows == null) {
-            m_typeinforows = new CustomTypeInfo(typeinfo);
-        }
-        return m_typeinforows.getTypeInfoRow(columns);
     }
 
 }

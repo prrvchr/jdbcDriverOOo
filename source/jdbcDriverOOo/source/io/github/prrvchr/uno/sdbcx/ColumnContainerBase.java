@@ -60,14 +60,14 @@ public abstract class ColumnContainerBase
 
     private Map<String, ColumnDescription> m_descriptions = new HashMap<>();
     private Map<String, ExtraColumnInfo> m_extrainfos = new HashMap<>();
-    protected final TableSuper m_table;
+    protected final TableSuper<?> m_table;
 
-protected abstract TableSuper getTable();
+protected abstract TableSuper<?> getTable();
 
     // The constructor method:
     public ColumnContainerBase(String service,
                                String[] services,
-                               TableSuper table,
+                               TableSuper<?> table,
                                boolean sensitive,
                                List<ColumnDescription> descriptions)
         throws ElementExistException
@@ -89,23 +89,11 @@ protected abstract TableSuper getTable();
     }
 
     @Override
-    protected String getElementName(List<String> names,
-                                     XPropertySet descriptor)
-        throws SQLException, ElementExistException
-    {
-        String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME, this);
-        if (names.contains(name)) {
-            throw new ElementExistException();
-        }
-        return name;
-    }
-
-    @Override
-    protected ColumnSuper appendElement(XPropertySet descriptor,
-                                        String name)
+    protected ColumnSuper appendElement(XPropertySet descriptor)
         throws SQLException
     {
         ColumnSuper column = null;
+        String name = getElementName(descriptor);
         if (createColumn(descriptor, name)) {
             column = createElement(name);
         }
@@ -130,7 +118,7 @@ protected abstract TableSuper getTable();
             DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), m_table, oldcolumn, descriptor, false, isCaseSensitive());
             if (!queries.isEmpty()) {
                 return DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_table.getLogger(), this.getClass().getName(),
-                                                 "_appendElement", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
+                                                 "createColumn", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
             }
         }
         catch (java.sql.SQLException e) {
@@ -227,7 +215,7 @@ protected abstract TableSuper getTable();
     }
 
     @Override
-    protected void _refresh() {
+    protected void refreshInternal() {
         m_extrainfos.clear();
         // FIXME: won't help
         m_table.refreshColumns();

@@ -29,7 +29,7 @@ import com.sun.star.sdbc.SQLException;
 
 
 public final class ResultSet
-    extends ResultSetBase
+    extends ResultSetBase<ConnectionBase>
 {
     private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
@@ -44,12 +44,11 @@ public final class ResultSet
     }
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset,
-                     StatementMain<?> statement)
+                     StatementMain<?,?> statement)
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement);
         System.out.println("sdbc.ResultSet() 1");
     }
-
 
 }

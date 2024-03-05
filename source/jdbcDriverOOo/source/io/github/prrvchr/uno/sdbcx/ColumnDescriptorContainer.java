@@ -45,8 +45,7 @@ public final class ColumnDescriptorContainer
     }
 
     @Override
-    protected ColumnDescriptor appendElement(XPropertySet descriptor,
-                                                  String name)
+    protected ColumnDescriptor appendElement(XPropertySet descriptor)
         throws SQLException
     {
         return (ColumnDescriptor) cloneDescriptor(descriptor);

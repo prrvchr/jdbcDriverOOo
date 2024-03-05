@@ -34,14 +34,14 @@ import io.github.prrvchr.jdbcdriver.Resources;
 
 
 public final class PreparedStatement
-    extends PreparedStatementBase
+    extends PreparedStatementBase<Connection>
 {
 
     private static final String m_service = PreparedStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
 
     // The constructor method:
-    public PreparedStatement(ConnectionBase connection,
+    public PreparedStatement(Connection connection,
                              String sql)
     {
         super(m_service, m_services, connection, sql);
@@ -52,7 +52,7 @@ public final class PreparedStatement
     protected XResultSet _getResultSet(java.sql.ResultSet result)
     throws SQLException
     {
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this);

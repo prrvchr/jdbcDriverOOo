@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,14 +39,17 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
+import io.github.prrvchr.uno.sdbc.ResultSetBase;
+import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public abstract class ResultSetSuper
-    extends ResultSetBase
+public abstract class ResultSetSuper<C extends ConnectionSuper>
+    extends ResultSetBase<C>
     implements XRowLocate,
                XDeleteRows,
                XCancellable
@@ -57,14 +60,14 @@ public abstract class ResultSetSuper
     // The constructor method:
     public ResultSetSuper(String service,
                           String[] services,
-                          ConnectionBase connection,
+                          C connection,
                           java.sql.ResultSet resultset,
-                          StatementMain<?> statement,
+                          StatementMain<?,?> statement,
                           boolean bookmark)
     throws SQLException
     {
         super(service, services, connection, resultset, statement);
-        m_IsBookmarkable = bookmark && connection.m_usebookmark;
+        //m_IsBookmarkable = bookmark && connection.getProvider().m_usebookmark;
         registerProperties();
     }
 
@@ -74,7 +77,7 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
                     return m_IsBookmarkable;
                 }
             }, null);
@@ -82,7 +85,7 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
                     return m_CanUpdateInsertedRows;
                 }
             }, null);
@@ -111,7 +114,7 @@ public abstract class ResultSetSuper
                 compare = CompareBookmark.EQUAL;
             }
         }
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
         return compare;
     }
 
@@ -120,7 +123,7 @@ public abstract class ResultSetSuper
     throws SQLException
     {
         int row = getRow();
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, Integer.toString(row));
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, Integer.toString(row));
         return row;
     }
 
@@ -155,7 +158,7 @@ public abstract class ResultSetSuper
                 moved = relative(count);
             }
             int bookmark = AnyConverter.toInt(object);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(bookmark), Boolean.toString(moved));
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(bookmark), Boolean.toString(moved));
         }
         catch (IllegalArgumentException e) { }
         return moved;
@@ -169,11 +172,11 @@ public abstract class ResultSetSuper
         try {
             int bookmark = AnyConverter.toInt(object);
             if (m_insert) {
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT, Integer.toString(bookmark));
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT, Integer.toString(bookmark));
                 moveToCurrentRow();
             }
             moved = absolute(bookmark);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
         }
         catch (IllegalArgumentException e) { }
         return moved;
@@ -198,7 +201,6 @@ public abstract class ResultSetSuper
         return rows.stream().mapToInt(Integer::intValue).toArray();
     }
 
-
     // com.sun.star.util.XCancellable:
     @Override
     public void cancel() {
@@ -211,5 +213,9 @@ public abstract class ResultSetSuper
         }
     }
 
-
+    @Override
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
+    }
 }

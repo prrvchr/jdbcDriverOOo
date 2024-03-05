@@ -56,6 +56,12 @@ public class DBDefaultQuery {
     public static final String STR_QUERY_DROP_TABLE                                  = "DROP TABLE {0}";
 
     public static final String STR_QUERY_ALTER_TABLE_ADD_COLUMN                      = "ALTER TABLE {0} ADD COLUMN {1}";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY                 = "ALTER TABLE {0} ADD PRIMARY KEY ({1})";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY                 = "ALTER TABLE {0} ADD FOREIGN KEY ({1}) REFERENCES {2} ({3}) {4} {5}";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_INDEX                       = "CREATE {0} INDEX {1} ON {2} ({3})";
+    public static final String STR_QUERY_ALTER_TABLE_DROP_INDEX                      = "DROP INDEX {1}";
+    public static final String STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY                = "ALTER TABLE {0} DROP PRIMARY KEY";
+    public static final String STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT                 = "ALTER TABLE {0} DROP CONSTRAINT {1}";
     public static final String STR_QUERY_ALTER_TABLE_DROP_COLUMN                     = "ALTER TABLE {0} DROP COLUMN {1}";
     public static final String STR_QUERY_ALTER_TABLE_ALTER_COLUMN                    = "ALTER TABLE {0} ALTER COLUMN {1} {3} {4} {5} {6}";
     public static final String STR_QUERY_ALTER_TABLE_ALTER_COLUMN_RENAME             = "ALTER TABLE {0} ALTER COLUMN {1} RENAME TO {2}";

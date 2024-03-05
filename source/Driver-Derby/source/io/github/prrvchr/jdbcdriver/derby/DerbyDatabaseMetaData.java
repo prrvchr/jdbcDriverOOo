@@ -39,7 +39,6 @@ public final class DerbyDatabaseMetaData
         throws java.sql.SQLException
     {
         super(connection);
-        System.out.println("derby.DerbyDatabaseMetaData() 1");
     }
 
     @Override

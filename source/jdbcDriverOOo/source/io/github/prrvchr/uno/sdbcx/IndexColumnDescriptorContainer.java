@@ -47,8 +47,7 @@ public final class IndexColumnDescriptorContainer
     }
 
     @Override
-    protected IndexColumnDescriptor appendElement(XPropertySet descriptor,
-                                                   String name)
+    protected IndexColumnDescriptor appendElement(XPropertySet descriptor)
         throws SQLException
     {
         return (IndexColumnDescriptor) cloneDescriptor(descriptor);

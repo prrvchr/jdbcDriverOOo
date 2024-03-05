@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.sun.star.beans.Property;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
@@ -250,7 +251,7 @@ public class DBTools
     }
 
     public static String buildName(DriverProvider provider,
-                                   TableMain table,
+                                   TableMain<?> table,
                                    ComposeRule rule)
         throws java.sql.SQLException
     {
@@ -263,7 +264,7 @@ public class DBTools
     }
 
     public static String buildName(DriverProvider provider,
-                                   TableMain table,
+                                   TableMain<?> table,
                                    ComposeRule rule,
                                    boolean sensitive)
         throws java.sql.SQLException
@@ -381,43 +382,30 @@ public class DBTools
 
     public static Object[] getRenameTableArguments(DriverProvider provider,
                                                    NameComponents newname,
-                                                   TableMain table,
+                                                   TableMain<?> table,
                                                    String fullname,
                                                    boolean reversed,
                                                    ComposeRule rule,
-                                                   boolean sensitive,
-                                                   boolean identifier)
+                                                   boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
         List<String> args = new ArrayList<>();
         // TODO: {0} quoted / unquoted full old table name
-        args.add(identifier ? quoteTableName(provider, fullname, rule, sensitive) : fullname);
+        args.add(quoteTableName(provider, fullname, rule, sensitive));
         // TODO: {1} quoted / unquoted new schema name
-        args.add(identifier ? enquoteIdentifier(provider, newname.getSchema(), sensitive) : newname.getSchema());
+        args.add(enquoteIdentifier(provider, newname.getSchema(), sensitive));
         // TODO: {2} quoted / unquoted full old table name overwritten with the new schema name
-        if (identifier)
-            args.add(buildName(provider, table.getCatalogName(), newname.getSchema(), table.getName(), rule, identifier));
-        else
-            args.add(buildName(provider, table.getCatalogName(), newname.getSchema(), table.getName(), rule, false));
+        args.add(buildName(provider, table.getCatalogName(), newname.getSchema(), table.getName(), rule, sensitive));
         // TODO: {3} quoted / unquoted new table name
-        args.add(identifier ? enquoteIdentifier(provider, newname.getTable(), sensitive) : newname.getTable());
+        args.add(enquoteIdentifier(provider, newname.getTable(), sensitive));
         // TODO: {4} quoted / unquoted full old table name overwritten with the new table name
-        if (identifier)
-            args.add(buildName(provider, table.getCatalogName(), table.getSchemaName(), newname.getTable(), rule, sensitive));
-        else
-            args.add(buildName(provider, table.getCatalogName(), table.getSchemaName(), newname.getTable(), rule, false));
+        args.add(buildName(provider, table.getCatalogName(), table.getSchemaName(), newname.getTable(), rule, sensitive));
         // TODO: {5} quoted / unquoted new catalog name
-        args.add(identifier ? enquoteIdentifier(provider, newname.getCatalog(), sensitive) : newname.getCatalog());
+        args.add(enquoteIdentifier(provider, newname.getCatalog(), sensitive));
         // TODO: {6} quoted / unquoted full old table name overwritten with the new catalog name
-        if (identifier)
-            args.add(buildName(provider, newname.getCatalog(), table.getSchemaName(), table.getName(), rule, sensitive));
-        else
-            args.add(buildName(provider, newname.getCatalog(), table.getSchemaName(), table.getName(), rule, false));
+        args.add(buildName(provider, newname.getCatalog(), table.getSchemaName(), table.getName(), rule, sensitive));
         // TODO: {7} quoted / unquoted full new table name
-        if (identifier)
-            args.add(buildName(provider, newname.getCatalog(), newname.getSchema(), newname.getTable(), rule, sensitive));
-        else
-            args.add(buildName(provider, newname.getCatalog(), newname.getSchema(), newname.getTable(), rule, false));
+        args.add(buildName(provider, newname.getCatalog(), newname.getSchema(), newname.getTable(), rule, sensitive));
         if (reversed) {
             String buffers = args.get(0);
             args.set(0, args.get(4));
@@ -432,24 +420,20 @@ public class DBTools
                                                  String fullname,
                                                  String command,
                                                  ComposeRule rule,
-                                                 boolean sensitive,
-                                                 boolean identifier)
+                                                 boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
         List<String> args = new ArrayList<>();
         // TODO: {0} quoted / unquoted full view name
-        args.add(identifier ? quoteTableName(provider, fullname, rule, sensitive) : fullname);
+        args.add(quoteTableName(provider, fullname, rule, sensitive));
         // TODO: {1} quoted / unquoted catalog view name
-        args.add(identifier ? enquoteIdentifier(provider, component.getCatalog(), sensitive) : component.getCatalog());
+        args.add(enquoteIdentifier(provider, component.getCatalog(), sensitive));
         // TODO: {2} quoted / unquoted schema view name
-        args.add(identifier ? enquoteIdentifier(provider, component.getSchema(), sensitive) : component.getSchema());
+        args.add(enquoteIdentifier(provider, component.getSchema(), sensitive));
         // TODO: {3} quoted / unquoted view name
-        args.add(identifier ? enquoteIdentifier(provider, component.getTable(), sensitive) : component.getTable());
+        args.add(enquoteIdentifier(provider, component.getTable(), sensitive));
         // TODO: {4} raw view command
         args.add(command);
-        for (String arg : args) {
-            System.out.println("sdbcx.View.getAlterViewArguments() Args: '" + arg + "'");
-        }
         return args.toArray(new Object[0]);
     }
 
@@ -458,24 +442,20 @@ public class DBTools
                                                       NameComponents component,
                                                       String fullname,
                                                       ComposeRule rule,
-                                                      boolean sensitive,
-                                                      boolean identifier)
+                                                      boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
         List<String> args = new ArrayList<>();
         // TODO: {0} quoted / unquoted  full view name
-        args.add(identifier ? quoteTableName(provider, fullname, rule, sensitive) : fullname);
+        args.add(quoteTableName(provider, fullname, rule, sensitive));
         // TODO: {1} quoted / unquoted  catalog view name
-        args.add(identifier ? provider.getStatement().enquoteIdentifier(component.getCatalog(), sensitive) : component.getCatalog());
+        args.add(enquoteIdentifier(provider, component.getCatalog(), sensitive));
         // TODO: {2} quoted / unquoted  schema view name
-        args.add(identifier ? provider.getStatement().enquoteIdentifier(component.getSchema(), sensitive) : component.getSchema());
+        args.add(enquoteIdentifier(provider, component.getSchema(), sensitive));
         // TODO: {3} quoted / unquoted  view name
-        args.add(identifier ? provider.getStatement().enquoteIdentifier(component.getTable(), sensitive) : component.getTable());
+        args.add(enquoteIdentifier(provider, component.getTable(), sensitive));
         // TODO: {4} quoted literal 'SELECT '
         args.add("'SELECT '");
-        for (String arg : args) {
-            System.out.println("sdbcx.ViewContainer.getViewDefinitionArguments() Args: '" + arg + "'");
-        }
         return args.toArray(new Object[0]);
     }
 
@@ -1704,4 +1684,19 @@ public class DBTools
         return keys;
     }
 
+    public static void printDescriptor(XPropertySet descriptor,
+                                       String cls,
+                                       String method)
+    {
+        for (Property property: descriptor.getPropertySetInfo().getProperties()) {
+            String name = property.Name;
+            try {
+                Object value = descriptor.getPropertyValue(name);
+                System.out.println(cls + "." + method + "() Name: " + name + " - Value: '" + value.toString() + "'");
+            }
+            catch (UnknownPropertyException | WrappedTargetException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

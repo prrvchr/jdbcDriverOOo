@@ -41,7 +41,7 @@ It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][13] version 2.7.2  
   The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
 - [SQLite JDBC Driver][14] version 3.45.1.6-SNAPSHOT
-- [MariaDB Connector/J][15] version 3.3.2
+- [MariaDB Connector/J][15] version 3.3.3
 - [PostgreSQL JDBC Driver][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
@@ -421,7 +421,14 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - It is also possible to rename the columns declared as primary key in all embedded drivers.
 - Many improvements.
 
-### What remains to be done for version 1.2.1:
+### What has been done for version 1.2.2:
+
+- Implementation of index management.
+- Renaming a column declared as a primary key will also rename the index associated with the primary key.
+- Only members of Java classes responding to the UNO API have a public visibility level, all other members have protected or private visibility.
+- Solved many problems and regression.
+
+### What remains to be done for version 1.2.2:
 
 - Add new languages for internationalization...
 
@@ -454,7 +461,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [25]: <https://prrvchr.github.io/HyperSQLOOo/>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.1#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.2#right>
 [29]: <img/jdbcDriverOOo-1.png>
 [30]: <img/jdbcDriverOOo-2.png>
 [31]: <img/jdbcDriverOOo-3.png>

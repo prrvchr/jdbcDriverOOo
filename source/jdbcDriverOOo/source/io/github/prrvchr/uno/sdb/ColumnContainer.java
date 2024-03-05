@@ -50,7 +50,7 @@ public final class ColumnContainer
     }
 
     // The constructor method:
-    public ColumnContainer(TableSuper tableSuper,
+    public ColumnContainer(TableSuper<?> tableSuper,
                            boolean sensitive,
                            List<ColumnDescription> descriptions)
         throws ElementExistException

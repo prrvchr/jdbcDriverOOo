@@ -45,7 +45,7 @@ public final class IndexColumn
 
 
     // The constructor method:
-    public IndexColumn(final TableSuper table,
+    public IndexColumn(final TableSuper<?> table,
                        final boolean sensitive,
                        final String name,
                        final String typename,

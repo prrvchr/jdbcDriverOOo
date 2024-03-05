@@ -48,22 +48,20 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public abstract class TableMain
+public abstract class TableMain<C extends ConnectionSuper>
     extends Descriptor
     implements XRename
 {
 
-    protected final ConnectionSuper m_connection;
-    protected final ConnectionLog m_logger; 
+    private final C m_connection;
+    private final ConnectionLog m_logger; 
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
-
-    protected abstract ConnectionSuper getConnection();
 
     // The constructor method:
     public TableMain(String service,
                      String[] services,
-                     ConnectionSuper connection,
+                     C connection,
                      String catalog,
                      String schema,
                      boolean sensitive,
@@ -96,11 +94,15 @@ public abstract class TableMain
             }, null);
     }
 
-    public ConnectionLog getLogger()
+    protected ConnectionLog getLogger()
     {
         return m_logger;
     }
 
+    protected C getConnection()
+    {
+        return m_connection;
+    }
 
     // com.sun.star.sdbcx.XRename
     // TODO: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
@@ -160,7 +162,7 @@ public abstract class TableMain
             }
 
             Object[] parameters = DBTools.getRenameTableArguments(m_connection.getProvider(), cpt, this, oldname, 
-                                                                  reversed, rule, isCaseSensitive(), true);
+                                                                  reversed, rule, isCaseSensitive());
             List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
             resource = Resources.STR_LOG_TABLE_RENAME_QUERY + offset;
             if (fullchange) {
@@ -182,6 +184,7 @@ public abstract class TableMain
             }
         }
         catch (java.sql.SQLException e) {
+            System.out.println("sdbcx.TableMain.rename() ERROR Message: " + e.getMessage());
             throw UnoHelper.getSQLException(e, this);
         }
         if (!changed || skipped) {

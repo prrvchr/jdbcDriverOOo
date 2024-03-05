@@ -48,7 +48,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
 public final class View
-    extends TableMain
+    extends TableMain<ConnectionSuper>
     implements XAlterView
 {
     private static final String m_service = View.class.getName();
@@ -56,11 +56,6 @@ public final class View
 
     protected String m_Command = "";
     private int m_CheckOption;
-
-    @Override
-    protected Connection getConnection() {
-        return (Connection) m_connection;
-    }
 
     // The constructor method:
     public View(ConnectionSuper connection,
@@ -105,15 +100,15 @@ public final class View
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
                 System.out.println("sdbcx.View.alterCommand() 1 Command : " + command);
-                String view = DBTools.buildName(m_connection.getProvider(), getCatalogName(), getSchemaName(), m_Name, rule, false);
-                //String view = DBTools.composeTableName(m_connection, this, rule, isCaseSensitive());
-                NameComponents component = DBTools.qualifiedNameComponents(m_connection.getProvider(), view, rule);
+                String view = DBTools.buildName(getConnection().getProvider(), getCatalogName(), getSchemaName(), m_Name, rule, false);
+                //String view = DBTools.composeTableName(getConnection(), this, rule, isCaseSensitive());
+                NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), view, rule);
                 System.out.println("sdbcx.View.alterCommand() 2 View name: " + view);
-                Object[] arguments = DBTools.getAlterViewArguments(m_connection.getProvider(), component, view, command, rule, isCaseSensitive(), true);
-                List<String> queries =  m_connection.getProvider().getAlterViewQueries(arguments);
+                Object[] arguments = DBTools.getAlterViewArguments(getConnection().getProvider(), component, view, command, rule, isCaseSensitive());
+                List<String> queries =  getConnection().getProvider().getAlterViewQueries(arguments);
                 if (!queries.isEmpty()) {
-                    String name = DBTools.composeTableName(m_connection.getProvider(), this, rule, false);
-                DBTools.executeDDLQueries(m_connection.getProvider(), queries, m_logger, this.getClass().getName(),
+                    String name = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
+                DBTools.executeDDLQueries(getConnection().getProvider(), queries, getLogger(), this.getClass().getName(),
                                           "alterCommand", Resources.STR_LOG_VIEW_ALTER_QUERY, name);
                 }
             }
@@ -133,18 +128,18 @@ public final class View
     {
         try {
             ComposeRule rule = ComposeRule.InDataManipulation;
-            String oldname = DBTools.composeTableName(m_connection.getProvider(), this, rule, false);
-            if (!m_connection.getProvider().supportRenamingTable()) {
+            String oldname = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
+            if (!getConnection().getProvider().supportRenamingTable()) {
                 int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
             int offset = Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET;
-            NameComponents component = DBTools.qualifiedNameComponents(m_connection.getProvider(), name, rule);
+            NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
             rename(component, oldname, name, rule, offset);
             m_SchemaName = component.getSchema();
             m_Name = component.getTable();
-            m_connection.getViewsInternal().rename(oldname, name, offset);
+            getConnection().getViewsInternal().rename(oldname, name, offset);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

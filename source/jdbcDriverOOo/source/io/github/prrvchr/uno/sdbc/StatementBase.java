@@ -42,8 +42,8 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class StatementBase
-    extends StatementMain<java.sql.Statement>
+public abstract class StatementBase<C extends ConnectionBase>
+    extends StatementMain<java.sql.Statement, C>
     implements XBatchExecution,
                XStatement
 {
@@ -53,7 +53,7 @@ public abstract class StatementBase
     // The constructor method:
    public StatementBase(String service,
                         String[] services,
-                        ConnectionBase connection)
+                        C connection)
     {
         super(service, services, connection);
         registerProperties();

@@ -221,6 +221,11 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
 
 <!--            <node oor:name="UseSchemaInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
@@ -303,6 +308,11 @@
                 <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="TypeInfoSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">COLUMN(2) = 92|COLUMN(6) = SCALE|COLUMN(2) = 92|COLUMN(14) = 0|COLUMN(2) = 92|COLUMN(15) = 9|COLUMN(2) = 93|COLUMN(6) = SCALE|COLUMN(2) = 93|COLUMN(14) = 0|COLUMN(2) = 93|COLUMN(15) = 9|COLUMN(2) = 2013|COLUMN(6) = SCALE|COLUMN(2) = 2013|COLUMN(14) = 0|COLUMN(2) = 2013|COLUMN(15) = 9|COLUMN(2) = 2014|COLUMN(6) = SCALE|COLUMN(2) = 2014|COLUMN(14) = 0|COLUMN(2) = 2014|COLUMN(15) = 9</value>
@@ -396,6 +406,11 @@
                 <value xml:lang="fr-FR">Pilote H2</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|123</value>
@@ -469,6 +484,16 @@
                 <value xml:lang="fr-FR">Pilote MariaDB</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="DropIndexCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>DROP INDEX {1} ON {0}</value>
+                    </prop>
+                </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|13</value>
@@ -532,6 +557,11 @@
                 <value xml:lang="fr-FR">Pilote PostgreSQL</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="TypeInfoSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">COLUMN(1) = int2|COLUMN(12) = 1|COLUMN(1) = int4|COLUMN(12) = 1|COLUMN(1) = int8|COLUMN(12) = 1</value>
@@ -643,6 +673,11 @@
                 <value xml:lang="fr-FR">Pilote SQLite</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT SUBSTR(sql, INSTR(sql, {4})) FROM sqlite_schema WHERE name = ?|0</value>
@@ -721,9 +756,19 @@
                 <value xml:lang="fr-FR">Pilote Derby</value>
             </prop>
             <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">RENAME TABLE {0} TO {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>RENAME COLUMN {0}.{1} TO {2}</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">

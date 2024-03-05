@@ -38,6 +38,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
@@ -48,7 +49,7 @@ import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public final class Table
-    extends TableSuper
+    extends TableSuper<Connection>
 {
 
     private static final String m_service = Table.class.getName();
@@ -67,10 +68,12 @@ public final class Table
     protected FontDescriptor m_FontDescriptor = null;
     protected String m_GroupBy = "";
 
+    // XXX: To keep access to logger in protected mode we need this access
     @Override
-    protected Connection getConnection() {
-        return (Connection) m_connection;
+    protected ConnectionLog getLogger() {
+        return super.getLogger();
     }
+
     @Override
     protected ColumnContainer getColumnContainer(List<ColumnDescription> descriptions)
             throws ElementExistException

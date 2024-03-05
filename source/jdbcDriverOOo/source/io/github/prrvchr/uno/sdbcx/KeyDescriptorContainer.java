@@ -50,14 +50,13 @@ public final class KeyDescriptorContainer
     }
 
     @Override
-    protected KeyDescriptor appendElement(XPropertySet descriptor,
-                                           String name)
+    protected KeyDescriptor appendElement(XPropertySet descriptor)
         throws SQLException
     {
-        System.out.println("sdbcx.descriptors.KeyDescriptorContainer._appendElement() 1");
+        System.out.println("sdbcx.descriptors.KeyDescriptorContainer.appendElement() 1");
         XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
-        System.out.println("sdbcx.descriptors.KeyDescriptorContainer._appendElement() 2");
+        System.out.println("sdbcx.descriptors.KeyDescriptorContainer.appendElement() 2");
         return (KeyDescriptor) newDescriptor;
     }
 

@@ -42,7 +42,7 @@ public abstract class ColumnBase
     implements XDataDescriptorFactory
 {
 
-    protected final TableSuper m_table;
+    protected final TableSuper<?> m_table;
     protected int m_Type;
     private int m_Precision;
     private int m_Scale;
@@ -57,7 +57,7 @@ public abstract class ColumnBase
     // The constructor method:
     public ColumnBase(String service,
                       String[] services,
-                      TableSuper table,
+                      TableSuper<?> table,
                       boolean sensitive,
                       String name,
                       final String typename,

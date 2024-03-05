@@ -53,8 +53,8 @@ import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class PreparedStatementMain<S extends java.sql.PreparedStatement>
-    extends StatementMain<S>
+public abstract class PreparedStatementMain<S extends java.sql.PreparedStatement, C extends ConnectionBase>
+    extends StatementMain<S, C>
     implements XParameters,
                XPreparedBatchExecution,
                XPreparedStatement,
@@ -69,7 +69,7 @@ public abstract class PreparedStatementMain<S extends java.sql.PreparedStatement
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementBase()
     public PreparedStatementMain(String service,
                                  String[] services,
-                                 ConnectionBase connection)
+                                 C connection)
     {
         super(service, services, connection);
     }

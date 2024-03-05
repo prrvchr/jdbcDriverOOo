@@ -32,17 +32,16 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public final class Statement
-    extends StatementBase
+    extends StatementBase<ConnectionSuper>
 {
     
     private static final String m_service = Statement.class.getName();
@@ -51,7 +50,7 @@ public final class Statement
     protected boolean m_UseBookmarks = false;
 
     // The constructor method:
-    public Statement(ConnectionBase connection)
+    public Statement(ConnectionSuper connection)
     {
         super(m_service, m_services, connection);
         registerProperties();
@@ -76,11 +75,15 @@ public final class Statement
             });
     }
 
+    protected ConnectionLog getLogger()
+    {
+        return super.getLogger();
+    }
 
     protected XResultSet _getResultSet(java.sql.ResultSet result)
     throws SQLException
     {
-        ResultSetBase resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
             resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);

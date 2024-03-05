@@ -30,8 +30,8 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class PreparedStatementBase
-    extends PreparedStatementMain<java.sql.PreparedStatement>
+public abstract class PreparedStatementBase<C extends ConnectionBase>
+    extends PreparedStatementMain<java.sql.PreparedStatement, C>
 {
 
     // The constructor method:
@@ -40,7 +40,7 @@ public abstract class PreparedStatementBase
     // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatementSuper()
     public PreparedStatementBase(String service,
                                  String[] services,
-                                 ConnectionBase connection,
+                                 C connection,
                                  String sql)
     {
         super(service, services, connection);

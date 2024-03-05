@@ -45,16 +45,11 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class ViewContainer
-    extends TableContainerMain<View>
+    extends TableContainerMain<View, ConnectionSuper>
 {
     private static final String m_service = ViewContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Views",
                                                 "com.sun.star.sdbcx.Container"};
-
-    @Override
-    protected Connection getConnection() {
-        return (Connection) m_Connection;
-    }
 
     // The constructor method:
     public ViewContainer(ConnectionSuper connection,
@@ -67,7 +62,7 @@ public final class ViewContainer
 
     public void dispose()
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_VIEWS_DISPOSING);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_VIEWS_DISPOSING);
         super.dispose();
     }
 
@@ -76,11 +71,11 @@ public final class ViewContainer
         throws SQLException
     {
         try {
-            String query = DBTools.getCreateViewQuery(m_Connection.getProvider(), descriptor, isCaseSensitive());
+            String query = DBTools.getCreateViewQuery(getConnection().getProvider(), descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
-            if (DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
+            if (DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
                                         "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
-                m_Connection.getTablesInternal().insertElement(name, null);
+                getConnection().getTablesInternal().insertElement(name, null);
                 return true;
             }
         }
@@ -98,14 +93,14 @@ public final class ViewContainer
         int option = CheckOption.NONE;
         ComposeRule rule = ComposeRule.InDataManipulation;
         try {
-            NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, rule);
-            if (m_Connection.getProvider().supportViewDefinition()) {
+            NameComponents cpt = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
+            if (getConnection().getProvider().supportViewDefinition()) {
                 List<Integer[]> positions = new ArrayList<Integer[]>();
-                Object[] parameters = DBTools.getViewDefinitionArguments(m_Connection.getProvider(), cpt, name, rule, isCaseSensitive(), true);
-                List<String> queries = m_Connection.getProvider().getViewDefinitionQuery(positions, parameters);
+                Object[] parameters = DBTools.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, isCaseSensitive());
+                List<String> queries = getConnection().getProvider().getViewDefinitionQuery(positions, parameters);
                 if (!queries.isEmpty() && !positions.isEmpty()) {
-                    parameters = DBTools.getViewDefinitionArguments(m_Connection.getProvider(), cpt, name, rule, isCaseSensitive(), false);
-                    try (java.sql.PreparedStatement smt = m_Connection.getProvider().getConnection().prepareStatement(queries.get(0)))
+                    parameters = DBTools.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, false);
+                    try (java.sql.PreparedStatement smt = getConnection().getProvider().getConnection().prepareStatement(queries.get(0)))
                     {
                         int i = 1;
                         for (int position : positions.get(0)) {
@@ -119,7 +114,7 @@ public final class ViewContainer
                             // FIXME: If only one column is provided then the Check_Option value defaults to None.
                             if (result.next()) {
                                 command = result.getString(1);
-                                if (result.getMetaData().getColumnCount() > 1) {
+                               if (result.getMetaData().getColumnCount() > 1) {
                                     value = result.getString(2);
                                 }
                             }
@@ -136,10 +131,10 @@ public final class ViewContainer
                     }
                 }
             }
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
-            View view = new View(m_Connection, isCaseSensitive(), cpt.getCatalog(),
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
+            View view = new View(getConnection(), isCaseSensitive(), cpt.getCatalog(),
                                  cpt.getSchema(), cpt.getTable(), command, option);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
             return view;
         }
         catch (java.sql.SQLException e) {
@@ -164,11 +159,9 @@ public final class ViewContainer
         throws SQLException
     {
         try {
-            System.out.println("ViewContainer.removeView() 1 Name: " + view.getName());
-            String table = DBTools.buildName(m_Connection.getProvider(), view, ComposeRule.InTableDefinitions, isCaseSensitive());
-            System.out.println("ViewContainer.removeView() 2 Name: " + table);
+            String table = DBTools.buildName(getConnection().getProvider(), view, ComposeRule.InTableDefinitions, isCaseSensitive());
             String query = DBTools.getDropViewQuery(table);
-            DBTools.executeDDLQuery(m_Connection.getProvider(), query, m_logger, this.getClass().getName(),
+            DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
                                     "removeView", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
         }
         catch (java.sql.SQLException e) {

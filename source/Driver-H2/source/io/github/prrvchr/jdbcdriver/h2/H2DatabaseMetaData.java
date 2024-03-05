@@ -49,23 +49,6 @@ public final class H2DatabaseMetaData
         super(connection);
     }
 
-    //@Override
-    public boolean supportsCatalogsInDataManipulation() throws SQLException
-    {
-        boolean value = false;
-        try {
-            if (m_Connection.isEnhanced()) {
-                value = m_Metadata.supportsCatalogsInDataManipulation();
-            }
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("h2.DatabaseMetaData.supportsCatalogsInDataManipulation() 2: " + value);
-        return value;
-    }
-
     @Override
     public final XResultSet getTypeInfo()
         throws SQLException

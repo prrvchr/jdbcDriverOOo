@@ -53,7 +53,7 @@ public final class Index
     private static final String[] m_services = {"com.sun.star.sdbcx.Index"};
     
     protected IndexColumnContainer m_columns = null;
-    protected final TableSuper m_table;
+    protected final TableSuper<?> m_table;
     
     protected String m_Catalog;
     protected boolean m_IsUnique;
@@ -61,7 +61,7 @@ public final class Index
     protected boolean m_IsClustered;
 
     // The constructor method:
-    public Index(TableSuper table,
+    public Index(TableSuper<?> table,
                  boolean sensitive,
                  String name,
                  String catalog,
@@ -114,6 +114,9 @@ public final class Index
             }, null);
     }
 
+    protected IndexColumnContainer getColumnsInternal() {
+        return m_columns;
+    }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
@@ -139,7 +142,7 @@ public final class Index
     }
 
 
-    public TableSuper getTable()
+    public TableSuper<?> getTable()
     {
         return m_table;
     }
