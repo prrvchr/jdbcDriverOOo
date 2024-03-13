@@ -193,6 +193,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
             try {
                 String oldname = oldcolumn.getName();
                 boolean alterpk = isPrimaryKeyColumn(oldname);
+                boolean alteridx = isIndexColumn(oldname);
                 List<String> queries = new ArrayList<String>();
                 byte result = DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
                 if (!queries.isEmpty()) {
@@ -207,6 +208,10 @@ public abstract class TableSuper<C extends ConnectionSuper>
                                 // XXX: If the renamed column is a primary key we need to rename the Key column name to.
                                 // XXX: Renaming the primary key should rename the associated Index column name as well.
                                 getKeysInternal().renameKeyColumn(oldname, newname);
+                            }
+                            if (alteridx) {
+                                // XXX: If the renamed column is declared as index we need to rename the Index column name to.
+                                getIndexesInternal().renameIndexColumn(oldname, newname);
                             }
                             m_columns.replaceElement(oldname, newname);
                         }
@@ -244,6 +249,19 @@ public abstract class TableSuper<C extends ConnectionSuper>
         KeyContainer keys = getKeysInternal();
         for (String name : keys.getElementNames()) {
             if (keys.getElement(name).getColumnsInternal().hasByName(oldname)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIndexColumn(String oldname)
+        throws SQLException
+    {
+        // FIXME: Here we search and retrieve if this column is declared as index.
+        IndexContainer indexes = getIndexesInternal();
+        for (String name : indexes.getElementNames()) {
+            if (indexes.getElement(name).getColumnsInternal().hasByName(oldname)) {
                 return true;
             }
         }

@@ -132,7 +132,6 @@ public final class IndexColumnContainer
         return m_index.getTable().getConnection();
     }
 
-
     protected void renameIndexColumn(String oldname, String newname)
         throws SQLException
     {

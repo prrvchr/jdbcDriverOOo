@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.2.2][5]
+# version [1.2.3][5]
 
 ## Introduction:
 
@@ -428,7 +428,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Seuls les membres des classes Java répondant à l'API UNO ont un niveau de visibilité public, tous les autres membres ont une visibilité protégée ou privée.
 - Résolution de nombreux problèmes et régressions.
 
-### Que reste-t-il à faire pour la version 1.2.2:
+### Ce qui a été fait pour la version 1.2.3:
+
+- Renommer une colonne déclarée comme index renommera également la colonne de l'index associée.
+
+### Que reste-t-il à faire pour la version 1.2.3:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -438,7 +442,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-120>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-121>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -461,7 +465,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.2#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.3#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>

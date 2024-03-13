@@ -156,5 +156,4 @@ public final class KeyColumnContainer
         return m_key.getTable().getConnection();
     }
 
-
 }

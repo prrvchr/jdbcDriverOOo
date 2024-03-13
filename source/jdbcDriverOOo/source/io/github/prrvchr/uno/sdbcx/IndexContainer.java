@@ -149,7 +149,7 @@ public final class IndexContainer
         
     }
 
-    protected boolean createIndex(XPropertySet descriptor,
+    private boolean createIndex(XPropertySet descriptor,
                                   String name)
         throws SQLException
     {
@@ -246,11 +246,19 @@ public final class IndexContainer
         }
     }
 
-    protected void renamePrimaryKeyIndex(String oldname, String newname)
+    protected void renameIndexColumn(String oldname, String newname)
         throws SQLException
     {
-        for (String column: getElementNames()) {
-            Index index = getElement(column);
+        for (String name: getElementNames()) {
+            getElement(name).getColumnsInternal().renameIndexColumn(oldname, newname);
+        }
+    }
+
+    protected void renamePrimaryKeyIndexColumn(String oldname, String newname)
+        throws SQLException
+    {
+        for (String name: getElementNames()) {
+            Index index = getElement(name);
             if (index.m_IsPrimaryKeyIndex) {
                 index.getColumnsInternal().renameIndexColumn(oldname, newname);
                 break;

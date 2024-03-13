@@ -342,8 +342,7 @@ public final class KeyContainer
                 break;
             }
         }
-        m_table.getIndexesInternal().renamePrimaryKeyIndex(oldname, newname);
+        m_table.getIndexesInternal().renamePrimaryKeyIndexColumn(oldname, newname);
     }
-
 
 }
