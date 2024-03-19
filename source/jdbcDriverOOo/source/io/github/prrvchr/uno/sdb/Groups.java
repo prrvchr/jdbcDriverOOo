@@ -61,7 +61,7 @@ public final class Groups
         try {
             String query = DBTools.getGrantRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
             System.out.println("sdbcx.UserGroupContainer._createUser() SQL: " + query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_role.getLogger(), this.getClass().getName(),
+            return DBTools.executeDDLQuery(m_connection.getProvider(), m_role.getLogger(), query, this.getClass().getName(),
                                            "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
         }
         catch (java.sql.SQLException e) {
@@ -77,7 +77,7 @@ public final class Groups
         try {
             String query = DBTools.getRevokeRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
             System.out.println("sdbcx.UserGroupContainer.removeDataBaseElement() SQL: " + query);
-            DBTools.executeDDLQuery(m_connection.getProvider(), query, m_role.getLogger(), this.getClass().getName(),
+            DBTools.executeDDLQuery(m_connection.getProvider(), m_role.getLogger(), query, this.getClass().getName(),
                                     "removeDataBaseElement", Resources.STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY, name);
         }
         catch (java.sql.SQLException e) {

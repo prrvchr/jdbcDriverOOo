@@ -114,7 +114,7 @@ public abstract class Descriptor
 
 
     // Method for internal use (no UNO method)
-    public String getName() {
+    protected String getName() {
         return m_Name;
     }
     

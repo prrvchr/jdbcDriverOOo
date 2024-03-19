@@ -36,6 +36,7 @@ import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
@@ -73,7 +74,7 @@ public final class ViewContainer
         try {
             String query = DBTools.getCreateViewQuery(getConnection().getProvider(), descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
-            if (DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
+            if (DBTools.executeDDLQuery(getConnection().getProvider(), getLogger(), query, this.getClass().getName(),
                                         "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
                 getConnection().getTablesInternal().insertElement(name, null);
                 return true;
@@ -96,10 +97,10 @@ public final class ViewContainer
             NameComponents cpt = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
             if (getConnection().getProvider().supportViewDefinition()) {
                 List<Integer[]> positions = new ArrayList<Integer[]>();
-                Object[] parameters = DBTools.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, isCaseSensitive());
+                Object[] parameters = DBParameterHelper.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, isCaseSensitive());
                 List<String> queries = getConnection().getProvider().getViewDefinitionQuery(positions, parameters);
                 if (!queries.isEmpty() && !positions.isEmpty()) {
-                    parameters = DBTools.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, false);
+                    parameters = DBParameterHelper.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, false);
                     try (java.sql.PreparedStatement smt = getConnection().getProvider().getConnection().prepareStatement(queries.get(0)))
                     {
                         int i = 1;
@@ -159,9 +160,10 @@ public final class ViewContainer
         throws SQLException
     {
         try {
-            String table = DBTools.buildName(getConnection().getProvider(), view, ComposeRule.InTableDefinitions, isCaseSensitive());
+            String table = DBTools.buildName(getConnection().getProvider(), view.getCatalogName(), view.getCatalogName(),
+                                             view.getName(), ComposeRule.InTableDefinitions, isCaseSensitive());
             String query = DBTools.getDropViewQuery(table);
-            DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
+            DBTools.executeDDLQuery(getConnection().getProvider(), getLogger(), query, this.getClass().getName(),
                                     "removeView", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
         }
         catch (java.sql.SQLException e) {

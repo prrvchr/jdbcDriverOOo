@@ -34,6 +34,7 @@ import java.util.Properties;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.Privilege;
 
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
@@ -58,6 +59,18 @@ public abstract class DriverProviderMain
     protected boolean m_enhanced;
     protected boolean m_showsystem;
     protected boolean m_usebookmark;
+
+    private boolean m_CatalogsInTableDefinitions;
+    private boolean m_SchemasInTableDefinitions;
+    private boolean m_CatalogsInIndexDefinitions;
+    private boolean m_SchemasInIndexDefinitions;
+    private boolean m_CatalogsInDataManipulation;
+    private boolean m_SchemasInDataManipulation;
+    private boolean m_CatalogsInProcedureCalls;
+    private boolean m_SchemasInProcedureCalls;
+    private boolean m_CatalogsInPrivilegeDefinitions;
+    private boolean m_SchemasInPrivilegeDefinitions;
+
     private boolean m_SupportsTransactions = true;
     private boolean m_IsCatalogAtStart = true;
     private String m_CatalogSeparator = "";
@@ -67,6 +80,8 @@ public abstract class DriverProviderMain
     private String m_ColumnDescriptionCommand = null;
     private boolean m_AddIndexAppendix = false;
     private boolean m_IsAutoIncrementIsPrimaryKey = false;
+    private boolean m_IsColumnPropertyAlterable = true;
+    private boolean m_IsPrimaryKeyAlterable = true;
     private boolean m_IsAutoRetrievingEnabled = false;
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
@@ -74,7 +89,14 @@ public abstract class DriverProviderMain
     private boolean m_IgnoreCurrency = false;
     private boolean m_SupportRenameView = true;
     private String m_RenameColumnCommand = null;
-    private String m_DropIndexCommand = null;
+    private String m_CreateTableCommand = DBDefaultQuery.STR_QUERY_CREATE_TABLE;
+    private String m_DropTableCommand = DBDefaultQuery.STR_QUERY_DROP_TABLE;
+    private String m_AddPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY;
+    private String m_AddForeignKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY;
+    private String m_AddIndexCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
+    private String m_DropPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY;
+    private String m_DropConstraintCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT;
+    private String m_DropIndexCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_INDEX;
     private String m_ColumnSetTypeCommand = null;
     private String m_ColumnResetDefaultCommand = null;
     private String m_RevokeRoleCommand = null;
@@ -98,6 +120,19 @@ public abstract class DriverProviderMain
     {
         System.out.println("jdbcdriver.DriverProviderMain() 1");
         m_subprotocol = subprotocol;
+    }
+
+    @Override
+    public String enquoteLiteral(String literal)
+        throws SQLException
+    {
+        try {
+            literal = getStatement().enquoteLiteral(literal);
+        }
+        catch (java.sql.SQLException e) {
+            UnoHelper.getSQLException(e);
+        }
+        return literal;
     }
 
     @Override
@@ -160,12 +195,51 @@ public abstract class DriverProviderMain
                command;
     }
 
+    @Override
+    public String getCreateTableQuery(String table,
+                                      String columns)
+    {
+        return MessageFormat.format(m_CreateTableCommand, table, columns);
+    }
 
     @Override
-    public String getDropIndexQuery(String command) {
-        return m_DropIndexCommand != null ?
-               m_DropIndexCommand :
-               command;
+    public String getDropTableQuery(String table)
+    {
+        return MessageFormat.format(m_DropTableCommand, table);
+    }
+
+    @Override
+    public String getAddConstraintQuery(int type) {
+        String query = null;
+        switch (type) {
+        case KeyType.PRIMARY:
+            query = m_AddPrimaryKeyCommand;
+            break;
+        case KeyType.FOREIGN:
+            query = m_AddForeignKeyCommand;
+            break;
+        case KeyType.UNIQUE:
+            query = m_AddIndexCommand;
+            break;
+        }
+        return query;
+    }
+
+    @Override
+    public String getDropConstraintQuery(int type) {
+        String query = null;
+        switch (type) {
+        case KeyType.PRIMARY:
+            query = m_DropPrimaryKeyCommand;
+            break;
+        case KeyType.FOREIGN:
+            query = m_DropConstraintCommand;
+            break;
+        case KeyType.UNIQUE:
+            query = m_DropIndexCommand;
+            break;
+        }
+        return query;
     }
 
     @Override
@@ -412,7 +486,7 @@ public abstract class DriverProviderMain
 
     @Override
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnBase column)
+                                     ColumnBase<?> column)
     {
         return null;
     }
@@ -471,49 +545,26 @@ public abstract class DriverProviderMain
         String url = getConnectionUrl(location, level);
         java.sql.Connection connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
         java.sql.DatabaseMetaData metadata = connection.getMetaData();
+
+        m_CatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
+        m_SchemasInTableDefinitions = metadata.supportsSchemasInTableDefinitions();
+        m_CatalogsInIndexDefinitions = metadata.supportsCatalogsInIndexDefinitions();
+        m_SchemasInIndexDefinitions = metadata.supportsSchemasInIndexDefinitions();
+        m_CatalogsInDataManipulation = metadata.supportsCatalogsInDataManipulation();
+        m_SchemasInDataManipulation = metadata.supportsSchemasInDataManipulation();
+        m_CatalogsInProcedureCalls = metadata.supportsCatalogsInProcedureCalls();
+        m_SchemasInProcedureCalls = metadata.supportsSchemasInProcedureCalls();
+        m_CatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
+        m_SchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
+
         m_SupportsTransactions = metadata.supportsTransactions();
         m_IsCatalogAtStart = metadata.isCatalogAtStart();
         m_CatalogSeparator = metadata.getCatalogSeparator();
         m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
-        m_AutoIncrementCreation = (String) getConnectionProperties(infos, "AutoIncrementCreation", "");
-        m_ColumnDescriptionCommand = (String) getConnectionProperties(infos, "ColumnDescriptionCommand", null);
-        m_TableDescriptionCommand = (String) getConnectionProperties(infos, "TableDescriptionCommand", null);
-        m_IsAutoIncrementIsPrimaryKey = (boolean) getConnectionProperties(infos, "AutoIncrementIsPrimaryKey", false);
-        m_IgnoreDriverPrivileges = (boolean) getConnectionProperties(infos, "IgnoreDriverPrivileges", true);
-        m_IgnoreCurrency = (boolean) getConnectionProperties(infos, "IgnoreCurrency", false);
-        m_AddIndexAppendix = (boolean) getConnectionProperties(infos, "AddIndexAppendix", false);
-        m_AlterViewCommands = (Object[]) getConnectionProperties(infos, "AlterViewCommands", null);
-        m_ViewDefinitionCommands = (Object[]) getConnectionProperties(infos, "ViewDefinitionCommands", null);
-        m_SupportRenameView = (boolean) getConnectionProperties(infos, "SupportRenameView", true);
-        m_RenameColumnCommand = (String) getConnectionProperties(infos, "RenameColumnCommand", null);
-        m_DropIndexCommand = (String) getConnectionProperties(infos, "DropIndexCommand", null);
-        m_ColumnSetTypeCommand = (String) getConnectionProperties(infos, "ColumnSetTypeCommand", null);
-        m_ColumnResetDefaultCommand = (String) getConnectionProperties(infos, "ColumnResetDefaultCommand", null);
-        m_RevokeRoleCommand =(String) getConnectionProperties(infos, "RevokeRoleCommand", null);
-        m_RenameTableCommands = (Object[]) getConnectionProperties(infos, "RenameTableCommands", null);
-        m_TypeInfoSettings = (Object[]) getConnectionProperties(infos, "TypeInfoSettings", null);
-        if (_getAutoRetrieving(metadata, infos)) {
-            m_AutoRetrievingStatement = (String) getConnectionProperties(infos, "AutoRetrievingStatement", "");
-            m_IsAutoRetrievingEnabled = (boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", false);
-        }
         m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
                                                                        java.sql.ResultSet.CONCUR_UPDATABLE);
+        setInfoProperties(infos, metadata);
         m_statement = connection.createStatement();
-    }
-
-
-    private boolean _getAutoRetrieving(java.sql.DatabaseMetaData metadata,
-                                       PropertyValue[] infos)
-        throws java.sql.SQLException
-    {
-        Boolean support = false;
-        support = (Boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", null);
-        // FIXME: If IsAutoRetrievingEnabled is not set, we retrieve the option from the underlying metadata driver.
-        // FIXME: This allows you to correct possible failures of certain drivers (ie: like for Derby)
-        if (support == null) {
-            support = metadata.supportsGetGeneratedKeys();
-        }
-        return support;
     }
 
     // DatabaseMetadata cache data
@@ -546,6 +597,12 @@ public abstract class DriverProviderMain
     public boolean isAutoIncrementIsPrimaryKey() {
         return m_IsAutoIncrementIsPrimaryKey;
     }
+    public Boolean isColumnPropertyAlterable() {
+        return m_IsColumnPropertyAlterable;
+    }
+    public Boolean isPrimaryKeyAlterable() {
+        return m_IsPrimaryKeyAlterable;
+    }
     public String getAutoRetrievingStatement() {
         return m_AutoRetrievingStatement;
     }
@@ -553,6 +610,7 @@ public abstract class DriverProviderMain
         return m_IgnoreDriverPrivileges;
     }
     public boolean addIndexAppendix() {
+        System.out.println("DriverProvider.addIndexAppendix() 1 " + m_AddIndexAppendix);
         return m_AddIndexAppendix;
     }
     public Object[] getTypeInfoSettings() {
@@ -646,11 +704,21 @@ public abstract class DriverProviderMain
                 info.Name.equals("TableDescriptionCommand") ||
                 info.Name.equals("DriverLoggerLevel") ||
                 info.Name.equals("AutoIncrementIsPrimaryKey") ||
+                info.Name.equals("IsColumnPropertyAlterable") ||
+                info.Name.equals("IsPrimaryKeyAlterable") ||
                 info.Name.equals("InMemoryDataBase") ||
+                info.Name.equals("CreateTableCommand") ||
+                info.Name.equals("DropTableCommand") ||
                 info.Name.equals("AlterViewCommands") ||
                 info.Name.equals("SupportRenameView") ||
                 info.Name.equals("RenameTableCommands") ||
                 info.Name.equals("ViewDefinitionCommands") ||
+                info.Name.equals("AddPrimaryKeyCommand") ||
+                info.Name.equals("AddForeignKeyCommand") ||
+                info.Name.equals("AddIndexCommand") ||
+                info.Name.equals("DropIndexCommand") ||
+                info.Name.equals("DropPrimaryKeyCommand") ||
+                info.Name.equals("DropConstraintCommand") ||
                 info.Name.equals("Type") ||
                 info.Name.equals("Url") ||
                 info.Name.equals("ConnectionService"))
@@ -709,5 +777,185 @@ public abstract class DriverProviderMain
         }
         return m_typeinforows.getTypeInfoRow(columns);
     }
+
+    private void setInfoProperties(final PropertyValue[] infos,
+                                   java.sql.DatabaseMetaData metadata)
+        throws java.sql.SQLException
+    {
+        boolean autoretrieving = getAutoRetrieving(metadata, infos);
+        for (PropertyValue info : infos) {
+            switch (info.Name) {
+            case "AutoIncrementCreation":
+                m_AutoIncrementCreation = (String) info.Value;
+                break;
+            case "ColumnDescriptionCommand":
+                m_ColumnDescriptionCommand = (String) info.Value;
+                break;
+            case "TableDescriptionCommand":
+                m_TableDescriptionCommand = (String) info.Value;
+                break;
+            case "AutoIncrementIsPrimaryKey":
+                m_IsAutoIncrementIsPrimaryKey = (boolean) info.Value;
+                break;
+            case "IgnoreDriverPrivileges":
+                m_IgnoreDriverPrivileges = (boolean) info.Value;
+                break;
+            case "IgnoreCurrency":
+                m_IgnoreCurrency = (boolean) info.Value;
+                break;
+            case "AddIndexAppendix":
+                m_AddIndexAppendix = (boolean) info.Value;
+                break;
+            case "IsColumnPropertyAlterable":
+                m_IsColumnPropertyAlterable = (boolean) info.Value;
+                break;
+            case "IsPrimaryKeyAlterable":
+                m_IsPrimaryKeyAlterable = (boolean) info.Value;
+                break;
+            case "AlterViewCommands":
+                m_AlterViewCommands = (Object[]) info.Value;
+                break;
+            case "ViewDefinitionCommands":
+                m_ViewDefinitionCommands = (Object[]) info.Value;
+                break;
+            case "SupportRenameView":
+                m_SupportRenameView = (boolean) info.Value;
+                break;
+            case "RenameColumnCommand":
+                m_RenameColumnCommand = (String) info.Value;
+                break;
+            case "CreateTableCommand":
+                m_CreateTableCommand = (String) info.Value;
+                break;
+            case "DropTableCommand":
+                m_DropTableCommand = (String) info.Value;
+                break;
+            case "AddPrimaryKeyCommand":
+                m_AddPrimaryKeyCommand = (String) info.Value;
+                break;
+            case "AddForeignKeyCommand":
+                m_AddForeignKeyCommand = (String) info.Value;
+                break;
+            case "AddIndexCommand":
+                m_AddIndexCommand = (String) info.Value;
+                break;
+            case "DropPrimaryKeyCommand":
+                m_DropPrimaryKeyCommand = (String) info.Value;
+                break;
+            case "DropConstraintCommand":
+                m_DropConstraintCommand = (String) info.Value;
+                break;
+            case "DropIndexCommand":
+                m_DropIndexCommand = (String) info.Value;
+                break;
+            case "ColumnSetTypeCommand":
+                m_ColumnSetTypeCommand = (String) info.Value;
+                break;
+            case "ColumnResetDefaultCommand":
+                m_ColumnResetDefaultCommand = (String) info.Value;
+                break;
+            case "RevokeRoleCommand":
+                m_RevokeRoleCommand = (String) info.Value;
+                break;
+            case "RenameTableCommands":
+                m_RenameTableCommands = (Object[]) info.Value;
+                break;
+            case "TypeInfoSettings":
+                m_TypeInfoSettings = (Object[]) info.Value;
+                break;
+            case "AutoRetrievingStatement":
+                if (autoretrieving) {
+                    m_AutoRetrievingStatement = (String) info.Value;
+                }
+                break;
+            case "IsAutoRetrievingEnabled":
+                if (autoretrieving) {
+                    m_IsAutoRetrievingEnabled = (boolean) info.Value;
+                }
+                break;
+            }
+        }
+    }
+
+    private boolean getAutoRetrieving(java.sql.DatabaseMetaData metadata,
+                                      PropertyValue[] infos)
+        throws java.sql.SQLException
+    {
+        Boolean support = false;
+        support = (Boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", null);
+        // FIXME: If IsAutoRetrievingEnabled is not set, we retrieve the option from the underlying metadata driver.
+        // FIXME: This allows you to correct possible failures of certain drivers (ie: like for Derby)
+        if (support == null) {
+            support = metadata.supportsGetGeneratedKeys();
+        }
+        return support;
+    }
+
+
+    @Override
+    public boolean supportsCatalogsInTableDefinitions()
+    {
+        System.out.println("DriverProvider.supportsCatalogsInTableDefinitions()");
+        return m_CatalogsInTableDefinitions;
+    }
+    @Override
+    public boolean supportsSchemasInTableDefinitions()
+    {
+        System.out.println("DriverProvider.supportsSchemasInTableDefinitions()");
+        return m_SchemasInTableDefinitions;
+    }
+
+    @Override
+    public boolean supportsCatalogsInIndexDefinitions()
+    {
+        System.out.println("DriverProvider.supportsCatalogsInIndexDefinitions()");
+        return m_CatalogsInIndexDefinitions;
+    }
+    @Override
+    public boolean supportsSchemasInIndexDefinitions()
+    {
+        System.out.println("DriverProvider.supportsSchemasInIndexDefinitions()");
+        return m_SchemasInIndexDefinitions;
+    }
+
+    @Override
+    public boolean supportsCatalogsInDataManipulation()
+    {
+        System.out.println("DriverProvider.supportsCatalogsInDataManipulation()");
+        return m_CatalogsInDataManipulation;
+    }
+    @Override
+    public boolean supportsSchemasInDataManipulation()
+    {
+        System.out.println("DriverProvider.supportsSchemasInDataManipulation()");
+        return m_SchemasInDataManipulation;
+    }
+
+    @Override
+    public boolean supportsCatalogsInProcedureCalls()
+    {
+        System.out.println("DriverProvider.supportsCatalogsInProcedureCalls()");
+        return m_CatalogsInProcedureCalls;
+    }
+    @Override
+    public boolean supportsSchemasInProcedureCalls()
+    {
+        System.out.println("DriverProvider.supportsSchemasInProcedureCalls()");
+        return m_SchemasInProcedureCalls;
+    }
+
+    @Override
+    public boolean supportsCatalogsInPrivilegeDefinitions()
+    {
+        System.out.println("DriverProvider.supportsCatalogsInPrivilegeDefinitions()");
+        return m_CatalogsInPrivilegeDefinitions;
+    }
+    @Override
+    public boolean supportsSchemasInPrivilegeDefinitions()
+    {
+        System.out.println("DriverProvider.supportsSchemasInPrivilegeDefinitions()");
+        return m_SchemasInPrivilegeDefinitions;
+    }
+
 
 }

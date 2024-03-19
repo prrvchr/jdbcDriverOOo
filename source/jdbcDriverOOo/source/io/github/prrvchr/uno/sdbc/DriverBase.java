@@ -376,13 +376,16 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("AlterViewCommands", "Provides the necessary commands to alter a view", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("CreateTableCommand", "The DDL command to create a table", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("DropTableCommand", "The DDL command to drop a table", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, "", new String[0]));
+        properties.add(new DriverPropertyInfo("AutoIncrementIsPrimaryKey", "Is Auto-increment the primary key.", true, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("ColumnDescriptionCommand", "Column description setting statement.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("SupportColumnDescription", "Column description setting statement.", false, "true", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("TableDescriptionCommand", "Table description setting statement.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ViewDefinitionCommands", "Preparedstatement query for retrieving view's SQL command.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices.clone()));
-        properties.add(new DriverPropertyInfo("AddIndexAppendix", "Add an appendix (ASC or DESC) when creating the index.", true, "true", boolchoices.clone()));
+        properties.add(new DriverPropertyInfo("AddIndexAppendix", "Add an appendix (ASC or DESC) when creating the index.", true, "false", boolchoices.clone()));
         return properties.toArray(new DriverPropertyInfo[0]);
     }
 

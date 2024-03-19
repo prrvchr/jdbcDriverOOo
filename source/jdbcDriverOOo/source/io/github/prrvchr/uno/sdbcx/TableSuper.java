@@ -71,11 +71,12 @@ public abstract class TableSuper<C extends ConnectionSuper>
                XDataDescriptorFactory
 {
 
-    private ColumnContainerBase m_columns = null;
+    private ColumnContainerBase<?> m_columns = null;
     private KeyContainer m_keys = null;
     private IndexContainer m_indexes = null;
     protected String m_Description = "";
     protected String m_Type = "";
+    private boolean m_qualifiedindex = false;
 
     // The constructor method:
     public TableSuper(String service,
@@ -108,7 +109,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
             }, null);
     }
 
-    protected ColumnContainerBase getColumnsInternal()
+    protected ColumnContainerBase<?> getColumnsInternal()
     {
         checkDisposed();
         if (m_columns == null) {
@@ -186,7 +187,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         alterColumn(m_columns.getElement(name), newcolumn);
     }
 
-    private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
+    private void alterColumn(ColumnSuper<?> oldcolumn, XPropertySet newcolumn)
         throws SQLException
     {
         if (oldcolumn != null) {
@@ -197,8 +198,8 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 List<String> queries = new ArrayList<String>();
                 byte result = DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
                 if (!queries.isEmpty()) {
-                    String table = DBTools.buildName(getConnection().getProvider(), this, ComposeRule.InTableDefinitions);
-                    if (DBTools.executeDDLQueries(getConnection().getProvider(), queries, getLogger(), this.getClass().getName(),
+                    String table = DBTools.buildName(getConnection().getProvider(), getCatalogName(), getSchemaName(), getName(), ComposeRule.InTableDefinitions);
+                    if (DBTools.executeDDLQueries(getConnection().getProvider(), getLogger(), queries, this.getClass().getName(),
                                                   "alterColumnByName", Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table))
                     {
                         // Column have changed its name
@@ -316,7 +317,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 else {
                     getConnection().getViewsInternal().removeView(view);
                     String query = DBTools.getCreateViewQuery(getConnection().getProvider(), component, view.m_Command, rule, isCaseSensitive());
-                        DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
+                        DBTools.executeDDLQuery(getConnection().getProvider(), getLogger(), query, this.getClass().getName(),
                                                 "rename", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name);
                     views.rename(oldname, name, offset);
                 }
@@ -339,7 +340,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
     protected void refreshColumns()
     {
         try {
-            List<ColumnDescription> columns = DBColumnHelper.readColumns(getConnection().getProvider(), this);
+            List<ColumnDescription> columns = DBColumnHelper.readColumns(getConnection().getProvider(), getCatalog(), getSchema(), getName());
             if (m_columns == null) {
                 m_columns = getColumnContainer(columns);
             }
@@ -363,7 +364,8 @@ public abstract class TableSuper<C extends ConnectionSuper>
     protected void refreshKeys()
     {
         try {
-            Map<String, Key> keys = DBColumnHelper.readKeys(getConnection().getProvider(), this, isCaseSensitive());
+            Map<String, Key> keys = DBColumnHelper.readKeys(getConnection().getProvider(), this, getCatalog(),
+                                                            getSchema(), getName(), isCaseSensitive());
             System.out.println("sdbcx.TableSuper.refreshKeys() Key Count: " + keys.size());
             if (m_keys == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
@@ -374,7 +376,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 m_keys.refill(new ArrayList<String>(keys.keySet()));
             }
         }
-        catch (java.sql.SQLException | ElementExistException e) {
+        catch (SQLException | ElementExistException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
@@ -382,7 +384,8 @@ public abstract class TableSuper<C extends ConnectionSuper>
     protected void refreshIndexes()
     {
         try {
-            List<String> indexes = DBColumnHelper.readIndexes(getConnection().getProvider(), this);
+            List<String> indexes = DBColumnHelper.readIndexes(getConnection().getProvider(), getCatalog(),
+                                                              getSchema(), getName(), m_qualifiedindex);
             System.out.println("sdbcx.TableSuper.refreshIndexes() Index Count: " + indexes.size());
             if (m_indexes == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_INDEXES);
@@ -398,6 +401,6 @@ public abstract class TableSuper<C extends ConnectionSuper>
         }
     }
 
-    protected abstract ColumnContainerBase getColumnContainer(List<ColumnDescription> descriptions) throws ElementExistException;
+    protected abstract ColumnContainerBase<?> getColumnContainer(List<ColumnDescription> descriptions) throws ElementExistException;
 
 }

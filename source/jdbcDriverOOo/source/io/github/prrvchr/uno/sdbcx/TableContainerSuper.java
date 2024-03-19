@@ -73,9 +73,10 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         throws SQLException
     {
         try {
+            ComposeRule rule = ComposeRule.InTableDefinitions;
             System.out.println("TableContainerSuper._createDataBaseElement() 1");
             String table = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
-            List<String> queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, isCaseSensitive());
+            List<String> queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, rule, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && m_Connection.getProvider().supportsTableDescription()) {
                 String query = m_Connection.getProvider().getTableDescriptionQuery(table, description);
@@ -86,7 +87,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                 System.out.println("TableContainerSuper._createDataBaseElement() 3 Queries: " + query);
             }
             if (!queries.isEmpty()) {
-                return DBTools.executeDDLQueries(m_Connection.getProvider(), queries, getLogger(), this.getClass().getName(),
+                return DBTools.executeDDLQueries(m_Connection.getProvider(), getLogger(), queries, this.getClass().getName(),
                                                  "_createTable", Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name);
             }
         }
@@ -155,10 +156,10 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
             }
             NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
             String table = DBTools.buildName(m_Connection.getProvider(), cpt.getCatalog(), cpt.getSchema(),
-                                                cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
-            String query = DBTools.getDropTableQuery(table);
+                                             cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
+            String query = m_Connection.getProvider().getDropTableQuery(table);
             System.out.println("TableContainer.removeDataBaseElement() 3 Query: " + query);
-            DBTools.executeDDLQuery(m_Connection.getProvider(), query, getLogger(), this.getClass().getName(),
+            DBTools.executeDDLQuery(m_Connection.getProvider(), getLogger(), query, this.getClass().getName(),
                                     "removeDataBaseElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
         }
         catch (java.sql.SQLException e) {

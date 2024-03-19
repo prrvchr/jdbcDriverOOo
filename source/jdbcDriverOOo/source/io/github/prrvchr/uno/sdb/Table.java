@@ -95,6 +95,7 @@ public final class Table
         super.m_Type = type;
         super.m_Description = remarks;
         registerProperties();
+        System.out.println("sdb.Table() 1");
     }
 
 
@@ -244,5 +245,19 @@ public final class Table
                 }
             });
     }
+
+    protected String getCatalogName()
+    {
+        return super.getCatalogName();
+    }
+    protected String getSchemaName()
+    {
+        return super.getSchemaName();
+    }
+    protected String getName()
+    {
+        return super.getName();
+    }
+
 
 }

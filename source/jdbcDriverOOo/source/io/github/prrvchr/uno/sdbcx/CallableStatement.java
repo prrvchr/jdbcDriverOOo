@@ -48,8 +48,8 @@ public final class CallableStatement
         System.out.println("sdbcx.CallableStatement() 1");
     }
 
-
-    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    @Override
+    protected XResultSet getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
         ResultSet resultset = null;

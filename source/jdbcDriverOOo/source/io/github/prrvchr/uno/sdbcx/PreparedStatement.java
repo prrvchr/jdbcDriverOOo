@@ -47,8 +47,8 @@ public final class PreparedStatement
         System.out.println("sdbcx.PreparedStatement() 1: '" + sql + "'");
     }
 
-
-    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    @Override
+    protected XResultSet getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
         ResultSet resultset = null;

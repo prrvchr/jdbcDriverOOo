@@ -223,7 +223,7 @@
                 </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>false</value>
                     </prop>
                 </node>
 
@@ -544,6 +544,11 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -622,42 +627,9 @@
                         <value>true</value>
                     </prop>
                 </node>
-            </node>
-        </node>
-
-
-        <node oor:name="xdbc:smallsql:*" oor:op="replace">
-            <prop oor:name="ParentURLPattern">
-                <value>xdbc:*</value>
-            </prop>
-            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-                <value xml:lang="en-US">SmallSQL Driver</value>
-                <value xml:lang="fr-FR">Pilote SmallSQL</value>
-            </prop>
-            <node oor:name="Properties">
-                <node oor:name="JavaDriverClassPath" oor:op="replace">
+                <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/SmallSQL_java11.jar</value>
-                    </prop>
-                </node>
-                <node oor:name="JavaDriverClass" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>smallsql.database.SSDriver</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreCurrency" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="InMemoryDataBase" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>smallsql</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
                     </prop>
                 </node>
             </node>
@@ -743,6 +715,16 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="IsColumnPropertyAlterable" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="IsPrimaryKeyAlterable" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -819,6 +801,99 @@
                 <node oor:name="DriverLoggerLevel" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>-1</value>
+                    </prop>
+                </node>
+            </node>
+        </node>
+
+
+        <node oor:name="xdbc:firebird:*" oor:op="replace">
+            <prop oor:name="ParentURLPattern">
+                <value>xdbc:*</value>
+            </prop>
+            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+                <value xml:lang="en-US">Firebird Driver</value>
+                <value xml:lang="fr-FR">Pilote Firebird</value>
+            </prop>
+            <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">COLUMN(1) = SMALLINT|COLUMN(12) = 1|COLUMN(1) = INTEGER|COLUMN(12) = 1|COLUMN(1) = BIGINT|COLUMN(12) = 1</value>
+                    </prop>
+                </node>
+                <node oor:name="CreateTableCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>CREATE TABLE {0} ({1});</value>
+                    </prop>
+                </node>
+                <node oor:name="DropTableCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>DROP TABLE {0};</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?;|3</value>
+                    </prop>
+                </node>
+                <node oor:name="AddPrimaryKeyCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY ({2});</value>
+                    </prop>
+                </node>
+                <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} DROP CONSTRAINT {1};</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportRenameView" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4};</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClassPath" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>%origin%/driver/jaybird-5.0.4.java11.jar</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClass" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>org.firebirdsql.jdbc.FBDriver</value>
+                    </prop>
+                </node>
+                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoIncrementCreation" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>GENERATED BY DEFAULT AS IDENTITY</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoRetrievingStatement" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT * FROM {0} WHERE {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreCurrency" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
                     </prop>
                 </node>
             </node>

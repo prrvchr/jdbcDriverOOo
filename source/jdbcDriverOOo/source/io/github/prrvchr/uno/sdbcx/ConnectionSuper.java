@@ -43,7 +43,6 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
@@ -197,12 +196,7 @@ public abstract class ConnectionSuper
     private String buildName(java.sql.ResultSet result)
         throws SQLException
     {
-        try {
-            return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
     }
 
 }

@@ -107,7 +107,7 @@ public class UserContainer
         try {
             String query = DBTools.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+            return DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
                                            "_createView", Resources.STR_LOG_USERS_CREATE_USER_QUERY, name);
         }
         catch (java.sql.SQLException e) {

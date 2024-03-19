@@ -59,6 +59,8 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.CustomColumnMetaData;
+import io.github.prrvchr.jdbcdriver.CustomResultSetMetaData;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -1089,7 +1091,6 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     @Override
     public XResultSetMetaData getMetaData() throws SQLException
     {
-        System.out.println("sdbc.ResultSetBase.getMetaData() 1");
         try {
             java.sql.ResultSetMetaData metadata = m_ResultSet.getMetaData();
             return (metadata != null) ? new ResultSetMetaData(m_Connection, metadata) : null;
@@ -1097,6 +1098,39 @@ public abstract class ResultSetBase<C extends ConnectionBase>
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    @SuppressWarnings("unused")
+    private XResultSetMetaData getCustomResultSetMetadata(java.sql.ResultSetMetaData metadata)
+        throws java.sql.SQLException
+    {
+        int count = metadata.getColumnCount();
+        CustomColumnMetaData[] columns = new CustomColumnMetaData[count];
+        for (int i = 0; i < count; i++) {
+            columns[i] = new CustomColumnMetaData();
+            columns[i].setAutoIncrement(metadata.isAutoIncrement(i));
+            columns[i].setCaseSensitive(metadata.isCaseSensitive(i));
+            columns[i].setSearchable(metadata.isSearchable(i));
+            //columns[i].setCurrency(metadata.isCurrency(i));
+            columns[i].setCurrency(false);
+            columns[i].setNullable(metadata.isNullable(i));
+            columns[i].setSigned(metadata.isSigned(i));
+            columns[i].setColumnDisplaySize(metadata.getColumnDisplaySize(i));
+            columns[i].setColumnLabel(metadata.getColumnLabel(i));
+            columns[i].setColumnName(metadata.getColumnName(i));
+            columns[i].setSchemaName(metadata.getSchemaName(i));
+            columns[i].setPrecision(metadata.getPrecision(i));
+            columns[i].setScale(metadata.getScale(i));
+            columns[i].setTableName(metadata.getTableName(i));
+            columns[i].setCatalogName(metadata.getCatalogName(i));
+            columns[i].setColumnType(metadata.getColumnType(i));
+            columns[i].setColumnTypeName(metadata.getColumnTypeName(i));
+            columns[i].setReadOnly(metadata.isReadOnly(i));
+            columns[i].setWritable(metadata.isWritable(i));
+            columns[i].setDefinitelyWritable(metadata.isDefinitelyWritable(i));
+            columns[i].setColumnServiceName(metadata.getColumnClassName(i));
+        }
+        return new CustomResultSetMetaData(columns);
     }
 
 

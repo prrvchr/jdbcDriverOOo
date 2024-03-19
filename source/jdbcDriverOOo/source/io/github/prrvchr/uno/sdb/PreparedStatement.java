@@ -76,8 +76,8 @@ public final class PreparedStatement
         return null;
     }
 
-
-    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    @Override
+    protected XResultSet getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
         System.out.println("sdb.PreparedStatement._getResultSet()");

@@ -37,6 +37,7 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -161,23 +162,24 @@ public abstract class TableMain<C extends ConnectionSuper>
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
-            Object[] parameters = DBTools.getRenameTableArguments(m_connection.getProvider(), cpt, this, oldname, 
-                                                                  reversed, rule, isCaseSensitive());
+            Object[] parameters = DBParameterHelper.getRenameTableArguments(m_connection.getProvider(), cpt, getCatalogName(),
+                                                                            getSchemaName(), getName(), oldname,
+                                                                            reversed, rule, isCaseSensitive());
             List<String> queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
             resource = Resources.STR_LOG_TABLE_RENAME_QUERY + offset;
             if (fullchange) {
-                changed &= DBTools.executeDDLQueries(m_connection.getProvider(), queries, m_logger,
+                changed &= DBTools.executeDDLQueries(m_connection.getProvider(), m_logger, queries,
                                                      this.getClass().getName(), "rename", resource, newname);
                 skipped &= false;
             }
             else {
                 if (!multiquery || moved) {
-                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), queries.get(0), m_logger,
+                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, queries.get(0),
                                                        this.getClass().getName(), "rename", resource, newname);
                     skipped &= false;
                 }
                 if (multiquery && renamed) {
-                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), queries.get(1), m_logger,
+                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, queries.get(1),
                                                        this.getClass().getName(), "rename", resource, newname);
                     skipped &= false;
                 }
@@ -194,20 +196,20 @@ public abstract class TableMain<C extends ConnectionSuper>
         }
     }
 
-    public String getCatalogName()
+    protected String getCatalogName()
     {
         return m_CatalogName;
     }
-    public String getSchemaName()
+    protected String getSchemaName()
     {
         return m_SchemaName;
     }
 
-    public String getCatalog()
+    protected String getCatalog()
     {
         return m_CatalogName.isEmpty() ? null : m_CatalogName;
     }
-    public String getSchema()
+    protected String getSchema()
     {
         return m_SchemaName.isEmpty() ? null : m_SchemaName;
     }

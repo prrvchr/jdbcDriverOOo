@@ -38,14 +38,13 @@
 This extension is the transcription in pure Java of the [java.sql.*][9] API to the [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] and [com.sun.star.sdb][12] API of UNO.
 It allows you to use the JDBC driver of your choice directly in Base.  
 It embeds the drivers for the following databases:
-- [HyperSQL or HsqlDB][13] version 2.7.2  
-  The supported HsqlDB managed protocols are: hsql://, hsqls://, http://, https://, mem://, file:// and res://
+- [HyperSQL or HsqlDB][13] version 2.7.2
 - [SQLite JDBC Driver][14] version 3.45.1.6-SNAPSHOT
 - [MariaDB Connector/J][15] version 3.3.3
 - [PostgreSQL JDBC Driver][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [SmallSQL][19] version 0.22
+- [Jaybird][19] version 5.0.4
 
 Being free software I encourage you:
 - To duplicate its [source code][20].
@@ -95,7 +94,9 @@ ___
 
 ## Use:
 
-This mode of use uses an HsqlDB database.
+This mode of use uses an HsqlDB database.  
+The protocols supported by HsqlDB are: hsql://, hsqls://, http://, https://, mem://, file:// and res://.
+This mode of use explains how to connect with the **file://** and **hsql://** protocols.
 
 ### How to create a new database:
 
@@ -105,7 +106,7 @@ In LibreOffice / OpenOffice go to menu: **File -> New -> Database**
 
 In step: **Select database**
 - select: Connect to an existing database
-- choose: HsqlDB Driver
+- choose: **HsqlDB Driver**
 - click on button: Next
 
 ![jdbcDriverOOo screenshot 2][30]
@@ -376,7 +377,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - Implementation of the UNO interface [com.sun.star.sdbcx.XAlterTable][77]. This interface allows the modification of columns in a table. With HsqlDB it is now possible in Base:
   - Assign a description to table columns.
   - To modify the type of a column if the casting (CAST) of the data contained in this column allows it, otherwise you will be asked to replace this column which results in the deletion of the data...
-- All DDL commands (ie: `CREATE TABLE...`, `ALTER TABLE...`) that Base generates are now logged.
+- All DDL commands (ie: `CREATE TABLE...`, `ALTER TABLE...`) that jdbcDriverOOo generates are now logged.
 - SQLite driver updated to latest version 3.45.1.0.
 - Many other fix...
 
@@ -432,7 +433,15 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 
 - Renaming a column declared as an index will also rename the associated column index.
 
-### What remains to be done for version 1.2.3:
+### What has been done for version 1.2.4:
+
+- Removed SmallSQL.
+- Integration of Jaybird 5.0.4 the JDBC driver for Firebird.
+- You can now delete a primary key with PostgreSQL.
+- Adding or removing a primary key generates an error if the underlying driver does not support it (SQLite).
+- When creating a table with a primary key, if the underlying driver supports it, the creation of the primary key can be done by a separate DDL command. This allows Jaybird to work around [bug #791][89] by creating a named primary key and allows to manage special cases like MariaDB or SQLite for their management of auto-increments.
+
+### What remains to be done for version 1.2.4:
 
 - Add new languages for internationalization...
 
@@ -456,7 +465,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [16]: <https://jdbc.postgresql.org/>
 [17]: <https://www.h2database.com/html/main.html>
 [18]: <https://db.apache.org/derby/>
-[19]: <https://github.com/CptTZ/SmallSQL>
+[19]: <https://firebirdsql.org/en/jdbc-driver/>
 [20]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [21]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
 [22]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10>
@@ -465,7 +474,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [25]: <https://prrvchr.github.io/HyperSQLOOo/>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.3#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.4#right>
 [29]: <img/jdbcDriverOOo-1.png>
 [30]: <img/jdbcDriverOOo-2.png>
 [31]: <img/jdbcDriverOOo-3.png>
@@ -526,3 +535,4 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [86]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
 [87]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
 [88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
+[89]: <https://github.com/FirebirdSQL/jaybird/issues/791>

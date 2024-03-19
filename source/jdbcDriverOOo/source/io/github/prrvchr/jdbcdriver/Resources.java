@@ -259,6 +259,9 @@ public class Resources {
     public static final int STR_LOG_KEYS_REMOVE_KEY_QUERY                      = (STR_JDBC_LOG_MESSAGE_BASE +  642);
     public static final int STR_LOG_KEYS_REMOVE_KEY_QUERY_ERROR                = (STR_JDBC_LOG_MESSAGE_BASE +  643);
 
+    public static final int STR_LOG_KEY_ADD_UNSUPPORTED_FEATURE_ERROR          = (STR_JDBC_LOG_MESSAGE_BASE +  650);
+    public static final int STR_LOG_KEY_REMOVE_UNSUPPORTED_FEATURE_ERROR       = (STR_JDBC_LOG_MESSAGE_BASE +  651);
+
     public static final int STR_LOG_CREATE_INDEXES                             = (STR_JDBC_LOG_MESSAGE_BASE +  660);
     public static final int STR_LOG_CREATED_INDEXES_ID                         = (STR_JDBC_LOG_MESSAGE_BASE +  661);
     public static final int STR_LOG_INDEXES_DISPOSING                          = (STR_JDBC_LOG_MESSAGE_BASE +  662);

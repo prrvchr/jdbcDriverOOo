@@ -95,7 +95,7 @@ public class GroupContainer
         try {
             String query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+            return DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
                                            "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
         }
         catch (java.sql.SQLException e) {

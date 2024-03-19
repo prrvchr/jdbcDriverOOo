@@ -78,8 +78,8 @@ public final class CallableStatement
         return null;
     }
 
-
-    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    @Override
+    protected XResultSet getResultSet(java.sql.ResultSet result)
         throws SQLException
     {
         ResultSet resultset = null;

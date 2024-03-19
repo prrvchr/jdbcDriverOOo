@@ -48,6 +48,7 @@ package io.github.prrvchr.jdbcdriver;
 public class DBDefaultQuery {
 
     public static final String STR_QUERY_EMPTY_RESULTSET                             = "SELECT 1 WHERE 0 = 1";
+    public static final String STR_QUERY_METADATA_RESULTSET                          = "SELECT {0} FROM {1} WHERE 0 = 1";
 
     public static final String STR_QUERY_CREATE_VIEW                                 = "CREATE VIEW {0} AS {1}";
     public static final String STR_QUERY_DROP_VIEW                                   = "DROP VIEW {0}";
@@ -56,8 +57,8 @@ public class DBDefaultQuery {
     public static final String STR_QUERY_DROP_TABLE                                  = "DROP TABLE {0}";
 
     public static final String STR_QUERY_ALTER_TABLE_ADD_COLUMN                      = "ALTER TABLE {0} ADD COLUMN {1}";
-    public static final String STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY                 = "ALTER TABLE {0} ADD PRIMARY KEY ({1})";
-    public static final String STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY                 = "ALTER TABLE {0} ADD FOREIGN KEY ({1}) REFERENCES {2} ({3}) {4} {5}";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY                 = "ALTER TABLE {0} ADD PRIMARY KEY ({2})";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY                 = "ALTER TABLE {0} ADD FOREIGN KEY ({2}) REFERENCES {3} ({4}) {5} {6}";
     public static final String STR_QUERY_ALTER_TABLE_ADD_INDEX                       = "CREATE {0} INDEX {1} ON {2} ({3})";
     public static final String STR_QUERY_ALTER_TABLE_DROP_INDEX                      = "DROP INDEX {1}";
     public static final String STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY                = "ALTER TABLE {0} DROP PRIMARY KEY";

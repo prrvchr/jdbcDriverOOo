@@ -385,7 +385,7 @@ public abstract class PreparedStatementMain<S extends java.sql.PreparedStatement
     public XResultSet executeQuery() throws SQLException
     {
         try {
-            return _getResultSet(getStatement().executeQuery());
+            return getResultSet(getStatement().executeQuery());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

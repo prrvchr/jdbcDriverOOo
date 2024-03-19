@@ -35,7 +35,6 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSuper>
@@ -83,12 +82,7 @@ abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSu
     protected String getElementName(XPropertySet descriptor)
         throws SQLException
     {
-        try {
-            return DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        return DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
     }
 
     @Override

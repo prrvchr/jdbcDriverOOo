@@ -34,28 +34,22 @@ import com.sun.star.container.ElementExistException;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
-import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public final class ColumnContainer
-    extends ColumnContainerBase
+    extends ColumnContainerBase<Table>
 {
     private static final String m_service = ColumnContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Columns",
                                                 "com.sun.star.sdbcx.Container"};
 
-    @Override
-    protected Table getTable() {
-        return (Table) m_table;
-    }
-
     // The constructor method:
-    public ColumnContainer(TableSuper<?> tableSuper,
+    public ColumnContainer(Table table,
                            boolean sensitive,
                            List<ColumnDescription> descriptions)
         throws ElementExistException
     {
-        super(m_service, m_services, tableSuper, sensitive, descriptions);
+        super(m_service, m_services, table, sensitive, descriptions);
     }
 
     @Override
@@ -76,7 +70,7 @@ public final class ColumnContainer
                                boolean rowversion,
                                boolean currency)
     {
-        return new Column(getTable(), isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        return new Column(m_table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
 }

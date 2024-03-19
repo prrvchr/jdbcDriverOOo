@@ -29,7 +29,6 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 
 
@@ -46,7 +45,8 @@ extends StatementBase<ConnectionBase>
         System.out.println("sdbc.Statement() 1");
     }
 
-    protected XResultSet _getResultSet(java.sql.ResultSet result)
+    @Override
+    protected XResultSet getResultSet(java.sql.ResultSet result)
     throws SQLException
     {
         ResultSet resultset = null;
@@ -57,13 +57,5 @@ extends StatementBase<ConnectionBase>
         }
         return resultset;
     }
-
-    @Override
-    protected java.sql.ResultSet getGeneratedResult(String command)
-        throws SQLException, java.sql.SQLException
-    {
-        return DBTools.getGeneratedResult(getStatement(), getGeneratedStatement(), getLogger(), this.getClass().getName(), "getGeneratedValues", command, m_Sql);
-    }
-
 
 }

@@ -48,24 +48,10 @@ public final class ResultSetMetaData
         m_Connection = connection;
         m_Metadata = metadata;
         m_count = -1;
-        System.out.println("sdbc.ResultSetMetaData() 1");
     }
 
 
     // com.sun.star.sdbc.XResultSetMetaData:
-    @Override
-    public String getCatalogName(int index)
-        throws SQLException
-    {
-        try {
-            String value = m_Metadata.getCatalogName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
-
     @Override
     public int getColumnCount()
         throws SQLException
@@ -75,6 +61,19 @@ public final class ResultSetMetaData
                 m_count = m_Metadata.getColumnCount();
             }
             return m_count;
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+
+    @Override
+    public String getCatalogName(int index)
+        throws SQLException
+    {
+        try {
+            String value = m_Metadata.getCatalogName(index);
+            return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -200,10 +199,11 @@ public final class ResultSetMetaData
         throws SQLException
     {
         try {
-            if (m_Connection.getProvider().isIgnoreCurrencyEnabled()) {
-                return false;
+            boolean currency = false;
+            if (!m_Connection.getProvider().isIgnoreCurrencyEnabled()) {
+                currency = m_Metadata.isCurrency(index);
             }
-            return m_Metadata.isCurrency(index);
+            return currency;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

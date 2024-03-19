@@ -37,12 +37,12 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class ColumnBase
+public abstract class ColumnBase<T extends TableSuper<?>>
     extends Descriptor
     implements XDataDescriptorFactory
 {
 
-    protected final TableSuper<?> m_table;
+    protected final T m_table;
     protected int m_Type;
     private int m_Precision;
     private int m_Scale;
@@ -57,7 +57,7 @@ public abstract class ColumnBase
     // The constructor method:
     public ColumnBase(String service,
                       String[] services,
-                      TableSuper<?> table,
+                      T table,
                       boolean sensitive,
                       String name,
                       final String typename,

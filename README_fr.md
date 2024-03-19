@@ -38,14 +38,13 @@
 Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l'API [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] et [com.sun.star.sdb][12] de UNO.
 Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
 Elle embarque les pilotes pour les base de données suivantes:
-- [HyperSQL ou HsqlDB][13] version 2.7.2  
-  Les protocoles gérés par HsqlDB pris en charge sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://
+- [HyperSQL ou HsqlDB][13] version 2.7.2
 - [SQLite JDBC Driver][14] version 3.45.1.6-SNAPSHOT
 - [MariaDB Connector/J][15] version 3.3.3
 - [PostgreSQL JDBC Driver][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [SmallSQL][19] version 0.22
+- [Jaybird][19] version 5.0.4
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source][20].
@@ -95,7 +94,9 @@ ___
 
 ## Utilisation:
 
-Ce mode d'utilisation utilise une base de données HsqlDB.
+Ce mode d'utilisation utilise une base de données HsqlDB.  
+Les protocoles pris en charge par HsqlDB sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://.  
+Ce mode d'utilisation vous explique comment vous connecter avec les protocoles **file://** et **hsql://**.
 
 ### Comment créer une nouvelle base de données:
 
@@ -105,7 +106,7 @@ Dans LibreOffice / OpenOffice aller au menu: **Fichier -> Nouveau -> Base de don
 
 A l'étape: **Sélectionner une base de données**
 - selectionner: Connecter une base de données existante
-- choisir: Pilote HsqlDB
+- choisir: **Pilote HsqlDB**
 - cliquer sur le bouton: Suivant
 
 ![jdbcDriverOOo screenshot 2][30]
@@ -376,7 +377,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Implémentation de l'interface UNO [com.sun.star.sdbcx.XAlterTable][77]. Cette interface permet la modification des colonnes d'une table. Avec HsqlDB, il est maintenant possible dans Base:
   - D'attribuez une description aux colonnes des tables.
   - De modifier le type d'une colonne si le transtypage (CAST) des données contenues dans cette colonne le permet, sinon il vous sera proposé de remplacer cette colonne ce qui entraîne la suppression des données...
-- Toutes les commandes DDL (ie: `CREATE TABLE...`, `ALTER TABLE...`) générées par Base sont désormais enregistrées dans la journalisation.
+- Toutes les commandes DDL (ie: `CREATE TABLE...`, `ALTER TABLE...`) générées par jdbcDriverOOo sont désormais enregistrées dans la journalisation.
 - Pilote SQLite mis à jour vers la dernière version 3.45.1.0.
 - Beaucoup d'autres correctifs...
 
@@ -432,7 +433,15 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Renommer une colonne déclarée comme index renommera également la colonne de l'index associée.
 
-### Que reste-t-il à faire pour la version 1.2.3:
+### Ce qui a été fait pour la version 1.2.4:
+
+- Suppression de SmallSQL.
+- Intégration de Jaybird 5.0.4 le pilote JDBC pour Firebird.
+- Vous pouvez désormais supprimer une clé primaire avec PostgreSQL.
+- L'ajout ou la suppression d'une clé primaire génère une erreur si le pilote sous-jacent ne le supporte pas (SQLite).
+- Lors de la création d'une table avec une clé primaire, si le pilote sous-jacent le prend en charge, la création de la clé primaire peut être effectuée par une commande DDL distincte. Cela permet à Jaybird de contourner le [dysfonctionnement #791][89] en créant une clé primaire nommée et permet de gérer des cas particuliers comme MariaDB ou SQLite pour leur gestion des auto-increments.
+
+### Que reste-t-il à faire pour la version 1.2.4:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -456,7 +465,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [16]: <https://jdbc.postgresql.org/>
 [17]: <https://www.h2database.com/html/main.html>
 [18]: <https://db.apache.org/derby/>
-[19]: <https://github.com/CptTZ/SmallSQL>
+[19]: <https://firebirdsql.org/en/jdbc-driver/>
 [20]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [21]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
 [22]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
@@ -465,7 +474,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.3#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.4#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>
@@ -526,3 +535,4 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [86]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
 [87]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
 [88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
+[89]: <https://github.com/FirebirdSQL/jaybird/issues/791>

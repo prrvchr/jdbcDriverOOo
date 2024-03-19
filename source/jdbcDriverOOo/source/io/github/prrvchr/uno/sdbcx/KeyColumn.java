@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class KeyColumn
-    extends ColumnBase
+    extends ColumnBase<TableSuper<?>>
 {
     private static final String m_service = KeyColumn.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn"};

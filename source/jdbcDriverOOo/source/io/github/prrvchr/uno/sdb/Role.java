@@ -75,17 +75,14 @@ public abstract class Role
 
     // com.sun.star.sdbcx.XAuthorizable:
     @Override
-    public int getGrantablePrivileges(String name, int type) throws SQLException {
+    public int getGrantablePrivileges(String name, int type)
+        throws SQLException
+    {
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
             _addGrantees(grantees);
-            try {
-                privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
-            }
-            catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
-            }
+            privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
         }
         return privileges;
     }
@@ -117,7 +114,7 @@ public abstract class Role
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
                 String query = DBTools.getGrantPrivilegesQuery(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-                DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
                                         "grantPrivileges", _getGrantPrivilegesResource(), getName(), name);
             }
             catch (java.sql.SQLException e) {
@@ -136,7 +133,7 @@ public abstract class Role
             String query;
             try {
                 query = DBTools.revokeTableOrViewPrivileges(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-                DBTools.executeDDLQuery(m_connection.getProvider(), query, m_logger, this.getClass().getName(),
+                DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
                         "revokePrivileges", _getRevokePrivilegesResource(), getName(), name);
             }
             catch (java.sql.SQLException e) {
@@ -188,5 +185,10 @@ public abstract class Role
     abstract protected void _addGrantees(List<String> grantees);
     abstract protected int _getGrantPrivilegesResource();
     abstract protected int _getRevokePrivilegesResource();
+
+    protected String getName()
+    {
+        return super.getName();
+    }
 
 }

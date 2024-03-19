@@ -52,8 +52,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.UnknownPropertyException;
@@ -88,8 +86,6 @@ import io.github.prrvchr.css.util.DateWithTimezone;
 import io.github.prrvchr.css.util.Time;
 import io.github.prrvchr.css.util.TimeWithTimezone;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
-import io.github.prrvchr.uno.sdbcx.TableMain;
 
 
 public class DBTools
@@ -155,25 +151,23 @@ public class DBTools
 
     public static NameComponentSupport getNameComponentSupport(DriverProvider provider,
                                                                ComposeRule rule)
-        throws java.sql.SQLException
     {
-        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         switch (rule) {
         case InTableDefinitions:
-            return new NameComponentSupport(metadata.supportsCatalogsInTableDefinitions(),
-                                            metadata.supportsSchemasInTableDefinitions());
+            return new NameComponentSupport(provider.supportsCatalogsInTableDefinitions(),
+                                            provider.supportsSchemasInTableDefinitions());
         case InIndexDefinitions:
-            return new NameComponentSupport(metadata.supportsCatalogsInIndexDefinitions(),
-                                            metadata.supportsSchemasInIndexDefinitions());
+            return new NameComponentSupport(provider.supportsCatalogsInIndexDefinitions(),
+                                            provider.supportsSchemasInIndexDefinitions());
         case InDataManipulation:
-            return new NameComponentSupport(metadata.supportsCatalogsInDataManipulation(),
-                                            metadata.supportsSchemasInDataManipulation());
+            return new NameComponentSupport(provider.supportsCatalogsInDataManipulation(),
+                                            provider.supportsSchemasInDataManipulation());
         case InProcedureCalls:
-            return new NameComponentSupport(metadata.supportsCatalogsInProcedureCalls(),
-                                            metadata.supportsSchemasInProcedureCalls());
+            return new NameComponentSupport(provider.supportsCatalogsInProcedureCalls(),
+                                            provider.supportsSchemasInProcedureCalls());
         case InPrivilegeDefinitions:
-            return new NameComponentSupport(metadata.supportsCatalogsInPrivilegeDefinitions(),
-                                            metadata.supportsSchemasInPrivilegeDefinitions());
+            return new NameComponentSupport(provider.supportsCatalogsInPrivilegeDefinitions(),
+                                            provider.supportsSchemasInPrivilegeDefinitions());
         case Complete:
             return new NameComponentSupport(true, true);
         default:
@@ -202,7 +196,7 @@ public class DBTools
                                            String table,
                                            String column,
                                            boolean sensitive)
-        throws java.sql.SQLException, SQLException
+        throws SQLException
     {
         StringBuilder buffer = new StringBuilder(table);
         buffer.append('.');
@@ -212,6 +206,7 @@ public class DBTools
 
 
     /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules
+     * @throws java.sql.SQLException 
      */
     public static String composeTableName(DriverProvider provider,
                                           String catalog,
@@ -219,19 +214,16 @@ public class DBTools
                                           String table,
                                           boolean sensitive,
                                           ComposeRule composeRule)
-        throws java.sql.SQLException,
-               SQLException
+        throws SQLException
     {
         StringBuilder buffer = new StringBuilder();
         NameComponentSupport nameComponentSupport = getNameComponentSupport(provider, composeRule);
-        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-        
-        
+
         String catalogSeparator = "";
         boolean catalogAtStart = true;
         if (!catalog.isEmpty() && nameComponentSupport.useCatalogs) {
-            catalogSeparator = metadata.getCatalogSeparator();
-            catalogAtStart = metadata.isCatalogAtStart();
+            catalogSeparator = provider.getCatalogSeparator();
+            catalogAtStart = provider.isCatalogAtStart();
             if (catalogAtStart && !catalogSeparator.isEmpty()) {
                 buffer.append(enquoteIdentifier(provider, catalog, sensitive));
                 buffer.append(catalogSeparator);
@@ -251,30 +243,18 @@ public class DBTools
     }
 
     public static String buildName(DriverProvider provider,
-                                   TableMain<?> table,
+                                   String catalog,
+                                   String schema,
+                                   String table,
                                    ComposeRule rule)
-        throws java.sql.SQLException
+        throws SQLException
     {
         return buildName(provider,
-                         table.getCatalogName(),
-                         table.getSchemaName(),
-                         table.getName(),
+                         catalog,
+                         schema,
+                         table,
                          rule,
                          false);
-    }
-
-    public static String buildName(DriverProvider provider,
-                                   TableMain<?> table,
-                                   ComposeRule rule,
-                                   boolean sensitive)
-        throws java.sql.SQLException
-    {
-        return buildName(provider,
-                         table.getCatalogName(),
-                         table.getSchemaName(),
-                         table.getName(),
-                         rule,
-                         sensitive);
     }
 
     public static String buildName(DriverProvider provider,
@@ -283,7 +263,7 @@ public class DBTools
                                    String table,
                                    ComposeRule rule,
                                    boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         return doComposeTableName(provider,
@@ -300,7 +280,7 @@ public class DBTools
                                           boolean catalog,
                                           boolean schema,
                                           boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         NameComponents component = getTableNameComponents(provider, table);
@@ -316,7 +296,7 @@ public class DBTools
                                           XPropertySet table,
                                           ComposeRule rule,
                                           boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         NameComponents component = getTableNameComponents(provider, table);
         NameComponentSupport support = getNameComponentSupport(provider, rule);
@@ -332,7 +312,7 @@ public class DBTools
                                           XPropertySet table,
                                           NameComponentSupport support,
                                           boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         NameComponents component = getTableNameComponents(provider, table);
         return doComposeTableName(provider,
@@ -349,7 +329,7 @@ public class DBTools
                                             String schema,
                                             String table,
                                             boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         StringBuilder buffer = new StringBuilder();
         UnoHelper.ensure(!table.isEmpty(), "At least the table name should be non-empty", provider.getLogger());
@@ -380,85 +360,6 @@ public class DBTools
         return buffer.toString();
     }
 
-    public static Object[] getRenameTableArguments(DriverProvider provider,
-                                                   NameComponents newname,
-                                                   TableMain<?> table,
-                                                   String fullname,
-                                                   boolean reversed,
-                                                   ComposeRule rule,
-                                                   boolean sensitive)
-        throws java.sql.SQLException, SQLException
-    {
-        List<String> args = new ArrayList<>();
-        // TODO: {0} quoted / unquoted full old table name
-        args.add(quoteTableName(provider, fullname, rule, sensitive));
-        // TODO: {1} quoted / unquoted new schema name
-        args.add(enquoteIdentifier(provider, newname.getSchema(), sensitive));
-        // TODO: {2} quoted / unquoted full old table name overwritten with the new schema name
-        args.add(buildName(provider, table.getCatalogName(), newname.getSchema(), table.getName(), rule, sensitive));
-        // TODO: {3} quoted / unquoted new table name
-        args.add(enquoteIdentifier(provider, newname.getTable(), sensitive));
-        // TODO: {4} quoted / unquoted full old table name overwritten with the new table name
-        args.add(buildName(provider, table.getCatalogName(), table.getSchemaName(), newname.getTable(), rule, sensitive));
-        // TODO: {5} quoted / unquoted new catalog name
-        args.add(enquoteIdentifier(provider, newname.getCatalog(), sensitive));
-        // TODO: {6} quoted / unquoted full old table name overwritten with the new catalog name
-        args.add(buildName(provider, newname.getCatalog(), table.getSchemaName(), table.getName(), rule, sensitive));
-        // TODO: {7} quoted / unquoted full new table name
-        args.add(buildName(provider, newname.getCatalog(), newname.getSchema(), newname.getTable(), rule, sensitive));
-        if (reversed) {
-            String buffers = args.get(0);
-            args.set(0, args.get(4));
-            args.set(4, args.get(2));
-            args.set(2, buffers);
-        }
-        return args.toArray(new Object[0]);
-    }
-
-    public static Object[] getAlterViewArguments(DriverProvider provider,
-                                                 NameComponents component,
-                                                 String fullname,
-                                                 String command,
-                                                 ComposeRule rule,
-                                                 boolean sensitive)
-        throws java.sql.SQLException, SQLException
-    {
-        List<String> args = new ArrayList<>();
-        // TODO: {0} quoted / unquoted full view name
-        args.add(quoteTableName(provider, fullname, rule, sensitive));
-        // TODO: {1} quoted / unquoted catalog view name
-        args.add(enquoteIdentifier(provider, component.getCatalog(), sensitive));
-        // TODO: {2} quoted / unquoted schema view name
-        args.add(enquoteIdentifier(provider, component.getSchema(), sensitive));
-        // TODO: {3} quoted / unquoted view name
-        args.add(enquoteIdentifier(provider, component.getTable(), sensitive));
-        // TODO: {4} raw view command
-        args.add(command);
-        return args.toArray(new Object[0]);
-    }
-
-
-    public static Object[] getViewDefinitionArguments(DriverProvider provider,
-                                                      NameComponents component,
-                                                      String fullname,
-                                                      ComposeRule rule,
-                                                      boolean sensitive)
-        throws java.sql.SQLException, SQLException
-    {
-        List<String> args = new ArrayList<>();
-        // TODO: {0} quoted / unquoted  full view name
-        args.add(quoteTableName(provider, fullname, rule, sensitive));
-        // TODO: {1} quoted / unquoted  catalog view name
-        args.add(enquoteIdentifier(provider, component.getCatalog(), sensitive));
-        // TODO: {2} quoted / unquoted  schema view name
-        args.add(enquoteIdentifier(provider, component.getSchema(), sensitive));
-        // TODO: {3} quoted / unquoted  view name
-        args.add(enquoteIdentifier(provider, component.getTable(), sensitive));
-        // TODO: {4} quoted literal 'SELECT '
-        args.add("'SELECT '");
-        return args.toArray(new Object[0]);
-    }
-
     /** composes a table name for usage in a SELECT statement
      *
      * This includes quoting of the table as indicated by the connection's meta data, plus respecting
@@ -472,7 +373,7 @@ public class DBTools
                                                    String schema,
                                                    String table,
                                                    boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         boolean usecatalog = UnoHelper.getDefaultPropertyValue(provider.getInfos(), "UseCatalogInSelect", true);
         boolean useschema = UnoHelper.getDefaultPropertyValue(provider.getInfos(), "UseSchemaInSelect", true);
@@ -490,7 +391,7 @@ public class DBTools
     public static String composeTableNameForSelect(DriverProvider provider,
                                                    XPropertySet table,
                                                    boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         NameComponents component = getTableNameComponents(provider, table);
         return composeTableNameForSelect(provider, component.getCatalog(), component.getSchema(), component.getTable(), sensitive);
@@ -520,11 +421,16 @@ public class DBTools
     public static String enquoteIdentifier(DriverProvider provider,
                                            String name,
                                            boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
-        // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
-        if (sensitive && !name.isBlank()) {
-            name = provider.getStatement().enquoteIdentifier(name, sensitive);
+        try {
+            // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
+            if (sensitive && !name.isBlank()) {
+                name = provider.getStatement().enquoteIdentifier(name, sensitive);
+            }
+        }
+        catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage());
         }
         return name;
     }
@@ -535,7 +441,7 @@ public class DBTools
                                         String name,
                                         ComposeRule rule,
                                         boolean sensitive)
-        throws java.sql.SQLException, SQLException
+        throws SQLException
     {
         if (sensitive) {
             NameComponents nameComponents = qualifiedNameComponents(provider, name, rule);
@@ -562,7 +468,7 @@ public class DBTools
     public static NameComponents qualifiedNameComponents(DriverProvider provider,
                                                          String name,
                                                          ComposeRule rule)
-        throws java.sql.SQLException, SQLException
+        throws SQLException
     {
         NameComponents component = new NameComponents();
         NameComponentSupport support = getNameComponentSupport(provider, rule);
@@ -636,17 +542,11 @@ public class DBTools
                                             String command,
                                             ComposeRule rule,
                                             boolean sensitive)
-        throws java.sql.SQLException, SQLException
+        throws SQLException
     {
         String name = composeTableName(provider, component.getCatalog(), component.getSchema(), component.getTable(), sensitive, rule);
         return getCreateViewQuery(name, command);
     }
-
-    public static String getDropTableQuery(String table)
-    {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_TABLE, table);
-    }
-
 
     private static String getCreateViewQuery(String view,
                                              String command)
@@ -679,11 +579,11 @@ public class DBTools
                                             XPropertySet descriptor,
                                             String name,
                                             boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         String password = getDescriptorStringValue(descriptor, PropertyIds.PASSWORD);
         name = enquoteIdentifier(provider, name, sensitive);
-        password = provider.getStatement().enquoteLiteral(password);
+        password = provider.enquoteLiteral(password);
         return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_USER, name, password);
     }
 
@@ -703,7 +603,7 @@ public class DBTools
     public static String getDropUserQuery(DriverProvider provider,
                                           String name,
                                           boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_USER, enquoteIdentifier(provider, name, sensitive));
     }
@@ -727,10 +627,10 @@ public class DBTools
                                                     String name,
                                                     String password,
                                                     boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         name = enquoteIdentifier(provider, name, sensitive);
-        password = provider.getStatement().enquoteLiteral(password);
+        password = provider.enquoteLiteral(password);
         return MessageFormat.format(DBDefaultQuery.STR_QUERY_ALTER_USER, name, password);
     }
 
@@ -753,7 +653,7 @@ public class DBTools
                                              XPropertySet descriptor,
                                              String name,
                                              boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_ROLE, enquoteIdentifier(provider, name, sensitive));
     }
@@ -774,7 +674,7 @@ public class DBTools
     public static String getDropGroupQuery(DriverProvider provider,
                                            String name,
                                            boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_ROLE, enquoteIdentifier(provider, name, sensitive));
     }
@@ -799,7 +699,7 @@ public class DBTools
                                            String group,
                                            String user,
                                            boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         group = enquoteIdentifier(provider, group, sensitive);
         user = enquoteIdentifier(provider, user, sensitive);
@@ -826,7 +726,7 @@ public class DBTools
                                             String group,
                                             String user,
                                             boolean sensitive)
-        throws java.sql.SQLException
+        throws SQLException
     {
         group = enquoteIdentifier(provider, group, sensitive);
         user = enquoteIdentifier(provider, user, sensitive);
@@ -866,7 +766,7 @@ public class DBTools
     public static int getTableOrViewGrantablePrivileges(DriverProvider provider,
                                                         List<String> grantees,
                                                         String name)
-    throws java.sql.SQLException, SQLException
+    throws SQLException
     {
         NameComponents component = DBTools.qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
         String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
@@ -917,7 +817,7 @@ public class DBTools
                                                  int privilege,
                                                  ComposeRule rule,
                                                  boolean sensitive)
-        throws java.sql.SQLException, SQLException
+        throws SQLException
     {
         String separator = ", ";
         String right = String.join(separator, provider.getPrivileges(privilege));
@@ -942,47 +842,12 @@ public class DBTools
         return query;
     }
 
-    /** collects the information about auto increment, currency and data type for the given column name.
-     * The column must be quoted, * is also valid.
-     * @param connection
-     *     The connection.
-     * @param composedName
-     *    The quoted table name. ccc.sss.ttt
-     * @param columnName
-     *    The name of the column, or *
-     * @return
-     *    The information about the column(s).
-     */
-    public static Map<String,ExtraColumnInfo> collectColumnInformation(DriverProvider provider,
-                                                                       String composedName,
-                                                                       String columnName)
-        throws java.sql.SQLException
-    {
-        Map<String, ExtraColumnInfo> columns = new TreeMap<>();
-        String sql = String.format("SELECT %s FROM %s WHERE 0 = 1", columnName, composedName);
-        java.sql.Statement statement = provider.getStatement();
-        statement.setEscapeProcessing(false);
-        try (java.sql.ResultSet result = statement.executeQuery(sql))
-        {
-            java.sql.ResultSetMetaData metadata = result.getMetaData();
-            int count = metadata.getColumnCount();
-            UnoHelper.ensure(count > 0, "resultset has empty metadata", provider.getLogger());
-            for (int i = 1; i <= count; i++) {
-                String newColumnName = metadata.getColumnName(i);
-                ExtraColumnInfo columnInfo = new ExtraColumnInfo();
-                columnInfo.isAutoIncrement = metadata.isAutoIncrement(i);
-                columnInfo.isCurrency = metadata.isCurrency(i);
-                columnInfo.dataType = provider.getDataType(metadata.getColumnType(i));
-                columns.put(newColumnName, columnInfo);
-            }
-        }
-        return columns;
-    }
-
     /** returns the primary key columns of the table
+     * @throws SQLException 
      */
     public static XNameAccess getPrimaryKeyColumns(XPropertySet table)
-        throws java.sql.SQLException {
+        throws SQLException
+    {
         try {
             XNameAccess keyColumns = null;
             XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, table);
@@ -1006,14 +871,14 @@ public class DBTools
             return keyColumns;
         }
         catch (IndexOutOfBoundsException | IllegalArgumentException | WrappedTargetException e) {
-            throw new java.sql.SQLException(e.getMessage());
+            throw new SQLException(e.getMessage());
         }
     }
 
     /** returns the primary key columns of the table
      */
     public static XNameAccess getPrimaryKeyColumns(XIndexAccess keys)
-        throws java.sql.SQLException {
+        throws SQLException {
         try {
             XNameAccess keyColumns = null;
             int count = keys.getCount();
@@ -1032,7 +897,7 @@ public class DBTools
             return keyColumns;
         }
         catch (IndexOutOfBoundsException | IllegalArgumentException | WrappedTargetException e) {
-            throw new java.sql.SQLException(e.getMessage());
+            throw new SQLException(e.getMessage());
         }
     }
 
@@ -1316,19 +1181,27 @@ public class DBTools
     public static String buildName(DriverProvider provider,
                                    java.sql.ResultSet result,
                                    ComposeRule rule)
-        throws java.sql.SQLException
+        throws SQLException
     {
-        String catalog = result.getString(1);
-        if (result.wasNull()) {
-            catalog = "";
+        String catalog = "";
+        String schema = "";
+        String table = "";
+        try {
+            catalog = result.getString(1);
+            if (result.wasNull()) {
+                catalog = "";
+            }
+            schema = result.getString(2);
+            if (result.wasNull()) {
+                schema = "";
+            }
+            table = result.getString(3);
+            if (result.wasNull()) {
+                table = "";
+            }
         }
-        String schema = result.getString(2);
-        if (result.wasNull()) {
-            schema = "";
-        }
-        String table = result.getString(3);
-        if (result.wasNull()) {
-            table = "";
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e);
         }
         return buildName(provider, catalog, schema, table, rule, false);
     }
@@ -1422,8 +1295,8 @@ public class DBTools
     }
 
     public static boolean executeDDLQuery(DriverProvider provider,
-                                          String query,
                                           ConnectionLog logger,
+                                          String query,
                                           String cls,
                                           String method,
                                           int resource,
@@ -1432,14 +1305,14 @@ public class DBTools
     {
         Object[] parameters =  new Object[]{};
         Integer[] positions = new Integer[]{};
-        return executeDDLQuery(provider, query, parameters, positions, logger, cls, method, resource, args);
+        return executeDDLQuery(provider, logger, query, parameters, positions, cls, method, resource, args);
     }
 
     public static boolean executeDDLQuery(DriverProvider provider,
+                                          ConnectionLog logger,
                                           String query,
                                           Object[] parameters,
                                           Integer[] positions,
-                                          ConnectionLog logger,
                                           String cls,
                                           String method,
                                           int resource,
@@ -1451,6 +1324,8 @@ public class DBTools
         }
         boolean autocommit = false;
         boolean support = provider.supportsTransactions();
+        System.out.println("DBTools.executeDDLQuery() Support Transaction:" + support);
+
         java.sql.Connection jdbc = provider.getConnection();
         try {
             if (support) {
@@ -1488,8 +1363,8 @@ public class DBTools
     }
 
     public static boolean executeDDLQueries(DriverProvider provider,
-                                            List<String> queries,
                                             ConnectionLog logger,
+                                            List<String> queries,
                                             String cls,
                                             String method,
                                             int resource,
@@ -1498,14 +1373,14 @@ public class DBTools
     {
         Object[] parameters =  new Object[]{};
         List<Integer[]> positions = new ArrayList<Integer[]>();
-        return executeDDLQueries(provider, queries, parameters, positions, logger, cls, method, resource, args);
+        return executeDDLQueries(provider, logger, queries, parameters, positions, cls, method, resource, args);
     }
 
     public static boolean executeDDLQueries(DriverProvider provider,
+                                            ConnectionLog logger,
                                             List<String> queries,
                                             Object[] parameters,
                                             List<Integer[]> positions,
-                                            ConnectionLog logger,
                                             String cls,
                                             String method,
                                             int resource,
@@ -1516,6 +1391,7 @@ public class DBTools
         int index = 0;
         boolean autocommit = false;
         boolean support = provider.supportsTransactions();
+        System.out.println("DBTools.executeDDLQueries() Support Transaction:" + support);
         java.sql.Connection jdbc = provider.getConnection();
         try {
             if (support) {

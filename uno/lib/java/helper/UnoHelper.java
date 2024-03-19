@@ -361,6 +361,11 @@ public class UnoHelper
         return new java.sql.SQLException(e.getMessage(), e);
     }
 
+    public static SQLException getSQLException(java.sql.SQLException e)
+    {
+        return new SQLException(e.getMessage());
+    }
+
     public static SQLException getSQLException(Exception e, XInterface component)
     {
         SQLException exception = new SQLException(e.getMessage());

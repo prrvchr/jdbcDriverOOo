@@ -58,14 +58,11 @@ import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.ColumnValue;
-import com.sun.star.sdbc.KeyRule;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
@@ -83,12 +80,12 @@ public class DBTableHelper
         String autoincrement;
         boolean notnull;
         ColumnProperties(DriverProvider provider, String name, boolean sensitive)
-            throws java.sql.SQLException
+            throws SQLException
         {
             this(DBTools.enquoteIdentifier(provider, name, sensitive), name);
         }
         ColumnProperties(DriverProvider provider, String name1, String name2, boolean sensitive)
-            throws java.sql.SQLException
+            throws SQLException
         {
             // XXX: If it's a new column then name1 is empty...
             this(DBTools.enquoteIdentifier(provider, name1.isBlank() ? name2 : name1, sensitive),
@@ -96,12 +93,12 @@ public class DBTableHelper
                  name2);
         }
         private ColumnProperties(String identifier, String name)
-                throws java.sql.SQLException
+                throws SQLException
         {
             this(identifier, identifier, name);
         }
         private ColumnProperties(String identifier1, String identifier2, String name)
-            throws java.sql.SQLException
+            throws SQLException
         {
             newname = name;
             oldidentifier = identifier1;
@@ -182,6 +179,7 @@ public class DBTableHelper
     public static List<String> getCreateTableQueries(DriverProvider provider,
                                                      XPropertySet property,
                                                      String table,
+                                                     ComposeRule rule,
                                                      boolean sensitive)
         throws java.sql.SQLException, SQLException, IllegalArgumentException, WrappedTargetException, IndexOutOfBoundsException, UnknownPropertyException
     {
@@ -198,6 +196,8 @@ public class DBTableHelper
             String message = String.format("The '%s' table has no columns, it is not possible to create the table", table);
             throw new SQLException(message);
         }
+        // XXX: The first thing to do is to retrieve the columns
+        // XXX: to find out if there are any auto-increment columns.
         int count = columns.getCount();
         for (int i = 0; i < count; i++) {
             XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
@@ -205,6 +205,8 @@ public class DBTableHelper
                 continue;
             }
             ColumnProperties column = getStandardColumnProperties(provider, descriptor, sensitive);
+            // FIXME: I had the descriptions that worked,
+            // FIXME: it doesn't work anymore, I don't understand why?
             if (provider.supportsColumnDescription()) {
                 String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
                 if (!comment.isEmpty()) {
@@ -215,13 +217,20 @@ public class DBTableHelper
             hasAutoIncrement |= column.isautoincrement;
             parts.add(column.toString());
         }
-
-        // The primary key will not be created if one of the columns is auto increment
-        // and the auto increment are primary keys (ie: Sqlite)
-        if (!provider.isAutoIncrementIsPrimaryKey() || !hasAutoIncrement) {
-            parts.addAll(getCreateTableKeyParts(provider, property, sensitive));
+        // XXX: If the underlying driver allows it, we create the primary key in a DDL command
+        // XXX: separate from the one that creates the table. But there are specific cases!!!
+        boolean autopk = provider.isAutoIncrementIsPrimaryKey();
+        boolean alterpk = provider.isPrimaryKeyAlterable();
+        // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
+        if ((alterpk && !autopk) || (alterpk && autopk && !hasAutoIncrement)) {
+            queries.addAll(0, getCreateConstraintQueries(provider, property, property, "", rule, sensitive));
         }
-        queries.add(0, getCreateTableQuery(table, String.join(separator, parts)));
+        // XXX: SQLite only allows creating PK with table creation and if there is no auto increment column (first test)
+        // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
+        else if ((!alterpk && !hasAutoIncrement) || (alterpk && autopk && hasAutoIncrement)) {
+            parts.addAll(DBConstraintHelper.getCreatePrimaryKeyParts(provider, property, sensitive));
+        }
+        queries.add(0, provider.getCreateTableQuery(table, String.join(separator, parts)));
         return queries;
     }
 
@@ -306,10 +315,11 @@ public class DBTableHelper
                 result += 2;
             }
             alldone &= typechanged;
+            boolean altercolumn = provider.isColumnPropertyAlterable();
             String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
             String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
             //FIXME: Primary key column don't have to handle Default property
-            if (!alterpk && !alldone && !default2.equals(default1)) {
+            if (altercolumn && !alterpk && !alldone && !default2.equals(default1)) {
                 if (default2.isBlank()) {
                     query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_RESET_DEFAULT;
                     query = provider.getColumnResetDefaultQuery(query);
@@ -323,7 +333,7 @@ public class DBTableHelper
             int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
             int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
             //FIXME: Primary key column don't have to handle Not Null property
-            if (!alterpk && !alldone && (nullable2 != nullable1)) {
+            if (altercolumn && !alterpk && !alldone && (nullable2 != nullable1)) {
                 if (nullable2 == ColumnValue.NO_NULLS) {
                     query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN_SET_NOT_NULL;
                 }
@@ -503,7 +513,7 @@ public class DBTableHelper
         return column;
     }
 
-    /** creates the keys parts of SQL CREATE TABLE statement.
+    /** creates the Primary or Foreign Key SQL ALTER TABLE statement.
      * @param provider
      *      The driver provider.
      * @param descriptor
@@ -519,105 +529,30 @@ public class DBTableHelper
      * @throws IllegalArgumentException 
      * @throws java.sql.SQLException 
      */
-    private static List<String> getCreateTableKeyParts(DriverProvider provider,
-                                                       XPropertySet descriptor,
-                                                       boolean sensitive)
+
+    private static List<String> getCreateConstraintQueries(DriverProvider provider,
+                                                           XPropertySet descriptor,
+                                                           XPropertySet property,
+                                                           String name,
+                                                           ComposeRule rule,
+                                                           boolean sensitive)
         throws java.sql.SQLException, SQLException, IllegalArgumentException, WrappedTargetException, UnknownPropertyException, IndexOutOfBoundsException
     {
-        List<String> parts = new ArrayList<String>();
-            XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
-            XIndexAccess keys = keysSupplier.getKeys();
-            if (keys != null) {
-                boolean hasPrimaryKey = false;
-                for (int i = 0; i < keys.getCount(); i++) {
-                    XPropertySet columnProperties = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
-                    if (columnProperties != null) {
-                        StringBuilder buffer = new StringBuilder();
-                        int keyType = DBTools.getDescriptorIntegerValue(columnProperties, PropertyIds.TYPE);
-                        XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, columnProperties);
-                        XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, columnsSupplier.getColumns());
-                        if (columns == null || columns.getCount() == 0) {
-                            throw new SQLException();
-                        }
-                        if (keyType == KeyType.PRIMARY) {
-                            if (hasPrimaryKey) {
-                                throw new SQLException();
-                            }
-                            hasPrimaryKey = true;
-                            buffer.append("PRIMARY KEY");
-                            buffer.append(getColumnNames(provider, columns, sensitive));
-                        }
-                        else if (keyType == KeyType.UNIQUE) {
-                            buffer.append("UNIQUE");
-                            buffer.append(getColumnNames(provider, columns, sensitive));
-                        }
-                        else if (keyType == KeyType.FOREIGN) {
-                            int deleteRule = DBTools.getDescriptorIntegerValue(columnProperties, PropertyIds.DELETERULE);
-                            buffer.append("FOREIGN KEY");
-                            
-                            String referencedTable = DBTools.getDescriptorStringValue(columnProperties, PropertyIds.REFERENCEDTABLE);
-                            NameComponents nameComponents = DBTools.qualifiedNameComponents(provider, referencedTable, ComposeRule.InDataManipulation);
-                            String composedName = DBTools.buildName(provider, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(),
-                                                                       ComposeRule.InTableDefinitions, true);
-                            if (composedName.isEmpty()) {
-                                throw new SQLException();
-                            }
-                            
-                            buffer.append(getColumnNames(provider, columns, sensitive));
-                            
-                            switch (deleteRule) {
-                            case KeyRule.CASCADE:
-                                buffer.append(" ON DELETE CASCADE");
-                                break;
-                            case KeyRule.RESTRICT:
-                                buffer.append(" ON DELETE RESTRICT");
-                                break;
-                            case KeyRule.SET_NULL:
-                                buffer.append(" ON DELETE SET NULL");
-                                break;
-                            case KeyRule.SET_DEFAULT:
-                                buffer.append(" ON DELETE SET DEFAULT");
-                                break;
-                            }
-                        }
-                        parts.add(buffer.toString());
-                    }
+        List<String> queries = new ArrayList<String>();
+        String catalog = DBTools.getDescriptorStringValue(property, PropertyIds.CATALOGNAME);
+        String schema = DBTools.getDescriptorStringValue(property, PropertyIds.SCHEMANAME);
+        String table = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
+
+        XKeysSupplier supplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
+        XIndexAccess keys = supplier.getKeys();
+        if (keys != null) {
+            for (int i = 0; i < keys.getCount(); i++) {
+                XPropertySet key = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
+                if (key != null) {
+                    queries.add(DBConstraintHelper.getCreateConstraintQuery(provider, key, catalog, schema, table, name, rule, sensitive));
                 }
             }
-        return parts;
-    }
-
-    private static String getColumnNames(DriverProvider provider,
-                                         XIndexAccess columns,
-                                         boolean sensitive)
-        throws java.sql.SQLException,
-               SQLException,
-               WrappedTargetException,
-               UnknownPropertyException,
-               IllegalArgumentException,
-               IndexOutOfBoundsException
-    {
-        String separator = ", ";
-        List<String> names = new ArrayList<String>();
-        for (int i = 0; i < columns.getCount(); i++) {
-            XPropertySet properties = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
-            if (properties != null) {
-                String name = DBTools.getDescriptorStringValue(properties, PropertyIds.NAME);
-                names.add(DBTools.enquoteIdentifier(provider, name, sensitive));
-            }
         }
-        StringBuilder buffer = new StringBuilder(" (");
-        if (!names.isEmpty()) {
-            buffer.append(String.join(separator, names));
-        }
-        buffer.append(")");
-        return buffer.toString();
+        return queries;
     }
-
-    private static String getCreateTableQuery(String table,
-                                             String columns)
-    {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_TABLE, table, columns);
-    }
-
 }

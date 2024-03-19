@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,25 +34,25 @@ import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.XIndexAccess;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.KeyRule;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
-import com.sun.star.sdbcx.XColumnsSupplier;
-import com.sun.star.uno.UnoRuntime;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper;
-import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.DBConstraintHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -111,7 +110,8 @@ public final class KeyContainer
                 }
                 else {
                     System.out.println("sdbcx.KeyContainer.createElement() 2");
-                    key = DBColumnHelper.readKey(getConnection().getProvider(), m_table, name, isCaseSensitive());
+                    key = DBColumnHelper.readKey(getConnection().getProvider(), m_table, m_table.getCatalog(),
+                                                 m_table.getSchema(), m_table.getName(), name, isCaseSensitive());
                     if (key != null) {
                         System.out.println("sdbcx.KeyContainer.createElement() 3");
                         m_keys.put(name, key);
@@ -139,39 +139,28 @@ public final class KeyContainer
         return key;
     }
 
-    private boolean createKey(XPropertySet descriptor, String name)
+    private boolean createKey(XPropertySet descriptor, String key)
             throws SQLException
     {
         try {
-            List<Object> arguments = new ArrayList<Object>();
+            DriverProvider provider = getConnection().getProvider();
+            if (!provider.isPrimaryKeyAlterable()) {
+                int resource = Resources.STR_LOG_KEY_ADD_UNSUPPORTED_FEATURE_ERROR;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
+                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            }
+            String catalog = m_table.getCatalogName();
+            String schema = m_table.getSchemaName();
+            String name = m_table.getName();
+
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            arguments.add(DBTools.buildName(getConnection().getProvider(), m_table, rule, isCaseSensitive()));
-            arguments.add(String.join(", ", getKeyColumns(descriptor, PropertyIds.NAME, isCaseSensitive())));
-            String command;
-            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-            if (type == KeyType.PRIMARY) {
-                command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY;
-            }
-            else if (type == KeyType.FOREIGN) {
-                command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY;
-                String referencedName = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
-                System.out.println("sdbcx.KeyContainer.createKey() ReferencedTable: " + referencedName);
-                arguments.add(DBTools.quoteTableName(getConnection().getProvider(), referencedName, rule, isCaseSensitive()));
-                arguments.add(String.join(", ", getKeyColumns(descriptor, PropertyIds.RELATEDCOLUMN, isCaseSensitive())));
-                int update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
-                int delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.DELETERULE);
-                arguments.add(getKeyRuleString(true, update));
-                arguments.add(getKeyRuleString(false, delete));
-            }
-            else {
-                throw new SQLException();
-            }
-            String query = MessageFormat.format(command, arguments.toArray(new Object[0]));
-            String table = DBTools.buildName(getConnection().getProvider(), m_table, rule, false);
+            String query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, catalog, schema,
+                                                                       name, key, rule, isCaseSensitive());
+            String table = DBTools.buildName(provider, catalog, schema, name, rule, false);
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
-            return DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(),
+            return DBTools.executeDDLQuery(provider, getLogger(), query,
                                            this.getClass().getName(), "createKey",
-                                           Resources.STR_LOG_KEYS_CREATE_KEY_QUERY, name, table);
+                                           Resources.STR_LOG_KEYS_CREATE_KEY_QUERY, key, table);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, m_table);
@@ -212,7 +201,7 @@ public final class KeyContainer
                     }
                 }
             }
-            List<String> columns = getKeyColumns(descriptor, PropertyIds.NAME, false);
+            List<String> columns = DBConstraintHelper.getKeyColumns(getConnection().getProvider(), descriptor, PropertyIds.NAME, false);
             return new Key(m_table, isCaseSensitive(), newname, referencedName, type, update, delete, columns);
         }
         catch (java.sql.SQLException e) {
@@ -222,20 +211,6 @@ public final class KeyContainer
                PropertyVetoException | WrappedTargetException | ElementExistException e1) {
             throw new SQLException(e1);
         }
-    }
-
-    private List<String> getKeyColumns(XPropertySet descriptor, PropertyIds name, boolean sensitive)
-        throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
-    {
-        List<String> columns = new ArrayList<String>();
-        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-        XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
-        for (int i = 0; i < indexes.getCount(); i++) {
-            XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, indexes.getByIndex(i));
-            String value = DBTools.getDescriptorStringValue(property, name);
-            columns.add(DBTools.enquoteIdentifier(getConnection().getProvider(), value, sensitive));
-        }
-        return columns;
     }
 
     private java.sql.ResultSet getKeyResultSet(int keytype)
@@ -252,33 +227,18 @@ public final class KeyContainer
         return result;
     }
 
-    private String getKeyRuleString(boolean isUpdate,
-                                    int rule)
-    {
-        String keyRule = "";
-        switch (rule) {
-        case KeyRule.CASCADE:
-            keyRule = isUpdate ? "ON UPDATE CASCADE" : "ON DELETE CASCADE";
-            break;
-        case KeyRule.RESTRICT:
-            keyRule = isUpdate ? "ON UPDATE RESTRICT" : "ON DELETE RESTRICT";
-            break;
-        case KeyRule.SET_NULL:
-            keyRule = isUpdate ? "ON UPDATE SET NULL" : "ON DELETE SET NULL";
-            break;
-        case KeyRule.SET_DEFAULT:
-            keyRule = isUpdate ? "ON UPDATE SET DEFAULT" : "ON DELETE SET DEFAULT";
-            break;
-        }
-        return keyRule;
-    }
-
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
         throws SQLException
     {
         try {
+            DriverProvider provider = getConnection().getProvider();
+            if (!provider.isPrimaryKeyAlterable()) {
+                int resource = Resources.STR_LOG_KEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
+                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            }
             Key key = getElement(index);
             final int keyType;
             if (key != null) {
@@ -287,21 +247,14 @@ public final class KeyContainer
             else {
                 keyType = KeyType.PRIMARY;
             }
-            List<Object> arguments = new ArrayList<Object>();
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            arguments.add(DBTools.composeTableName(getConnection().getProvider(), m_table, rule, isCaseSensitive()));
-            final String command;
-            if (keyType == KeyType.PRIMARY) {
-                command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY;
-            }
-            else {
-                command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT;
-                arguments.add(DBTools.enquoteIdentifier(getConnection().getProvider(), name, isCaseSensitive()));
-            }
-            String query = MessageFormat.format(command, arguments.toArray(new Object[0]));
-            String table = DBTools.composeTableName(getConnection().getProvider(), m_table, rule, isCaseSensitive());
-            System.out.println("sdbcx.KeyContainer.removeDataBaseElement() 1 Query: " + query);
-            if (DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(),
+            String arg1 = DBTools.composeTableName(provider, m_table, rule, isCaseSensitive());
+            String arg2 = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
+            final String command = provider.getDropConstraintQuery(keyType);
+            String query = MessageFormat.format(command, arg1, arg2);
+            String table = DBTools.composeTableName(provider, m_table, rule, isCaseSensitive());
+            System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
+            if (DBTools.executeDDLQuery(provider, getLogger(), query,
                                         this.getClass().getName(), "removeDataBaseElement",
                                         Resources.STR_LOG_KEYS_REMOVE_KEY_QUERY, name, table))
             {

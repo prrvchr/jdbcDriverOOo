@@ -3128,26 +3128,26 @@ public abstract class DatabaseMetaDataBase
             throws SQLException
     {
         ArrayList<CustomColumn[]> rows = new ArrayList<>();
-        java.sql.ResultSet resultset;
         try {
-            resultset = m_Metadata.getTypeInfo();
-            while (resultset.next()) {
-                CustomColumn[] columns = _getTypeInfoRow(resultset);
-                rows.add(m_Connection.getProvider().getTypeInfoRow(columns));
+            /*try (java.sql.ResultSet resultset = m_Metadata.getTypeInfo())
+            {
+                while (resultset.next()) {
+                    CustomColumn[] columns = _getTypeInfoRow(resultset);
+                    rows.add(m_Connection.getProvider().getTypeInfoRow(columns));
+                }
             }
-            resultset.close();
             CustomResultSet result = new CustomResultSet(_getTypeInfoMetadata(), rows);
             while (result.next()) {
-                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + result.getString(1) + " - Type: " + result.getInt(2) + " - CreateParam: " + result.getString(6) + " - AutoIncrement: " + result.getBoolean(12));
+                System.out.println("sdbc.DatabaseMetaDataBase.getTypeInfo() Name: " + result.getString(1) + " - Type: " + result.getInt(2) + " - CreateParam: " + result.getString(6) + " - FIXED_PREC_SCALE: " + result.getBoolean(11) + " - AutoIncrement: " + result.getBoolean(12));
             }
-            rows = new ArrayList<>();
-            resultset = m_Metadata.getTypeInfo();
-            while (resultset.next())
+            rows = new ArrayList<>(); */
+            try (java.sql.ResultSet resultset = m_Metadata.getTypeInfo())
             {
-                CustomColumn[] columns = _getTypeInfoRow(resultset);
-                rows.add(m_Connection.getProvider().getTypeInfoRow(columns));
+                while (resultset.next()) {
+                    CustomColumn[] columns = _getTypeInfoRow(resultset);
+                    rows.add(m_Connection.getProvider().getTypeInfoRow(columns));
+                }
             }
-            resultset.close();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

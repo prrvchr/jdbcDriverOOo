@@ -188,7 +188,7 @@ public abstract class StatementBase<C extends ConnectionBase>
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
             m_Sql = sql;
             java.sql.ResultSet resultset = getStatement().executeQuery(sql);
-            return _getResultSet(resultset);
+            return getResultSet(resultset);
         }
         catch (java.sql.SQLException e) {
             e.printStackTrace();

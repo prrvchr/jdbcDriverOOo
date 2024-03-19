@@ -37,6 +37,7 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.IndexType;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.UnoRuntime;
 
@@ -45,6 +46,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper;
 import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -59,7 +61,7 @@ public final class IndexContainer
                                                 "com.sun.star.sdbcx.Container"};
 
     private final TableSuper<?> m_Table;
-    private final ConnectionLog m_logger; 
+    private final ConnectionLog m_logger;
 
     // The constructor method:
     public IndexContainer(TableSuper<?> table,
@@ -94,10 +96,14 @@ public final class IndexContainer
     {
         Index index = null;
         try {
+            System.out.println("sdbcx.IndexContainer.createElement() 1");
+            java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+            String separator = metadata.getCatalogSeparator();
+            System.out.println(String.format("sdbcx.IndexContainer.createElement() Separator: %s", separator));
             String qualifier = "";
             String subname;
-            int len = name.indexOf('.');
-            if (len >= 0) {
+            int len;
+            if (separator != null && !separator.isBlank() && (len = name.indexOf(separator)) >= 0) {
                 qualifier = name.substring(0, len);
                 subname = name.substring(len + 1);
             }
@@ -107,9 +113,7 @@ public final class IndexContainer
             int type = -1;
             boolean found = false;
             boolean unique = false;
-            boolean primary = false;
             List<String> columns = new ArrayList<>();
-            java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
             try (java.sql.ResultSet result = metadata.getIndexInfo(m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), false, false))
             {
                 while (result.next()) {
@@ -117,7 +121,6 @@ public final class IndexContainer
                     if ((qualifier.isEmpty() || qualifier.equals(result.getString(5))) && subname.equals(result.getString(6))) {
                         found = true;
                         type = result.getShort(7);
-                        primary = DBColumnHelper.isPrimaryKeyIndex(metadata, m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), subname);
                         String columnName = result.getString(9);
                         if (!result.wasNull()) {
                             columns.add(columnName);
@@ -126,6 +129,8 @@ public final class IndexContainer
                 }
             }
             if (found) {
+                Boolean primary = DBColumnHelper.isPrimaryKeyIndex(metadata, m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), subname);
+                System.out.println(String.format("sdbcx.IndexContainer.createElement() PrimaryKey: %s", primary));
                 boolean clustered = type == IndexType.CLUSTERED;
                 index = new Index(m_Table, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
             }
@@ -142,15 +147,15 @@ public final class IndexContainer
     {
         Index index = null;
         String name = getElementName(descriptor);
+        System.out.println("sdbcx.IndexContainer.appendElement() 1 Name: " + name);
         if (createIndex(descriptor, name)) {
             index = createElement(name);
         }
         return index;
-        
     }
 
     private boolean createIndex(XPropertySet descriptor,
-                                  String name)
+                                String name)
         throws SQLException
     {
         try {
@@ -159,19 +164,20 @@ public final class IndexContainer
             }
             ComposeRule rule = ComposeRule.InIndexDefinitions;
             List<Object> arguments = new ArrayList<Object>();
+            DriverProvider provider = getConnection().getProvider();
             boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
             arguments.add(unique ? "UNIQUE" : "");
-            arguments.add(DBTools.enquoteIdentifier(getConnection().getProvider(), name, isCaseSensitive()));
-            //String table = DBTools.composeTableName(getConnection().getProvider(), m_Table, rule, false, false, isCaseSensitive());
-            arguments.add(DBTools.composeTableName(getConnection().getProvider(), m_Table, rule, isCaseSensitive()));
+            arguments.add(DBTools.enquoteIdentifier(provider, name, isCaseSensitive()));
+            //String table = DBTools.composeTableName(provider, m_Table, rule, false, false, isCaseSensitive());
+            arguments.add(DBTools.composeTableName(provider, m_Table, rule, isCaseSensitive()));
             XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
             List<String> indexes = new ArrayList<String>();
             for (int i = 0; i < columns.getCount(); i++) {
                 XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
                 String column = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
-                String index = DBTools.enquoteIdentifier(getConnection().getProvider(), column, isCaseSensitive());
-                if (getConnection().getProvider().addIndexAppendix()) {
+                String index = DBTools.enquoteIdentifier(provider, column, isCaseSensitive());
+                if (provider.addIndexAppendix()) {
                     index += DBTools.getDescriptorBooleanValue(property, PropertyIds.ISASCENDING) ? " ASC" : " DESC";
                 }
                 indexes.add(index);
@@ -180,8 +186,9 @@ public final class IndexContainer
                 String command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
                 arguments.add(String.join(", ", indexes));
                 String query = MessageFormat.format(command, arguments.toArray(new Object[0]));
-                String table = DBTools.composeTableName(getConnection().getProvider(), m_Table, rule, false);
-                return DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(),
+                System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
+                String table = DBTools.composeTableName(provider, m_Table, rule, false);
+                return DBTools.executeDDLQuery(provider, getLogger(), query,
                                                this.getClass().getName(), "createIndex",
                                                Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table);
             }
@@ -208,14 +215,14 @@ public final class IndexContainer
         name = elementName.substring(len + 1);
         try {
             ComposeRule rule = ComposeRule.InIndexDefinitions;
-            List<Object> arguments = new ArrayList<Object>();
-            arguments.add(DBTools.composeTableName(getConnection().getProvider(), m_Table, rule, isCaseSensitive()));
-            arguments.add(DBTools.enquoteIdentifier(getConnection().getProvider(), name, isCaseSensitive()));
-            String command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_INDEX;
-            command = getConnection().getProvider().getDropIndexQuery(command);
-            String query = MessageFormat.format(command, arguments.toArray(new Object[0]));
-            String table = DBTools.composeTableName(getConnection().getProvider(), m_Table, rule, false);
-            DBTools.executeDDLQuery(getConnection().getProvider(), query, getLogger(), this.getClass().getName(),
+            DriverProvider provider = getConnection().getProvider();
+            String command = provider.getDropConstraintQuery(KeyType.UNIQUE);
+            String arg1 = DBTools.composeTableName(provider, m_Table, rule, isCaseSensitive());
+            String arg2 = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
+            String query = MessageFormat.format(command, arg1, arg2);
+            String table = DBTools.composeTableName(provider, m_Table, rule, false);
+            System.out.println("sdbcx.IndexContainer.removeDataBaseElement() Query: " + query);
+            DBTools.executeDDLQuery(provider, getLogger(), query, this.getClass().getName(),
                                     "removeDataBaseElement", Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY, name, table);
         }
         catch (java.sql.SQLException e) {

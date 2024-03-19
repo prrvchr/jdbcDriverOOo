@@ -43,6 +43,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -219,8 +220,7 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
 
 
     protected abstract S getStatement() throws SQLException;
-    protected abstract XResultSet _getResultSet(java.sql.ResultSet resultset) throws SQLException;
-    protected abstract java.sql.ResultSet getGeneratedResult(String query) throws java.sql.SQLException, SQLException;
+    protected abstract XResultSet getResultSet(java.sql.ResultSet resultset) throws SQLException;
 
     protected S setStatement(S statement)
         throws java.sql.SQLException
@@ -492,7 +492,7 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
             resultset = new ResultSet(getConnectionInternal(), result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, _getColumnNames(result, count));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, getColumnNames(result, count));
         }
         catch (java.sql.SQLException e) {
             m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
@@ -501,7 +501,14 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
         return resultset;
     }
 
-    private String _getColumnNames(java.sql.ResultSet result,
+    protected java.sql.ResultSet getGeneratedResult(String command)
+        throws SQLException, java.sql.SQLException
+    {
+        return DBTools.getGeneratedResult(getStatement(), getGeneratedStatement(), getLogger(), this.getClass().getName(), "getGeneratedValues", command, m_Sql);
+    }
+
+
+    private String getColumnNames(java.sql.ResultSet result,
                                    int count)
         throws java.sql.SQLException 
     {
@@ -528,7 +535,7 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     public XResultSet getResultSet() throws SQLException
     {
         try {
-            return _getResultSet(getStatement().getResultSet());
+            return getResultSet(getStatement().getResultSet());
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

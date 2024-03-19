@@ -30,13 +30,13 @@ import com.sun.star.beans.XPropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class Column
-    extends ColumnSuper
+    extends ColumnSuper<Table>
 {
     private static final String m_service = Column.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
 
     // The constructor method:
-    public Column(final TableSuper<?> table,
+    public Column(final Table table,
                   final boolean sensitive,
                   final String name,
                   final String typename,

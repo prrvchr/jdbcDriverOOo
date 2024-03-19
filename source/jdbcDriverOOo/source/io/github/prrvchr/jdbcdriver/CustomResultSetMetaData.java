@@ -64,7 +64,7 @@ public class CustomResultSetMetaData
         if (i < 1 || m_columns.length < i) {
             return null;
         }
-        return m_columns[i-1];
+        return m_columns[i - 1];
     }
 
     @Override

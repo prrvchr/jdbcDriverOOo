@@ -34,16 +34,11 @@ import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 
 
 public final class ColumnContainer
-    extends ColumnContainerBase
+    extends ColumnContainerBase<Table>
 {
     private static final String m_service = ColumnContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Columns",
                                                 "com.sun.star.sdbcx.Container"};
-
-    @Override
-    protected Table getTable() {
-        return (Table) m_table;
-    }
 
     // The constructor method:
     public ColumnContainer(Table table,

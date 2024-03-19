@@ -54,20 +54,18 @@ import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class ColumnContainerBase
-    extends Container<ColumnSuper>
+public abstract class ColumnContainerBase<T extends TableSuper<?>>
+    extends Container<ColumnSuper<?>>
 {
 
     private Map<String, ColumnDescription> m_descriptions = new HashMap<>();
     private Map<String, ExtraColumnInfo> m_extrainfos = new HashMap<>();
-    protected final TableSuper<?> m_table;
-
-protected abstract TableSuper<?> getTable();
+    protected final T m_table;
 
     // The constructor method:
     public ColumnContainerBase(String service,
                                String[] services,
-                               TableSuper<?> table,
+                               T table,
                                boolean sensitive,
                                List<ColumnDescription> descriptions)
         throws ElementExistException
@@ -89,10 +87,10 @@ protected abstract TableSuper<?> getTable();
     }
 
     @Override
-    protected ColumnSuper appendElement(XPropertySet descriptor)
+    protected ColumnSuper<?> appendElement(XPropertySet descriptor)
         throws SQLException
     {
-        ColumnSuper column = null;
+        ColumnSuper<?> column = null;
         String name = getElementName(descriptor);
         if (createColumn(descriptor, name)) {
             column = createElement(name);
@@ -117,7 +115,7 @@ protected abstract TableSuper<?> getTable();
             List<String> queries = new ArrayList<String>();
             DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), m_table, oldcolumn, descriptor, false, isCaseSensitive());
             if (!queries.isEmpty()) {
-                return DBTools.executeDDLQueries(getConnection().getProvider(), queries, m_table.getLogger(), this.getClass().getName(),
+                return DBTools.executeDDLQueries(getConnection().getProvider(), m_table.getLogger(), queries, this.getClass().getName(),
                                                  "createColumn", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
             }
         }
@@ -128,10 +126,10 @@ protected abstract TableSuper<?> getTable();
     }
 
     @Override
-    protected ColumnSuper createElement(String name)
+    protected ColumnSuper<?> createElement(String name)
         throws SQLException
     {
-        ColumnSuper column = null;
+        ColumnSuper<?> column = null;
         try {
             @SuppressWarnings("unused")
             boolean queryInfo = true;
@@ -143,7 +141,8 @@ protected abstract TableSuper<?> getTable();
             ColumnDescription description = m_descriptions.get(name);
             if (description == null) {
                 // could be a recently added column. Refresh:
-                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(getConnection().getProvider(), m_table);
+                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(getConnection().getProvider(), m_table.getCatalog(),
+                                                                                m_table.getSchema(), m_table.getName());
                 for (ColumnDescription newcolumn : newcolumns) {
                     if (newcolumn.columnName.equals(name)) {
                         m_descriptions.put(name, newcolumn);
@@ -159,7 +158,7 @@ protected abstract TableSuper<?> getTable();
             ExtraColumnInfo info = m_extrainfos.get(name);
             if (info == null) {
                 String composedName = DBTools.composeTableNameForSelect(getConnection().getProvider(), m_table, isCaseSensitive());
-                m_extrainfos = DBTools.collectColumnInformation(getConnection().getProvider(), composedName, "*");
+                m_extrainfos = DBColumnHelper.collectColumnInformation(getConnection().getProvider(), composedName, "*");
                 info = m_extrainfos.get(name);
             }
             if (info != null) {
@@ -198,7 +197,7 @@ protected abstract TableSuper<?> getTable();
             String column = DBTools.enquoteIdentifier(getConnection().getProvider(), name, isCaseSensitive());
             String query = MessageFormat.format(DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_COLUMN, table, column);
             table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, false);
-            DBTools.executeDDLQuery(getConnection().getProvider(), query, m_table.getLogger(), "ColumnContainer",
+            DBTools.executeDDLQuery(getConnection().getProvider(), m_table.getLogger(), query, "ColumnContainer",
                                     "removeDataBaseElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table);
         }
         catch (java.sql.SQLException e) {
@@ -226,17 +225,17 @@ protected abstract TableSuper<?> getTable();
         return m_table.getConnection();
     }
 
-    protected abstract ColumnSuper getColumn(String name,
-                                             String typename,
-                                             String defaultvalue,
-                                             String description,
-                                             int nullable,
-                                             int precision,
-                                             int scale,
-                                             int type,
-                                             boolean autoincrement,
-                                             boolean rowversion,
-                                             boolean currency);
+    protected abstract ColumnSuper<?> getColumn(String name,
+                                                String typename,
+                                                String defaultvalue,
+                                                String description,
+                                                int nullable,
+                                                int precision,
+                                                int scale,
+                                                int type,
+                                                boolean autoincrement,
+                                                boolean rowversion,
+                                                boolean currency);
 
 
 }

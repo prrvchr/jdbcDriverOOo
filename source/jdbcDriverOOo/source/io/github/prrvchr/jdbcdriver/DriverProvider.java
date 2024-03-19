@@ -65,12 +65,25 @@ public interface DriverProvider
                               String level)
         throws java.sql.SQLException;
 
+    public String enquoteLiteral(String literal) throws SQLException;
+
     // DataBaseMetadata cache data
     public boolean supportsTransactions();
     public boolean isCatalogAtStart();
     public boolean isResultSetUpdatable();
     public String getCatalogSeparator();
     public String getIdentifierQuoteString();
+
+    public boolean supportsCatalogsInTableDefinitions();
+    public boolean supportsSchemasInTableDefinitions();
+    public boolean supportsCatalogsInIndexDefinitions();
+    public boolean supportsSchemasInIndexDefinitions();
+    public boolean supportsCatalogsInDataManipulation();
+    public boolean supportsSchemasInDataManipulation();
+    public boolean supportsCatalogsInProcedureCalls();
+    public boolean supportsSchemasInProcedureCalls();
+    public boolean supportsCatalogsInPrivilegeDefinitions();
+    public boolean supportsSchemasInPrivilegeDefinitions();
 
     public boolean isCaseSensitive(String string);
 
@@ -91,6 +104,14 @@ public interface DriverProvider
     // - In the column definition (false)
     // - In the primary key definition (true)
     public boolean isAutoIncrementIsPrimaryKey();
+
+    // Does the underlying database driver support altering default value and null constraint on column
+    // Default value is true.
+    public Boolean isColumnPropertyAlterable();
+
+    // Does the underlying database driver support adding, removing or altering primary key
+    // Default value is true.
+    public Boolean isPrimaryKeyAlterable();
 
     // Does the underlying database driver support java.sql.Statement.getGeneratedValues()
     // Default value is false.
@@ -121,13 +142,19 @@ public interface DriverProvider
 
     public Object[] getTypeInfoSettings();
 
+    public String getCreateTableQuery(String table, String columns);
+
+    public String getDropTableQuery(String table);
+
     public int getGeneratedKeysOption();
 
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
     public String getRenameColumnQuery(String command);
 
-    public String getDropIndexQuery(String command);
+    public String getAddConstraintQuery(int type);
+
+    public String getDropConstraintQuery(int type);
 
     public String getColumnSetTypeQuery();
 
@@ -164,7 +191,7 @@ public interface DriverProvider
     public List<String> getPrivileges(int privilege);
 
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnBase column);
+                                     ColumnBase<?> column);
 
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);
