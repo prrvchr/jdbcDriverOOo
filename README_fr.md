@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.2.3][5]
+# version [1.2.4][5]
 
 ## Introduction:
 
@@ -94,7 +94,7 @@ ___
 
 ## Utilisation:
 
-Ce mode d'utilisation utilise une base de données HsqlDB.  
+Ceci explique comment utiliser une base de données HsqlDB.  
 Les protocoles pris en charge par HsqlDB sont: hsql://, hsqls://, http://, https://, mem://, file:// et res://.  
 Ce mode d'utilisation vous explique comment vous connecter avec les protocoles **file://** et **hsql://**.
 
@@ -439,7 +439,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Intégration de Jaybird 5.0.4 le pilote JDBC pour Firebird.
 - Vous pouvez désormais supprimer une clé primaire avec PostgreSQL.
 - L'ajout ou la suppression d'une clé primaire génère une erreur si le pilote sous-jacent ne le supporte pas (SQLite).
-- Lors de la création d'une table avec une clé primaire, si le pilote sous-jacent le prend en charge, la création de la clé primaire peut être effectuée par une commande DDL distincte. Cela permet à Jaybird de contourner le [dysfonctionnement #791][89] en créant une clé primaire nommée et permet de gérer des cas particuliers comme MariaDB ou SQLite pour leur gestion des auto-increments.
+- Lors de la [création d'une table][89] avec une clé primaire, si le pilote sous-jacent le prend en charge, la création de la clé primaire peut être effectuée par une commande DDL distincte. Cela permet à Jaybird de contourner le [dysfonctionnement #791][90] en créant une clé primaire nommée et permet de gérer des cas particuliers comme MariaDB ou SQLite pour leur gestion des auto-increments.
 
 ### Que reste-t-il à faire pour la version 1.2.4:
 
@@ -535,4 +535,5 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [86]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
 [87]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
 [88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
-[89]: <https://github.com/FirebirdSQL/jaybird/issues/791>
+[89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L179>
+[90]: <https://github.com/FirebirdSQL/jaybird/issues/791>
