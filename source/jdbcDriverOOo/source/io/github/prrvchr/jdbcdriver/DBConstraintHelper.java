@@ -58,7 +58,6 @@ public class DBConstraintHelper
         List<String> args = new ArrayList<>();
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
         String command = provider.getAddConstraintQuery(type);
-        System.out.println("DBConstraintHelper.getCreateConstraintQuery() Catalog: " + catalog + " - Schema: " + schema + " - Table: " + table);
         args.add(DBTools.buildName(provider, catalog, schema, table, rule, sensitive));
         String keyname = DBColumnHelper.getKeyName(name, table, getKeyColumns(provider, descriptor, PropertyIds.NAME, false), type);
         args.add(DBTools.enquoteIdentifier(provider, keyname, sensitive));

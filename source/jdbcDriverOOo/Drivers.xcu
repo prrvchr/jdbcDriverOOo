@@ -307,40 +307,12 @@
                 <value xml:lang="en-US">HsqlDB Driver</value>
                 <value xml:lang="fr-FR">Pilote HsqlDB</value>
             </prop>
+
+            <!-- Properties node is for connection properties -->
             <node oor:name="Properties">
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="TypeInfoSettings" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">COLUMN(2) = 92|COLUMN(6) = SCALE|COLUMN(2) = 92|COLUMN(14) = 0|COLUMN(2) = 92|COLUMN(15) = 9|COLUMN(2) = 93|COLUMN(6) = SCALE|COLUMN(2) = 93|COLUMN(14) = 0|COLUMN(2) = 93|COLUMN(15) = 9|COLUMN(2) = 2013|COLUMN(6) = SCALE|COLUMN(2) = 2013|COLUMN(14) = 0|COLUMN(2) = 2013|COLUMN(15) = 9|COLUMN(2) = 2014|COLUMN(6) = SCALE|COLUMN(2) = 2014|COLUMN(14) = 0|COLUMN(2) = 2014|COLUMN(15) = 9</value>
-                    </prop>
-                </node>
-                <node oor:name="ViewDefinitionCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|123</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameTableCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {3}</value>
-                    </prop>
-                </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
-                    </prop>
-                </node>
-                <node oor:name="RevokeRoleCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>REVOKE {0} FROM {1} RESTRICT</value>
-                    </prop>
-                </node>
-                <node oor:name="ColumnResetDefaultCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} ALTER COLUMN {2} SET DEFAULT NULL</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -383,30 +355,21 @@
                         <value>-1</value>
                     </prop>
                 </node>
-                <node oor:name="ColumnDescriptionCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>COMMENT ON COLUMN {0} IS {1}</value>
+            </node>
+
+            <!-- MetaData node is for the driver properties -->
+            <node oor:name="MetaData">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">COLUMN(2) = 92|COLUMN(6) = SCALE|COLUMN(2) = 92|COLUMN(14) = 0|COLUMN(2) = 92|COLUMN(15) = 9|COLUMN(2) = 93|COLUMN(6) = SCALE|COLUMN(2) = 93|COLUMN(14) = 0|COLUMN(2) = 93|COLUMN(15) = 9|COLUMN(2) = 2013|COLUMN(6) = SCALE|COLUMN(2) = 2013|COLUMN(14) = 0|COLUMN(2) = 2013|COLUMN(15) = 9|COLUMN(2) = 2014|COLUMN(6) = SCALE|COLUMN(2) = 2014|COLUMN(14) = 0|COLUMN(2) = 2014|COLUMN(15) = 9</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
                     </prop>
                 </node>
                 <node oor:name="SupportsColumnDescription" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-            </node>
-        </node>
-
-
-        <node oor:name="xdbc:h2:*" oor:op="replace">
-            <prop oor:name="ParentURLPattern">
-                <value>xdbc:*</value>
-            </prop>
-            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-                <value xml:lang="en-US">H2 Driver</value>
-                <value xml:lang="fr-FR">Pilote H2</value>
-            </prop>
-            <node oor:name="Properties">
-                <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -421,9 +384,38 @@
                         <value oor:separator="|">ALTER TABLE {0} RENAME TO {3}</value>
                     </prop>
                 </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4}</value>
+                <node oor:name="ColumnResetDefaultCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} SET DEFAULT NULL</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsAlterIdentity" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="RevokeRoleCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} FROM {1} RESTRICT</value>
+                    </prop>
+                </node>
+            </node>
+        </node>
+
+
+        <node oor:name="xdbc:h2:*" oor:op="replace">
+            <prop oor:name="ParentURLPattern">
+                <value>xdbc:*</value>
+            </prop>
+            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+                <value xml:lang="en-US">H2 Driver</value>
+                <value xml:lang="fr-FR">Pilote H2</value>
+            </prop>
+
+            <node oor:name="Properties">
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -466,9 +458,42 @@
                         <value>-1</value>
                     </prop>
                 </node>
+            </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="ColumnDescriptionCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>COMMENT ON COLUMN {0} IS {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|123</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameTableCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsAlterIdentity" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
                     </prop>
                 </node>
             </node>
@@ -483,35 +508,11 @@
                 <value xml:lang="en-US">MariaDB Driver</value>
                 <value xml:lang="fr-FR">Pilote MariaDB</value>
             </prop>
+
             <node oor:name="Properties">
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="DropIndexCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>DROP INDEX {1} ON {0}</value>
-                    </prop>
-                </node>
-                <node oor:name="ViewDefinitionCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|13</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameTableCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">RENAME TABLE {0} TO {7}|</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameColumnCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
-                    </prop>
-                </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -544,9 +545,32 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+            </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="DropIndexCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>DROP INDEX {1} ON {0}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|13</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameTableCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">RENAME TABLE {0} TO {7}|</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
                     </prop>
                 </node>
             </node>
@@ -561,40 +585,11 @@
                 <value xml:lang="en-US">PostgreSQL Driver</value>
                 <value xml:lang="fr-FR">Pilote PostgreSQL</value>
             </prop>
+
             <node oor:name="Properties">
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="TypeInfoSettings" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">COLUMN(1) = int2|COLUMN(12) = 1|COLUMN(1) = int4|COLUMN(12) = 1|COLUMN(1) = int8|COLUMN(12) = 1</value>
-                    </prop>
-                </node>
-                <node oor:name="ViewDefinitionCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|23</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameTableCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} SET SCHEMA {1}|ALTER TABLE {2} RENAME TO {3}</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameColumnCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
-                    </prop>
-                </node>
-                <node oor:name="ColumnSetTypeCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3}</value>
-                    </prop>
-                </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4}</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -627,9 +622,62 @@
                         <value>true</value>
                     </prop>
                 </node>
+            </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">COLUMN(1) = int2|COLUMN(12) = 1|COLUMN(1) = int4|COLUMN(12) = 1|COLUMN(1) = int8|COLUMN(12) = 1</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|23</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameTableCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">ALTER TABLE {0} SET SCHEMA {1}|ALTER TABLE {2} RENAME TO {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsAlterIdentity" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="AddIdentityCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER {2} SET NOT NULL, ALTER {2} ADD {6}</value>
                     </prop>
                 </node>
             </node>
@@ -644,35 +692,11 @@
                 <value xml:lang="en-US">SQLite Driver</value>
                 <value xml:lang="fr-FR">Pilote SQLite</value>
             </prop>
+
             <node oor:name="Properties">
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="ViewDefinitionCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT SUBSTR(sql, INSTR(sql, {4})) FROM sqlite_schema WHERE name = ?|0</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameTableCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {7}</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameColumnCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
-                    </prop>
-                </node>
-                <node oor:name="SupportRenameView" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -710,9 +734,17 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+            </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="IsPrimaryKeyAlterable" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsRenameView" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
                     </prop>
                 </node>
                 <node oor:name="IsColumnPropertyAlterable" oor:op="replace">
@@ -720,9 +752,24 @@
                         <value>false</value>
                     </prop>
                 </node>
-                <node oor:name="IsPrimaryKeyAlterable" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT SUBSTR(sql, INSTR(sql, {4})) FROM sqlite_schema WHERE name = ?|0</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameTableCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {7}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
                     </prop>
                 </node>
             </node>
@@ -733,6 +780,7 @@
             <prop oor:name="ParentURLPattern">
                 <value>xdbc:*</value>
             </prop>
+
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
                 <value xml:lang="en-US">Derby Driver</value>
                 <value xml:lang="fr-FR">Pilote Derby</value>
@@ -741,26 +789,6 @@
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameTableCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">RENAME TABLE {0} TO {3}</value>
-                    </prop>
-                </node>
-                <node oor:name="RenameColumnCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>RENAME COLUMN {0}.{1} TO {2}</value>
-                    </prop>
-                </node>
-                <node oor:name="ViewDefinitionCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, LOCATE({4}, VIEWDEFINITION)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?|23</value>
-                    </prop>
-                </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -804,6 +832,34 @@
                     </prop>
                 </node>
             </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, LOCATE({4}, VIEWDEFINITION)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?|23</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameTableCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">RENAME TABLE {0} TO {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>RENAME COLUMN {0}.{1} TO {2}</value>
+                    </prop>
+                </node>
+            </node>
         </node>
 
 
@@ -815,50 +871,11 @@
                 <value xml:lang="en-US">Firebird Driver</value>
                 <value xml:lang="fr-FR">Pilote Firebird</value>
             </prop>
+
             <node oor:name="Properties">
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="TypeInfoSettings" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">COLUMN(1) = SMALLINT|COLUMN(12) = 1|COLUMN(1) = INTEGER|COLUMN(12) = 1|COLUMN(1) = BIGINT|COLUMN(12) = 1</value>
-                    </prop>
-                </node>
-                <node oor:name="CreateTableCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>CREATE TABLE {0} ({1});</value>
-                    </prop>
-                </node>
-                <node oor:name="DropTableCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>DROP TABLE {0};</value>
-                    </prop>
-                </node>
-                <node oor:name="ViewDefinitionCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?;|3</value>
-                    </prop>
-                </node>
-                <node oor:name="AddPrimaryKeyCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY ({2});</value>
-                    </prop>
-                </node>
-                <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} DROP CONSTRAINT {1};</value>
-                    </prop>
-                </node>
-                <node oor:name="SupportRenameView" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="AlterViewCommands" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4};</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
@@ -894,6 +911,59 @@
                 <node oor:name="IgnoreCurrency" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
+                    </prop>
+                </node>
+            </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">COLUMN(1) = SMALLINT|COLUMN(12) = 1|COLUMN(1) = INTEGER|COLUMN(12) = 1|COLUMN(1) = BIGINT|COLUMN(12) = 1</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsRenameView" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="CreateTableCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>CREATE TABLE {0} ({1});</value>
+                    </prop>
+                </node>
+                <node oor:name="DropTableCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>DROP TABLE {0};</value>
+                    </prop>
+                </node>
+                <node oor:name="AddPrimaryKeyCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY ({2});</value>
+                    </prop>
+                </node>
+                <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} DROP CONSTRAINT {1};</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4};</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?;|3</value>
                     </prop>
                 </node>
             </node>

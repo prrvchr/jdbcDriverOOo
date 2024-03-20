@@ -236,11 +236,7 @@ public abstract class Container<T extends Descriptor>
     public boolean hasByName(String name)
     {
         synchronized (m_lock) {
-            boolean value = m_Elements.containsKey(name);
-            if (!value) {
-                System.out.println("sdbcx.Container.hasByName() ERROR **********************************\nClass: " + this.getClass().getName()  + " - Name: " + name);
-            }
-            return value;
+            return m_Elements.containsKey(name);
         }
     }
 

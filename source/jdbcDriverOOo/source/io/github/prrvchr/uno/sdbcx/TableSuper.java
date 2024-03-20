@@ -216,21 +216,25 @@ public abstract class TableSuper<C extends ConnectionSuper>
                             }
                             m_columns.replaceElement(oldname, newname);
                         }
-                        // Column have changed its type
+                        // Column have changed its identity (auto-increment)
                         if ((result & 2) == 2) {
+                            oldcolumn.m_IsAutoIncrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
+                        }
+                        // Column have changed its type
+                        if ((result & 4) == 4) {
                             oldcolumn.m_Type = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE);
                             oldcolumn.m_TypeName = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME);
                         }
                         // Column have changed its default value
-                        if ((result & 4) == 4) {
+                        if ((result & 8) == 8) {
                             oldcolumn.m_DefaultValue = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE);
                         }
                         // Column have changed its not null constraint
-                        if ((result & 8) == 8) {
+                        if ((result & 16) == 16) {
                             oldcolumn.m_IsNullable = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE);
                         }
                         // Column have changed its description value
-                        if ((result & 16) == 16) {
+                        if ((result & 32) == 32) {
                             oldcolumn.m_Description = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION);
                         }
                     }

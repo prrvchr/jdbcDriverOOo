@@ -440,6 +440,10 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - You can now delete a primary key with PostgreSQL.
 - Adding or removing a primary key generates an error if the underlying driver does not support it (SQLite).
 - When [creating a table][89] with a primary key, if the underlying driver supports it, the creation of the primary key can be done by a separate DDL command. This allows Jaybird to work around [bug #791][90] by creating a named primary key and allows to manage special cases like MariaDB or SQLite for their management of auto-increments.
+- If the underlying driver allows it, when [altering columns][91] of a table you can now:
+  - Declare it as auto-increment (Identity) without it necessarily being the primary key.
+  - Add or remove the Identity constraint (auto-increment).
+  - Add comments.
 
 ### What remains to be done for version 1.2.4:
 
@@ -537,3 +541,4 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
 [89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L179>
 [90]: <https://github.com/FirebirdSQL/jaybird/issues/791>
+[91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L281>

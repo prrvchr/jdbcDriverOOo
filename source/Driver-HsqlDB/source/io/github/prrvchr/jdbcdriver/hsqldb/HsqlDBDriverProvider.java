@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -106,18 +104,6 @@ public final class HsqlDBDriverProvider
     public String getGroupQuery()
     {
         return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ADMINISTRABLE_ROLE_AUTHORIZATIONS;";
-    }
-
-    @Override
-    public String getLoggingLevel(XHierarchicalNameAccess driver)
-    {
-        String level = "-1";
-        String property = "Installed/" + getSubProtocol() + ":*/Properties/DriverLoggerLevel/Value";
-        try {
-            level = (String) driver.getByHierarchicalName(property);
-        }
-        catch (NoSuchElementException e) { }
-        return level;
     }
 
     @Override

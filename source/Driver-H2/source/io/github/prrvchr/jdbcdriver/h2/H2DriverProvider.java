@@ -28,9 +28,6 @@ package io.github.prrvchr.jdbcdriver.h2;
 import java.sql.Types;
 import java.util.Map;
 
-import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XHierarchicalNameAccess;
-
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdb.Group;
@@ -109,17 +106,6 @@ public final class H2DriverProvider
     public String getGroupQuery()
     {
         return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLES";
-    }
-
-    @Override
-    public String getLoggingLevel(XHierarchicalNameAccess driver)
-    {
-        String level = "-1";
-        String property = "Installed/" + getSubProtocol() + ":*/Properties/DriverLoggerLevel/Value";
-        try {
-            level = (String) driver.getByHierarchicalName(property);
-        } catch (NoSuchElementException e) { }
-        return level;
     }
 
     @Override

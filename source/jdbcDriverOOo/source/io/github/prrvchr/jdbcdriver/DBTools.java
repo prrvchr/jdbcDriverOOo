@@ -175,22 +175,9 @@ public class DBTools
         }
     }
 
-    /** compose a complete column name from it's up to four parts, regarding to the database meta data composing rules
+    /** compose a complete column name from it's up to two parts, regarding to the database meta data composing rules
      * @throws java.sql.SQLException, SQLException
      */
-
-    public static String composeColumnName(DriverProvider provider,
-                                           String catalog,
-                                           String schema,
-                                           String table,
-                                           String column,
-                                           boolean sensitive,
-                                           ComposeRule composeRule)
-        throws java.sql.SQLException, SQLException
-    {
-        String name = composeTableName(provider, catalog, schema, table, sensitive, composeRule);
-        return composeColumnName(provider, name, column, sensitive);
-    }
 
     public static String composeColumnName(DriverProvider provider,
                                            String table,
@@ -730,8 +717,7 @@ public class DBTools
     {
         group = enquoteIdentifier(provider, group, sensitive);
         user = enquoteIdentifier(provider, user, sensitive);
-        String query = provider.getRevokeRoleQuery(DBDefaultQuery.STR_QUERY_REVOKE_ROLE);
-        return MessageFormat.format(query, group, user);
+        return MessageFormat.format(provider.getRevokeRoleQuery(), group, user);
     }
 
     public static int getTableOrViewPrivileges(DriverProvider provider,

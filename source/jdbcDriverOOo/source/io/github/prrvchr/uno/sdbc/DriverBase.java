@@ -149,35 +149,37 @@ public abstract class DriverBase
         if (acceptsURL(url)) {
             DriverProvider provider = _getDriverProvider(url, info);
             String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
-            XHierarchicalNameAccess config;
+            XHierarchicalNameAccess config1;
             try {
-                config = _getDriverConfiguration("org.openoffice.Office.DataAccess.Drivers");
+                config1 = _getDriverConfiguration("org.openoffice.Office.DataAccess.Drivers");
             }
             catch (Exception e) {
                 throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
-            String level = provider.getLoggingLevel(config);
+            String level = provider.getDriverStringProperty(config1, "DriverLoggerLevel", "-1");
             if (!_isDriverRegistered(location)) {
                 provider.setSystemProperties(level);
-                _registerDriver(config, _getUrlProtocol(url), info);
+                _registerDriver(config1, _getUrlProtocol(url), info);
             }
-            UnoHelper.disposeComponent(config);
+
             System.out.println("sdbc.DriverBase.connect() 1");
+            XHierarchicalNameAccess config2;
             try {
-                config = UnoHelper.getConfiguration(m_xContext, m_identifier);
+                config2 = UnoHelper.getConfiguration(m_xContext, m_identifier);
             }
             catch (Exception e) {
                 throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
             try {
-                provider.setConnection(m_logger, config, m_enhanced, location, info, level);
+                provider.setConnection(m_logger, config1, config2, m_enhanced, location, info, level);
             }
             catch(java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, this);
             }
+            UnoHelper.disposeComponent(config1);
             String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-            service = UnoHelper.getConfigurationOption(config, "ConnectionService", service);
-            UnoHelper.disposeComponent(config);
+            service = UnoHelper.getConfigurationOption(config2, "ConnectionService", service);
+            UnoHelper.disposeComponent(config2);
             System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
             service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
             System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
@@ -372,18 +374,9 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("GenerateASBeforeCorrelationName", "Generate AS before table correlation names.", false, "true", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("IgnoreCurrency", "Ignore the currency field from the ResultsetMetaData.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("EscapeDateTime", "Escape date time format.", false, "true", boolchoices.clone()));
-        properties.add(new DriverPropertyInfo("TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("AlterViewCommands", "Provides the necessary commands to alter a view", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitCatalogRestriction", "The catalog which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("ImplicitSchemaRestriction", "The schema which should be used in getTables calls, when the caller passed NULL.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("CreateTableCommand", "The DDL command to create a table", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("DropTableCommand", "The DDL command to drop a table", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, "", new String[0]));
-        properties.add(new DriverPropertyInfo("AutoIncrementIsPrimaryKey", "Is Auto-increment the primary key.", true, "false", boolchoices.clone()));
-        properties.add(new DriverPropertyInfo("ColumnDescriptionCommand", "Column description setting statement.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("SupportColumnDescription", "Column description setting statement.", false, "true", boolchoices.clone()));
-        properties.add(new DriverPropertyInfo("TableDescriptionCommand", "Table description setting statement.", false, "", new String[0]));
-        properties.add(new DriverPropertyInfo("ViewDefinitionCommands", "Preparedstatement query for retrieving view's SQL command.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("AddIndexAppendix", "Add an appendix (ASC or DESC) when creating the index.", true, "false", boolchoices.clone()));
         return properties.toArray(new DriverPropertyInfo[0]);

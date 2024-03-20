@@ -47,7 +47,6 @@ public abstract class ColumnDescriptorBase
     protected String m_DefaultValue = "";
     protected boolean m_IsCurrency;
 
-
     // The constructor method:
     public ColumnDescriptorBase(String service,
                                 String[] services,

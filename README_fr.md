@@ -440,6 +440,10 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Vous pouvez désormais supprimer une clé primaire avec PostgreSQL.
 - L'ajout ou la suppression d'une clé primaire génère une erreur si le pilote sous-jacent ne le supporte pas (SQLite).
 - Lors de la [création d'une table][89] avec une clé primaire, si le pilote sous-jacent le prend en charge, la création de la clé primaire peut être effectuée par une commande DDL distincte. Cela permet à Jaybird de contourner le [dysfonctionnement #791][90] en créant une clé primaire nommée et permet de gérer des cas particuliers comme MariaDB ou SQLite pour leur gestion des auto-increments.
+- Si le pilote sous-jacent le permet, lors de [la modification des colonnes][91] d'une table vous pouvez désormais:
+  - La déclarer en auto-incrément (Identity) sans qu'elle soit nécessairement la clé primaire.
+  - Ajouter ou retirer la contrainte Identity (auto-incrément).
+  - Ajouter des commentaires.
 
 ### Que reste-t-il à faire pour la version 1.2.4:
 
@@ -537,3 +541,4 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
 [89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L179>
 [90]: <https://github.com/FirebirdSQL/jaybird/issues/791>
+[91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L281>

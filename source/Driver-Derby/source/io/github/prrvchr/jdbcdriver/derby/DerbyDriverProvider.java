@@ -28,9 +28,6 @@ package io.github.prrvchr.jdbcdriver.derby;
 import java.sql.SQLException;
 import java.util.Map;
 
-import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XHierarchicalNameAccess;
-
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -68,17 +65,6 @@ public final class DerbyDriverProvider
     public String getGroupQuery()
     {
         return "SELECT ROLEID FROM SYS.SYSROLES;";
-    }
-
-    @Override
-    public String getLoggingLevel(XHierarchicalNameAccess driver)
-    {
-        String level = "-1";
-        String property = "Installed/" + getSubProtocol() + ":*/Properties/DriverLoggerLevel/Value";
-        try {
-            level = (String) driver.getByHierarchicalName(property);
-        } catch (NoSuchElementException e) { }
-        return level;
     }
 
     @Override

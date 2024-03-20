@@ -57,8 +57,21 @@ public interface DriverProvider
     public String getConnectionUrl(String location,
                                    String level);
 
+    public boolean getDriverBooleanProperty(XHierarchicalNameAccess driver,
+                                            String property,
+                                            boolean value);
+
+    public String getDriverStringProperty(XHierarchicalNameAccess driver,
+                                          String name,
+                                          String value);
+
+    public Object[] getDriverObjectProperty(XHierarchicalNameAccess driver,
+                                            String name,
+                                            Object[] value);
+
     public void setConnection(ResourceBasedEventLogger logger,
-                              XHierarchicalNameAccess config,
+                              XHierarchicalNameAccess config1,
+                              XHierarchicalNameAccess config2,
                               boolean enhanced,
                               String url,
                               PropertyValue[] info,
@@ -150,17 +163,17 @@ public interface DriverProvider
 
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
 
-    public String getRenameColumnQuery(String command);
+    public String getRenameColumnQuery();
 
     public String getAddConstraintQuery(int type);
 
     public String getDropConstraintQuery(int type);
 
-    public String getColumnSetTypeQuery();
+    public String getAlterColumnQuery();
 
-    public boolean hasColumnSetTypeQuery();
+    public boolean hasAlterColumnQuery();
 
-    public String getColumnResetDefaultQuery(String command);
+    public String getColumnResetDefaultQuery();
 
     public List<String> getAlterViewQueries(Object... args);
 
@@ -200,8 +213,6 @@ public interface DriverProvider
 
     public boolean acceptsURL(String url);
 
-    public String getLoggingLevel(XHierarchicalNameAccess driver);
-
     public Properties getJavaConnectionProperties(PropertyValue[] infos);
 
     public Object getConnectionProperties(PropertyValue[] infos,
@@ -218,7 +229,15 @@ public interface DriverProvider
                                                  String table,
                                                  String grantee);
 
-    public String getRevokeRoleQuery(String command);
+    public String getRevokeRoleQuery();
+
+    public boolean supportsAlterIdentity();
+
+    public boolean hasAddIdentityQuery();
+
+    public String getAddIdentityQuery();
+
+    public String getDropIdentityQuery();
 
     public boolean supportCreateTableKeyParts();
 

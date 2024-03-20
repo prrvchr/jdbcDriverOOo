@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
@@ -34,7 +33,6 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public abstract class ColumnBase<T extends TableSuper<?>>
@@ -48,7 +46,7 @@ public abstract class ColumnBase<T extends TableSuper<?>>
     private int m_Scale;
     protected int m_IsNullable;
     private boolean m_IsCurrency;
-    private boolean m_IsAutoIncrement;
+    protected boolean m_IsAutoIncrement;
     private boolean m_IsRowVersion;
     protected String m_TypeName = "";
     protected String m_Description = "";
@@ -94,117 +92,63 @@ public abstract class ColumnBase<T extends TableSuper<?>>
                 public Object getValue() throws WrappedTargetException {
                     return m_Type;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Type = (int) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.TYPENAME.name, PropertyIds.TYPENAME.id, Type.STRING, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_TypeName;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_TypeName = (String) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.PRECISION.name, PropertyIds.PRECISION.id, Type.LONG, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_Precision;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Precision = (int) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.SCALE.name, PropertyIds.SCALE.id, Type.LONG, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_Scale;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Scale = (int) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.ISNULLABLE.name, PropertyIds.ISNULLABLE.id, Type.LONG, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_IsNullable;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_IsNullable = (int) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.ISAUTOINCREMENT.name, PropertyIds.ISAUTOINCREMENT.id, Type.BOOLEAN, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_IsAutoIncrement;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_IsAutoIncrement = (boolean) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.ISROWVERSION.name, PropertyIds.ISROWVERSION.id, Type.BOOLEAN, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_IsRowVersion;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_IsRowVersion = (boolean) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_Description;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Description = (String) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.DEFAULTVALUE.name, PropertyIds.DEFAULTVALUE.id, Type.STRING, attribute,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     return m_DefaultValue;
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_DefaultValue = (String) value;
-                }
-            });
+            }, null);
         registerProperty(PropertyIds.ISCURRENCY.name, PropertyIds.ISCURRENCY.id, Type.BOOLEAN, attribute,
             new PropertyGetter() {
                 @Override
@@ -212,14 +156,7 @@ public abstract class ColumnBase<T extends TableSuper<?>>
                     return m_IsCurrency;
                     
                 }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) {
-                    m_IsCurrency = (Boolean) value;
-                }
-            });
-
+            }, null);
     }
 
     // XDataDescriptorFactory
