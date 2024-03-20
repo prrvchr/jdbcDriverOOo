@@ -118,13 +118,17 @@ public interface DriverProvider
     // - In the primary key definition (true)
     public boolean isAutoIncrementIsPrimaryKey();
 
-    // Does the underlying database driver support altering default value and null constraint on column
+    // Does the underlying database driver support altering column type
     // Default value is true.
-    public Boolean isColumnPropertyAlterable();
+    public Boolean supportsAlterColumnType();
+
+    // Does the underlying database driver support altering column default value and not null constraint
+    // Default value is true.
+    public Boolean supportsAlterColumnProperty();
 
     // Does the underlying database driver support adding, removing or altering primary key
     // Default value is true.
-    public Boolean isPrimaryKeyAlterable();
+    public Boolean supportsAlterPrimaryKey();
 
     // Does the underlying database driver support java.sql.Statement.getGeneratedValues()
     // Default value is false.

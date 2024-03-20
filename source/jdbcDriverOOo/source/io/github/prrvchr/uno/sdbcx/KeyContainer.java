@@ -144,7 +144,7 @@ public final class KeyContainer
     {
         try {
             DriverProvider provider = getConnection().getProvider();
-            if (!provider.isPrimaryKeyAlterable()) {
+            if (!provider.supportsAlterPrimaryKey()) {
                 int resource = Resources.STR_LOG_KEY_ADD_UNSUPPORTED_FEATURE_ERROR;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
@@ -234,7 +234,7 @@ public final class KeyContainer
     {
         try {
             DriverProvider provider = getConnection().getProvider();
-            if (!provider.isPrimaryKeyAlterable()) {
+            if (!provider.supportsAlterPrimaryKey()) {
                 int resource = Resources.STR_LOG_KEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);

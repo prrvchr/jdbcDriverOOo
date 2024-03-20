@@ -171,7 +171,6 @@ public class DBTableHelper
      *   The CREATE TABLE statement.
      * @throws java.sql.SQLException
      * @throws SQLException 
-     * @throws IllegalArgumentException 
      * @throws WrappedTargetException 
      * @throws IndexOutOfBoundsException 
      * @throws UnknownPropertyException 
@@ -181,7 +180,7 @@ public class DBTableHelper
                                                      String table,
                                                      ComposeRule rule,
                                                      boolean sensitive)
-        throws java.sql.SQLException, SQLException, IllegalArgumentException, WrappedTargetException, IndexOutOfBoundsException, UnknownPropertyException
+        throws java.sql.SQLException, SQLException, WrappedTargetException, IndexOutOfBoundsException, UnknownPropertyException
     {
         String separator = ", ";
         boolean hasAutoIncrement = false;
@@ -217,7 +216,7 @@ public class DBTableHelper
         // XXX: If the underlying driver allows it, we create the primary key in a DDL command
         // XXX: separate from the one that creates the table. But there are specific cases!!!
         boolean autopk = provider.isAutoIncrementIsPrimaryKey();
-        boolean alterpk = provider.isPrimaryKeyAlterable();
+        boolean alterpk = provider.supportsAlterPrimaryKey();
         // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         if ((alterpk && !autopk) || (alterpk && autopk && !hasAutoIncrement)) {
             queries.addAll(0, getCreateConstraintQueries(provider, property, property, "", rule, sensitive));
@@ -270,10 +269,6 @@ public class DBTableHelper
     *      The binary result (ie: 1 -> renamed, 2 -> type changed ...)
     * @throws java.sql.SQLException
     * @throws SQLException 
-    * @throws IllegalArgumentException 
-    * @throws WrappedTargetException 
-    * @throws IndexOutOfBoundsException 
-    * @throws UnknownPropertyException 
     */
     // XXX: This method is called from 2 places:
     // XXX: - ColumnContainerBase.createColumn() for any new column.
@@ -321,9 +316,13 @@ public class DBTableHelper
             boolean autochanged = auto1 != auto2 && provider.supportsAlterIdentity();
 
             // XXX: Type have been changed
-            String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
-            String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
-            boolean typechanged = !type2.equals(type1);
+            boolean typechanged = false;
+            // XXX: Changing column type is only allowed if the underlying driver supports it.
+            if (provider.supportsAlterColumnType()) {
+                String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
+                String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
+                typechanged = !type2.equals(type1);
+            }
 
             boolean alldone = false;
             List<String> parts = new ArrayList<String>();
@@ -372,35 +371,36 @@ public class DBTableHelper
             }
             queries.addAll(parts);
 
-            boolean altercolumn = provider.isColumnPropertyAlterable();
-            String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
-            String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
-            boolean defaultchanged = !default2.equals(default1);
-            //FIXME: Primary key & auto-increment column don't have to handle Default property
-            if (altercolumn && !alterpk && !alldone && defaultchanged) {
-                if (default2.isBlank()) {
-                    query = provider.getColumnResetDefaultQuery();
+            // XXX: Primary key & auto-increment column don't have to handle Default and Not Null property,
+            // XXX: and some underlying driver doesn't support alteration of column.
+            if (!alldone && !alterpk && !auto2 && provider.supportsAlterColumnProperty()) {
+                String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
+                String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
+                boolean defaultchanged = !default2.equals(default1);
+                if (defaultchanged) {
+                    if (default2.isBlank()) {
+                        query = provider.getColumnResetDefaultQuery();
+                    }
+                    else {
+                        query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_DEFAULT;
+                    }
+                    queries.add(MessageFormat.format(query, arguments));
+                    result |= 8;
                 }
-                else {
-                    query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_DEFAULT;
-                }
-                queries.add(MessageFormat.format(query, arguments));
-                result |= 8;
-            }
 
-            int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
-            int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
-            boolean nullablechanged = nullable2 != nullable1;
-            //FIXME: Primary key & auto-increment column don't have to handle Not Null property
-            if (altercolumn && !alterpk && !alldone && nullablechanged) {
-                if (nullable2 == ColumnValue.NO_NULLS) {
-                    query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_NOT_NULL;
+                int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
+                int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
+                boolean nullablechanged = nullable2 != nullable1;
+                if (nullablechanged) {
+                    if (nullable2 == ColumnValue.NO_NULLS) {
+                        query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_NOT_NULL;
+                    }
+                    else {
+                        query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_NOT_NULL;
+                    }
+                    queries.add(MessageFormat.format(query, arguments));
+                    result |= 16;
                 }
-                else {
-                    query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_NOT_NULL;
-                }
-                queries.add(MessageFormat.format(query, arguments));
-                result |= 16;
             }
         }
 

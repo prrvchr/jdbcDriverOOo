@@ -81,8 +81,9 @@ public abstract class DriverProviderMain
     private String m_AutoIncrementCreation = "";
     private boolean m_AddIndexAppendix = false;
     private boolean m_IsAutoIncrementIsPrimaryKey = false;
-    private boolean m_IsColumnPropertyAlterable = true;
-    private boolean m_IsPrimaryKeyAlterable = true;
+    private boolean m_SupportsAlterColumnType = true;
+    private boolean m_SupportsAlterColumnProperty = true;
+    private boolean m_SupportsAlterPrimaryKey = true;
     private boolean m_IsAutoRetrievingEnabled = false;
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
@@ -537,8 +538,10 @@ public abstract class DriverProviderMain
         m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);
         m_SupportsRenameView = getDriverBooleanProperty(config1, "SupportsRenameView", m_SupportsRenameView);
         m_SupportsColumnDescription = getDriverBooleanProperty(config1, "SupportsColumnDescription", m_SupportsColumnDescription);
-        m_IsPrimaryKeyAlterable = getDriverBooleanProperty(config1, "IsPrimaryKeyAlterable", m_IsPrimaryKeyAlterable);
-        m_IsColumnPropertyAlterable = getDriverBooleanProperty(config1, "IsColumnPropertyAlterable", m_IsColumnPropertyAlterable);
+        m_SupportsAlterPrimaryKey = getDriverBooleanProperty(config1, "SupportsAlterPrimaryKey", m_SupportsAlterPrimaryKey);
+        
+        m_SupportsAlterColumnType = getDriverBooleanProperty(config1, "SupportsAlterColumnType", m_SupportsAlterColumnType);
+        m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
         m_CreateTableCommand = getDriverStringProperty(config1, "CreateTableCommand", m_CreateTableCommand);
         m_DropTableCommand = getDriverStringProperty(config1, "DropTableCommand", m_DropTableCommand);
         m_AlterColumnCommand = getDriverStringProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
@@ -625,11 +628,14 @@ public abstract class DriverProviderMain
     public boolean isAutoIncrementIsPrimaryKey() {
         return m_IsAutoIncrementIsPrimaryKey;
     }
-    public Boolean isColumnPropertyAlterable() {
-        return m_IsColumnPropertyAlterable;
+    public Boolean supportsAlterColumnType() {
+        return m_SupportsAlterColumnType;
     }
-    public Boolean isPrimaryKeyAlterable() {
-        return m_IsPrimaryKeyAlterable;
+    public Boolean supportsAlterColumnProperty() {
+        return m_SupportsAlterColumnProperty;
+    }
+    public Boolean supportsAlterPrimaryKey() {
+        return m_SupportsAlterPrimaryKey;
     }
     public String getAutoRetrievingStatement() {
         return m_AutoRetrievingStatement;

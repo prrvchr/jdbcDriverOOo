@@ -737,7 +737,7 @@
             </node>
 
             <node oor:name="MetaData">
-                <node oor:name="IsPrimaryKeyAlterable" oor:op="replace">
+                <node oor:name="SupportsAlterPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
@@ -747,7 +747,12 @@
                         <value>false</value>
                     </prop>
                 </node>
-                <node oor:name="IsColumnPropertyAlterable" oor:op="replace">
+                <node oor:name="SupportsAlterColumnType" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsAlterColumnProperty" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
