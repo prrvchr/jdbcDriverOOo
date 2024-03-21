@@ -297,8 +297,8 @@ public class DBTableHelper
         ColumnProperties column = getStandardColumnProperties(provider, name1, descriptor2, sensitive);
         if (name1.isEmpty()) {
             // Create a new column
-            query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_COLUMN;
-            queries.add(MessageFormat.format(query, name, column.toString()));
+            query = provider.getAddColumnQuery(name, column.toString());
+            queries.add(query);
         }
         else {
             Object[] arguments = column.getQueryArguments(name);

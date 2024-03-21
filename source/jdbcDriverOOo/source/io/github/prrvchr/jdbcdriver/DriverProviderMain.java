@@ -93,6 +93,8 @@ public abstract class DriverProviderMain
     private boolean m_SupportsAlterIdentity = false;
     private String m_CreateTableCommand = DBDefaultQuery.STR_QUERY_CREATE_TABLE;
     private String m_DropTableCommand = DBDefaultQuery.STR_QUERY_DROP_TABLE;
+    private String m_AddColumnCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_COLUMN;
+    private String m_DropColumnCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_COLUMN;
     private String m_RenameColumnCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_RENAME_COLUMN;
     private String m_AddPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY;
     private String m_AddForeignKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY;
@@ -211,6 +213,18 @@ public abstract class DriverProviderMain
     public String getDropTableQuery(String table)
     {
         return MessageFormat.format(m_DropTableCommand, table);
+    }
+
+    @Override
+    public String getAddColumnQuery(String table, String column)
+    {
+        return MessageFormat.format(m_AddColumnCommand, table, column);
+    }
+
+    @Override
+    public String getDropColumnQuery(String table, String column)
+    {
+        return MessageFormat.format(m_DropColumnCommand, table, column);
     }
 
     @Override
@@ -544,6 +558,8 @@ public abstract class DriverProviderMain
         m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
         m_CreateTableCommand = getDriverStringProperty(config1, "CreateTableCommand", m_CreateTableCommand);
         m_DropTableCommand = getDriverStringProperty(config1, "DropTableCommand", m_DropTableCommand);
+        m_AddColumnCommand = getDriverStringProperty(config1, "AddColumnCommand", m_AddColumnCommand);
+        m_DropColumnCommand = getDriverStringProperty(config1, "DropColumnCommand", m_DropColumnCommand);
         m_AlterColumnCommand = getDriverStringProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
 
         m_AddPrimaryKeyCommand = getDriverStringProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);

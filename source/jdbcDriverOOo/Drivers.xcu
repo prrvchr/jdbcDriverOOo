@@ -951,6 +951,16 @@
                         <value>DROP TABLE {0};</value>
                     </prop>
                 </node>
+                <node oor:name="AddColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ADD {1};</value>
+                    </prop>
+                </node>
+                <node oor:name="DropColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} DROP {1};</value>
+                    </prop>
+                </node>
                 <node oor:name="AddPrimaryKeyCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY ({2});</value>
@@ -969,6 +979,16 @@
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?;|3</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3};</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {1} TO {2};</value>
                     </prop>
                 </node>
             </node>

@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,8 +48,8 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
-import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -111,11 +110,12 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         try {
-            String table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, false);
+            DriverProvider provider = getConnection().getProvider();
+            String table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
             List<String> queries = new ArrayList<String>();
-            DBTableHelper.getAlterColumnQueries(queries, getConnection().getProvider(), m_table, oldcolumn, descriptor, false, isCaseSensitive());
+            DBTableHelper.getAlterColumnQueries(queries, provider, m_table, oldcolumn, descriptor, false, isCaseSensitive());
             if (!queries.isEmpty()) {
-                return DBTools.executeDDLQueries(getConnection().getProvider(), m_table.getLogger(), queries, this.getClass().getName(),
+                return DBTools.executeDDLQueries(provider, m_table.getLogger(), queries, this.getClass().getName(),
                                                  "createColumn", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
             }
         }
@@ -137,11 +137,12 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             boolean isCurrency = false;
             @SuppressWarnings("unused")
             int dataType = DataType.OTHER;
-            
+
+            DriverProvider provider = getConnection().getProvider();
             ColumnDescription description = m_descriptions.get(name);
             if (description == null) {
                 // could be a recently added column. Refresh:
-                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(getConnection().getProvider(), m_table.getCatalog(),
+                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(provider, m_table.getCatalog(),
                                                                                 m_table.getSchema(), m_table.getName());
                 for (ColumnDescription newcolumn : newcolumns) {
                     if (newcolumn.columnName.equals(name)) {
@@ -157,8 +158,8 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             
             ExtraColumnInfo info = m_extrainfos.get(name);
             if (info == null) {
-                String composedName = DBTools.composeTableNameForSelect(getConnection().getProvider(), m_table, isCaseSensitive());
-                m_extrainfos = DBColumnHelper.collectColumnInformation(getConnection().getProvider(), composedName, "*");
+                String composedName = DBTools.composeTableNameForSelect(provider, m_table, isCaseSensitive());
+                m_extrainfos = DBColumnHelper.collectColumnInformation(provider, composedName, "*");
                 info = m_extrainfos.get(name);
             }
             if (info != null) {
@@ -167,7 +168,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
                 isCurrency = info.isCurrency;
                 dataType = info.dataType;
             }
-            
+
             XNameAccess primaryKeyColumns = DBTools.getPrimaryKeyColumns(m_table.getKeys());
             int nullable = description.nullable;
             if (nullable != ColumnValue.NO_NULLS && primaryKeyColumns != null && primaryKeyColumns.hasByName(name)) {
@@ -193,11 +194,12 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             return;
         }
         try {
-            String table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, isCaseSensitive());
-            String column = DBTools.enquoteIdentifier(getConnection().getProvider(), name, isCaseSensitive());
-            String query = MessageFormat.format(DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_COLUMN, table, column);
-            table = DBTools.composeTableName(getConnection().getProvider(), m_table, ComposeRule.InTableDefinitions, false);
-            DBTools.executeDDLQuery(getConnection().getProvider(), m_table.getLogger(), query, "ColumnContainer",
+            DriverProvider provider = getConnection().getProvider();
+            String table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, isCaseSensitive());
+            String column = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
+            String query = provider.getDropColumnQuery(table, column);
+            table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
+            DBTools.executeDDLQuery(provider, m_table.getLogger(), query, "ColumnContainer",
                                     "removeDataBaseElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table);
         }
         catch (java.sql.SQLException e) {
@@ -236,6 +238,5 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
                                                 boolean autoincrement,
                                                 boolean rowversion,
                                                 boolean currency);
-
 
 }

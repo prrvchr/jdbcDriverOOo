@@ -1437,6 +1437,7 @@ public class DBTools
         for (int position : positions) {
             statement.setString(i++, (String) parameters[position]);
         }
+        System.out.println("DataBaseTools.executeUpdate(): Query: " + query);
         logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
         statement.executeUpdate();
     }

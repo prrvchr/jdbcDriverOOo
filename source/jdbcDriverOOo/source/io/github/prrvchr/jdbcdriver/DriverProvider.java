@@ -163,6 +163,10 @@ public interface DriverProvider
 
     public String getDropTableQuery(String table);
 
+    public String getAddColumnQuery(String table, String column);
+
+    public String getDropColumnQuery(String table, String column);
+
     public int getGeneratedKeysOption();
 
     public List<String> getRenameTableQueries(boolean reverse, Object... args);
