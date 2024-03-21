@@ -241,8 +241,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 }
             }
             catch (java.sql.SQLException e) {
-                System.out.println("sdbcx.TableSuper.alterColumn() ERROR Message: " + e.getMessage());
-                throw UnoHelper.getSQLException(e, getConnection());
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
         }
     }
@@ -337,7 +336,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
             getConnection().getTablesInternal().rename(oldname, name, offset);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

@@ -39,6 +39,7 @@ import com.sun.star.sdbc.IndexType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
@@ -50,7 +51,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
 public final class IndexContainer
@@ -136,7 +137,7 @@ public final class IndexContainer
             }
         }
         catch (java.sql.SQLException | ElementExistException e) {
-            throw UnoHelper.getSQLException(e, m_Table);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return index;
     }
@@ -194,11 +195,8 @@ public final class IndexContainer
             }
             return false;
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (WrappedTargetException | IndexOutOfBoundsException e) {
-            throw UnoHelper.getSQLException(e, this);
+        catch (java.sql.SQLException | WrappedTargetException | IndexOutOfBoundsException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -226,7 +224,7 @@ public final class IndexContainer
                                     "removeDataBaseElement", Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY, name, table);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

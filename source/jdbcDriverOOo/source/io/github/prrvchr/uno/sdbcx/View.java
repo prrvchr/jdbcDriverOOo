@@ -44,7 +44,6 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
@@ -114,7 +113,7 @@ public final class View
                 }
             }
             catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
             m_Command = command;
         }
@@ -127,19 +126,24 @@ public final class View
         throws SQLException,
                ElementExistException
     {
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        String oldname = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
-        if (!getConnection().getProvider().supportRenamingTable()) {
-            int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+        try {
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            String oldname = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
+            if (!getConnection().getProvider().supportRenamingTable()) {
+                int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            }
+            int offset = Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET;
+            NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
+            rename(component, oldname, name, rule, offset);
+            m_SchemaName = component.getSchema();
+            m_Name = component.getTable();
+            getConnection().getViewsInternal().rename(oldname, name, offset);
         }
-        int offset = Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET;
-        NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
-        rename(component, oldname, name, rule, offset);
-        m_SchemaName = component.getSchema();
-        m_Name = component.getTable();
-        getConnection().getViewsInternal().rename(oldname, name, offset);
+        catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
     }
 
 }

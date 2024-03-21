@@ -56,6 +56,7 @@ import java.util.TreeSet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.Key;
@@ -229,7 +230,7 @@ public class DBColumnHelper
             return key;
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, table);
+            throw new SQLException(e.getMessage(), table, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

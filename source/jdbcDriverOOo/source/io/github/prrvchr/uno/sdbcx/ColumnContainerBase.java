@@ -40,6 +40,7 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper;
@@ -101,15 +102,9 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
         throws SQLException
     {
 
-        XPropertySet oldcolumn = createDataDescriptor();
         try {
+            XPropertySet oldcolumn = createDataDescriptor();
             oldcolumn.setPropertyValue(PropertyIds.ISNULLABLE.name, ColumnValue.NULLABLE);
-        }
-        catch (IllegalArgumentException | UnknownPropertyException 
-                | PropertyVetoException | WrappedTargetException e) {
-            throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        }
-        try {
             DriverProvider provider = getConnection().getProvider();
             String table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
             List<String> queries = new ArrayList<String>();
@@ -119,8 +114,9 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
                                                  "createColumn", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
             }
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+        catch (java.sql.SQLException | IllegalArgumentException |
+               UnknownPropertyException | PropertyVetoException | WrappedTargetException e) {
+             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return false;
     }
@@ -179,7 +175,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
                                 isAutoIncrement, false, isCurrency);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_table);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return column;
     }
@@ -203,7 +199,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
                                     "removeDataBaseElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

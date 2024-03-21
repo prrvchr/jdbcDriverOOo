@@ -45,7 +45,6 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
@@ -186,8 +185,7 @@ public abstract class TableMain<C extends ConnectionSuper>
             }
         }
         catch (java.sql.SQLException e) {
-            System.out.println("sdbcx.TableMain.rename() ERROR Message: " + e.getMessage());
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         if (!changed || skipped) {
             resource = Resources.STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR + offset;

@@ -53,7 +53,6 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class KeyContainer
@@ -74,11 +73,9 @@ public final class KeyContainer
         throws ElementExistException
     {
         super(m_service, m_services, table, sensitive, Arrays.asList(keys.keySet().toArray(new String[keys.size()])));
-        System.out.println("sdbcx.KeyContainer() 1");
         m_logger = new ConnectionLog(table.getLogger(), LoggerObjectType.KEYCONTAINER);
         m_keys = keys;
         m_table = table;
-        System.out.println("sdbcx.KeyContainer() 2");
     }
 
     protected ConnectionSuper getConnection()
@@ -101,7 +98,6 @@ public final class KeyContainer
     protected Key createElement(String name)
         throws SQLException
     {
-        System.out.println("sdbcx.KeyContainer.createElement() 1 Name: " + name);
         try {
             Key key = null;
             if (!name.isEmpty()) {
@@ -109,20 +105,17 @@ public final class KeyContainer
                     key = m_keys.get(name);
                 }
                 else {
-                    System.out.println("sdbcx.KeyContainer.createElement() 2");
                     key = DBColumnHelper.readKey(getConnection().getProvider(), m_table, m_table.getCatalog(),
                                                  m_table.getSchema(), m_table.getName(), name, isCaseSensitive());
                     if (key != null) {
-                        System.out.println("sdbcx.KeyContainer.createElement() 3");
                         m_keys.put(name, key);
                     }
                 }
             }
-            System.out.println("sdbcx.KeyContainer.createElement() 4");
             return key;
         }
         catch (ElementExistException e) {
-            throw new SQLException(e);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -162,11 +155,8 @@ public final class KeyContainer
                                            this.getClass().getName(), "createKey",
                                            Resources.STR_LOG_KEYS_CREATE_KEY_QUERY, key, table);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_table);
-        }
-        catch (IllegalArgumentException | IndexOutOfBoundsException | WrappedTargetException e) {
-            throw new SQLException(e);
+        catch (java.sql.SQLException | IllegalArgumentException | IndexOutOfBoundsException | WrappedTargetException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -204,12 +194,10 @@ public final class KeyContainer
             List<String> columns = DBConstraintHelper.getKeyColumns(getConnection().getProvider(), descriptor, PropertyIds.NAME, false);
             return new Key(m_table, isCaseSensitive(), newname, referencedName, type, update, delete, columns);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_table);
-        }
-        catch (IllegalArgumentException | UnknownPropertyException | IndexOutOfBoundsException |
-               PropertyVetoException | WrappedTargetException | ElementExistException e1) {
-            throw new SQLException(e1);
+        catch (java.sql.SQLException | IllegalArgumentException |
+               UnknownPropertyException | IndexOutOfBoundsException |
+               PropertyVetoException | WrappedTargetException | ElementExistException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -269,7 +257,7 @@ public final class KeyContainer
             }
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_table);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

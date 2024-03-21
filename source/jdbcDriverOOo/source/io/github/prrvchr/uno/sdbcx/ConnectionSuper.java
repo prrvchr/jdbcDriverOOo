@@ -36,6 +36,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XViewsSupplier;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
@@ -43,6 +44,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
@@ -196,7 +198,12 @@ public abstract class ConnectionSuper
     private String buildName(java.sql.ResultSet result)
         throws SQLException
     {
-        return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
+        try {
+            return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
+        }
+        catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
     }
 
 }

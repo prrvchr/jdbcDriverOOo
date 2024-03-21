@@ -34,7 +34,6 @@ import com.sun.star.container.XIndexAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.KeyRule;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
@@ -53,7 +52,7 @@ public class DBConstraintHelper
                                                   String name,
                                                   ComposeRule rule,
                                                   boolean sensitive)
-        throws SQLException, IndexOutOfBoundsException, WrappedTargetException
+        throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
     {
         List<String> args = new ArrayList<>();
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
@@ -78,7 +77,7 @@ public class DBConstraintHelper
                                              XPropertySet descriptor,
                                              PropertyIds name,
                                              boolean sensitive)
-        throws SQLException, IndexOutOfBoundsException, WrappedTargetException
+        throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
     {
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
         XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
@@ -88,7 +87,7 @@ public class DBConstraintHelper
     public static List<String> getCreatePrimaryKeyParts(DriverProvider provider,
                                                         XPropertySet descriptor,
                                                         boolean sensitive)
-        throws SQLException, IndexOutOfBoundsException, WrappedTargetException
+        throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
     {
         List<String> queries = new ArrayList<String>();
         XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
@@ -105,7 +104,7 @@ public class DBConstraintHelper
                     if (columns != null && columns.getCount() > 0) {
                         if (keyType == KeyType.PRIMARY) {
                             if (hasPrimaryKey) {
-                                throw new SQLException();
+                                throw new java.sql.SQLException();
                             }
                             hasPrimaryKey = true;
                             buffer.append("PRIMARY KEY");
@@ -124,7 +123,7 @@ public class DBConstraintHelper
                             String composedName = DBTools.buildName(provider, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(),
                                                                     ComposeRule.InTableDefinitions, true);
                             if (composedName.isEmpty()) {
-                                throw new SQLException();
+                                throw new java.sql.SQLException();
                             }
                             
                             buffer.append(getKeyColumns(provider, columns, sensitive));
@@ -163,7 +162,7 @@ public class DBConstraintHelper
     private static String getKeyColumns(DriverProvider provider,
                                         XIndexAccess columns,
                                         boolean sensitive)
-        throws SQLException, IndexOutOfBoundsException, WrappedTargetException
+        throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
     {
         String separator = ", ";
         StringBuilder buffer = new StringBuilder();
@@ -180,7 +179,7 @@ public class DBConstraintHelper
                                               XIndexAccess indexes,
                                               PropertyIds name,
                                               boolean sensitive)
-        throws SQLException, IndexOutOfBoundsException, WrappedTargetException
+        throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
     {
         List<String> columns = new ArrayList<String>();
         for (int i = 0; i < indexes.getCount(); i++) {

@@ -40,9 +40,9 @@ import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class ViewContainer
@@ -72,16 +72,17 @@ public final class ViewContainer
         throws SQLException
     {
         try {
-            String query = DBTools.getCreateViewQuery(getConnection().getProvider(), descriptor, isCaseSensitive());
+            DriverProvider provider = getConnection().getProvider();
+            String query = DBTools.getCreateViewQuery(provider, descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
-            if (DBTools.executeDDLQuery(getConnection().getProvider(), getLogger(), query, this.getClass().getName(),
+            if (DBTools.executeDDLQuery(provider, getLogger(), query, this.getClass().getName(),
                                         "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
                 getConnection().getTablesInternal().insertElement(name, null);
                 return true;
             }
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return false;
     }
@@ -94,14 +95,15 @@ public final class ViewContainer
         int option = CheckOption.NONE;
         ComposeRule rule = ComposeRule.InDataManipulation;
         try {
-            NameComponents cpt = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
-            if (getConnection().getProvider().supportViewDefinition()) {
+            DriverProvider provider = getConnection().getProvider();
+            NameComponents cpt = DBTools.qualifiedNameComponents(provider, name, rule);
+            if (provider.supportViewDefinition()) {
                 List<Integer[]> positions = new ArrayList<Integer[]>();
-                Object[] parameters = DBParameterHelper.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, isCaseSensitive());
-                List<String> queries = getConnection().getProvider().getViewDefinitionQuery(positions, parameters);
+                Object[] parameters = DBParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, isCaseSensitive());
+                List<String> queries = provider.getViewDefinitionQuery(positions, parameters);
                 if (!queries.isEmpty() && !positions.isEmpty()) {
-                    parameters = DBParameterHelper.getViewDefinitionArguments(getConnection().getProvider(), cpt, name, rule, false);
-                    try (java.sql.PreparedStatement smt = getConnection().getProvider().getConnection().prepareStatement(queries.get(0)))
+                    parameters = DBParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, false);
+                    try (java.sql.PreparedStatement smt = provider.getConnection().prepareStatement(queries.get(0)))
                     {
                         int i = 1;
                         for (int position : positions.get(0)) {
@@ -139,7 +141,7 @@ public final class ViewContainer
             return view;
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -160,14 +162,15 @@ public final class ViewContainer
         throws SQLException
     {
         try {
-            String table = DBTools.buildName(getConnection().getProvider(), view.getCatalogName(), view.getCatalogName(),
+            DriverProvider provider = getConnection().getProvider();
+            String table = DBTools.buildName(provider, view.getCatalogName(), view.getCatalogName(),
                                              view.getName(), ComposeRule.InTableDefinitions, isCaseSensitive());
             String query = DBTools.getDropViewQuery(table);
-            DBTools.executeDDLQuery(getConnection().getProvider(), getLogger(), query, this.getClass().getName(),
+            DBTools.executeDDLQuery(provider, getLogger(), query, this.getClass().getName(),
                                     "removeView", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

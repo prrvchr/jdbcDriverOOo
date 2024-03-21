@@ -36,15 +36,16 @@ import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTableHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class TableContainerSuper<T extends TableSuper<?>, C extends ConnectionSuper>
@@ -91,15 +92,9 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                                                  "_createTable", Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name);
             }
         }
-        catch (java.sql.SQLException e1) {
-            throw UnoHelper.getSQLException(e1, this);
-        }
-        catch (IllegalArgumentException | WrappedTargetException | IndexOutOfBoundsException | UnknownPropertyException e) {
-            throw new SQLException(e);
-        }
-        catch (java.lang.Exception e2) {
-            e2.printStackTrace();
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e2), this);
+        catch (java.sql.SQLException | IllegalArgumentException |
+               WrappedTargetException | IndexOutOfBoundsException | UnknownPropertyException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return false;
     }
@@ -122,7 +117,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
             }
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_Connection);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return table;
     }
@@ -162,11 +157,8 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
             DBTools.executeDDLQuery(m_Connection.getProvider(), getLogger(), query, this.getClass().getName(),
                                     "removeDataBaseElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
         }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (NoSuchElementException e) {
-            throw UnoHelper.getSQLException(e, m_Connection);
+        catch (java.sql.SQLException | NoSuchElementException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

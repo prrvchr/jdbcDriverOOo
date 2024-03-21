@@ -80,12 +80,12 @@ public class DBTableHelper
         String autoincrement;
         boolean notnull;
         ColumnProperties(DriverProvider provider, String name, boolean sensitive)
-            throws SQLException
+            throws java.sql.SQLException
         {
             this(DBTools.enquoteIdentifier(provider, name, sensitive), name);
         }
         ColumnProperties(DriverProvider provider, String name1, String name2, boolean sensitive)
-            throws SQLException
+            throws java.sql.SQLException
         {
             // XXX: If it's a new column then name1 is empty...
             this(DBTools.enquoteIdentifier(provider, name1.isBlank() ? name2 : name1, sensitive),
@@ -93,12 +93,12 @@ public class DBTableHelper
                  name2);
         }
         private ColumnProperties(String identifier, String name)
-                throws SQLException
+                throws java.sql.SQLException
         {
             this(identifier, identifier, name);
         }
         private ColumnProperties(String identifier1, String identifier2, String name)
-            throws SQLException
+            throws java.sql.SQLException
         {
             newname = name;
             oldidentifier = identifier1;
@@ -235,15 +235,10 @@ public class DBTableHelper
                                                     String column,
                                                     String comment,
                                                     boolean sensitive)
-        throws SQLException
+        throws java.sql.SQLException
     {
         String name = DBTools.composeColumnName(provider, table, column, sensitive);
-        try {
-            comment = provider.getStatement().enquoteLiteral(comment);
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
-        }
+        comment = provider.enquoteLiteral(comment);
         String query = provider.getColumnDescriptionQuery(name, comment);
         System.out.println("DBTableHelper.getCreateTableQueries() Comment: " + comment + " - Query: " + query);
         return query;

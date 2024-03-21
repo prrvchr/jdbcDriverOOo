@@ -78,7 +78,7 @@ public interface DriverProvider
                               String level)
         throws java.sql.SQLException;
 
-    public String enquoteLiteral(String literal) throws SQLException;
+    public String enquoteLiteral(String literal) throws java.sql.SQLException;
 
     // DataBaseMetadata cache data
     public boolean supportsTransactions();

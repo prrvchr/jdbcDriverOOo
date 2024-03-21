@@ -30,11 +30,13 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
 abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSuper>
@@ -82,7 +84,12 @@ abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSu
     protected String getElementName(XPropertySet descriptor)
         throws SQLException
     {
-        return DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
+        try {
+            return DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
+        }
+        catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
     }
 
     @Override

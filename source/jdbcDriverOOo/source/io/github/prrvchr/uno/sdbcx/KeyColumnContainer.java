@@ -30,8 +30,9 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
 public final class KeyColumnContainer
@@ -49,9 +50,7 @@ public final class KeyColumnContainer
         throws ElementExistException
     {
         super(m_service, m_services, key.getTable(), true, columns);
-        System.out.println("sdbcx.KeyColumnContainer() 1");
         m_key = key;
-        System.out.println("sdbcx.KeyColumnContainer() Count: " + getCount());
     }
 
 
@@ -65,16 +64,12 @@ public final class KeyColumnContainer
             String catalog = m_key.getTable().getCatalog();
             String schema = m_key.getTable().getSchema();
             String table = m_key.getTable().getName();
-            System.out.println("sdbcx.KeyColumnContainer._createElement() 1 : " + catalog + "." + schema + "." + table + "." + name);
-            String refColumnName = "";
+           String refColumnName = "";
             try (java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getImportedKeys(catalog, schema, table))
             {
-                System.out.println("sdbcx.KeyColumnContainer._createElement() 2 Name: " + name + " - Key: " + m_key.getName());
                 while (result.next()) {
-                    System.out.println("sdbcx.KeyColumnContainer._createElement() 3 Name: " + result.getString(8) + " - Key: " + result.getString(12));
                     if (name.equals(result.getString(8)) && m_key.getName().equals(result.getString(12))) {
                         refColumnName = result.getString(4);
-                        System.out.println("sdbcx.KeyColumnContainer._createElement() 4");
                         break;
                     }
                 }
@@ -82,9 +77,7 @@ public final class KeyColumnContainer
             // now describe the column name and set its related column
             try (java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getColumns(catalog, schema, table, name))
             {
-                System.out.println("sdbcx.KeyColumnContainer._createElement() 5");
                 if (result.next()) {
-                    System.out.println("sdbcx.KeyColumnContainer._createElement() 6 Name: " + name + " - Column: " + result.getString(4));
                     if (result.getString(4).equals(name)) {
                         int dataType = getConnection().getProvider().getDataType(result.getInt(5));
                         String typeName = result.getString(6);
@@ -98,19 +91,14 @@ public final class KeyColumnContainer
                         catch (java.sql.SQLException e) {
                             // sometimes we get an error when asking for this param
                         }
-                        System.out.println("sdbcx.KeyColumnContainer._createElement() 7");
                         column = new KeyColumn(m_key.getTable(), isCaseSensitive(), name, typeName, "", columnDef, nul, size, dec, dataType, false, false, false, refColumnName);
                     }
                 }
             }
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.KeyColumnContainer._createElement() ERROR\n" + UnoHelper.getStackTrace(e));
-        }
-        System.out.println("sdbcx.KeyColumnContainer._createElement() 8");
         return column;
     }
 

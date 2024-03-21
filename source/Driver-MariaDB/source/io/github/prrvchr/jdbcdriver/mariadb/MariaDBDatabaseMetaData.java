@@ -29,9 +29,10 @@ import java.util.Map;
 
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.CustomColumn;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -77,18 +78,8 @@ public final class MariaDBDatabaseMetaData
             System.out.println("mariadb.DatabaseMetaData.getTableTypes()");
             return _getTableTypes();
         }
-        catch (java.sql.SQLException e)
-        {
-            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return null;
+        catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -142,18 +133,8 @@ public final class MariaDBDatabaseMetaData
             System.out.println("mariadb.DatabaseMetaData.getColumns()");
             return _getColumns(_getPattern(catalog), _getPattern(schema), table, column);
         }
-        catch (java.sql.SQLException e)
-        {
-            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
-            throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("mariadb.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return null;
+        catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

@@ -33,11 +33,12 @@ import com.sun.star.sdbc.XBatchExecution;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XStatement;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
@@ -120,8 +121,7 @@ public abstract class StatementBase<C extends ConnectionBase>
                 m_Statement = setStatement(statement);
             } 
             catch (java.sql.SQLException e) {
-                System.out.println("sdbc.StatementBase.getStatement() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
-                throw UnoHelper.getSQLException(e, this);
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
         }
         return m_Statement;
@@ -136,7 +136,7 @@ public abstract class StatementBase<C extends ConnectionBase>
             getStatement().addBatch(sql);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -148,7 +148,7 @@ public abstract class StatementBase<C extends ConnectionBase>
             getStatement().clearBatch();
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -159,7 +159,7 @@ public abstract class StatementBase<C extends ConnectionBase>
             return getStatement().executeBatch();
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -176,7 +176,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         }
         catch (java.sql.SQLException e) {
             e.printStackTrace();
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -191,8 +191,7 @@ public abstract class StatementBase<C extends ConnectionBase>
             return getResultSet(resultset);
         }
         catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
@@ -206,8 +205,7 @@ public abstract class StatementBase<C extends ConnectionBase>
             return getStatement().executeUpdate(sql);
         }
         catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            throw UnoHelper.getSQLException(e, this);
+            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 

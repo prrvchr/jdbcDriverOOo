@@ -29,13 +29,14 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBQueryParser;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
 public final class GeneratedResultSet
@@ -66,7 +67,7 @@ public final class GeneratedResultSet
         }
         catch (java.sql.SQLException e) {
             logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
-            throw UnoHelper.getSQLException(e, connection);
+            throw new SQLException(e.getMessage(), connection, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
         }
         return resultset;
     }

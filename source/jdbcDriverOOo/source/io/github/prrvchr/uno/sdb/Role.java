@@ -35,11 +35,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XGroupsSupplier;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
@@ -82,7 +84,12 @@ public abstract class Role
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
             _addGrantees(grantees);
-            privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
+            try {
+                privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
+            }
+            catch (java.sql.SQLException e) {
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
         }
         return privileges;
     }

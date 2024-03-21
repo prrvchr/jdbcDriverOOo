@@ -133,15 +133,9 @@ public abstract class DriverProviderMain
 
     @Override
     public String enquoteLiteral(String literal)
-        throws SQLException
+        throws java.sql.SQLException
     {
-        try {
-            literal = getStatement().enquoteLiteral(literal);
-        }
-        catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e);
-        }
-        return literal;
+        return getStatement().enquoteLiteral(literal);
     }
 
     @Override
