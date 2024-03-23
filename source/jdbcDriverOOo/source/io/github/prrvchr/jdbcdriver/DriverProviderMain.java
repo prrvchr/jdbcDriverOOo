@@ -84,6 +84,7 @@ public abstract class DriverProviderMain
     private boolean m_SupportsAlterColumnType = true;
     private boolean m_SupportsAlterColumnProperty = true;
     private boolean m_SupportsAlterPrimaryKey = true;
+    private boolean m_SupportsAlterForeignKey = true;
     private boolean m_IsAutoRetrievingEnabled = false;
     private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
@@ -334,6 +335,7 @@ public abstract class DriverProviderMain
         return positions.toArray(new Integer[0]);
     }
 
+    @Override
     public boolean supportRenameView() {
         return m_SupportsRenameView;
     }
@@ -358,6 +360,7 @@ public abstract class DriverProviderMain
         return canRenameAndMove() && !m_RenameTableCommands[1].toString().isBlank();
     }
 
+    @Override
     public boolean isEnhanced()
     {
         return m_enhanced;
@@ -547,6 +550,7 @@ public abstract class DriverProviderMain
         m_SupportsRenameView = getDriverBooleanProperty(config1, "SupportsRenameView", m_SupportsRenameView);
         m_SupportsColumnDescription = getDriverBooleanProperty(config1, "SupportsColumnDescription", m_SupportsColumnDescription);
         m_SupportsAlterPrimaryKey = getDriverBooleanProperty(config1, "SupportsAlterPrimaryKey", m_SupportsAlterPrimaryKey);
+        m_SupportsAlterForeignKey = getDriverBooleanProperty(config1, "SupportsAlterForeignKey", m_SupportsAlterForeignKey);
         
         m_SupportsAlterColumnType = getDriverBooleanProperty(config1, "SupportsAlterColumnType", m_SupportsAlterColumnType);
         m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
@@ -607,59 +611,80 @@ public abstract class DriverProviderMain
     }
 
     // Driver properties cache data
+    @Override
     public boolean supportsColumnDescription() {
         return m_SupportsColumnDescription;
     }
 
     // DatabaseMetadata cache data
+    @Override
     public boolean supportsTransactions() {
         return m_SupportsTransactions;
     }
+    @Override
     public boolean isCatalogAtStart() {
         return m_IsCatalogAtStart;
     }
+    @Override
     public boolean isResultSetUpdatable() {
         return m_IsResultSetUpdatable;
     }
+    @Override
     public String getCatalogSeparator() {
         return m_CatalogSeparator;
     }
+    @Override
     public String getIdentifierQuoteString() {
         return m_IdentifierQuoteString;
     }
 
     // connection infos cache data
+    @Override
     public boolean supportsTableDescription() {
         return false;
     }
+    @Override
     public boolean isAutoRetrievingEnabled() {
         return m_IsAutoRetrievingEnabled;
     }
+    @Override
     public boolean isAutoIncrementIsPrimaryKey() {
         return m_IsAutoIncrementIsPrimaryKey;
     }
+    @Override
     public Boolean supportsAlterColumnType() {
         return m_SupportsAlterColumnType;
     }
+    @Override
     public Boolean supportsAlterColumnProperty() {
         return m_SupportsAlterColumnProperty;
     }
+    @Override
     public Boolean supportsAlterPrimaryKey() {
         return m_SupportsAlterPrimaryKey;
     }
+    @Override
+    public Boolean supportsAlterForeignKey() {
+        return m_SupportsAlterForeignKey;
+    }
+    @Override
     public String getAutoRetrievingStatement() {
         return m_AutoRetrievingStatement;
     }
+    @Override
     public boolean ignoreDriverPrivileges() {
         return m_IgnoreDriverPrivileges;
     }
+    @Override
     public boolean addIndexAppendix() {
         return m_AddIndexAppendix;
     }
+    @Override
     public Object[] getTypeInfoSettings() {
         return m_TypeInfoSettings;
     }
 
+    @Override
     public int getGeneratedKeysOption()
     {
         if (isAutoRetrievingEnabled())
@@ -677,6 +702,7 @@ public abstract class DriverProviderMain
         }
         return null;
     }
+    @Override
     public java.sql.Statement getStatement()
         throws java.sql.SQLException
     {
@@ -756,6 +782,7 @@ public abstract class DriverProviderMain
         return properties;
     }
 
+    @Override
     public Object getConnectionProperties(PropertyValue[] infos,
                                           String name,
                                           Object value)

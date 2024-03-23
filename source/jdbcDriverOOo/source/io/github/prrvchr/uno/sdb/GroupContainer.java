@@ -34,9 +34,10 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.Container;
 
 
@@ -92,14 +93,18 @@ public class GroupContainer
                                    String name)
         throws SQLException
     {
+        String query = null;
         try {
-            String query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
-                                           "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
+            return DBTools.executeDDLQuery(m_connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -107,9 +112,9 @@ public class GroupContainer
     protected Group createElement(String name)
         throws SQLException
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATE_GROUP);
         Group goup = new Group(m_connection, isCaseSensitive(), name);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, goup.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATED_GROUP_ID, goup.getLogger().getObjectId());
         return goup;
     }
 
@@ -118,13 +123,19 @@ public class GroupContainer
                                          String name)
         throws SQLException
     {
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            String sql = DBTools.getDropGroupQuery(m_connection.getProvider(), name, isCaseSensitive());
-            System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + sql);
-            statement.execute(sql);
+        String query = null;
+        DriverProvider provider = m_connection.getProvider();
+        try {
+            query = DBTools.getDropGroupQuery(provider, name, isCaseSensitive());
+            System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
+            DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
+            int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
 
     }

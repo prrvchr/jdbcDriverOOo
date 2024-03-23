@@ -44,8 +44,8 @@ import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBColumnHelper;
 import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.DBIndexHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -130,7 +130,7 @@ public final class IndexContainer
                 }
             }
             if (found) {
-                Boolean primary = DBColumnHelper.isPrimaryKeyIndex(metadata, m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), subname);
+                Boolean primary = DBIndexHelper.isPrimaryKeyIndex(metadata, m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), subname);
                 System.out.println(String.format("sdbcx.IndexContainer.createElement() PrimaryKey: %s", primary));
                 boolean clustered = type == IndexType.CLUSTERED;
                 index = new Index(m_Table, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
@@ -159,6 +159,8 @@ public final class IndexContainer
                                 String name)
         throws SQLException
     {
+        String query = null;
+        String table = null;
         try {
             if (getConnection() == null) {
                 return false;
@@ -169,7 +171,6 @@ public final class IndexContainer
             boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
             arguments.add(unique ? "UNIQUE" : "");
             arguments.add(DBTools.enquoteIdentifier(provider, name, isCaseSensitive()));
-            //String table = DBTools.composeTableName(provider, m_Table, rule, false, false, isCaseSensitive());
             arguments.add(DBTools.composeTableName(provider, m_Table, rule, isCaseSensitive()));
             XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
@@ -186,17 +187,25 @@ public final class IndexContainer
             if (!indexes.isEmpty()) {
                 String command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
                 arguments.add(String.join(", ", indexes));
-                String query = MessageFormat.format(command, arguments.toArray(new Object[0]));
+                query = MessageFormat.format(command, arguments.toArray(new Object[0]));
                 System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
-                String table = DBTools.composeTableName(provider, m_Table, rule, false);
-                return DBTools.executeDDLQuery(provider, getLogger(), query,
-                                               this.getClass().getName(), "createIndex",
-                                               Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table);
+                table = DBTools.composeTableName(provider, m_Table, rule, false);
+                getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table, query);
+                return DBTools.executeDDLQuery(provider, query);
             }
             return false;
         }
-        catch (java.sql.SQLException | WrappedTargetException | IndexOutOfBoundsException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        catch (java.sql.SQLException e) {
+            int resource = Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        }
+        catch (WrappedTargetException | IndexOutOfBoundsException e) {
+            int resource = Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -211,20 +220,25 @@ public final class IndexContainer
         String name;
         int len = elementName.indexOf('.');
         name = elementName.substring(len + 1);
+        String query = null;
+        String table = null;
         try {
             ComposeRule rule = ComposeRule.InIndexDefinitions;
             DriverProvider provider = getConnection().getProvider();
             String command = provider.getDropConstraintQuery(KeyType.UNIQUE);
             String arg1 = DBTools.composeTableName(provider, m_Table, rule, isCaseSensitive());
             String arg2 = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
-            String query = MessageFormat.format(command, arg1, arg2);
-            String table = DBTools.composeTableName(provider, m_Table, rule, false);
+            query = MessageFormat.format(command, arg1, arg2);
+            table = DBTools.composeTableName(provider, m_Table, rule, false);
             System.out.println("sdbcx.IndexContainer.removeDataBaseElement() Query: " + query);
-            DBTools.executeDDLQuery(provider, getLogger(), query, this.getClass().getName(),
-                                    "removeDataBaseElement", Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY, name, table);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY, name, table, query);
+            DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -245,6 +259,18 @@ public final class IndexContainer
         for (String column : getElementNames()) {
             Index index = getElement(column);
             if (index.m_IsPrimaryKeyIndex) {
+                removeElement(column, false);
+                break;
+            }
+        }
+    }
+
+    protected void removeForeignKeyIndex(String name)
+            throws SQLException
+    {
+        for (String column : getElementNames()) {
+            Index index = getElement(column);
+            if (name.equals(index.m_Name)) {
                 removeElement(column, false);
                 break;
             }

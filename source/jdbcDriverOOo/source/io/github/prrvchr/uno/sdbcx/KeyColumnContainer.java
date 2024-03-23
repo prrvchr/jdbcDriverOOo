@@ -32,6 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
@@ -61,11 +62,12 @@ public final class KeyColumnContainer
     {
         KeyColumn column = null;
         try {
+            DriverProvider provider = getConnection().getProvider();
             String catalog = m_key.getTable().getCatalog();
             String schema = m_key.getTable().getSchema();
             String table = m_key.getTable().getName();
-           String refColumnName = "";
-            try (java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getImportedKeys(catalog, schema, table))
+            String refColumnName = "";
+            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(catalog, schema, table))
             {
                 while (result.next()) {
                     if (name.equals(result.getString(8)) && m_key.getName().equals(result.getString(12))) {
@@ -75,11 +77,11 @@ public final class KeyColumnContainer
                 }
             }
             // now describe the column name and set its related column
-            try (java.sql.ResultSet result = getConnection().getProvider().getConnection().getMetaData().getColumns(catalog, schema, table, name))
+            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(catalog, schema, table, name))
             {
                 if (result.next()) {
                     if (result.getString(4).equals(name)) {
-                        int dataType = getConnection().getProvider().getDataType(result.getInt(5));
+                        int dataType = provider.getDataType(result.getInt(5));
                         String typeName = result.getString(6);
                         int size = result.getInt(7);
                         int dec = result.getInt(9);

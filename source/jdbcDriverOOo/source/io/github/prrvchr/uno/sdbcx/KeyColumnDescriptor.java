@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public final class KeyColumnDescriptor
-    extends ColumnDescriptorBase
+    extends Descriptor
 {
 
     private static final String m_service = KeyColumnDescriptor.class.getName();
@@ -50,7 +50,6 @@ public final class KeyColumnDescriptor
         registerProperties();
         System.out.println("sdbcx.descriptors.KeyColumnDescriptor()");
     }
-
 
     private void registerProperties() {
         registerProperty(PropertyIds.RELATEDCOLUMN.name, PropertyIds.RELATEDCOLUMN.id, Type.STRING,
@@ -67,6 +66,5 @@ public final class KeyColumnDescriptor
                 }
             });
     }
-
 
 }

@@ -35,8 +35,8 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.Container;
 
 
@@ -104,14 +104,18 @@ public class UserContainer
                                   String name)
         throws SQLException
     {
+        String query = null;
         try {
-            String query = DBTools.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = DBTools.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
-                                           "_createView", Resources.STR_LOG_USERS_CREATE_USER_QUERY, name);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
+            return DBTools.executeDDLQuery(m_connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            int resource = Resources.STR_LOG_USERS_CREATE_USER_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -131,13 +135,18 @@ public class UserContainer
                                          String name)
         throws SQLException
     {
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            String sql = DBTools.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
-            System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + sql);
-            statement.execute(sql);
+        String query = null;
+        try {
+            query = DBTools.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
+            System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
+            DBTools.executeDDLQuery(m_connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
+            int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

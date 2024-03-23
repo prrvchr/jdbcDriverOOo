@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.star.beans.UnknownPropertyException;
@@ -37,6 +38,7 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBTableHelper;
@@ -70,14 +72,16 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
     }
 
     @Override
-    protected boolean createDataBaseElement(XPropertySet descriptor, String name)
+    protected boolean createDataBaseElement(XPropertySet descriptor,
+                                            String name)
         throws SQLException
     {
+        List<String> queries = new ArrayList<String>();
         try {
             ComposeRule rule = ComposeRule.InTableDefinitions;
             System.out.println("TableContainerSuper._createDataBaseElement() 1");
             String table = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
-            List<String> queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, rule, isCaseSensitive());
+            queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, rule, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && m_Connection.getProvider().supportsTableDescription()) {
                 String query = m_Connection.getProvider().getTableDescriptionQuery(table, description);
@@ -88,14 +92,27 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                 System.out.println("TableContainerSuper._createDataBaseElement() 3 Queries: " + query);
             }
             if (!queries.isEmpty()) {
-                return DBTools.executeDDLQueries(m_Connection.getProvider(), getLogger(), queries, this.getClass().getName(),
-                                                 "_createTable", Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name);
+                for (String query : queries) {
+                    getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name, query);
+                }
+                return DBTools.executeDDLQueries(m_Connection.getProvider(), queries);
             }
         }
-        catch (java.sql.SQLException | IllegalArgumentException |
-               WrappedTargetException | IndexOutOfBoundsException | UnknownPropertyException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        catch (java.sql.SQLException e) {
+            int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
+            String query = "<" + String.join("> <", queries) + ">";
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
+        catch (IllegalArgumentException | WrappedTargetException |
+               IndexOutOfBoundsException | UnknownPropertyException e) {
+             int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
+             String query = "<" + String.join("> <", queries) + ">";
+             String msg = getLogger().getStringResource(resource, name, query);
+             getLogger().logp(LogLevel.SEVERE, msg);
+             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
+         }
         return false;
     }
 
@@ -136,6 +153,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                                       String name)
         throws SQLException
     {
+        String query = null;
         try {
             System.out.println("TableContainer.removeDataBaseElement() 1 Name " + name);
             boolean isview = false;
@@ -152,13 +170,22 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
             NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
             String table = DBTools.buildName(m_Connection.getProvider(), cpt.getCatalog(), cpt.getSchema(),
                                              cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
-            String query = m_Connection.getProvider().getDropTableQuery(table);
+            query = m_Connection.getProvider().getDropTableQuery(table);
             System.out.println("TableContainer.removeDataBaseElement() 3 Query: " + query);
-            DBTools.executeDDLQuery(m_Connection.getProvider(), getLogger(), query, this.getClass().getName(),
-                                    "removeDataBaseElement", Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
+            DBTools.executeDDLQuery(m_Connection.getProvider(), query);
         }
-        catch (java.sql.SQLException | NoSuchElementException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        catch (java.sql.SQLException e) {
+            int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        }
+        catch (NoSuchElementException e) {
+            int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

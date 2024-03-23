@@ -26,9 +26,7 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
@@ -41,18 +39,18 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBColumnHelper;
 import io.github.prrvchr.jdbcdriver.DBConstraintHelper;
+import io.github.prrvchr.jdbcdriver.DBKeyHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class KeyContainer
@@ -64,17 +62,15 @@ public final class KeyContainer
 
     protected final TableSuper<?> m_table;
     private final ConnectionLog m_logger; 
-    private Map<String, Key> m_keys;
 
     // The constructor method:
     public KeyContainer(TableSuper<?> table,
                         boolean sensitive,
-                        Map<String, Key> keys)
+                        List<String> keys)
         throws ElementExistException
     {
-        super(m_service, m_services, table, sensitive, Arrays.asList(keys.keySet().toArray(new String[keys.size()])));
+        super(m_service, m_services, table, sensitive, keys);
         m_logger = new ConnectionLog(table.getLogger(), LoggerObjectType.KEYCONTAINER);
-        m_keys = keys;
         m_table = table;
     }
 
@@ -90,7 +86,7 @@ public final class KeyContainer
 
     public void dispose()
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_KEYS_DISPOSING);
+        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_KEYS_DISPOSING);
         super.dispose();
     }
 
@@ -98,25 +94,21 @@ public final class KeyContainer
     protected Key createElement(String name)
         throws SQLException
     {
+
+        Key key = null;
         try {
-            Key key = null;
+            System.out.println("KeyContainer.createElement() 1 Name: " + name);
             if (!name.isEmpty()) {
-                if (m_keys.containsKey(name)) {
-                    key = m_keys.get(name);
-                }
-                else {
-                    key = DBColumnHelper.readKey(getConnection().getProvider(), m_table, m_table.getCatalog(),
-                                                 m_table.getSchema(), m_table.getName(), name, isCaseSensitive());
-                    if (key != null) {
-                        m_keys.put(name, key);
-                    }
-                }
+                key = DBKeyHelper.readKey(getConnection().getProvider(), m_table,
+                                          m_table.getCatalog(),  m_table.getSchema(),
+                                          m_table.getName(), name,
+                                          ComposeRule.InDataManipulation, isCaseSensitive());
             }
-            return key;
         }
-        catch (ElementExistException e) {
+        catch (java.sql.SQLException | ElementExistException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
+        return key;
     }
 
     @Override
@@ -124,10 +116,11 @@ public final class KeyContainer
         throws SQLException
     {
         Key key = null;
+        DBTools.printDescriptor(descriptor);
         String name = getElementName(descriptor);
         if (createKey(descriptor, name)) {
             key = createElement(descriptor, name);
-            m_table.getIndexesInternal().refresh();
+            //m_table.getIndexesInternal().refresh();
         }
         return key;
     }
@@ -135,28 +128,55 @@ public final class KeyContainer
     private boolean createKey(XPropertySet descriptor, String key)
             throws SQLException
     {
-        try {
-            DriverProvider provider = getConnection().getProvider();
-            if (!provider.supportsAlterPrimaryKey()) {
-                int resource = Resources.STR_LOG_KEY_ADD_UNSUPPORTED_FEATURE_ERROR;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
-                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
-            }
-            String catalog = m_table.getCatalogName();
-            String schema = m_table.getSchemaName();
-            String name = m_table.getName();
+        String query = null;
+        String table = null;
+        ComposeRule rule = ComposeRule.InIndexDefinitions;
+        DriverProvider provider = getConnection().getProvider();
+        int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+        String catalog = m_table.getCatalogName();
+        String schema = m_table.getSchemaName();
+        String name = m_table.getName();
 
-            ComposeRule rule = ComposeRule.InTableDefinitions;
-            String query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, catalog, schema,
-                                                                       name, key, rule, isCaseSensitive());
-            String table = DBTools.buildName(provider, catalog, schema, name, rule, false);
-            System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
-            return DBTools.executeDDLQuery(provider, getLogger(), query,
-                                           this.getClass().getName(), "createKey",
-                                           Resources.STR_LOG_KEYS_CREATE_KEY_QUERY, key, table);
+        if (type == KeyType.PRIMARY && !provider.supportsAlterPrimaryKey()) {
+            int resource = Resources.STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
+            String msg = getLogger().getStringResource(resource, m_table.getName());
+            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
-        catch (java.sql.SQLException | IllegalArgumentException | IndexOutOfBoundsException | WrappedTargetException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        if (type == KeyType.FOREIGN && !provider.supportsAlterForeignKey()) {
+            int resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
+            String msg = getLogger().getStringResource(resource, m_table.getName());
+            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+        }
+
+        try {
+            table = DBTools.buildName(provider, catalog, schema, name, rule, false);
+            query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, catalog, schema,
+                                                                name, key, rule, isCaseSensitive());
+            System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
+            int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
+            if (type == KeyType.FOREIGN) {
+                resource = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY;
+            }
+            getLogger().logprb(LogLevel.INFO, resource, key, table, query);
+            return DBTools.executeDDLQuery(provider, query);
+        }
+        catch (java.sql.SQLException e) {
+            int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
+            if (type == KeyType.FOREIGN) {
+                resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
+            }
+            String msg = getLogger().getStringResource(resource, key, table, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        }
+        catch (IllegalArgumentException | IndexOutOfBoundsException | WrappedTargetException e) {
+            int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
+            if (type == KeyType.FOREIGN) {
+                resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
+            }
+            String msg = getLogger().getStringResource(resource, key, table, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
         }
     }
 
@@ -165,11 +185,11 @@ public final class KeyContainer
     {
         try {
             // XXX: Find the name which the database gave the new key
-            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
             int index = 6;
             int update = 0;
             int delete = 0;
             String referencedName = "";
+            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
             if (type == KeyType.FOREIGN) {
                 index = 12;
                 update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
@@ -177,7 +197,9 @@ public final class KeyContainer
                 referencedName = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
             }
             String newname = oldname;
-            try (java.sql.ResultSet result = getKeyResultSet(type))
+            DriverProvider provider = getConnection().getProvider();
+            java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            try (java.sql.ResultSet result = getKeyResultSet(metadata, type))
             {
                 while (result.next()) {
                     String name = result.getString(index);
@@ -191,21 +213,23 @@ public final class KeyContainer
                     }
                 }
             }
-            List<String> columns = DBConstraintHelper.getKeyColumns(getConnection().getProvider(), descriptor, PropertyIds.NAME, false);
+            List<String> columns = DBConstraintHelper.getKeyColumns(provider, descriptor, PropertyIds.NAME, false);
             return new Key(m_table, isCaseSensitive(), newname, referencedName, type, update, delete, columns);
         }
-        catch (java.sql.SQLException | IllegalArgumentException |
-               UnknownPropertyException | IndexOutOfBoundsException |
-               PropertyVetoException | WrappedTargetException | ElementExistException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        }
+        catch (UnknownPropertyException | IndexOutOfBoundsException |
+                PropertyVetoException | WrappedTargetException | ElementExistException e) {
+             throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
         }
     }
 
-    private java.sql.ResultSet getKeyResultSet(int keytype)
+    private java.sql.ResultSet getKeyResultSet(java.sql.DatabaseMetaData metadata,
+                                               int keytype)
         throws java.sql.SQLException
     {
         java.sql.ResultSet result = null;
-        java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
         if (keytype == KeyType.FOREIGN) {
             result = metadata.getImportedKeys(m_table.getCatalog(), m_table.getSchema(), m_table.getName());
         }
@@ -220,45 +244,70 @@ public final class KeyContainer
                                          String name)
         throws SQLException
     {
-        try {
+        String query = null;
+        String table = null;
+        Key key = getElement(index);
+        final int type;
+        if (key != null) {
+            type = key.m_Type;
+        }
+        else {
+            type = KeyType.PRIMARY;
+        }
             DriverProvider provider = getConnection().getProvider();
-            if (!provider.supportsAlterPrimaryKey()) {
-                int resource = Resources.STR_LOG_KEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
+            if (type == KeyType.PRIMARY && !provider.supportsAlterPrimaryKey()) {
+                int resource = Resources.STR_LOG_PKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
+                String msg = getLogger().getStringResource(resource, m_table.getName());
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            Key key = getElement(index);
-            final int keyType;
-            if (key != null) {
-                keyType = key.m_Type;
-            }
-            else {
-                keyType = KeyType.PRIMARY;
+            if (type == KeyType.FOREIGN && !provider.supportsAlterForeignKey()) {
+                int resource = Resources.STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
+                String msg = getLogger().getStringResource(resource, m_table.getName());
+                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
             ComposeRule rule = ComposeRule.InTableDefinitions;
+        try {
+            table = DBTools.composeTableName(provider, m_table, rule, false);
             String arg1 = DBTools.composeTableName(provider, m_table, rule, isCaseSensitive());
             String arg2 = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
-            final String command = provider.getDropConstraintQuery(keyType);
-            String query = MessageFormat.format(command, arg1, arg2);
-            String table = DBTools.composeTableName(provider, m_table, rule, isCaseSensitive());
+            final String command = provider.getDropConstraintQuery(type);
+            query = MessageFormat.format(command, arg1, arg2);
             System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
-            if (DBTools.executeDDLQuery(provider, getLogger(), query,
-                                        this.getClass().getName(), "removeDataBaseElement",
-                                        Resources.STR_LOG_KEYS_REMOVE_KEY_QUERY, name, table))
+            int resource = getRemoveKeyResource(type, false);
+            getLogger().logprb(LogLevel.INFO, resource, name, table, query);
+            if (DBTools.executeDDLQuery(provider, query))
             {
                 // XXX: If we delete a primary key we must also delete the corresponding index.
-                System.out.println("sdbcx.KeyContainer.removeDataBaseElement() 2");
-                if (keyType == KeyType.PRIMARY) {
-                    System.out.println("sdbcx.KeyContainer.removeDataBaseElement() 3 Name: " + name);
+                if (type == KeyType.PRIMARY) {
                     m_table.getIndexesInternal().removePrimaryKeyIndex();
-                    System.out.println("sdbcx.KeyContainer.removeDataBaseElement() 4");
                 }
-                // FIXME: What about foreign keys!!!
+                // XXX: If we delete a foreign key we must also delete the corresponding index.
+                else if (type == KeyType.FOREIGN) {
+                    m_table.getIndexesInternal().removeForeignKeyIndex(name);
+                }
             }
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = getRemoveKeyResource(type, true);
+            String msg = getLogger().getStringResource(resource, key, table, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
+    }
+
+    private int getRemoveKeyResource(int type, boolean error) {
+        int resource = 0;
+        if (type == KeyType.PRIMARY) {
+            resource = error ?
+                    Resources.STR_LOG_KEYS_REMOVE_PKEY_QUERY_ERROR :
+                    Resources.STR_LOG_KEYS_REMOVE_PKEY_QUERY;
+        }
+        else if (type == KeyType.FOREIGN) {
+            resource = error ?
+                    Resources.STR_LOG_KEYS_REMOVE_FKEY_QUERY_ERROR :
+                    Resources.STR_LOG_KEYS_REMOVE_FKEY_QUERY;
+        }
+        return resource;
     }
 
     @Override

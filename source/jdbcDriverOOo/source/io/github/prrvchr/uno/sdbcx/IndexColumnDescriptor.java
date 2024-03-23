@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public final class IndexColumnDescriptor
-    extends ColumnDescriptorBase
+    extends Descriptor
 {
 
     private static final String m_service = IndexColumnDescriptor.class.getName();

@@ -37,10 +37,12 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
+import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper;
@@ -101,23 +103,37 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
     private boolean createColumn(XPropertySet descriptor, String name)
         throws SQLException
     {
-
+        String table = null;
+        List<String> queries = new ArrayList<String>();
         try {
             XPropertySet oldcolumn = createDataDescriptor();
             oldcolumn.setPropertyValue(PropertyIds.ISNULLABLE.name, ColumnValue.NULLABLE);
+
             DriverProvider provider = getConnection().getProvider();
-            String table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
-            List<String> queries = new ArrayList<String>();
+            table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
             DBTableHelper.getAlterColumnQueries(queries, provider, m_table, oldcolumn, descriptor, false, isCaseSensitive());
             if (!queries.isEmpty()) {
-                return DBTools.executeDDLQueries(provider, m_table.getLogger(), queries, this.getClass().getName(),
-                                                 "createColumn", Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table);
+                for (String query : queries) {
+                    m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
+                }
+                return DBTools.executeDDLQueries(provider, queries);
             }
         }
-        catch (java.sql.SQLException | IllegalArgumentException |
-               UnknownPropertyException | PropertyVetoException | WrappedTargetException e) {
-             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        catch (java.sql.SQLException e) {
+            int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
+            String query = "<" + String.join("> <", queries) + ">";
+            String msg = m_table.getLogger().getStringResource(resource, name, query);
+            m_table.getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
+        catch (IllegalArgumentException | UnknownPropertyException |
+                PropertyVetoException | WrappedTargetException e) {
+            int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
+            String query = "<" + String.join("> <", queries) + ">";
+            String msg = m_table.getLogger().getStringResource(resource, name, query);
+            m_table.getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
+         }
         return false;
     }
 
@@ -189,17 +205,21 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
         if (m_table == null) {
             return;
         }
+        String query = null;
+        DriverProvider provider = getConnection().getProvider();
         try {
-            DriverProvider provider = getConnection().getProvider();
             String table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, isCaseSensitive());
             String column = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
-            String query = provider.getDropColumnQuery(table, column);
+            query = provider.getDropColumnQuery(table, column);
             table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
-            DBTools.executeDDLQuery(provider, m_table.getLogger(), query, "ColumnContainer",
-                                    "removeDataBaseElement", Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table);
+            m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, table, query);
+            DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
+            String msg = m_table.getLogger().getStringResource(resource, name, query);
+            m_table.getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

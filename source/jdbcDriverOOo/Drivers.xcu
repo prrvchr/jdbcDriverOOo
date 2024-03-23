@@ -337,7 +337,7 @@
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT * FROM {0} WHERE {4}</value>
+                        <value>SELECT * FROM {0} WHERE {4};</value>
                     </prop>
                 </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
@@ -369,6 +369,11 @@
                         <value>false</value>
                     </prop>
                 </node>
+                <node oor:name="DropTableCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>DROP TABLE {0} CASCADE;</value>
+                    </prop>
+                </node>
                 <node oor:name="SupportsColumnDescription" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -376,17 +381,17 @@
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|123</value>
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?;|123</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {3}</value>
+                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {3};</value>
                     </prop>
                 </node>
                 <node oor:name="ColumnResetDefaultCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} ALTER COLUMN {2} SET DEFAULT NULL</value>
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} SET DEFAULT NULL;</value>
                     </prop>
                 </node>
                 <node oor:name="SupportsAlterIdentity" oor:op="replace">
@@ -396,7 +401,7 @@
                 </node>
                 <node oor:name="RevokeRoleCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>REVOKE {0} FROM {1} RESTRICT</value>
+                        <value>REVOKE {0} FROM {1} RESTRICT;</value>
                     </prop>
                 </node>
             </node>
@@ -440,7 +445,7 @@
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT * FROM {0} WHERE {4}</value>
+                        <value>SELECT * FROM {0} WHERE {4};</value>
                     </prop>
                 </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
@@ -473,22 +478,22 @@
                 </node>
                 <node oor:name="ColumnDescriptionCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>COMMENT ON COLUMN {0} IS {1}</value>
+                        <value>COMMENT ON COLUMN {0} IS {1};</value>
                     </prop>
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4}</value>
+                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4};</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|123</value>
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?;|123</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {3}</value>
+                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {3};</value>
                     </prop>
                 </node>
                 <node oor:name="SupportsAlterIdentity" oor:op="replace">
@@ -537,7 +542,7 @@
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT * FROM {0} WHERE {4}</value>
+                        <value>SELECT * FROM {0} WHERE {4};</value>
                     </prop>
                 </node>
                 <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
@@ -550,27 +555,27 @@
             <node oor:name="MetaData">
                 <node oor:name="DropIndexCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>DROP INDEX {1} ON {0}</value>
+                        <value>DROP INDEX {1} ON {0};</value>
                     </prop>
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
+                        <value oor:separator="|">ALTER VIEW {0} AS {4};</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|13</value>
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;|13</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">RENAME TABLE {0} TO {7}|</value>
+                        <value oor:separator="|">RENAME TABLE {0} TO {7};|</value>
                     </prop>
                 </node>
                 <node oor:name="RenameColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2};</value>
                     </prop>
                 </node>
             </node>
@@ -642,32 +647,32 @@
                 </node>
                 <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+                        <value>ALTER TABLE {0} DROP CONSTRAINT {1};</value>
                     </prop>
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4}</value>
+                        <value oor:separator="|">CREATE OR REPLACE VIEW {0} AS {4};</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|23</value>
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?;|23</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} SET SCHEMA {1}|ALTER TABLE {2} RENAME TO {3}</value>
+                        <value oor:separator="|">ALTER TABLE {0} SET SCHEMA {1}|ALTER TABLE {2} RENAME TO {3};</value>
                     </prop>
                 </node>
                 <node oor:name="RenameColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2};</value>
                     </prop>
                 </node>
                 <node oor:name="AlterColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3}</value>
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3};</value>
                     </prop>
                 </node>
                 <node oor:name="SupportsAlterIdentity" oor:op="replace">
@@ -677,7 +682,7 @@
                 </node>
                 <node oor:name="AddIdentityCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} ALTER {2} SET NOT NULL, ALTER {2} ADD {6}</value>
+                        <value>ALTER TABLE {0} ALTER {2} SET NOT NULL, ALTER {2} ADD {6};</value>
                     </prop>
                 </node>
             </node>
@@ -759,22 +764,22 @@
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4};</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT SUBSTR(sql, INSTR(sql, {4})) FROM sqlite_schema WHERE name = ?|0</value>
+                        <value oor:separator="|">SELECT SUBSTR(sql, INSTR(sql, {4})) FROM sqlite_schema WHERE name = ?;|0</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {7}</value>
+                        <value oor:separator="|">ALTER TABLE {0} RENAME TO {7};</value>
                     </prop>
                 </node>
                 <node oor:name="RenameColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2};</value>
                     </prop>
                 </node>
             </node>
@@ -818,7 +823,7 @@
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT * FROM {0} WHERE {4}</value>
+                        <value>SELECT * FROM {0} WHERE {4};</value>
                     </prop>
                 </node>
                 <node oor:name="InMemoryDataBase" oor:op="replace">
@@ -846,22 +851,22 @@
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4};</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, LOCATE({4}, VIEWDEFINITION)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?|23</value>
+                        <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, LOCATE({4}, VIEWDEFINITION)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?;|23</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">RENAME TABLE {0} TO {3}</value>
+                        <value oor:separator="|">RENAME TABLE {0} TO {3};</value>
                     </prop>
                 </node>
                 <node oor:name="RenameColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>RENAME COLUMN {0}.{1} TO {2}</value>
+                        <value>RENAME COLUMN {0}.{1} TO {2};</value>
                     </prop>
                 </node>
             </node>
@@ -905,7 +910,7 @@
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT * FROM {0} WHERE {4}</value>
+                        <value>SELECT * FROM {0} WHERE {4};</value>
                     </prop>
                 </node>
                 <node oor:name="IgnoreDriverPrivileges" oor:op="replace">

@@ -50,10 +50,7 @@ public final class KeyColumnDescriptorContainer
     protected KeyColumnDescriptor appendElement(XPropertySet descriptor)
         throws SQLException
     {
-        String name = getElementName(descriptor);
-        KeyColumnDescriptor column = new KeyColumnDescriptor(isCaseSensitive());
-        column.setName(name);
-        return column;
+        return (KeyColumnDescriptor) cloneDescriptor(descriptor);
     }
 
 

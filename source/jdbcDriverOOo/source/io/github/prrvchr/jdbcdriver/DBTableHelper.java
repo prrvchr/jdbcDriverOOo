@@ -291,33 +291,29 @@ public class DBTableHelper
 
         ColumnProperties column = getStandardColumnProperties(provider, name1, descriptor2, sensitive);
         if (name1.isEmpty()) {
-            // Create a new column
+            // XXX: Create a new column
             query = provider.getAddColumnQuery(name, column.toString());
             queries.add(query);
         }
         else {
+            // XXX: Modify an existing column
             Object[] arguments = column.getQueryArguments(name);
-            // Modify an existing column
             if (!name1.equals(column.newname)) {
                 // Rename a column
                 query = provider.getRenameColumnQuery();
                 queries.add(MessageFormat.format(query, arguments));
                 result |= 1;
             }
-            // XXX: Identity have been changed
+
+            // XXX: Identity have been changed?
             boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyIds.ISAUTOINCREMENT);
             boolean auto2 = DBTools.getDescriptorBooleanValue(descriptor2, PropertyIds.ISAUTOINCREMENT);
-            // XXX: Identity switching is only allowed if the underlying driver supports it.
-            boolean autochanged = auto1 != auto2 && provider.supportsAlterIdentity();
+            boolean autochanged = auto1 != auto2;
 
-            // XXX: Type have been changed
-            boolean typechanged = false;
-            // XXX: Changing column type is only allowed if the underlying driver supports it.
-            if (provider.supportsAlterColumnType()) {
-                String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
-                String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
-                typechanged = !type2.equals(type1);
-            }
+            // XXX: Type have been changed?
+            String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
+            String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
+            boolean typechanged = !type2.equals(type1);
 
             boolean alldone = false;
             List<String> parts = new ArrayList<String>();

@@ -43,6 +43,7 @@ import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
@@ -83,7 +84,7 @@ public abstract class Role
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
-            _addGrantees(grantees);
+            addGrantees(grantees);
             try {
                 privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
             }
@@ -101,7 +102,7 @@ public abstract class Role
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             List<String> grantees = new ArrayList<>(List.of(getName()));
-            _addGrantees(grantees);
+            addGrantees(grantees);
             try {
                 privileges = DBTools.getTableOrViewPrivileges(m_connection.getProvider(), grantees, name);
             }
@@ -119,13 +120,16 @@ public abstract class Role
         throws SQLException
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            String query = null;
             try {
-                String query = DBTools.getGrantPrivilegesQuery(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-                DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
-                                        "grantPrivileges", _getGrantPrivilegesResource(), getName(), name);
+                query = DBTools.getGrantPrivilegesQuery(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
+                getLogger().logprb(LogLevel.INFO, getGrantPrivilegesResource(false), name, query);
+                DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(getGrantPrivilegesResource(true), name, query);
+                getLogger().logp(LogLevel.SEVERE, msg);
+                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
         }
     }
@@ -137,14 +141,16 @@ public abstract class Role
         throws SQLException
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            String query;
+            String query = null;
             try {
                 query = DBTools.revokeTableOrViewPrivileges(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-                DBTools.executeDDLQuery(m_connection.getProvider(), m_logger, query, this.getClass().getName(),
-                        "revokePrivileges", _getRevokePrivilegesResource(), getName(), name);
+                getLogger().logprb(LogLevel.INFO, getRevokePrivilegesResource(false), name, query);
+                DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(getRevokePrivilegesResource(true), name, query);
+                getLogger().logp(LogLevel.SEVERE, msg);
+                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
         }
     }
@@ -189,9 +195,9 @@ public abstract class Role
         return role;
     }
 
-    abstract protected void _addGrantees(List<String> grantees);
-    abstract protected int _getGrantPrivilegesResource();
-    abstract protected int _getRevokePrivilegesResource();
+    abstract protected void addGrantees(List<String> grantees);
+    abstract protected int getGrantPrivilegesResource(boolean error);
+    abstract protected int getRevokePrivilegesResource(boolean error);
 
     protected String getName()
     {

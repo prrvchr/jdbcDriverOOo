@@ -71,7 +71,7 @@ abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSu
 
     // FIXME: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
     // FIXME: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
-    protected void rename(String oldname, String newname, int offset)
+    protected void rename(String oldname, String newname)
         throws SQLException
     {
         if (hasByName(oldname)) {

@@ -49,8 +49,8 @@ import java.io.InputStream;
 import java.sql.RowIdLifetime;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.Property;
@@ -477,11 +477,11 @@ public class DBTools
         }
         if (support.useSchemas) {
             int index = buffer.indexOf(".");
-            UnoHelper.ensure(-1 != index, "QualifiedNameComponents : no schema separator!", provider.getLogger());
+            //UnoHelper.ensure(-1 != index, "QualifiedNameComponents : no schema separator!", provider.getLogger());
             if (index != -1) {
                 component.setSchema(buffer.substring(0, index));
+                buffer = buffer.substring(index + 1);
             }
-            buffer = buffer.substring(index + 1);
         }
         component.setTable(buffer);
         return component;
@@ -1269,28 +1269,18 @@ public class DBTools
     }
 
     public static boolean executeDDLQuery(DriverProvider provider,
-                                          ConnectionLog logger,
-                                          String query,
-                                          String cls,
-                                          String method,
-                                          int resource,
-                                          Object... args)
+                                          String query)
         throws java.sql.SQLException
     {
         Object[] parameters =  new Object[]{};
         Integer[] positions = new Integer[]{};
-        return executeDDLQuery(provider, logger, query, parameters, positions, cls, method, resource, args);
+        return executeDDLQuery(provider, query, parameters, positions);
     }
 
     public static boolean executeDDLQuery(DriverProvider provider,
-                                          ConnectionLog logger,
                                           String query,
                                           Object[] parameters,
-                                          Integer[] positions,
-                                          String cls,
-                                          String method,
-                                          int resource,
-                                          Object... arguments)
+                                          Integer[] positions)
         throws java.sql.SQLException
     {
         if (query.isBlank()) {
@@ -1307,13 +1297,7 @@ public class DBTools
                 jdbc.setAutoCommit(false);
             }
             try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
-                executeUpdate(statement, parameters, positions, logger,
-                              query, cls, method, resource, arguments);
-            }
-            catch(java.sql.SQLException e) {
-                String message = logger.getStringResource(resource + 1, _addToArgs(arguments, query, e.getMessage()));
-                logger.logp(LogLevel.SEVERE, cls, method, message);
-                throw new java.sql.SQLException(message, e);
+                executeUpdate(statement, parameters, positions);
             }
             if (support) {
                 jdbc.commit();
@@ -1337,28 +1321,18 @@ public class DBTools
     }
 
     public static boolean executeDDLQueries(DriverProvider provider,
-                                            ConnectionLog logger,
-                                            List<String> queries,
-                                            String cls,
-                                            String method,
-                                            int resource,
-                                            Object... args)
+                                            List<String> queries)
         throws java.sql.SQLException
     {
         Object[] parameters =  new Object[]{};
         List<Integer[]> positions = new ArrayList<Integer[]>();
-        return executeDDLQueries(provider, logger, queries, parameters, positions, cls, method, resource, args);
+        return executeDDLQueries(provider, queries, parameters, positions);
     }
 
     public static boolean executeDDLQueries(DriverProvider provider,
-                                            ConnectionLog logger,
                                             List<String> queries,
                                             Object[] parameters,
-                                            List<Integer[]> positions,
-                                            String cls,
-                                            String method,
-                                            int resource,
-                                            Object... arguments)
+                                            List<Integer[]> positions)
         throws java.sql.SQLException
     {
         int count = 0;
@@ -1379,15 +1353,9 @@ public class DBTools
                 }
                 try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
                     Integer[] position = (positions.size() > index) ? positions.get(index) : new Integer[]{};
-                    executeUpdate(statement, parameters, position, logger,
-                                  query, cls, method, resource, arguments);
+                    executeUpdate(statement, parameters, position);
                     index ++;
                     count ++;
-                }
-                catch (java.sql.SQLException e) {
-                    String message = logger.getStringResource(resource + 1, _addToArgs(arguments, query, e.getMessage()));
-                    logger.logp(LogLevel.SEVERE, cls, method, message);
-                    throw new java.sql.SQLException(message, e);
                 }
             }
             if (support) {
@@ -1412,33 +1380,15 @@ public class DBTools
 
     private static void executeUpdate(java.sql.PreparedStatement statement,
                                       Object[] parameters,
-                                      Integer[] positions,
-                                      ConnectionLog logger,
-                                      String query,
-                                      String cls,
-                                      String method,
-                                      int resource,
-                                      Object... arguments)
+                                      Integer[] positions)
         throws java.sql.SQLException
     {
         int i = 1;
         for (int position : positions) {
             statement.setString(i++, (String) parameters[position]);
         }
-        System.out.println("DataBaseTools.executeUpdate(): Query: " + query);
-        logger.logprb(LogLevel.FINE, cls, method, resource, _addToArgs(arguments, query));
         statement.executeUpdate();
     }
-
-    private static Object[] _addToArgs(Object[] arguments, Object... options)
-    {
-        List<Object> list = new ArrayList<Object>(Arrays.asList(arguments));
-        for (Object option : options) {
-            list.add(option);
-        }
-        return list.toArray(new Object[0]);
-    }
-
 
     public final static java.sql.ResultSet getGeneratedResult(java.sql.Statement statement,
                                                               java.sql.Statement generated,
@@ -1532,19 +1482,120 @@ public class DBTools
         return keys;
     }
 
-    public static void printDescriptor(XPropertySet descriptor,
-                                       String cls,
-                                       String method)
+    public static void printDescriptor(XPropertySet descriptor)
     {
         for (Property property: descriptor.getPropertySetInfo().getProperties()) {
             String name = property.Name;
             try {
                 Object value = descriptor.getPropertyValue(name);
-                System.out.println(cls + "." + method + "() Name: " + name + " - Value: '" + value.toString() + "'");
+                System.out.println("Name: " + name + " - Value: '" + value.toString() + "'");
             }
             catch (UnknownPropertyException | WrappedTargetException e) {
                 e.printStackTrace();
             }
         }
+        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+        if (supplier != null) {
+            XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
+            for (int i = 0; i < indexes.getCount(); i++) {
+                try {
+                    XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, indexes.getByIndex(i));
+                    if (property != null) {
+                        printDescriptor(property);
+                    }
+                }
+                catch (IndexOutOfBoundsException | WrappedTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
+
+    public static SQLException getSQLException(String msg,
+                                               XInterface context,
+                                               String state,
+                                               int code,
+                                               com.sun.star.uno.Exception  e)
+    {
+        return new SQLException(msg, context, state, code, e);
+    }
+
+    public static SQLException getSQLException(String msg,
+                                               XInterface context,
+                                               String state,
+                                               int code,
+                                               com.sun.star.lang.IndexOutOfBoundsException e)
+    {
+        return new SQLException(msg, context, state, code, e);
+    }
+
+    public static SQLException getSQLException(String msg,
+                                               XInterface context,
+                                               String state,
+                                               int code,
+                                               com.sun.star.lang.WrappedTargetException e)
+    {
+        return new SQLException(msg, context, state, code, e);
+    }
+
+    public static SQLException getSQLException(String msg,
+                                               XInterface context,
+                                               String state,
+                                               int code,
+                                               java.sql.SQLException e)
+    {
+        SQLException exception = new SQLException(msg, context, state, code, Any.VOID);
+        setNextSQLException(e, exception, context);
+        return exception;
+    }
+
+    public static SQLException getSQLException(java.sql.SQLException e)
+    {
+        SQLException exception = new SQLException(e.getMessage());
+        exception.ErrorCode = e.getErrorCode();
+        exception.SQLState = e.getSQLState();
+        setNextSQLException(e, exception, null);
+        return exception;
+    }
+
+    public static SQLException getSQLException(java.sql.SQLException e,
+                                               XInterface context)
+    {
+        SQLException exception = new SQLException(e.getMessage());
+        exception.Context = context;
+        exception.ErrorCode = e.getErrorCode();
+        exception.SQLState = e.getSQLState();
+        setNextSQLException(e, exception, context);
+        return exception;
+    }
+
+    private static void setNextSQLException(java.sql.SQLException e,
+                                            SQLException next,
+                                            XInterface context)
+    {
+        Iterator<Throwable> it = e.iterator();
+        while (next != null && it.hasNext()) {
+            next = getNextSQLException(it, next, context);
+        }
+    }
+
+    private static SQLException getNextSQLException(Iterator<Throwable> it,
+                                                    SQLException exception,
+                                                    XInterface context)
+    {
+        SQLException next = null;
+        try {
+            java.sql.SQLException e = (java.sql.SQLException) it.next();
+            next = new SQLException(e.getMessage());
+            next.ErrorCode = e.getErrorCode();
+            next.SQLState = e.getSQLState();
+            if (context != null) {
+                next.Context = context;
+            }
+            exception.NextException = next;
+        }
+        catch (java.lang.Exception e) { }
+        return next;
+    }
+
 }

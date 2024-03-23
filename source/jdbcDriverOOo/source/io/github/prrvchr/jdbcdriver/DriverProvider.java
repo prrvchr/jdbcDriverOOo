@@ -130,6 +130,10 @@ public interface DriverProvider
     // Default value is true.
     public Boolean supportsAlterPrimaryKey();
 
+    // Does the underlying database driver support adding, removing or altering foreign key
+    // Default value is true.
+    public Boolean supportsAlterForeignKey();
+
     // Does the underlying database driver support java.sql.Statement.getGeneratedValues()
     // Default value is false.
     public boolean isAutoRetrievingEnabled();

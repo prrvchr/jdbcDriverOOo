@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.2.4][5]
+# version [1.3.0][5]
 
 ## Introduction:
 
@@ -446,7 +446,16 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
   - Ajouter des commentaires.
 - De nombreuses améliorations.
 
-### Que reste-t-il à faire pour la version 1.2.4:
+### Ce qui a été fait pour la version 1.3.0:
+
+- Intégration de la gestion des clés étrangères dans Base (**Outils -> Relations...**).
+- Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le driver sous-jacent.
+- De nombreuses améliorations.
+
+Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.star.sdbc][10], [sdbcx][11] et [sdb][12]), ce qui à pris pas mal de temps, mais je ne pensais pas au départ y arriver.  
+Je pense que si vous utilisez un pilote JDBC sous Base, cette extension vous donnera les meilleurs résultats possibles. Je vais essayer de mettre en place quelques tests de performances pour pouvoir vérifier cela.
+
+### Que reste-t-il à faire pour la version 1.3.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -456,7 +465,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-124>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-130>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>

@@ -244,23 +244,33 @@ public class Resources {
 
     public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY                   = (STR_JDBC_LOG_MESSAGE_BASE +  615);
     public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR             = (STR_JDBC_LOG_MESSAGE_BASE +  616);
+    public static final int STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR   = (STR_JDBC_LOG_MESSAGE_BASE +  617);
 
     public static final int STR_LOG_COLUMN_ALTER_QUERY                         = (STR_JDBC_LOG_MESSAGE_BASE +  620);
     public static final int STR_LOG_COLUMN_ALTER_QUERY_ERROR                   = (STR_JDBC_LOG_MESSAGE_BASE +  621);
-    public static final int STR_LOG_COLUMN_REMOVE_QUERY                        = (STR_JDBC_LOG_MESSAGE_BASE +  622);
-    public static final int STR_LOG_COLUMN_REMOVE_QUERY_ERROR                  = (STR_JDBC_LOG_MESSAGE_BASE +  623);
+    public static final int STR_LOG_COLUMN_ALTER_UNSUPPORTED_FEATURE_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  622);
+    public static final int STR_LOG_COLUMN_REMOVE_QUERY                        = (STR_JDBC_LOG_MESSAGE_BASE +  623);
+    public static final int STR_LOG_COLUMN_REMOVE_QUERY_ERROR                  = (STR_JDBC_LOG_MESSAGE_BASE +  624);
 
     public static final int STR_LOG_CREATE_KEYS                                = (STR_JDBC_LOG_MESSAGE_BASE +  630);
     public static final int STR_LOG_CREATED_KEYS_ID                            = (STR_JDBC_LOG_MESSAGE_BASE +  631);
     public static final int STR_LOG_KEYS_DISPOSING                             = (STR_JDBC_LOG_MESSAGE_BASE +  632);
 
-    public static final int STR_LOG_KEYS_CREATE_KEY_QUERY                      = (STR_JDBC_LOG_MESSAGE_BASE +  640);
-    public static final int STR_LOG_KEYS_CREATE_KEY_QUERY_ERROR                = (STR_JDBC_LOG_MESSAGE_BASE +  641);
-    public static final int STR_LOG_KEYS_REMOVE_KEY_QUERY                      = (STR_JDBC_LOG_MESSAGE_BASE +  642);
-    public static final int STR_LOG_KEYS_REMOVE_KEY_QUERY_ERROR                = (STR_JDBC_LOG_MESSAGE_BASE +  643);
+    public static final int STR_LOG_KEYS_CREATE_PKEY_QUERY                     = (STR_JDBC_LOG_MESSAGE_BASE +  640);
+    public static final int STR_LOG_KEYS_CREATE_PKEY_QUERY_ERROR               = (STR_JDBC_LOG_MESSAGE_BASE +  641);
+    public static final int STR_LOG_KEYS_REMOVE_PKEY_QUERY                     = (STR_JDBC_LOG_MESSAGE_BASE +  642);
+    public static final int STR_LOG_KEYS_REMOVE_PKEY_QUERY_ERROR               = (STR_JDBC_LOG_MESSAGE_BASE +  643);
 
-    public static final int STR_LOG_KEY_ADD_UNSUPPORTED_FEATURE_ERROR          = (STR_JDBC_LOG_MESSAGE_BASE +  650);
-    public static final int STR_LOG_KEY_REMOVE_UNSUPPORTED_FEATURE_ERROR       = (STR_JDBC_LOG_MESSAGE_BASE +  651);
+    public static final int STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  645);
+    public static final int STR_LOG_PKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  646);
+
+    public static final int STR_LOG_KEYS_CREATE_FKEY_QUERY                     = (STR_JDBC_LOG_MESSAGE_BASE +  650);
+    public static final int STR_LOG_KEYS_CREATE_FKEY_QUERY_ERROR               = (STR_JDBC_LOG_MESSAGE_BASE +  651);
+    public static final int STR_LOG_KEYS_REMOVE_FKEY_QUERY                     = (STR_JDBC_LOG_MESSAGE_BASE +  652);
+    public static final int STR_LOG_KEYS_REMOVE_FKEY_QUERY_ERROR               = (STR_JDBC_LOG_MESSAGE_BASE +  653);
+
+    public static final int STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  655);
+    public static final int STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  656);
 
     public static final int STR_LOG_CREATE_INDEXES                             = (STR_JDBC_LOG_MESSAGE_BASE +  660);
     public static final int STR_LOG_CREATED_INDEXES_ID                         = (STR_JDBC_LOG_MESSAGE_BASE +  661);

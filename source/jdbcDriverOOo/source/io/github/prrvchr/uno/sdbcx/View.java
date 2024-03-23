@@ -25,11 +25,13 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterView;
 import com.sun.star.uno.Any;
@@ -39,11 +41,11 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
@@ -97,23 +99,32 @@ public final class View
         throws SQLException
     {
         if (!m_Command.equals(command)) {
+            String name = null;
+            List<String> queries = new ArrayList<String>();
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
+                DriverProvider provider = getConnection().getProvider();
+                name = DBTools.composeTableName(provider, this, rule, false);
                 System.out.println("sdbcx.View.alterCommand() 1 Command : " + command);
-                String view = DBTools.buildName(getConnection().getProvider(), getCatalogName(), getSchemaName(), m_Name, rule, false);
+                String view = DBTools.buildName(provider, getCatalogName(), getSchemaName(), m_Name, rule, false);
                 //String view = DBTools.composeTableName(getConnection(), this, rule, isCaseSensitive());
-                NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), view, rule);
+                NameComponents component = DBTools.qualifiedNameComponents(provider, view, rule);
                 System.out.println("sdbcx.View.alterCommand() 2 View name: " + view);
-                Object[] arguments = DBParameterHelper.getAlterViewArguments(getConnection().getProvider(), component, view, command, rule, isCaseSensitive());
-                List<String> queries =  getConnection().getProvider().getAlterViewQueries(arguments);
+                Object[] arguments = DBParameterHelper.getAlterViewArguments(provider, component, view, command, rule, isCaseSensitive());
+                queries =  provider.getAlterViewQueries(arguments);
                 if (!queries.isEmpty()) {
-                    String name = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
-                DBTools.executeDDLQueries(getConnection().getProvider(), getLogger(), queries, this.getClass().getName(),
-                                          "alterCommand", Resources.STR_LOG_VIEW_ALTER_QUERY, name);
+                    for (String query : queries) {
+                        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
+                    }
+                    DBTools.executeDDLQueries(provider, queries);
                 }
             }
             catch (java.sql.SQLException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+                int resource = Resources.STR_LOG_VIEW_ALTER_QUERY_ERROR;
+                String query = "<" + String.join("> <", queries) + ">";
+                String msg = getLogger().getStringResource(resource, name, query);
+                getLogger().logp(LogLevel.SEVERE, msg);
+                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
             m_Command = command;
         }
@@ -128,18 +139,19 @@ public final class View
     {
         try {
             ComposeRule rule = ComposeRule.InDataManipulation;
-            String oldname = DBTools.composeTableName(getConnection().getProvider(), this, rule, false);
-            if (!getConnection().getProvider().supportRenamingTable()) {
+            DriverProvider provider = getConnection().getProvider();
+            String oldname = DBTools.composeTableName(provider, this, rule, false);
+            if (!provider.supportRenamingTable()) {
                 int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+                String msg = getLogger().getStringResource(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            int offset = Resources.STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET;
-            NameComponents component = DBTools.qualifiedNameComponents(getConnection().getProvider(), name, rule);
-            rename(component, oldname, name, rule, offset);
-            m_SchemaName = component.getSchema();
-            m_Name = component.getTable();
-            getConnection().getViewsInternal().rename(oldname, name, offset);
+            NameComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
+            if (rename(component, oldname, name, true, rule)) {
+                m_SchemaName = component.getSchema();
+                m_Name = component.getTable();
+                getConnection().getViewsInternal().rename(oldname, name);
+            }
         }
         catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);

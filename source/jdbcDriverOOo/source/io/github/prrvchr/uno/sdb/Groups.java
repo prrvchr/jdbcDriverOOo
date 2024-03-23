@@ -29,11 +29,12 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 public final class Groups
@@ -44,9 +45,9 @@ public final class Groups
 
     // The constructor method:
     public Groups(Connection connection,
-                              boolean sensitive,
-                              List<String> names,
-                              Role role)
+                             boolean sensitive,
+                             List<String> names,
+                             Role role)
         throws ElementExistException
     {
         super(connection, sensitive, names, LoggerObjectType.GROUPS);
@@ -58,14 +59,18 @@ public final class Groups
                                    String name)
         throws SQLException
     {
+        String query = null;
         try {
-            String query = DBTools.getGrantRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
+            query = DBTools.getGrantRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
             System.out.println("sdbcx.UserGroupContainer._createUser() SQL: " + query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), m_role.getLogger(), query, this.getClass().getName(),
-                                           "_createGroup", Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name);
+            m_role.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
+            return DBTools.executeDDLQuery(m_connection.getProvider(),query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            m_role.getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -74,14 +79,18 @@ public final class Groups
                                          String name)
         throws SQLException
     {
+        String query = null;
         try {
-            String query = DBTools.getRevokeRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
+            query = DBTools.getRevokeRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
             System.out.println("sdbcx.UserGroupContainer.removeDataBaseElement() SQL: " + query);
-            DBTools.executeDDLQuery(m_connection.getProvider(), m_role.getLogger(), query, this.getClass().getName(),
-                                    "removeDataBaseElement", Resources.STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY, name);
+            m_role.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY, name, query);
+            DBTools.executeDDLQuery(m_connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+            int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            m_role.getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

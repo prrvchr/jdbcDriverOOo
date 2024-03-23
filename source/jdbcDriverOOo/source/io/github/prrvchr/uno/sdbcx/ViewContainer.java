@@ -71,18 +71,22 @@ public final class ViewContainer
     protected boolean createDataBaseElement(XPropertySet descriptor, String name)
         throws SQLException
     {
+        String query = null;
         try {
             DriverProvider provider = getConnection().getProvider();
-            String query = DBTools.getCreateViewQuery(provider, descriptor, isCaseSensitive());
+            query = DBTools.getCreateViewQuery(provider, descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
-            if (DBTools.executeDDLQuery(provider, getLogger(), query, this.getClass().getName(),
-                                        "_createView", Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name)) {
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
+            if (DBTools.executeDDLQuery(provider, query)) {
                 getConnection().getTablesInternal().insertElement(name, null);
                 return true;
             }
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         return false;
     }
@@ -161,16 +165,20 @@ public final class ViewContainer
     protected void removeView(View view)
         throws SQLException
     {
+        String query = null;
         try {
             DriverProvider provider = getConnection().getProvider();
             String table = DBTools.buildName(provider, view.getCatalogName(), view.getCatalogName(),
                                              view.getName(), ComposeRule.InTableDefinitions, isCaseSensitive());
-            String query = DBTools.getDropViewQuery(table);
-            DBTools.executeDDLQuery(provider, getLogger(), query, this.getClass().getName(),
-                                    "removeView", Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName());
+            query = DBTools.getDropViewQuery(table);
+            getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
+            DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY_ERROR;
+            String msg = getLogger().getStringResource(resource, view.getName(), query);
+            getLogger().logp(LogLevel.SEVERE, msg);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

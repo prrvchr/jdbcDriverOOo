@@ -70,20 +70,24 @@ public final class User
 
     // Private methods:
     @Override
-    protected void _addGrantees(List<String> grantees) {
+    protected void addGrantees(List<String> grantees) {
         grantees.addAll(Arrays.asList(getGroups().getElementNames()));
     }
 
     @Override
-    protected int _getGrantPrivilegesResource()
+    protected int getGrantPrivilegesResource(boolean error)
     {
-        return Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
+        return error ?
+                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY_ERROR :
+                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
     }
 
     @Override
-    protected int _getRevokePrivilegesResource()
+    protected int getRevokePrivilegesResource(boolean error)
     {
-        return Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
+        return error ?
+                Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY_ERROR :
+                Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
     }
 
 }
