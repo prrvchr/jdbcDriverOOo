@@ -215,11 +215,13 @@ public abstract class TableSuper<C extends ConnectionSuper>
             String table = null;
             List<String> queries = new ArrayList<String>();
             String oldname = oldcolumn.getName();
-            boolean alterpk = isPrimaryKeyColumn(oldname);
-            boolean alteridx = isIndexColumn(oldname);
             try {
                 table = DBTools.buildName(provider, getCatalogName(), getSchemaName(), getName(), ComposeRule.InTableDefinitions);
-                byte result = DBTableHelper.getAlterColumnQueries(queries, provider, this, oldcolumn, newcolumn, alterpk, isCaseSensitive());
+                boolean alterpk = isPrimaryKeyColumn(oldname);
+                boolean alterfk = isForeignKeyColumn(table, oldname);
+                boolean alteridx = isIndexColumn(oldname);
+                boolean alterkey = alterpk || alterfk;
+                byte result = DBTableHelper.getAlterColumnQueries(queries, provider, this, oldcolumn, newcolumn, alterkey, isCaseSensitive());
                 if (!queries.isEmpty()) {
                     for (String query : queries) {
                         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
@@ -231,7 +233,12 @@ public abstract class TableSuper<C extends ConnectionSuper>
                             if (alterpk) {
                                 // XXX: If the renamed column is a primary key we need to rename the Key column name to.
                                 // XXX: Renaming the primary key should rename the associated Index column name as well.
-                                getKeysInternal().renameKeyColumn(oldname, newname);
+                                getKeysInternal().renamePrimaryKeyColumn(oldname, newname);
+                            }
+                            if (alterfk) {
+                                // XXX: If the renamed column is a foreign key we need to rename the Key column name to.
+                                // XXX: Renaming the foreign key should rename the associated Index column name as well.
+                                getConnection().getTablesInternal().renameForeignKeyColumn(table, oldname, newname);
                             }
                             if (alteridx) {
                                 // XXX: If the renamed column is declared as index we need to rename the Index column name to.
@@ -286,6 +293,32 @@ public abstract class TableSuper<C extends ConnectionSuper>
         return false;
     }
 
+    private boolean isForeignKeyColumn(String referenced, String column)
+        throws SQLException
+    {
+        // FIXME: Here we search and retrieve the first foreign key having this table / column.
+        TableContainerSuper<?, ?> tables = getConnection().getTablesInternal();
+        for (String table: tables.getElementNames()) {
+            System.out.println("TableSuper.renameReferencedTableName() 1 Table: " + table);
+            // XXX: We are looking for foreign key on other table.
+            if (table.equals(referenced)) {
+                continue;
+            }
+            KeyContainer keys = tables.getElement(table).getKeysInternal();
+            for (String name: keys.getElementNames()) {
+                System.out.println("TableSuper.renameReferencedTableName() 2 Key: " + name);
+                Key key = keys.getElement(name);
+                System.out.println("TableSuper.renameReferencedTableName() 2 Key: " + name + " - ReferencedTable: " + key.m_ReferencedTable);
+                if (key.m_ReferencedTable.equals(referenced) && key.getColumnsInternal().hasByName(column)) {
+                    System.out.println("TableSuper.renameReferencedTableName() 3 Key: " + name + " - Column: " + column + " - ReferencedTable: " + key.m_ReferencedTable);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
     private boolean isIndexColumn(String oldname)
         throws SQLException
     {
@@ -319,8 +352,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
                ElementExistException
     {
         boolean isview = m_Type.toUpperCase().contains("VIEW");
-        // FIXME: Table and View use the same functions to rename but we need a custom message for both,
-        // FIXME: we use an offset for that.
+        // XXX: Table and View use the same functions to rename.
         ComposeRule rule = ComposeRule.InDataManipulation;
         DriverProvider provider = getConnection().getProvider();
         try {
@@ -339,19 +371,29 @@ public abstract class TableSuper<C extends ConnectionSuper>
                     String msg = getLogger().getStringResource(resource, oldname);
                     throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
                 }
-                // FIXME: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
-                // FIXME: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
+                // XXX: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
+                // XXX: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
                 if (provider.supportRenameView()) {
                     view.rename(name);
                     renamed = true;
                 }
                 else {
                     getConnection().getViewsInternal().removeView(view);
-                    String query = DBTools.getCreateViewQuery(provider, component, view.m_Command, rule, isCaseSensitive());
-                    getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
-                    if (DBTools.executeDDLQuery(provider, query)) {
-                        views.rename(oldname, name);
-                        renamed = true;
+                    String query = null;
+                    try {
+                        query = DBTools.getCreateViewQuery(provider, component, view.m_Command, rule, isCaseSensitive());
+                        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
+                        if (DBTools.executeDDLQuery(provider, query)) {
+                            views.rename(oldname, name);
+                            renamed = true;
+                        }
+                    }
+                    catch (java.sql.SQLException e) {
+                        int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
+                        String msg = getLogger().getStringResource(resource, oldname, query);
+                        getLogger().logp(LogLevel.SEVERE, msg);
+                        throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+                        
                     }
                 }
             }
@@ -364,6 +406,11 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 m_CatalogName = component.getCatalog();
                 m_Name = component.getTable();
                 getConnection().getTablesInternal().rename(oldname, name);
+                // XXX: If renamed table is not a view and are part of a foreign key the referenced table name is not any more valid.
+                // XXX: So we need to rename the referenced table name in all other table having a foreign keys referencing this table.
+                if (!isview) {
+                    getConnection().getTablesInternal().renameReferencedTableName(oldname, name);
+                }
             }
         }
         catch (java.sql.SQLException e) {

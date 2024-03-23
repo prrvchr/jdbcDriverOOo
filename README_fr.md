@@ -449,8 +449,10 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 ### Ce qui a été fait pour la version 1.3.0:
 
 - Intégration de la gestion des clés étrangères dans Base (**Outils -> Relations...**).
-- Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le driver sous-jacent.
-- De nombreuses améliorations.
+  - Lorsque vous renommez une table, cela renommera également le référencement de cette table dans les éventuelles clés étrangères pointant vers cette table.
+  - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne.
+- Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le pilote sous-jacent.
+- De nombreuses corrections et améliorations.
 
 Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.star.sdbc][10], [sdbcx][11] et [sdb][12]), ce qui à pris pas mal de temps, mais je ne pensais pas au départ y arriver.  
 Je pense que si vous utilisez un pilote JDBC sous Base, cette extension vous donnera les meilleurs résultats possibles. Je vais essayer de mettre en place quelques tests de performances pour pouvoir vérifier cela.
@@ -488,7 +490,7 @@ Je pense que si vous utilisez un pilote JDBC sous Base, cette extension vous don
 [25]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
 [26]: <img/jdbcDriverOOo.svg#middle>
 [27]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.2.4#right>
+[28]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.0#right>
 [29]: <img/jdbcDriverOOo-1_fr.png>
 [30]: <img/jdbcDriverOOo-2_fr.png>
 [31]: <img/jdbcDriverOOo-3_fr.png>

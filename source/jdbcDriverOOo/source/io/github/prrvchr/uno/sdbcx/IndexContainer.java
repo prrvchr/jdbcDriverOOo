@@ -285,7 +285,8 @@ public final class IndexContainer
         }
     }
 
-    protected void renamePrimaryKeyIndexColumn(String oldname, String newname)
+    protected void renamePrimaryKeyIndexColumn(String oldname,
+                                               String newname)
         throws SQLException
     {
         for (String name: getElementNames()) {
@@ -294,6 +295,19 @@ public final class IndexContainer
                 index.getColumnsInternal().renameIndexColumn(oldname, newname);
                 break;
             }
+        }
+    }
+
+    protected void renameForeignKeyIndexColumn(List<String> keys,
+                                               String oldname,
+                                               String newname)
+        throws SQLException
+    {
+        for (String name: getElementNames()) {
+            if (!keys.contains(name)) {
+                continue;
+            }
+            getElement(name).getColumnsInternal().renameIndexColumn(oldname, newname);
         }
     }
 

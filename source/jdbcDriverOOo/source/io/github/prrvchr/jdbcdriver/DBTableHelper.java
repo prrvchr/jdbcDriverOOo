@@ -256,7 +256,7 @@ public class DBTableHelper
     *      The descriptor of the old column.
     * @param descriptor2
     *      The descriptor of the new column.
-    * @param alterpk
+    * @param alterkey
     *      Is the modified column primary key.
     * @param sensitive
     *      Is identifier case sensitive.
@@ -273,7 +273,7 @@ public class DBTableHelper
                                              TableSuper<?> table,
                                              XPropertySet descriptor1,
                                              XPropertySet descriptor2,
-                                             boolean alterpk,
+                                             boolean alterkey,
                                              boolean sensitive)
         throws java.sql.SQLException, SQLException
     // TODO: see: libreoffice/connectivity/source/drivers/postgresql/
@@ -364,7 +364,7 @@ public class DBTableHelper
 
             // XXX: Primary key & auto-increment column don't have to handle Default and Not Null property,
             // XXX: and some underlying driver doesn't support alteration of column.
-            if (!alldone && !alterpk && !auto2 && provider.supportsAlterColumnProperty()) {
+            if (!alldone && !alterkey && !auto2 && provider.supportsAlterColumnProperty()) {
                 String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
                 String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
                 boolean defaultchanged = !default2.equals(default1);

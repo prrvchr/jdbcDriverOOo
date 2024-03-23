@@ -189,6 +189,52 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         }
     }
 
+    // XXX: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
+    // XXX: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
+    // XXX: This is called from TableSuper.rename(String name) (ie: com.sun.star.sdbcx.XRename)
+    // XXX: If renamed table are part of a foreign key the referenced table name is not any more valid.
+    // XXX: So we need to rename the referenced table name in all other table having a foreign keys referencing this table.
+    protected void renameReferencedTableName(String oldname,
+                                             String newname)
+        throws SQLException
+    {
+        for (String table: getElementNames()) {
+            // XXX: We are looking for foreign key on other table.
+            if (table.equals(newname)) {
+                continue;
+            }
+            KeyContainer keys = getElement(table).getKeysInternal();
+            for (String name: keys.getElementNames()) {
+                Key key = keys.getElement(name);
+                if (key.m_ReferencedTable.equals(oldname)) {
+                    key.m_ReferencedTable = newname;
+                }
+            }
+        }
+    }
+
+    // XXX: If the renamed column is a foreign key we need to rename the Key column name to.
+    // XXX: Renaming the foreign key should rename the associated Index column name as well.
+    protected void renameForeignKeyColumn(String referenced,
+                                          String oldname,
+                                          String newname)
+        throws SQLException
+    {
+        for (String table: getElementNames()) {
+            // XXX: We are looking for foreign key on other table.
+            if (table.equals(referenced)) {
+                continue;
+            }
+            KeyContainer keys = getElement(table).getKeysInternal();
+            for (String name: keys.getElementNames()) {
+                Key key = keys.getElement(name);
+                if (key.m_ReferencedTable.equals(referenced)) {
+                    key.m_ReferencedTable = newname;
+                }
+            }
+        }
+    }
+
     protected abstract T getTable(NameComponents component,
                                   String type,
                                   String remarks);

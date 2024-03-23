@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.star.beans.PropertyVetoException;
@@ -322,17 +323,42 @@ public final class KeyContainer
         return new KeyDescriptor(isCaseSensitive());
     }
 
-    protected void renameKeyColumn(String oldname, String newname)
+    protected void renamePrimaryKeyColumn(String oldname, String newname)
         throws SQLException
     {
         for (String name : getElementNames()) {
-            KeyColumnContainer columns = getElement(name).getColumnsInternal();
+            Key key = getElement(name);
+            if (key.m_Type != KeyType.PRIMARY) {
+                continue;
+            }
+            KeyColumnContainer columns = key.getColumnsInternal();
             if (columns.hasByName(oldname)) {
                 columns.renameKeyColumn(oldname, newname);
                 break;
             }
         }
         m_table.getIndexesInternal().renamePrimaryKeyIndexColumn(oldname, newname);
+    }
+
+
+    protected void renameForeignKeyColumn(String referenced, String oldname, String newname)
+        throws SQLException
+    {
+        List<String> renamed = new ArrayList<>();
+        for (String name : getElementNames()) {
+            Key key = getElement(name);
+            if (key.m_Type != KeyType.FOREIGN || !key.m_ReferencedTable.equals(referenced)) {
+                continue;
+            }
+            KeyColumnContainer columns = key.getColumnsInternal();
+            if (columns.hasByName(oldname)) {
+                columns.renameKeyColumn(oldname, newname);
+                renamed.add(name);
+            }
+        }
+        if (!renamed.isEmpty()) {
+            m_table.getIndexesInternal().renameForeignKeyIndexColumn(renamed, oldname, newname);
+        }
     }
 
 }
