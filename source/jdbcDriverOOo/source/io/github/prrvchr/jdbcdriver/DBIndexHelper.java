@@ -41,12 +41,10 @@ public class DBIndexHelper
         ArrayList<String> names = new ArrayList<>();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         String separator = metadata.getCatalogSeparator();
-        System.out.println("DBColumnHelper.readIndexes() 1");
         try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false))
         {
             String previous = "";
             while (result.next()) {
-                System.out.println("DBColumnHelper.readIndexes() Qualifier: " + result.getString(5) + " - Name: " + result.getString(6));
                 StringBuilder buffer = new StringBuilder();
                 if (qualified) {
                     String qualifier = result.getString(5);
@@ -59,7 +57,6 @@ public class DBIndexHelper
                 String name = buffer.toString();
                 // XXX: Don't insert the name if the last one we inserted was the same
                 if (!result.wasNull() && !name.isEmpty() && !previous.equals(name)) {
-                    System.out.println("DBColumnHelper.readIndexes() add Name: " + name);
                     names.add(name);
                     previous = name;
                 }

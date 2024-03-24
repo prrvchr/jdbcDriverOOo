@@ -132,7 +132,6 @@ public abstract class Container<T extends Descriptor>
     // Would be from com.sun.star.lang.XComponent ;)
     public void dispose()
     {
-        System.out.println("sdbcx.Container.dispose() 1 Class: " + this.getClass().getName());
         EventObject event = new EventObject(this);
         m_container.disposeAndClear(event);
         m_refresh.disposeAndClear(event);
@@ -143,7 +142,7 @@ public abstract class Container<T extends Descriptor>
             m_Elements.clear();
             m_Names.clear();
         }
-        System.out.println("sdbcx.Container.dispose() 2 Class: " + this.getClass().getName());
+        System.out.println("sdbcx.Container.dispose() Class: " + this.getClass().getName());
     }
 
 
@@ -166,10 +165,10 @@ public abstract class Container<T extends Descriptor>
         return ServiceInfo.supportsService(m_services, service);
     }
 
+
     // com.sun.star.util.XRefreshable
     @Override
     public void refresh() {
-        System.out.println("sdbcx.Container.refresh() 1 Class: " + this.getClass().getName());
         Iterator<?> iterator;
         synchronized (m_lock) {
             for (T element : m_Elements.values()) {
@@ -189,12 +188,10 @@ public abstract class Container<T extends Descriptor>
             XRefreshListener listener = (XRefreshListener) iterator.next();
             listener.refreshed(event);
         }
-        System.out.println("sdbcx.Container.refresh() 2 Class: " + this.getClass().getName());
     }
 
     @Override
     public void addRefreshListener(XRefreshListener listener) {
-        System.out.println("sdbcx.Container.addRefreshListener() Class: " + this.getClass().getName());
         synchronized (m_lock) {
             m_refresh.add(listener);
         }
@@ -202,7 +199,6 @@ public abstract class Container<T extends Descriptor>
 
     @Override
     public void removeRefreshListener(XRefreshListener listener) {
-        System.out.println("sdbcx.Container.removeRefreshListener() Class: " + this.getClass().getName());
         synchronized (m_lock) {
             m_refresh.remove(listener);
         }
@@ -217,7 +213,6 @@ public abstract class Container<T extends Descriptor>
     {
         synchronized (m_lock) {
             if (!hasByName(name)) {
-                System.out.println("sdbcx.Container.getByName() ERROR: " + name);
                 throw new NoSuchElementException();
             }
         }
@@ -279,7 +274,6 @@ public abstract class Container<T extends Descriptor>
         throws SQLException,
                IndexOutOfBoundsException
     {
-        System.out.println("sdbcx.Container.dropByIndex() 1 Class: " + this.getClass().getName() + " Index: " + index);
         synchronized (m_lock) {
             if (index < 0 || index >= getCount()) {
                 throw new IndexOutOfBoundsException();
@@ -292,7 +286,6 @@ public abstract class Container<T extends Descriptor>
     public void dropByName(String name)
         throws SQLException, NoSuchElementException
     {
-        System.out.println("sdbcx.Container.dropByName() 1 Class: " + this.getClass().getName() + " - Name: " + name);
         synchronized (m_lock) {
             if (!hasByName(name)) {
                 System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
@@ -316,7 +309,6 @@ public abstract class Container<T extends Descriptor>
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
-        System.out.println("sdbcx.Container.appendByDescriptor() Class: " + this.getClass().getName());
         ContainerEvent event;
         Iterator<?> iterator;
         synchronized (m_lock) {
@@ -350,14 +342,14 @@ public abstract class Container<T extends Descriptor>
 
     // com.sun.star.container.XContainer:
     @Override
-    public void addContainerListener(XContainerListener listener) {
-        System.out.println("sdbcx.Container.addContainerListener() Class: " + this.getClass().getName() + " - Count: " + getCount());
+    public void addContainerListener(XContainerListener listener)
+    {
         m_container.add(listener);
     }
 
     @Override
-    public void removeContainerListener(XContainerListener listener) {
-       System.out.println("sdbcx.Container.removeContainerListener() Class: " + this.getClass().getName());
+    public void removeContainerListener(XContainerListener listener)
+    {
         m_container.remove(listener);
     }
 
@@ -375,7 +367,6 @@ public abstract class Container<T extends Descriptor>
     public int findColumn(String name)
         throws SQLException
     {
-        System.out.println("sdbcx.ColumnContainer.findColumn() *******************************");
         if (!m_Elements.containsKey(name)) {
             String error = String.format("Error Column: %s not fount", name);
             throw new SQLException(error, this, StandardSQLState.SQL_COLUMN_NOT_FOUND.text(), 0, null);
@@ -438,6 +429,34 @@ public abstract class Container<T extends Descriptor>
                 }
             }
         }
+    }
+
+    public Iterator<T> getActiveElements() {
+        class Elements implements Iterator<T> {
+            int index = 0;
+
+            @Override
+            public boolean hasNext()
+            {
+                while (index < m_Names.size()) {
+                    String name = m_Names.get(index);
+                    T element = m_Elements.get(name);
+                    if (element != null) {
+                        return true;
+                    }
+                    index++;
+                }
+                return false;
+            }
+
+            @Override
+            public T next()
+            {
+                String name = m_Names.get(index++);
+                return m_Elements.get(name);
+            }
+        }
+        return new Elements();
     }
 
     protected T getElement(int index)

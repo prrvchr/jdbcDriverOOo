@@ -80,7 +80,7 @@ public abstract class DriverProviderMain
     private String m_IdentifierQuoteString = "";
     private String m_AutoIncrementCreation = "";
     private boolean m_AddIndexAppendix = false;
-    private boolean m_IsAutoIncrementIsPrimaryKey = false;
+    private boolean m_AutoIncrementIsPrimaryKey = true;
     private boolean m_SupportsAlterColumnType = true;
     private boolean m_SupportsAlterColumnProperty = true;
     private boolean m_SupportsAlterPrimaryKey = true;
@@ -546,6 +546,7 @@ public abstract class DriverProviderMain
     {
         m_infos = infos;
 
+        m_AutoIncrementIsPrimaryKey = getDriverBooleanProperty(config1, "AutoIncrementIsPrimaryKey", m_AutoIncrementIsPrimaryKey);
         m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);
         m_SupportsRenameView = getDriverBooleanProperty(config1, "SupportsRenameView", m_SupportsRenameView);
         m_SupportsColumnDescription = getDriverBooleanProperty(config1, "SupportsColumnDescription", m_SupportsColumnDescription);
@@ -649,7 +650,7 @@ public abstract class DriverProviderMain
     }
     @Override
     public boolean isAutoIncrementIsPrimaryKey() {
-        return m_IsAutoIncrementIsPrimaryKey;
+        return m_AutoIncrementIsPrimaryKey;
     }
     @Override
     public Boolean supportsAlterColumnType() {

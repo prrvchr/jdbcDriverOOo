@@ -169,7 +169,6 @@ public class DBColumnHelper
         statement.setEscapeProcessing(false);
         try (java.sql.ResultSet result = statement.executeQuery(sql))
         {
-            System.out.println("DBColumnHelper.collectColumnInformation() 1");
             java.sql.ResultSetMetaData metadata = result.getMetaData();
             int count = metadata.getColumnCount();
             UnoHelper.ensure(count > 0, "resultset has empty metadata", provider.getLogger());
@@ -178,7 +177,6 @@ public class DBColumnHelper
                 ExtraColumnInfo columnInfo = new ExtraColumnInfo();
                 columnInfo.isAutoIncrement = metadata.isAutoIncrement(i);
                 boolean iscurrency = provider.isIgnoreCurrencyEnabled() ? false : metadata.isCurrency(i);
-                System.out.println(String.format("DBColumnHelper.collectColumnInformation() 2 isCurrency: %s", iscurrency));
                 columnInfo.isCurrency = iscurrency;
                 columnInfo.dataType = provider.getDataType(metadata.getColumnType(i));
                 columns.put(newColumnName, columnInfo);

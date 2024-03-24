@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.UnknownPropertyException;
@@ -79,17 +80,15 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         List<String> queries = new ArrayList<String>();
         try {
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            System.out.println("TableContainerSuper._createDataBaseElement() 1");
             String table = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
             queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, rule, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && m_Connection.getProvider().supportsTableDescription()) {
                 String query = m_Connection.getProvider().getTableDescriptionQuery(table, description);
-                System.out.println("sdbcx.TableContainerSuper._createDataBaseElement() 2 Description query: " + query);
                 queries.add(query);
             }
             for (String query : queries) {
-                System.out.println("TableContainerSuper._createDataBaseElement() 3 Queries: " + query);
+                System.out.println("TableContainerSuper._createDataBaseElement() Queries: " + query);
             }
             if (!queries.isEmpty()) {
                 for (String query : queries) {
@@ -155,10 +154,8 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
     {
         String query = null;
         try {
-            System.out.println("TableContainer.removeDataBaseElement() 1 Name " + name);
             boolean isview = false;
             T element = getElement(name);
-            System.out.println("TableContainer.removeDataBaseElement() 2 element " + element.m_Type);
             if (element != null) {
                 isview = element.m_Type.toUpperCase().contains("VIEW");
             }
@@ -171,7 +168,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
             String table = DBTools.buildName(m_Connection.getProvider(), cpt.getCatalog(), cpt.getSchema(),
                                              cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
             query = m_Connection.getProvider().getDropTableQuery(table);
-            System.out.println("TableContainer.removeDataBaseElement() 3 Query: " + query);
+            System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
             DBTools.executeDDLQuery(m_Connection.getProvider(), query);
         }
@@ -198,14 +195,16 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                                              String newname)
         throws SQLException
     {
-        for (String table: getElementNames()) {
+        Iterator<T> tables = getActiveElements();
+        while (tables.hasNext()) {
+            T table = tables.next();
             // XXX: We are looking for foreign key on other table.
-            if (table.equals(newname)) {
+            if (table.m_Name.equals(newname)) {
                 continue;
             }
-            KeyContainer keys = getElement(table).getKeysInternal();
-            for (String name: keys.getElementNames()) {
-                Key key = keys.getElement(name);
+            Iterator<Key> keys = table.getKeysInternal().getActiveElements();
+            while (keys.hasNext()) {
+                Key key = keys.next();
                 if (key.m_ReferencedTable.equals(oldname)) {
                     key.m_ReferencedTable = newname;
                 }
@@ -220,18 +219,14 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                                           String newname)
         throws SQLException
     {
-        for (String table: getElementNames()) {
+        Iterator<T> tables = getActiveElements();
+        while (tables.hasNext()) {
+            T table = tables.next();
             // XXX: We are looking for foreign key on other table.
-            if (table.equals(referenced)) {
+            if (table.m_Name.equals(referenced)) {
                 continue;
             }
-            KeyContainer keys = getElement(table).getKeysInternal();
-            for (String name: keys.getElementNames()) {
-                Key key = keys.getElement(name);
-                if (key.m_ReferencedTable.equals(referenced)) {
-                    key.m_ReferencedTable = newname;
-                }
-            }
+            table.getKeysInternal().renameForeignKeyColumn(referenced, oldname, newname);
         }
     }
 

@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
@@ -97,10 +98,8 @@ public final class IndexContainer
     {
         Index index = null;
         try {
-            System.out.println("sdbcx.IndexContainer.createElement() 1");
             java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
             String separator = metadata.getCatalogSeparator();
-            System.out.println(String.format("sdbcx.IndexContainer.createElement() Separator: %s", separator));
             String qualifier = "";
             String subname;
             int len;
@@ -131,7 +130,6 @@ public final class IndexContainer
             }
             if (found) {
                 Boolean primary = DBIndexHelper.isPrimaryKeyIndex(metadata, m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), subname);
-                System.out.println(String.format("sdbcx.IndexContainer.createElement() PrimaryKey: %s", primary));
                 boolean clustered = type == IndexType.CLUSTERED;
                 index = new Index(m_Table, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
             }
@@ -148,7 +146,6 @@ public final class IndexContainer
     {
         Index index = null;
         String name = getElementName(descriptor);
-        System.out.println("sdbcx.IndexContainer.appendElement() 1 Name: " + name);
         if (createIndex(descriptor, name)) {
             index = createElement(name);
         }
@@ -256,10 +253,11 @@ public final class IndexContainer
     protected void removePrimaryKeyIndex()
         throws SQLException
     {
-        for (String column : getElementNames()) {
-            Index index = getElement(column);
+        Iterator<Index> Indexes = getActiveElements();
+        while (Indexes.hasNext()) {
+            Index index = Indexes.next();
             if (index.m_IsPrimaryKeyIndex) {
-                removeElement(column, false);
+                removeElement(index.m_Name, false);
                 break;
             }
         }
@@ -268,10 +266,11 @@ public final class IndexContainer
     protected void removeForeignKeyIndex(String name)
             throws SQLException
     {
-        for (String column : getElementNames()) {
-            Index index = getElement(column);
+        Iterator<Index> Indexes = getActiveElements();
+        while (Indexes.hasNext()) {
+            Index index = Indexes.next();
             if (name.equals(index.m_Name)) {
-                removeElement(column, false);
+                removeElement(name, false);
                 break;
             }
         }
@@ -280,8 +279,10 @@ public final class IndexContainer
     protected void renameIndexColumn(String oldname, String newname)
         throws SQLException
     {
-        for (String name: getElementNames()) {
-            getElement(name).getColumnsInternal().renameIndexColumn(oldname, newname);
+        Iterator<Index> Indexes = getActiveElements();
+        while (Indexes.hasNext()) {
+            Index index = Indexes.next();
+            index.getColumnsInternal().renameIndexColumn(oldname, newname);
         }
     }
 
@@ -289,8 +290,9 @@ public final class IndexContainer
                                                String newname)
         throws SQLException
     {
-        for (String name: getElementNames()) {
-            Index index = getElement(name);
+        Iterator<Index> Indexes = getActiveElements();
+        while (Indexes.hasNext()) {
+            Index index = Indexes.next();
             if (index.m_IsPrimaryKeyIndex) {
                 index.getColumnsInternal().renameIndexColumn(oldname, newname);
                 break;
@@ -303,11 +305,13 @@ public final class IndexContainer
                                                String newname)
         throws SQLException
     {
-        for (String name: getElementNames()) {
-            if (!keys.contains(name)) {
+        Iterator<Index> Indexes = getActiveElements();
+        while (Indexes.hasNext()) {
+            Index index = Indexes.next();
+            if (!keys.contains(index.m_Name)) {
                 continue;
             }
-            getElement(name).getColumnsInternal().renameIndexColumn(oldname, newname);
+            index.getColumnsInternal().renameIndexColumn(oldname, newname);
         }
     }
 

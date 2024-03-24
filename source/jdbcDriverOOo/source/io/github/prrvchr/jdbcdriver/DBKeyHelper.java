@@ -169,7 +169,6 @@ public class DBKeyHelper
                     }
                     name = getKeyName(pk, getKeyPrefix(type), tablename, column);
                 }
-                System.out.println("DBColumnHelper.readPrimaryKey() Column name: " + column + " - Primary Key: " + keyname);
             }
         }
         if (name != null && name.equals(keyname)) {

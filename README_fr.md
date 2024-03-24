@@ -450,12 +450,11 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Intégration de la gestion des clés étrangères dans Base (**Outils -> Relations...**).
   - Lorsque vous renommez une table, cela renommera également le référencement de cette table dans les éventuelles clés étrangères pointant vers cette table.
-  - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne.
+  - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne. Malgré cela, il subsiste des problèmes de rafraîchissement dans l'outil permettant l'édition des relations.
 - Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le pilote sous-jacent.
 - De nombreuses corrections et améliorations.
 
-Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.star.sdbc][10], [sdbcx][11] et [sdb][12]), ce qui à pris pas mal de temps, mais je ne pensais pas au départ y arriver.  
-Je pense que si vous utilisez un pilote JDBC sous Base, cette extension vous donnera les meilleurs résultats possibles. Je vais essayer de mettre en place quelques tests de performances pour pouvoir vérifier cela.
+Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.star.sdbc][10], [sdbcx][11] et [sdb][12]), ce qui à pris pas mal de temps, mais je ne pensais pas au départ y arriver.
 
 ### Que reste-t-il à faire pour la version 1.3.0:
 

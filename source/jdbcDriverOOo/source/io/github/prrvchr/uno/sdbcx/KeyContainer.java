@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.PropertyVetoException;
@@ -52,6 +53,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class KeyContainer
@@ -140,12 +142,12 @@ public final class KeyContainer
 
         if (type == KeyType.PRIMARY && !provider.supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
-            String msg = getLogger().getStringResource(resource, m_table.getName());
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
         if (type == KeyType.FOREIGN && !provider.supportsAlterForeignKey()) {
             int resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
-            String msg = getLogger().getStringResource(resource, m_table.getName());
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
 
@@ -326,8 +328,9 @@ public final class KeyContainer
     protected void renamePrimaryKeyColumn(String oldname, String newname)
         throws SQLException
     {
-        for (String name : getElementNames()) {
-            Key key = getElement(name);
+        Iterator<Key> keys = getActiveElements();
+        while (keys.hasNext()) {
+            Key key = keys.next();
             if (key.m_Type != KeyType.PRIMARY) {
                 continue;
             }
@@ -345,15 +348,16 @@ public final class KeyContainer
         throws SQLException
     {
         List<String> renamed = new ArrayList<>();
-        for (String name : getElementNames()) {
-            Key key = getElement(name);
+        Iterator<Key> keys = getActiveElements();
+        while (keys.hasNext()) {
+            Key key = keys.next();
             if (key.m_Type != KeyType.FOREIGN || !key.m_ReferencedTable.equals(referenced)) {
                 continue;
             }
             KeyColumnContainer columns = key.getColumnsInternal();
             if (columns.hasByName(oldname)) {
                 columns.renameKeyColumn(oldname, newname);
-                renamed.add(name);
+                renamed.add(key.m_Name);
             }
         }
         if (!renamed.isEmpty()) {
