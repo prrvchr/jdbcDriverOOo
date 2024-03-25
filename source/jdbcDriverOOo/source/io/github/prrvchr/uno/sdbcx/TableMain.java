@@ -122,15 +122,18 @@ public abstract class TableMain<C extends ConnectionSuper>
     {
         boolean moved = !m_CatalogName.equals(component.getCatalogName()) || !m_SchemaName.equals(component.getSchemaName());
         boolean renamed = !m_Name.equals(component.getTableName());
+
         if (!moved && !renamed) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(getRenameTableCanceledResource(isview), oldname);
+            int resource = getRenameTableCanceledResource(isview);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
         }
         // FIXME: Any driver capable of changing catalog or schema must have at least 2 commands...
         // FIXME: If the driver can do this in a single command (like MariaDB) then it is necessary
         // FIXME: to warn by leaving an empty field after the first two that the SQL query requests
         if (moved && !m_connection.getProvider().canRenameAndMove()) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(getRenameTableUnsupportedResource(isview), oldname);
+            int resource = getRenameTableUnsupportedResource(isview);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FUNCTION_NOT_SUPPORTED.text(), 0, Any.VOID);
         }
 
@@ -194,8 +197,7 @@ public abstract class TableMain<C extends ConnectionSuper>
         catch (java.sql.SQLException e) {
             int resource = getRenameTableResource(isview, true);
             String query = String.join("> <", queries);
-            String msg = getLogger().getStringResource(resource, newname, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, newname, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         if (!changed || skipped) {
@@ -228,6 +230,12 @@ public abstract class TableMain<C extends ConnectionSuper>
         return isview ?
                 Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR :
                 Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR;
+    }
+    protected int getRenameTableNotImplementedResource(boolean isview)
+    {
+        return isview ?
+                Resources.STR_LOG_VIEW_RENAME_FEATURE_NOT_IMPLEMENTED :
+                Resources.STR_LOG_TABLE_RENAME_FEATURE_NOT_IMPLEMENTED;
     }
     protected int getRenameTableDuplicateResource(boolean isview)
     {

@@ -58,6 +58,8 @@ public interface DriverProvider
     public String getConnectionUrl(String location,
                                    String level);
 
+    public String getSQLCommand(String query);
+
     public boolean hasDocument();
 
     public XOfficeDatabaseDocument getDocument();

@@ -49,6 +49,7 @@ import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.DBIndexHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -196,14 +197,12 @@ public final class IndexContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         catch (WrappedTargetException | IndexOutOfBoundsException e) {
             int resource = Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
@@ -235,8 +234,7 @@ public final class IndexContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }

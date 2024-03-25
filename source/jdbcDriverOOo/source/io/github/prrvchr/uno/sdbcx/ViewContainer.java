@@ -40,6 +40,7 @@ import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -75,7 +76,7 @@ public final class ViewContainer
         try {
             DriverProvider provider = getConnection().getProvider();
             query = DBTools.getCreateViewQuery(provider, descriptor, isCaseSensitive());
-            System.out.println("sdbcx.ViewContainer._createDataBaseElement() 2 SQL: '" + query + "'");
+            System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
             if (DBTools.executeDDLQuery(provider, query)) {
                 getConnection().getTablesInternal().insertElement(name, null);
@@ -84,8 +85,7 @@ public final class ViewContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         return false;
@@ -167,16 +167,16 @@ public final class ViewContainer
     {
         String query = null;
         try {
+            ComposeRule rule = ComposeRule.InTableDefinitions;
             DriverProvider provider = getConnection().getProvider();
-            String table = DBTools.buildName(provider, view.getNamedComponents(), ComposeRule.InTableDefinitions, isCaseSensitive());
+            String table = DBTools.buildName(provider, view.getNamedComponents(), rule, isCaseSensitive());
             query = DBTools.getDropViewQuery(table);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
             DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, view.getName(), query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, view.getName(), query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }

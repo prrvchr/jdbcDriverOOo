@@ -286,8 +286,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR;
             String query = String.join("> <", queries);
-            String msg = getLogger().getStringResource(resource, table, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
@@ -352,24 +351,31 @@ public abstract class TableSuper<C extends ConnectionSuper>
         throws SQLException,
                ElementExistException
     {
-        boolean isview = m_Type.toUpperCase().contains("VIEW");
-        // XXX: Table and View use the same functions to rename.
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        DriverProvider provider = getConnection().getProvider();
+        System.out.println("sdbcx.TableSuper.rename() Table: '" + name + "'");
+
+        String query = null;
+        String table = null;
         try {
-            String oldname = DBTools.composeTableName(provider, this, rule, false);
-            if (!provider.supportRenamingTable()) {
-                String msg = getLogger().getStringResource(getRenameTableUnsupportedResource(isview), oldname);
+            boolean renamed = false;
+            // XXX: Table and View use the same functions to rename.
+            boolean isview = m_Type.toUpperCase().contains("VIEW");
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            DriverProvider provider = getConnection().getProvider();
+            table = DBTools.buildName(provider, getNamedComponents(), rule);
+            // XXX: We can handle renaming if it is a table and the driver does not have a command to rename the table
+            // XXX: or it's a view and we don't have access to the view's command definition.
+            if (!isview && !provider.supportRenamingTable() || isview && !provider.supportViewDefinition()) {
+                int resource = getRenameTableNotImplementedResource(isview);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
             NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
-            boolean renamed = false;
             if (isview) {
                 ViewContainer views = getConnection().getViewsInternal();
-                View view = views.getElement(oldname);
+                View view = views.getElement(table);
                 if (view == null) {
                     int resource = Resources.STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR;
-                    String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+                    String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
                     throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
                 }
                 // XXX: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
@@ -380,43 +386,35 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 }
                 else {
                     getConnection().getViewsInternal().removeView(view);
-                    String query = null;
-                    try {
-                        query = DBTools.getCreateViewQuery(provider, component, view.m_Command, rule, isCaseSensitive());
-                        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
-                        if (DBTools.executeDDLQuery(provider, query)) {
-                            views.rename(oldname, name);
-                            renamed = true;
-                        }
-                    }
-                    catch (java.sql.SQLException e) {
-                        int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
-                        String msg = getLogger().getStringResource(resource, oldname, query);
-                        getLogger().logp(LogLevel.SEVERE, msg);
-                        throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-                        
+                    query = DBTools.getCreateViewQuery(provider, component, view.m_Command, rule, isCaseSensitive());
+                    getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
+                    if (DBTools.executeDDLQuery(provider, query)) {
+                        views.rename(table, name);
+                        renamed = true;
                     }
                 }
             }
             else {
-                renamed = rename(component, oldname, name, false, rule);
+                renamed = rename(component, table, name, false, rule);
             }
 
             if (renamed) {
-                m_SchemaName = component.getSchemaName();
                 m_CatalogName = component.getCatalogName();
+                m_SchemaName = component.getSchemaName();
                 m_Name = component.getTableName();
-                getConnection().getTablesInternal().rename(oldname, name);
+                getConnection().getTablesInternal().rename(table, name);
                 // XXX: If renamed table is not a view and are part of a foreign key the referenced table name is not any more valid.
                 // XXX: So we need to rename the referenced table name in all other table having a foreign keys referencing this table.
                 if (!isview) {
                     List<String> filter = DBKeyHelper.getExportedTables(provider, component, rule);
-                    getConnection().getTablesInternal().renameReferencedTableName(filter, oldname, name);
+                    getConnection().getTablesInternal().renameReferencedTableName(filter, table, name);
                 }
             }
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

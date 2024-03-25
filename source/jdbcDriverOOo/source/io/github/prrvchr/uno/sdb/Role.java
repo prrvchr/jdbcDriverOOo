@@ -127,7 +127,8 @@ public abstract class Role
                 DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(getGrantPrivilegesResource(true), name, query);
+                int resource = getGrantPrivilegesResource(true);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
@@ -148,7 +149,8 @@ public abstract class Role
                 DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(getRevokePrivilegesResource(true), name, query);
+                int resource = getRevokePrivilegesResource(true);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }

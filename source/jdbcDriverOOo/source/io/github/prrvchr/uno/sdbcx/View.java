@@ -34,7 +34,6 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterView;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
@@ -103,28 +102,22 @@ public final class View
             String name = null;
             List<String> queries = new ArrayList<String>();
             try {
+                NamedComponents component = getNamedComponents();
                 ComposeRule rule = ComposeRule.InDataManipulation;
                 DriverProvider provider = getConnection().getProvider();
-                name = DBTools.composeTableName(provider, this, rule, false);
-                System.out.println("sdbcx.View.alterCommand() 1 Command : " + command);
-                String view = DBTools.buildName(provider, getNamedComponents(), rule, false);
-                //String view = DBTools.composeTableName(getConnection(), this, rule, isCaseSensitive());
-                NamedComponents component = DBTools.qualifiedNameComponents(provider, view, rule);
-                System.out.println("sdbcx.View.alterCommand() 2 View name: " + view);
-                Object[] arguments = DBParameterHelper.getAlterViewArguments(provider, component, view, command, rule, isCaseSensitive());
+                name = DBTools.buildName(provider, component, rule);
+                Object[] arguments = DBParameterHelper.getAlterViewArguments(provider, component, name, command, rule, isCaseSensitive());
                 queries =  provider.getAlterViewQueries(arguments);
                 if (!queries.isEmpty()) {
-                    for (String query : queries) {
-                        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
-                    }
+                    String query = String.join("> <", queries);
+                    getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
                     DBTools.executeDDLQueries(provider, queries);
                 }
             }
             catch (java.sql.SQLException e) {
                 int resource = Resources.STR_LOG_VIEW_ALTER_QUERY_ERROR;
                 String query = String.join("> <", queries);
-                String msg = getLogger().getStringResource(resource, name, query);
-                getLogger().logp(LogLevel.SEVERE, msg);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
             m_Command = command;
@@ -134,29 +127,27 @@ public final class View
 
     // com.sun.star.sdbcx.XRename
     @Override
-    public void rename(String name)
+    public void rename(String newname)
         throws SQLException,
                ElementExistException
     {
+        String oldname = null;
         try {
             ComposeRule rule = ComposeRule.InDataManipulation;
             DriverProvider provider = getConnection().getProvider();
-            String oldname = DBTools.buildName(provider, getNamedComponents(), rule);
-            if (!provider.supportRenamingTable()) {
-                int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-                throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
-            }
-            NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
-            if (rename(component, oldname, name, true, rule)) {
-                m_CatalogName = component.getCatalogName();
-                m_SchemaName = component.getSchemaName();
-                m_Name = component.getTableName();
-                getConnection().getViewsInternal().rename(oldname, name);
+            oldname = DBTools.buildName(provider, getNamedComponents(), rule);
+            NamedComponents table = DBTools.qualifiedNameComponents(provider, newname, rule);
+            if (rename(table, oldname, newname, true, rule)) {
+                m_CatalogName = table.getCatalogName();
+                m_SchemaName = table.getSchemaName();
+                m_Name = table.getTableName();
+                getConnection().getViewsInternal().rename(oldname, newname);
             }
         }
         catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            int resource = Resources.STR_LOG_VIEW_RENAME_UNSPECIFIED_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

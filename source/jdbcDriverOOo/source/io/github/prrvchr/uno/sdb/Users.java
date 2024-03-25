@@ -35,6 +35,7 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
@@ -69,8 +70,7 @@ public final class Users
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERROLE_CREATE_USER_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
@@ -89,8 +89,7 @@ public final class Users
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERROLE_REMOVE_USER_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }

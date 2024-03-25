@@ -157,12 +157,12 @@ public final class KeyContainer
         }
         catch (java.sql.SQLException e) {
             int resource = getCreateKeyResource(type, true);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, key, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         catch (IllegalArgumentException | IndexOutOfBoundsException | WrappedTargetException e) {
             int resource = getCreateKeyResource(type, true);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, key, name, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
         }
     }

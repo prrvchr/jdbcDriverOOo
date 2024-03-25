@@ -240,7 +240,8 @@ public class Resources {
     public static final int STR_LOG_TABLE_RENAME_TABLE_NOT_FOUND_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  608);
     public static final int STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  609);
     public static final int STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  610);
-    public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  611);
+    public static final int STR_LOG_TABLE_RENAME_FEATURE_NOT_IMPLEMENTED       = (STR_JDBC_LOG_MESSAGE_BASE +  611);
+    public static final int STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR    = (STR_JDBC_LOG_MESSAGE_BASE +  612);
 
     public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY                   = (STR_JDBC_LOG_MESSAGE_BASE +  615);
     public static final int STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR             = (STR_JDBC_LOG_MESSAGE_BASE +  616);
@@ -300,7 +301,9 @@ public class Resources {
     public static final int STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE +  808);
     public static final int STR_LOG_VIEW_RENAME_OPERATION_CANCELLED_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  809);
     public static final int STR_LOG_VIEW_RENAME_DUPLICATE_VIEW_NAME_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  810);
-    public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  811);
+    public static final int STR_LOG_VIEW_RENAME_FEATURE_NOT_IMPLEMENTED        = (STR_JDBC_LOG_MESSAGE_BASE +  811);
+    public static final int STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR     = (STR_JDBC_LOG_MESSAGE_BASE +  812);
+    public static final int STR_LOG_VIEW_RENAME_UNSPECIFIED_ERROR              = (STR_JDBC_LOG_MESSAGE_BASE +  812);
 
     public static final int STR_LOG_VIEW_ALTER_QUERY                           = (STR_JDBC_LOG_MESSAGE_BASE +  815);
     public static final int STR_LOG_VIEW_ALTER_QUERY_ERROR                     = (STR_JDBC_LOG_MESSAGE_BASE +  816);

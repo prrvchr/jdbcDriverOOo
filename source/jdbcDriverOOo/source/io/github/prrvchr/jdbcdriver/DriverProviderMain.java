@@ -78,6 +78,7 @@ public abstract class DriverProviderMain
 
     private boolean m_SupportsTransactions = true;
     private boolean m_IsCatalogAtStart = true;
+    private String m_SQLCommandSuffix = "";
     private String m_CatalogSeparator = "";
     private String m_IdentifierQuoteString = "";
     private String m_AutoIncrementCreation = "";
@@ -151,6 +152,12 @@ public abstract class DriverProviderMain
     public String getSubProtocol()
     {
         return m_protocol + m_subprotocol;
+    }
+
+    @Override
+    public String getSQLCommand(String query)
+    {
+        return query + m_SQLCommandSuffix;
     }
 
     @Override
@@ -566,7 +573,7 @@ public abstract class DriverProviderMain
         m_SupportsColumnDescription = getDriverBooleanProperty(config1, "SupportsColumnDescription", m_SupportsColumnDescription);
         m_SupportsAlterPrimaryKey = getDriverBooleanProperty(config1, "SupportsAlterPrimaryKey", m_SupportsAlterPrimaryKey);
         m_SupportsAlterForeignKey = getDriverBooleanProperty(config1, "SupportsAlterForeignKey", m_SupportsAlterForeignKey);
-        
+
         m_SupportsAlterColumnType = getDriverBooleanProperty(config1, "SupportsAlterColumnType", m_SupportsAlterColumnType);
         m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
         m_CreateTableCommand = getDriverStringProperty(config1, "CreateTableCommand", m_CreateTableCommand);
@@ -574,6 +581,7 @@ public abstract class DriverProviderMain
         m_AddColumnCommand = getDriverStringProperty(config1, "AddColumnCommand", m_AddColumnCommand);
         m_DropColumnCommand = getDriverStringProperty(config1, "DropColumnCommand", m_DropColumnCommand);
         m_AlterColumnCommand = getDriverStringProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
+        m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
 
         m_AddPrimaryKeyCommand = getDriverStringProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
         m_AddForeignKeyCommand = getDriverStringProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);

@@ -1320,7 +1320,7 @@ public class DBTools
                 autocommit = jdbc.getAutoCommit();
                 jdbc.setAutoCommit(false);
             }
-            try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
+            try (java.sql.PreparedStatement statement = jdbc.prepareStatement(provider.getSQLCommand(query))) {
                 executeUpdate(statement, parameters, positions);
             }
             if (support) {
@@ -1375,7 +1375,7 @@ public class DBTools
                     index ++;
                     continue;
                 }
-                try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
+                try (java.sql.PreparedStatement statement = jdbc.prepareStatement(provider.getSQLCommand(query))) {
                     Integer[] position = (positions.size() > index) ? positions.get(index) : new Integer[]{};
                     executeUpdate(statement, parameters, position);
                     index ++;

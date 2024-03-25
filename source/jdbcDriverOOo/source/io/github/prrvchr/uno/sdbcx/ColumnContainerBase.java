@@ -53,6 +53,7 @@ import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -113,25 +114,22 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
             DBTableHelper.getAlterColumnQueries(queries, provider, m_table, oldcolumn, descriptor, false, isCaseSensitive());
             if (!queries.isEmpty()) {
-                for (String query : queries) {
-                    m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
-                }
+                String query = String.join("> <", queries);
+                m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
                 return DBTools.executeDDLQueries(provider, queries);
             }
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
             String query = String.join("> <", queries);
-            String msg = m_table.getLogger().getStringResource(resource, name, query);
-            m_table.getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, table, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         catch (IllegalArgumentException | UnknownPropertyException |
                 PropertyVetoException | WrappedTargetException e) {
             int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
             String query = String.join("> <", queries);
-            String msg = m_table.getLogger().getStringResource(resource, name, query);
-            m_table.getLogger().logp(LogLevel.SEVERE, msg);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, table, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
          }
         return false;
