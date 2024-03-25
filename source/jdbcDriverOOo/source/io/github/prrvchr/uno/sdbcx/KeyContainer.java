@@ -151,31 +151,35 @@ public final class KeyContainer
             name = DBTools.buildName(provider, table, rule);
             query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, table, key, rule, isCaseSensitive());
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
-            int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
-            if (type == KeyType.FOREIGN) {
-                resource = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY;
-            }
+            int resource = getCreateKeyResource(type, false);
             getLogger().logprb(LogLevel.INFO, resource, key, name, query);
             return DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
-            int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
-            if (type == KeyType.FOREIGN) {
-                resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
-            }
-            String msg = getLogger().getStringResource(resource, key, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            int resource = getCreateKeyResource(type, true);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         catch (IllegalArgumentException | IndexOutOfBoundsException | WrappedTargetException e) {
-            int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
-            if (type == KeyType.FOREIGN) {
-                resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
-            }
-            String msg = getLogger().getStringResource(resource, key, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
+            int resource = getCreateKeyResource(type, true);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
         }
+    }
+
+    private int getCreateKeyResource(int type, boolean error) {
+        int resource = 0;
+        if (type == KeyType.PRIMARY) {
+            resource = error ? 
+                        Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY_ERROR :
+                        Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
+        }
+        else {
+            resource = error ? 
+                        Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY_ERROR :
+                        Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY;
+        }
+        return resource;
     }
 
     private Key createElement(XPropertySet descriptor, String oldname)
@@ -256,12 +260,12 @@ public final class KeyContainer
             DriverProvider provider = getConnection().getProvider();
             if (type == KeyType.PRIMARY && !provider.supportsAlterPrimaryKey()) {
                 int resource = Resources.STR_LOG_PKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
-                String msg = getLogger().getStringResource(resource, m_table.getName());
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
             if (type == KeyType.FOREIGN && !provider.supportsAlterForeignKey()) {
                 int resource = Resources.STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
-                String msg = getLogger().getStringResource(resource, m_table.getName());
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
             ComposeRule rule = ComposeRule.InTableDefinitions;

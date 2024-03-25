@@ -159,7 +159,8 @@ public abstract class TableMain<C extends ConnectionSuper>
             // FIXME: If the move action is not atomic (performed by 2 commands) then it may not be possible
             // FIXME: since adjacent actions may encounter a conflict of already existing names.
             if (m_connection.getTablesInternal().hasByName(fname)) {
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(getRenameTableDuplicateResource(isview), oldname, newname);
+                int resource = getRenameTableDuplicateResource(isview);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname, newname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
@@ -169,9 +170,8 @@ public abstract class TableMain<C extends ConnectionSuper>
             int resource = getRenameTableResource(isview, false);
             if (fullchange) {
                 if (!queries.isEmpty()) {
-                    for (String query : queries) {
-                        getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    }
+                    String query = String.join("> <", queries);
+                    getLogger().logprb(LogLevel.INFO, resource, newname, query);
                     changed &= DBTools.executeDDLQueries(m_connection.getProvider(), queries);
                     skipped &= false;
                 }
@@ -193,13 +193,14 @@ public abstract class TableMain<C extends ConnectionSuper>
         }
         catch (java.sql.SQLException e) {
             int resource = getRenameTableResource(isview, true);
-            String query = "<" + String.join("> <", queries) + ">";
+            String query = String.join("> <", queries);
             String msg = getLogger().getStringResource(resource, newname, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         if (!changed || skipped) {
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(getRenameTableCanceledResource(isview), oldname);
+            int resource = getRenameTableCanceledResource(isview);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
         }
         return moved || renamed;

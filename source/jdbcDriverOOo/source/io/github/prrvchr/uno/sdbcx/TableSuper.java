@@ -61,6 +61,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.DBIndexHelper;
 import io.github.prrvchr.jdbcdriver.DBKeyHelper;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
@@ -206,7 +207,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         // XXX: Identity switching is only allowed if the underlying driver supports it.
         if (oldcolumn.m_IsAutoIncrement != auto && !provider.supportsAlterIdentity()) {
             int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
-            String msg = getLogger().getStringResource(resource, oldcolumn.getName());
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldcolumn.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
 
@@ -215,7 +216,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         // XXX: Changing column type is only allowed if the underlying driver supports it.
         if (!oldcolumn.m_TypeName.equals(type) && !provider.supportsAlterColumnType()) {
             int resource = Resources.STR_LOG_COLUMN_ALTER_UNSUPPORTED_FEATURE_ERROR;
-            String msg = getLogger().getStringResource(resource, oldcolumn.getName());
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldcolumn.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
 
@@ -232,9 +233,8 @@ public abstract class TableSuper<C extends ConnectionSuper>
             boolean alterkey = alterpk || alterfk;
             byte result = DBTableHelper.getAlterColumnQueries(queries, provider, this, oldcolumn, newcolumn, alterkey, isCaseSensitive());
             if (!queries.isEmpty()) {
-                for (String query : queries) {
-                    getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
-                }
+                String query = String.join("> <", queries);
+                getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
                 if (DBTools.executeDDLQueries(provider, queries)) {
                     // Column have changed its description value
                     if ((result & 32) == 32) {
@@ -262,30 +262,22 @@ public abstract class TableSuper<C extends ConnectionSuper>
                         String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
                         m_columns.replaceElement(oldname, newname);
                         if (alterpk) {
-                            System.out.println("TableSuper.alterColumn() 1 Table " + table + " - OldName: " + oldname + " - NewName: " + newname);
                             getKeysInternal().renameKeyColumn(KeyType.PRIMARY, oldname, newname);
                             // XXX: If the renamed column is a primary key, we need to know if it is referenced as a foreign key.
                             // XXX: If this is the case then we need to rename the corresponding column in these foreign keys.
                             Map<String, List<String>> tables = DBKeyHelper.getExportedTablesColumns(provider, component, newname, rule);
                             if (!tables.isEmpty()) {
-                                System.out.println("TableSuper.alterColumn() 2 Tables " + String.join(", ", tables.keySet()));
                                 getConnection().getTablesInternal().renameForeignKeyColumn(tables, table, oldname, newname);
                             }
-                            System.out.println("TableSuper.alterColumn() 3 Table " + table + " - OldName: " + oldname + " - NewName" + newname);
-                            //getKeysInternal().refresh();
                         }
                         if (alterfk) {
                             // XXX: If the renamed column is a foreign key we need to rename the Key column name to.
                             // XXX: Renaming the foreign key should rename the associated Index column name as well.
                             getKeysInternal().renameKeyColumn(KeyType.FOREIGN, oldname, newname);
-                            System.out.println("TableSuper.alterColumn() 4 Table " + table + " - OldName: " + oldname + " - NewName" + newname);
-                            //getConnection().getTablesInternal().refresh();
                         }
                         if (alteridx) {
                                 // XXX: If the renamed column is declared as index we need to rename the Index column name to.
                                 getIndexesInternal().renameIndexColumn(oldname, newname);
-                                System.out.println("TableSuper.alterColumn() 5 Table " + table + " - OldName: " + oldname + " - NewName" + newname);
-                                //getIndexesInternal().refresh();
                         }
                     }
                 }
@@ -293,7 +285,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR;
-            String query = "<" + String.join("> <", queries) + ">";
+            String query = String.join("> <", queries);
             String msg = getLogger().getStringResource(resource, table, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -377,7 +369,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
                 View view = views.getElement(oldname);
                 if (view == null) {
                     int resource = Resources.STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR;
-                    String msg = getLogger().getStringResource(resource, oldname);
+                    String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                     throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_NOT_FOUND.text(), 0, Any.VOID);
                 }
                 // XXX: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property

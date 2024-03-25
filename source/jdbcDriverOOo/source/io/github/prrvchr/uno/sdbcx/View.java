@@ -45,6 +45,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
@@ -121,7 +122,7 @@ public final class View
             }
             catch (java.sql.SQLException e) {
                 int resource = Resources.STR_LOG_VIEW_ALTER_QUERY_ERROR;
-                String query = "<" + String.join("> <", queries) + ">";
+                String query = String.join("> <", queries);
                 String msg = getLogger().getStringResource(resource, name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -140,14 +141,15 @@ public final class View
         try {
             ComposeRule rule = ComposeRule.InDataManipulation;
             DriverProvider provider = getConnection().getProvider();
-            String oldname = DBTools.composeTableName(provider, this, rule, false);
+            String oldname = DBTools.buildName(provider, getNamedComponents(), rule);
             if (!provider.supportRenamingTable()) {
                 int resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FEATURE_ERROR;
-                String msg = getLogger().getStringResource(resource, oldname);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
             NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
             if (rename(component, oldname, name, true, rule)) {
+                m_CatalogName = component.getCatalogName();
                 m_SchemaName = component.getSchemaName();
                 m_Name = component.getTableName();
                 getConnection().getViewsInternal().rename(oldname, name);

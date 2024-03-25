@@ -100,7 +100,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
-            String query = "<" + String.join("> <", queries) + ">";
+            String query = String.join("> <", queries);
             String msg = getLogger().getStringResource(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -108,7 +108,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         catch (IllegalArgumentException | WrappedTargetException |
                IndexOutOfBoundsException | UnknownPropertyException e) {
              int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
-             String query = "<" + String.join("> <", queries) + ">";
+             String query = String.join("> <", queries);
              String msg = getLogger().getStringResource(resource, name, query);
              getLogger().logp(LogLevel.SEVERE, msg);
              throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);

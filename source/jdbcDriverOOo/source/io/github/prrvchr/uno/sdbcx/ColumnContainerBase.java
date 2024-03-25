@@ -121,7 +121,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
-            String query = "<" + String.join("> <", queries) + ">";
+            String query = String.join("> <", queries);
             String msg = m_table.getLogger().getStringResource(resource, name, query);
             m_table.getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -129,7 +129,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
         catch (IllegalArgumentException | UnknownPropertyException |
                 PropertyVetoException | WrappedTargetException e) {
             int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
-            String query = "<" + String.join("> <", queries) + ">";
+            String query = String.join("> <", queries);
             String msg = m_table.getLogger().getStringResource(resource, name, query);
             m_table.getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
