@@ -39,16 +39,14 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 
 public class DBConstraintHelper
 {
 
     public static String getCreateConstraintQuery(DriverProvider provider,
                                                   XPropertySet descriptor,
-                                                  String catalog,
-                                                  String schema,
-                                                  String table,
+                                                  NamedComponents table,
                                                   String name,
                                                   ComposeRule rule,
                                                   boolean sensitive)
@@ -60,8 +58,8 @@ public class DBConstraintHelper
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
         String command = provider.getAddConstraintQuery(type);
         System.out.println("DBConstraintHelper.getCreateConstraintQuery() 2");
-        args.add(DBTools.buildName(provider, catalog, schema, table, rule, sensitive));
-        String keyname = DBKeyHelper.getKeyName(name, table, getKeyColumns(provider, descriptor, PropertyIds.NAME, false), type);
+        args.add(DBTools.buildName(provider, table, rule, sensitive));
+        String keyname = DBKeyHelper.getKeyName(name, table.getTableName(), getKeyColumns(provider, descriptor, PropertyIds.NAME, false), type);
         args.add(DBTools.enquoteIdentifier(provider, keyname, sensitive));
         System.out.println("DBConstraintHelper.getCreateConstraintQuery() 3");
         args.add(String.join(", ", getKeyColumns(provider, descriptor, PropertyIds.NAME, sensitive)));
@@ -132,8 +130,8 @@ public class DBConstraintHelper
                             buffer.append("FOREIGN KEY");
                             
                             String referencedTable = DBTools.getDescriptorStringValue(columnProperties, PropertyIds.REFERENCEDTABLE);
-                            NameComponents nameComponents = DBTools.qualifiedNameComponents(provider, referencedTable, ComposeRule.InDataManipulation);
-                            String composedName = DBTools.buildName(provider, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(),
+                            NamedComponents nameComponents = DBTools.qualifiedNameComponents(provider, referencedTable, ComposeRule.InDataManipulation);
+                            String composedName = DBTools.buildName(provider, nameComponents.getCatalogName(), nameComponents.getSchemaName(), nameComponents.getTableName(),
                                                                     ComposeRule.InTableDefinitions, true);
                             if (composedName.isEmpty()) {
                                 throw new java.sql.SQLException();

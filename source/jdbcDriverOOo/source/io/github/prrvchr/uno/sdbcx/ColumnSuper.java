@@ -68,21 +68,21 @@ public abstract class ColumnSuper<T extends TableSuper<?>>
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_table.getCatalogName();
+                    return m_table.m_CatalogName;
                 }
             }, null);
         registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_table.getSchemaName();
+                    return m_table.m_SchemaName;
                 }
             }, null);
         registerProperty(PropertyIds.TABLENAME.name, PropertyIds.TABLENAME.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_table.getName();
+                    return m_table.m_Name;
                 }
             }, null);
 

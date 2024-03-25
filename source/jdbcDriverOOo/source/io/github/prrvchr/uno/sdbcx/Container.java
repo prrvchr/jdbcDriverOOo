@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -382,14 +383,14 @@ public abstract class Container<T extends Descriptor>
     protected abstract void refreshInternal();
 
     // Protected methods
-    public boolean isCaseSensitive()
+    protected boolean isCaseSensitive()
     {
         return m_sensitive;
     }
 
-    public void refill(List<String> names)
+    protected void refill(List<String> names)
     {
-        // We only add new elements, as per the C++ implementation.
+        // XXX: We only add new elements, as per the C++ implementation.
         for (String name : names) {
             if (!m_Elements.containsKey(name)) {
                 m_Elements.put(name, null);
@@ -409,7 +410,7 @@ public abstract class Container<T extends Descriptor>
         throws SQLException
     {
         synchronized (m_lock) {
-            if (!newname.equals(oldname)) {
+            if (!newname.equals(oldname) && m_Names.contains(oldname)) {
                 T element = m_Elements.remove(oldname);
                 // XXX: We cannot set the name of composed names (ie: table and view)
                 if (element != null && rename) {
@@ -431,7 +432,43 @@ public abstract class Container<T extends Descriptor>
         }
     }
 
+    public Iterator<String> getActiveNames() {
+        return getActiveNames(m_Names);
+    }
+
+    public Iterator<String> getActiveNames(Collection<String> filter) {
+        class Elements implements Iterator<String> {
+            int index = 0;
+
+            @Override
+            public boolean hasNext()
+            {
+                while (index < m_Names.size()) {
+                    String name = m_Names.get(index);
+                    T element = m_Elements.get(name);
+                    if (element != null && filter.contains(name)) {
+                        return true;
+                    }
+                    index++;
+                }
+                return false;
+            }
+
+            @Override
+            public String next()
+            {
+                return m_Names.get(index++);
+            }
+        }
+        return new Elements();
+    }
+
+
     public Iterator<T> getActiveElements() {
+        return getActiveElements(m_Names);
+    }
+
+    public Iterator<T> getActiveElements(Collection<String> filter) {
         class Elements implements Iterator<T> {
             int index = 0;
 
@@ -441,7 +478,7 @@ public abstract class Container<T extends Descriptor>
                 while (index < m_Names.size()) {
                     String name = m_Names.get(index);
                     T element = m_Elements.get(name);
-                    if (element != null) {
+                    if (element != null && filter.contains(name)) {
                         return true;
                     }
                     index++;

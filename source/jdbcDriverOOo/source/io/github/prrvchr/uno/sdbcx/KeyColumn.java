@@ -41,7 +41,7 @@ public final class KeyColumn
     private static final String m_service = KeyColumn.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn"};
 
-    private String m_RelatedColumn;
+    protected String m_RelatedColumn;
 
     // The constructor method:
     public KeyColumn(TableSuper<?> table,
@@ -62,6 +62,7 @@ public final class KeyColumn
         super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description,
               nullable, precision, scale, type, autoincrement, rowversion, currency);
         m_RelatedColumn = referenced;
+        System.out.println("KeyColumn() RelatedColumn: " + referenced);
         registerProperties();
     }
 
@@ -91,7 +92,18 @@ public final class KeyColumn
     protected void setName(String newname)
     {
         System.out.println("sdbcx.KeyColumn.rename() *************************************");
+        // We need to rename the RelatedColumn too 
         m_Name = newname;
+        m_RelatedColumn = newname;
+    }
+
+    // XXX: Called from KeyContainer.renameForeignKeyColumn(String oldname, String newname)
+    protected void setRelatedColumn(String oldcolumn, String newcolumn)
+    {
+        System.out.println("sdbcx.KeyColumn.setRelatedColumn() *************************************");
+        if (m_RelatedColumn.equals(oldcolumn)) {
+            m_RelatedColumn = newcolumn;
+        }
     }
 
 

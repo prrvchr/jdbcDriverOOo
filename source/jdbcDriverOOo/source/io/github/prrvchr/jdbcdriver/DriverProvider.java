@@ -30,6 +30,7 @@ import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
@@ -56,6 +57,10 @@ public interface DriverProvider
 
     public String getConnectionUrl(String location,
                                    String level);
+
+    public boolean hasDocument();
+
+    public XOfficeDatabaseDocument getDocument();
 
     public boolean getDriverBooleanProperty(XHierarchicalNameAccess driver,
                                             String property,

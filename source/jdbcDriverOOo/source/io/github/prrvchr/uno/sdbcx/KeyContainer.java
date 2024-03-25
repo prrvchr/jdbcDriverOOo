@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,6 +47,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBConstraintHelper;
 import io.github.prrvchr.jdbcdriver.DBKeyHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -102,10 +102,8 @@ public final class KeyContainer
         try {
             System.out.println("KeyContainer.createElement() 1 Name: " + name);
             if (!name.isEmpty()) {
-                key = DBKeyHelper.readKey(getConnection().getProvider(), m_table,
-                                          m_table.getCatalog(),  m_table.getSchema(),
-                                          m_table.getName(), name,
-                                          ComposeRule.InDataManipulation, isCaseSensitive());
+                key = DBKeyHelper.readKey(getConnection().getProvider(), m_table, m_table.getNamedComponents(),
+                                          name, ComposeRule.InDataManipulation, isCaseSensitive());
             }
         }
         catch (java.sql.SQLException | ElementExistException e) {
@@ -132,13 +130,11 @@ public final class KeyContainer
             throws SQLException
     {
         String query = null;
-        String table = null;
+        String name = null;
         ComposeRule rule = ComposeRule.InIndexDefinitions;
         DriverProvider provider = getConnection().getProvider();
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-        String catalog = m_table.getCatalogName();
-        String schema = m_table.getSchemaName();
-        String name = m_table.getName();
+        NamedComponents table = m_table.getNamedComponents();
 
         if (type == KeyType.PRIMARY && !provider.supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
@@ -152,15 +148,14 @@ public final class KeyContainer
         }
 
         try {
-            table = DBTools.buildName(provider, catalog, schema, name, rule, false);
-            query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, catalog, schema,
-                                                                name, key, rule, isCaseSensitive());
+            name = DBTools.buildName(provider, table, rule);
+            query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, table, key, rule, isCaseSensitive());
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
             int resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
             if (type == KeyType.FOREIGN) {
                 resource = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY;
             }
-            getLogger().logprb(LogLevel.INFO, resource, key, table, query);
+            getLogger().logprb(LogLevel.INFO, resource, key, name, query);
             return DBTools.executeDDLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
@@ -168,7 +163,7 @@ public final class KeyContainer
             if (type == KeyType.FOREIGN) {
                 resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             }
-            String msg = getLogger().getStringResource(resource, key, table, query);
+            String msg = getLogger().getStringResource(resource, key, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
@@ -177,7 +172,7 @@ public final class KeyContainer
             if (type == KeyType.FOREIGN) {
                 resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             }
-            String msg = getLogger().getStringResource(resource, key, table, query);
+            String msg = getLogger().getStringResource(resource, key, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
         }
@@ -233,11 +228,12 @@ public final class KeyContainer
         throws java.sql.SQLException
     {
         java.sql.ResultSet result = null;
+        NamedComponents table = m_table.getNamedComponents();
         if (keytype == KeyType.FOREIGN) {
-            result = metadata.getImportedKeys(m_table.getCatalog(), m_table.getSchema(), m_table.getName());
+            result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable());
         }
         else {
-            result = metadata.getPrimaryKeys(m_table.getCatalog(), m_table.getSchema(), m_table.getName());
+            result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable());
         }
         return result;
     }
@@ -315,7 +311,6 @@ public final class KeyContainer
 
     @Override
     protected void refreshInternal() {
-        System.out.println("sdbcx.KeyContainer.refreshInternal() *********************************");
         m_table.refreshKeys();
     }
 
@@ -325,43 +320,44 @@ public final class KeyContainer
         return new KeyDescriptor(isCaseSensitive());
     }
 
-    protected void renamePrimaryKeyColumn(String oldname, String newname)
+    protected void renameKeyColumn(int type, String oldname, String newname)
         throws SQLException
     {
+        String name = null;
         Iterator<Key> keys = getActiveElements();
         while (keys.hasNext()) {
             Key key = keys.next();
-            if (key.m_Type != KeyType.PRIMARY) {
+            if (key.m_Type != type) {
                 continue;
             }
             KeyColumnContainer columns = key.getColumnsInternal();
             if (columns.hasByName(oldname)) {
                 columns.renameKeyColumn(oldname, newname);
+                name = key.m_Name;
                 break;
             }
         }
-        m_table.getIndexesInternal().renamePrimaryKeyIndexColumn(oldname, newname);
+        if (name != null) {
+            m_table.getIndexesInternal().renameIndexColumn(oldname, newname);
+        }
     }
 
-
-    protected void renameForeignKeyColumn(String referenced, String oldname, String newname)
+    protected void renameForeignKeyColumn(List<String> filter,
+                                          String referenced,
+                                          String oldname,
+                                          String newname)
         throws SQLException
     {
-        List<String> renamed = new ArrayList<>();
         Iterator<Key> keys = getActiveElements();
         while (keys.hasNext()) {
             Key key = keys.next();
             if (key.m_Type != KeyType.FOREIGN || !key.m_ReferencedTable.equals(referenced)) {
                 continue;
             }
-            KeyColumnContainer columns = key.getColumnsInternal();
-            if (columns.hasByName(oldname)) {
-                columns.renameKeyColumn(oldname, newname);
-                renamed.add(key.m_Name);
+            Iterator<KeyColumn> columns = key.getColumnsInternal().getActiveElements(filter);
+            while (columns.hasNext()) {
+                columns.next().setRelatedColumn(oldname, newname);
             }
-        }
-        if (!renamed.isEmpty()) {
-            m_table.getIndexesInternal().renameForeignKeyIndexColumn(renamed, oldname, newname);
         }
     }
 

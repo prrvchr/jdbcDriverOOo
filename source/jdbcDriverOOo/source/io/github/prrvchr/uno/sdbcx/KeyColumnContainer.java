@@ -32,6 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
@@ -63,11 +64,9 @@ public final class KeyColumnContainer
         KeyColumn column = null;
         try {
             DriverProvider provider = getConnection().getProvider();
-            String catalog = m_key.getTable().getCatalog();
-            String schema = m_key.getTable().getSchema();
-            String table = m_key.getTable().getName();
+            NamedComponents table = m_key.getTable().getNamedComponents();
             String refColumnName = "";
-            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(catalog, schema, table))
+            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable()))
             {
                 while (result.next()) {
                     if (name.equals(result.getString(8)) && m_key.getName().equals(result.getString(12))) {
@@ -77,7 +76,7 @@ public final class KeyColumnContainer
                 }
             }
             // now describe the column name and set its related column
-            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(catalog, schema, table, name))
+            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getTable(), name))
             {
                 if (result.next()) {
                     if (result.getString(4).equals(name)) {
@@ -136,9 +135,13 @@ public final class KeyColumnContainer
     protected void renameKeyColumn(String oldname, String newname)
         throws SQLException
     {
+        System.out.println("KeyColumnContainer.renameKeyColumn() 1");
         if (hasByName(oldname)) {
+            System.out.println("KeyColumnContainer.renameKeyColumn() 2");
             replaceElement(oldname, newname);
+            System.out.println("KeyColumnContainer.renameKeyColumn() 3");
         }
+        System.out.println("KeyColumnContainer.renameKeyColumn() 4");
     }
 
     public ConnectionSuper getConnection()

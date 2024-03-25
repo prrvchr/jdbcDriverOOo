@@ -106,7 +106,11 @@ public final class Connection
     @Override
     public Object getParent()
     {
-        System.out.println("sdb.Connection.getParent() *************************");
+        System.out.println("sdb.Connection.getParent() 1");
+        if (getProvider().hasDocument()) {
+            System.out.println("sdb.Connection.getParent() 2");
+            return getProvider().getDocument().getDataSource();
+        }
         return null;
     }
 

@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
@@ -48,7 +49,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 
 
 public abstract class TableContainerSuper<T extends TableSuper<?>, C extends ConnectionSuper>
@@ -121,7 +122,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
     {
         T table = null;
         try {
-            NameComponents component = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
+            NamedComponents component = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
             try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
                 if (result.next()) {
                     String type = result.getString(4);
@@ -138,13 +139,13 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         return table;
     }
 
-    private java.sql.ResultSet _getcreateElementResultSet(NameComponents component)
+    private java.sql.ResultSet _getcreateElementResultSet(NamedComponents component)
             throws java.sql.SQLException
         {
-            String catalog = component.getCatalog().isEmpty() ? null : component.getCatalog();
-            String schema = component.getSchema().isEmpty() ? null : component.getSchema();
+            String catalog = component.getCatalogName().isEmpty() ? null : component.getCatalogName();
+            String schema = component.getSchemaName().isEmpty() ? null : component.getSchemaName();
             java.sql.DatabaseMetaData metadata = m_Connection.getProvider().getConnection().getMetaData();
-            return metadata.getTables(catalog, schema, component.getTable(), null);
+            return metadata.getTables(catalog, schema, component.getTableName(), null);
         }
 
     @Override
@@ -164,9 +165,9 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
                 views.dropByName(name);
                 return;
             }
-            NameComponents cpt = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
-            String table = DBTools.buildName(m_Connection.getProvider(), cpt.getCatalog(), cpt.getSchema(),
-                                             cpt.getTable(), ComposeRule.InDataManipulation, isCaseSensitive());
+            NamedComponents cpt = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
+            String table = DBTools.buildName(m_Connection.getProvider(), cpt.getCatalogName(), cpt.getSchemaName(),
+                                             cpt.getTableName(), ComposeRule.InDataManipulation, isCaseSensitive());
             query = m_Connection.getProvider().getDropTableQuery(table);
             System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
@@ -191,11 +192,12 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
     // XXX: This is called from TableSuper.rename(String name) (ie: com.sun.star.sdbcx.XRename)
     // XXX: If renamed table are part of a foreign key the referenced table name is not any more valid.
     // XXX: So we need to rename the referenced table name in all other table having a foreign keys referencing this table.
-    protected void renameReferencedTableName(String oldname,
+    protected void renameReferencedTableName(List<String> filter,
+                                             String oldname,
                                              String newname)
         throws SQLException
     {
-        Iterator<T> tables = getActiveElements();
+        Iterator<T> tables = getActiveElements(filter);
         while (tables.hasNext()) {
             T table = tables.next();
             // XXX: We are looking for foreign key on other table.
@@ -212,25 +214,22 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         }
     }
 
-    // XXX: If the renamed column is a foreign key we need to rename the Key column name to.
-    // XXX: Renaming the foreign key should rename the associated Index column name as well.
-    protected void renameForeignKeyColumn(String referenced,
+    // XXX: If the renamed column is a foreign key we need to rename the RelatedColumn on the KeyColumn to.
+    protected void renameForeignKeyColumn(Map<String, List<String>> filters,
+                                          String referenced,
                                           String oldname,
                                           String newname)
         throws SQLException
     {
-        Iterator<T> tables = getActiveElements();
+        Iterator<String> tables = getActiveNames(filters.keySet());
         while (tables.hasNext()) {
-            T table = tables.next();
             // XXX: We are looking for foreign key on other table.
-            if (table.m_Name.equals(referenced)) {
-                continue;
-            }
-            table.getKeysInternal().renameForeignKeyColumn(referenced, oldname, newname);
+            String table = tables.next();
+            getElement(table).getKeysInternal().renameForeignKeyColumn(filters.get(table), referenced, oldname, newname);
         }
     }
 
-    protected abstract T getTable(NameComponents component,
+    protected abstract T getTable(NamedComponents component,
                                   String type,
                                   String remarks);
 

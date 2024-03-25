@@ -48,6 +48,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.DBIndexHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -114,7 +115,8 @@ public final class IndexContainer
             boolean found = false;
             boolean unique = false;
             List<String> columns = new ArrayList<>();
-            try (java.sql.ResultSet result = metadata.getIndexInfo(m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), false, false))
+            NamedComponents table = m_Table.getNamedComponents();
+            try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getTable(), false, false))
             {
                 while (result.next()) {
                     unique  = !result.getBoolean(4);
@@ -129,7 +131,7 @@ public final class IndexContainer
                 }
             }
             if (found) {
-                Boolean primary = DBIndexHelper.isPrimaryKeyIndex(metadata, m_Table.getCatalog(), m_Table.getSchema(), m_Table.getName(), subname);
+                Boolean primary = DBIndexHelper.isPrimaryKeyIndex(metadata, table, subname);
                 boolean clustered = type == IndexType.CLUSTERED;
                 index = new Index(m_Table, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
             }
@@ -276,42 +278,17 @@ public final class IndexContainer
         }
     }
 
-    protected void renameIndexColumn(String oldname, String newname)
+    protected void renameIndexColumn(String oldname,
+                                     String newname)
         throws SQLException
     {
         Iterator<Index> Indexes = getActiveElements();
         while (Indexes.hasNext()) {
-            Index index = Indexes.next();
-            index.getColumnsInternal().renameIndexColumn(oldname, newname);
-        }
-    }
-
-    protected void renamePrimaryKeyIndexColumn(String oldname,
-                                               String newname)
-        throws SQLException
-    {
-        Iterator<Index> Indexes = getActiveElements();
-        while (Indexes.hasNext()) {
-            Index index = Indexes.next();
-            if (index.m_IsPrimaryKeyIndex) {
-                index.getColumnsInternal().renameIndexColumn(oldname, newname);
+            IndexColumnContainer columns = Indexes.next().getColumnsInternal();
+            if (columns.hasByName(oldname)) {
+                columns.renameIndexColumn(oldname, newname);
                 break;
             }
-        }
-    }
-
-    protected void renameForeignKeyIndexColumn(List<String> keys,
-                                               String oldname,
-                                               String newname)
-        throws SQLException
-    {
-        Iterator<Index> Indexes = getActiveElements();
-        while (Indexes.hasNext()) {
-            Index index = Indexes.next();
-            if (!keys.contains(index.m_Name)) {
-                continue;
-            }
-            index.getColumnsInternal().renameIndexColumn(oldname, newname);
         }
     }
 

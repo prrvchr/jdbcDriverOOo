@@ -41,7 +41,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -113,15 +113,15 @@ public abstract class TableMain<C extends ConnectionSuper>
     public abstract void rename(String name) throws SQLException, ElementExistException;
 
     // Here we execute the SQL command allowing you to move and/or rename a table or view
-    protected boolean rename(NameComponents component,
+    protected boolean rename(NamedComponents component,
                              String oldname,
                              String newname,
                              boolean isview,
                              ComposeRule rule)
         throws SQLException
     {
-        boolean moved = !m_CatalogName.equals(component.getCatalog()) || !m_SchemaName.equals(component.getSchema());
-        boolean renamed = !m_Name.equals(component.getTable());
+        boolean moved = !m_CatalogName.equals(component.getCatalogName()) || !m_SchemaName.equals(component.getSchemaName());
+        boolean renamed = !m_Name.equals(component.getTableName());
         if (!moved && !renamed) {
             String msg = SharedResources.getInstance().getResourceWithSubstitution(getRenameTableCanceledResource(isview), oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
@@ -148,11 +148,11 @@ public abstract class TableMain<C extends ConnectionSuper>
             if (multiquery && moved && renamed) {
                 // FIXME: try to move first
                 fullchange = true;
-                String name = DBTools.buildName(m_connection.getProvider(), component.getCatalog(), component.getSchema(), m_Name, rule, false);
+                String name = DBTools.buildName(m_connection.getProvider(), component.getCatalogName(), component.getSchemaName(), m_Name, rule, false);
                 reversed = m_connection.getTablesInternal().hasByName(name);
                 if (reversed) {
                     // FIXME: try to rename first
-                    fname = DBTools.buildName(m_connection.getProvider(), m_CatalogName, m_SchemaName, component.getTable(), rule, false);
+                    fname = DBTools.buildName(m_connection.getProvider(), m_CatalogName, m_SchemaName, component.getTableName(), rule, false);
                 }
             }
 
@@ -163,9 +163,8 @@ public abstract class TableMain<C extends ConnectionSuper>
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
-            Object[] parameters = DBParameterHelper.getRenameTableArguments(m_connection.getProvider(), component, getCatalogName(),
-                                                                            getSchemaName(), getName(), oldname,
-                                                                            reversed, rule, isCaseSensitive());
+            Object[] parameters = DBParameterHelper.getRenameTableArguments(m_connection.getProvider(), component,
+                                                                            getNamedComponents(), oldname, reversed, rule, isCaseSensitive());
             queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
             int resource = getRenameTableResource(isview, false);
             if (fullchange) {
@@ -236,22 +235,9 @@ public abstract class TableMain<C extends ConnectionSuper>
                 Resources.STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR;
     }
 
-    protected String getCatalogName()
+    protected NamedComponents getNamedComponents()
     {
-        return m_CatalogName;
-    }
-    protected String getSchemaName()
-    {
-        return m_SchemaName;
-    }
-
-    protected String getCatalog()
-    {
-        return m_CatalogName.isEmpty() ? null : m_CatalogName;
-    }
-    protected String getSchema()
-    {
-        return m_SchemaName.isEmpty() ? null : m_SchemaName;
+        return new NamedComponents(m_CatalogName, m_SchemaName, m_Name);
     }
 
 }

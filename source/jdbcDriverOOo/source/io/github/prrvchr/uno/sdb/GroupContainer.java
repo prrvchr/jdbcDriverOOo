@@ -147,6 +147,12 @@ public class GroupContainer
     }
 
     @Override
+    protected void refill(List<String> names)
+    {
+        super.refill(names);
+    }
+
+    @Override
     protected XPropertySet createDescriptor()
     {
         return new GroupDescriptor(isCaseSensitive());

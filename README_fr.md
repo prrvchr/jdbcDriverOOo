@@ -450,7 +450,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Intégration de la gestion des clés étrangères dans Base (**Outils -> Relations...**).
   - Lorsque vous renommez une table, cela renommera également le référencement de cette table dans les éventuelles clés étrangères pointant vers cette table.
-  - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne. Malgré cela, il subsiste des problèmes de rafraîchissement dans l'outil permettant l'édition des relations.
+  - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne.
+  - Ces mises à jour de clés étrangères prennent en compte le chargement paresseux des conteneurs des tables et des clés et ne seront effectuées que si Base a déjà accédé aux données impliquées.
 - Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le pilote sous-jacent.
 - De nombreuses corrections et améliorations.
 

@@ -40,7 +40,7 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -106,9 +106,9 @@ public final class View
                 DriverProvider provider = getConnection().getProvider();
                 name = DBTools.composeTableName(provider, this, rule, false);
                 System.out.println("sdbcx.View.alterCommand() 1 Command : " + command);
-                String view = DBTools.buildName(provider, getCatalogName(), getSchemaName(), m_Name, rule, false);
+                String view = DBTools.buildName(provider, getNamedComponents(), rule, false);
                 //String view = DBTools.composeTableName(getConnection(), this, rule, isCaseSensitive());
-                NameComponents component = DBTools.qualifiedNameComponents(provider, view, rule);
+                NamedComponents component = DBTools.qualifiedNameComponents(provider, view, rule);
                 System.out.println("sdbcx.View.alterCommand() 2 View name: " + view);
                 Object[] arguments = DBParameterHelper.getAlterViewArguments(provider, component, view, command, rule, isCaseSensitive());
                 queries =  provider.getAlterViewQueries(arguments);
@@ -146,10 +146,10 @@ public final class View
                 String msg = getLogger().getStringResource(resource, oldname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            NameComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
+            NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
             if (rename(component, oldname, name, true, rule)) {
-                m_SchemaName = component.getSchema();
-                m_Name = component.getTable();
+                m_SchemaName = component.getSchemaName();
+                m_Name = component.getTableName();
                 getConnection().getViewsInternal().rename(oldname, name);
             }
         }

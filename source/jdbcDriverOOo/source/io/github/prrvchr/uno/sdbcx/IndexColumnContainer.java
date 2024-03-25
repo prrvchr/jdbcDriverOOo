@@ -32,6 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
@@ -67,12 +68,10 @@ public final class IndexColumnContainer
     {
         IndexColumn index = null;
         boolean isascending = true;
-        String catalog = m_index.getTable().getCatalog();
-        String schema = m_index.getTable().getSchema();
-        String table = m_index.getTable().getName();
+        NamedComponents table = m_index.getTable().getNamedComponents();
         try {
             java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false))
+            try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getTable(), false, false))
             {
                 while (result.next()) {
                     if (name.equals(result.getString(9))) {
@@ -80,7 +79,7 @@ public final class IndexColumnContainer
                     }
                 }
             }
-            try (java.sql.ResultSet result = metadata.getColumns(catalog, schema, table, name))
+            try (java.sql.ResultSet result = metadata.getColumns(table.getCatalog(), table.getSchema(), table.getTable(), name))
             {
                 while (result.next()) {
                     if (name.equals(result.getString(4))) {

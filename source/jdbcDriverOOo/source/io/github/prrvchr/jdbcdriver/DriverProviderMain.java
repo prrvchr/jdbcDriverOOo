@@ -34,6 +34,7 @@ import java.util.Properties;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.Privilege;
@@ -57,6 +58,7 @@ public abstract class DriverProviderMain
     private PropertyValue[] m_infos;
     private java.sql.Statement m_statement = null;
     private CustomTypeInfo m_typeinforows = null;
+    private XOfficeDatabaseDocument m_document = null;
     protected boolean m_enhanced;
     protected boolean m_showsystem;
     protected boolean m_usebookmark;
@@ -155,6 +157,18 @@ public abstract class DriverProviderMain
     public boolean isCaseSensitive(String clazz)
     {
         return true;
+    }
+
+    @Override
+    public boolean hasDocument()
+    {
+        return m_document != null;
+    }
+
+    @Override
+    public XOfficeDatabaseDocument getDocument()
+    {
+        return m_document;
     }
 
     @Override
@@ -838,6 +852,9 @@ public abstract class DriverProviderMain
         boolean autoretrieving = getAutoRetrieving(metadata, infos);
         for (PropertyValue info : infos) {
             switch (info.Name) {
+            case "Document":
+                m_document = (XOfficeDatabaseDocument) info.Value;
+                break;
             case "AutoIncrementCreation":
                 m_AutoIncrementCreation = (String) info.Value;
                 break;

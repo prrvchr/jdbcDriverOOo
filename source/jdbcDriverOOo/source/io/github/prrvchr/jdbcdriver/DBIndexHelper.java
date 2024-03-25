@@ -27,21 +27,21 @@ package io.github.prrvchr.jdbcdriver;
 
 import java.util.ArrayList;
 
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+
 
 public class DBIndexHelper
 {
 
     public static ArrayList<String> readIndexes(DriverProvider provider,
-                                                String catalog,
-                                                String schema,
-                                                String table,
+                                                NamedComponents table,
                                                 boolean qualified)
         throws java.sql.SQLException
     {
         ArrayList<String> names = new ArrayList<>();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         String separator = metadata.getCatalogSeparator();
-        try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false))
+        try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getTable(), false, false))
         {
             String previous = "";
             while (result.next()) {
@@ -66,14 +66,12 @@ public class DBIndexHelper
     }
 
     public static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,
-                                            String catalog,
-                                            String schema,
-                                            String table,
+                                            NamedComponents table,
                                             String name)
         throws java.sql.SQLException
     {
         boolean primary = false;
-        try (java.sql.ResultSet result = metadata.getPrimaryKeys(catalog, schema, table))
+        try (java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable()))
         {
             // XXX: There can be only one primary key
             if (result.next()) {

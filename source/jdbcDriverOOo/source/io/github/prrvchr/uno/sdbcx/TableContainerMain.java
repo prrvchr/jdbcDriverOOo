@@ -75,7 +75,6 @@ abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSu
         throws SQLException
     {
         if (hasByName(oldname)) {
-            System.out.println("TableContainerMain.rename() OldName: " + oldname + " - NewName: " + newname);
             replaceElement(oldname, newname, false);
         }
     }

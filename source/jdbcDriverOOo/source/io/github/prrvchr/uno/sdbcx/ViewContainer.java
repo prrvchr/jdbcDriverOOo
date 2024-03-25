@@ -39,7 +39,7 @@ import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -100,7 +100,7 @@ public final class ViewContainer
         ComposeRule rule = ComposeRule.InDataManipulation;
         try {
             DriverProvider provider = getConnection().getProvider();
-            NameComponents cpt = DBTools.qualifiedNameComponents(provider, name, rule);
+            NamedComponents cpt = DBTools.qualifiedNameComponents(provider, name, rule);
             if (provider.supportViewDefinition()) {
                 List<Integer[]> positions = new ArrayList<Integer[]>();
                 Object[] parameters = DBParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, isCaseSensitive());
@@ -139,8 +139,8 @@ public final class ViewContainer
                 }
             }
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEW);
-            View view = new View(getConnection(), isCaseSensitive(), cpt.getCatalog(),
-                                 cpt.getSchema(), cpt.getTable(), command, option);
+            View view = new View(getConnection(), isCaseSensitive(), cpt.getCatalogName(),
+                                 cpt.getSchemaName(), cpt.getTableName(), command, option);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEW_ID, view.getLogger().getObjectId());
             return view;
         }
@@ -168,8 +168,7 @@ public final class ViewContainer
         String query = null;
         try {
             DriverProvider provider = getConnection().getProvider();
-            String table = DBTools.buildName(provider, view.getCatalogName(), view.getCatalogName(),
-                                             view.getName(), ComposeRule.InTableDefinitions, isCaseSensitive());
+            String table = DBTools.buildName(provider, view.getNamedComponents(), ComposeRule.InTableDefinitions, isCaseSensitive());
             query = DBTools.getDropViewQuery(table);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
             DBTools.executeDDLQuery(provider, query);

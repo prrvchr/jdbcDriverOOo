@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 
@@ -74,12 +75,10 @@ public class DBColumnHelper
     }
 
     public static List<ColumnDescription> readColumns(DriverProvider provider,
-                                                      String catalog,
-                                                      String schema,
-                                                      String table)
+                                                      NamedComponents table)
         throws java.sql.SQLException
     {
-        List<ColumnDescription> descriptions = collectColumnDescriptions(provider, catalog, schema, table);
+        List<ColumnDescription> descriptions = collectColumnDescriptions(provider, table);
         sanitizeColumnDescriptions(provider, descriptions);
         List<ColumnDescription> columns = new ArrayList<>(descriptions);
         for (ColumnDescription description : descriptions) {
@@ -89,13 +88,11 @@ public class DBColumnHelper
     }
 
     private static List<ColumnDescription> collectColumnDescriptions(DriverProvider provider,
-                                                                     String catalog,
-                                                                     String schema,
-                                                                     String table)
+                                                                     NamedComponents table)
         throws java.sql.SQLException
     {
         List<ColumnDescription> columns = new ArrayList<>();
-        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(catalog, schema, table, "%"))
+        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getTable(), "%"))
         {
             while (result.next()) {
                 ColumnDescription description = new ColumnDescription();

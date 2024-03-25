@@ -63,6 +63,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
@@ -583,9 +584,7 @@ public class DBTableHelper
         throws java.sql.SQLException, SQLException, IllegalArgumentException, WrappedTargetException, UnknownPropertyException, IndexOutOfBoundsException
     {
         List<String> queries = new ArrayList<String>();
-        String catalog = DBTools.getDescriptorStringValue(property, PropertyIds.CATALOGNAME);
-        String schema = DBTools.getDescriptorStringValue(property, PropertyIds.SCHEMANAME);
-        String table = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
+        NamedComponents table = DBTools.getTableNamedComponents(provider, property);
 
         XKeysSupplier supplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
         XIndexAccess keys = supplier.getKeys();
@@ -593,7 +592,7 @@ public class DBTableHelper
             for (int i = 0; i < keys.getCount(); i++) {
                 XPropertySet key = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
                 if (key != null) {
-                    queries.add(DBConstraintHelper.getCreateConstraintQuery(provider, key, catalog, schema, table, name, rule, sensitive));
+                    queries.add(DBConstraintHelper.getCreateConstraintQuery(provider, key, table, name, rule, sensitive));
                 }
             }
         }

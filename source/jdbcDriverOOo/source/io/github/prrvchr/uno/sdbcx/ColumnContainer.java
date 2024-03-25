@@ -51,7 +51,7 @@ public final class ColumnContainer
 
     @Override
     protected XPropertySet createDescriptor() {
-        return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
+        return new ColumnDescriptor(m_table.m_CatalogName, m_table.m_SchemaName, m_table.m_Name, isCaseSensitive());
     }
 
     @Override

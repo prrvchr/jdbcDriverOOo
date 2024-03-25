@@ -103,23 +103,29 @@ public class DBTools
         }
     }
 
-    public static class NameComponents
+    public static class NamedComponents
     {
         private String catalog = "";
         private String schema = "";
         private String table = "";
 
-        public NameComponents(String catalog, String schema, String table)
+        public NamedComponents(String catalog, String schema, String table)
         {
             this.catalog = catalog;
             this.schema = schema;
             this.table = table;
         }
 
-        public NameComponents() {
+        public NamedComponents() {
         }
 
-        public String getCatalog()
+        // Java DataBaseMetadata specific getter
+        public String getCatalog() {
+            return catalog.isBlank() ? null : catalog;
+        }
+
+        // UNO getter (String can not be null)
+        public String getCatalogName()
         {
             return catalog;
         }
@@ -128,21 +134,31 @@ public class DBTools
         {
             this.catalog = catalog;
         }
-        
-        public String getSchema()
+
+        // Java DataBaseMetadata specific getter
+        public String getSchema() {
+            return schema.isBlank() ? null : schema;
+        }
+
+        public String getSchemaName()
         {
             return schema;
         }
-        
+
         public void setSchema(String schema)
         {
             this.schema = schema;
         }
-        
+
+        // Java DataBaseMetadata specific getter
         public String getTable() {
             return table;
         }
-        
+
+        public String getTableName() {
+            return table;
+        }
+
         public void setTable(String table)
         {
             this.table = table;
@@ -200,11 +216,11 @@ public class DBTools
                                           String schema,
                                           String table,
                                           boolean sensitive,
-                                          ComposeRule composeRule)
+                                          ComposeRule rule)
         throws java.sql.SQLException
     {
         StringBuilder buffer = new StringBuilder();
-        NameComponentSupport nameComponentSupport = getNameComponentSupport(provider, composeRule);
+        NameComponentSupport nameComponentSupport = getNameComponentSupport(provider, rule);
 
         String catalogSeparator = "";
         boolean catalogAtStart = true;
@@ -230,18 +246,30 @@ public class DBTools
     }
 
     public static String buildName(DriverProvider provider,
+                                   NamedComponents component,
+                                   ComposeRule rule)
+        throws java.sql.SQLException
+    {
+        return buildName(provider, component, rule, false);
+    }
+
+    public static String buildName(DriverProvider provider,
+                                   NamedComponents component,
+                                   ComposeRule rule,
+                                   boolean sensitive)
+        throws java.sql.SQLException
+    {
+        return buildName(provider, component.getCatalogName(), component.getSchemaName(), component.getTableName(), rule, sensitive);
+    }
+
+    public static String buildName(DriverProvider provider,
                                    String catalog,
                                    String schema,
                                    String table,
                                    ComposeRule rule)
         throws java.sql.SQLException
     {
-        return buildName(provider,
-                         catalog,
-                         schema,
-                         table,
-                         rule,
-                         false);
+        return buildName(provider, catalog, schema, table, rule, false);
     }
 
     public static String buildName(DriverProvider provider,
@@ -253,12 +281,7 @@ public class DBTools
         throws java.sql.SQLException
     {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
-        return doComposeTableName(provider,
-                                  support,
-                                  catalog,
-                                  schema,
-                                  table,
-                                  sensitive);
+        return doComposeTableName(provider, support, catalog, schema, table, sensitive);
     }
 
     public static String composeTableName(DriverProvider provider,
@@ -270,12 +293,12 @@ public class DBTools
         throws java.sql.SQLException
     {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
-        NameComponents component = getTableNameComponents(provider, table);
+        NamedComponents component = getTableNamedComponents(provider, table);
         return doComposeTableName(provider,
                                   support,
-                                  catalog ? component.getCatalog() : "",
-                                  schema ? component.getSchema() : "",
-                                  component.getTable(),
+                                  catalog ? component.getCatalogName() : "",
+                                  schema ? component.getSchemaName() : "",
+                                  component.getTableName(),
                                   sensitive);
     }
 
@@ -285,13 +308,13 @@ public class DBTools
                                           boolean sensitive)
         throws java.sql.SQLException
     {
-        NameComponents component = getTableNameComponents(provider, table);
+        NamedComponents component = getTableNamedComponents(provider, table);
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         return doComposeTableName(provider,
                                   support,
-                                  support.useCatalogs ? component.getCatalog() : "",
-                                  support.useSchemas ? component.getSchema() : "",
-                                  component.getTable(),
+                                  support.useCatalogs ? component.getCatalogName() : "",
+                                  support.useSchemas ? component.getSchemaName() : "",
+                                  component.getTableName(),
                                   sensitive);
     }
 
@@ -301,12 +324,12 @@ public class DBTools
                                           boolean sensitive)
         throws java.sql.SQLException
     {
-        NameComponents component = getTableNameComponents(provider, table);
+        NamedComponents component = getTableNamedComponents(provider, table);
         return doComposeTableName(provider,
                                   support,
-                                  support.useCatalogs ? component.getCatalog() : "",
-                                  support.useSchemas ? component.getSchema() : "",
-                                  component.getTable(),
+                                  support.useCatalogs ? component.getCatalogName() : "",
+                                  support.useSchemas ? component.getSchemaName() : "",
+                                  component.getTableName(),
                                   sensitive);
     }
 
@@ -380,19 +403,20 @@ public class DBTools
                                                    boolean sensitive)
         throws java.sql.SQLException
     {
-        NameComponents component = getTableNameComponents(provider, table);
-        return composeTableNameForSelect(provider, component.getCatalog(), component.getSchema(), component.getTable(), sensitive);
+        NamedComponents component = getTableNamedComponents(provider, table);
+        return composeTableNameForSelect(provider, component.getCatalogName(), component.getSchemaName(), component.getTableName(), sensitive);
     }
 
-    public static NameComponents getTableNameComponents(DriverProvider provider,
+    public static NamedComponents getTableNamedComponents(DriverProvider provider,
                                                         XPropertySet table)
     {
-        NameComponents component = new NameComponents();
+        NamedComponents component = new NamedComponents();
         XPropertySetInfo info = table.getPropertySetInfo();
         if (info != null && hasDescriptorProperty(info, PropertyIds.NAME)) {
-            if (hasDescriptorProperty(info, PropertyIds.CATALOGNAME) &&
-                hasDescriptorProperty(info, PropertyIds.SCHEMANAME)) {
+            if (hasDescriptorProperty(info, PropertyIds.CATALOGNAME)) {
                 component.setCatalog(getDescriptorStringValue(table, PropertyIds.CATALOGNAME));
+            }
+            if (hasDescriptorProperty(info, PropertyIds.SCHEMANAME)) {
                 component.setSchema(getDescriptorStringValue(table, PropertyIds.SCHEMANAME));
             }
             component.setTable(getDescriptorStringValue(table, PropertyIds.NAME));
@@ -426,8 +450,8 @@ public class DBTools
         throws java.sql.SQLException
     {
         if (sensitive) {
-            NameComponents nameComponents = qualifiedNameComponents(provider, name, rule);
-            name = composeTableName(provider, nameComponents.getCatalog(), nameComponents.getSchema(), nameComponents.getTable(), true, rule);
+            NamedComponents nameComponents = qualifiedNameComponents(provider, name, rule);
+            name = composeTableName(provider, nameComponents.getCatalogName(), nameComponents.getSchemaName(), nameComponents.getTableName(), true, rule);
         }
         return name;
     }
@@ -447,12 +471,12 @@ public class DBTools
      * @param rule       where do you need the name for
      * @return the NameComponents object with the catalog, schema and table
      */
-    public static NameComponents qualifiedNameComponents(DriverProvider provider,
+    public static NamedComponents qualifiedNameComponents(DriverProvider provider,
                                                          String name,
                                                          ComposeRule rule)
         throws java.sql.SQLException
     {
-        NameComponents component = new NameComponents();
+        NamedComponents component = new NamedComponents();
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         String separator = provider.getCatalogSeparator();
         String buffer = name;
@@ -520,13 +544,13 @@ public class DBTools
      *   The CREATE VIEW statement.
      */
     public static String getCreateViewQuery(DriverProvider provider,
-                                            NameComponents component,
+                                            NamedComponents component,
                                             String command,
                                             ComposeRule rule,
                                             boolean sensitive)
         throws java.sql.SQLException
     {
-        String name = composeTableName(provider, component.getCatalog(), component.getSchema(), component.getTable(), sensitive, rule);
+        String name = composeTableName(provider, component.getCatalogName(), component.getSchemaName(), component.getTableName(), sensitive, rule);
         return getCreateViewQuery(name, command);
     }
 
@@ -722,7 +746,7 @@ public class DBTools
                                                String table)
     throws java.sql.SQLException
     {
-        NameComponents component = new NameComponents(catalog, schema, table);
+        NamedComponents component = new NamedComponents(catalog, schema, table);
         return getTableOrViewPrivileges(provider, grantees, component);
     }
 
@@ -731,13 +755,13 @@ public class DBTools
                                                String name)
     throws java.sql.SQLException
     {
-        NameComponents component = qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
+        NamedComponents component = qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
         return getTableOrViewPrivileges(provider, grantees, component);
     }
 
     public static int getTableOrViewPrivileges(DriverProvider provider,
                                                List<String> grantees,
-                                               NameComponents component)
+                                               NamedComponents component)
     throws java.sql.SQLException
     {
         String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE ";
@@ -749,34 +773,34 @@ public class DBTools
                                                         String name)
     throws java.sql.SQLException
     {
-        NameComponents component = DBTools.qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
+        NamedComponents component = DBTools.qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
         String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
         return _getTableOrViewPrivileges(provider, grantees, component, sql);
     }
 
     private static int _getTableOrViewPrivileges(DriverProvider provider,
                                                  List<String> grantees,
-                                                 NameComponents component,
+                                                 NamedComponents component,
                                                  String sql)
         throws java.sql.SQLException
     {
         int privilege = 0;
-        if (!component.getCatalog().isEmpty()) {
+        if (!component.getCatalogName().isEmpty()) {
             sql += "TABLE_CATALOG = ? AND ";
         }
-        if (!component.getSchema().isEmpty()) {
+        if (!component.getSchemaName().isEmpty()) {
             sql += "TABLE_SCHEMA = ? AND ";
         }
         sql += String.format("TABLE_NAME = ? AND GRANTEE IN (%s)", String.join(", ", new ArrayList<>(Collections.nCopies(grantees.size(), "?"))));
         try (java.sql.PreparedStatement statement = provider.getConnection().prepareStatement(sql)){
             int next = 1;
-            if (!component.getCatalog().isEmpty()) {
-                statement.setString(next++, component.getCatalog());
+            if (!component.getCatalogName().isEmpty()) {
+                statement.setString(next++, component.getCatalogName());
             }
-            if (!component.getSchema().isEmpty()) {
-                statement.setString(next++, component.getSchema());
+            if (!component.getSchemaName().isEmpty()) {
+                statement.setString(next++, component.getSchemaName());
             }
-            statement.setString(next++, component.getTable());
+            statement.setString(next++, component.getTableName());
             for (String grantee : grantees) {
                 statement.setString(next++, grantee);
             }

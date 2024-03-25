@@ -154,8 +154,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             ColumnDescription description = m_descriptions.get(name);
             if (description == null) {
                 // could be a recently added column. Refresh:
-                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(provider, m_table.getCatalog(),
-                                                                                m_table.getSchema(), m_table.getName());
+                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(provider, m_table.getNamedComponents());
                 for (ColumnDescription newcolumn : newcolumns) {
                     if (newcolumn.columnName.equals(name)) {
                         m_descriptions.put(name, newcolumn);

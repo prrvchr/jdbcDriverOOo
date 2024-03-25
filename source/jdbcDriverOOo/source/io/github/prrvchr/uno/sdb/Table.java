@@ -248,15 +248,15 @@ public final class Table
 
     protected String getCatalogName()
     {
-        return super.getCatalogName();
+        return m_CatalogName;
     }
     protected String getSchemaName()
     {
-        return super.getSchemaName();
+        return m_SchemaName;
     }
     protected String getName()
     {
-        return super.getName();
+        return m_Name;
     }
 
 

@@ -32,7 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.DBTools.NameComponents;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 
 
 public final class TableContainer
@@ -58,12 +58,12 @@ public final class TableContainer
         return new TableDescriptor(isCaseSensitive());
     }
 
-    protected Table getTable(NameComponents component,
+    protected Table getTable(NamedComponents component,
                              String type,
                              String remarks)
     {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
-        Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalog(), component.getSchema(), component.getTable(), type, remarks);
+        Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalogName(), component.getSchemaName(), component.getTableName(), type, remarks);
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
         return table;
     }
