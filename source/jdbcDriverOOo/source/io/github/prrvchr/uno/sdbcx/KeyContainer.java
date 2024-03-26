@@ -28,11 +28,14 @@ package io.github.prrvchr.uno.sdbcx;
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
@@ -117,16 +120,67 @@ public final class KeyContainer
         throws SQLException
     {
         Key key = null;
-        DBTools.printDescriptor(descriptor);
-        String name = getElementName(descriptor);
-        if (createKey(descriptor, name)) {
-            key = createElement(descriptor, name);
-            //m_table.getIndexesInternal().refresh();
+        try {
+            System.out.println("sdbcx.KeyContainer.appendElement() 1");
+            boolean failed = false;
+            ColumnSuper<?> col1 = null;
+            ColumnSuper<?> col2 = null;
+            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+            // XXX: For foreign keys, we check if the type between the foreign key and the primary key is the same.
+            if (type == KeyType.FOREIGN) {
+                try {
+                    System.out.println("sdbcx.KeyContainer.appendElement() 2");
+                    Map<String, String> columns = new TreeMap<>();
+                    String table = DBKeyHelper.getKeyFromDescriptor(getConnection().getProvider(), descriptor, columns);
+                    System.out.println("sdbcx.KeyContainer.appendElement() 3 Table: " + table + " ********************************** ");
+                    ColumnContainerBase<?> columns1 = m_table.getColumnsInternal();
+                    TableContainerSuper<?, ?> tables = m_table.getConnection().getTablesInternal();
+                    System.out.println("sdbcx.KeyContainer.appendElement() 3");
+                    if (tables.hasByName(table)) {
+                        ColumnContainerBase<?> columns2 = tables.getElement(table).getColumnsInternal();
+                        for (String foreign : columns.keySet()) {
+                            System.out.println("sdbcx.KeyContainer.appendElement() 3");
+                            String column = columns.get(foreign);
+                            System.out.println("sdbcx.KeyContainer.appendElement() 4");
+                            if (column != null && columns1.hasByName(foreign) && columns2.hasByName(column)) {
+                                System.out.println("sdbcx.KeyContainer.appendElement() 5");
+                                col1 = columns1.getElement(foreign);
+                                col2 = columns2.getElement(column);
+                                System.out.println("sdbcx.KeyContainer.appendElement() 6");
+                                if (col1.m_Type != col2.m_Type) {
+                                    System.out.println("sdbcx.KeyContainer.appendElement() 7");
+                                    failed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (java.lang.Exception e) {
+                    e.printStackTrace();
+                    throw e;
+                }
+            }
+            if (failed) {
+                System.out.println("sdbcx.KeyContainer.appendElement() 8");
+                int resource = Resources.STR_LOG_FKEY_ADD_INVALID_COLUMN_TYPE_ERROR;
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName(), col1.m_TypeName, col1.m_Name, col2.m_TypeName, col2.m_Name);
+                throw new SQLException(msg, this, StandardSQLState.SQL_INVALID_SQL_DATA_TYPE.text(), 0, Any.VOID);
+            }
+
+            String name = getElementName(descriptor);
+            if (createNewKey(descriptor, name)) {
+                key = createNewElement(descriptor, name);
+            }
+        }
+        catch (WrappedTargetException | NoSuchElementException e) {
+            int resource = Resources.STR_LOG_FKEY_ADD_UNSPECIFIED_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName());
+            throw new SQLException(msg, this, StandardSQLState.SQL_INVALID_SQL_DATA_TYPE.text(), 0, e);
         }
         return key;
     }
 
-    private boolean createKey(XPropertySet descriptor, String key)
+    private boolean createNewKey(XPropertySet descriptor, String key)
             throws SQLException
     {
         String query = null;
@@ -182,7 +236,7 @@ public final class KeyContainer
         return resource;
     }
 
-    private Key createElement(XPropertySet descriptor, String oldname)
+    private Key createNewElement(XPropertySet descriptor, String oldname)
         throws SQLException
     {
         try {

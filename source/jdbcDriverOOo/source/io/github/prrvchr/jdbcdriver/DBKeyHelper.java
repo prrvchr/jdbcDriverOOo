@@ -30,9 +30,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.NoSuchElementException;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
+import com.sun.star.sdbcx.XColumnsSupplier;
+import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.uno.sdbcx.Key;
@@ -41,6 +47,29 @@ import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 public class DBKeyHelper
 {
+
+    public static String getKeyFromDescriptor(DriverProvider provider,
+                                              XPropertySet descriptor,
+                                              Map<String, String> ref)
+    throws WrappedTargetException, NoSuchElementException
+    {
+        String table = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
+        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+        if (supplier != null) {
+            XNameAccess columns = UnoRuntime.queryInterface(XNameAccess.class, supplier.getColumns());
+            for (String foreign : columns.getElementNames()) {
+                if (columns.hasByName(foreign)) {
+                    XPropertySet column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByName(foreign));
+                    if (column != null) {
+                        String primay = DBTools.getDescriptorStringValue(column, PropertyIds.RELATEDCOLUMN);
+                        ref.put(foreign, primay);
+                    }
+                }
+            }
+        }
+        return table;
+    }
+
 
     public static List<String> refreshKeys(DriverProvider provider,
                                            NamedComponents table)

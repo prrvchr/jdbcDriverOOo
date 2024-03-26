@@ -452,6 +452,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
   - Lorsque vous renommez une table, cela renommera également le référencement de cette table dans les éventuelles clés étrangères pointant vers cette table.
   - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne.
   - Ces mises à jour de clés étrangères prennent en compte le chargement paresseux des conteneurs des tables et des clés et ne seront effectuées que si Base a déjà accédé aux données impliquées.
+  - Un problème persiste lors de la création de clés étrangères entre des tables qui n'ont pas le même catalogue et/ou schéma, voir [dysfonctionnement #160375][92]. Ce problème semble être lié à Base, j'espère qu'il sera résolu rapidement.
 - Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le pilote sous-jacent.
 - De nombreuses corrections et améliorations.
 
@@ -554,3 +555,4 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L178>
 [90]: <https://github.com/FirebirdSQL/jaybird/issues/791>
 [91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L276>
+[92]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160375>

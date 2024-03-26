@@ -270,8 +270,10 @@ public class Resources {
     public static final int STR_LOG_KEYS_REMOVE_FKEY_QUERY                     = (STR_JDBC_LOG_MESSAGE_BASE +  652);
     public static final int STR_LOG_KEYS_REMOVE_FKEY_QUERY_ERROR               = (STR_JDBC_LOG_MESSAGE_BASE +  653);
 
-    public static final int STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  655);
-    public static final int STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  656);
+    public static final int STR_LOG_FKEY_ADD_INVALID_COLUMN_TYPE_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  655);
+    public static final int STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE +  656);
+    public static final int STR_LOG_FKEY_ADD_UNSPECIFIED_ERROR                 = (STR_JDBC_LOG_MESSAGE_BASE +  657);
+    public static final int STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR      = (STR_JDBC_LOG_MESSAGE_BASE +  658);
 
     public static final int STR_LOG_CREATE_INDEXES                             = (STR_JDBC_LOG_MESSAGE_BASE +  660);
     public static final int STR_LOG_CREATED_INDEXES_ID                         = (STR_JDBC_LOG_MESSAGE_BASE +  661);

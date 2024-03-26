@@ -48,7 +48,6 @@ public final class ResultSet
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement);
-        System.out.println("sdbc.ResultSet() 1");
     }
 
 }
