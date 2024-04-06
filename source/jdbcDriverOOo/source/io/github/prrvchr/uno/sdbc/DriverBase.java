@@ -380,7 +380,7 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("AddIndexAppendix", "Add an appendix (ASC or DESC) when creating the index.", true, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.", true, "", new String[0]));
-        properties.add(new DriverPropertyInfo("PrivilegesMapping", "Lists privileges supported by the underlying driver.", true, "", new String[0]));
+        properties.add(new DriverPropertyInfo("TablePrivilegesSettings", "Lists privileges supported by the underlying driver.", true, "", new String[0]));
         return properties.toArray(new DriverPropertyInfo[0]);
     }
 

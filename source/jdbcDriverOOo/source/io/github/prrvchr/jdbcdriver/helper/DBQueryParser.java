@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import java.util.Arrays;
 import java.util.List;

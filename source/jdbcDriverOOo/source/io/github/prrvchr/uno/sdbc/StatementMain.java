@@ -43,7 +43,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;

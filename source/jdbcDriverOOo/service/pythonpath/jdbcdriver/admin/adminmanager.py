@@ -83,7 +83,7 @@ class AdminManager(unohelper.Base):
         self._ctx = ctx
         datasource = connection.getParent().Name
         tables = connection.getTables()
-        columns = self._getPrivilegesMapping(connection)
+        columns = self._getTablePrivilegesSetting(connection)
         self._columns = tuple(columns.keys())
         self._flags = tuple(columns.values())
         self._view = view
@@ -249,21 +249,25 @@ class AdminManager(unohelper.Base):
                     print("setPrivilege() Error: %s" % e.Message)
         dialog.dispose()
 
-    def _getPrivilegesMapping(self, connection):
+    def _getTablePrivilegesSetting(self, connection):
         columns = OrderedDict()
         for info in connection.getMetaData().getConnectionInfo():
-            if info.Name == 'PrivilegesMapping':
+            if info.Name == 'TablePrivilegesSettings':
                 index = 0
-                map = info.Value
-                count = self._getEvenLength(len(map))
+                infos = info.Value
+                count = self._getEvenLength(len(infos))
                 while index < count:
-                    columns[map[index].title()] = int(map[index + 1])
+                    key = infos[index].strip()
+                    value = infos[index + 1]
+                    if key and value.isdigit():
+                        columns[key.title()] = int(value)
                     index += 2
-                break
+                if len(columns):
+                    break
         else:
-            columns = {'Select': SELECT, 'Insert': INSERT, 'Update': UPDATE,
-                       'Delete': DELETE, 'Read': READ, 'Create': CREATE,
-                       'Alter': ALTER, 'References': REFERENCE, 'Drop': DROP}
+            columns = {'Select': SELECT, 'Insert':     INSERT,    'Update': UPDATE,
+                       'Delete': DELETE, 'Read':       READ,      'Create': CREATE,
+                       'Alter':  ALTER,  'References': REFERENCE, 'Drop':   DROP}
         return columns
 
     def _getEvenLength(self, length):

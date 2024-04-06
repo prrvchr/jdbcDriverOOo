@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
@@ -33,8 +34,8 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBRoleHelper;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -138,7 +139,10 @@ public class GroupContainer
             query = DBRoleHelper.getDropGroupQuery(provider, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
-            DBTools.executeDDLQuery(provider, query);
+            if (DBTools.executeDDLQuery(provider, query)) {
+                // XXX: A role has just been deleted, it should also be deleted from any member user...
+                m_connection.getUsersInternal().removeRole(name);
+            }
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
@@ -167,5 +171,17 @@ public class GroupContainer
         return new GroupDescriptor(isCaseSensitive());
     }
 
+    protected void removeRole(String name)
+        throws SQLException
+    {
+        Iterator<Group> groups = getActiveElements();
+        while (groups.hasNext()) {
+            Users users = groups.next().getUsersInternal();
+            if (users.hasByName(name)) {
+                System.out.println("sdb.GroupContainer.removeRole() Role: " + name);
+                users.removeElement(name);
+            }
+        }
+    }
 
 }

@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.3.0][5]
+# version [1.3.1][5]
 
 ## Introduction:
 
@@ -39,12 +39,12 @@ Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l
 Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][13] version 2.7.2
-- [SQLite JDBC Driver][14] version 3.45.1.6-SNAPSHOT
-- [MariaDB Connector/J][15] version 3.3.3
-- [PostgreSQL JDBC Driver][16] version 42.7.1
+- [SQLite via xerial sqlite-jdbc][14] version 3.45.1.6-SNAPSHOT
+- [MariaDB via Connector/J][15] version 3.3.3
+- [PostgreSQL via pgJDBC][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [Jaybird][19] version 5.0.4
+- [Firebird via Jaybird][19] version 5.0.4
 
 Etant un logiciel libre je vous encourage:
 - A dupliquer son [code source][20].
@@ -458,7 +458,15 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.star.sdbc][10], [sdbcx][11] et [sdb][12]), ce qui à pris pas mal de temps, mais je ne pensais pas au départ y arriver.
 
-### Que reste-t-il à faire pour la version 1.3.0:
+### Ce qui a été fait pour la version 1.3.1:
+
+- Mise en place de [jeu de resultats simulé][93] (ResultSet) permettant de produire des ResultSet à partir des données de connexion fourni par le pilote, plus exactement à partir du [fichier Drivers.xcu][80]. L'utilisation de ces resultset simulé permet de fournir à Base des resultset conforme à ce qu'il attend même si le pilote sous jancent n'est pas capable de les produire. Ils servent à patcher les résultats obtenus les méthodes `getTypeInfo()` et `getTablePrivileges()` de l'interface UNO XDatabaseMetaData en utilisant les propriétés `TypeInfoSettings` et `TablePrivilegesSettings` du fichier Drivers.xcu.
+- Ecriture d'un [conteneur specifique][94] pour la gestion des utilisateurs d'un role ou des roles d'un role. Ce conteneur n'est qu'un pointeur vers les elements des conteneurs utilisateur et/ou role de la base de données. Lors de la suppression d'un utilisateur ou d'un rôle, ce conteneur sera mis à jour si nécessaire.
+- Réécriture des fenêtres **Administration des utilisateurs** et **Administration des groupes** accessibles dans le menu **Administration** de Base. Désormais, seuls les privilèges pris en charge par le pilote sous-jacent seront affichés. Cela permet une utilisation plus facile. Une [demande d'amélioration #160516][95] a été faite afin d'intégrer cette possibilité dans le code de Base.
+- Intégration de tous les pilotes embarqués dans l'extension (hors SQLite) dans la gestion des utilisateurs, rôles et privilèges. Je suppose que de nombreux dysfonctionnements restent à corriger, merci de me le faire savoir, détecter les dysfonctionnements me prend plus de temps que les corriger....
+- De nombreuses corrections et améliorations...
+
+### Que reste-t-il à faire pour la version 1.3.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -556,3 +564,6 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [90]: <https://github.com/FirebirdSQL/jaybird/issues/791>
 [91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L276>
 [92]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160375>
+[93]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset>
+[94]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
+[95]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>

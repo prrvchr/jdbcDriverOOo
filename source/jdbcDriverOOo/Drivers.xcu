@@ -366,7 +366,7 @@
                         <value>-1</value>
                     </prop>
                 </node>
-                <node oor:name="PrivilegesMapping" oor:op="replace">
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
                     </prop>
@@ -511,7 +511,7 @@
                         <value>-1</value>
                     </prop>
                 </node>
-                <node oor:name="PrivilegesMapping" oor:op="replace">
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8</value>
                     </prop>
@@ -635,7 +635,7 @@
                         <value>false</value>
                     </prop>
                 </node>
-                <node oor:name="PrivilegesMapping" oor:op="replace">
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|CREATE|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
                     </prop>
@@ -754,7 +754,7 @@
                         <value>false</value>
                     </prop>
                 </node>
-                <node oor:name="PrivilegesMapping" oor:op="replace">
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|CREATE|32|TRUNCATE|64|REFERENCES|128|TRIGGER|512</value>
                     </prop>
@@ -1000,7 +1000,7 @@
                         <value>-1</value>
                     </prop>
                 </node>
-                <node oor:name="PrivilegesMapping" oor:op="replace">
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128|TRIGGER|256</value>
                     </prop>
@@ -1122,7 +1122,7 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="PrivilegesMapping" oor:op="replace">
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
                     </prop>

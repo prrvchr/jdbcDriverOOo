@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
@@ -33,8 +34,8 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBRoleHelper;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -148,7 +149,10 @@ public class UserContainer
             query = DBRoleHelper.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
-            DBTools.executeDDLQuery(m_connection.getProvider(), query);
+            if (DBTools.executeDDLQuery(m_connection.getProvider(), query)) {
+                // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
+                m_connection.getGroupsInternal().removeRole(name);
+            }
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
@@ -174,6 +178,19 @@ public class UserContainer
     protected XPropertySet createDescriptor()
     {
         return new UserDescriptor(isCaseSensitive());
+    }
+
+    protected void removeRole(String name)
+        throws SQLException
+    {
+        Iterator<User> users = getActiveElements();
+        while (users.hasNext()) {
+            Groups groups = users.next().getGroupsInternal();
+            if (groups.hasByName(name)) {
+                System.out.println("sdb.UserContainer.removeRole() Role: " + name);
+                groups.removeElement(name);
+            }
+        }
     }
 
 

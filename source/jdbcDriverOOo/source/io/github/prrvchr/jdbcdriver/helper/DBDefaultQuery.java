@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 public class DBDefaultQuery {
 

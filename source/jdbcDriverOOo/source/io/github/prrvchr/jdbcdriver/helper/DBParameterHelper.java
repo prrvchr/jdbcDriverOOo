@@ -23,14 +23,16 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
 public class DBParameterHelper
 {

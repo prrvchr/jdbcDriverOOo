@@ -32,7 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 

@@ -39,6 +39,8 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.resultset.TypeInfoResultSet;
 import io.github.prrvchr.jdbcdriver.resultset.TypeInfoRows;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
@@ -844,7 +846,7 @@ public abstract class DriverProviderMain
                 info.Name.equals("PreferDosLikeLineEnds") ||
                 info.Name.equals("PrimaryKeySupport") ||
                 info.Name.equals("RespectDriverResultSetType") ||
-                info.Name.equals("PrivilegesMapping") ||
+                info.Name.equals("TablePrivilegesSettings") ||
 
                 info.Name.equals("DriverLoggerLevel") ||
                 info.Name.equals("InMemoryDataBase") ||
@@ -914,7 +916,7 @@ public abstract class DriverProviderMain
             case "TypeInfoSettings":
                 m_TypeInfoSettings = (Object[]) info.Value;
                 break;
-            case "PrivilegesMapping":
+            case "TablePrivilegesSettings":
                 privileges = (Object[]) info.Value;
                 break;
             case "AutoIncrementCreation":

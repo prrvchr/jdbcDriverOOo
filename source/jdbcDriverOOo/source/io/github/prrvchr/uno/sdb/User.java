@@ -28,7 +28,7 @@ package io.github.prrvchr.uno.sdb;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
-import io.github.prrvchr.jdbcdriver.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;

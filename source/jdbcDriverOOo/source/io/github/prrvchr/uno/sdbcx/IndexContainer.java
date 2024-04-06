@@ -44,10 +44,10 @@ import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBDefaultQuery;
-import io.github.prrvchr.jdbcdriver.DBIndexHelper;
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.helper.DBIndexHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;

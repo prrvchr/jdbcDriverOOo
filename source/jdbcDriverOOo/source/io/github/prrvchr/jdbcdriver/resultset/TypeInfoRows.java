@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 
 
 public class TypeInfoRows

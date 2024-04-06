@@ -43,7 +43,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +52,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 

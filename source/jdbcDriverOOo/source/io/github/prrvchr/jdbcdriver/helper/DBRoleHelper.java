@@ -43,10 +43,13 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
+
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 
 
 public class DBRoleHelper

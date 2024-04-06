@@ -118,4 +118,9 @@ public final class Group
                     Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY;
     }
 
+    protected Users getUsersInternal()
+    {
+        return m_users;
+    }
+
 }

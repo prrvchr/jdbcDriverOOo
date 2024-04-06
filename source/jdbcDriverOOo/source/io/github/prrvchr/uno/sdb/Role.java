@@ -37,11 +37,11 @@ import com.sun.star.sdbcx.XGroupsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBPrivilegesHelper;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.SharedResources;
@@ -215,6 +215,11 @@ public abstract class Role
         catch (ElementExistException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
+    }
+
+    protected Groups getGroupsInternal()
+    {
+        return m_groups;
     }
 
     abstract protected int getGrantPrivilegesResource(boolean error);

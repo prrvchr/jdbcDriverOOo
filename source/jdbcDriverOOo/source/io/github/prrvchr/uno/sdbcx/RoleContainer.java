@@ -54,7 +54,7 @@ import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -172,7 +172,7 @@ public abstract class RoleContainer<T extends Role, R extends Role>
                WrappedTargetException
     {
         synchronized (m_lock) {
-            if (!hasByName(name)) {
+            if (!m_Names.contains(name)) {
                 throw new NoSuchElementException();
             }
         }
@@ -218,9 +218,13 @@ public abstract class RoleContainer<T extends Role, R extends Role>
         if (index < 0 || index >= getCount()) {
             throw new IndexOutOfBoundsException();
         }
+        String name = m_Names.get(index);
+        if (!m_roles.hasByName(name)) {
+            throw new IndexOutOfBoundsException();
+        }
         Object element = null;
         try {
-            element = m_roles.getElement(m_Names.get(index));
+            element = m_roles.getElement(name);
         }
         catch (SQLException e) {
             // TODO Auto-generated catch block
@@ -356,11 +360,12 @@ public abstract class RoleContainer<T extends Role, R extends Role>
 
     protected void removeElement(String name)
     {
-        m_Names.remove(name);
-        ContainerEvent event = new ContainerEvent(this, name, null, null);
-        for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext(); ) {
-            XContainerListener listener = (XContainerListener) iterator.next();
-            listener.elementRemoved(event);
+        if (m_Names.remove(name)) {
+            ContainerEvent event = new ContainerEvent(this, name, null, null);
+            for (Iterator<?> iterator = m_container.iterator(); iterator.hasNext(); ) {
+                XContainerListener listener = (XContainerListener) iterator.next();
+                listener.elementRemoved(event);
+            }
         }
     }
 

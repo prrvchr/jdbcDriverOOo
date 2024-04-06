@@ -37,11 +37,11 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
-import io.github.prrvchr.jdbcdriver.DBPrivilegesHelper;
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;

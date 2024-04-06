@@ -23,58 +23,63 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
 
-public class TypeMap
+public class DBIndexHelper
 {
 
-    public static Map<String, Class<?>> getDefaultTypeMap()
+    public static ArrayList<String> readIndexes(DriverProvider provider,
+                                                NamedComponents table,
+                                                boolean qualified)
+        throws java.sql.SQLException
     {
-        final Map<String, Class<?>> typemap = new HashMap<>();
-        typemap.put("ARRAY", java.sql.Array.class);
-        typemap.put("BIGINT", Long.class);
-        typemap.put("BINARY", byte[].class);
-        typemap.put("BIT", Boolean.class);
-        typemap.put("BLOB", java.sql.Blob.class);
-        typemap.put("BOOLEAN", Boolean.class);
-        typemap.put("CHAR", String.class);
-        typemap.put("CLOB", java.sql.Clob.class);
-        typemap.put("DATALINK", java.net.URL.class);
-        typemap.put("DATE", java.sql.Date.class);
-        typemap.put("DECIMAL", java.math.BigDecimal.class);
-        typemap.put("DISTINCT", Object.class);
-        typemap.put("DOUBLE", Double.class);
-        typemap.put("FLOAT", Double.class);
-        typemap.put("INTEGER", Integer.class);
-        typemap.put("JAVA_OBJECT", Object.class);
-        typemap.put("LONGNVARCHAR", String.class);
-        typemap.put("LONGVARBINARY", byte[].class);
-        typemap.put("LONGVARCHAR", String.class);
-        typemap.put("NCHAR", String.class);
-        typemap.put("NCLOB", java.sql.NClob.class);
-        typemap.put("NULL", Void.class);
-        typemap.put("NUMERIC", java.math.BigDecimal.class);
-        typemap.put("NVARCHAR", String.class);
-        typemap.put("OTHER", Object.class);
-        typemap.put("REAL", Float.class);
-        typemap.put("REF", java.sql.Ref.class);
-        typemap.put("REF_CURSOR", java.lang.Object.class);
-        typemap.put("ROWID", java.sql.RowId.class);
-        typemap.put("SMALLINT", Integer.class);
-        typemap.put("SQLXML", java.sql.SQLXML.class);
-        typemap.put("STRUCT", java.sql.Struct.class);
-        typemap.put("TIME", java.sql.Time.class);
-        typemap.put("TIMESTAMP", java.sql.Timestamp.class);
-        typemap.put("TIMESTAMP_WITH_TIMEZONE", java.time.OffsetDateTime.class);
-        typemap.put("TIME_WITH_TIMEZONE", java.time.OffsetTime.class);
-        typemap.put("TINYINT", Integer.class);
-        typemap.put("VARBINARY", byte[].class);
-        typemap.put("VARCHAR", String.class);
-        return typemap;
+        ArrayList<String> names = new ArrayList<>();
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        String separator = metadata.getCatalogSeparator();
+        try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getTable(), false, false))
+        {
+            String previous = "";
+            while (result.next()) {
+                StringBuilder buffer = new StringBuilder();
+                if (qualified) {
+                    String qualifier = result.getString(5);
+                    if (!result.wasNull() && !qualifier.isEmpty()) {
+                        buffer.append(qualifier);
+                        buffer.append(separator);
+                    }
+                }
+                buffer.append(result.getString(6));
+                String name = buffer.toString();
+                // XXX: Don't insert the name if the last one we inserted was the same
+                if (!result.wasNull() && !name.isEmpty() && !previous.equals(name)) {
+                    names.add(name);
+                    previous = name;
+                }
+            }
         }
+        return names;
+    }
+
+    public static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,
+                                            NamedComponents table,
+                                            String name)
+        throws java.sql.SQLException
+    {
+        boolean primary = false;
+        try (java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable()))
+        {
+            // XXX: There can be only one primary key
+            if (result.next()) {
+                primary = name.equals(result.getString(6));
+            }
+        }
+        return primary;
+    }
 
 }

@@ -58,7 +58,7 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.ServiceInfo;

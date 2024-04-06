@@ -39,9 +39,9 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBParameterHelper;
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.helper.DBParameterHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;

@@ -46,11 +46,11 @@ import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBConstraintHelper;
-import io.github.prrvchr.jdbcdriver.DBKeyHelper;
-import io.github.prrvchr.jdbcdriver.DBTools;
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBConstraintHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBKeyHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;

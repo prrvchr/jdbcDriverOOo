@@ -43,14 +43,16 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
 
 public class DBPrivilegesHelper
@@ -66,7 +68,7 @@ public class DBPrivilegesHelper
     {
         Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, grantee, rule, sensitive);
         String query = provider.getGrantPrivilegesQuery(arguments);
-        System.out.println("DBTablePrivilegesHelper.getGrantPrivilegesQuery() SQL: " + query);
+        System.out.println("DBPrivilegesHelper.getGrantPrivilegesQuery() SQL: " + query);
         return query;
     }
 
@@ -80,16 +82,16 @@ public class DBPrivilegesHelper
     {
         Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, grantee, rule, sensitive);
         String query = provider.getRevokePrivilegesQuery(arguments);
-        System.out.println("DBTablePrivilegesHelper.getRevokePrivilegesQuery() SQL: " + query);
+        System.out.println("DBPrivilegesHelper.getRevokePrivilegesQuery() SQL: " + query);
         return query;
     }
 
-    /** get Privileges on a Table for a list of grantees
+    /** get Privileges on a Table for a grantee
     *
     * @param provider
     *    The driver provider.
-    * @param grantees
-    *    The list of grantee.
+    * @param grantee
+    *    The grantee.
     * @param table
     *    The named components of the table.
     * @param rule
@@ -114,12 +116,12 @@ public class DBPrivilegesHelper
         return getPrivileges(provider, grantee, positions.get(0), query, table, rule);
     }
 
-    /** get Grantable Privileges on a Table for a list of grantees
+    /** get Grantable Privileges on a Table for a grantee
     *
     * @param provider
     *    The driver provider.
-    * @param grantees
-    *    The list of grantee.
+    * @param grantee
+    *    The grantee.
     * @param table
     *    The named components of the table.
     * @param rule

@@ -34,7 +34,7 @@ import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.sdbcx.TableContainerSuper;
 import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 

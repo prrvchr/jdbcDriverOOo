@@ -33,8 +33,8 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -121,6 +121,12 @@ public final class Groups
         String query = DBRoleHelper.getRevokeRoleQuery(getProvider(), name, role, isCaseSensitive());
         System.out.println("sdb.Groups.getRevokeRoleQuery() SQL: " + query);
         return query;
+    }
+
+    @Override
+    protected void removeElement(String name)
+    {
+        super.removeElement(name);
     }
 
 }

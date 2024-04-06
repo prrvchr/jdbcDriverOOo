@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,10 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
 
 public class DBConstraintHelper
 {

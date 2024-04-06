@@ -35,7 +35,7 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSet;
 import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSetBase;

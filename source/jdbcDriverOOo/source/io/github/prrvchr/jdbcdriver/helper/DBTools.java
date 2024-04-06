@@ -43,7 +43,7 @@
  * under the License.
  * 
  *************************************************************/
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.jdbcdriver.helper;
 
 import java.io.InputStream;
 import java.sql.RowIdLifetime;
@@ -84,6 +84,12 @@ import io.github.prrvchr.css.util.DateTimeWithTimezone;
 import io.github.prrvchr.css.util.DateWithTimezone;
 import io.github.prrvchr.css.util.Time;
 import io.github.prrvchr.css.util.TimeWithTimezone;
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 

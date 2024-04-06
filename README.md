@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.3.0][5]
+# version [1.3.1][5]
 
 ## Introduction:
 
@@ -39,12 +39,12 @@ This extension is the transcription in pure Java of the [java.sql.*][9] API to t
 It allows you to use the JDBC driver of your choice directly in Base.  
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][13] version 2.7.2
-- [SQLite JDBC Driver][14] version 3.45.1.6-SNAPSHOT
-- [MariaDB Connector/J][15] version 3.3.3
-- [PostgreSQL JDBC Driver][16] version 42.7.1
+- [SQLite via xerial sqlite-jdbc][14] version 3.45.1.6-SNAPSHOT
+- [MariaDB via Connector/J][15] version 3.3.3
+- [PostgreSQL via pgJDBC][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [Jaybird][19] version 5.0.4
+- [Firebird via Jaybird][19] version 5.0.4
 
 Being free software I encourage you:
 - To duplicate its [source code][20].
@@ -458,7 +458,15 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 
 Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc][10], [sdbcx][11] and [sdb][12]), which took quite a while, but I didn't initially think I would get there.  
 
-### What remains to be done for version 1.3.0:
+### What has been done for version 1.3.1:
+
+- Setting up [mock ResultSet][93] to produce ResultSets from connection data provided by the driver, more precisely from the [Drivers.xcu file][80]. The use of these simulated resultsets makes it possible to provide Base with resultsets conforming to what it expects even if the underlying driver is not capable of producing them. They are used to patch the results obtained from the getTypeInfo() and getTablePrivileges() methods of the UNO XDatabaseMetaData interface using the `TypeInfoSettings` and `PrivilegesMapping` properties of the Drivers.xcu file.
+- Writing a [specific container][94] for managing the users of a role or the roles of a role. This container is just a pointer to the elements of the user and/or role containers in the database. When deleting a user or role this container will be updated if necessary.
+- Rewrote the **User Administration** and **Group Administration** windows accessible in Base **Administration** menu. Now only privileges supported by the underlying driver will be displayed. This allows for easier use. An [improvement request #160516][95] was made in order to integrate this possibility into the Base code.
+- Integration of all drivers embedded in the extension (excluding SQLite) in the management of users, roles and privileges. I suppose that many malfunctions remain to be corrected, please let me know, detecting malfunctions takes me more time than correcting them....
+- Many corrections and improvements...
+
+### What remains to be done for version 1.3.1:
 
 - Add new languages for internationalization...
 
@@ -556,3 +564,6 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 [90]: <https://github.com/FirebirdSQL/jaybird/issues/791>
 [91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L276>
 [92]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160375>
+[93]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset>
+[94]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
+[95]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
