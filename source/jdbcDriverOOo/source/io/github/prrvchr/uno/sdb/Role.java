@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdb;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
@@ -35,16 +34,17 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XGroupsSupplier;
-import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBPrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
@@ -56,7 +56,7 @@ public abstract class Role
 
     protected final Connection m_connection;
     protected final ConnectionLog m_logger; 
-    protected GroupContainer m_groups;
+    protected Groups m_groups;
 
     // The constructor method:
     public Role(String service,
@@ -81,15 +81,20 @@ public abstract class Role
     public int getGrantablePrivileges(String name, int type)
         throws SQLException
     {
+        DriverProvider provider = m_connection.getProvider();
+        if (provider.ignoreDriverPrivileges()) {
+            return provider.getMockPrivileges();
+        }
+
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            List<String> grantees = new ArrayList<>(List.of(getName()));
-            addGrantees(grantees);
             try {
-                privileges = DBTools.getTableOrViewGrantablePrivileges(m_connection.getProvider(), grantees, name);
+                ComposeRule rule = ComposeRule.InDataManipulation;
+                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
+                privileges = DBPrivilegesHelper.getGrantablePrivileges(provider, getName(), table, rule);
             }
             catch (java.sql.SQLException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+                throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
         }
         return privileges;
@@ -99,15 +104,17 @@ public abstract class Role
     public int getPrivileges(String name, int type)
         throws SQLException
     {
+        DriverProvider provider = m_connection.getProvider();
+
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            List<String> grantees = new ArrayList<>(List.of(getName()));
-            addGrantees(grantees);
             try {
-                privileges = DBTools.getTableOrViewPrivileges(m_connection.getProvider(), grantees, name);
+                ComposeRule rule = ComposeRule.InDataManipulation;
+                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
+                privileges = DBPrivilegesHelper.getTablePrivileges(provider, getName(), table, rule);
             }
             catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
+                throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
         }
         return privileges;
@@ -121,14 +128,19 @@ public abstract class Role
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            DriverProvider provider = m_connection.getProvider();
+            String privileges = String.join(", ", provider.getPrivileges(privilege));
             try {
-                query = DBTools.getGrantPrivilegesQuery(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-                getLogger().logprb(LogLevel.INFO, getGrantPrivilegesResource(false), name, query);
+                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
+                query = DBPrivilegesHelper.getGrantPrivilegesQuery(provider, table, privileges, getName(), rule, isCaseSensitive());
+                int resource = getGrantPrivilegesResource(false);
+                getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
                 DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
                 int resource = getGrantPrivilegesResource(true);
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, privileges, getName(), name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
@@ -143,14 +155,19 @@ public abstract class Role
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            DriverProvider provider = m_connection.getProvider();
+            String privileges = String.join(", ", provider.getPrivileges(privilege));
             try {
-                query = DBTools.revokeTableOrViewPrivileges(m_connection.getProvider(), getName(), name, privilege, ComposeRule.InDataManipulation, isCaseSensitive());
-                getLogger().logprb(LogLevel.INFO, getRevokePrivilegesResource(false), name, query);
-                DBTools.executeDDLQuery(m_connection.getProvider(), query);
+                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
+                query = DBPrivilegesHelper.getRevokePrivilegesQuery(provider, table, privileges, getName(), rule, isCaseSensitive());
+                int resource = getRevokePrivilegesResource(false);
+                getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
+                DBTools.executeDDLQuery(provider, query);
             }
             catch (java.sql.SQLException e) {
                 int resource = getRevokePrivilegesResource(true);
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, privileges, getName(), name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
             }
@@ -162,48 +179,45 @@ public abstract class Role
     @Override
     public XNameAccess getGroups()
     {
-        try {
-            if (m_groups == null) {
-                m_groups = _refreshGroups();
-            }
-            return m_groups;
+        checkDisposed();
+        if (m_groups == null) {
+            refreshGroups();
         }
-        catch (java.lang.Exception e) {
-            System.out.println("sdbcx.User.getGroups() ERROR: " + UnoHelper.getStackTrace(e));
-        }
-        return null;
+        return m_groups;
     }
 
-    private Groups _refreshGroups()
-        throws ElementExistException
+    void refreshGroups()
     {
+        String query = m_connection.getProvider().getUserGroupsQuery();
+        if (query == null) {
+            return;
+        }
         ArrayList<String> groups = new ArrayList<>();
-        String sql = m_connection.getProvider().getUserGroupsQuery();
-        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
+        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(query)){
             statement.setString(1, getName());
             java.sql.ResultSet result = statement.executeQuery();
             while(result.next()) {
                 String group = result.getString(1);
-                groups.add(group);
+                if (!result.wasNull()) {
+                    groups.add(group.strip());
+                }
             }
             result.close();
+            if (m_groups == null) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPROLES);
+                m_groups = new Groups(m_connection, isCaseSensitive(), this, groups);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPROLES_ID, m_groups.getLogger().getObjectId());
+            }
+            else {
+                m_groups.refill(groups);
+            }
         }
-        catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
+        catch (ElementExistException | java.sql.SQLException e) {
+            throw new com.sun.star.uno.RuntimeException("Error", e);
         }
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPROLE);
-        Groups role = new Groups(m_connection, isCaseSensitive(), groups, this);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPROLE_ID, role.getLogger().getObjectId());
-        return role;
     }
 
-    abstract protected void addGrantees(List<String> grantees);
     abstract protected int getGrantPrivilegesResource(boolean error);
     abstract protected int getRevokePrivilegesResource(boolean error);
-
-    protected String getName()
-    {
-        return super.getName();
-    }
 
 }

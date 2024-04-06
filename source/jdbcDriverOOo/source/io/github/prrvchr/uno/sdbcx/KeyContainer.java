@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -164,7 +163,7 @@ public final class KeyContainer
                 System.out.println("sdbcx.KeyContainer.appendElement() 8");
                 int resource = Resources.STR_LOG_FKEY_ADD_INVALID_COLUMN_TYPE_ERROR;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName(), col1.m_TypeName, col1.m_Name, col2.m_TypeName, col2.m_Name);
-                throw new SQLException(msg, this, StandardSQLState.SQL_INVALID_SQL_DATA_TYPE.text(), 0, Any.VOID);
+                throw new SQLException(msg, this, StandardSQLState.SQL_ERROR_UNSPECIFIED.text(), 0, Any.VOID);
             }
 
             String name = getElementName(descriptor);
@@ -328,7 +327,7 @@ public final class KeyContainer
             String arg1 = DBTools.composeTableName(provider, m_table, rule, isCaseSensitive());
             String arg2 = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
             final String command = provider.getDropConstraintQuery(type);
-            query = MessageFormat.format(command, arg1, arg2);
+            query = DBTools.formatSQLQuery(command, arg1, arg2);
             System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
             int resource = getRemoveKeyResource(type, false);
             getLogger().logprb(LogLevel.INFO, resource, name, table, query);

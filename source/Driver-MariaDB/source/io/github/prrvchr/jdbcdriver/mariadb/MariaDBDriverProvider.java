@@ -77,32 +77,6 @@ public final class MariaDBDriverProvider
     }
 
     @Override
-    public String getUserQuery()
-    {
-        return "SELECT user FROM mysql.user WHERE is_role='N';";
-    }
-
-    @Override
-    public String getGroupQuery()
-    {
-        return "SELECT user FROM mysql.user WHERE is_role='Y';";
-    }
-
-    @Override
-    public String getGroupUsersQuery()
-    {
-        return "SELECT user FROM mysql.roles_mapping WHERE role=?;";
-    }
-
-    @Override
-    public String getUserGroupsQuery()
-    {
-        //TODO: We use recursion to find privileges inherited from roles,
-        //TODO: we need to filter recursive entries (even role and user)
-        return "SELECT role FROM mysql.roles_mapping WHERE user=? AND user!=role;";
-    }
-
-    @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException
     {

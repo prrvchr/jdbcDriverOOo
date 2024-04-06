@@ -25,12 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.sqlite;
 
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.CustomColumn;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
@@ -45,110 +40,5 @@ public final class SQLiteDatabaseMetaData
     {
         super(connection);
     }
-
-    @Override
-    public final XResultSet getTypeInfo()
-        throws SQLException
-    {
-        try
-        {
-            System.out.println("sqlite.DatabaseMetaData.getTypeInfo()");
-            return _getTypeInfo();
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sqlite.DatabaseMetaData ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return null;
-        }
-    }
-
-    @Override
-    public final XResultSet getTableTypes()
-        throws SQLException
-    {
-        try
-        {
-            System.out.println("sqlite.DatabaseMetaData.getTableTypes()");
-            return _getTableTypes();
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-        }
-    }
-
-    @Override
-    public final XResultSet getTables(final Object catalog,
-                                      final String schema,
-                                      final String table,
-                                      final String[] types)
-        throws SQLException
-    {
-        try
-        {
-            System.out.println("sqlite.DatabaseMetaData.getTables()");
-            System.out.println("sqlite.DatabaseMetaData.getTables() Catalog: " + _getPattern(catalog) + " - Schema: " + _getPattern(schema) + " - Table: " + table + " - Types: " + _getPattern(types));
-            return _getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("sqlite.DatabaseMetaData.getTables() ********************************* ERROR: " + e);
-            for (StackTraceElement trace : e.getStackTrace())
-            {
-                System.out.println(trace);
-            }
-            return null;
-        }
-    }
-
-    @Override
-    protected final CustomColumn[] _getTablesRow(final java.sql.ResultSet result)
-            throws java.sql.SQLException
-        {
-            System.out.println("sqlite.DatabaseMetaData._getTablesRowSet()");
-            CustomColumn[] row = new CustomColumn[5];
-            String catalog = result.getString(1);
-            row[0] = new CustomColumn(catalog, result.wasNull());
-            String schema = result.getString(2);
-            row[1] = new CustomColumn(schema, result.wasNull());
-            row[2] = new CustomColumn(result.getString(3), result.wasNull());
-            row[3] = new CustomColumn(_mapDatabaseTableTypes(catalog, schema, result.getString(4)), result.wasNull());
-            row[4] = new CustomColumn(null, true);
-            System.out.println("sqlite.DatabaseMetaData._getTablesRowSet() Catalog: " + catalog + " Schema: " + schema + " Table: " + result.getString(3));
-            return row;
-        }
-
-    @Override
-    public final XResultSet getColumns(final Object catalog,
-                                       final String schema,
-                                       final String table,
-                                       final String column)
-        throws SQLException
-    {
-        try
-        {
-            System.out.println("sqlite.DatabaseMetaData.getColumns()");
-            return _getColumns(_getPattern(catalog), _getPattern(schema), table, column);
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-        }
-    }
-
-    @Override
-    protected final String _mapDatabaseTableTypes(final String type)
-    {
-        return type;
-    }
-
-    @Override
-    protected final String _mapDatabaseTableTypes(final String catalog,
-                                                  final String schema,
-                                                  final String type)
-    {
-        return type;
-    }
-
 
 }

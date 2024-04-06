@@ -73,30 +73,28 @@ class AdminDispatch(unohelper.Base,
         xgroups = 'com.sun.star.sdbcx.XGroupsSupplier'
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
-        if self._ignoreDriverPrivileges(connection) or \
-           not hasInterface(connection, xusers) or \
+        if not hasInterface(connection, xusers) or \
            not hasInterface(connection, xgroups) or \
            connection.getGroups() is None:
             dialog = createMessageBox(parent, *self._getDialogData())
             dialog.execute()
             dialog.dispose()
         else:
+            groups = connection.getGroups()
             if url.Path == 'users':
-                groups = self._getGroups(connection, xgroups)
                 state, result = self._showUsers(connection, parent, groups)
             elif url.Path == 'groups':
-                groups = self._getGroups(connection, xgroups)
                 state, result = self._showGroups(connection, parent, groups)
         if close:
             connection.close()
         return state, result
 
     def addStatusListener(self, listener, url):
-        #state = FeatureStateEvent()
-        #state.FeatureURL = url
-        #state.IsEnabled = True
+        state = FeatureStateEvent()
+        state.FeatureURL = url
+        state.IsEnabled = True
         #state.State = True
-        #listener.statusChanged(state)
+        listener.statusChanged(state)
         self._listeners.append(listener);
 
     def removeStatusListener(self, listener, url):
@@ -104,17 +102,10 @@ class AdminDispatch(unohelper.Base,
             self._listeners.remove(listener)
 
 # AdminDispatch private methods
-    def _getGroups(self, connection, interface):
-        groups = connection.getGroups()
-        recursive = False
-        if groups.hasElements():
-            recursive = hasInterface(groups.getByIndex(0), interface)
-        return groups, recursive
-
     def _showUsers(self, connection, parent, groups):
         state = FAILURE
         try:
-            manager = UserManager(self._ctx, connection, parent, *groups)
+            manager = UserManager(self._ctx, connection, parent, groups)
             manager.execute()
             state = SUCCESS
             manager.dispose()
@@ -126,7 +117,7 @@ class AdminDispatch(unohelper.Base,
     def _showGroups(self, connection, parent, groups):
         state = FAILURE
         try:
-            manager = GroupManager(self._ctx, connection, parent, *groups)
+            manager = GroupManager(self._ctx, connection, parent, groups)
             manager.execute()
             state = SUCCESS
             manager.dispose()
@@ -150,14 +141,6 @@ class AdminDispatch(unohelper.Base,
                 connection = datasource.getIsolatedConnection(datasource.User, datasource.Password)
             close = True
         return close, connection
-
-    def _ignoreDriverPrivileges(self, connection):
-        ignore = True
-        for info in connection.getMetaData().getConnectionInfo():
-            if info.Name == 'IgnoreDriverPrivileges':
-                ignore = info.Value
-                break
-        return ignore
 
     def _getDialogData(self):
         resolver = getStringResource(self._ctx, g_identifier, g_extension)

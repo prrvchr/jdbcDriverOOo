@@ -25,13 +25,10 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -60,7 +57,7 @@ public final class User
         throws SQLException
     {
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            String sql = DBTools.getChangeUserPasswordQuery(m_connection.getProvider(), getName(), password, isCaseSensitive());
+            String sql = DBRoleHelper.getChangeUserPasswordQuery(m_connection.getProvider(), getName(), password, isCaseSensitive());
             statement.execute(sql);
         }
         catch (java.sql.SQLException e) {
@@ -69,11 +66,6 @@ public final class User
     }
 
     // Private methods:
-    @Override
-    protected void addGrantees(List<String> grantees) {
-        grantees.addAll(Arrays.asList(getGroups().getElementNames()));
-    }
-
     @Override
     protected int getGrantPrivilegesResource(boolean error)
     {

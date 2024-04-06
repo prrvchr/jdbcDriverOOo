@@ -27,6 +27,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
 from ...unotool import getDialog
@@ -34,14 +35,16 @@ from ...unotool import getDialog
 from ...configuration import g_extension
 
 
-class PrivilegeView(unohelper.Base):
-    def __init__(self, ctx, flags, table, privileges, grantables, inherited):
+class PrivilegeView():
+    def __init__(self, ctx, flags, table, columns, privileges, grantables, inherited):
         self._dialog = getDialog(ctx, g_extension, 'PrivilegesDialog')
-        self._getTable().Text = table
+        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 10, 90, 15)
+        self._createCheckBox(columns, rectangle)
+        self._dialog.Title = table
         self.setPrivileges(flags, privileges, grantables, inherited)
 
     def setPrivileges(self, flags, privileges, grantables, inherited):
-        for index, flag in flags.items():
+        for index, flag in enumerate(flags):
             state = 1 if flag == privileges & flag else 0
             tristate = state == 0 and flag == inherited & flag
             control = self._getPrivilege(index)
@@ -54,7 +57,7 @@ class PrivilegeView(unohelper.Base):
 
     def getPrivileges(self, flags):
         privileges = 0
-        for index, flag in flags.items():
+        for index, flag in enumerate(flags):
             control = self._getPrivilege(index)
             privileges += flag if control.State == 1 else 0
         return privileges
@@ -62,9 +65,38 @@ class PrivilegeView(unohelper.Base):
     def dispose(self):
         self._dialog.dispose()
 
-    def _getTable(self):
-        return self._dialog.getControl('Label2')
+    def _createCheckBox(self, columns, rectangle):
+        index = 0
+        service = 'com.sun.star.awt.UnoControlCheckBoxModel'
+        for column in columns:
+            model = self._getCheckBoxModel(service, rectangle, column, index)
+            self._dialog.Model.insertByName(self._getCheckBoxName(index), model)
+            index += 1
+        if index:
+            height = index * rectangle.Height
+            self._dialog.Model.Height += height
+            for i in range(2):
+                button = self._getButton(i + 1).Model
+                button.PositionY += height
+                button.TabIndex = index + i
+
+    def _getCheckBoxModel(self, service, rectangle, label, index):
+        model = self._dialog.Model.createInstance(service)
+        model.PositionX = rectangle.X
+        model.PositionY = rectangle.Y
+        model.Width = rectangle.Width
+        model.Height = rectangle.Height
+        model.Label = label
+        model.TabIndex = index
+        rectangle.Y += rectangle.Height
+        return model
+
+    def _getCheckBoxName(self, index):
+        return 'CheckBox%s' % (index + 1)
 
     def _getPrivilege(self, index):
-        return self._dialog.getControl('CheckBox%s' % index)
+        return self._dialog.getControl(self._getCheckBoxName(index))
+
+    def _getButton(self, index):
+        return self._dialog.getControl('CommandButton%s' % index)
 

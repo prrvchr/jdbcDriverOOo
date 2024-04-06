@@ -58,9 +58,15 @@ public interface DriverProvider
     public String getConnectionUrl(String location,
                                    String level);
 
-    public String getSQLCommand(String query);
-
     public boolean hasDocument();
+
+    public boolean supportService(ConnectionService service);
+
+    public int getMockPrivileges();
+
+    public String getCreateUserQuery();
+
+    public String getSQLQuery(String command);
 
     public XOfficeDatabaseDocument getDocument();
 
@@ -71,10 +77,6 @@ public interface DriverProvider
     public String getDriverStringProperty(XHierarchicalNameAccess driver,
                                           String name,
                                           String value);
-
-    public Object[] getDriverObjectProperty(XHierarchicalNameAccess driver,
-                                            String name,
-                                            Object[] value);
 
     public void setConnection(ResourceBasedEventLogger logger,
                               XHierarchicalNameAccess config1,
@@ -168,7 +170,9 @@ public interface DriverProvider
 
     public boolean addIndexAppendix();
 
-    public Object[] getTypeInfoSettings();
+    public java.sql.ResultSet getTypeInfoResultSet() throws java.sql.SQLException;
+
+    public java.sql.ResultSet getTypeInfoResultSet(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException;
 
     public String getCreateTableQuery(String table, String columns);
 
@@ -210,17 +214,23 @@ public interface DriverProvider
 
     public String getTableType(String type);
 
-    public String getUserQuery();
+    public String getUsersQuery();
 
-    public String getGroupQuery();
+    public String getGroupsQuery();
 
     public String getGroupUsersQuery();
 
     public String getUserGroupsQuery();
 
+    public String[] getPrivileges();
+
+    public int getPrivileges(List<String> privileges);
+
+    public boolean hasPrivilege(String privilege);
+
     public int getPrivilege(String privilege);
 
-    public List<String> getPrivileges(int privilege);
+    public String[] getPrivileges(int privilege);
 
     public String getDropColumnQuery(ConnectionBase connection,
                                      ColumnBase<?> column);
@@ -244,11 +254,15 @@ public interface DriverProvider
     public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
 
-    public String getRevokeTableOrViewPrivileges(List<String> privileges,
-                                                 String table,
-                                                 String grantee);
-
     public String getRevokeRoleQuery();
+
+    public String getRevokePrivilegesQuery(Object... arguments);
+
+    public String getGrantPrivilegesQuery(Object... arguments);
+
+    public String getTablePrivilegesQuery(List<Integer[]> positions);
+
+    public String getGrantablePrivilegesQuery(List<Integer[]> positions);
 
     public boolean supportsAlterIdentity();
 
@@ -260,5 +274,4 @@ public interface DriverProvider
 
     public boolean supportCreateTableKeyParts();
 
-    public CustomColumn[] getTypeInfoRow(CustomColumn[] columns) throws SQLException;
 }

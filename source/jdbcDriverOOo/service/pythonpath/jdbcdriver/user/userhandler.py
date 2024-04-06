@@ -66,6 +66,7 @@ class DialogHandler(unohelper.Base,
         except Exception as e:
             msg = "Error: %s" % traceback.format_exc()
             print(msg)
+            raise e
 
     def getSupportedMethodNames(self):
         return ('SetGrantee',

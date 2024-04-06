@@ -25,72 +25,102 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DBTools;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.sdbcx.RoleContainer;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 public final class Groups
-    extends GroupContainer
+    extends RoleContainer<Group, Role>
 {
-
-    private final Role m_role;
+    private static final String m_service = Groups.class.getName();
+    private static final String[] m_services = {"com.sun.star.sdbcx.Groups",
+                                                "com.sun.star.sdbcx.Container"};
+    private final DriverProvider m_provider;
 
     // The constructor method:
     public Groups(Connection connection,
-                             boolean sensitive,
-                             List<String> names,
-                             Role role)
+                  boolean sensitive,
+                  Role role,
+                  List<String> names)
         throws ElementExistException
     {
-        super(connection, sensitive, names, LoggerObjectType.GROUPS);
-        m_role = role;
+        super(m_service, m_services, connection, role, connection.getGroupsInternal(), sensitive, names, getLogger(connection));
+        m_provider = connection.getProvider();
     }
 
     @Override
-    protected boolean _createGroup(XPropertySet descriptor,
-                                   String name)
-        throws SQLException
-    {
-        String query = null;
-        try {
-            query = DBTools.getGrantRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
-            System.out.println("sdbcx.UserGroupContainer._createUser() SQL: " + query);
-            m_role.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(),query);
-        }
-        catch (java.sql.SQLException e) {
-            int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        }
+    public XPropertySet createDataDescriptor() {
+        return new GroupDescriptor(isCaseSensitive());
     }
 
     @Override
-    protected void removeDataBaseElement(int index,
-                                         String name)
+    public void dispose()
+    {
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPROLES_DISPOSING);
+        super.dispose();
+    }
+
+    protected static ConnectionLog getLogger(Connection connection)
+    {
+        return new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.GROUPS);
+    }
+
+    protected ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+
+    protected DriverProvider getProvider()
+    {
+        return m_provider;
+    }
+
+    protected int getRevokeRoleResource(boolean error)
+    {
+        return error ?
+               Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY_ERROR :
+               Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY;
+    }
+
+    protected int getGrantRoleResource(boolean error)
+    {
+        return error ?
+               Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY_ERROR :
+               Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY;
+    }
+
+    @Override
+    protected void refill(List<String> roles)
+    {
+        super.refill(roles);
+    }
+
+    @Override
+    protected String getGrantRoleQuery(String role, String name)
         throws SQLException
     {
-        String query = null;
-        try {
-            query = DBTools.getRevokeRoleQuery(m_connection.getProvider(), name, m_role.getName(), isCaseSensitive());
-            System.out.println("sdbcx.UserGroupContainer.removeDataBaseElement() SQL: " + query);
-            m_role.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY, name, query);
-            DBTools.executeDDLQuery(m_connection.getProvider(), query);
-        }
-        catch (java.sql.SQLException e) {
-            int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        }
+        String query = DBRoleHelper.getGrantRoleQuery(getProvider(), name, role, isCaseSensitive());
+        System.out.println("sdb.Groups.getGrantRoleQuery() SQL: " + query);
+        return query;
+    }
+
+    @Override
+    protected String getRevokeRoleQuery(String role, String name)
+        throws SQLException
+    {
+        String query = DBRoleHelper.getRevokeRoleQuery(getProvider(), name, role, isCaseSensitive());
+        System.out.println("sdb.Groups.getRevokeRoleQuery() SQL: " + query);
+        return query;
     }
 
 }

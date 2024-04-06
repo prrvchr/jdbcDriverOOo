@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +75,7 @@ public class DBConstraintHelper
             args.add(getKeyRuleString(true, update));
             args.add(getKeyRuleString(false, delete));
         }
-        return MessageFormat.format(command, args.toArray(new Object[0]));
+        return DBTools.formatSQLQuery(command, args.toArray(new Object[0]));
         }
         catch (java.lang.Exception e) {
             e.printStackTrace();

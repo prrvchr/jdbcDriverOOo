@@ -348,22 +348,22 @@ public class Resources {
     public static final int STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY               = (STR_JDBC_LOG_MESSAGE_BASE + 1320);
     public static final int STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE + 1321);
 
-    public static final int STR_LOG_CREATE_USERROLE                            = (STR_JDBC_LOG_MESSAGE_BASE + 1400);
-    public static final int STR_LOG_CREATED_USERROLE_ID                        = (STR_JDBC_LOG_MESSAGE_BASE + 1401);
-    public static final int STR_LOG_USERROLE_DISPOSING                         = (STR_JDBC_LOG_MESSAGE_BASE + 1402);
+    public static final int STR_LOG_CREATE_USERROLES                           = (STR_JDBC_LOG_MESSAGE_BASE + 1400);
+    public static final int STR_LOG_CREATED_USERROLES_ID                       = (STR_JDBC_LOG_MESSAGE_BASE + 1401);
+    public static final int STR_LOG_USERROLES_DISPOSING                        = (STR_JDBC_LOG_MESSAGE_BASE + 1402);
 
-    public static final int STR_LOG_USERROLE_CREATE_USER_QUERY                 = (STR_JDBC_LOG_MESSAGE_BASE + 1410);
-    public static final int STR_LOG_USERROLE_CREATE_USER_QUERY_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE + 1411);
-    public static final int STR_LOG_USERROLE_REMOVE_USER_QUERY                 = (STR_JDBC_LOG_MESSAGE_BASE + 1412);
-    public static final int STR_LOG_USERROLE_REMOVE_USER_QUERY_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE + 1413);
+    public static final int STR_LOG_USERROLES_GRANT_ROLE_QUERY                 = (STR_JDBC_LOG_MESSAGE_BASE + 1410);
+    public static final int STR_LOG_USERROLES_GRANT_ROLE_QUERY_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE + 1411);
+    public static final int STR_LOG_USERROLES_REVOKE_ROLE_QUERY                = (STR_JDBC_LOG_MESSAGE_BASE + 1412);
+    public static final int STR_LOG_USERROLES_REVOKE_ROLE_QUERY_ERROR          = (STR_JDBC_LOG_MESSAGE_BASE + 1413);
 
-    public static final int STR_LOG_CREATE_GROUPROLE                           = (STR_JDBC_LOG_MESSAGE_BASE + 1500);
-    public static final int STR_LOG_CREATED_GROUPROLE_ID                       = (STR_JDBC_LOG_MESSAGE_BASE + 1501);
-    public static final int STR_LOG_GROUPROLE_DISPOSING                        = (STR_JDBC_LOG_MESSAGE_BASE + 1502);
+    public static final int STR_LOG_CREATE_GROUPROLES                          = (STR_JDBC_LOG_MESSAGE_BASE + 1500);
+    public static final int STR_LOG_CREATED_GROUPROLES_ID                      = (STR_JDBC_LOG_MESSAGE_BASE + 1501);
+    public static final int STR_LOG_GROUPROLES_DISPOSING                       = (STR_JDBC_LOG_MESSAGE_BASE + 1502);
 
-    public static final int STR_LOG_GROUPROLE_CREATE_GROUP_QUERY               = (STR_JDBC_LOG_MESSAGE_BASE + 1510);
-    public static final int STR_LOG_GROUPROLE_CREATE_GROUP_QUERY_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE + 1511);
-    public static final int STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY               = (STR_JDBC_LOG_MESSAGE_BASE + 1512);
-    public static final int STR_LOG_GROUPROLE_REMOVE_GROUP_QUERY_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE + 1513);
+    public static final int STR_LOG_GROUPROLES_GRANT_ROLE_QUERY                = (STR_JDBC_LOG_MESSAGE_BASE + 1510);
+    public static final int STR_LOG_GROUPROLES_GRANT_ROLE_QUERY_ERROR          = (STR_JDBC_LOG_MESSAGE_BASE + 1511);
+    public static final int STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY               = (STR_JDBC_LOG_MESSAGE_BASE + 1512);
+    public static final int STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY_ERROR         = (STR_JDBC_LOG_MESSAGE_BASE + 1513);
 
 }

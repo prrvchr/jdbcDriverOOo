@@ -60,7 +60,7 @@ class AdminView(unohelper.Base):
     def getGridWindow(self):
         return self._getGridWindow()
 
-    def enableButton(self, enabled, recursive, removable):
+    def enableButton(self, enabled, removable):
         self._getSetGrantee().Model.Enabled = enabled
         self._getDropGrantee().Model.Enabled = enabled and removable
 

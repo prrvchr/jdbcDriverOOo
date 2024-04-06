@@ -33,6 +33,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -48,6 +49,18 @@ public class UserContainer
                                                 "com.sun.star.sdbcx.Container"};
     protected final Connection m_connection;
     private final ConnectionLog m_logger; 
+
+    protected ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+
+    @Override
+    public void dispose()
+    {
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_DISPOSING);
+        super.dispose();
+    }
 
     @Override
     protected User getElement(int index)
@@ -83,11 +96,6 @@ public class UserContainer
         m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
-    }
-
     @Override
     protected User appendElement(XPropertySet descriptor)
         throws SQLException
@@ -106,7 +114,7 @@ public class UserContainer
     {
         String query = null;
         try {
-            query = DBTools.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = DBRoleHelper.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
             return DBTools.executeDDLQuery(m_connection.getProvider(), query);
@@ -137,7 +145,7 @@ public class UserContainer
     {
         String query = null;
         try {
-            query = DBTools.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
+            query = DBRoleHelper.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
             DBTools.executeDDLQuery(m_connection.getProvider(), query);

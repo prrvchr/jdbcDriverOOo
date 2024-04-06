@@ -83,7 +83,8 @@ public final class H2DriverProvider
     public boolean isCaseSensitive(String clazz)
     {
         if (clazz == User.class.getName() || clazz == Group.class.getName()) {
-            return false;
+            //return false;
+            return true;
         }
         return true;
     }
@@ -94,18 +95,6 @@ public final class H2DriverProvider
             type = "TABLE";
         }
         return type;
-    }
-
-    @Override
-    public String getUserQuery()
-    {
-        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.USERS";
-    }
-
-    @Override
-    public String getGroupQuery()
-    {
-        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLES";
     }
 
     @Override

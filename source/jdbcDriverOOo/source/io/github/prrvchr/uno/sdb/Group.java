@@ -46,7 +46,7 @@ public final class Group
     private static final String m_service = Group.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Group"};
 
-    private UserContainer m_users;
+    private Users m_users;
 
     // The constructor method:
     public Group(Connection connection,
@@ -62,7 +62,7 @@ public final class Group
     public XNameAccess getUsers() {
         try {
             if (m_users == null) {
-                m_users = _refreshUsers();
+                refreshUsers();
             }
             return m_users;
         }
@@ -72,33 +72,35 @@ public final class Group
         return null;
     }
 
-    private Users _refreshUsers()
+    protected void refreshUsers()
         throws ElementExistException
     {
-        ArrayList<String> users = new ArrayList<>();
+        List<String> users = new ArrayList<>();
         String sql = m_connection.getProvider().getGroupUsersQuery();
-        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
-            statement.setString(1, getName());
-            java.sql.ResultSet result = statement.executeQuery();
-            while(result.next()) {
-                users.add(result.getString(1));
+        if (sql != null) {
+            try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
+                statement.setString(1, getName());
+                java.sql.ResultSet result = statement.executeQuery();
+                while(result.next()) {
+                    users.add(result.getString(1));
+                }
+                result.close();
             }
-            result.close();
+            catch (java.sql.SQLException e) {
+                UnoHelper.getSQLException(e, m_connection);
+            }
+            if (m_users == null) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
+                m_users = new Users(m_connection, isCaseSensitive(), this, users);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID, m_users.getLogger().getObjectId());
+            }
+            else {
+                m_users.refill(users);
+            }
+
         }
-        catch (java.sql.SQLException e) {
-            UnoHelper.getSQLException(e, m_connection);
-        }
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLE);
-        Users role = new Users(m_connection, isCaseSensitive(), users, this);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLE_ID, role.getLogger().getObjectId());
-        return role;
     }
 
-    // Private methods:
-    @Override
-    protected void addGrantees(List<String> grantees) {
-        // TODO: pass
-    }
 
     @Override
     protected int getGrantPrivilegesResource(boolean error)

@@ -73,14 +73,20 @@ public final class Driver
     {
         ConnectionBase connection = null;
         switch(service) {
-        case CSS_SDBCX_CONNECTION:
-            connection = new Connection(ctx, provider, url, info);
-            break;
         case CSS_SDB_CONNECTION:
-            connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info);
+            if (provider.supportService(service)) {
+                connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info);
+                break;
+            }
+            service = ConnectionService.CSS_SDBCX_CONNECTION;
+        case CSS_SDBCX_CONNECTION:
+            if (provider.supportService(service)) {
+                connection = new Connection(ctx, provider, url, info);
+                break;
+            }
+        case CSS_SDBC_CONNECTION:
+            connection = new io.github.prrvchr.uno.sdbc.Connection(ctx, provider, url, info);
             break;
-        default:
-            connection = new Connection(ctx, provider, url, info);
         }
         return connection;
     }

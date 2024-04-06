@@ -190,16 +190,18 @@ public final class Connection
     @Override
     public synchronized XNameAccess getUsers()
     {
-        checkDisposed();
-        if (m_Users == null) {
-            _refreshUsers();
-        }
-        return m_Users;
+        return getUsersInternal();
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
     public XNameAccess getGroups()
+    {
+        return getGroupsInternal();
+    }
+
+
+    protected synchronized GroupContainer getGroupsInternal()
     {
         checkDisposed();
         if (m_Groups == null) {
@@ -249,25 +251,27 @@ public final class Connection
 
     public void _refreshUsers()
     {
-        String query = getProvider().getUserQuery();
+        String query = getProvider().getUsersQuery();
         if (query == null) {
             return;
         }
         try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
             java.sql.ResultSet result = statement.executeQuery(query);
             List<String> names = new ArrayList<>();
-            System.out.println("sdb.Connection._refreshUsers() 1");
+            System.out.println("sdb.Connection._refreshUsers() 1 Query: " + query);
             while (result.next()) {
                 String name = result.getString(1);
-                System.out.println("sdb.Connection._refreshUsers() User Name: " + name);
-                names.add(name);
+                if (!result.wasNull()) {
+                    System.out.println("sdb.Connection._refreshUsers() User Name: " + name);
+                    names.add(name.strip());
+                }
             }
             System.out.println("sdb.Connection._refreshUsers() 2");
             result.close();
             if (m_Users == null) {
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
                 m_Users = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, m_Users.getLogger().getObjectId());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID, m_Users.getLogger().getObjectId());
             }
             else {
                 m_Users.refill(names);
@@ -280,23 +284,26 @@ public final class Connection
 
     public void _refreshGroups()
     {
-        String query = getProvider().getGroupQuery();
+        String query = getProvider().getGroupsQuery();
         if (query == null) {
             return;
         }
         try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
             java.sql.ResultSet result = statement.executeQuery(query);
             List<String> names = new ArrayList<>();
+            System.out.println("sdb.Connection._refreshGroups() 1 Query: " + query);
             while (result.next()) {
                 String name = result.getString(1);
-                System.out.println("sdb.Connection._refreshGroups() Group Name: " + name);
-                names.add(name);
+                if (!result.wasNull()) {
+                    System.out.println("sdb.Connection._refreshGroups() 2 Group Name: " + name);
+                    names.add(name.strip());
+                }
             }
             result.close();
             if (m_Groups == null) {
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUP);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
                 m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, m_Groups.getLogger().getObjectId());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID, m_Groups.getLogger().getObjectId());
             }
             else {
                 m_Groups.refill(names);
@@ -319,6 +326,11 @@ public final class Connection
         throws ElementExistException
     {
        return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+    }
+
+    @Override
+    protected TableContainer getTablesInternal() {
+        return (TableContainer) super.getTablesInternal();
     }
 
 }

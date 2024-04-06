@@ -114,6 +114,11 @@
                         <value></value>
                     </prop>
                 </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
 
 <!--            <node oor:name="EnableSQL92Check" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
@@ -226,6 +231,11 @@
                         <value>false</value>
                     </prop>
                 </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
 
 <!--            <node oor:name="UseSchemaInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
@@ -243,11 +253,6 @@
                     </prop>
                 </node>
                 <node oor:name="DisplayVersionColumns" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -309,7 +314,13 @@
             </prop>
 
             <!-- Properties node is for connection properties -->
+            <!-- To be accessible by Base, the properties must be listed in the DriverBase.getPropertyInfo() method. -->
             <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
+                    </prop>
+                </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -355,15 +366,15 @@
                         <value>-1</value>
                     </prop>
                 </node>
+                <node oor:name="PrivilegesMapping" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
+                    </prop>
+                </node>
             </node>
 
             <!-- MetaData node is for the driver properties -->
             <node oor:name="MetaData">
-                <node oor:name="TypeInfoSettings" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">COLUMN(2) = 92|COLUMN(6) = SCALE|COLUMN(2) = 92|COLUMN(14) = 0|COLUMN(2) = 92|COLUMN(15) = 9|COLUMN(2) = 93|COLUMN(6) = SCALE|COLUMN(2) = 93|COLUMN(14) = 0|COLUMN(2) = 93|COLUMN(15) = 9|COLUMN(2) = 2013|COLUMN(6) = SCALE|COLUMN(2) = 2013|COLUMN(14) = 0|COLUMN(2) = 2013|COLUMN(15) = 9|COLUMN(2) = 2014|COLUMN(6) = SCALE|COLUMN(2) = 2014|COLUMN(14) = 0|COLUMN(2) = 2014|COLUMN(15) = 9</value>
-                    </prop>
-                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -402,6 +413,43 @@
                 <node oor:name="RevokeRoleCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>REVOKE {0} FROM {1} RESTRICT</value>
+                    </prop>
+                </node>
+                <node oor:name="RevokePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} ON {1} FROM {2} CASCADE</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT AUTHORIZATION_NAME FROM INFORMATION_SCHEMA.AUTHORIZATIONS WHERE AUTHORIZATION_TYPE = 'USER'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT AUTHORIZATION_NAME FROM INFORMATION_SCHEMA.AUTHORIZATIONS WHERE AUTHORIZATION_TYPE = 'ROLE'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                    <!-- XXX: We use recursion to find privileges inherited from roles.
+                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
+                        <value>SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE ROLE_NAME != GRANTEE AND GRANTEE = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT GRANTEE FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE GRANTEE != ROLE_NAME AND ROLE_NAME = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE GRANTEE = ? AND TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|0123</value>
+                    </prop>
+                </node>
+                <node oor:name="GrantablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND GRANTEE = ? AND TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|0123</value>
                     </prop>
                 </node>
             </node>
@@ -463,6 +511,11 @@
                         <value>-1</value>
                     </prop>
                 </node>
+                <node oor:name="PrivilegesMapping" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8</value>
+                    </prop>
+                </node>
             </node>
 
             <node oor:name="MetaData">
@@ -501,6 +554,33 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT USER_NAME FROM INFORMATION_SCHEMA.USERS</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLES</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                    <!-- XXX: We use recursion to find privileges inherited from roles.
+                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
+                        <value>SELECT GRANTEDROLE FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEETYPE = 'USER' AND RIGHTS IS NULL AND TABLE_SCHEMA IS NULL AND TABLE_NAME IS NULL AND GRANTEE = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT GRANTEE FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEETYPE = 'USER' AND RIGHTS IS NULL AND TABLE_SCHEMA IS NULL AND TABLE_NAME IS NULL AND GRANTEDROLE = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT CASE WHEN LOCATE('SELECT', RIGHTS) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('INSERT', RIGHTS) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('UPDATE', RIGHTS) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('DELETE', RIGHTS) = 0 THEN 0 ELSE 8 END FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEE = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|023</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -515,6 +595,11 @@
             </prop>
 
             <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
+                    </prop>
+                </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -547,7 +632,12 @@
                 </node>
                 <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="PrivilegesMapping" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|CREATE|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
                     </prop>
                 </node>
             </node>
@@ -578,6 +668,38 @@
                         <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
                     </prop>
                 </node>
+                <node oor:name="CreateUserCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>CREATE USER {0} IDENTIFIED BY {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT user FROM mysql.user WHERE is_role='N'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT user FROM mysql.user WHERE is_role='Y'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                    <!-- XXX: We use recursion to find privileges inherited from roles.
+                         XXX: We need to filter recursive entries (even role and user) -->
+                        <value>SELECT role FROM mysql.roles_mapping WHERE user=? AND user!=role</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT user FROM mysql.roles_mapping WHERE role=?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT CASE WHEN LOCATE('Select', Table_priv) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('Insert', Table_priv) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('Update', Table_priv) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('Delete', Table_priv) = 0 THEN 0 ELSE 8 END FROM mysql.tables_priv WHERE User = ? AND Db = ? AND Table_name = ?|013</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -592,6 +714,11 @@
             </prop>
 
             <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">Column(1) = int2|Column(12) = true|Column(1) = int4|Column(12) = true|Column(1) = int8|Column(12) = true|Column(1) = time|Column(6) = SCALE|Column(1) = time|Column(14) = 0|Column(1) = time|Column(15) = 6|Column(1) = timestamp|Column(6) = SCALE|Column(1) = timestamp|Column(14) = 0|Column(1) = timestamp|Column(15) = 6|Column(1) = timetz|Column(6) = SCALE|Column(1) = timetz|Column(14) = 0|Column(1) = timetz|Column(15) = 6|Column(1) = timestamptz|Column(6) = SCALE|Column(1) = timestamptz|Column(14) = 0|Column(1) = timestamptz|Column(15) = 6</value>
+                    </prop>
+                </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -624,17 +751,17 @@
                 </node>
                 <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="PrivilegesMapping" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|CREATE|32|TRUNCATE|64|REFERENCES|128|TRIGGER|512</value>
                     </prop>
                 </node>
             </node>
 
             <node oor:name="MetaData">
-                <node oor:name="TypeInfoSettings" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">COLUMN(1) = int2|COLUMN(12) = 1|COLUMN(1) = int4|COLUMN(12) = 1|COLUMN(1) = int8|COLUMN(12) = 1</value>
-                    </prop>
-                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -683,6 +810,33 @@
                 <node oor:name="AddIdentityCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>ALTER TABLE {0} ALTER {2} SET NOT NULL, ALTER {2} ADD {6}</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT usename FROM pg_user</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT groname FROM pg_group</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                    <!-- XXX: We use recursion to find privileges inherited from roles.
+                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
+                        <value>SELECT c.rolname FROM pg_roles a INNER JOIN pg_auth_members b ON a.oid = b.member INNER JOIN pg_roles c ON b.roleid = c.oid WHERE a.rolname = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT c.rolname FROM pg_roles a INNER JOIN pg_auth_members b ON a.oid = b.roleid INNER JOIN pg_roles c ON b.member = c.oid WHERE a.rolname = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT privilege_type FROM information_schema.role_table_grants WHERE grantee = ? AND table_schema = ? AND table_name = ?|023</value>
                     </prop>
                 </node>
             </node>
@@ -769,7 +923,7 @@
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT SUBSTR(sql, INSTR(sql, {4})) FROM sqlite_schema WHERE name = ?|0</value>
+                        <value oor:separator="|">SELECT SUBSTR(sql, (INSTR(sql, ' AS SELECT ') + 4)) FROM sqlite_schema WHERE name = ?|0</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
@@ -780,6 +934,11 @@
                 <node oor:name="RenameColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportedConnectionServices" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">com.sun.star.sdbc.Connection|com.sun.star.sdbcx.Connection</value>
                     </prop>
                 </node>
             </node>
@@ -841,6 +1000,11 @@
                         <value>-1</value>
                     </prop>
                 </node>
+                <node oor:name="PrivilegesMapping" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128|TRIGGER|256</value>
+                    </prop>
+                </node>
             </node>
 
             <node oor:name="MetaData">
@@ -856,7 +1020,7 @@
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, LOCATE({4}, VIEWDEFINITION)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?|23</value>
+                        <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, (LOCATE(' AS SELECT ', VIEWDEFINITION) + 4)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?|23</value>
                     </prop>
                 </node>
                 <node oor:name="RenameTableCommands" oor:op="replace">
@@ -874,6 +1038,31 @@
                         <value>false</value>
                     </prop>
                 </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT USERNAME FROM SYS.SYSUSERS</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT ROLEID FROM SYS.SYSROLES WHERE ISDEF = 'Y'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT ROLEID FROM SYS.SYSROLES WHERE ISDEF = 'N' AND GRANTEE = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT GRANTEE FROM SYS.SYSROLES WHERE ISDEF = 'N' AND ROLEID = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT CASE WHEN P1.SELECTPRIV = 'y' THEN 1 ELSE 0 END, CASE WHEN P1.INSERTPRIV = 'y' THEN 2 ELSE 0 END, CASE WHEN P1.UPDATEPRIV = 'y' THEN 4 ELSE 0 END, CASE WHEN P1.DELETEPRIV = 'y' THEN 8 ELSE 0 END, CASE WHEN P1.REFERENCESPRIV = 'y' THEN 128 ELSE 0 END, CASE WHEN P1.TRIGGERPRIV = 'y' THEN 256 ELSE 0 END FROM SYS.SYSTABLEPERMS AS P1 INNER JOIN SYS.SYSTABLES AS T1 ON P1.TABLEID = T1.TABLEID INNER JOIN SYS.SYSSCHEMAS AS S1 ON T1.SCHEMAID = S1.SCHEMAID WHERE P1.GRANTEE = ? AND S1.SCHEMANAME = ? AND T1.TABLENAME = ?|023</value>
+                    </prop>
+                </node>
             </node>
         </node>
 
@@ -888,6 +1077,11 @@
             </prop>
 
             <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">Column(1) = SMALLINT|Column(12) = 1|Column(1) = INTEGER|Column(12) = 1|Column(1) = BIGINT|Column(12) = 1</value>
+                    </prop>
+                </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -895,7 +1089,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/jaybird-5.0.4.java11.jar</value>
+                        <value>%origin%/driver/jaybird-5.0.5.java11-20240401.111429-2.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -920,12 +1114,17 @@
                 </node>
                 <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>false</value>
                     </prop>
                 </node>
                 <node oor:name="IgnoreCurrency" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="PrivilegesMapping" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
                     </prop>
                 </node>
             </node>
@@ -934,11 +1133,6 @@
                 <node oor:name="SQLCommandSuffix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>;</value>
-                    </prop>
-                </node>
-                <node oor:name="TypeInfoSettings" oor:op="replace">
-                    <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">COLUMN(1) = SMALLINT|COLUMN(12) = 1|COLUMN(1) = INTEGER|COLUMN(12) = 1|COLUMN(1) = BIGINT|COLUMN(12) = 1</value>
                     </prop>
                 </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
@@ -994,6 +1188,33 @@
                 <node oor:name="RenameColumnCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>ALTER TABLE {0} ALTER COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT SEC$USER_NAME FROM SEC$USERS</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT RDB$ROLE_NAME FROM RDB$ROLES</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                    <!-- XXX: We use recursion to find privileges inherited from roles.
+                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
+                        <value>SELECT RDB$ROLE_NAME FROM RDB$ROLES WHERE RDB$OWNER_NAME = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT RDB$OWNER_NAME FROM RDB$ROLES WHERE RDB$ROLE_NAME = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT CASE RDB$PRIVILEGE WHEN 'S' THEN 1 WHEN 'I' THEN 2 WHEN 'U' THEN 4 WHEN 'D' THEN 8 WHEN 'R' THEN 128 END FROM RDB$USER_PRIVILEGES WHERE RDB$USER_TYPE = 8 AND RDB$OBJECT_TYPE = 0 AND RDB$USER = ? AND RDB$RELATION_NAME = ?|03</value>
                     </prop>
                 </node>
             </node>

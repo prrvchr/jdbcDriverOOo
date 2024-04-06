@@ -26,8 +26,8 @@
 package io.github.prrvchr.jdbcdriver;
 
 import java.sql.DriverManager;
-import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -39,6 +39,8 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.jdbcdriver.resultset.TypeInfoResultSet;
+import io.github.prrvchr.jdbcdriver.resultset.TypeInfoRows;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -57,7 +59,6 @@ public abstract class DriverProviderMain
     protected ConnectionLog m_logger;
     private PropertyValue[] m_infos;
     private java.sql.Statement m_statement = null;
-    private CustomTypeInfo m_typeinforows = null;
     private XOfficeDatabaseDocument m_document = null;
     protected boolean m_enhanced;
     protected boolean m_showsystem;
@@ -111,12 +112,25 @@ public abstract class DriverProviderMain
     private Object[] m_AlterViewCommands = {DBDefaultQuery.STR_QUERY_ALTER_VIEW};
     private String m_ColumnResetDefaultCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_DEFAULT;
     private String m_AlterColumnCommand = null;
-    private String m_AddIdentityQuery = null;
-    private String m_DropIdentityQuery = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
+    private String m_AddIdentityCommand = null;
+    private String m_DropIdentityCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
     private String m_RevokeRoleCommand = DBDefaultQuery.STR_QUERY_REVOKE_ROLE;
+    private String m_GrantPrivilegesCommand = DBDefaultQuery.STR_QUERY_GRANT_PRIVILEGE;
+    private String m_RevokePrivilegesCommand = DBDefaultQuery.STR_QUERY_REVOKE_PRIVILEGE;
+    private String m_CreateUserCommand = DBDefaultQuery.STR_QUERY_CREATE_USER;
+    private String m_GetUsersCommand = null;
+    private String m_GetGroupsCommand = null;
+    private String m_GetUserGroupsCommand = null;
+    private String m_GetGroupUsersCommand = null;
+    private Object[] m_TablePrivilegesCommands = null;
+    private Object[] m_GrantablePrivilegesCommands = null;
     private Object[] m_RenameTableCommands = null;
     private Object[] m_ViewDefinitionCommands = null;
     private Object[] m_TypeInfoSettings = null;
+    private List<String> m_PrivilegeNames = null;
+    private List<Integer> m_PrivilegeValues = null;
+    private TypeInfoRows m_TypeInfoRows = null;
+    private List<ConnectionService> m_SupportedServices = null;
 
     @Override
     public ConnectionLog getLogger() {
@@ -155,12 +169,6 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getSQLCommand(String query)
-    {
-        return query + m_SQLCommandSuffix;
-    }
-
-    @Override
     public boolean isCaseSensitive(String clazz)
     {
         return true;
@@ -170,6 +178,11 @@ public abstract class DriverProviderMain
     public boolean hasDocument()
     {
         return m_document != null;
+    }
+
+    public boolean supportService(ConnectionService service)
+    {
+        return m_SupportedServices.contains(service);
     }
 
     @Override
@@ -192,12 +205,12 @@ public abstract class DriverProviderMain
 
     @Override
     public String getColumnDescriptionQuery(String column, String description) {
-        return MessageFormat.format(m_ColumnDescriptionCommand, column, description);
+        return DBTools.formatSQLQuery(m_ColumnDescriptionCommand, column, description);
     }
 
     @Override
     public String getTableDescriptionQuery(String table, String description) {
-        return MessageFormat.format(m_TableDescriptionCommand, table, description);
+        return DBTools.formatSQLQuery(m_TableDescriptionCommand, table, description);
     }
 
     @Override
@@ -222,25 +235,25 @@ public abstract class DriverProviderMain
     public String getCreateTableQuery(String table,
                                       String columns)
     {
-        return MessageFormat.format(m_CreateTableCommand, table, columns);
+        return DBTools.formatSQLQuery(m_CreateTableCommand, table, columns);
     }
 
     @Override
     public String getDropTableQuery(String table)
     {
-        return MessageFormat.format(m_DropTableCommand, table);
+        return DBTools.formatSQLQuery(m_DropTableCommand, table);
     }
 
     @Override
     public String getAddColumnQuery(String table, String column)
     {
-        return MessageFormat.format(m_AddColumnCommand, table, column);
+        return DBTools.formatSQLQuery(m_AddColumnCommand, table, column);
     }
 
     @Override
     public String getDropColumnQuery(String table, String column)
     {
-        return MessageFormat.format(m_DropColumnCommand, table, column);
+        return DBTools.formatSQLQuery(m_DropColumnCommand, table, column);
     }
 
     @Override
@@ -299,6 +312,38 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public String getGrantPrivilegesQuery(Object... arguments)
+    {
+        return DBTools.formatSQLQuery(m_GrantPrivilegesCommand, arguments);
+    }
+
+    @Override
+    public String getRevokePrivilegesQuery(Object... arguments)
+    {
+        return DBTools.formatSQLQuery(m_RevokePrivilegesCommand, arguments);
+    }
+
+    @Override
+    public String getTablePrivilegesQuery(List<Integer[]> positions)
+    {
+        String query = null;
+        if (m_TablePrivilegesCommands != null) {
+            query = getDDLQueriesCommand(m_TablePrivilegesCommands, positions, false).get(0);
+        }
+        return query;
+    }
+
+    @Override
+    public String getGrantablePrivilegesQuery(List<Integer[]> positions)
+    {
+        String query = null;
+        if (m_GrantablePrivilegesCommands != null) {
+            query = getDDLQueriesCommand(m_GrantablePrivilegesCommands, positions, false).get(0);
+        }
+        return query;
+    }
+
+    @Override
     public List<String> getViewDefinitionQuery(List<Integer[]> positions,
                                                Object... arguments)
     {
@@ -340,7 +385,7 @@ public abstract class DriverProviderMain
         if (simple || count % 2 == 0) {
             // XXX: Some commands may be empty, we need to filter such command.
             if (!command.isBlank()) {
-                queries.add(MessageFormat.format(command, arguments));
+                queries.add(DBTools.formatSQLQuery(command, arguments));
             }
             return null;
         }
@@ -420,101 +465,79 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getUserQuery()
+    public String getUsersQuery()
     {
-        return null;
+        return m_GetUsersCommand;
     }
 
     @Override
-    public String getGroupQuery()
+    public String getGroupsQuery()
     {
-        return null;
-    }
-
-    @Override
-    public String getGroupUsersQuery()
-    {
-        return "SELECT GRANTEE FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE ROLE_NAME=?;";
+        return m_GetGroupsCommand;
     }
 
     @Override
     public String getUserGroupsQuery()
     {
-        //TODO: We use recursion to find privileges inherited from roles,
-        //TODO: we need to filter recursive entries (even ROLE_NAME and GRANTEE)
-        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE GRANTEE=? AND ROLE_NAME!=GRANTEE;";
+        return m_GetUserGroupsCommand;
     }
 
+    @Override
+    public String getGroupUsersQuery()
+    {
+        return m_GetGroupUsersCommand;
+    }
+
+    @Override
+    public String[] getPrivileges()
+    {
+        return m_PrivilegeNames.toArray(new String[0]);
+    }
+
+    @Override
+    public int getPrivileges(List<String> privileges)
+    {
+        int flags = 0;
+        for (String privilege : privileges) {
+            flags |= getPrivilege(privilege);
+        }
+        return flags;
+    }
+
+    public boolean hasPrivilege(String privilege) {
+        return m_PrivilegeNames.contains(privilege);
+    }
 
     @Override
     public int getPrivilege(String privilege)
     {
         int flag = 0;
-        switch (privilege) {
-        case "SELECT":
-            flag = Privilege.SELECT;
-            break;
-        case "INSERT":
-            flag = Privilege.INSERT;
-            break;
-        case "UPDATE":
-            flag = Privilege.UPDATE;
-            break;
-        case "DELETE":
-            flag = Privilege.DELETE;
-            break;
-        case "READ":
-            flag = Privilege.READ;
-            break;
-        case "CREATE":
-            flag = Privilege.CREATE;
-            break;
-        case "ALTER":
-            flag = Privilege.ALTER;
-            break;
-        case "REFERENCES":
-            flag = Privilege.REFERENCE;
-            break;
-        case "DROP":
-            flag = Privilege.DROP;
-            break;
+        if (m_PrivilegeNames.contains(privilege)) {
+            flag = m_PrivilegeValues.get(m_PrivilegeNames.indexOf(privilege));
         }
         return flag;
     }
 
+    @Override
+    public int getMockPrivileges()
+    {
+        int privileges = 0;
+        for (Integer value : m_PrivilegeValues) {
+            privileges += value;
+        }
+        return privileges;
+    }
 
     @Override
-    public List<String> getPrivileges(int privilege)
+    public String[] getPrivileges(int privilege)
     {
         List<String> flags = new ArrayList<>();
-        if ((privilege & Privilege.SELECT) == Privilege.SELECT) {
-            flags.add("SELECT");
+        for (int value: m_PrivilegeValues) {
+            if ((privilege & value) == value) {
+                flags.add(m_PrivilegeNames.get(m_PrivilegeValues.indexOf(value)));
+            }
         }
-        if ((privilege & Privilege.INSERT) == Privilege.INSERT) {
-            flags.add("INSERT");
-        }
-        if ((privilege & Privilege.UPDATE) == Privilege.UPDATE) {
-            flags.add("UPDATE");
-        }
-        if ((privilege & Privilege.DELETE) == Privilege.DELETE) {
-            flags.add("DELETE");
-        }
-        if ((privilege & Privilege.READ) == Privilege.READ) {
-            flags.add("READ");
-        }
-        if ((privilege & Privilege.CREATE) == Privilege.CREATE) {
-            flags.add("CREATE");
-        }
-        if ((privilege & Privilege.ALTER) == Privilege.ALTER) {
-            flags.add("ALTER");
-        }
-        if ((privilege & Privilege.REFERENCE) == Privilege.REFERENCE) {
-            flags.add("REFERENCES");
-        }
-        if ((privilege & Privilege.DROP) == Privilege.DROP) {
-            flags.add("DROP");
-        }
-        return flags;
+        return flags.toArray(new String[0]);
     }
 
     @Override
@@ -529,15 +552,6 @@ public abstract class DriverProviderMain
                                    String user)
     {
         return null;
-    }
-
-    @Override
-    public String getRevokeTableOrViewPrivileges(List<String> privileges,
-                                                 String table,
-                                                 String grantee)
-    {
-        String separator = ", ";
-        return String.format("REVOKE %s ON %s FROM %s", String.join(separator, privileges), table, grantee);
     }
 
     @Override
@@ -565,7 +579,10 @@ public abstract class DriverProviderMain
                               String level)
         throws java.sql.SQLException
     {
+        try {
         m_infos = infos;
+        // XXX: SQLCommandSuffix is needed for building query from sql command.
+        m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
 
         m_AutoIncrementIsPrimaryKey = getDriverBooleanProperty(config1, "AutoIncrementIsPrimaryKey", m_AutoIncrementIsPrimaryKey);
         m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);
@@ -576,33 +593,38 @@ public abstract class DriverProviderMain
 
         m_SupportsAlterColumnType = getDriverBooleanProperty(config1, "SupportsAlterColumnType", m_SupportsAlterColumnType);
         m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
-        m_CreateTableCommand = getDriverStringProperty(config1, "CreateTableCommand", m_CreateTableCommand);
-        m_DropTableCommand = getDriverStringProperty(config1, "DropTableCommand", m_DropTableCommand);
-        m_AddColumnCommand = getDriverStringProperty(config1, "AddColumnCommand", m_AddColumnCommand);
-        m_DropColumnCommand = getDriverStringProperty(config1, "DropColumnCommand", m_DropColumnCommand);
-        m_AlterColumnCommand = getDriverStringProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
-        m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
 
-        m_AddPrimaryKeyCommand = getDriverStringProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
-        m_AddForeignKeyCommand = getDriverStringProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);
-        m_AddIndexCommand = getDriverStringProperty(config1, "AddIndexCommand", m_AddIndexCommand);
-        m_DropPrimaryKeyCommand = getDriverStringProperty(config1, "DropPrimaryKeyCommand", m_DropPrimaryKeyCommand);
-        m_DropConstraintCommand = getDriverStringProperty(config1, "DropConstraintCommand", m_DropConstraintCommand);
-        m_DropIndexCommand = getDriverStringProperty(config1, "DropIndexCommand", m_DropIndexCommand);
-        m_AddIdentityQuery = getDriverStringProperty(config1, "AddIdentityCommand", m_AddIdentityQuery);
-        m_DropIdentityQuery = getDriverStringProperty(config1, "DropIdentityCommand", m_DropIdentityQuery);
+        m_CreateTableCommand = getDriverCommandProperty(config1, "CreateTableCommand", m_CreateTableCommand);
+        m_DropTableCommand = getDriverCommandProperty(config1, "DropTableCommand", m_DropTableCommand);
+        m_AddColumnCommand = getDriverCommandProperty(config1, "AddColumnCommand", m_AddColumnCommand);
+        m_DropColumnCommand = getDriverCommandProperty(config1, "DropColumnCommand", m_DropColumnCommand);
+        m_AlterColumnCommand = getDriverCommandProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
+        m_GetUsersCommand = getDriverCommandProperty(config1, "GetUsersCommand", m_GetUsersCommand);
+        m_GetGroupsCommand = getDriverCommandProperty(config1, "GetGroupsCommand", m_GetGroupsCommand);
+        m_GetUserGroupsCommand = getDriverCommandProperty(config1, "GetUserGroupsCommand", m_GetUserGroupsCommand);
+        m_GetGroupUsersCommand = getDriverCommandProperty(config1, "GetGroupUsersCommand", m_GetGroupUsersCommand);
+        m_AddPrimaryKeyCommand = getDriverCommandProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
+        m_AddForeignKeyCommand = getDriverCommandProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);
+        m_AddIndexCommand = getDriverCommandProperty(config1, "AddIndexCommand", m_AddIndexCommand);
+        m_DropPrimaryKeyCommand = getDriverCommandProperty(config1, "DropPrimaryKeyCommand", m_DropPrimaryKeyCommand);
+        m_DropConstraintCommand = getDriverCommandProperty(config1, "DropConstraintCommand", m_DropConstraintCommand);
+        m_AddIdentityCommand = getDriverCommandProperty(config1, "AddIdentityCommand", m_AddIdentityCommand);
+        m_DropIdentityCommand = getDriverCommandProperty(config1, "DropIdentityCommand", m_DropIdentityCommand);
+        m_TableDescriptionCommand = getDriverCommandProperty(config1, "TableDescriptionCommand", m_TableDescriptionCommand);
+        m_ColumnDescriptionCommand = getDriverCommandProperty(config1, "ColumnDescriptionCommand", m_ColumnDescriptionCommand);
+        m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
+        m_GrantPrivilegesCommand = getDriverCommandProperty(config1, "GrantPrivilegesCommand", m_GrantPrivilegesCommand);
+        m_RevokePrivilegesCommand = getDriverCommandProperty(config1, "RevokePrivilegesCommand", m_RevokePrivilegesCommand);
+        m_CreateUserCommand = getDriverCommandProperty(config1, "CreateUserCommand", m_CreateUserCommand);
 
-        m_TableDescriptionCommand = getDriverStringProperty(config1, "TableDescriptionCommand", m_TableDescriptionCommand);
-        m_ColumnDescriptionCommand = getDriverStringProperty(config1, "ColumnDescriptionCommand", m_ColumnDescriptionCommand);
-        m_RenameColumnCommand = getDriverStringProperty(config1, "RenameColumnCommand", m_RenameColumnCommand);
+        m_AlterViewCommands = getDriverCommandsProperty(config1, "AlterViewCommands", m_AlterViewCommands);
+        m_RenameTableCommands = getDriverCommandsProperty(config1, "RenameTableCommands", m_RenameTableCommands);
 
-        m_RevokeRoleCommand = getDriverStringProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
+        m_ViewDefinitionCommands = getDriverParametricCommandsProperty(config1, "ViewDefinitionCommands");
+        m_TablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "TablePrivilegesCommand");
+        m_GrantablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "GrantablePrivilegesCommand");
 
-        m_AlterViewCommands = getDriverObjectProperty(config1, "AlterViewCommands", m_AlterViewCommands);
-        m_ViewDefinitionCommands = getDriverObjectProperty(config1, "ViewDefinitionCommands", m_ViewDefinitionCommands);
-        m_RenameTableCommands = getDriverObjectProperty(config1, "RenameTableCommands", m_RenameTableCommands);
-
-        m_TypeInfoSettings = getDriverObjectProperty(config1, "TypeInfoSettings", m_TypeInfoSettings);
+        m_SupportedServices = getSupportedService(config1, "SupportedConnectionServices");
 
         m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
         m_showsystem = UnoHelper.getConfigurationOption(config2, "ShowSystemTable", false);
@@ -629,8 +651,13 @@ public abstract class DriverProviderMain
         m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
         m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
                                                                        java.sql.ResultSet.CONCUR_UPDATABLE);
-        setInfoProperties(infos, metadata);
+        setPrivileges(setInfoProperties(infos, metadata));
+
         m_statement = connection.createStatement();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // Driver properties cache data
@@ -702,9 +729,25 @@ public abstract class DriverProviderMain
     public boolean addIndexAppendix() {
         return m_AddIndexAppendix;
     }
+
     @Override
-    public Object[] getTypeInfoSettings() {
-        return m_TypeInfoSettings;
+    public java.sql.ResultSet getTypeInfoResultSet()
+        throws java.sql.SQLException
+    {
+        return getTypeInfoResultSet(getConnection().getMetaData());
+    }
+
+    @Override
+    public java.sql.ResultSet getTypeInfoResultSet(java.sql.DatabaseMetaData metadata)
+        throws java.sql.SQLException
+    {
+        if (m_TypeInfoSettings != null) {
+            if (m_TypeInfoRows == null) {
+                m_TypeInfoRows = new TypeInfoRows(m_TypeInfoSettings);
+            }
+            return new TypeInfoResultSet(metadata, m_TypeInfoRows);
+        }
+        return metadata.getTypeInfo();
     }
 
     @Override
@@ -758,6 +801,10 @@ public abstract class DriverProviderMain
     @Override
     public Properties getJavaConnectionProperties(PropertyValue[] infos)
     {
+        // XXX: These are properties used internally by LibreOffice,
+        // XXX: and should not be passed to the JDBC driver
+        // XXX: (which probably does not know anything about them anyway).
+        // XXX: see: connectivity/source/drivers/jdbc/tools.cxx createStringPropertyArray()
         Properties properties = new Properties();
         for (PropertyValue info : infos) {
             if (info.Name.equals("JavaDriverClass") ||
@@ -765,6 +812,11 @@ public abstract class DriverProviderMain
                 info.Name.equals("SystemProperties") ||
                 info.Name.equals("CharSet") ||
                 info.Name.equals("AppendTableAliasName") ||
+                info.Name.equals("AppendTableAliasInSelect") ||
+                info.Name.equals("DisplayVersionColumns") ||
+                info.Name.equals("GeneratedValues") ||
+                info.Name.equals("UseIndexDirectionKeyword") ||
+                info.Name.equals("UseKeywordAsBeforeAlias") ||
                 info.Name.equals("AddIndexAppendix") ||
                 info.Name.equals("FormsCheckRequiredFields") ||
                 info.Name.equals("GenerateASBeforeCorrelationName") ||
@@ -782,6 +834,7 @@ public abstract class DriverProviderMain
                 info.Name.equals("EnableOuterJoinEscape") ||
                 info.Name.equals("BooleanComparisonMode") ||
                 info.Name.equals("IgnoreCurrency") ||
+                info.Name.equals("TypeInfoSettings") ||
                 info.Name.equals("IgnoreDriverPrivileges") ||
                 info.Name.equals("ImplicitCatalogRestriction") ||
                 info.Name.equals("ImplicitSchemaRestriction") ||
@@ -791,6 +844,8 @@ public abstract class DriverProviderMain
                 info.Name.equals("PreferDosLikeLineEnds") ||
                 info.Name.equals("PrimaryKeySupport") ||
                 info.Name.equals("RespectDriverResultSetType") ||
+                info.Name.equals("PrivilegesMapping") ||
+
                 info.Name.equals("DriverLoggerLevel") ||
                 info.Name.equals("InMemoryDataBase") ||
                 info.Name.equals("Type") ||
@@ -803,6 +858,12 @@ public abstract class DriverProviderMain
             properties.setProperty(info.Name, String.format("%s", info.Value));
         }
         return properties;
+    }
+
+    @Override
+    public String getCreateUserQuery()
+    {
+        return m_CreateUserCommand;
     }
 
     @Override
@@ -839,29 +900,22 @@ public abstract class DriverProviderMain
         return true;
     }
 
-    @Override
-    public CustomColumn[] getTypeInfoRow(CustomColumn[] columns)
-        throws SQLException
-    {
-        Object [] typeinfo = getTypeInfoSettings();
-        if (typeinfo == null) {
-            return columns;
-        }
-        if (m_typeinforows == null) {
-            m_typeinforows = new CustomTypeInfo(typeinfo);
-        }
-        return m_typeinforows.getTypeInfoRow(columns);
-    }
-
-    private void setInfoProperties(final PropertyValue[] infos,
-                                   java.sql.DatabaseMetaData metadata)
+    private Object[] setInfoProperties(final PropertyValue[] infos,
+                                       java.sql.DatabaseMetaData metadata)
         throws java.sql.SQLException
     {
+        Object[] privileges = null;
         boolean autoretrieving = getAutoRetrieving(metadata, infos);
         for (PropertyValue info : infos) {
             switch (info.Name) {
             case "Document":
                 m_document = (XOfficeDatabaseDocument) info.Value;
+                break;
+            case "TypeInfoSettings":
+                m_TypeInfoSettings = (Object[]) info.Value;
+                break;
+            case "PrivilegesMapping":
+                privileges = (Object[]) info.Value;
                 break;
             case "AutoIncrementCreation":
                 m_AutoIncrementCreation = (String) info.Value;
@@ -887,6 +941,56 @@ public abstract class DriverProviderMain
                 break;
             }
         }
+        return privileges;
+    }
+    private void setPrivileges(Object[] privileges)
+    {
+        boolean parsed = false;
+        if (privileges != null) {
+            parsed = parsePrivileges(privileges);
+        }
+        if (!parsed) {
+            setDefaultPrivileges();
+        }
+    }
+
+    private boolean parsePrivileges(Object[] infos)
+    {
+        try {
+            m_PrivilegeNames = new ArrayList<>();
+            m_PrivilegeValues  = new ArrayList<>();
+            int count = DBTools.getEvenLength(infos.length);
+            for (int i = 0; i < count; i += 2) {
+                m_PrivilegeNames.add(infos[i].toString());
+                m_PrivilegeValues.add(Integer.parseInt(infos[i + 1].toString()));
+            }
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void setDefaultPrivileges()
+    {
+        m_PrivilegeNames = List.of("SELECT",
+                                   "INSERT",
+                                   "UPDATE",
+                                   "DELETE",
+                                   "READ",
+                                   "CREATE",
+                                   "ALTER",
+                                   "REFERENCES",
+                                   "DROP");
+        m_PrivilegeValues = List.of(Privilege.SELECT,
+                                    Privilege.INSERT,
+                                    Privilege.UPDATE,
+                                    Privilege.DELETE,
+                                    Privilege.READ,
+                                    Privilege.CREATE,
+                                    Privilege.ALTER,
+                                    Privilege.REFERENCE,
+                                    Privilege.DROP);
     }
 
     private boolean getAutoRetrieving(java.sql.DatabaseMetaData metadata,
@@ -905,12 +1009,12 @@ public abstract class DriverProviderMain
 
     @Override
     public boolean hasAddIdentityQuery() {
-        return m_AddIdentityQuery != null;
+        return m_AddIdentityCommand != null;
     }
 
     @Override
     public String getAddIdentityQuery() {
-        return m_AddIdentityQuery;
+        return m_AddIdentityCommand;
     }
 
     @Override
@@ -920,7 +1024,7 @@ public abstract class DriverProviderMain
 
     @Override
     public String getDropIdentityQuery() {
-        return m_DropIdentityQuery;
+        return m_DropIdentityCommand;
     }
 
     @Override
@@ -981,7 +1085,7 @@ public abstract class DriverProviderMain
     @Override
     public boolean getDriverBooleanProperty(XHierarchicalNameAccess driver, String name, boolean value)
     {
-        String property = "Installed/" + getSubProtocol() + ":*/MetaData/" + name + "/Value";
+        String property = getPropertyPath(name);
         try {
             if (driver.hasByHierarchicalName(property)) {
                 value = (boolean) driver.getByHierarchicalName(property);
@@ -994,7 +1098,7 @@ public abstract class DriverProviderMain
     @Override
     public String getDriverStringProperty(XHierarchicalNameAccess driver, String name, String value)
     {
-        String property = "Installed/" + getSubProtocol() + ":*/MetaData/" + name + "/Value";
+        String property = getPropertyPath(name);
         try {
             if (driver.hasByHierarchicalName(property)) {
                 value = (String) driver.getByHierarchicalName(property);
@@ -1004,19 +1108,117 @@ public abstract class DriverProviderMain
         return value;
     }
 
-
-    @Override
-    public Object[] getDriverObjectProperty(XHierarchicalNameAccess driver, String name, Object[] value)
+    private List<ConnectionService> getSupportedService(XHierarchicalNameAccess driver,
+                                                        String name)
     {
-        String property = "Installed/" + getSubProtocol() + ":*/MetaData/" + name + "/Value";
+        List<ConnectionService> services = null;
+        Object[] supported = getDriverProperties(driver, name, null);
+        if (supported != null) {
+            services = new ArrayList<>();
+            for (Object service: supported) {
+                services.add(ConnectionService.fromString(service.toString()));
+            }
+        }
+        else {
+            services = Arrays.asList(ConnectionService.CSS_SDBC_CONNECTION,
+                                     ConnectionService.CSS_SDBCX_CONNECTION,
+                                     ConnectionService.CSS_SDB_CONNECTION);
+        }
+        System.out.println("DriverProvider.getSupportedService() Service: " + services.size());
+        return services;
+    }
+
+    private String getDriverCommandProperty(XHierarchicalNameAccess driver,
+                                            String name,
+                                            String value)
+    {
+        return getDriverCommandProperty(driver, name, value, false);
+    }
+
+    private String getDriverCommandProperty(XHierarchicalNameAccess driver,
+                                            String name,
+                                            String value,
+                                            boolean parametric)
+    {
+        String property = getPropertyPath(name);
         try {
             if (driver.hasByHierarchicalName(property)) {
-                value = (Object[]) driver.getByHierarchicalName(property);
+                value = (String) driver.getByHierarchicalName(property);
+            }
+            if (value != null && !parametric && !m_SQLCommandSuffix.isBlank()) {
+                value += m_SQLCommandSuffix;
             }
         }
         catch (NoSuchElementException e) { }
         return value;
     }
 
+    @Override
+    public String getSQLQuery(String command) {
+        if (!m_SQLCommandSuffix.isBlank()) {
+            command += m_SQLCommandSuffix;
+        }
+        return command;
+    }
+
+    private Object[] getDriverParametricCommandsProperty(XHierarchicalNameAccess driver,
+                                                         String name)
+    {
+        return getDriverCommandsProperty(driver, name, null, true);
+    }
+
+    private Object[] getDriverCommandsProperty(XHierarchicalNameAccess driver,
+                                               String name,
+                                               Object[] values)
+    {
+        return getDriverCommandsProperty(driver, name, values, false);
+    }
+
+
+    private Object[] getDriverCommandsProperty(XHierarchicalNameAccess driver,
+                                               String name,
+                                               Object[] values,
+                                               boolean parametric)
+    {
+        values = getDriverProperties(driver, name, values);
+        if (values != null && !m_SQLCommandSuffix.isBlank()) {
+            setSQLQueries(values, parametric);
+        }
+        return values;
+    }
+
+    private Object[] getDriverProperties(XHierarchicalNameAccess driver,
+                                         String name,
+                                         Object[] values)
+    {
+        String property = getPropertyPath(name);
+        if (driver.hasByHierarchicalName(property)) {
+            try {
+                values = (Object[]) driver.getByHierarchicalName(property);
+            }
+            catch (NoSuchElementException e) { }
+        }
+        return values;
+    }
+
+    private void setSQLQueries(Object[] queries, boolean parametric)
+    {
+        // XXX: We need to be able to add a suffix to SQL commands.
+        // XXX: This allows us to support drivers requiring a semicolon at the end of each command
+        // XXX: while still being able to provide default SQL / DDL commands for these drivers.
+        // XXX: If the command is parametric, then only even indexes of the content will be suffixed.
+        int step = parametric ? 2 : 1;
+        for (int i = 0; i < queries.length; i += step) {
+            String value = (String) queries[i];
+            // XXX: An blank query can exist in multi-query commands and should be left blank.
+            if (!value.isBlank()) {
+                queries[i] += m_SQLCommandSuffix;
+            }
+        }
+    }
+
+    private String getPropertyPath(String name) {
+        return "Installed/" + getSubProtocol() + ":*/MetaData/" + name + "/Value";
+    }
 
 }

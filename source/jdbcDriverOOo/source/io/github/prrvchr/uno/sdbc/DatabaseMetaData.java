@@ -37,15 +37,5 @@ public final class DatabaseMetaData
         super(connection);
     }
 
-    @Override
-    protected final String _mapDatabaseTableTypes(final String type) {
-        return type;
-    }
-    @Override
-    protected final String _mapDatabaseTableTypes(final String catalog,
-                                                  final String schema,
-                                                  final String type) {
-        return type;
-    }
 
 }

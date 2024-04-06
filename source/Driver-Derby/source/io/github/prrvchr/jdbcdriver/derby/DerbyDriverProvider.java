@@ -56,18 +56,6 @@ public final class DerbyDriverProvider
     }
 
     @Override
-    public String getUserQuery()
-    {
-        return "SELECT USERNAME FROM SYS.SYSUSERS";
-    }
-
-    @Override
-    public String getGroupQuery()
-    {
-        return "SELECT ROLEID FROM SYS.SYSROLES;";
-    }
-
-    @Override
     public void setSystemProperties(String level)
     {
         if (!level.equals("-1")) {

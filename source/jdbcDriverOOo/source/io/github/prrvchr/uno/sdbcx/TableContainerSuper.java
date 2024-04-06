@@ -67,6 +67,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         super(service, services, connection, sensitive, names, LoggerObjectType.TABLECONTAINER);
     }
 
+    @Override
     public void dispose()
     {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_TABLES_DISPOSING);

@@ -504,7 +504,10 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     protected java.sql.ResultSet getGeneratedResult(String command)
         throws SQLException, java.sql.SQLException
     {
-        return DBTools.getGeneratedResult(getStatement(), getGeneratedStatement(), getLogger(), this.getClass().getName(), "getGeneratedValues", command, m_Sql);
+        return DBTools.getGeneratedResult(m_Connection.getProvider(), getStatement(),
+                                          getGeneratedStatement(), getLogger(),
+                                          this.getClass().getName(), "getGeneratedValues",
+                                          command, m_Sql);
     }
 
 

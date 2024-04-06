@@ -33,6 +33,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -78,6 +79,14 @@ public class GroupContainer
     }
 
     @Override
+    public void dispose()
+    {
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_DISPOSING);
+        super.dispose();
+    }
+
+
+    @Override
     protected Group appendElement(XPropertySet descriptor)
         throws SQLException
     {
@@ -95,7 +104,7 @@ public class GroupContainer
     {
         String query = null;
         try {
-            query = DBTools.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = DBRoleHelper.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
             return DBTools.executeDDLQuery(m_connection.getProvider(), query);
@@ -126,7 +135,7 @@ public class GroupContainer
         String query = null;
         DriverProvider provider = m_connection.getProvider();
         try {
-            query = DBTools.getDropGroupQuery(provider, name, isCaseSensitive());
+            query = DBRoleHelper.getDropGroupQuery(provider, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
             DBTools.executeDDLQuery(provider, query);

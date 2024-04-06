@@ -49,7 +49,6 @@ import java.io.InputStream;
 import java.sql.RowIdLifetime;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -530,7 +529,7 @@ public class DBTools
     {
         String view = composeTableName(provider, descriptor, ComposeRule.InTableDefinitions, sensitive);
         String command = getDescriptorStringValue(descriptor, PropertyIds.COMMAND);
-        return getCreateViewQuery(view, command);
+        return getCreateViewQuery(provider, view, command);
     }
 
     /** creates a SQL CREATE VIEW statement
@@ -551,298 +550,22 @@ public class DBTools
         throws java.sql.SQLException
     {
         String name = composeTableName(provider, component.getCatalogName(), component.getSchemaName(), component.getTableName(), sensitive, rule);
-        return getCreateViewQuery(name, command);
+        return getCreateViewQuery(provider, name, command);
     }
 
-    private static String getCreateViewQuery(String view,
-                                             String command)
+    private static String getCreateViewQuery(DriverProvider provider,
+                                             String view,
+                                             String sql)
     {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_VIEW, view, command);
+        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_CREATE_VIEW);
+        return formatSQLQuery(command, view, sql);
     }
 
-    public static String getDropViewQuery(String view)
+    public static String getDropViewQuery(DriverProvider provider,
+                                          String view)
     {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_VIEW, view);
-    }
-
-
-    /** creates a SQL CREATE USER statement
-     *
-     * @param connection
-     *    The connection.
-     * @param descriptor
-     *    The descriptor of the new user.
-     * @param name
-     *    The name of the new user.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *   
-     * @return
-     *   The CREATE USER statement.
-     * @throws java.sql.SQLException 
-     */
-    public static String getCreateUserQuery(DriverProvider provider,
-                                            XPropertySet descriptor,
-                                            String name,
-                                            boolean sensitive)
-        throws java.sql.SQLException
-    {
-        String password = getDescriptorStringValue(descriptor, PropertyIds.PASSWORD);
-        name = enquoteIdentifier(provider, name, sensitive);
-        password = provider.enquoteLiteral(password);
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_USER, name, password);
-    }
-
-    /** creates a SQL DROP USER statement
-     *
-     * @param connection
-     *    The connection.
-     * @param name
-     *    The name of the user.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *   
-     * @return
-     *   The DROP USER statement.
-     * @throws java.sql.SQLException 
-     */
-    public static String getDropUserQuery(DriverProvider provider,
-                                          String name,
-                                          boolean sensitive)
-        throws java.sql.SQLException
-    {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_USER, enquoteIdentifier(provider, name, sensitive));
-    }
-
-    /** creates a SQL ALTER USER SET PASSWORD statement
-     *
-     * @param connection
-     *    The connection.
-     * @param name
-     *    The name of the user.
-     * @param password
-     *    The new password of the user.
-     * @param sensitive
-     *    Is the name of user case sensitive.
-     *   
-     * @return
-     *   The ALTER USER SET PASSWORD statement.
-     * @throws java.sql.SQLException 
-     */
-    public static String getChangeUserPasswordQuery(DriverProvider provider,
-                                                    String name,
-                                                    String password,
-                                                    boolean sensitive)
-        throws java.sql.SQLException
-    {
-        name = enquoteIdentifier(provider, name, sensitive);
-        password = provider.enquoteLiteral(password);
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_ALTER_USER, name, password);
-    }
-
-    /** creates a SQL CREATE ROLE statement
-     *
-     * @param connection
-     *    The connection.
-     * @param descriptor
-     *    The descriptor of the new group.
-     * @param name
-     *    The name of the new group.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *   
-     * @return
-     *   The CREATE ROLE statement.
-     * @throws java.sql.SQLException 
-     */
-    public static String getCreateGroupQuery(DriverProvider provider,
-                                             XPropertySet descriptor,
-                                             String name,
-                                             boolean sensitive)
-        throws java.sql.SQLException
-    {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_CREATE_ROLE, enquoteIdentifier(provider, name, sensitive));
-    }
-
-    /** creates a SQL DROP ROLE statement
-     *
-     * @param connection
-     *    The connection.
-     * @param name
-     *    The name of the role.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *   
-     * @return
-     *   The DROP ROLE statement.
-     * @throws java.sql.SQLException 
-     */
-    public static String getDropGroupQuery(DriverProvider provider,
-                                           String name,
-                                           boolean sensitive)
-        throws java.sql.SQLException
-    {
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_DROP_ROLE, enquoteIdentifier(provider, name, sensitive));
-    }
-
-    /** creates a SQL GRANT ROLE statement
-     *
-     * @param connection
-     *    The connection.
-     * @param group
-     *    The role.
-     * @param user
-     *    The role member user.
-     * @param sensitive
-     *    Is the role and user case sensitive.
-     *   
-     * @return
-     *   The GRANT ROLE statement.
-     * @throws SQLException
-     * @throws java.sql.SQLException 
-     */
-    public static String getGrantRoleQuery(DriverProvider provider,
-                                           String group,
-                                           String user,
-                                           boolean sensitive)
-        throws java.sql.SQLException
-    {
-        group = enquoteIdentifier(provider, group, sensitive);
-        user = enquoteIdentifier(provider, user, sensitive);
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_GRANT_ROLE, group, user);
-    }
-
-    /** creates a SQL REVOKE ROLE statement
-     *
-     * @param connection
-     *    The connection.
-     * @param group
-     *    The role.
-     * @param user
-     *    The role member user.
-     * @param sensitive
-     *    Is the role and user case sensitive.
-     *   
-     * @return
-     *   The REVOKE ROLE statement.
-     * @throws SQLException
-     * @throws java.sql.SQLException 
-     */
-    public static String getRevokeRoleQuery(DriverProvider provider,
-                                            String group,
-                                            String user,
-                                            boolean sensitive)
-        throws java.sql.SQLException
-    {
-        group = enquoteIdentifier(provider, group, sensitive);
-        user = enquoteIdentifier(provider, user, sensitive);
-        return MessageFormat.format(provider.getRevokeRoleQuery(), group, user);
-    }
-
-    public static int getTableOrViewPrivileges(DriverProvider provider,
-                                               List<String> grantees,
-                                               String catalog,
-                                               String schema,
-                                               String table)
-    throws java.sql.SQLException
-    {
-        NamedComponents component = new NamedComponents(catalog, schema, table);
-        return getTableOrViewPrivileges(provider, grantees, component);
-    }
-
-    public static int getTableOrViewPrivileges(DriverProvider provider,
-                                               List<String> grantees,
-                                               String name)
-    throws java.sql.SQLException
-    {
-        NamedComponents component = qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
-        return getTableOrViewPrivileges(provider, grantees, component);
-    }
-
-    public static int getTableOrViewPrivileges(DriverProvider provider,
-                                               List<String> grantees,
-                                               NamedComponents component)
-    throws java.sql.SQLException
-    {
-        String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE ";
-        return _getTableOrViewPrivileges(provider, grantees, component, sql);
-    }
-
-    public static int getTableOrViewGrantablePrivileges(DriverProvider provider,
-                                                        List<String> grantees,
-                                                        String name)
-    throws java.sql.SQLException
-    {
-        NamedComponents component = DBTools.qualifiedNameComponents(provider, name, ComposeRule.InDataManipulation);
-        String sql = "SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND ";
-        return _getTableOrViewPrivileges(provider, grantees, component, sql);
-    }
-
-    private static int _getTableOrViewPrivileges(DriverProvider provider,
-                                                 List<String> grantees,
-                                                 NamedComponents component,
-                                                 String sql)
-        throws java.sql.SQLException
-    {
-        int privilege = 0;
-        if (!component.getCatalogName().isEmpty()) {
-            sql += "TABLE_CATALOG = ? AND ";
-        }
-        if (!component.getSchemaName().isEmpty()) {
-            sql += "TABLE_SCHEMA = ? AND ";
-        }
-        sql += String.format("TABLE_NAME = ? AND GRANTEE IN (%s)", String.join(", ", new ArrayList<>(Collections.nCopies(grantees.size(), "?"))));
-        try (java.sql.PreparedStatement statement = provider.getConnection().prepareStatement(sql)){
-            int next = 1;
-            if (!component.getCatalogName().isEmpty()) {
-                statement.setString(next++, component.getCatalogName());
-            }
-            if (!component.getSchemaName().isEmpty()) {
-                statement.setString(next++, component.getSchemaName());
-            }
-            statement.setString(next++, component.getTableName());
-            for (String grantee : grantees) {
-                statement.setString(next++, grantee);
-            }
-            try (java.sql.ResultSet result = statement.executeQuery())
-            {
-                while (result.next()) {
-                    privilege |= provider.getPrivilege(result.getString(1));
-                }
-            }
-        }
-        return privilege;
-    }
-
-    public static String getGrantPrivilegesQuery(DriverProvider provider,
-                                                 String grantee,
-                                                 String name,
-                                                 int privilege,
-                                                 ComposeRule rule,
-                                                 boolean sensitive)
-        throws java.sql.SQLException
-    {
-        String separator = ", ";
-        String right = String.join(separator, provider.getPrivileges(privilege));
-        String table = quoteTableName(provider, name, rule, sensitive);
-        String user = enquoteIdentifier(provider, grantee, sensitive);
-        return MessageFormat.format(DBDefaultQuery.STR_QUERY_GRANT_PRIVILEGE, right, table, user);
-    }
-
-    public static String revokeTableOrViewPrivileges(DriverProvider provider,
-                                                     String grantee,
-                                                     String name,
-                                                     int privilege,
-                                                     ComposeRule rule,
-                                                     boolean sensitive)
-        throws java.sql.SQLException
-    {
-        List<String> values = provider.getPrivileges(privilege);
-        String table = quoteTableName(provider, name, rule, sensitive);
-        grantee = enquoteIdentifier(provider, grantee, sensitive);
-        String query = provider.getRevokeTableOrViewPrivileges(values, table, grantee);
-        System.out.println("DataBaseTools.revokeTableOrViewPrivileges() SQL: " + query);
-        return query;
+        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_DROP_VIEW);
+        return formatSQLQuery(command, view);
     }
 
     /** returns the primary key columns of the table
@@ -1320,25 +1043,25 @@ public class DBTools
                 autocommit = jdbc.getAutoCommit();
                 jdbc.setAutoCommit(false);
             }
-            try (java.sql.PreparedStatement statement = jdbc.prepareStatement(provider.getSQLCommand(query))) {
-                executeUpdate(statement, parameters, positions);
+            try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
+                executeDDL(statement, parameters, positions);
             }
             if (support) {
                 jdbc.commit();
                 jdbc.setAutoCommit(autocommit);
             }
         }
-        catch (java.sql.SQLException e2) {
+        catch (java.sql.SQLException e) {
             if (support) {
                 try {
                     jdbc.rollback();
                     jdbc.setAutoCommit(autocommit);
                 }
                 catch (java.sql.SQLException ex) {
-                    // pass
+                    e.setNextException(ex);
                 }
             }
-            throw e2;
+            throw e;
         }
         return true;
 
@@ -1364,57 +1087,66 @@ public class DBTools
         boolean autocommit = false;
         boolean support = provider.supportsTransactions();
         System.out.println("DBTools.executeDDLQueries() Support Transaction:" + support);
-        java.sql.Connection jdbc = provider.getConnection();
+        java.sql.Connection connection = provider.getConnection();
         try {
             if (support) {
-                autocommit = jdbc.getAutoCommit();
-                jdbc.setAutoCommit(false);
+                autocommit = connection.getAutoCommit();
+                connection.setAutoCommit(false);
             }
             for (String query : queries) {
                 if (query.isBlank()) {
                     index ++;
                     continue;
                 }
-                try (java.sql.PreparedStatement statement = jdbc.prepareStatement(provider.getSQLCommand(query))) {
+                try (java.sql.PreparedStatement statement = connection.prepareStatement(query)) {
                     Integer[] position = (positions.size() > index) ? positions.get(index) : new Integer[]{};
-                    executeUpdate(statement, parameters, position);
+                    executeDDL(statement, parameters, position);
                     index ++;
                     count ++;
                 }
             }
             if (support) {
-                jdbc.commit();
-                jdbc.setAutoCommit(autocommit);
+                connection.commit();
+                connection.setAutoCommit(autocommit);
             }
         }
-        catch (java.sql.SQLException e1) {
+        catch (java.sql.SQLException e) {
             if (support) {
                 try {
-                    jdbc.rollback();
-                    jdbc.setAutoCommit(autocommit);
+                    connection.rollback();
+                    connection.setAutoCommit(autocommit);
                 }
-                catch (java.sql.SQLException e2) {
-                    // pass
+                catch (java.sql.SQLException ex) {
+                    e.setNextException(ex);
                 }
             }
-            throw e1;
+            throw e;
         }
         return count > 0;
     }
 
-    private static void executeUpdate(java.sql.PreparedStatement statement,
-                                      Object[] parameters,
-                                      Integer[] positions)
+    private static void executeDDL(java.sql.PreparedStatement statement,
+                                   Object[] parameters,
+                                   Integer[] positions)
+        throws java.sql.SQLException
+    {
+        setStatementParameters(statement, parameters, positions);
+        statement.executeUpdate();
+    }
+
+    public static void setStatementParameters(java.sql.PreparedStatement statement,
+                                              Object[] parameters,
+                                              Integer[] positions)
         throws java.sql.SQLException
     {
         int i = 1;
         for (int position : positions) {
             statement.setString(i++, (String) parameters[position]);
         }
-        statement.executeUpdate();
     }
 
-    public final static java.sql.ResultSet getGeneratedResult(java.sql.Statement statement,
+    public final static java.sql.ResultSet getGeneratedResult(DriverProvider provider,
+                                                              java.sql.Statement statement,
                                                               java.sql.Statement generated,
                                                               ConnectionLog logger,
                                                               String cls,
@@ -1425,7 +1157,7 @@ public class DBTools
     {
         int resource;
         java.sql.ResultSet result = null;
-        String query = DBDefaultQuery.STR_QUERY_EMPTY_RESULTSET;
+        String query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_EMPTY_RESULTSET);
         //String sql = provider.getAutoRetrievingStatement();
         if (command != null) {
             if (command.isBlank()) {
@@ -1535,6 +1267,18 @@ public class DBTools
         }
     }
 
+    public static void printResultSet(java.sql.ResultSet result)
+        throws java.sql.SQLException
+    {
+        java.sql.ResultSetMetaData metadata = result.getMetaData();
+        while (result.next()) {
+            System.out.println("Row: " + result.getRow() + "\t*********************");
+            for (int i = 1; i <= metadata.getColumnCount(); i++) {
+                System.out.println("Column: " + metadata.getColumnName(i) + " - Value: '" + result.getString(i) + "'");
+            }
+        }
+    }
+
     public static SQLException getSQLException(String msg,
                                                XInterface context,
                                                String state,
@@ -1620,6 +1364,25 @@ public class DBTools
         }
         catch (java.lang.Exception e) { }
         return next;
+    }
+
+    // XXX: MessageFormat don't like simple quote!!!
+    public static String formatSQLQuery(String query,
+                                        Object... arguments)
+    {
+        // XXX: If we have a simple quote then we have to double simple quote!!!
+        if (query.contains("'")) {
+            query = query.replace("'", "''");
+        }
+        return MessageFormat.format(query, arguments);
+    }
+
+    public static int getEvenLength(final int length)
+    {
+        if ((length & 1) != 0) {
+            return length - 1;
+        }
+        return length;
     }
 
 }

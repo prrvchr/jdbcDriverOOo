@@ -26,7 +26,6 @@
 package io.github.prrvchr.jdbcdriver.hsqldb;
 
 import java.sql.Types;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -83,27 +82,6 @@ public final class HsqlDBDriverProvider
             return m_datatype.get(type);
         }
         return type;
-    }
-
-    @Override
-    public String getRevokeTableOrViewPrivileges(List<String> privileges,
-                                                 String table,
-                                                 String grantee)
-    {
-        String separator = ", ";
-        return String.format("REVOKE %s ON %s FROM %s CASCADE", String.join(separator, privileges), table, grantee);
-    }
-
-    @Override
-    public String getUserQuery()
-    {
-        return "SELECT USER_NAME FROM INFORMATION_SCHEMA.SYSTEM_USERS;";
-    }
-
-    @Override
-    public String getGroupQuery()
-    {
-        return "SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ADMINISTRABLE_ROLE_AUTHORIZATIONS;";
     }
 
     @Override

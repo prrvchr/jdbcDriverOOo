@@ -45,7 +45,6 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -161,7 +160,8 @@ public class DBColumnHelper
         throws java.sql.SQLException
     {
         Map<String, ExtraColumnInfo> columns = new TreeMap<>();
-        String sql = MessageFormat.format(DBDefaultQuery.STR_QUERY_METADATA_RESULTSET, columnName, composedName);
+        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_METADATA_RESULTSET);
+        String sql = DBTools.formatSQLQuery(command, columnName, composedName);
         java.sql.Statement statement = provider.getStatement();
         statement.setEscapeProcessing(false);
         try (java.sql.ResultSet result = statement.executeQuery(sql))

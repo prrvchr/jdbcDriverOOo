@@ -41,18 +41,4 @@ public final class DerbyDatabaseMetaData
         super(connection);
     }
 
-    @Override
-    protected String _mapDatabaseTableTypes(String type)
-    {
-        return type;
-    }
-
-    @Override
-    protected String _mapDatabaseTableTypes(final String catalog,
-                                            final String schema,
-                                            final String type)
-    {
-        return type;
-    }
-
 }

@@ -87,4 +87,6 @@ public class DBDefaultQuery {
     public static final String STR_QUERY_REVOKE_ROLE                         = "REVOKE {0} FROM {1}";
 
     public static final String STR_QUERY_GRANT_PRIVILEGE                     = "GRANT {0} ON {1} TO {2}";
+    public static final String STR_QUERY_REVOKE_PRIVILEGE                    = "REVOKE {0} ON {1} FROM {2}";
+
 }

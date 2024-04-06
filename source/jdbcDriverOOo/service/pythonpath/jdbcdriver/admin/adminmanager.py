@@ -33,6 +33,7 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.sdbc import SQLException as UNOException
 from com.sun.star.sdbcx.Privilege import SELECT
 from com.sun.star.sdbcx.Privilege import INSERT
 from com.sun.star.sdbcx.Privilege import UPDATE
@@ -44,6 +45,8 @@ from com.sun.star.sdbcx.Privilege import REFERENCE
 from com.sun.star.sdbcx.Privilege import DROP
 
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
+
+from com.sun.star.view.SelectionType import SINGLE
 
 from .adminmodel import AdminModel
 
@@ -59,30 +62,42 @@ from .adminhandler import UsersHandler
 from .adminhandler import NewUserHandler
 from .adminhandler import PasswordHandler
 
-from ..grid import GridModel
+from .gridmanager import GridManager
+from .gridmodel import GridModel
+
 from ..grid import GridListener
 
 from ..unotool import createMessageBox
 from ..unotool import getResourceLocation
+from ..unotool import getStringResource
 
 from ..configuration import g_extension
 from ..configuration import g_identifier
 
+from collections import OrderedDict
 import traceback
 
 
 class AdminManager(unohelper.Base):
-    def __init__(self, ctx, view, connection, members, grantees, recursive, isuser):
+    def __init__(self, ctx, view, connection, members, grantees, isuser):
         self._ctx = ctx
         datasource = connection.getParent().Name
         tables = connection.getTables()
-        self._flags = {1: SELECT, 2: INSERT, 3: UPDATE, 4: DELETE, 5: READ, 6: CREATE, 7: ALTER, 8: REFERENCE, 9: DROP}
+        columns = self._getPrivilegesMapping(connection)
+        self._columns = tuple(columns.keys())
+        self._flags = tuple(columns.values())
         self._view = view
         window = self._view.getGridWindow()
         url = getResourceLocation(ctx, g_identifier, g_extension)
-        model = GridModel(ctx, grantees, tables, self._flags, recursive, isuser, url)
-        user = connection.getMetaData().getUserName()
-        self._model = AdminModel(ctx, datasource, model, window, GridListener(self), url, user, members, tables, self._flags, 'AdminGrid')
+        users = connection.getUsers()
+        username = connection.getMetaData().getUserName()
+        user = users.getByName(username) if users.hasByName(username) else None
+        model = GridModel(ctx, user, grantees, tables, self._flags, isuser, url)
+        quote = connection.getMetaData().getIdentifierQuoteString()
+        resolver = getStringResource(ctx, g_identifier, g_extension)
+        resources = (resolver, 'PrivilegesDialog.CheckBox%s.Label')
+        manager = GridManager(ctx, datasource, GridListener(self), self._columns, url, model, window, quote, 'AdminGrid', SINGLE, resources, None, True)
+        self._model = AdminModel(manager, username, members, tables, resolver)
         self._dialog = None
         self._disabled = True
         self._view.initGrantees(self._model.getGrantees())
@@ -113,18 +128,20 @@ class AdminManager(unohelper.Base):
     def createGroup(self):
         self._dialog = GranteeView(self._ctx, 'NewGroupDialog', NewGroupHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            grantees = self._model.createGroup(self._dialog.getGrantee())
-            if grantees is not None:
-                self._updateGrantee(*self._model.getNewGrantees(grantees))
+            group = self._model.createGroup(self._dialog.getGrantee())
+            if group is not None:
+                self._updateGrantee(self._model.getNewGrantees(), group)
+            else:
+                print("AdminManager.createGroup() ERROR ******************")
         self._dialog.dispose()
         self._dialog = None
 
     def createUser(self):
         self._dialog = GranteeView(self._ctx, 'NewUserDialog', NewUserHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            grantees = self._model.createUser(self._dialog.getGrantee(), self._dialog.getPassword())
-            if grantees is not None:
-                self._updateGrantee(*self._model.getNewGrantees(grantees))
+            user = self._model.createUser(self._dialog.getGrantee(), self._dialog.getPassword())
+            if user is not None:
+                self._updateGrantee(self._model.getNewGrantees(), user)
         self._dialog.dispose()
         self._dialog = None
 
@@ -217,12 +234,42 @@ class AdminManager(unohelper.Base):
 
     def setPrivileges(self):
         table, privileges, grantables, inherited = self._model.getPrivileges()
-        dialog = PrivilegeView(self._ctx, self._flags, table, privileges, grantables, inherited)
+        dialog = PrivilegeView(self._ctx, self._flags, table, self._columns, privileges, grantables, inherited)
         if dialog.execute() == OK:
             flags = dialog.getPrivileges(self._flags)
             if flags != privileges:
-                self._model.setPrivileges(table, *self._getPrivileges(privileges, flags))
+                try:
+                     self._model.setPrivileges(table, *self._getPrivileges(privileges, flags))
+                except SQLException as e:
+                    msg = e.Message
+                    ex = e.NextException
+                    while (ex is not None):
+                        msg += ex.Message
+                        ex = ex.NextException
+                    print("setPrivilege() Error: %s" % e.Message)
         dialog.dispose()
+
+    def _getPrivilegesMapping(self, connection):
+        columns = OrderedDict()
+        for info in connection.getMetaData().getConnectionInfo():
+            if info.Name == 'PrivilegesMapping':
+                index = 0
+                map = info.Value
+                count = self._getEvenLength(len(map))
+                while index < count:
+                    columns[map[index].title()] = int(map[index + 1])
+                    index += 2
+                break
+        else:
+            columns = {'Select': SELECT, 'Insert': INSERT, 'Update': UPDATE,
+                       'Delete': DELETE, 'Read': READ, 'Create': CREATE,
+                       'Alter': ALTER, 'References': REFERENCE, 'Drop': DROP}
+        return columns
+
+    def _getEvenLength(self, length):
+        if (length % 2) != 0:
+            return length - 1
+        return length
 
     def _toogleOk(self, isgroup):
         enabled = self._model.isMemberModified(self._dialog.getMembers(), isgroup)
@@ -241,7 +288,7 @@ class AdminManager(unohelper.Base):
 
     def _getPrivileges(self, privileges, flags):
         grant = revoke = 0
-        for flag in self._flags.values():
+        for flag in self._flags:
             old = flag == privileges & flag
             new = flag == flags & flag
             if old == new:
@@ -252,3 +299,6 @@ class AdminManager(unohelper.Base):
                 revoke |= flag
         return grant, revoke
 
+
+class SQLException(UNOException):
+    args = ()

@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -185,9 +184,9 @@ public final class IndexContainer
                 indexes.add(index);
             }
             if (!indexes.isEmpty()) {
-                String command = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
+                String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX);
                 arguments.add(String.join(", ", indexes));
-                query = MessageFormat.format(command, arguments.toArray(new Object[0]));
+                query = DBTools.formatSQLQuery(command, arguments.toArray(new Object[0]));
                 System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
                 table = DBTools.composeTableName(provider, m_Table, rule, false);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table, query);
@@ -226,7 +225,7 @@ public final class IndexContainer
             String command = provider.getDropConstraintQuery(KeyType.UNIQUE);
             String arg1 = DBTools.composeTableName(provider, m_Table, rule, isCaseSensitive());
             String arg2 = DBTools.enquoteIdentifier(provider, name, isCaseSensitive());
-            query = MessageFormat.format(command, arg1, arg2);
+            query = DBTools.formatSQLQuery(command, arg1, arg2);
             table = DBTools.composeTableName(provider, m_Table, rule, false);
             System.out.println("sdbcx.IndexContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY, name, table, query);

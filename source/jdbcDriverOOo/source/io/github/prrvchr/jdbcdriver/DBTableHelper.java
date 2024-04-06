@@ -46,7 +46,6 @@
 package io.github.prrvchr.jdbcdriver;
 
 import java.sql.Types;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -302,7 +301,7 @@ public class DBTableHelper
             if (!name1.equals(column.newname)) {
                 // Rename a column
                 query = provider.getRenameColumnQuery();
-                queries.add(MessageFormat.format(query, arguments));
+                queries.add(DBTools.formatSQLQuery(query, arguments));
                 result |= 1;
             }
 
@@ -330,7 +329,7 @@ public class DBTableHelper
                             query =  provider.getAddIdentityQuery();
                         }
                         else {
-                            query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN;
+                            query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN);
                             alldone = true;
                         }
                     }
@@ -338,7 +337,7 @@ public class DBTableHelper
                     else {
                         query =  provider.getDropIdentityQuery();
                     }
-                    parts.add(MessageFormat.format(query, arguments));
+                    parts.add(DBTools.formatSQLQuery(query, arguments));
                     result |= 2;
                 }
                 // XXX: type have been changed 
@@ -351,11 +350,11 @@ public class DBTableHelper
                             query =  provider.getAlterColumnQuery();
                         }
                         else {
-                            query = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN;
+                            query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN);
                         }
                         // XXX: If an Identity have been added we must first change the type
                         index = (autochanged && auto2) ? 0 : index;
-                        parts.add(0, MessageFormat.format(query, arguments));
+                        parts.add(0, DBTools.formatSQLQuery(query, arguments));
                         alldone = true;
                     }
                     result |= 4;
@@ -374,9 +373,9 @@ public class DBTableHelper
                         query = provider.getColumnResetDefaultQuery();
                     }
                     else {
-                        query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_DEFAULT;
+                        query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_DEFAULT);
                     }
-                    queries.add(MessageFormat.format(query, arguments));
+                    queries.add(DBTools.formatSQLQuery(query, arguments));
                     result |= 8;
                 }
 
@@ -385,12 +384,12 @@ public class DBTableHelper
                 boolean nullablechanged = nullable2 != nullable1;
                 if (nullablechanged) {
                     if (nullable2 == ColumnValue.NO_NULLS) {
-                        query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_NOT_NULL;
+                        query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_NOT_NULL);
                     }
                     else {
-                        query = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_NOT_NULL;
+                        query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_NOT_NULL);
                     }
-                    queries.add(MessageFormat.format(query, arguments));
+                    queries.add(DBTools.formatSQLQuery(query, arguments));
                     result |= 16;
                 }
             }
@@ -461,47 +460,59 @@ public class DBTableHelper
             autoIncrementValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.AUTOINCREMENTCREATION);
             column.isautoincrement = !autoIncrementValue.isEmpty();
         }
-        
+
         // Look if we have to use precisions (ie: SCALE).
         boolean useliteral = false;
         String prefix = "";
         String postfix = "";
         String createparams = "";
-        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getTypeInfo()){
+        try (java.sql.ResultSet result = provider.getTypeInfoResultSet())
+        {
             while (result.next()) {
                 String typename2cmp = result.getString(1);
                 int type2cmp = result.getShort(2);
-                String value = result.getString(4);
-                prefix = result.wasNull() ? prefix : value;
-                value = result.getString(5);
-                postfix = result.wasNull() ? postfix : value;
-                value = result.getString(6);
-                createparams = result.wasNull() ? createparams : value;
-                // first identical type will be used if typename is empty
+                prefix = result.getString(4);
+                if (result.wasNull()) {
+                    prefix = "";
+                }
+                postfix = result.getString(5);
+                if (result.wasNull()) {
+                    postfix = "";
+                }
+                createparams = result.getString(6);
+                if (result.wasNull()) {
+                    createparams= "";
+                }
+                // XXX: First identical type will be used if typename is empty
                 if (typename.isEmpty() && type2cmp == datatype) {
                     typename = typename2cmp;
                 }
-                if (typename.equalsIgnoreCase(typename2cmp) && type2cmp == datatype && !createparams.isBlank() && !result.wasNull()) {
+                if (datatype == Types.TIMESTAMP_WITH_TIMEZONE || datatype == Types.TIME_WITH_TIMEZONE || datatype == Types.TIME || datatype == Types.TIMESTAMP) {
+                    System.out.println("DBTableHelper.getStandardColumnProperties() 1 typename: " + typename + " - typename2cmp: " + typename2cmp + " - createParam: " + createparams + " - Type: " + datatype);
+                }
+                if (type2cmp == datatype && typename.equalsIgnoreCase(typename2cmp) && !createparams.isBlank()) {
                     useliteral = true;
                     break;
                 }
             }
         }
+
         int index = 0;
         if (column.isautoincrement && (index = typename.indexOf(autoIncrementValue)) != -1) {
             typename = typename.substring(0, index);
         }
         // XXX: For type that use precisions we need to compose the type name...
+        System.out.println("DBTableHelper.getStandardColumnProperties() 2 useliteral: " + useliteral + " - scale: " + scale);
         if (useliteral && (precision > 0 || scale > 0)) {
-            //FIXME: The original code coming from OpenOffice/main/connectivity/java check only for TIMESTAMP...
-            //FIXME: Now all temporal SQL types with fraction of a second are taken into account.
+            //XXX: The original code coming from OpenOffice/main/connectivity/java check only for TIMESTAMP...
+            //XXX: Now all temporal SQL types with fraction of a second are taken into account.
             boolean timed = datatype == Types.TIME ||
                             datatype == Types.TIME_WITH_TIMEZONE ||
                             datatype == Types.TIMESTAMP ||
                             datatype == Types.TIMESTAMP_WITH_TIMEZONE;
             
-            //FIXME: The original code coming from OpenOffice/main/connectivity/java search only for parenthesis...
-            //FIXME: Now the insertion position takes into account the peculiarity of the data types WITH TIME ZONE
+            //XXX: The original code coming from OpenOffice/main/connectivity/java search only for parenthesis...
+            //XXX: Now the insertion position takes into account the peculiarity of the data types WITH TIME ZONE
             int insert =    datatype == Types.TIME_WITH_TIMEZONE ||
                             datatype == Types.TIMESTAMP_WITH_TIMEZONE ?
                             typename.indexOf(' ') : typename.indexOf('(');
@@ -541,7 +552,7 @@ public class DBTableHelper
             column.columntype.append(typename);
         }
 
-        // FIXME: Auto-increment take precedence on Default Value and Not Null property
+        // XXX: Auto-increment take precedence on Default Value and Not Null property
         String defaultvalue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DEFAULTVALUE);
         int isnullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.ISNULLABLE);
         if (isAutoIncrement && column.isautoincrement) {

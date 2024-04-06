@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.sun.star.awt.FontDescriptor;
@@ -36,12 +34,14 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
-import com.sun.star.sdbcx.Privilege;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.DBColumnHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.DBPrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
@@ -56,9 +56,6 @@ public final class Table
     private static final String[] m_services = {"com.sun.star.sdb.Table",
                                                 "com.sun.star.sdbcx.Table"};
 
-    private Integer m_Privileges = Privilege.SELECT | Privilege.INSERT    | Privilege.UPDATE |
-                                   Privilege.DELETE | Privilege.READ      | Privilege.CREATE |
-                                   Privilege.ALTER  | Privilege.REFERENCE | Privilege.DROP;
     protected String m_Filter = "";
     protected boolean m_ApplyFilter = false;
     protected String m_Order = "";
@@ -98,21 +95,19 @@ public final class Table
         System.out.println("sdb.Table() 1");
     }
 
-
     private int getPrivileges()
         throws WrappedTargetException
     {
-        int privileges = m_Privileges;
+        int privileges = 0;
         try {
-            String name = getConnection().getProvider().getConnection().getMetaData().getUserName();
-            if (name != null && !name.isBlank()) {
-                UserContainer users = getConnection().getUsersInternal();
-                if (users.hasByName(name)) {
-                    User user = users.getElement(name);
-                    List<String> grantees = new ArrayList<>(List.of(name));
-                    grantees.addAll(Arrays.asList(user.getGroups().getElementNames()));
-                    privileges = DBTools.getTableOrViewPrivileges(getConnection().getProvider(), grantees, m_CatalogName, m_SchemaName, getName());
-                }
+            DriverProvider provider = getConnection().getProvider();
+            String name = provider.getConnection().getMetaData().getUserName();
+            if (name == null || name.isBlank()) {
+                privileges = provider.getMockPrivileges();
+            }
+            else {
+                ComposeRule rule = ComposeRule.InDataManipulation;
+                privileges = DBPrivilegesHelper.getTablePrivileges(provider, name, getNamedComponents(), rule);
             }
         }
         catch (SQLException e) {
@@ -123,10 +118,9 @@ public final class Table
             e.printStackTrace();
             System.out.println("DBTools.getPrivileges() 2 ERROR ******************");
         }
+        System.out.println("sdb.Table.getPrivileges() Privileges: " + privileges);
         return privileges;
     }
-
-
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
@@ -134,9 +128,7 @@ public final class Table
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    if (getConnection().getProvider().ignoreDriverPrivileges()) {
-                        return m_Privileges;
-                    }
+                    System.out.println("sdb.Table.getPrivileges() 1");
                     return getPrivileges();
                 }
             }, null);
@@ -244,6 +236,12 @@ public final class Table
                     m_GroupBy = (String) value;
                 }
             });
+    }
+
+    @Override
+    protected NamedComponents getNamedComponents()
+    {
+        return super.getNamedComponents();
     }
 
     protected String getCatalogName()

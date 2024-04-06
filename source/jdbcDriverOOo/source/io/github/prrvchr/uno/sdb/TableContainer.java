@@ -30,6 +30,7 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -68,6 +69,7 @@ public final class TableContainer
         return new TableDescriptor(isCaseSensitive());
     }
 
+    @Override
     protected Table getTable(NamedComponents component,
                               String type,
                               String remarks)
@@ -78,5 +80,18 @@ public final class TableContainer
         return table;
     }
 
+    @Override
+    protected Table getElement(String name)
+        throws SQLException
+    {
+        return super.getElement(name);
+    }
+
+    @Override
+    protected Table getElement(int index)
+        throws SQLException
+    {
+        return super.getElement(index);
+    }
 
 }

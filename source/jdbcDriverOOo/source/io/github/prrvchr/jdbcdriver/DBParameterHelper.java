@@ -35,6 +35,43 @@ import io.github.prrvchr.jdbcdriver.DBTools.NamedComponents;
 public class DBParameterHelper
 {
 
+    public static String[] getPrivilegesArguments(DriverProvider provider,
+                                                  String grantee,
+                                                  NamedComponents table,
+                                                  ComposeRule rule)
+        throws java.sql.SQLException, SQLException
+    {
+        String[] arguments = new String[4];
+        // XXX: {0} unquoted grantee name
+        arguments[0] = grantee;
+        // XXX: {1} unquoted catalog name
+        arguments[1] = table.getCatalogName();
+        // XXX: {2} unquoted schema name
+        arguments[2] = table.getSchemaName();
+        // XXX: {3} unquoted table name
+        arguments[3] = table.getTableName();
+        return arguments;
+    }
+
+
+    public static Object[] getAlterPrivilegesArguments(DriverProvider provider,
+                                                       NamedComponents component,
+                                                       String privileges,
+                                                       String grantee,
+                                                       ComposeRule rule,
+                                                       boolean sensitive)
+        throws java.sql.SQLException, SQLException
+    {
+        List<String> args = new ArrayList<>();
+        // XXX: {0} the list of privileges to revoke
+        args.add(privileges);
+        // XXX: {1} quoted / unquoted full qualified table name
+        args.add(DBTools.buildName(provider, component, rule, sensitive));
+        // XXX: {2} quoted / unquoted grantee name
+        args.add(DBTools.enquoteIdentifier(provider, grantee, sensitive));
+        return args.toArray(new Object[0]);
+    }
+
 
     public static Object[] getRenameTableArguments(DriverProvider provider,
                                                    NamedComponents newtable,
@@ -46,21 +83,21 @@ public class DBParameterHelper
         throws java.sql.SQLException, SQLException
     {
         List<String> args = new ArrayList<>();
-        // TODO: {0} quoted / unquoted full old table name
+        // XXX: {0} quoted / unquoted full old table name
         args.add(DBTools.quoteTableName(provider, fullname, rule, sensitive));
-        // TODO: {1} quoted / unquoted new schema name
+        // XXX: {1} quoted / unquoted new schema name
         args.add(DBTools.enquoteIdentifier(provider, newtable.getSchemaName(), sensitive));
-        // TODO: {2} quoted / unquoted full old table name overwritten with the new schema name
+        // XXX: {2} quoted / unquoted full old table name overwritten with the new schema name
         args.add(DBTools.buildName(provider, oldtable.getCatalogName(), newtable.getSchemaName(), oldtable.getTableName(), rule, sensitive));
-        // TODO: {3} quoted / unquoted new table name
+        // XXX: {3} quoted / unquoted new table name
         args.add(DBTools.enquoteIdentifier(provider, newtable.getTableName(), sensitive));
-        // TODO: {4} quoted / unquoted full old table name overwritten with the new table name
+        // XXX: {4} quoted / unquoted full old table name overwritten with the new table name
         args.add(DBTools.buildName(provider, oldtable.getCatalogName(), oldtable.getSchemaName(), newtable.getTableName(), rule, sensitive));
-        // TODO: {5} quoted / unquoted new catalog name
+        // XXX: {5} quoted / unquoted new catalog name
         args.add(DBTools.enquoteIdentifier(provider, newtable.getCatalogName(), sensitive));
-        // TODO: {6} quoted / unquoted full old table name overwritten with the new catalog name
+        // XXX: {6} quoted / unquoted full old table name overwritten with the new catalog name
         args.add(DBTools.buildName(provider, newtable.getCatalogName(), oldtable.getSchemaName(), oldtable.getTableName(), rule, sensitive));
-        // TODO: {7} quoted / unquoted full new table name
+        // XXX: {7} quoted / unquoted full new table name
         args.add(DBTools.buildName(provider, newtable.getCatalogName(), newtable.getSchemaName(), newtable.getTableName(), rule, sensitive));
         if (reversed) {
             String buffers = args.get(0);
@@ -81,15 +118,15 @@ public class DBParameterHelper
         throws java.sql.SQLException, SQLException
     {
         List<String> args = new ArrayList<>();
-        // TODO: {0} quoted / unquoted full view name
+        // XXX: {0} quoted / unquoted full view name
         args.add(DBTools.quoteTableName(provider, fullname, rule, sensitive));
-        // TODO: {1} quoted / unquoted catalog view name
+        // XXX: {1} quoted / unquoted catalog view name
         args.add(DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive));
-        // TODO: {2} quoted / unquoted schema view name
+        // XXX: {2} quoted / unquoted schema view name
         args.add(DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive));
-        // TODO: {3} quoted / unquoted view name
+        // XXX: {3} quoted / unquoted view name
         args.add(DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive));
-        // TODO: {4} raw view command
+        // XXX: {4} raw view command
         args.add(command);
         return args.toArray(new Object[0]);
     }
@@ -103,16 +140,14 @@ public class DBParameterHelper
         throws java.sql.SQLException, SQLException
     {
         List<String> args = new ArrayList<>();
-        // TODO: {0} quoted / unquoted  full view name
+        // XXX: {0} quoted / unquoted  full view name
         args.add(DBTools.quoteTableName(provider, fullname, rule, sensitive));
-        // TODO: {1} quoted / unquoted  catalog view name
+        // XXX: {1} quoted / unquoted  catalog view name
         args.add(DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive));
-        // TODO: {2} quoted / unquoted  schema view name
+        // XXX: {2} quoted / unquoted  schema view name
         args.add(DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive));
-        // TODO: {3} quoted / unquoted  view name
+        // XXX: {3} quoted / unquoted  view name
         args.add(DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive));
-        // TODO: {4} quoted literal 'SELECT '
-        args.add("'SELECT '");
         return args.toArray(new Object[0]);
     }
 

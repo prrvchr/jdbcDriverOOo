@@ -370,7 +370,7 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("SystemProperties", "Additional properties to set at java.lang.System before loading the driver.", true, "", new String[0]));
         properties.add(new DriverPropertyInfo("ParameterNameSubstitution", "Change named parameters with '?'.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled", "Retrieve generated values.", false, "false", boolchoices.clone()));
-        properties.add(new DriverPropertyInfo("AutoRetrievingStatement", "Auto-increment statement.", false, "", new String[0]));
+        properties.add(new DriverPropertyInfo("AutoRetrievingStatement", "getGeneratedKey() statement.", false, "", new String[0]));
         properties.add(new DriverPropertyInfo("GenerateASBeforeCorrelationName", "Generate AS before table correlation names.", false, "true", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("IgnoreCurrency", "Ignore the currency field from the ResultsetMetaData.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("EscapeDateTime", "Escape date time format.", false, "true", boolchoices.clone()));
@@ -379,6 +379,8 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, "", new String[0]));
         properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges", "Ignore the privileges from the database driver.", false, "false", boolchoices.clone()));
         properties.add(new DriverPropertyInfo("AddIndexAppendix", "Add an appendix (ASC or DESC) when creating the index.", true, "false", boolchoices.clone()));
+        properties.add(new DriverPropertyInfo("TypeInfoSettings", "Defines how the type info of the database metadata should be manipulated.", true, "", new String[0]));
+        properties.add(new DriverPropertyInfo("PrivilegesMapping", "Lists privileges supported by the underlying driver.", true, "", new String[0]));
         return properties.toArray(new DriverPropertyInfo[0]);
     }
 

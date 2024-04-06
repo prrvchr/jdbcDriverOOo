@@ -170,7 +170,7 @@ public final class ViewContainer
             ComposeRule rule = ComposeRule.InTableDefinitions;
             DriverProvider provider = getConnection().getProvider();
             String table = DBTools.buildName(provider, view.getNamedComponents(), rule, isCaseSensitive());
-            query = DBTools.getDropViewQuery(table);
+            query = DBTools.getDropViewQuery(provider, table);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
             DBTools.executeDDLQuery(provider, query);
         }
