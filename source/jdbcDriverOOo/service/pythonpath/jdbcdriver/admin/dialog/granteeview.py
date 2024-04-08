@@ -37,6 +37,7 @@ from ...configuration import g_extension
 class GranteeView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
         self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+        self._background = {True: 16777215, False: 15790320}
 
     def execute(self):
         return self._dialog.execute()
@@ -55,13 +56,18 @@ class GranteeView(unohelper.Base):
 
     def enableOk(self, enabled):
         self._getOk().Model.Enabled = enabled
-        print("AddGranteeView.enableAdd() %s" % enabled)
 
     def enableConfirmation(self, enabled):
         control = self._getConfirmation()
         control.Model.Enabled = enabled
         if not enabled:
             control.Text = ""
+
+    def setRoleBackground(self, enabled):
+        self._getName().Model.BackgroundColor = self._background.get(enabled)
+
+    def setConfirmationBackground(self, enabled):
+        self._getConfirmation().Model.BackgroundColor = self._background.get(enabled)
 
     def _getName(self):
         return self._dialog.getControl('TextField1')

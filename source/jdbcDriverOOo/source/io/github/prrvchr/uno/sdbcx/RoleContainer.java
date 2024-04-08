@@ -54,16 +54,20 @@ import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.helper.DBParameterHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.sdb.Connection;
 import io.github.prrvchr.uno.sdb.Role;
 
 
-public abstract class RoleContainer<T extends Role, R extends Role>
+public abstract class RoleContainer<T extends Role>
     extends WeakBase
     implements XServiceInfo,
                XContainer,
@@ -78,7 +82,8 @@ public abstract class RoleContainer<T extends Role, R extends Role>
 
     private final String m_service;
     private final String[] m_services;
-    protected R m_role;
+    protected String m_name;
+    protected String m_role;
     private Container<T> m_roles;
     private List<String> m_Names;
     private boolean m_sensitive;
@@ -86,36 +91,43 @@ public abstract class RoleContainer<T extends Role, R extends Role>
     protected InterfaceContainer m_refresh = new InterfaceContainer();
     protected Object m_lock;
     protected final ConnectionLog m_logger; 
+    protected final DriverProvider m_provider;
+    protected final boolean m_isrole;
 
     // The constructor method:
     public RoleContainer(String service,
                          String[] services,
-                         Object connection,
-                         R role,
+                         Connection connection,
+                         DriverProvider provider,
+                         String name,
                          Container<T> roles,
                          boolean sensitive,
                          List<String> names,
-                         ConnectionLog logger)
+                         boolean isrole,
+                         String role,
+                         LoggerObjectType type)
         throws ElementExistException
     {
         m_service = service;
         m_services = services;
         m_lock = connection;
+        m_provider = provider;
         m_sensitive = sensitive;
+        m_name = name;
         m_role = role;
         m_roles = roles;
         m_Names = names;
-        m_logger = logger;
+        m_logger = new ConnectionLog(provider.getLogger(), type);
+        m_isrole = isrole;
     }
 
     protected abstract ConnectionLog getLogger();
-
     protected abstract DriverProvider getProvider();
 
     // Would be from com.sun.star.lang.XComponent ;)
     public void dispose()
     {
-        System.out.println("sdbcx.Container.dispose() Class: " + this.getClass().getName());
+        System.out.println("sdbcx.RoleContainer.dispose() Class: " + this.getClass().getName());
     }
 
 
@@ -273,13 +285,18 @@ public abstract class RoleContainer<T extends Role, R extends Role>
     }
 
 
+    // com.sun.star.sdbcx.XDataDescriptorFactory
+    @Override
+    public abstract XPropertySet createDataDescriptor();
+
+
     // com.sun.star.sdbcx.XAppend
     @Override
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException
     {
         String name = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
-        if (m_Names.contains(name)) {
+        if (hasByName(name)) {
             throw new ElementExistException();
         }
         if (grantRole(name)) {
@@ -318,25 +335,28 @@ public abstract class RoleContainer<T extends Role, R extends Role>
     }
 
 
-    // com.sun.star.sdbcx.XDataDescriptorFactory
-    @Override
-    public abstract XPropertySet createDataDescriptor();
-
-
     // Protected methods
     protected boolean grantRole(String name)
         throws SQLException
     {
         String query = null;
+        String role1 = m_isrole ? m_name : name;
+        String role2 = m_isrole ? name : m_name;
         try {
-            query = getGrantRoleQuery(m_role.getName(), name);
-            int resource = getGrantRoleResource(false);
-            getLogger().logprb(LogLevel.INFO, resource, name, m_role, query);
+            Object[] Arguments = DBParameterHelper.getAlterRoleArguments(getProvider(), role1, role2, m_isrole, m_role, isCaseSensitive());
+            query = getProvider().getGrantRoleQuery(Arguments);
+            int resource = m_isrole ?
+                           Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY :
+                           Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY;
+            getLogger().logprb(LogLevel.INFO, resource, role1, role2, query);
+            System.out.println("sdbcx.RoleContainer.grantRole() 1 IsRole: " + m_isrole + " - Query: " + query);
             return DBTools.executeDDLQuery(getProvider(), query);
         }
         catch (java.sql.SQLException e) {
-            int resource = getGrantRoleResource(true);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, m_role, query);
+            int resource = m_isrole ?
+                           Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY_ERROR :
+                           Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, role1, role2, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
@@ -345,15 +365,23 @@ public abstract class RoleContainer<T extends Role, R extends Role>
         throws SQLException
     {
         String query = null;
+        String role1 = m_isrole ? m_name : name;
+        String role2 = m_isrole ? name : m_name;
         try {
-            query = getRevokeRoleQuery(m_role.getName(), name);
-            int resource = getRevokeRoleResource(false);
-            getLogger().logprb(LogLevel.INFO, resource, name, m_role, query);
+            Object[] Arguments = DBParameterHelper.getAlterRoleArguments(getProvider(), role1, role2, m_isrole, m_role, isCaseSensitive());
+            query = getProvider().getRevokeRoleQuery(Arguments);
+            int resource = m_isrole ?
+                           Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY :
+                           Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY;
+            getLogger().logprb(LogLevel.INFO, resource, role1, role2, query);
+            System.out.println("sdbcx.RoleContainer.revokeRole() 1 IsRole: " + m_isrole + " - Query: " + query);
             return DBTools.executeDDLQuery(getProvider(), query);
        }
         catch (java.sql.SQLException e) {
-            int resource = getRevokeRoleResource(true);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, m_role, query);
+            int resource = m_isrole ?
+                           Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY_ERROR :
+                           Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, role1, role2, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
@@ -379,11 +407,5 @@ public abstract class RoleContainer<T extends Role, R extends Role>
         // XXX: We need to remove members of role.
         m_Names = names;
     }
-
-    protected abstract String getGrantRoleQuery(String role, String name) throws java.sql.SQLException;
-    protected abstract String getRevokeRoleQuery(String role, String name) throws java.sql.SQLException;
-
-    protected abstract int getRevokeRoleResource(boolean error);
-    protected abstract int getGrantRoleResource(boolean error);
 
 }

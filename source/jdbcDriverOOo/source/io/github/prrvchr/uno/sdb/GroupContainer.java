@@ -40,6 +40,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbcx.Container;
 
 
@@ -112,7 +113,7 @@ public class GroupContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
@@ -146,7 +147,7 @@ public class GroupContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }

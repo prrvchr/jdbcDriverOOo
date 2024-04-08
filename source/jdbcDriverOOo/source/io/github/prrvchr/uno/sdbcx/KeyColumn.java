@@ -93,7 +93,7 @@ public final class KeyColumn
     {
         System.out.println("sdbcx.KeyColumn.rename() *************************************");
         // We need to rename the RelatedColumn too 
-        m_Name = newname;
+        setName(newname);
         m_RelatedColumn = newname;
     }
 

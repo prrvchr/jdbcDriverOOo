@@ -256,7 +256,7 @@ public final class IndexContainer
         while (Indexes.hasNext()) {
             Index index = Indexes.next();
             if (index.m_IsPrimaryKeyIndex) {
-                removeElement(index.m_Name, false);
+                removeElement(index.getName(), false);
                 break;
             }
         }
@@ -268,7 +268,7 @@ public final class IndexContainer
         Iterator<Index> Indexes = getActiveElements();
         while (Indexes.hasNext()) {
             Index index = Indexes.next();
-            if (name.equals(index.m_Name)) {
+            if (name.equals(index.getName())) {
                 removeElement(name, false);
                 break;
             }

@@ -412,12 +412,12 @@
                 </node>
                 <node oor:name="RevokeRoleCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>REVOKE {0} FROM {1} RESTRICT</value>
+                        <value>REVOKE {0} FROM {2} RESTRICT</value>
                     </prop>
                 </node>
                 <node oor:name="RevokePrivilegesCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>REVOKE {0} ON {1} FROM {2} CASCADE</value>
+                        <value>REVOKE {0} ON {1} FROM {3} CASCADE</value>
                     </prop>
                 </node>
                 <node oor:name="GetUsersCommand" oor:op="replace">
@@ -434,12 +434,17 @@
                     <prop oor:name="Value" oor:type="xs:string">
                     <!-- XXX: We use recursion to find privileges inherited from roles.
                          XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
-                        <value>SELECT ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE ROLE_NAME != GRANTEE AND GRANTEE = ?</value>
+                        <value>SELECT R.ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS AS R INNER JOIN INFORMATION_SCHEMA.AUTHORIZATIONS AS A ON A.AUTHORIZATION_TYPE = 'ROLE' AND R.ROLE_NAME = A.AUTHORIZATION_NAME WHERE R.GRANTEE = ?</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT GRANTEE FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS WHERE GRANTEE != ROLE_NAME AND ROLE_NAME = ?</value>
+                        <value>SELECT R.GRANTEE FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS AS R INNER JOIN INFORMATION_SCHEMA.AUTHORIZATIONS AS A ON A.AUTHORIZATION_TYPE = 'USER' AND R.GRANTEE = A.AUTHORIZATION_NAME WHERE R.ROLE_NAME = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT R.GRANTEE FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS AS R INNER JOIN INFORMATION_SCHEMA.AUTHORIZATIONS AS A ON A.AUTHORIZATION_TYPE = 'ROLE' AND R.GRANTEE = A.AUTHORIZATION_NAME WHERE R.ROLE_NAME = ?</value>
                     </prop>
                 </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">
@@ -1018,6 +1023,11 @@
                         <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
                     </prop>
                 </node>
+                <node oor:name="CreateUserCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value></value>
+                    </prop>
+                </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">SELECT SUBSTR(VIEWDEFINITION, (LOCATE(' AS SELECT ', VIEWDEFINITION) + 4)), CHECKOPTION FROM SYS.SYSVIEWS INNER JOIN SYS.SYSTABLES ON SYS.SYSVIEWS.TABLEID = SYS.SYSTABLES.TABLEID INNER JOIN SYS.SYSSCHEMAS ON SYS.SYSTABLES.SCHEMAID = SYS.SYSSCHEMAS.SCHEMAID WHERE SYS.SYSSCHEMAS.SCHEMANAME = ? AND SYS.SYSTABLES.TABLENAME = ?|23</value>
@@ -1170,6 +1180,26 @@
                         <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
                     </prop>
                 </node>
+                <node oor:name="GrantRoleCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>GRANT {0} TO {1} {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="RevokeRoleCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} FROM {1} {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="GrantPrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>GRANT {0} ON {1} TO {2} {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RevokePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} ON {1} FROM {2} {3}</value>
+                    </prop>
+                </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
@@ -1202,14 +1232,17 @@
                 </node>
                 <node oor:name="GetUserGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                    <!-- XXX: We use recursion to find privileges inherited from roles.
-                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
-                        <value>SELECT RDB$ROLE_NAME FROM RDB$ROLES WHERE RDB$OWNER_NAME = ?</value>
+                        <value>SELECT P.RDB$RELATION_NAME FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON P.RDB$USER = U.SEC$USER_NAME WHERE P.RDB$PRIVILEGE = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND P.RDB$USER = ?</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT RDB$OWNER_NAME FROM RDB$ROLES WHERE RDB$ROLE_NAME = ?</value>
+                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON TRIM(P.RDB$USER) = U.SEC$USER_NAME WHERE P.RDB$PRIVILEGE = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND P.RDB$RELATION_NAME = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN RDB$ROLES AS R ON TRIM(P.RDB$USER) = R.RDB$ROLE_NAME WHERE P.RDB$PRIVILEGE = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND P.RDB$RELATION_NAME = ?</value>
                     </prop>
                 </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">

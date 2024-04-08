@@ -25,38 +25,44 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
 public final class Users
-    extends RoleContainer<User, Group>
+    extends RoleContainer<User>
 {
     private static final String m_service = Users.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Users",
                                                 "com.sun.star.sdbcx.Container"};
-    private final DriverProvider m_provider;
 
     // The constructor method:
     public Users(Connection connection,
                  boolean sensitive,
-                 Group role,
+                 String role,
                  List<String> names)
         throws ElementExistException
     {
-        super(m_service, m_services, connection, role, connection.getUsersInternal(), sensitive, names, getLogger(connection));
-        m_provider = connection.getProvider();
+        // XXX: isrole must be true because the user role can only be held by a Group
+        super(m_service, m_services, connection, connection.getProvider(), role, connection.getUsersInternal(), sensitive, names, true, "USER", LoggerObjectType.USERS);
+    }
+
+    protected ConnectionLog getLogger()
+    {
+        return m_logger;
+    }
+    protected DriverProvider getProvider()
+    {
+        return m_provider;
     }
 
     @Override
@@ -71,57 +77,10 @@ public final class Users
         super.dispose();
     }
 
-    protected static ConnectionLog getLogger(Connection connection)
-    {
-        return new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.USERS);
-    }
-
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
-    }
-
-    protected DriverProvider getProvider()
-    {
-        return m_provider;
-    }
-
-    protected int getRevokeRoleResource(boolean error)
-    {
-        return error ?
-               Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY_ERROR :
-               Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY;
-    }
-
-    protected int getGrantRoleResource(boolean error)
-    {
-        return error ?
-               Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY_ERROR :
-               Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY;
-    }
-
     @Override
     protected void refill(List<String> roles)
     {
         super.refill(roles);
-    }
-
-    @Override
-    protected String getGrantRoleQuery(String role, String name)
-        throws SQLException
-    {
-        String query = DBRoleHelper.getGrantRoleQuery(getProvider(), role, name, isCaseSensitive());
-        System.out.println("sdb.Users.getGrantRoleQuery() SQL: " + query);
-        return query;
-    }
-
-    @Override
-    protected String getRevokeRoleQuery(String role, String name)
-        throws SQLException
-    {
-        String query = DBRoleHelper.getRevokeRoleQuery(getProvider(), role, name, isCaseSensitive());
-        System.out.println("sdb.Users.getRevokeRoleQuery() SQL: " + query);
-        return query;
     }
 
     @Override

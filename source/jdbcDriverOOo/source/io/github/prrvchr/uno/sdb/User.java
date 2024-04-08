@@ -29,7 +29,6 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
 import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
-import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -48,7 +47,7 @@ public final class User
                 boolean sensitive,
                 String name)
     {
-        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.USER);
+        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.USER, false);
     }
 
     // com.sun.star.sdbcx.XUser:
@@ -63,23 +62,6 @@ public final class User
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, m_connection);
         }
-    }
-
-    // Private methods:
-    @Override
-    protected int getGrantPrivilegesResource(boolean error)
-    {
-        return error ?
-                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY_ERROR :
-                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
-    }
-
-    @Override
-    protected int getRevokePrivilegesResource(boolean error)
-    {
-        return error ?
-                Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY_ERROR :
-                Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
     }
 
 }

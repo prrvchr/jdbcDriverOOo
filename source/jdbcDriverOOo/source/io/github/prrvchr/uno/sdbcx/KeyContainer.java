@@ -162,7 +162,7 @@ public final class KeyContainer
             if (failed) {
                 System.out.println("sdbcx.KeyContainer.appendElement() 8");
                 int resource = Resources.STR_LOG_FKEY_ADD_INVALID_COLUMN_TYPE_ERROR;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName(), col1.m_TypeName, col1.m_Name, col2.m_TypeName, col2.m_Name);
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, m_table.getName(), col1.m_TypeName, col1.getName(), col2.m_TypeName, col2.getName());
                 throw new SQLException(msg, this, StandardSQLState.SQL_ERROR_UNSPECIFIED.text(), 0, Any.VOID);
             }
 
@@ -390,7 +390,7 @@ public final class KeyContainer
             KeyColumnContainer columns = key.getColumnsInternal();
             if (columns.hasByName(oldname)) {
                 columns.renameKeyColumn(oldname, newname);
-                name = key.m_Name;
+                name = key.getName();
                 break;
             }
         }

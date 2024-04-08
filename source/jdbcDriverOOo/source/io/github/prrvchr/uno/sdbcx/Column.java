@@ -57,7 +57,7 @@ public final class Column
     @Override
     public XPropertySet createDataDescriptor()
     {
-        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.m_CatalogName, m_table.m_SchemaName, m_table.m_Name, isCaseSensitive());
+        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.m_CatalogName, m_table.m_SchemaName, m_table.getName(), isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

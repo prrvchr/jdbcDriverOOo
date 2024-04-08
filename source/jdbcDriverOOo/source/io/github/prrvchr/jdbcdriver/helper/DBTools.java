@@ -63,6 +63,7 @@ import com.sun.star.io.XInputStream;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.DataType;
@@ -945,6 +946,13 @@ public class DBTools
         return (lifetime != RowIdLifetime.ROWID_UNSUPPORTED);
     }
 
+    public static boolean supportsService(XPropertySet descriptor,
+                                          String service)
+    {
+        XServiceInfo info = UnoRuntime.queryInterface(XServiceInfo.class, descriptor);
+        return info.supportsService(service);
+    }
+
     public static boolean hasDescriptorProperty(XPropertySetInfo properties,
                                                 PropertyIds pid)
     {
@@ -961,6 +969,7 @@ public class DBTools
             return "";
         }
     }
+
     public static String getDescriptorStringValue(XPropertySet properties,
                                                   PropertyIds pid,
                                                   XInterface source)
@@ -984,6 +993,7 @@ public class DBTools
             return false;
         }
     }
+
     public static boolean getDescriptorBooleanValue(XPropertySet properties,
                                                     PropertyIds pid,
                                                     XInterface source)
@@ -1041,7 +1051,6 @@ public class DBTools
         }
         boolean autocommit = false;
         boolean support = provider.supportsTransactions();
-        System.out.println("DBTools.executeDDLQuery() Support Transaction:" + support);
 
         java.sql.Connection jdbc = provider.getConnection();
         try {

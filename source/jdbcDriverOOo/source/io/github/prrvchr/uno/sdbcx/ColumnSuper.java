@@ -82,7 +82,7 @@ public abstract class ColumnSuper<T extends TableSuper<?>>
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    return m_table.m_Name;
+                    return m_table.getName();
                 }
             }, null);
 

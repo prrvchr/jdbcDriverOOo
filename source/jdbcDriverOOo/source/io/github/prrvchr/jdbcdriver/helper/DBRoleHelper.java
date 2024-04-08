@@ -46,7 +46,6 @@
 package io.github.prrvchr.jdbcdriver.helper;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -181,57 +180,60 @@ public class DBRoleHelper
 
     /** creates a SQL GRANT ROLE statement
      *
-     * @param connection
-     *    The connection.
-     * @param group
-     *    The role.
-     * @param user
-     *    The role member user.
+     * @param provider
+     *    The DriverProvider.
+     * @param grantor
+     *    The granted role.
+     * @param role
+     *    The grantee type (ROLE or USER).
+     * @param grantee
+     *    The role member.
      * @param sensitive
      *    Is the role and user case sensitive.
      *   
      * @return
      *   The GRANT ROLE statement.
-     * @throws SQLException
      * @throws java.sql.SQLException 
      */
     public static String getGrantRoleQuery(DriverProvider provider,
-                                           String group,
-                                           String user,
+                                           String grantor,
+                                           String role,
+                                           String grantee,
                                            boolean sensitive)
         throws java.sql.SQLException
     {
-        group = DBTools.enquoteIdentifier(provider, group, sensitive);
-        user = DBTools.enquoteIdentifier(provider, user, sensitive);
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_GRANT_ROLE);
-        return DBTools.formatSQLQuery(command, group, user);
+        String group = DBTools.enquoteIdentifier(provider, grantor, sensitive);
+        String user = DBTools.enquoteIdentifier(provider, grantee, sensitive);
+        return provider.getGrantRoleQuery(group, role, user);
     }
 
     /** creates a SQL REVOKE ROLE statement
      *
-     * @param connection
-     *    The connection.
-     * @param group
-     *    The role.
-     * @param user
-     *    The role member user.
+     * @param provider
+     *    The DriverProvider.
+     * @param grantor
+     *    The granted role.
+     * @param role
+     *    The grantee type (ROLE or USER).
+     * @param grantee
+     *    The role member.
      * @param sensitive
      *    Is the role and user case sensitive.
      *   
      * @return
      *   The REVOKE ROLE statement.
-     * @throws SQLException
      * @throws java.sql.SQLException 
      */
     public static String getRevokeRoleQuery(DriverProvider provider,
-                                            String group,
-                                            String user,
+                                            String grantor,
+                                            String role,
+                                            String grantee,
                                             boolean sensitive)
         throws java.sql.SQLException
     {
-        group = DBTools.enquoteIdentifier(provider, group, sensitive);
-        user = DBTools.enquoteIdentifier(provider, user, sensitive);
-        return DBTools.formatSQLQuery(provider.getRevokeRoleQuery(), group, user);
+        String group = DBTools.enquoteIdentifier(provider, grantor, sensitive);
+        String user = DBTools.enquoteIdentifier(provider, grantee, sensitive);
+        return provider.getRevokeRoleQuery(group, role, user);
     }
 
 }

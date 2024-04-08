@@ -61,12 +61,13 @@ public class DBPrivilegesHelper
     public static String getGrantPrivilegesQuery(DriverProvider provider,
                                                  NamedComponents table,
                                                  String privileges,
+                                                 boolean isrole,
                                                  String grantee,
                                                  ComposeRule rule,
                                                  boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, grantee, rule, sensitive);
+        Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, isrole, grantee, rule, sensitive);
         String query = provider.getGrantPrivilegesQuery(arguments);
         System.out.println("DBPrivilegesHelper.getGrantPrivilegesQuery() SQL: " + query);
         return query;
@@ -75,12 +76,13 @@ public class DBPrivilegesHelper
     public static String getRevokePrivilegesQuery(DriverProvider provider,
                                                   NamedComponents table,
                                                   String privileges,
+                                                  boolean isrole,
                                                   String grantee,
                                                   ComposeRule rule,
                                                   boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, grantee, rule, sensitive);
+        Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, isrole, grantee, rule, sensitive);
         String query = provider.getRevokePrivilegesQuery(arguments);
         System.out.println("DBPrivilegesHelper.getRevokePrivilegesQuery() SQL: " + query);
         return query;

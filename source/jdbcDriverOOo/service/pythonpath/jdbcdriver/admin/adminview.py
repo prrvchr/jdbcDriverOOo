@@ -49,7 +49,7 @@ class AdminView(unohelper.Base):
         elif control.ItemCount > 0:
             control.selectItemPos(0, True)
         else:
-            self.enableButton(False, False, False)
+            self.enableButton(False, False)
 
     def execute(self):
         return self._dialog.execute()
@@ -60,12 +60,17 @@ class AdminView(unohelper.Base):
     def getGridWindow(self):
         return self._getGridWindow()
 
-    def enableButton(self, enabled, removable):
+    def enableButton(self, enabled, support, removable):
         self._getSetGrantee().Model.Enabled = enabled
         self._getDropGrantee().Model.Enabled = enabled and removable
+        self._enableSetRole(support)
 
     def enableSetPrivileges(self, enabled):
         self._getSetPrivileges().Model.Enabled = enabled
+
+    def enableRoleCreation(self, enabled):
+        self._getAddGrantee().Model.Enabled = enabled
+        self._getDropGrantee().Model.Enabled = enabled
 
     def getPeer(self):
         return self._dialog.getPeer()

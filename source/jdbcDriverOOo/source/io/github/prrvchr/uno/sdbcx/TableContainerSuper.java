@@ -202,7 +202,7 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         while (tables.hasNext()) {
             T table = tables.next();
             // XXX: We are looking for foreign key on other table.
-            if (table.m_Name.equals(newname)) {
+            if (table.getName().equals(newname)) {
                 continue;
             }
             Iterator<Key> keys = table.getKeysInternal().getActiveElements();

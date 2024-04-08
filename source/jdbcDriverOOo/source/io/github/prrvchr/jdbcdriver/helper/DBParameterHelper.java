@@ -25,14 +25,12 @@
 */
 package io.github.prrvchr.jdbcdriver.helper;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
+
 
 public class DBParameterHelper
 {
@@ -59,19 +57,41 @@ public class DBParameterHelper
     public static Object[] getAlterPrivilegesArguments(DriverProvider provider,
                                                        NamedComponents component,
                                                        String privileges,
+                                                       boolean isrole,
                                                        String grantee,
                                                        ComposeRule rule,
                                                        boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        List<String> args = new ArrayList<>();
+        String[] arguments = new String[4];
         // XXX: {0} the list of privileges to revoke
-        args.add(privileges);
+        arguments[0] = privileges;
         // XXX: {1} quoted / unquoted full qualified table name
-        args.add(DBTools.buildName(provider, component, rule, sensitive));
-        // XXX: {2} quoted / unquoted grantee name
-        args.add(DBTools.enquoteIdentifier(provider, grantee, sensitive));
-        return args.toArray(new Object[0]);
+        arguments[1] = DBTools.buildName(provider, component, rule, sensitive);
+        // XXX: {2} literal (USER or ROLE)
+        arguments[2] = getRole(isrole);
+        // XXX: {3} quoted / unquoted grantee name
+        arguments[3] = DBTools.enquoteIdentifier(provider, grantee, sensitive);
+        return arguments;
+    }
+
+
+    public static Object[] getAlterRoleArguments(DriverProvider provider,
+                                                 String role1,
+                                                 String role2,
+                                                 boolean isrole,
+                                                 String role,
+                                                 boolean sensitive)
+        throws java.sql.SQLException, SQLException
+    {
+        String[] arguments = new String[3];
+        // XXX: {0} quoted / unquoted role name
+        arguments[0] = DBTools.enquoteIdentifier(provider, role1, sensitive);
+        // XXX: {1} unquoted literal
+        arguments[1] = role != null ? role : getRole(isrole);
+        // XXX: {2} quoted / unquoted role name
+        arguments[2] = DBTools.enquoteIdentifier(provider, role2, sensitive);
+        return arguments;
     }
 
 
@@ -84,30 +104,30 @@ public class DBParameterHelper
                                                    boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        List<String> args = new ArrayList<>();
+        String[] arguments = new String[8];
         // XXX: {0} quoted / unquoted full old table name
-        args.add(DBTools.quoteTableName(provider, fullname, rule, sensitive));
+        arguments[0] = DBTools.quoteTableName(provider, fullname, rule, sensitive);
         // XXX: {1} quoted / unquoted new schema name
-        args.add(DBTools.enquoteIdentifier(provider, newtable.getSchemaName(), sensitive));
+        arguments[1] = DBTools.enquoteIdentifier(provider, newtable.getSchemaName(), sensitive);
         // XXX: {2} quoted / unquoted full old table name overwritten with the new schema name
-        args.add(DBTools.buildName(provider, oldtable.getCatalogName(), newtable.getSchemaName(), oldtable.getTableName(), rule, sensitive));
+        arguments[2] = DBTools.buildName(provider, oldtable.getCatalogName(), newtable.getSchemaName(), oldtable.getTableName(), rule, sensitive);
         // XXX: {3} quoted / unquoted new table name
-        args.add(DBTools.enquoteIdentifier(provider, newtable.getTableName(), sensitive));
+        arguments[3] = DBTools.enquoteIdentifier(provider, newtable.getTableName(), sensitive);
         // XXX: {4} quoted / unquoted full old table name overwritten with the new table name
-        args.add(DBTools.buildName(provider, oldtable.getCatalogName(), oldtable.getSchemaName(), newtable.getTableName(), rule, sensitive));
+        arguments[4] = DBTools.buildName(provider, oldtable.getCatalogName(), oldtable.getSchemaName(), newtable.getTableName(), rule, sensitive);
         // XXX: {5} quoted / unquoted new catalog name
-        args.add(DBTools.enquoteIdentifier(provider, newtable.getCatalogName(), sensitive));
+        arguments[5] = DBTools.enquoteIdentifier(provider, newtable.getCatalogName(), sensitive);
         // XXX: {6} quoted / unquoted full old table name overwritten with the new catalog name
-        args.add(DBTools.buildName(provider, newtable.getCatalogName(), oldtable.getSchemaName(), oldtable.getTableName(), rule, sensitive));
+        arguments[6] = DBTools.buildName(provider, newtable.getCatalogName(), oldtable.getSchemaName(), oldtable.getTableName(), rule, sensitive);
         // XXX: {7} quoted / unquoted full new table name
-        args.add(DBTools.buildName(provider, newtable.getCatalogName(), newtable.getSchemaName(), newtable.getTableName(), rule, sensitive));
+        arguments[7] = DBTools.buildName(provider, newtable.getCatalogName(), newtable.getSchemaName(), newtable.getTableName(), rule, sensitive);
         if (reversed) {
-            String buffers = args.get(0);
-            args.set(0, args.get(4));
-            args.set(4, args.get(2));
-            args.set(2, buffers);
+            String argument = arguments[0];
+            arguments[0] = arguments[4];
+            arguments[4] = arguments[2];
+            arguments[2] = argument;
         }
-        return args.toArray(new Object[0]);
+        return arguments;
     }
 
 
@@ -119,18 +139,18 @@ public class DBParameterHelper
                                                  boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        List<String> args = new ArrayList<>();
+        String[] arguments = new String[5];
         // XXX: {0} quoted / unquoted full view name
-        args.add(DBTools.quoteTableName(provider, fullname, rule, sensitive));
+        arguments[0] = DBTools.quoteTableName(provider, fullname, rule, sensitive);
         // XXX: {1} quoted / unquoted catalog view name
-        args.add(DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive));
+        arguments[1] = DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive);
         // XXX: {2} quoted / unquoted schema view name
-        args.add(DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive));
+        arguments[2] = DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive);
         // XXX: {3} quoted / unquoted view name
-        args.add(DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive));
+        arguments[3] = DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive);
         // XXX: {4} raw view command
-        args.add(command);
-        return args.toArray(new Object[0]);
+        arguments[4] = command;
+        return arguments;
     }
 
 
@@ -141,16 +161,21 @@ public class DBParameterHelper
                                                       boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        List<String> args = new ArrayList<>();
+        String[] arguments = new String[4];
         // XXX: {0} quoted / unquoted  full view name
-        args.add(DBTools.quoteTableName(provider, fullname, rule, sensitive));
+        arguments[0] = DBTools.quoteTableName(provider, fullname, rule, sensitive);
         // XXX: {1} quoted / unquoted  catalog view name
-        args.add(DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive));
+        arguments[1] = DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive);
         // XXX: {2} quoted / unquoted  schema view name
-        args.add(DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive));
+        arguments[2] = DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive);
         // XXX: {3} quoted / unquoted  view name
-        args.add(DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive));
-        return args.toArray(new Object[0]);
+        arguments[3] = DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive);
+        return arguments;
+    }
+
+    private static String getRole(boolean isrole)
+    {
+        return isrole ? "ROLE" : "USER";
     }
 
 }

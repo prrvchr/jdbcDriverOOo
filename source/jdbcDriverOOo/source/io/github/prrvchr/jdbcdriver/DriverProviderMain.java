@@ -116,14 +116,16 @@ public abstract class DriverProviderMain
     private String m_AlterColumnCommand = null;
     private String m_AddIdentityCommand = null;
     private String m_DropIdentityCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
-    private String m_RevokeRoleCommand = DBDefaultQuery.STR_QUERY_REVOKE_ROLE;
-    private String m_GrantPrivilegesCommand = DBDefaultQuery.STR_QUERY_GRANT_PRIVILEGE;
-    private String m_RevokePrivilegesCommand = DBDefaultQuery.STR_QUERY_REVOKE_PRIVILEGE;
     private String m_CreateUserCommand = DBDefaultQuery.STR_QUERY_CREATE_USER;
     private String m_GetUsersCommand = null;
     private String m_GetGroupsCommand = null;
     private String m_GetUserGroupsCommand = null;
     private String m_GetGroupUsersCommand = null;
+    private String m_GetGroupRolesCommand = null;
+    private String m_GrantRoleCommand = DBDefaultQuery.STR_QUERY_GRANT_ROLE;
+    private String m_RevokeRoleCommand = DBDefaultQuery.STR_QUERY_REVOKE_ROLE;
+    private String m_GrantPrivilegesCommand = DBDefaultQuery.STR_QUERY_GRANT_PRIVILEGE;
+    private String m_RevokePrivilegesCommand = DBDefaultQuery.STR_QUERY_REVOKE_PRIVILEGE;
     private Object[] m_TablePrivilegesCommands = null;
     private Object[] m_GrantablePrivilegesCommands = null;
     private Object[] m_RenameTableCommands = null;
@@ -308,9 +310,15 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getRevokeRoleQuery()
+    public String getGrantRoleQuery(Object... arguments)
     {
-        return m_RevokeRoleCommand;
+        return DBTools.formatSQLQuery(m_GrantRoleCommand, arguments);
+    }
+
+    @Override
+    public String getRevokeRoleQuery(Object... arguments)
+    {
+        return DBTools.formatSQLQuery(m_RevokeRoleCommand, arguments);
     }
 
     @Override
@@ -479,15 +487,22 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getUserGroupsQuery()
-    {
-        return m_GetUserGroupsCommand;
-    }
-
-    @Override
     public String getGroupUsersQuery()
     {
         return m_GetGroupUsersCommand;
+    }
+
+    @Override
+    public String getRoleGroupsQuery(boolean isrole)
+    {
+        String query = null;
+        if (isrole) {
+            query = m_GetGroupRolesCommand;
+        }
+        else {
+            query = m_GetUserGroupsCommand;
+        }
+        return query;
     }
 
     @Override
@@ -605,6 +620,7 @@ public abstract class DriverProviderMain
         m_GetGroupsCommand = getDriverCommandProperty(config1, "GetGroupsCommand", m_GetGroupsCommand);
         m_GetUserGroupsCommand = getDriverCommandProperty(config1, "GetUserGroupsCommand", m_GetUserGroupsCommand);
         m_GetGroupUsersCommand = getDriverCommandProperty(config1, "GetGroupUsersCommand", m_GetGroupUsersCommand);
+        m_GetGroupRolesCommand = getDriverCommandProperty(config1, "GetGroupRolesCommand", m_GetGroupRolesCommand);
         m_AddPrimaryKeyCommand = getDriverCommandProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
         m_AddForeignKeyCommand = getDriverCommandProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);
         m_AddIndexCommand = getDriverCommandProperty(config1, "AddIndexCommand", m_AddIndexCommand);
@@ -614,10 +630,11 @@ public abstract class DriverProviderMain
         m_DropIdentityCommand = getDriverCommandProperty(config1, "DropIdentityCommand", m_DropIdentityCommand);
         m_TableDescriptionCommand = getDriverCommandProperty(config1, "TableDescriptionCommand", m_TableDescriptionCommand);
         m_ColumnDescriptionCommand = getDriverCommandProperty(config1, "ColumnDescriptionCommand", m_ColumnDescriptionCommand);
-        m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
+        m_CreateUserCommand = getDriverCommandProperty(config1, "CreateUserCommand", m_CreateUserCommand);
         m_GrantPrivilegesCommand = getDriverCommandProperty(config1, "GrantPrivilegesCommand", m_GrantPrivilegesCommand);
         m_RevokePrivilegesCommand = getDriverCommandProperty(config1, "RevokePrivilegesCommand", m_RevokePrivilegesCommand);
-        m_CreateUserCommand = getDriverCommandProperty(config1, "CreateUserCommand", m_CreateUserCommand);
+        m_GrantRoleCommand = getDriverCommandProperty(config1, "GrantRoleCommand", m_GrantRoleCommand);
+        m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
 
         m_AlterViewCommands = getDriverCommandsProperty(config1, "AlterViewCommands", m_AlterViewCommands);
         m_RenameTableCommands = getDriverCommandsProperty(config1, "RenameTableCommands", m_RenameTableCommands);
@@ -860,6 +877,12 @@ public abstract class DriverProviderMain
             properties.setProperty(info.Name, String.format("%s", info.Value));
         }
         return properties;
+    }
+
+    @Override
+    public boolean supportCreateUser()
+    {
+        return !m_CreateUserCommand.isBlank();
     }
 
     @Override
@@ -1147,7 +1170,7 @@ public abstract class DriverProviderMain
             if (driver.hasByHierarchicalName(property)) {
                 value = (String) driver.getByHierarchicalName(property);
             }
-            if (value != null && !parametric && !m_SQLCommandSuffix.isBlank()) {
+            if (value != null && !value.isBlank() && !parametric && !m_SQLCommandSuffix.isBlank()) {
                 value += m_SQLCommandSuffix;
             }
         }

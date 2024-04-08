@@ -42,24 +42,31 @@ from com.sun.star.style.HorizontalAlignment import LEFT
 
 from com.sun.star.container import ElementExistException
 
+from ..unotool import hasInterface
+
 import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, manager, user, members, tables, resolver):
+    def __init__(self, manager, users, members, tables, username, resolver):
         self._grid = manager
-        self._grantee = ''
-        self._user = user
+        self._users = users
         self._members = members
         self._tables = tables
+        self._username = username
+        self._grantee = ''
         self._resolver = resolver
-        self._resources = {'DropGroupTitle'   : 'MessageBox.DropGroup.Title',
-                           'DropGroupMessage' : 'MessageBox.DropGroup.Message',
-                           'DropUserTitle'    : 'MessageBox.DropUser.Title',
-                           'DropUserMessage'  : 'MessageBox.DropUser.Message',
-                           'UsersTitle'       : 'UsersDialog.Title',
-                           'GroupsTitle'      : 'GroupsDialog.Title',
-                           'RolesTitle'       : 'RolesDialog.Title'}
+        self._resources = {'DropGroupTitle'        : 'MessageBox.DropGroup.Title',
+                           'DropGroupMessage'      : 'MessageBox.DropGroup.Message',
+                           'DropUserTitle'         : 'MessageBox.DropUser.Title',
+                           'DropUserMessage'       : 'MessageBox.DropUser.Message',
+                           'UsersTitle'            : 'UsersDialog.Title',
+                           'GroupsTitle'           : 'GroupsDialog.Title',
+                           'RolesTitle'            : 'RolesDialog.Title',
+                           'PrivilegeErrorTitle'   : 'MessageBox.Privilege.Error.Title',
+                           'CreateUserErrorTitle'  : 'MessageBox.CreateUser.Error.Title',
+                           'CreateGroupErrorTitle' : 'MessageBox.CreateGroup.Error.Title',
+                           'SetMembersErrorTitle'  : 'MessageBox.SetMembers.Error.Title'}
 
     def _getColumn(self, column, title, index, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width
@@ -87,7 +94,7 @@ class AdminModel(unohelper.Base):
         return self._getDropUserMessage(), self._getDropUserTitle()
 
     def isNameValid(self, name):
-        return len(name) and name not in self._grid.Model.getGrantees().getElementNames()
+        return len(name) and name not in self.getGrantees()
 
     def isUserValid(self, user, pwd, confirmation):
         return self.isNameValid(user) and self.isPasswordConfirmed(pwd, confirmation)
@@ -97,6 +104,9 @@ class AdminModel(unohelper.Base):
 
     def isPasswordConfirmed(self, pwd, confirmation):
         return pwd == confirmation
+
+    def supportsCreateRole(self):
+        return self._grid.Model.getGrantees().createDataDescriptor() is not None
 
     def createUser(self, user, password):
         roles = self._grid.Model.getGrantees()
@@ -118,26 +128,32 @@ class AdminModel(unohelper.Base):
             return None
         return role
 
-    def getNewGrantees(self):
-        return self._grid.Model.getGrantees()
-
+    # XXX: Show group's user members.
     def getUsers(self):
+        print("AdminModel.getUsers() ******************")
         users = self._grid.Model.getGrantee().getUsers()
         members = users.getElementNames()
-        availables = self._getFilteredMembers(self._members, members)
-        return self._getUsersTitle(), members, availables
+        availables = self._getFilteredMembers(self._users, members)
+        print("AdminModel.getUsers() Members: %s-  Availables: %s" % (members, availables))
+        return users, self._getUsersTitle(), availables
 
+    # XXX: Show user's group members.
     def getGroups(self):
-        members = self._grid.Model.getGrantee().getGroups().getElementNames()
+        print("AdminModel.getGroups() ******************")
+        groups = self._grid.Model.getGrantee().getGroups()
+        members = groups.getElementNames()
         availables = self._getFilteredMembers(self._members, members)
-        return self._getGroupsTitle(), members, availables
+        return groups, self._getGroupsTitle(), availables
 
+    # XXX: Show group's role members.
     def getRoles(self):
-        members = self._grid.Model.getGrantee().getGroups().getElementNames()
+        print("AdminModel.getRoles() ******************")
+        groups = self._grid.Model.getGrantee().getGroups()
+        members = groups.getElementNames()
         #TODO: We must avoid recursive assignments and therefore filter the current Grantee
         #TODO: as well as the groups having the current Grantee in assigned roles
         availables = self._getFilteredMembers(self._grid.Model.getGrantees(), members, True)
-        return self._getRolesTitle(), members, availables
+        return groups, self._getRolesTitle(), availables
 
     def isMemberModified(self, grantees, isgroup):
         members = self._getMembers(isgroup)
@@ -149,8 +165,7 @@ class AdminModel(unohelper.Base):
                 return True
         return False
 
-    def setMembers(self, elements, isgroup):
-        grantees = self._grid.Model.getGrantee().getGroups() if isgroup else self._grid.Model.getGrantee().getUsers()
+    def setMembers(self, grantees, elements, isgroup):
         members = grantees.getElementNames()
         for element in elements:
             if element not in members:
@@ -168,7 +183,7 @@ class AdminModel(unohelper.Base):
 
     def dropGrantee(self):
         self._grid.Model.getGrantees().dropByName(self._grantee)
-        return self._grid.Model.getGrantees().getElementNames()
+        return self.getGrantees()
 
     def setUserPassword(self, pwd):
         self._grid.Model.getGrantee().changePassword(pwd, pwd)
@@ -178,8 +193,8 @@ class AdminModel(unohelper.Base):
         self._grid.setGridVisible(False)
         self._grid.Model.setGrantee(grantee)
         self._grid.setGridVisible(True)
-        enabled = grantee is not None
-        return enabled, self._isRemovable(grantee)
+        isgroup = self._grid.Model.isGroup()
+        return self._supportRole(isgroup), self._isRemovable(grantee, isgroup)
 
     def hasGridSelectedRows(self):
         return self._grid.hasSelectedRows()
@@ -202,11 +217,38 @@ class AdminModel(unohelper.Base):
             grantee.revokePrivileges(table, TABLE, revoke)
         self._grid.refresh(table)
 
+    def getPrivilegeErrorTitle(self):
+        resource = self._resources.get('PrivilegeErrorTitle')
+        return self._resolver.resolveString(resource)
+
+    def getCreateUserErrorTitle(self):
+        resource = self._resources.get('CreateUserErrorTitle')
+        return self._resolver.resolveString(resource)
+
+    def getCreateGroupErrorTitle(self):
+        resource = self._resources.get('CreateGroupErrorTitle')
+        return self._resolver.resolveString(resource)
+
+    def getSetMembersErrorTitle(self):
+        resource = self._resources.get('SetMembersErrorTitle')
+        return self._resolver.resolveString(resource)
+
+    def _supportRole(self, isgroup):
+        if isgroup:
+            grantee = self._grid.Model.getGrantee()
+            inferface = 'com.sun.star.sdbcx.XGroupsSupplier'
+            support = hasInterface(grantee, inferface) and grantee.getGroups() is not None
+        else:
+            support = self._members is not None
+        return support
+
     def _getMembers(self, isgroup):
         grantee = self._grid.Model.getGrantee()
         return grantee.getGroups().getElementNames() if isgroup else grantee.getUsers().getElementNames()
 
     def _getFilteredMembers(self, grantees, filters, recursive=False):
+        if grantees is None:
+            return ()
         members = grantees.getElementNames()
         return tuple(member for member in members if member not in filters and self._isValidMember(grantees, member, recursive))
 
@@ -215,8 +257,8 @@ class AdminModel(unohelper.Base):
             return grantee != self._grantee and self._grantee not in grantees.getByName(grantee).getGroups().getElementNames()
         return True
 
-    def _isRemovable(self, user):
-        return self._grid.Model.isGroup() or self._user != user
+    def _isRemovable(self, user, isgroup):
+        return user is not None and self._username != user or isgroup
 
 # GroupModel StringResource methods
     def _getTableHeader(self):

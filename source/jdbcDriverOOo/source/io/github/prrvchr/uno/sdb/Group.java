@@ -45,7 +45,6 @@ public final class Group
 
     private static final String m_service = Group.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Group"};
-
     private Users m_users;
 
     // The constructor method:
@@ -53,7 +52,7 @@ public final class Group
                  boolean sensitive,
                  String name)
     {
-        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.GROUP);
+        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.GROUP, true);
     }
 
 
@@ -73,49 +72,38 @@ public final class Group
     }
 
     protected void refreshUsers()
-        throws ElementExistException
     {
         List<String> users = new ArrayList<>();
-        String sql = m_connection.getProvider().getGroupUsersQuery();
-        if (sql != null) {
-            try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(sql)){
+        String query = m_connection.getProvider().getGroupUsersQuery();
+        if (query != null) {
+            try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(query))
+            {
                 statement.setString(1, getName());
-                java.sql.ResultSet result = statement.executeQuery();
-                while(result.next()) {
-                    users.add(result.getString(1));
+                try (java.sql.ResultSet result = statement.executeQuery())
+                {
+                    System.out.println("sdb.Group.refreshUsers() 1 Group: " + getName()+ " - Query: " + query);
+                    while(result.next()) {
+                        String user = result.getString(1);
+                        if (!result.wasNull()) {
+                            System.out.println("sdb.Group.refreshUsers() 2 User Name: '" + user + "'");
+                            users.add(user);
+                        }
+                    }
                 }
-                result.close();
+                if (m_users == null) {
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
+                    m_users = new Users(m_connection, isCaseSensitive(), getName(), users);
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID, m_users.getLogger().getObjectId());
+                }
+                else {
+                    m_users.refill(users);
+                }
             }
-            catch (java.sql.SQLException e) {
+            catch (ElementExistException | java.sql.SQLException e) {
                 UnoHelper.getSQLException(e, m_connection);
-            }
-            if (m_users == null) {
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
-                m_users = new Users(m_connection, isCaseSensitive(), this, users);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID, m_users.getLogger().getObjectId());
-            }
-            else {
-                m_users.refill(users);
             }
 
         }
-    }
-
-
-    @Override
-    protected int getGrantPrivilegesResource(boolean error)
-    {
-        return error ?
-                    Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY_ERROR :
-                    Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY;
-    }
-
-    @Override
-    protected int getRevokePrivilegesResource(boolean error)
-    {
-        return error ?
-                    Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY_ERROR :
-                    Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY;
     }
 
     protected Users getUsersInternal()

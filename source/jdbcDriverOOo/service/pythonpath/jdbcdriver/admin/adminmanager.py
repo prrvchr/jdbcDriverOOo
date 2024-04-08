@@ -33,7 +33,10 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.sdbc import SQLException as UNOException
+from com.sun.star.sdbc import SQLException
+from com.sun.star.container import ElementExistException
+from com.sun.star.container import NoSuchElementException
+
 from com.sun.star.sdbcx.Privilege import SELECT
 from com.sun.star.sdbcx.Privilege import INSERT
 from com.sun.star.sdbcx.Privilege import UPDATE
@@ -79,7 +82,7 @@ import traceback
 
 
 class AdminManager(unohelper.Base):
-    def __init__(self, ctx, view, connection, members, grantees, isuser):
+    def __init__(self, ctx, view, connection, members, grantees, users, user, username, isuser):
         self._ctx = ctx
         datasource = connection.getParent().Name
         tables = connection.getTables()
@@ -89,18 +92,16 @@ class AdminManager(unohelper.Base):
         self._view = view
         window = self._view.getGridWindow()
         url = getResourceLocation(ctx, g_identifier, g_extension)
-        users = connection.getUsers()
-        username = connection.getMetaData().getUserName()
-        user = users.getByName(username) if users.hasByName(username) else None
         model = GridModel(ctx, user, grantees, tables, self._flags, isuser, url)
         quote = connection.getMetaData().getIdentifierQuoteString()
         resolver = getStringResource(ctx, g_identifier, g_extension)
         resources = (resolver, 'PrivilegesDialog.CheckBox%s.Label')
         manager = GridManager(ctx, datasource, GridListener(self), self._columns, url, model, window, quote, 'AdminGrid', SINGLE, resources, None, True)
-        self._model = AdminModel(manager, username, members, tables, resolver)
+        self._model = AdminModel(manager, users, members, tables, username, resolver)
         self._dialog = None
         self._disabled = True
         self._view.initGrantees(self._model.getGrantees())
+        self._view.enableRoleCreation(self._model.supportsCreateRole())
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -119,7 +120,9 @@ class AdminManager(unohelper.Base):
         self._model.dispose()
 
     def setGrantee(self, grantee):
-        self._view.enableButton(*self._model.setGrantee(grantee))
+        enabled = grantee is not None
+        support, removable = self._model.setGrantee(grantee)
+        self._view.enableButton(enabled, support, removable)
         enabled = False
         if self._model.hasGridSelectedRows():
             enabled = self._model.hasGrantablePrivileges()
@@ -128,20 +131,28 @@ class AdminManager(unohelper.Base):
     def createGroup(self):
         self._dialog = GranteeView(self._ctx, 'NewGroupDialog', NewGroupHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            group = self._model.createGroup(self._dialog.getGrantee())
+            try:
+                group = self._model.createGroup(self._dialog.getGrantee())
+            except SQLException as e:
+                title = self._model.getCreateGroupErrorTitle()
+                box = createMessageBox(self._view.getPeer(), e.Message, title, 'error', 1)
+                box.execute()
             if group is not None:
-                self._updateGrantee(self._model.getNewGrantees(), group)
-            else:
-                print("AdminManager.createGroup() ERROR ******************")
+                self._updateGrantee(self._model.getGrantees(), group)
         self._dialog.dispose()
         self._dialog = None
 
     def createUser(self):
         self._dialog = GranteeView(self._ctx, 'NewUserDialog', NewUserHandler(self), self._view.getPeer())
         if self._dialog.execute() == OK:
-            user = self._model.createUser(self._dialog.getGrantee(), self._dialog.getPassword())
+            try:
+                user = self._model.createUser(self._dialog.getGrantee(), self._dialog.getPassword())
+            except SQLException as e:
+                title = self._model.getCreateUserErrorTitle()
+                box = createMessageBox(self._view.getPeer(), e.Message, title, 'error', 1)
+                box.execute()
             if user is not None:
-                self._updateGrantee(self._model.getNewGrantees(), user)
+                self._updateGrantee(self._model.getGrantees(), user)
         self._dialog.dispose()
         self._dialog = None
 
@@ -151,7 +162,9 @@ class AdminManager(unohelper.Base):
     def setUserName(self, user):
         pwd = self._dialog.getPassword()
         confirmation = self._dialog.getConfirmation()
-        self._dialog.enableOk(self._model.isUserValid(user, pwd, confirmation))
+        enabled = self._model.isUserValid(user, pwd, confirmation)
+        self._dialog.setRoleBackground(enabled)
+        self._dialog.enableOk(enabled)
 
     def setUserPassword(self, pwd):
         user = self._dialog.getGrantee()
@@ -162,23 +175,58 @@ class AdminManager(unohelper.Base):
     def setUserPasswordConfirmation(self, confirmation):
         user = self._dialog.getGrantee()
         pwd = self._dialog.getPassword()
+        self._dialog.setConfirmationBackground(confirmation == pwd)
         self._dialog.enableOk(self._model.isUserValid(user, pwd, confirmation))
 
+    # XXX: Show group's user members.
     def setUsers(self):
-        self._setMembers('UsersDialog', UsersHandler(self), self._model.getUsers(), False)
+        try:
+            grantees, title, availables = self._model.getUsers()
+        except SQLException as e:
+            self._showMembersDialogError(e)
+        else:
+            roles = self._getRoles('UsersDialog', UsersHandler(self), grantees, title, availables, False)
+            if roles is not None:
+                self._setRoles(grantees, roles, False)
 
+    # XXX: Show user's group members.
     def setGroups(self):
-        self._setMembers('GroupsDialog', GroupsHandler(self), self._model.getGroups(), True)
+        try:
+            grantees, title, availables = self._model.getGroups()
+        except SQLException as e:
+            self._showMembersDialogError(e)
+        else:
+            roles = self._getRoles('GroupsDialog', GroupsHandler(self), grantees, title, availables)
+            if roles is not None:
+                self._setRoles(grantees, roles)
 
+    # XXX: Show group's role members.
     def setRoles(self):
-        self._setMembers('RolesDialog', GroupsHandler(self), self._model.getRoles(), True)
+        try:
+            grantees, title, availables = self._model.getRoles()
+        except SQLException as e:
+            self._showMembersDialogError(e)
+        else:
+            roles = self._getRoles('RolesDialog', GroupsHandler(self), grantees, title, availables)
+            if roles is not None:
+                self._setRoles(grantees, roles)
 
-    def _setMembers(self, xdl, handler, data, isgroup):
-        self._dialog = MemberView(self._ctx, xdl, handler, self._view.getPeer(), *data)
+    def _getRoles(self, xdl, handler, grantees, title, availables, isgroup=True):
+        roles = None
+        parent = self._view.getPeer()
+        members = grantees.getElementNames()
+        self._dialog = MemberView(self._ctx, xdl, handler, parent, title, members, availables)
         if self._dialog.execute() == OK:
-            self._model.setMembers(self._dialog.getMembers(), isgroup)
+            roles = self._dialog.getMembers()
         self._dialog.dispose()
         self._dialog = None
+        return roles
+
+    def _setRoles(self, grantees, roles, isgroup=True):
+        try:
+            self._model.setMembers(grantees, roles, isgroup)
+        except (SQLException, ElementExistException, NoSuchElementException) as e:
+            self._showMembersDialogError(e)
 
     def toogleRemoveUser(self, enabled, user):
         self._dialog.toogleRemove(self._model.isRemovableUser(enabled, user))
@@ -241,13 +289,15 @@ class AdminManager(unohelper.Base):
                 try:
                      self._model.setPrivileges(table, *self._getPrivileges(privileges, flags))
                 except SQLException as e:
-                    msg = e.Message
-                    ex = e.NextException
-                    while (ex is not None):
-                        msg += ex.Message
-                        ex = ex.NextException
-                    print("setPrivilege() Error: %s" % e.Message)
+                    title = self._model.getPrivilegeErrorTitle()
+                    box = createMessageBox(self._view.getPeer(), e.Message, title, 'error', 1)
+                    box.execute()
         dialog.dispose()
+
+    def _showMembersDialogError(self, error):
+        title = self._model.getSetMembersErrorTitle()
+        box = createMessageBox(self._view.getPeer(), error.Message, title, 'error', 1)
+        box.execute()
 
     def _getTablePrivilegesSetting(self, connection):
         columns = OrderedDict()
@@ -303,6 +353,3 @@ class AdminManager(unohelper.Base):
                 revoke |= flag
         return grant, revoke
 
-
-class SQLException(UNOException):
-    args = ()

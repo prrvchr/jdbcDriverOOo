@@ -140,7 +140,7 @@ public final class View
             if (rename(table, oldname, newname, true, rule)) {
                 m_CatalogName = table.getCatalogName();
                 m_SchemaName = table.getSchemaName();
-                m_Name = table.getTableName();
+                setName(table.getTableName());
                 getConnection().getViewsInternal().rename(oldname, newname);
             }
         }

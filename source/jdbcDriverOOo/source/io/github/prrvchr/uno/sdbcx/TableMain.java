@@ -121,7 +121,7 @@ public abstract class TableMain<C extends ConnectionSuper>
         throws SQLException
     {
         boolean moved = !m_CatalogName.equals(component.getCatalogName()) || !m_SchemaName.equals(component.getSchemaName());
-        boolean renamed = !m_Name.equals(component.getTableName());
+        boolean renamed = !getName().equals(component.getTableName());
 
         if (!moved && !renamed) {
             int resource = getRenameTableCanceledResource(isview);
@@ -151,7 +151,7 @@ public abstract class TableMain<C extends ConnectionSuper>
             if (multiquery && moved && renamed) {
                 // FIXME: try to move first
                 fullchange = true;
-                String name = DBTools.buildName(m_connection.getProvider(), component.getCatalogName(), component.getSchemaName(), m_Name, rule, false);
+                String name = DBTools.buildName(m_connection.getProvider(), component.getCatalogName(), component.getSchemaName(), getName(), rule, false);
                 reversed = m_connection.getTablesInternal().hasByName(name);
                 if (reversed) {
                     // FIXME: try to rename first
@@ -246,7 +246,7 @@ public abstract class TableMain<C extends ConnectionSuper>
 
     protected NamedComponents getNamedComponents()
     {
-        return new NamedComponents(m_CatalogName, m_SchemaName, m_Name);
+        return new NamedComponents(m_CatalogName, m_SchemaName, getName());
     }
 
 }

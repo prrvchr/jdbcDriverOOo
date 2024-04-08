@@ -401,7 +401,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
             if (renamed) {
                 m_CatalogName = component.getCatalogName();
                 m_SchemaName = component.getSchemaName();
-                m_Name = component.getTableName();
+                setName(component.getTableName());
                 getConnection().getTablesInternal().rename(table, name);
                 // XXX: If renamed table is not a view and are part of a foreign key the referenced table name is not any more valid.
                 // XXX: So we need to rename the referenced table name in all other table having a foreign keys referencing this table.
@@ -447,7 +447,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         try {
             DriverProvider provider = getConnection().getProvider();
             List<String> keys = DBKeyHelper.refreshKeys(provider, getNamedComponents());
-            System.out.println("TableSuper.refreshKeys() Table: " + m_Name + " - Keys: " + String.join(", ", keys));
+            System.out.println("TableSuper.refreshKeys() Table: " + getName() + " - Keys: " + String.join(", ", keys));
             if (m_keys == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
                 m_keys = new KeyContainer(this, isCaseSensitive(), keys);

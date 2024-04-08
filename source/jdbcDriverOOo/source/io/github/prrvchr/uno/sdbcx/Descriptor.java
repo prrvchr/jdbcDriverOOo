@@ -43,9 +43,9 @@ public abstract class Descriptor
     implements XServiceInfo
 {
 
-    private final String m_service;
+    protected final String m_service;
     private final String[] m_services;
-    protected String m_Name;
+    private String m_Name;
     private final boolean m_sensitive;
 
     // The constructor method:

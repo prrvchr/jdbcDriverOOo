@@ -69,22 +69,18 @@ class AdminDispatch(unohelper.Base,
     def dispatch(self, url, arguments):
         state = FAILURE
         result = None
-        xusers = 'com.sun.star.sdbcx.XUsersSupplier'
-        xgroups = 'com.sun.star.sdbcx.XGroupsSupplier'
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
-        if not hasInterface(connection, xusers) or \
-           not hasInterface(connection, xgroups) or \
-           connection.getGroups() is None:
-            dialog = createMessageBox(parent, *self._getDialogData())
-            dialog.execute()
-            dialog.dispose()
-        else:
-            groups = connection.getGroups()
-            if url.Path == 'users':
-                state, result = self._showUsers(connection, parent, groups)
-            elif url.Path == 'groups':
-                state, result = self._showGroups(connection, parent, groups)
+        if url.Path == 'users':
+            if not self._supportUsers(connection):
+                self._showDialog(parent)
+            else:
+                state, result = self._showUsers(connection, parent, connection.getGroups())
+        elif url.Path == 'groups':
+            if not self._supportUsers(connection) or not self._supportGroups(connection):
+                self._showDialog(parent)
+            else:
+                state, result = self._showGroups(connection, parent, connection.getGroups())
         if close:
             connection.close()
         return state, result
@@ -102,6 +98,19 @@ class AdminDispatch(unohelper.Base,
             self._listeners.remove(listener)
 
 # AdminDispatch private methods
+    def _supportUsers(self, connection):
+        interface = 'com.sun.star.sdbcx.XUsersSupplier'
+        return hasInterface(connection, interface) and connection.getUsers() is not None
+
+    def _supportGroups(self, connection):
+        interface = 'com.sun.star.sdbcx.XGroupsSupplier'
+        return hasInterface(connection, interface) and connection.getGroups() is not None
+
+    def _showDialog(self, parent):
+        dialog = createMessageBox(parent, *self._getDialogData())
+        dialog.execute()
+        dialog.dispose()
+
     def _showUsers(self, connection, parent, groups):
         state = FAILURE
         try:

@@ -316,8 +316,10 @@ public class Resources {
 
     public static final int STR_LOG_USERS_CREATE_USER_QUERY                    = (STR_JDBC_LOG_MESSAGE_BASE + 1010);
     public static final int STR_LOG_USERS_CREATE_USER_QUERY_ERROR              = (STR_JDBC_LOG_MESSAGE_BASE + 1011);
-    public static final int STR_LOG_USERS_REMOVE_USER_QUERY                    = (STR_JDBC_LOG_MESSAGE_BASE + 1012);
-    public static final int STR_LOG_USERS_REMOVE_USER_QUERY_ERROR              = (STR_JDBC_LOG_MESSAGE_BASE + 1013);
+    public static final int STR_LOG_USERS_CREATE_USER_FEATURE_NOT_IMPLEMENTED  = (STR_JDBC_LOG_MESSAGE_BASE + 1012);
+
+    public static final int STR_LOG_USERS_REMOVE_USER_QUERY                    = (STR_JDBC_LOG_MESSAGE_BASE + 1015);
+    public static final int STR_LOG_USERS_REMOVE_USER_QUERY_ERROR              = (STR_JDBC_LOG_MESSAGE_BASE + 1016);
 
     public static final int STR_LOG_CREATE_GROUPS                              = (STR_JDBC_LOG_MESSAGE_BASE + 1100);
     public static final int STR_LOG_CREATED_GROUPS_ID                          = (STR_JDBC_LOG_MESSAGE_BASE + 1101);

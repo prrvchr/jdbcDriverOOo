@@ -64,6 +64,8 @@ public interface DriverProvider
 
     public int getMockPrivileges();
 
+    public boolean supportCreateUser();
+
     public String getCreateUserQuery();
 
     public String getSQLQuery(String command);
@@ -220,7 +222,7 @@ public interface DriverProvider
 
     public String getGroupUsersQuery();
 
-    public String getUserGroupsQuery();
+    public String getRoleGroupsQuery(boolean isrole);
 
     public String[] getPrivileges();
 
@@ -254,7 +256,9 @@ public interface DriverProvider
     public DatabaseMetaDataBase getDatabaseMetaData(ConnectionBase connection)
         throws java.sql.SQLException;
 
-    public String getRevokeRoleQuery();
+    public String getGrantRoleQuery(Object... arguments);
+
+    public String getRevokeRoleQuery(Object... arguments);
 
     public String getRevokePrivilegesQuery(Object... arguments);
 

@@ -32,6 +32,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
@@ -39,6 +40,7 @@ import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbcx.Container;
 
 
@@ -101,8 +103,13 @@ public class UserContainer
     protected User appendElement(XPropertySet descriptor)
         throws SQLException
     {
-        User user = null;
         String name = getElementName(descriptor);
+        if (!m_connection.getProvider().supportCreateUser()) {
+            int resource = Resources.STR_LOG_USERS_CREATE_USER_FEATURE_NOT_IMPLEMENTED;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
+            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+        }
+        User user = null;
         if (_createUser(descriptor, name)) {
             user = createElement(name);
         }
@@ -122,7 +129,7 @@ public class UserContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
@@ -156,7 +163,7 @@ public class UserContainer
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
@@ -177,7 +184,11 @@ public class UserContainer
     @Override
     protected XPropertySet createDescriptor()
     {
-        return new UserDescriptor(isCaseSensitive());
+        XPropertySet descriptor = null;
+        if (m_connection.getProvider().supportCreateUser()) {
+            descriptor =  new UserDescriptor(isCaseSensitive());
+        }
+        return descriptor;
     }
 
     protected void removeRole(String name)

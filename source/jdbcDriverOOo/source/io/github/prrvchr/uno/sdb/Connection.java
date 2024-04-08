@@ -205,7 +205,7 @@ public final class Connection
     {
         checkDisposed();
         if (m_Groups == null) {
-            _refreshGroups();
+            refreshGroups();
         }
         return m_Groups;
     }
@@ -214,7 +214,7 @@ public final class Connection
     {
         checkDisposed();
         if (m_Users == null) {
-            _refreshUsers();
+            refreshUsers();
         }
         return m_Users;
     }
@@ -244,30 +244,31 @@ public final class Connection
     public synchronized void refresh()
     {
         super.refresh();
-        _refreshUsers();
-        _refreshGroups();
+        refreshUsers();
+        refreshGroups();
     }
 
 
-    public void _refreshUsers()
+    public void refreshUsers()
     {
         String query = getProvider().getUsersQuery();
         if (query == null) {
             return;
         }
-        try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-            java.sql.ResultSet result = statement.executeQuery(query);
-            List<String> names = new ArrayList<>();
-            System.out.println("sdb.Connection._refreshUsers() 1 Query: " + query);
-            while (result.next()) {
-                String name = result.getString(1);
-                if (!result.wasNull()) {
-                    System.out.println("sdb.Connection._refreshUsers() User Name: " + name);
-                    names.add(name.strip());
+        List<String> names = new ArrayList<>();
+        try (java.sql.Statement statement = getProvider().getConnection().createStatement())
+        {
+            try (java.sql.ResultSet result = statement.executeQuery(query))
+            {
+                System.out.println("sdb.Connection.refreshUsers() 1 Query: " + query);
+                while (result.next()) {
+                    String name = result.getString(1);
+                    if (!result.wasNull()) {
+                        System.out.println("sdb.Connection.refreshUsers() 2 User Name: " + name);
+                        names.add(name.strip());
+                    }
                 }
             }
-            System.out.println("sdb.Connection._refreshUsers() 2");
-            result.close();
             if (m_Users == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
                 m_Users = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
@@ -282,24 +283,26 @@ public final class Connection
         }
     }
 
-    public void _refreshGroups()
+    public void refreshGroups()
     {
         String query = getProvider().getGroupsQuery();
         if (query == null) {
             return;
         }
-        try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-            java.sql.ResultSet result = statement.executeQuery(query);
-            List<String> names = new ArrayList<>();
-            System.out.println("sdb.Connection._refreshGroups() 1 Query: " + query);
-            while (result.next()) {
-                String name = result.getString(1);
-                if (!result.wasNull()) {
-                    System.out.println("sdb.Connection._refreshGroups() 2 Group Name: " + name);
-                    names.add(name.strip());
+        List<String> names = new ArrayList<>();
+        try (java.sql.Statement statement = getProvider().getConnection().createStatement())
+        {
+            try (java.sql.ResultSet result = statement.executeQuery(query))
+            {
+                System.out.println("sdb.Connection.refreshGroups() 1 Query: " + query);
+                while (result.next()) {
+                    String name = result.getString(1);
+                    if (!result.wasNull()) {
+                        System.out.println("sdb.Connection.refreshGroups() 2 Group Name: " + name);
+                        names.add(name.strip());
+                    }
                 }
             }
-            result.close();
             if (m_Groups == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
                 m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);

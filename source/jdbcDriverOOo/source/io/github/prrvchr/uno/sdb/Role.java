@@ -57,6 +57,7 @@ public abstract class Role
     protected final Connection m_connection;
     protected final ConnectionLog m_logger; 
     protected Groups m_groups;
+    private final boolean m_isrole;
 
     // The constructor method:
     public Role(String service,
@@ -64,11 +65,13 @@ public abstract class Role
                 Connection connection,
                 boolean sensitive,
                 String name,
-                LoggerObjectType type)
+                LoggerObjectType type,
+                boolean isrole)
     {
         super(service, services, sensitive, name);
         m_connection = connection;
         m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
+        m_isrole = isrole;
     }
 
     protected ConnectionLog getLogger()
@@ -133,13 +136,17 @@ public abstract class Role
             String privileges = String.join(", ", provider.getPrivileges(privilege));
             try {
                 NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                query = DBPrivilegesHelper.getGrantPrivilegesQuery(provider, table, privileges, getName(), rule, isCaseSensitive());
-                int resource = getGrantPrivilegesResource(false);
+                query = DBPrivilegesHelper.getGrantPrivilegesQuery(provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
+                int resource = m_isrole ?
+                               Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY :
+                               Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
                 getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
                 DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
-                int resource = getGrantPrivilegesResource(true);
+                int resource = m_isrole ?
+                               Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY_ERROR :
+                               Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY_ERROR;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, privileges, getName(), name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -160,13 +167,17 @@ public abstract class Role
             String privileges = String.join(", ", provider.getPrivileges(privilege));
             try {
                 NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                query = DBPrivilegesHelper.getRevokePrivilegesQuery(provider, table, privileges, getName(), rule, isCaseSensitive());
-                int resource = getRevokePrivilegesResource(false);
+                query = DBPrivilegesHelper.getRevokePrivilegesQuery(provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
+                int resource = m_isrole ?
+                               Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY :
+                               Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
                 getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
                 DBTools.executeDDLQuery(provider, query);
             }
             catch (java.sql.SQLException e) {
-                int resource = getRevokePrivilegesResource(true);
+                int resource = m_isrole ?
+                               Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY_ERROR :
+                               Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY_ERROR;
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, privileges, getName(), name, query);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -188,24 +199,28 @@ public abstract class Role
 
     void refreshGroups()
     {
-        String query = m_connection.getProvider().getUserGroupsQuery();
+        String query = m_connection.getProvider().getRoleGroupsQuery(m_isrole);
         if (query == null) {
             return;
         }
         ArrayList<String> groups = new ArrayList<>();
-        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(query)){
+        try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(query))
+        {
             statement.setString(1, getName());
-            java.sql.ResultSet result = statement.executeQuery();
-            while(result.next()) {
-                String group = result.getString(1);
-                if (!result.wasNull()) {
-                    groups.add(group.strip());
+            try (java.sql.ResultSet result = statement.executeQuery())
+            {
+                System.out.println("sdb.Role.refreshGroups() 1 Role: " + getName() + " - IsRole: " + m_isrole + " - Query: " + query);
+                while(result.next()) {
+                    String group = result.getString(1);
+                    if (!result.wasNull()) {
+                        System.out.println("sdb.Role.refreshGroups() 2 Group Name: " + group);
+                        groups.add(group.strip());
+                    }
                 }
             }
-            result.close();
             if (m_groups == null) {
                 m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPROLES);
-                m_groups = new Groups(m_connection, isCaseSensitive(), this, groups);
+                m_groups = new Groups(m_connection, isCaseSensitive(), getName(), groups, m_isrole);
                 m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPROLES_ID, m_groups.getLogger().getObjectId());
             }
             else {
@@ -221,8 +236,5 @@ public abstract class Role
     {
         return m_groups;
     }
-
-    abstract protected int getGrantPrivilegesResource(boolean error);
-    abstract protected int getRevokePrivilegesResource(boolean error);
 
 }

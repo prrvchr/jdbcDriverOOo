@@ -36,11 +36,9 @@ class GroupView(AdminView):
     def __init__(self, ctx, handler, parent):
         super(GroupView, self).__init__(ctx, 'GroupDialog', handler, parent)
 
-    def enableButton(self, enabled, removable):
+    def _enableSetRole(self, enabled):
         self._getSetRole().Model.Enabled = enabled
-        super(GroupView, self).enableButton(enabled, removable)
 
     def _getSetRole(self):
         return self._dialog.getControl('CommandButton6')
-
 

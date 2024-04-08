@@ -254,7 +254,7 @@ public final class Table
     }
     protected String getName()
     {
-        return m_Name;
+        return super.getName();
     }
 
 
