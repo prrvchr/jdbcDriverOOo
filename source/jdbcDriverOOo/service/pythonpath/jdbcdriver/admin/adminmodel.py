@@ -66,7 +66,8 @@ class AdminModel(unohelper.Base):
                            'PrivilegeErrorTitle'   : 'MessageBox.Privilege.Error.Title',
                            'CreateUserErrorTitle'  : 'MessageBox.CreateUser.Error.Title',
                            'CreateGroupErrorTitle' : 'MessageBox.CreateGroup.Error.Title',
-                           'SetMembersErrorTitle'  : 'MessageBox.SetMembers.Error.Title'}
+                           'SetMembersErrorTitle'  : 'MessageBox.SetMembers.Error.Title',
+                           'SetPasswordErrorTitle' : 'MessageBox.SetPassword.Error.Title'}
 
     def _getColumn(self, column, title, index, width=70, flex=1, align=CENTER):
         column.ColumnWidth = width
@@ -121,25 +122,18 @@ class AdminModel(unohelper.Base):
 
     def _createRole(self, roles, descriptor, role):
         descriptor.setPropertyValue('Name', role)
-        try:
-            roles.appendByDescriptor(descriptor)
-        except (SQLException, ElementExistException) as e:
-            print("AdminModel._createRole() ERROR ******************")
-            return None
+        roles.appendByDescriptor(descriptor)
         return role
 
     # XXX: Show group's user members.
     def getUsers(self):
-        print("AdminModel.getUsers() ******************")
         users = self._grid.Model.getGrantee().getUsers()
         members = users.getElementNames()
         availables = self._getFilteredMembers(self._users, members)
-        print("AdminModel.getUsers() Members: %s-  Availables: %s" % (members, availables))
         return users, self._getUsersTitle(), availables
 
     # XXX: Show user's group members.
     def getGroups(self):
-        print("AdminModel.getGroups() ******************")
         groups = self._grid.Model.getGrantee().getGroups()
         members = groups.getElementNames()
         availables = self._getFilteredMembers(self._members, members)
@@ -147,11 +141,10 @@ class AdminModel(unohelper.Base):
 
     # XXX: Show group's role members.
     def getRoles(self):
-        print("AdminModel.getRoles() ******************")
         groups = self._grid.Model.getGrantee().getGroups()
         members = groups.getElementNames()
-        #TODO: We must avoid recursive assignments and therefore filter the current Grantee
-        #TODO: as well as the groups having the current Grantee in assigned roles
+        # XXX: We must avoid recursive assignments and therefore filter the current Grantee
+        # XXX: as well as the groups having the current Grantee in assigned roles
         availables = self._getFilteredMembers(self._grid.Model.getGrantees(), members, True)
         return groups, self._getRolesTitle(), availables
 
@@ -167,9 +160,9 @@ class AdminModel(unohelper.Base):
 
     def setMembers(self, grantees, elements, isgroup):
         members = grantees.getElementNames()
+        descriptor = grantees.createDataDescriptor()
         for element in elements:
             if element not in members:
-                descriptor = grantees.createDataDescriptor()
                 descriptor.setPropertyValue('Name', element)
                 grantees.appendByDescriptor(descriptor)
         for member in members:
@@ -194,7 +187,9 @@ class AdminModel(unohelper.Base):
         self._grid.Model.setGrantee(grantee)
         self._grid.setGridVisible(True)
         isgroup = self._grid.Model.isGroup()
-        return self._supportRole(isgroup), self._isRemovable(grantee, isgroup)
+        user = self.supportsCreateRole()
+        role = self._supportRole(isgroup)
+        return user, role, self._isRemovable(grantee, isgroup)
 
     def hasGridSelectedRows(self):
         return self._grid.hasSelectedRows()
@@ -233,12 +228,22 @@ class AdminModel(unohelper.Base):
         resource = self._resources.get('SetMembersErrorTitle')
         return self._resolver.resolveString(resource)
 
+    def getSetPasswordErrorTitle(self):
+        resource = self._resources.get('SetPasswordErrorTitle')
+        return self._resolver.resolveString(resource)
+
     def _supportRole(self, isgroup):
         if isgroup:
+            # XXX: Some underlying drivers do not support Role of Role (Granting a role to a role),
+            # XXX: to report this, although supporting the interface, the value returned is null.
+            # XXX: We must be able to recognize such drivers...
             grantee = self._grid.Model.getGrantee()
             inferface = 'com.sun.star.sdbcx.XGroupsSupplier'
             support = hasInterface(grantee, inferface) and grantee.getGroups() is not None
         else:
+            # XXX: Some underlying drivers do not support User's Role,
+            # XXX: to report this, although supporting the interface, the value returned is null.
+            # XXX: We must be able to recognize such drivers...
             support = self._members is not None
         return support
 

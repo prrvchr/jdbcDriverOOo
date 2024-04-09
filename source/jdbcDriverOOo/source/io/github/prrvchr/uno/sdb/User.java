@@ -25,12 +25,16 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
 import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class User
@@ -55,12 +59,17 @@ public final class User
     public void changePassword(String old, String password)
         throws SQLException
     {
+        String query = null;
         try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
-            String sql = DBRoleHelper.getChangeUserPasswordQuery(m_connection.getProvider(), getName(), password, isCaseSensitive());
-            statement.execute(sql);
+            int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY;
+            query = DBRoleHelper.getChangeUserPasswordQuery(m_connection.getProvider(), getName(), password, isCaseSensitive());
+            getLogger().logprb(LogLevel.INFO, resource, getName());
+            statement.execute(query);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, m_connection);
+            int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, getName());
+            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

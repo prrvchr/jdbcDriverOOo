@@ -38,10 +38,11 @@ import traceback
 
 
 class GridModel(GridModelBase):
-    def __init__(self, ctx, user, grantees, tables, flags, isuser, url):
+    def __init__(self, ctx, user, groups, grantees, tables, flags, isuser, url):
         GridModelBase.__init__(self, ctx)
         self._user = user
         self._grantee = None
+        self._groups = groups
         self._grantees = grantees
         self._tables = tables
         self._indexes = tables.getElementNames()
@@ -145,29 +146,62 @@ class GridModel(GridModelBase):
             privilege = self._grantee.getPrivileges(table, TABLE)
             if self._user is not None:
                 grantable = self._user.getGrantablePrivileges(table, TABLE)
-                grantable |= self._getInheritedGrantablePrivileges(table, self._user)
+                groups = self._user.getGroups()
+                if groups is not None:
+                    grantable |= self._getGrantablePrivileges(groups, table)
             else:
                 grantable = sum(self._flags)
-            inherited = self._getInheritedPrivileges(table, self._grantee)
+            inherited = self._getInheritedPrivileges(table)
         return privilege, grantable, inherited
 
-    def _getInheritedPrivileges(self, table, role, privilege=0, level=0, maxi=2):
-        groups = role.getGroups().createEnumeration()
-        while groups.hasMoreElements():
-            group = groups.nextElement()
-            privilege |= group.getPrivileges(table, TABLE)
-            if level <= maxi:
-                level += 1
-                privilege |= self._getInheritedPrivileges(table, group, privilege, level, maxi)
-        return privilege
+    def _getGrantablePrivileges(self, groups, table):
+        privileges = 0
+        if self._groups is not None:
+            parents = []
+            for group in groups.getElementNames():
+                privileges |= self._getGrantableRoles(group, table, parents)
+        return privileges
 
-    def _getInheritedGrantablePrivileges(self, table, role, privilege=0, level=0, maxi=2):
-        groups = role.getGroups().createEnumeration()
-        while groups.hasMoreElements():
-            group = groups.nextElement()
-            privilege |= group.getGrantablePrivileges(table, TABLE)
-            if level <= maxi:
-                level += 1
-                privilege |= self._getInheritedGrantablePrivileges(table, group, privilege, level, maxi)
-        return privilege
+    def _getInheritedPrivileges(self, table):
+        privileges = 0
+        if self._groups is not None:
+            if self._isuser:
+                privileges = self._getUserInheritedRoles(table)
+            else:
+                parents = []
+                privileges = self._getInheritedRoles(self._grantee.Name, table, parents)
+        return privileges
+
+    def _getGrantableRoles(self, role, table, parents):
+        privileges = 0
+        for group in self._getParentRoles(role, parents):
+            privileges |= group.getGrantablePrivileges(table, TABLE)
+        return privileges
+
+    def _getUserInheritedRoles(self, table):
+        parents = []
+        privileges = 0
+        groups = self._grantee.getGroups()
+        if groups is not None:
+            for role in groups.getElementNames():
+                privileges |= self._getInheritedRoles(role, table, parents)
+        return privileges
+
+    def _getInheritedRoles(self, role, table, parents):
+        privileges = 0
+        for group in self._getParentRoles(role, parents):
+            privileges |= group.getPrivileges(table, TABLE)
+        return privileges
+
+    def _getParentRoles(self, role, parents):
+        for name in self._groups.getElementNames():
+            if name in parents:
+                continue
+            group = self._groups.getByName(name)
+            groups = group.getGroups()
+            if groups is not None and groups.hasByName(role):
+                parents.append(name)
+                yield from self._getParentRoles(name, parents)
+        if self._groups.hasByName(role):
+            yield self._groups.getByName(role)
 

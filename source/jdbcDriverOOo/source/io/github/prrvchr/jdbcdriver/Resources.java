@@ -340,6 +340,9 @@ public class Resources {
     public static final int STR_LOG_USER_REVOKE_PRIVILEGE_QUERY                = (STR_JDBC_LOG_MESSAGE_BASE + 1220);
     public static final int STR_LOG_USER_REVOKE_PRIVILEGE_QUERY_ERROR          = (STR_JDBC_LOG_MESSAGE_BASE + 1221);
 
+    public static final int STR_LOG_USER_CHANGE_PASSWORD_QUERY                 = (STR_JDBC_LOG_MESSAGE_BASE + 1230);
+    public static final int STR_LOG_USER_CHANGE_PASSWORD_QUERY_ERROR           = (STR_JDBC_LOG_MESSAGE_BASE + 1231);
+
     public static final int STR_LOG_CREATE_GROUP                               = (STR_JDBC_LOG_MESSAGE_BASE + 1300);
     public static final int STR_LOG_CREATED_GROUP_ID                           = (STR_JDBC_LOG_MESSAGE_BASE + 1301);
     public static final int STR_LOG_GROUP_DISPOSING                            = (STR_JDBC_LOG_MESSAGE_BASE + 1302);

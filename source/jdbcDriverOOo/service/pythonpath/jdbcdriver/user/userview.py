@@ -36,9 +36,9 @@ class UserView(AdminView):
     def __init__(self, ctx, handler, parent):
         super(UserView, self).__init__(ctx, 'UserDialog', handler, parent)
 
-    def enableButton(self, enabled, support, removable):
-        self._getSetPassword().Model.Enabled = enabled
-        super(UserView, self).enableButton(enabled, support, removable)
+    def enableButton(self, enabled, user, role, removable):
+        self._getSetPassword().Model.Enabled = user
+        super(UserView, self).enableButton(enabled, user, role, removable)
 
     def enableRoleCreation(self, enabled):
         self._getSetPassword().Model.Enabled = enabled
