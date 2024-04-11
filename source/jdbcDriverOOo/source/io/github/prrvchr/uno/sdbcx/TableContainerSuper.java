@@ -140,13 +140,11 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
         return table;
     }
 
-    private java.sql.ResultSet _getcreateElementResultSet(NamedComponents component)
+    private java.sql.ResultSet _getcreateElementResultSet(NamedComponents table)
             throws java.sql.SQLException
         {
-            String catalog = component.getCatalogName().isEmpty() ? null : component.getCatalogName();
-            String schema = component.getSchemaName().isEmpty() ? null : component.getSchemaName();
             java.sql.DatabaseMetaData metadata = m_Connection.getProvider().getConnection().getMetaData();
-            return metadata.getTables(catalog, schema, component.getTableName(), null);
+            return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTableName(), null);
         }
 
     @Override

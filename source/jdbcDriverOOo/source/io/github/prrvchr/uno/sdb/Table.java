@@ -28,21 +28,15 @@ package io.github.prrvchr.uno.sdb;
 import java.util.List;
 
 import com.sun.star.awt.FontDescriptor;
-import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
-import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
@@ -92,46 +86,9 @@ public final class Table
         super.m_Type = type;
         super.m_Description = remarks;
         registerProperties();
-        System.out.println("sdb.Table() 1");
-    }
-
-    private int getPrivileges()
-        throws WrappedTargetException
-    {
-        int privileges = 0;
-        try {
-            DriverProvider provider = getConnection().getProvider();
-            String name = provider.getConnection().getMetaData().getUserName();
-            if (name == null || name.isBlank()) {
-                privileges = provider.getMockPrivileges();
-            }
-            else {
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                privileges = DBPrivilegesHelper.getTablePrivileges(provider, name, getNamedComponents(), rule);
-            }
-        }
-        catch (SQLException e) {
-            System.out.println("DBTools.getPrivileges() 1 ERROR ******************");
-            throw UnoHelper.getWrappedException(e);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("DBTools.getPrivileges() 2 ERROR ******************");
-        }
-        System.out.println("sdb.Table.getPrivileges() Privileges: " + privileges);
-        return privileges;
     }
 
     private void registerProperties() {
-        short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.PRIVILEGES.name, PropertyIds.PRIVILEGES.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdb.Table.getPrivileges() 1");
-                    return getPrivileges();
-                }
-            }, null);
         registerProperty(PropertyIds.FILTER.name, PropertyIds.FILTER.id, Type.STRING,
             new PropertyGetter() {
                 @Override

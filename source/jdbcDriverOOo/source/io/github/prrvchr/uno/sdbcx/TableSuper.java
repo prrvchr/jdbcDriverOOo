@@ -54,6 +54,7 @@ import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.helper.DBIndexHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBKeyHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTableHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
@@ -97,6 +98,16 @@ public abstract class TableSuper<C extends ConnectionSuper>
 
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
+        registerProperty(PropertyIds.PRIVILEGES.name, PropertyIds.PRIVILEGES.id, Type.LONG, readonly,
+                new PropertyGetter() {
+                    @Override
+                    public Object getValue() throws WrappedTargetException {
+                        System.out.println("sdbcx.TableSuper.getPrivileges() 1");
+                        int privileges = getPrivileges();
+                        System.out.println("sdbcx.TableSuper.getPrivileges() 2 Privileges: " + privileges);
+                        return privileges;
+                    }
+                }, null);
         registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING, readonly,
             new PropertyGetter() {
                 @Override
@@ -111,6 +122,26 @@ public abstract class TableSuper<C extends ConnectionSuper>
                     return m_Type;
                 }
             }, null);
+    }
+
+    private int getPrivileges()
+        throws WrappedTargetException
+    {
+        try {
+            System.out.println("sdbcx.TableSuper.getPrivileges() 1");
+            DriverProvider provider = getConnection().getProvider();
+            int privileges = DBPrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
+            if (privileges == 0) {
+                privileges = provider.getMockPrivileges();
+            }
+            System.out.println("sdbcx.TableSuper.getPrivileges() 2: " + privileges);
+            return privileges;
+        }
+        catch (java.sql.SQLException e) {
+            System.out.println("sdbcx.TableSuper.getPrivileges() 2 ERROR ******************");
+            throw UnoHelper.getWrappedException(e);
+        }
+
     }
 
     protected ColumnContainerBase<?> getColumnsInternal()
@@ -163,7 +194,8 @@ public abstract class TableSuper<C extends ConnectionSuper>
 
     // com.sun.star.sdbcx.XKeysSupplier:
     @Override
-    public XIndexAccess getKeys() {
+    public XIndexAccess getKeys()
+    {
         return getKeysInternal();
     }
 

@@ -1,7 +1,4 @@
-#!
-# -*- coding: utf-8 -*-
-
-"""
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
@@ -25,11 +22,49 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-"""
+*/
+package io.github.prrvchr.jdbcdriver.resultset;
 
-from .gridmanager import GridManager
+import java.sql.SQLException;
+import java.util.Map;
 
-from .gridmodel import GridModel
 
-from .gridhandler import GridListener
+public class TableTypesResultSet
+    extends ResultSet
+{
 
+    private Map<String, String> m_rows;
+
+    public TableTypesResultSet(java.sql.ResultSet resultset,
+                               Map<String, String> rows)
+        throws SQLException
+    {
+        super(resultset);
+        m_rows = rows;
+    }
+
+    @Override
+    public String getString(int index)
+        throws SQLException
+    {
+        String value = super.getString(index);
+        return getValue(value);
+    }
+
+    @Override
+    public String getString(String label)
+        throws SQLException
+    {
+        String value = super.getString(label);
+        return getValue(value);
+    }
+
+    private String getValue(String value)
+    {
+        if (m_rows.containsKey(value)) {
+            return m_rows.get(value);
+        }
+        return value;
+    }
+
+}

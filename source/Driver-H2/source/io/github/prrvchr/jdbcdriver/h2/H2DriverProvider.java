@@ -89,14 +89,6 @@ public final class H2DriverProvider
         return true;
     }
 
-    public String getTableType(String type)
-    {
-        if (type.equals("BASE TABLE")) {
-            type = "TABLE";
-        }
-        return type;
-    }
-
     @Override
     public String getConnectionUrl(final String location,
                                    final String level)

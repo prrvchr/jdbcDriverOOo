@@ -35,10 +35,9 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSetBase;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -1209,11 +1208,20 @@ public abstract class DatabaseMetaDataBase
     public XResultSet getTablePrivileges(Object catalog, String schema, String table)
         throws SQLException
     {
+        System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 1 *****************************");
         try {
-            java.sql.ResultSet result = getTablePrivilegesResultSet(catalog, schema, table);
-            System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 1");
+            java.sql.ResultSet result = DBPrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
+                                                                                       m_Metadata,
+                                                                                       _getPattern(catalog),
+                                                                                       _getPattern(schema),
+                                                                                       table);
+            System.out.println("sdbc.DatabaseMetaData.getTablePrivileges() 2");
             DBTools.printResultSet(result);
-            result = getTablePrivilegesResultSet(catalog, schema, table);
+            result = DBPrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
+                                                                    m_Metadata,
+                                                                    _getPattern(catalog),
+                                                                    _getPattern(schema),
+                                                                    table);
             return result != null ? _getResultSet(result, "getTablePrivileges") : null;
         }
         catch (java.sql.SQLException e) {
@@ -1230,40 +1238,18 @@ public abstract class DatabaseMetaDataBase
         }
     }
 
-    private java.sql.ResultSet getTablePrivilegesResultSet(Object catalog, String schema, String table)
-        throws java.sql.SQLException, SQLException
-    {
-        java.sql.ResultSet result = null;
-        System.out.println("sdbc.DatabaseMetaData.getTablePrivilegesResultSet() 1");
-        if (!m_Connection.getProvider().ignoreDriverPrivileges()) {
-            result = m_Metadata.getTablePrivileges(_getPattern(catalog), _getPattern(schema), table);
-            // XXX: We have to check the result columns for the tables privileges #106324#
-            if (result != null && result.getMetaData().getColumnCount() != 7) {
-                // XXX: Here we know that the count of column doesn't match
-                result = new TablePrivilegesResultSetBase(result);
-                System.out.println("sdbc.DatabaseMetaData.getTablePrivilegesResultSet() 2 ColumnCount != 7 :" + result.getMetaData().getColumnCount());
-            }
-        }
-        else {
-            System.out.println("sdbc.DatabaseMetaData.getTablePrivilegesResultSet() 3");
-            result = m_Metadata.getTables(_getPattern(catalog), _getPattern(schema), table, null);
-            result = new TablePrivilegesResultSet(result, m_Connection.getProvider().getPrivileges(), getUserName());
-        }
-        System.out.println("sdbc.DatabaseMetaData.getTablePrivilegesResultSet() 4");
-        return result;
-    }
-
     @Override
     public XResultSet getTableTypes() throws SQLException
     {
         try {
             System.out.println("sdbc.DatabaseMetaData.getTableTypes()");
-            java.sql.ResultSet resultset = m_Metadata.getTableTypes();
+            java.sql.ResultSet resultset = m_Connection.getProvider().getTableTypesResultSet(m_Metadata);
             while (resultset.next())
             {
                 System.out.println("sdbc.DatabaseMetaData.getTableTypes(): Type: " + resultset.getString(1));
             }
-            return _getResultSet(m_Metadata.getTableTypes(), "getTableTypes");
+            resultset = m_Connection.getProvider().getTableTypesResultSet(m_Metadata);
+            return _getResultSet(resultset, "getTableTypes");
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1359,6 +1345,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             String value = m_Metadata.getUserName();
+            System.out.println("sdbc.DatabaseMetaData.getUserName(): " + value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {

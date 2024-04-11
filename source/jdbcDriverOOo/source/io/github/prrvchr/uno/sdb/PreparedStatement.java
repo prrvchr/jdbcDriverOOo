@@ -82,8 +82,8 @@ public final class PreparedStatement
     {
         System.out.println("sdb.PreparedStatement._getResultSet()");
         ResultSet resultset = null;
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (result != null) {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset =  new ResultSet(getConnectionInternal(), result, this, m_UseBookmarks);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
         }

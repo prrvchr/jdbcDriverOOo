@@ -103,10 +103,9 @@ public class DBKeyHelper
 
     public static String getKeyName(String name,
                                     String table,
-                                    List<String> columns,
                                     int type)
     {
-        return getKeyName(name, getKeyPrefix(type), table, columns);
+        return getKeyName(name, getKeyPrefix(type), table);
     }
 
 
@@ -215,14 +214,14 @@ public class DBKeyHelper
                                            NamedComponents table)
         throws java.sql.SQLException
     {
+        int type = KeyType.PRIMARY;
         try (java.sql.ResultSet result = provider.getConnection().getMetaData().getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable())) 
         {
             // XXX: There can only be one primary key per table.
             if (result.next()) {
-                String name = result.getString(6);
-                if (!result.wasNull()) {
-                    keys.add(name);
-                }
+                String pk = result.getString(6);
+                System.out.println("DBKeyHelper.refreshPrimaryKeys() KeyName: '" + pk + "'");
+                keys.add(getKeyName(pk, table.getTable(), type));
             }
         }
     }
@@ -267,10 +266,7 @@ public class DBKeyHelper
                 if (!fetched) {
                     fetched = true;
                     String pk = result.getString(6);
-                    if (result.wasNull()) {
-                        pk = null;
-                    }
-                    name = getKeyName(pk, getKeyPrefix(type), component.getTable(), column);
+                    name = getKeyName(pk, component.getTable(), type);
                 }
             }
         }
@@ -356,19 +352,10 @@ public class DBKeyHelper
 
     private static String getKeyName(String name,
                                      String prefix,
-                                     String table,
-                                     List<String> columns)
-    {
-        return getKeyName(name, prefix, table, String.join("_", columns));
-    }
-
-    private static String getKeyName(String name,
-                                     String prefix,
-                                     String table,
-                                     String columns)
+                                     String table)
     {
         if (name == null || name.isBlank()) {
-            name = String.format("%s%s_%s", prefix, table, columns);
+            name = prefix + table;
         }
         return name;
     }

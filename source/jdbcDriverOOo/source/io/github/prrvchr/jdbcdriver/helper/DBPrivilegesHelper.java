@@ -53,6 +53,8 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSet;
+import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSetBase;
 
 
 public class DBPrivilegesHelper
@@ -88,6 +90,88 @@ public class DBPrivilegesHelper
         return query;
     }
 
+
+    public static java.sql.ResultSet getTablePrivilegesResultSet(DriverProvider provider,
+                                                                 java.sql.DatabaseMetaData metadata,
+                                                                 String catalog,
+                                                                 String schema,
+                                                                 String table)
+        throws java.sql.SQLException
+    {
+        java.sql.ResultSet result = null;
+        try {
+            if (provider.ignoreDriverPrivileges()) {
+                result = metadata.getTables(catalog, schema, table, null);
+                result = new TablePrivilegesResultSet(result, provider.getPrivileges(), metadata.getUserName());
+            }
+            else {
+                result = metadata.getTablePrivileges(catalog, schema, table);
+                // XXX: We have to check the result columns for the tables privileges #106324#
+                if (result != null && result.getMetaData().getColumnCount() != 7) {
+                    // XXX: Here we know that the count of column doesn't match
+                    result = new TablePrivilegesResultSetBase(result);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /** get Privileges on a Table for the current connection
+    *
+    * @param provider
+    *    The driver provider.
+    * @param table
+    *    The named components of the table.
+    *   
+    * @return
+    *   The Privileges.
+    * @throws java.sql.SQLException 
+    */
+    public static int getTablePrivileges(DriverProvider provider,
+                                         NamedComponents table)
+    throws java.sql.SQLException
+    {
+        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
+        return getTablePrivileges(provider, metadata, table);
+    }
+
+    /** get Privileges on a Table for the current connection
+    *
+    * @param provider
+    *    The driver provider.
+    * @param metadata
+    *    The database metadata.
+    * @param table
+    *    The named components of the table.
+    *   
+    * @return
+    *   The Privileges.
+    * @throws java.sql.SQLException 
+    */
+    public static int getTablePrivileges(DriverProvider provider,
+                                         java.sql.DatabaseMetaData metadata,
+                                         NamedComponents table)
+    throws java.sql.SQLException
+    {
+        int privileges = 0;
+        try (java.sql.ResultSet result = getTablePrivilegesResultSet(provider, metadata, table.getCatalog(), table.getSchema(), table.getTable()))
+        {
+            while (result.next()) {
+                String privilege = result.getString(6);
+                if (!result.wasNull()) {
+                    privilege = privilege.toUpperCase().strip();
+                    if (provider.hasPrivilege(privilege)) {
+                        privileges |= provider.getPrivilege(privilege);
+                    }
+                }
+            }
+        }
+        return privileges;
+    }
+
     /** get Privileges on a Table for a grantee
     *
     * @param provider
@@ -117,6 +201,7 @@ public class DBPrivilegesHelper
         }
         return getPrivileges(provider, grantee, positions.get(0), query, table, rule);
     }
+
 
     /** get Grantable Privileges on a Table for a grantee
     *
@@ -160,8 +245,9 @@ public class DBPrivilegesHelper
         return getPrivileges(provider, arguments, positions, query);
     }
 
+
     private static int getPrivileges(DriverProvider provider,
-                                     Object[] arguments,
+                                     String[] arguments,
                                      Integer[] positions,
                                      String query)
         throws java.sql.SQLException, SQLException

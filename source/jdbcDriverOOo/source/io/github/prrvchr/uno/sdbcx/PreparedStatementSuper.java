@@ -43,8 +43,6 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
     extends PreparedStatementBase<C>
 {
 
-    protected boolean m_UseBookmarks = false;
-
 
     // The constructor method:
     // XXX: Constructor called from methods:
@@ -57,7 +55,7 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
     {
         super(service, services, connection, sql);
         registerProperties();
-        System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
+         System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }
 
     private void registerProperties() {
@@ -66,6 +64,7 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
+                    System.out.println("sdbc.PreparedStatementSuper.getUseBookmark(): " + m_UseBookmarks);
                     return m_UseBookmarks;
                 }
             },
@@ -73,7 +72,9 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
                     m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
-                    m_UseBookmarks = (boolean) value;
+                    boolean usebookmark = m_Connection.getProvider().useBookmarks((boolean) value);
+                    System.out.println("sdbc.PreparedStatementSuper.setUseBookmark(): " + usebookmark);
+                    m_UseBookmarks = usebookmark;
                 }
             });
     }

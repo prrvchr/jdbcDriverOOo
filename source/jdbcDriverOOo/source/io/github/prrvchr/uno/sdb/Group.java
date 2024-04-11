@@ -81,11 +81,9 @@ public final class Group
                 statement.setString(1, getName());
                 try (java.sql.ResultSet result = statement.executeQuery())
                 {
-                    System.out.println("sdb.Group.refreshUsers() 1 Group: " + getName()+ " - Query: " + query);
                     while(result.next()) {
                         String user = result.getString(1);
                         if (!result.wasNull()) {
-                            System.out.println("sdb.Group.refreshUsers() 2 User Name: '" + user + "'");
                             users.add(user);
                         }
                     }

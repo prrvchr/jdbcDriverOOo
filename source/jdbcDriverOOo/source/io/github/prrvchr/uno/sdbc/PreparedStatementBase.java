@@ -34,6 +34,9 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
     extends PreparedStatementMain<java.sql.PreparedStatement, C>
 {
 
+    protected boolean m_UseBookmarks = false;
+
+
     // The constructor method:
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatement()
@@ -59,12 +62,16 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
                 if (m_Connection.getProvider().isResultSetUpdatable() &&
                         (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||
                          m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
+                    int holdability = java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT;
+                    //int holdability = java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT;
+                    System.out.println("sdbc.PreparedStatementBase.getStatement()() 1 SQL: " + m_Sql);
                     statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql,
                                                                                             m_ResultSetType,
-                                                                                            m_ResultSetConcurrency);
+                                                                                            m_ResultSetConcurrency,
+                                                                                            holdability);
                 }
                 else {
-                    System.out.println("sdbc.PreparedStatementBase.getStatement()() ******************* SQL: <" + m_Sql + ">");
+                    System.out.println("sdbc.PreparedStatementBase.getStatement()() 2 SQL: " + m_Sql);
                     int option = m_Connection.getProvider().getGeneratedKeysOption();
                     statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, option);
                 }
@@ -75,7 +82,7 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
                 throw UnoHelper.getSQLException(e, this);
             }
         }
-        System.out.println("sdbc.PreparedStatementBase.getStatement() 2");
+        System.out.println("sdbc.PreparedStatementBase.getStatement() 3");
         return m_Statement;
     }
 

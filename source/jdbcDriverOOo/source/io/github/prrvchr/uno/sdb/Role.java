@@ -93,8 +93,14 @@ public abstract class Role
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
+                java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
                 NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                privileges = DBPrivilegesHelper.getGrantablePrivileges(provider, getName(), table, rule);
+                if (!m_isrole && getName().equals(metadata.getUserName())) {
+                    privileges = DBPrivilegesHelper.getTablePrivileges(provider, metadata, table);
+                }
+                else {
+                    privileges = DBPrivilegesHelper.getGrantablePrivileges(provider, getName(), table, rule);
+                }
             }
             catch (java.sql.SQLException e) {
                 throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -209,11 +215,9 @@ public abstract class Role
             statement.setString(1, getName());
             try (java.sql.ResultSet result = statement.executeQuery())
             {
-                System.out.println("sdb.Role.refreshGroups() 1 Role: " + getName() + " - IsRole: " + m_isrole + " - Query: " + query);
                 while(result.next()) {
                     String group = result.getString(1);
                     if (!result.wasNull()) {
-                        System.out.println("sdb.Role.refreshGroups() 2 Group Name: " + group);
                         groups.add(group.strip());
                     }
                 }

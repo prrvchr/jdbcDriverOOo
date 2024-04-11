@@ -345,6 +345,16 @@ public class UnoHelper
         return sw.toString();
     }
 
+    public static WrappedTargetException getWrappedException(java.lang.Exception e)
+    {
+        WrappedTargetException exception = null;
+        if (e != null) {
+            Exception ex = new Exception(e.getMessage());
+            exception = getWrappedException(ex);
+        }
+        return exception;
+    }
+
     public static WrappedTargetException getWrappedException(Exception e)
     {
         WrappedTargetException exception = null;

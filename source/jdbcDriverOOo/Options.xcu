@@ -41,7 +41,7 @@
         <value>false</value>
     </prop>
     <prop oor:name="UseBookmark" oor:op="fuse">
-        <value>false</value>
+        <value>true</value>
     </prop>
     <prop oor:name="AdminGridColumns" oor:op="fuse">
         <value>{}</value>

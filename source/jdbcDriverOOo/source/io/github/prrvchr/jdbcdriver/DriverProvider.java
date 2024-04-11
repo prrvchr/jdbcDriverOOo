@@ -51,12 +51,20 @@ public interface DriverProvider
 
     public void closeConnection() throws java.sql.SQLException;
 
+    public void setHoldability(int holdability);
+
+    public boolean useBookmarks(boolean use);
+
     public ConnectionLog getLogger();
 
     public PropertyValue[] getInfos();
 
     public String getConnectionUrl(String location,
                                    String level);
+
+    public boolean useBookmark();
+
+    public boolean hasTableTypesSettings();
 
     public boolean hasDocument();
 
@@ -176,9 +184,13 @@ public interface DriverProvider
 
     public java.sql.ResultSet getTypeInfoResultSet(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException;
 
+    public java.sql.ResultSet getTableTypesResultSet(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException;
+
     public String getCreateTableQuery(String table, String columns);
 
     public String getDropTableQuery(String table);
+
+    public String getAlterUserQuery(String user, String password);
 
     public String getAddColumnQuery(String table, String column);
 

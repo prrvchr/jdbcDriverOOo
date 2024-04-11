@@ -87,7 +87,6 @@ public final class Connection
                       PropertyValue[] info)
     {
         super(ctx, m_service, m_services, provider, url, info);
-        System.out.println("sdb.Connection() *************************");
     }
 
     // com.sun.star.lang.XComponent
@@ -260,12 +259,10 @@ public final class Connection
         {
             try (java.sql.ResultSet result = statement.executeQuery(query))
             {
-                System.out.println("sdb.Connection.refreshUsers() 1 Query: " + query);
                 while (result.next()) {
                     String name = result.getString(1);
-                    if (!result.wasNull()) {
-                        System.out.println("sdb.Connection.refreshUsers() 2 User Name: " + name);
-                        names.add(name.strip());
+                    if (!result.wasNull() && !name.isBlank()) {
+                        names.add(name);
                     }
                 }
             }
@@ -294,12 +291,10 @@ public final class Connection
         {
             try (java.sql.ResultSet result = statement.executeQuery(query))
             {
-                System.out.println("sdb.Connection.refreshGroups() 1 Query: " + query);
                 while (result.next()) {
                     String name = result.getString(1);
-                    if (!result.wasNull()) {
-                        System.out.println("sdb.Connection.refreshGroups() 2 Group Name: " + name);
-                        names.add(name.strip());
+                    if (!result.wasNull() && !name.isBlank()) {
+                        names.add(name);
                     }
                 }
             }

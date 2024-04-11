@@ -324,6 +324,11 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     public boolean absolute(int row) throws SQLException
     {
         try {
+            // XXX: absolute() can bee called from moveToBookmark() just after a moveToInsertRow()
+            // XXX: We must be on the current row if we want to be able to call absolute()
+            if (m_insert) {
+                moveToCurrentRow();
+            }
             boolean moved = m_ResultSet.absolute(row);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row), Boolean.toString(moved));
             return moved;
@@ -331,10 +336,6 @@ public abstract class ResultSetBase<C extends ConnectionBase>
         catch (java.sql.SQLException e) {
             System.out.println("ResultSetBase.absolute() ERROR:\n" + UnoHelper.getStackTrace(e));
             throw UnoHelper.getSQLException(e, this);
-        }
-        catch (java.lang.Exception e) {
-            System.out.println("ResultSetBase.absolute() ERROR:\n" + UnoHelper.getStackTrace(e));
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
         }
     }
 
@@ -376,6 +377,11 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     public int getRow() throws SQLException
     {
         try {
+            // XXX: getRow() can bee called from getBookmark() just after a moveToInsertRow()
+            // XXX: We must be on the current row if we want to be able to call getRow()
+            //if (m_insert) {
+            //    moveToCurrentRow();
+            //}
             return m_ResultSet.getRow();
         }
         catch (java.sql.SQLException e) {
@@ -484,6 +490,11 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     public boolean relative(int row) throws SQLException
     {
         try {
+            // XXX: relative() can bee called from moveRelativeToBookmark() just after a moveToInsertRow()
+            // XXX: We must be on the current row if we want to be able to call relative()
+            if (m_insert) {
+                moveToCurrentRow();
+            }
             boolean moved = m_ResultSet.relative(row);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row), Boolean.toString(moved));
             return moved;
@@ -510,6 +521,9 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     public boolean rowInserted() throws SQLException
     {
         try {
+            if (m_insert) {
+                moveToCurrentRow();
+            }
             boolean inserted = m_ResultSet.rowInserted();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
             return inserted;
@@ -567,7 +581,7 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     {
         if (m_Connection.getProvider().supportWarningsSupplier())
             return WarningsSupplier.getWarnings(m_ResultSet, this);
-         return Any.VOID;
+        return Any.VOID;
     }
 
 
@@ -577,7 +591,7 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     {
         try {
             m_ResultSet.insertRow();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW, Boolean.toString(m_ResultSet.rowInserted()));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -612,6 +626,7 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     public void cancelRowUpdates() throws SQLException
     {
         try {
+            System.out.println("ResultSetBase.cancelRowUpdates() 1 Insert: " + m_insert);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
             // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
             // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
@@ -619,14 +634,12 @@ public abstract class ResultSetBase<C extends ConnectionBase>
             // FIXME: or if this method is called when the cursor is on the insert row
             // FIXME: see: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
             if (m_insert) {
-                m_ResultSet.moveToCurrentRow();
-                m_insert = false;
+                moveToCurrentRow();
             }
             m_ResultSet.cancelRowUpdates();
         }
         catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.cancelRowUpdates() ERROR\n" + UnoHelper.getStackTrace(e));
-            throw UnoHelper.getSQLException(e, this);
+            throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_INVALID_CURSOR_STATE.text(), 0, e);
         }
     }
 
@@ -634,6 +647,7 @@ public abstract class ResultSetBase<C extends ConnectionBase>
     public void moveToInsertRow() throws SQLException
     {
         try {
+            System.out.println("ResultSetBase.moveToInsertRow() 1 Insert: " + m_insert);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
             m_ResultSet.moveToInsertRow();
             m_insert = true;

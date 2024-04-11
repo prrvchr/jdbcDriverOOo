@@ -50,7 +50,6 @@ public class Resources {
     // = resource ids for log messages
     public static final int STR_LOG_MESSAGE_BASE                          = 10000;
     public static final int STR_JDBC_LOG_MESSAGE_BASE                     = STR_LOG_MESSAGE_BASE + 1000;
-    public static final int STR_JDBC_LOG_MESSAGE_TABLE_VIEW_OFFSET        = 200;
 
     public static final int STR_STRING_LENGTH_EXCEEDED                         = (STR_COMMON_BASE +  1);
     public static final int STR_CANNOT_CONVERT_STRING                          = (STR_COMMON_BASE +  2);

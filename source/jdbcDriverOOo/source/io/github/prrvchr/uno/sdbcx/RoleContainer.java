@@ -82,16 +82,23 @@ public abstract class RoleContainer<T extends Role>
 
     private final String m_service;
     private final String[] m_services;
+    // Name of The Role holding this role container
     protected String m_name;
+    // A literal (USER, ROLE, null or an empty string) necessary for Firebird SQL queries
     protected String m_role;
+    // A pointer to all roles (User xor Group) in the underlying database
     private Container<T> m_roles;
+    // The list of roles held by The Role
     private List<String> m_Names;
     private boolean m_sensitive;
+    // XXX: Is the XRefreshable interface really necessary, are there listener? I doubt it. The future will tell
+    // XXX: In fact here we only manage a list of names
     protected InterfaceContainer m_container = new InterfaceContainer();
     protected InterfaceContainer m_refresh = new InterfaceContainer();
     protected Object m_lock;
     protected final ConnectionLog m_logger; 
     protected final DriverProvider m_provider;
+    // The type of The Role (Group or User)
     protected final boolean m_isrole;
 
     // The constructor method:

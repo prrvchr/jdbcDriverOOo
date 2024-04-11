@@ -54,7 +54,7 @@ public abstract class ResultSetSuper<C extends ConnectionSuper>
                XDeleteRows,
                XCancellable
 {
-    private boolean m_IsBookmarkable;
+    private boolean m_IsBookmarkable = false;
     private final boolean m_CanUpdateInsertedRows = false;
     
     // The constructor method:
@@ -67,8 +67,14 @@ public abstract class ResultSetSuper<C extends ConnectionSuper>
     throws SQLException
     {
         super(service, services, connection, resultset, statement);
-        //m_IsBookmarkable = bookmark && connection.getProvider().m_usebookmark;
+        m_IsBookmarkable = bookmark;
         registerProperties();
+        try {
+            System.out.println("sdbcx.ResultSetSuper() 1 Holdability: " + connection.getProvider().getConnection().getHoldability() + " - Bookmark: " + m_IsBookmarkable);
+        } catch (java.sql.SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private void registerProperties() {
@@ -77,6 +83,7 @@ public abstract class ResultSetSuper<C extends ConnectionSuper>
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
+                    System.out.println("sdbcx.ResultSetSuper.getIsBookmarkable() 1 IsBookmarkable: " + m_IsBookmarkable);
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
                     return m_IsBookmarkable;
                 }
@@ -171,10 +178,6 @@ public abstract class ResultSetSuper<C extends ConnectionSuper>
         boolean moved = false;
         try {
             int bookmark = AnyConverter.toInt(object);
-            if (m_insert) {
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT, Integer.toString(bookmark));
-                moveToCurrentRow();
-            }
             moved = absolute(bookmark);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
         }

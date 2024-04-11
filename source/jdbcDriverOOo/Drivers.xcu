@@ -303,6 +303,7 @@
             </node>
         </node>
 
+<!-- HsqlDB Driver ********************************************************************************* -->
 
         <node oor:name="xdbc:hsqldb:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -460,6 +461,7 @@
             </node>
         </node>
 
+<!-- H2 Driver ************************************************************************************* -->
 
         <node oor:name="xdbc:h2:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -471,6 +473,11 @@
             </prop>
 
             <node oor:name="Properties">
+                <node oor:name="TableTypesSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">BASE TABLE|TABLE</value>
+                    </prop>
+                </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -571,8 +578,6 @@
                 </node>
                 <node oor:name="GetUserGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                    <!-- XXX: We use recursion to find privileges inherited from roles.
-                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
                         <value>SELECT GRANTEDROLE FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEETYPE = 'USER' AND RIGHTS IS NULL AND TABLE_SCHEMA IS NULL AND TABLE_NAME IS NULL AND GRANTEE = ?</value>
                     </prop>
                 </node>
@@ -581,14 +586,20 @@
                         <value>SELECT GRANTEE FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEETYPE = 'USER' AND RIGHTS IS NULL AND TABLE_SCHEMA IS NULL AND TABLE_NAME IS NULL AND GRANTEDROLE = ?</value>
                     </prop>
                 </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT GRANTEE FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEETYPE = 'ROLE' AND RIGHTS IS NULL AND TABLE_SCHEMA IS NULL AND TABLE_NAME IS NULL AND GRANTEDROLE = ?</value>
+                    </prop>
+                </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT CASE WHEN LOCATE('SELECT', RIGHTS) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('INSERT', RIGHTS) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('UPDATE', RIGHTS) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('DELETE', RIGHTS) = 0 THEN 0 ELSE 8 END FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEE = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|023</value>
+                        <value oor:separator="|">SELECT CASE WHEN LOCATE('SELECT', RIGHTS) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('INSERT', RIGHTS) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('UPDATE', RIGHTS) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('DELETE', RIGHTS) = 0 THEN 0 ELSE 8 END, CASE WHEN LOCATE('ALL', RIGHTS) = 0 THEN 0 ELSE 15 END FROM INFORMATION_SCHEMA.RIGHTS WHERE GRANTEE = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|023</value>
                     </prop>
                 </node>
             </node>
         </node>
 
+<!-- MariaDB Driver ******************************************************************************** -->
 
         <node oor:name="xdbc:mariadb:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -642,7 +653,7 @@
                 </node>
                 <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|CREATE|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|DELETE HISTORY|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
                     </prop>
                 </node>
             </node>
@@ -656,6 +667,11 @@
                 <node oor:name="AlterViewCommands" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreCurrency" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
                     </prop>
                 </node>
                 <node oor:name="ViewDefinitionCommands" oor:op="replace">
@@ -673,6 +689,11 @@
                         <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
                     </prop>
                 </node>
+                <node oor:name="AlterUserCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SET PASSWORD FOR {0} = PASSWORD({1})</value>
+                    </prop>
+                </node>
                 <node oor:name="CreateUserCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>CREATE USER {0} IDENTIFIED BY {1}</value>
@@ -680,34 +701,40 @@
                 </node>
                 <node oor:name="GetUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT user FROM mysql.user WHERE is_role='N'</value>
+                        <value>SELECT user FROM mysql.user WHERE is_role = 'N'</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT user FROM mysql.user WHERE is_role='Y'</value>
+                        <value>SELECT user FROM mysql.user WHERE is_role = 'Y'</value>
                     </prop>
                 </node>
                 <node oor:name="GetUserGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                     <!-- XXX: We use recursion to find privileges inherited from roles.
                          XXX: We need to filter recursive entries (even role and user) -->
-                        <value>SELECT role FROM mysql.roles_mapping WHERE user=? AND user!=role</value>
+                        <value>SELECT r.role FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.role = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.user = ?</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT user FROM mysql.roles_mapping WHERE role=?</value>
+                        <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'N' WHERE r.user != r.role AND r.role = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.role = ?</value>
                     </prop>
                 </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT CASE WHEN LOCATE('Select', Table_priv) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('Insert', Table_priv) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('Update', Table_priv) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('Delete', Table_priv) = 0 THEN 0 ELSE 8 END FROM mysql.tables_priv WHERE User = ? AND Db = ? AND Table_name = ?|013</value>
+                        <value oor:separator="|">SELECT CASE WHEN LOCATE('Select', Table_priv) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('Insert', Table_priv) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('Update', Table_priv) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('Delete', Table_priv) != 0 AND (LOCATE('Delete', Table_priv) != LOCATE('Delete versioning rows', Table_priv) OR LOCATE('Delete versioning rows', Table_priv) = 0) THEN 8 ELSE 0 END, CASE WHEN LOCATE('Delete versioning rows', Table_priv) = 0 THEN 0 ELSE 32 END, CASE WHEN LOCATE('Alter', Table_priv) = 0 THEN 0 ELSE 64 END, CASE WHEN LOCATE('Index', Table_priv) = 0 THEN 0 ELSE 128 END, CASE WHEN LOCATE('Drop', Table_priv) = 0 THEN 0 ELSE 256 END, CASE WHEN LOCATE('Trigger', Table_priv) = 0 THEN 0 ELSE 512 END FROM mysql.tables_priv WHERE User = ? AND Db = ? AND Table_name = ?|013</value>
                     </prop>
                 </node>
             </node>
         </node>
 
+<!-- PostgreSQL Driver ***************************************************************************** -->
 
         <node oor:name="xdbc:postgresql:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -761,7 +788,7 @@
                 </node>
                 <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|CREATE|32|TRUNCATE|64|REFERENCES|128|TRIGGER|512</value>
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|TRUNCATE|64|REFERENCES|128|TRIGGER|512</value>
                     </prop>
                 </node>
             </node>
@@ -780,6 +807,11 @@
                 <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterUserCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER USER {0} WITH PASSWORD {1}</value>
                     </prop>
                 </node>
                 <node oor:name="AlterViewCommands" oor:op="replace">
@@ -819,24 +851,27 @@
                 </node>
                 <node oor:name="GetUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT usename FROM pg_user</value>
+                        <value>SELECT usename FROM pg_catalog.pg_user</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT groname FROM pg_group</value>
+                        <value>SELECT groname FROM pg_catalog.pg_group</value>
                     </prop>
                 </node>
                 <node oor:name="GetUserGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                    <!-- XXX: We use recursion to find privileges inherited from roles.
-                         XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
-                        <value>SELECT c.rolname FROM pg_roles a INNER JOIN pg_auth_members b ON a.oid = b.member INNER JOIN pg_roles c ON b.roleid = c.oid WHERE a.rolname = ?</value>
+                        <value>SELECT r1.rolname FROM pg_catalog.pg_roles r INNER JOIN pg_catalog.pg_auth_members m ON r.oid = m.member INNER JOIN pg_catalog.pg_roles r1 ON m.roleid = r1.oid and not r1.rolcanlogin WHERE r.rolname = ?</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT c.rolname FROM pg_roles a INNER JOIN pg_auth_members b ON a.oid = b.roleid INNER JOIN pg_roles c ON b.member = c.oid WHERE a.rolname = ?</value>
+                        <value>SELECT r1.rolname FROM pg_catalog.pg_roles r INNER JOIN pg_catalog.pg_auth_members m ON r.oid = m.roleid INNER JOIN pg_catalog.pg_roles r1 ON m.member = r1.oid and r1.rolcanlogin WHERE r.rolname = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT r1.rolname FROM pg_catalog.pg_roles r INNER JOIN pg_catalog.pg_auth_members m ON r.oid = m.roleid INNER JOIN pg_catalog.pg_roles r1 ON m.member = r1.oid and not r1.rolcanlogin WHERE r.rolname = ?</value>
                     </prop>
                 </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">
@@ -847,6 +882,7 @@
             </node>
         </node>
 
+<!-- SQLite Driver ********************************************************************************* -->
 
         <node oor:name="xdbc:sqlite:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -941,14 +977,15 @@
                         <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
                     </prop>
                 </node>
-                <node oor:name="SupportedConnectionServices" oor:op="replace">
+<!--            <node oor:name="SupportedConnectionServices" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">com.sun.star.sdbc.Connection|com.sun.star.sdbcx.Connection</value>
                     </prop>
-                </node>
+                </node> -->
             </node>
         </node>
 
+<!-- Derby Driver ********************************************************************************** -->
 
         <node oor:name="xdbc:derby:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -1007,7 +1044,7 @@
                 </node>
                 <node oor:name="TablePrivilegesSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128|TRIGGER|256</value>
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128|TRIGGER|512</value>
                     </prop>
                 </node>
             </node>
@@ -1070,12 +1107,13 @@
                 </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT CASE WHEN P1.SELECTPRIV = 'y' THEN 1 ELSE 0 END, CASE WHEN P1.INSERTPRIV = 'y' THEN 2 ELSE 0 END, CASE WHEN P1.UPDATEPRIV = 'y' THEN 4 ELSE 0 END, CASE WHEN P1.DELETEPRIV = 'y' THEN 8 ELSE 0 END, CASE WHEN P1.REFERENCESPRIV = 'y' THEN 128 ELSE 0 END, CASE WHEN P1.TRIGGERPRIV = 'y' THEN 256 ELSE 0 END FROM SYS.SYSTABLEPERMS AS P1 INNER JOIN SYS.SYSTABLES AS T1 ON P1.TABLEID = T1.TABLEID INNER JOIN SYS.SYSSCHEMAS AS S1 ON T1.SCHEMAID = S1.SCHEMAID WHERE P1.GRANTEE = ? AND S1.SCHEMANAME = ? AND T1.TABLENAME = ?|023</value>
+                        <value oor:separator="|">SELECT CASE WHEN P.SELECTPRIV = 'y' THEN 1 ELSE 0 END, CASE WHEN P.INSERTPRIV = 'y' THEN 2 ELSE 0 END, CASE WHEN P.UPDATEPRIV = 'y' THEN 4 ELSE 0 END, CASE WHEN P.DELETEPRIV = 'y' THEN 8 ELSE 0 END, CASE WHEN P.REFERENCESPRIV = 'y' THEN 128 ELSE 0 END, CASE WHEN P.TRIGGERPRIV = 'y' THEN 512 ELSE 0 END FROM SYS.SYSTABLEPERMS AS P INNER JOIN SYS.SYSTABLES AS T ON P.TABLEID = T.TABLEID INNER JOIN SYS.SYSSCHEMAS AS S ON T.SCHEMAID = S.SCHEMAID WHERE P.GRANTEE = ? AND S.SCHEMANAME = ? AND T.TABLENAME = ?|023</value>
                     </prop>
                 </node>
             </node>
         </node>
 
+<!-- Firebird Driver ******************************************************************************* -->
 
         <node oor:name="xdbc:firebird:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
@@ -1099,7 +1137,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/jaybird-5.0.5.java11-20240401.111429-2.jar</value>
+                        <value>%origin%/driver/jaybird-5.0.5.java11.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1222,32 +1260,32 @@
                 </node>
                 <node oor:name="GetUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT SEC$USER_NAME FROM SEC$USERS</value>
+                        <value>SELECT TRIM(SEC$USER_NAME) FROM SEC$USERS</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT RDB$ROLE_NAME FROM RDB$ROLES</value>
+                        <value>SELECT TRIM(RDB$ROLE_NAME) FROM RDB$ROLES</value>
                     </prop>
                 </node>
                 <node oor:name="GetUserGroupsCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT P.RDB$RELATION_NAME FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON P.RDB$USER = U.SEC$USER_NAME WHERE P.RDB$PRIVILEGE = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND P.RDB$RELATION_NAME != P.RDB$USER AND P.RDB$USER = ?</value>
+                        <value>SELECT TRIM(P.RDB$RELATION_NAME) FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON TRIM(P.RDB$USER) = TRIM(U.SEC$USER_NAME) WHERE TRIM(P.RDB$PRIVILEGE) = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND TRIM(P.RDB$USER) = ?</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupUsersCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON TRIM(P.RDB$USER) = U.SEC$USER_NAME WHERE P.RDB$PRIVILEGE = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND P.RDB$USER != P.RDB$RELATION_NAME AND P.RDB$RELATION_NAME = ?</value>
+                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON TRIM(P.RDB$USER) = TRIM(U.SEC$USER_NAME) WHERE TRIM(P.RDB$PRIVILEGE) = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND TRIM(P.RDB$RELATION_NAME) = ?</value>
                     </prop>
                 </node>
                 <node oor:name="GetGroupRolesCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN RDB$ROLES AS R ON TRIM(P.RDB$USER) = R.RDB$ROLE_NAME WHERE P.RDB$PRIVILEGE = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND P.RDB$USER != P.RDB$RELATION_NAME AND P.RDB$RELATION_NAME = ?</value>
+                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN RDB$ROLES AS R ON TRIM(P.RDB$USER) = TRIM(R.RDB$ROLE_NAME) WHERE TRIM(P.RDB$PRIVILEGE) = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND TRIM(P.RDB$RELATION_NAME) = ?</value>
                     </prop>
                 </node>
                 <node oor:name="TablePrivilegesCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">SELECT CASE RDB$PRIVILEGE WHEN 'S' THEN 1 WHEN 'I' THEN 2 WHEN 'U' THEN 4 WHEN 'D' THEN 8 WHEN 'R' THEN 128 END FROM RDB$USER_PRIVILEGES WHERE RDB$USER_TYPE = 8 AND RDB$OBJECT_TYPE = 0 AND RDB$USER = ? AND RDB$RELATION_NAME = ?|03</value>
+                        <value oor:separator="|">SELECT CASE TRIM(RDB$PRIVILEGE) WHEN 'S' THEN 1 WHEN 'I' THEN 2 WHEN 'U' THEN 4 WHEN 'D' THEN 8 WHEN 'R' THEN 128 END FROM RDB$USER_PRIVILEGES WHERE RDB$OBJECT_TYPE = 0 AND TRIM(RDB$USER) = ? AND TRIM(RDB$RELATION_NAME) = ?|03</value>
                     </prop>
                 </node>
             </node>

@@ -52,7 +52,7 @@ public final class Users
                  List<String> names)
         throws ElementExistException
     {
-        // XXX: isrole must be true because the user role can only be held by a Group
+        // XXX: isrole must be true because this Class Users can only be held by a Group
         super(m_service, m_services, connection, connection.getProvider(), role, connection.getUsersInternal(), sensitive, names, true, "USER", LoggerObjectType.USERS);
     }
 

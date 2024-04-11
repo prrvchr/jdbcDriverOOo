@@ -29,7 +29,9 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
@@ -41,6 +43,7 @@ import com.sun.star.sdbcx.Privilege;
 
 import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.resultset.TableTypesResultSet;
 import io.github.prrvchr.jdbcdriver.resultset.TypeInfoResultSet;
 import io.github.prrvchr.jdbcdriver.resultset.TypeInfoRows;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
@@ -113,6 +116,8 @@ public abstract class DriverProviderMain
     private String m_ColumnDescriptionCommand = DBDefaultQuery.STR_QUERY_ADD_COLUMN_COMMENT;
     private Object[] m_AlterViewCommands = {DBDefaultQuery.STR_QUERY_ALTER_VIEW};
     private String m_ColumnResetDefaultCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_DEFAULT;
+    private String m_AlterUserCommand = DBDefaultQuery.STR_QUERY_ALTER_USER;
+    
     private String m_AlterColumnCommand = null;
     private String m_AddIdentityCommand = null;
     private String m_DropIdentityCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
@@ -134,6 +139,7 @@ public abstract class DriverProviderMain
     private List<String> m_PrivilegeNames = null;
     private List<Integer> m_PrivilegeValues = null;
     private TypeInfoRows m_TypeInfoRows = null;
+    private Map<String, String> m_TableTypes = null;
     private List<ConnectionService> m_SupportedServices = null;
 
     @Override
@@ -176,6 +182,12 @@ public abstract class DriverProviderMain
     public boolean isCaseSensitive(String clazz)
     {
         return true;
+    }
+
+    @Override
+    public boolean useBookmark()
+    {
+        return m_usebookmark;
     }
 
     @Override
@@ -247,6 +259,13 @@ public abstract class DriverProviderMain
     {
         return DBTools.formatSQLQuery(m_DropTableCommand, table);
     }
+
+    @Override
+    public String getAlterUserQuery(String user, String password)
+    {
+        return DBTools.formatSQLQuery(m_AlterUserCommand, user, password);
+    }
+
 
     @Override
     public String getAddColumnQuery(String table, String column)
@@ -471,6 +490,9 @@ public abstract class DriverProviderMain
     @Override
     public String getTableType(String type)
     {
+        if (m_TableTypes != null && m_TableTypes.containsKey(type)) {
+            return m_TableTypes.get(type);
+        }
         return type;
     }
 
@@ -596,7 +618,6 @@ public abstract class DriverProviderMain
                               String level)
         throws java.sql.SQLException
     {
-        try {
         m_infos = infos;
         // XXX: SQLCommandSuffix is needed for building query from sql command.
         m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
@@ -635,6 +656,7 @@ public abstract class DriverProviderMain
         m_RevokePrivilegesCommand = getDriverCommandProperty(config1, "RevokePrivilegesCommand", m_RevokePrivilegesCommand);
         m_GrantRoleCommand = getDriverCommandProperty(config1, "GrantRoleCommand", m_GrantRoleCommand);
         m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
+        m_AlterUserCommand = getDriverCommandProperty(config1, "AlterUserCommand", m_AlterUserCommand);
 
         m_AlterViewCommands = getDriverCommandsProperty(config1, "AlterViewCommands", m_AlterViewCommands);
         m_RenameTableCommands = getDriverCommandsProperty(config1, "RenameTableCommands", m_RenameTableCommands);
@@ -668,13 +690,29 @@ public abstract class DriverProviderMain
         m_IsCatalogAtStart = metadata.isCatalogAtStart();
         m_CatalogSeparator = metadata.getCatalogSeparator();
         m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
-        m_IsResultSetUpdatable = metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                                                       java.sql.ResultSet.CONCUR_UPDATABLE);
+        m_IsResultSetUpdatable = isResultSetUpdatable(metadata);
         setPrivileges(setInfoProperties(infos, metadata));
+        System.out.println("DriverProvider.setConnection() 1 Holdability: " + connection.getHoldability() + "Support Update: " + m_IsResultSetUpdatable);
 
+        // XXX: We do not keep the connection but the statement
+        // XXX: which allows us to find the connection if necessary.
         m_statement = connection.createStatement();
+    }
+
+    private boolean isResultSetUpdatable(java.sql.DatabaseMetaData metadata)
+        throws java.sql.SQLException
+    {
+        return metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                                     java.sql.ResultSet.CONCUR_UPDATABLE) &&
+               metadata.supportsResultSetHoldability(java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT);
+    }
+
+    @Override
+    public void setHoldability(int holdability) {
+        try {
+            getConnection().setHoldability(holdability);
         }
-        catch (Exception e) {
+        catch (java.sql.SQLException e) {
             e.printStackTrace();
         }
     }
@@ -697,6 +735,11 @@ public abstract class DriverProviderMain
     @Override
     public boolean isResultSetUpdatable() {
         return m_IsResultSetUpdatable;
+    }
+    @Override
+    public boolean useBookmarks(boolean use) {
+        System.out.println("DriverProvider.useBookmarks() 1 use: " + use + "Support Update: " + m_IsResultSetUpdatable + " - UseBookmark: " + m_usebookmark);
+        return use && m_IsResultSetUpdatable && m_usebookmark;
     }
     @Override
     public String getCatalogSeparator() {
@@ -750,6 +793,22 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public boolean hasTableTypesSettings() {
+        return m_TableTypes != null;
+    }
+
+    @Override
+    public java.sql.ResultSet getTableTypesResultSet(java.sql.DatabaseMetaData metadata)
+        throws java.sql.SQLException
+    {
+        java.sql.ResultSet result = metadata.getTableTypes();
+        if (m_TableTypes != null) {
+            return new TableTypesResultSet(result, m_TableTypes);
+        }
+        return result;
+    }
+
+    @Override
     public java.sql.ResultSet getTypeInfoResultSet()
         throws java.sql.SQLException
     {
@@ -760,13 +819,14 @@ public abstract class DriverProviderMain
     public java.sql.ResultSet getTypeInfoResultSet(java.sql.DatabaseMetaData metadata)
         throws java.sql.SQLException
     {
+        java.sql.ResultSet result = metadata.getTypeInfo();
         if (m_TypeInfoSettings != null) {
             if (m_TypeInfoRows == null) {
                 m_TypeInfoRows = new TypeInfoRows(m_TypeInfoSettings);
             }
-            return new TypeInfoResultSet(metadata, m_TypeInfoRows);
+            return new TypeInfoResultSet(result, m_TypeInfoRows);
         }
-        return metadata.getTypeInfo();
+        return result;
     }
 
     @Override
@@ -939,6 +999,9 @@ public abstract class DriverProviderMain
             case "TypeInfoSettings":
                 m_TypeInfoSettings = (Object[]) info.Value;
                 break;
+            case "TableTypesSettings":
+                parseTableTypes((Object[]) info.Value);
+                break;
             case "TablePrivilegesSettings":
                 privileges = (Object[]) info.Value;
                 break;
@@ -979,6 +1042,22 @@ public abstract class DriverProviderMain
         }
     }
 
+    private void parseTableTypes(Object[] infos)
+    {
+        Map<String, String> types = null;
+        try {
+            types = new TreeMap<>();
+            int count = DBTools.getEvenLength(infos.length);
+            for (int i = 0; i < count; i += 2) {
+                types.put (infos[i].toString(), infos[i + 1].toString());
+            }
+            m_TableTypes = types;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private boolean parsePrivileges(Object[] infos)
     {
         try {
@@ -992,6 +1071,7 @@ public abstract class DriverProviderMain
             return true;
         }
         catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }

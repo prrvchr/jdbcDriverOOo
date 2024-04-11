@@ -55,7 +55,7 @@ public class DBParameterHelper
 
 
     public static Object[] getAlterPrivilegesArguments(DriverProvider provider,
-                                                       NamedComponents component,
+                                                       NamedComponents table,
                                                        String privileges,
                                                        boolean isrole,
                                                        String grantee,
@@ -67,7 +67,7 @@ public class DBParameterHelper
         // XXX: {0} the list of privileges to revoke
         arguments[0] = privileges;
         // XXX: {1} quoted / unquoted full qualified table name
-        arguments[1] = DBTools.buildName(provider, component, rule, sensitive);
+        arguments[1] = DBTools.buildName(provider, table, rule, sensitive);
         // XXX: {2} literal (USER or ROLE)
         arguments[2] = getRole(isrole);
         // XXX: {3} quoted / unquoted grantee name
@@ -132,7 +132,7 @@ public class DBParameterHelper
 
 
     public static Object[] getAlterViewArguments(DriverProvider provider,
-                                                 NamedComponents component,
+                                                 NamedComponents table,
                                                  String fullname,
                                                  String command,
                                                  ComposeRule rule,
@@ -143,11 +143,11 @@ public class DBParameterHelper
         // XXX: {0} quoted / unquoted full view name
         arguments[0] = DBTools.quoteTableName(provider, fullname, rule, sensitive);
         // XXX: {1} quoted / unquoted catalog view name
-        arguments[1] = DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive);
+        arguments[1] = DBTools.enquoteIdentifier(provider, table.getCatalogName(), sensitive);
         // XXX: {2} quoted / unquoted schema view name
-        arguments[2] = DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive);
+        arguments[2] = DBTools.enquoteIdentifier(provider, table.getSchemaName(), sensitive);
         // XXX: {3} quoted / unquoted view name
-        arguments[3] = DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive);
+        arguments[3] = DBTools.enquoteIdentifier(provider, table.getTableName(), sensitive);
         // XXX: {4} raw view command
         arguments[4] = command;
         return arguments;
@@ -155,7 +155,7 @@ public class DBParameterHelper
 
 
     public static Object[] getViewDefinitionArguments(DriverProvider provider,
-                                                      NamedComponents component,
+                                                      NamedComponents table,
                                                       String fullname,
                                                       ComposeRule rule,
                                                       boolean sensitive)
@@ -165,11 +165,11 @@ public class DBParameterHelper
         // XXX: {0} quoted / unquoted  full view name
         arguments[0] = DBTools.quoteTableName(provider, fullname, rule, sensitive);
         // XXX: {1} quoted / unquoted  catalog view name
-        arguments[1] = DBTools.enquoteIdentifier(provider, component.getCatalogName(), sensitive);
+        arguments[1] = DBTools.enquoteIdentifier(provider, table.getCatalogName(), sensitive);
         // XXX: {2} quoted / unquoted  schema view name
-        arguments[2] = DBTools.enquoteIdentifier(provider, component.getSchemaName(), sensitive);
+        arguments[2] = DBTools.enquoteIdentifier(provider, table.getSchemaName(), sensitive);
         // XXX: {3} quoted / unquoted  view name
-        arguments[3] = DBTools.enquoteIdentifier(provider, component.getTableName(), sensitive);
+        arguments[3] = DBTools.enquoteIdentifier(provider, table.getTableName(), sensitive);
         return arguments;
     }
 

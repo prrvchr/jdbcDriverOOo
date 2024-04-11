@@ -55,26 +55,19 @@ public class DBConstraintHelper
         throws java.sql.SQLException, IndexOutOfBoundsException, WrappedTargetException
     {
         try {
-        System.out.println("DBConstraintHelper.getCreateConstraintQuery() 1");
         List<String> args = new ArrayList<>();
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
         String command = provider.getAddConstraintQuery(type);
-        System.out.println("DBConstraintHelper.getCreateConstraintQuery() 2");
         args.add(DBTools.buildName(provider, table, rule, sensitive));
-        String keyname = DBKeyHelper.getKeyName(name, table.getTableName(), getKeyColumns(provider, descriptor, PropertyIds.NAME, false), type);
+        String keyname = DBKeyHelper.getKeyName(name, table.getTableName(), type);
         args.add(DBTools.enquoteIdentifier(provider, keyname, sensitive));
-        System.out.println("DBConstraintHelper.getCreateConstraintQuery() 3");
         args.add(String.join(", ", getKeyColumns(provider, descriptor, PropertyIds.NAME, sensitive)));
         if (type == KeyType.FOREIGN) {
             String reftable = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
-            System.out.println("DBConstraintHelper.getCreateConstraintQuery() 4 RefTable: " + reftable);
             args.add(DBTools.quoteTableName(provider, reftable, rule, sensitive));
-            //String relcolumn = DBTools.getDescriptorStringValue(descriptor, PropertyIds.RELATEDCOLUMN);
-            //System.out.println("DBConstraintHelper.getCreateConstraintQuery() 5 RelColumn: " + relcolumn);
             args.add(String.join(", ", getKeyColumns(provider, descriptor, PropertyIds.RELATEDCOLUMN, sensitive)));
             int update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
             int delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.DELETERULE);
-            System.out.println("DBConstraintHelper.getCreateConstraintQuery() 6");
             args.add(getKeyRuleString(true, update));
             args.add(getKeyRuleString(false, delete));
         }

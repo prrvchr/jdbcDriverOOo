@@ -127,8 +127,7 @@ public class DBRoleHelper
     {
         name = DBTools.enquoteIdentifier(provider, name, sensitive);
         password = provider.enquoteLiteral(password);
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_USER);
-        return DBTools.formatSQLQuery(command, name, password);
+        return provider.getAlterUserQuery(name, password);
     }
 
     /** creates a SQL CREATE ROLE statement
