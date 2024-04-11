@@ -526,7 +526,7 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 [27]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [28]: <img/jdbcDriverOOo.svg#middle>
 [29]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.0#right>
+[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.1#right>
 [31]: <img/jdbcDriverOOo-1.png>
 [32]: <img/jdbcDriverOOo-2.png>
 [33]: <img/jdbcDriverOOo-3.png>
