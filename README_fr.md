@@ -516,7 +516,7 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [17]: <https://www.h2database.com/html/main.html>
 [18]: <https://db.apache.org/derby/>
 [19]: <https://firebirdsql.org/en/jdbc-driver/>
-[20]: <https://prrvchr.github.io/jdbcDriverOOo/#url-de-connexion>
+[20]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#url-de-connexion>
 [21]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [22]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
 [23]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
