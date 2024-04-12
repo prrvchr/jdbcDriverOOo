@@ -501,7 +501,7 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-130>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-131>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>

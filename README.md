@@ -501,7 +501,7 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-130>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-131>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
