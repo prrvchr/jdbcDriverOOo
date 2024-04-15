@@ -68,11 +68,13 @@ class Driver(unohelper.Base,
              XServiceInfo,
              XDriver):
 
-    def __init__(self, ctx, lock, service, name):
+    def __init__(self, ctx, lock, service, name, catalog, user):
         self._ctx = ctx
         self._lock = lock
         self._service = service
         self._name = name
+        self._catalog = catalog
+        self._user = user
         self._logger = getLogger(ctx, g_defaultlog, g_basename)
         # FIXME: Driver is lazy loaded in connect() driver method to be able to throw
         # FIXME: an exception if jdbcDriverOOo extension is not installed.
@@ -153,6 +155,8 @@ class Driver(unohelper.Base,
         document = storage = url = None
         service = getConfiguration(self._ctx, g_identifier).getByName('ConnectionService')
         newinfos = {'Url': g_url, 'ConnectionService': service}
+        if self._user is not None:
+            newinfos['user'] = self._user
         for info in infos:
             if info.Name == 'URL':
                 url = info.Value
@@ -179,7 +183,7 @@ class Driver(unohelper.Base,
         with self._lock:
             handler = self._getHandler(location)
             if handler is None:
-                handler = DocumentHandler(self._ctx, self._lock, self._logger, location)
+                handler = DocumentHandler(self._ctx, self._lock, self._logger, location, self._catalog)
                 self._handlers.append(handler)
             return handler
 
