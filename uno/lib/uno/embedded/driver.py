@@ -68,13 +68,12 @@ class Driver(unohelper.Base,
              XServiceInfo,
              XDriver):
 
-    def __init__(self, ctx, lock, service, name, catalog, user):
+    def __init__(self, ctx, lock, service, name, index):
         self._ctx = ctx
         self._lock = lock
         self._service = service
         self._name = name
-        self._catalog = catalog
-        self._user = user
+        self._index = index
         self._logger = getLogger(ctx, g_defaultlog, g_basename)
         # FIXME: Driver is lazy loaded in connect() driver method to be able to throw
         # FIXME: an exception if jdbcDriverOOo extension is not installed.
@@ -85,23 +84,27 @@ class Driver(unohelper.Base,
 
     # XDriver
     def connect(self, url, infos):
+        # XXX: We need to test first if jdbcDriverOOo is installed...
+        driver = self._getDriver()
+        newinfos, document, storage, location = self._getConnectionInfo(infos)
+        if storage is None or location is None:
+            self._logException(112, url, ' ')
+            raise self._getException(1001, None, 111, url, '\n')
+        # XXX: Calling handler unpacks the database files
+        handler = self._getDocumentHandler(location)
+        path = handler.getConnectionUrl(storage)
+        self._logger.logprb(INFO, 'Driver', 'connect()', 113, location)
         try:
-            newinfos, document, storage, location = self._getConnectionInfo(infos)
-            if storage is None or location is None:
-                self._logException(112, url, ' ')
-                raise self._getException(1001, None, 111, url, '\n')
-            handler = self._getDocumentHandler(location)
-            path = handler.getConnectionUrl(document, storage, location)
-            self._logger.logprb(INFO, 'Driver', 'connect()', 113, location)
-            connection = self._getDriver().connect(path, newinfos)
-            version = connection.getMetaData().getDriverVersion()
-            self._logger.logprb(INFO, 'Driver', 'connect()', 114, g_dbname, version, g_user)
-            return connection
-        except SQLException as e:
-            raise e
+            connection = driver.connect(path, newinfos)
         except Exception as e:
             self._logger.logprb(SEVERE, 'Driver', 'connect()', 115, str(e), traceback.format_exc())
+            handler.removeFolder()
             raise e
+        # XXX: Connection has been done we can add close and change listener to document
+        handler.setListener(document)
+        version = connection.getMetaData().getDriverVersion()
+        self._logger.logprb(INFO, 'Driver', 'connect()', 114, g_dbname, version, g_user)
+        return connection
 
     def acceptsURL(self, url):
         accept = url.startswith(g_url)
@@ -155,8 +158,8 @@ class Driver(unohelper.Base,
         document = storage = url = None
         service = getConfiguration(self._ctx, g_identifier).getByName('ConnectionService')
         newinfos = {'Url': g_url, 'ConnectionService': service}
-        if self._user is not None:
-            newinfos['user'] = self._user
+        if g_user:
+            newinfos['user'] = g_user
         for info in infos:
             if info.Name == 'URL':
                 url = info.Value
@@ -183,7 +186,7 @@ class Driver(unohelper.Base,
         with self._lock:
             handler = self._getHandler(location)
             if handler is None:
-                handler = DocumentHandler(self._ctx, self._lock, self._logger, location, self._catalog)
+                handler = DocumentHandler(self._ctx, self._lock, self._logger, location, self._index)
                 self._handlers.append(handler)
             return handler
 
