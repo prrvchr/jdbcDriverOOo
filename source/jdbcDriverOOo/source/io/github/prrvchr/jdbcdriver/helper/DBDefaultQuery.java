@@ -54,7 +54,7 @@ public class DBDefaultQuery {
     public static final String STR_QUERY_DROP_VIEW                           = "DROP VIEW {0}";
     public static final String STR_QUERY_ALTER_VIEW                          = "ALTER VIEW {0} AS {4}";
 
-    public static final String STR_QUERY_CREATE_TABLE                        = "CREATE TABLE {0} ({1})";
+    public static final String STR_QUERY_CREATE_TABLE                        = "CREATE TABLE {0} ({1}){2}";
     public static final String STR_QUERY_DROP_TABLE                          = "DROP TABLE {0}";
 
     public static final String STR_QUERY_ALTER_TABLE_ADD_COLUMN              = "ALTER TABLE {0} ADD COLUMN {1}";

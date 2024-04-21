@@ -51,7 +51,6 @@ import java.util.List;
 
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
@@ -74,14 +73,16 @@ public class DBTableHelper
 
     private static class ColumnProperties
     {
-        String newname;
-        String oldidentifier = "";
-        String newidentifier;
-        StringBuilder columntype;
-        String defaultvalue;
-        boolean isautoincrement;
-        String autoincrement;
-        boolean notnull;
+        private String newname;
+        private String oldidentifier = "";
+        private String newidentifier;
+        private StringBuilder columntype;
+        private String defaultvalue;
+        private boolean isautoincrement;
+        private String autoincrement;
+        private boolean notnull;
+        private boolean isrowversion;
+
         ColumnProperties(DriverProvider provider, String name, boolean sensitive)
             throws java.sql.SQLException
         {
@@ -111,8 +112,10 @@ public class DBTableHelper
             isautoincrement = false;
             autoincrement = "";
             notnull = false;
+            isrowversion = false;
         }
         public String toString() {
+            // XXX: We try to construct the Column part needed for Table creation
             StringBuilder buffer = new StringBuilder(newidentifier);
             buffer.append(" ");
             buffer.append(columntype.toString());
@@ -129,9 +132,12 @@ public class DBTableHelper
             }
             return buffer.toString();
         }
-        public Object[] getQueryArguments(String table)
+        public Object[] toArguments(String table)
             throws java.sql.SQLException
         {
+            // XXX: We try to have arguments to be able to fill two query:
+            // XXX: - ALTER TABLE {0} ALTER COLUMN {1} {3} {4} {5} {6}
+            // XXX: - ALTER TABLE {0} ALTER COLUMN {1} RENAME TO {2}
             List<String> buffer = new ArrayList<String>();
             buffer.add(table);
             buffer.add(oldidentifier);
@@ -157,6 +163,16 @@ public class DBTableHelper
             }
             return buffer.toArray(new String[0]);
         }
+        public boolean isRowVersion() {
+            return isrowversion;
+        }
+        public boolean isAutoIncrement() {
+            return isautoincrement;
+        }
+        public String getName() {
+            return newidentifier;
+        }
+
     }
 
 
@@ -201,6 +217,7 @@ public class DBTableHelper
         // XXX: The first thing to do is to retrieve the columns
         // XXX: to find out if there are any auto-increment columns.
         int count = columns.getCount();
+        List<String> columnversion = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
             if (descriptor == null) {
@@ -213,8 +230,15 @@ public class DBTableHelper
                     queries.add(getColumnDescriptionQuery(provider, table, column.newname, comment, sensitive));
                 }
             }
-            hasAutoIncrement |= column.isautoincrement;
+            hasAutoIncrement |= column.isAutoIncrement();
+            if (column.isRowVersion()) {
+                columnversion.add(column.getName());
+            }
             parts.add(column.toString());
+        }
+        boolean versioning = !columnversion.isEmpty();
+        if (versioning) {
+            parts.add(provider.getSystemVersioningColumnQuery(columnversion));
         }
         // XXX: If the underlying driver allows it, we create the primary key in a DDL command
         // XXX: separate from the one that creates the table. But there are specific cases!!!
@@ -229,7 +253,7 @@ public class DBTableHelper
         else if ((!alterpk && !hasAutoIncrement) || (alterpk && autopk && hasAutoIncrement)) {
             parts.addAll(DBConstraintHelper.getCreatePrimaryKeyParts(provider, property, sensitive));
         }
-        queries.add(0, provider.getCreateTableQuery(table, String.join(separator, parts)));
+        queries.add(0, provider.getCreateTableQuery(table, String.join(separator, parts), versioning));
         return queries;
     }
 
@@ -250,7 +274,7 @@ public class DBTableHelper
     /** creates a SQL Column part statement
     *
     * @param queries
-    *      The queries to add to.
+    *      The list of queries to fill.
     * @param provider
     *      The driver provider.
     * @param table
@@ -300,7 +324,7 @@ public class DBTableHelper
         }
         else {
             // XXX: Modify an existing column
-            Object[] arguments = column.getQueryArguments(name);
+            Object[] arguments = column.toArguments(name);
             if (!name1.equals(column.newname)) {
                 // Rename a column
                 query = provider.getRenameColumnQuery();
@@ -458,30 +482,23 @@ public class DBTableHelper
         String autoIncrementValue = "";
         
         // Check if the user enter a specific string to create auto increment values
-        XPropertySetInfo info = descriptor.getPropertySetInfo();
-        if (info != null && DBTools.hasDescriptorProperty(info, PropertyIds.AUTOINCREMENTCREATION)) {
+        if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.AUTOINCREMENTCREATION)) {
             autoIncrementValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.AUTOINCREMENTCREATION);
             column.isautoincrement = !autoIncrementValue.isEmpty();
+        }
+        // Check if the column is a row version (ie: column of system-versioned temporal tables)
+        if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.ISROWVERSION)) {
+            column.isrowversion = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISROWVERSION);
         }
 
         // Look if we have to use precisions (ie: SCALE).
         boolean useliteral = false;
-        String prefix = "";
-        String postfix = "";
         String createparams = "";
         try (java.sql.ResultSet result = provider.getTypeInfoResultSet())
         {
             while (result.next()) {
                 String typename2cmp = result.getString(1);
                 int type2cmp = result.getShort(2);
-                prefix = result.getString(4);
-                if (result.wasNull()) {
-                    prefix = "";
-                }
-                postfix = result.getString(5);
-                if (result.wasNull()) {
-                    postfix = "";
-                }
                 createparams = result.getString(6);
                 if (result.wasNull()) {
                     createparams= "";
@@ -489,9 +506,6 @@ public class DBTableHelper
                 // XXX: First identical type will be used if typename is empty
                 if (typename.isEmpty() && type2cmp == datatype) {
                     typename = typename2cmp;
-                }
-                if (datatype == Types.TIMESTAMP_WITH_TIMEZONE || datatype == Types.TIME_WITH_TIMEZONE || datatype == Types.TIME || datatype == Types.TIMESTAMP) {
-                    System.out.println("DBTableHelper.getStandardColumnProperties() 1 typename: " + typename + " - typename2cmp: " + typename2cmp + " - createParam: " + createparams + " - Type: " + datatype);
                 }
                 if (type2cmp == datatype && typename.equalsIgnoreCase(typename2cmp) && !createparams.isBlank()) {
                     useliteral = true;
@@ -504,8 +518,7 @@ public class DBTableHelper
         if (column.isautoincrement && (index = typename.indexOf(autoIncrementValue)) != -1) {
             typename = typename.substring(0, index);
         }
-        // XXX: For type that use precisions we need to compose the type name...
-        System.out.println("DBTableHelper.getStandardColumnProperties() 2 useliteral: " + useliteral + " - scale: " + scale);
+        // XXX: For type that use precision or scale we need to compose the type name...
         if (useliteral && (precision > 0 || scale > 0)) {
             //XXX: The original code coming from OpenOffice/main/connectivity/java check only for TIMESTAMP...
             //XXX: Now all temporal SQL types with fraction of a second are taken into account.
@@ -550,7 +563,7 @@ public class DBTableHelper
                 column.columntype.append(typename.substring(insert));
             }
         }
-        // XXX: For type that don't use precisions simply add the type name
+        // XXX: For type that don't use precision or scale simply add the type name
         else {
             column.columntype.append(typename);
         }
@@ -566,7 +579,9 @@ public class DBTableHelper
                 column.notnull = true;
             }
             if (!defaultvalue.isEmpty()) {
-                column.defaultvalue = prefix + defaultvalue + postfix;
+                // FIXME: DefaultValue can't be quoted because if so we can't differentiate
+                // FIXME: a not assigned defaultValue from an empty String for VARCHAR
+                column.defaultvalue = defaultvalue;
             }
         }
         return column;

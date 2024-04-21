@@ -55,6 +55,7 @@ public abstract class Role
 {
 
     protected final Connection m_connection;
+    protected final DriverProvider m_provider;
     protected final ConnectionLog m_logger; 
     protected Groups m_groups;
     private final boolean m_isrole;
@@ -70,7 +71,8 @@ public abstract class Role
     {
         super(service, services, sensitive, name);
         m_connection = connection;
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
+        m_provider = connection.getProvider();
+        m_logger = new ConnectionLog(m_provider.getLogger(), type);
         m_isrole = isrole;
     }
 
@@ -84,22 +86,27 @@ public abstract class Role
     public int getGrantablePrivileges(String name, int type)
         throws SQLException
     {
-        DriverProvider provider = m_connection.getProvider();
-        if (provider.ignoreDriverPrivileges()) {
-            return provider.getMockPrivileges();
+        if (m_provider.ignoreDriverPrivileges()) {
+            return m_provider.getMockPrivileges();
         }
 
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                if (!m_isrole && getName().equals(metadata.getUserName())) {
-                    privileges = DBPrivilegesHelper.getTablePrivileges(provider, metadata, table);
+                XNameAccess tables = m_connection.getTables();
+                if (tables.hasByName(name)) {
+                    ComposeRule rule = ComposeRule.InDataManipulation;
+                    NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
+                    java.sql.DatabaseMetaData metadata = m_provider.getConnection().getMetaData();
+                    if (!m_isrole && getName().equals(metadata.getUserName())) {
+                        privileges = DBPrivilegesHelper.getTablePrivileges(m_provider, metadata, table);
+                    }
+                    else {
+                        privileges = DBPrivilegesHelper.getGrantablePrivileges(m_provider, getName(), table, rule);
+                    }
                 }
                 else {
-                    privileges = DBPrivilegesHelper.getGrantablePrivileges(provider, getName(), table, rule);
+                    privileges = m_provider.getMockPrivileges();
                 }
             }
             catch (java.sql.SQLException e) {
@@ -113,14 +120,18 @@ public abstract class Role
     public int getPrivileges(String name, int type)
         throws SQLException
     {
-        DriverProvider provider = m_connection.getProvider();
-
         int privileges = 0;
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                privileges = DBPrivilegesHelper.getTablePrivileges(provider, getName(), table, rule);
+                XNameAccess tables = m_connection.getTables();
+                if (tables.hasByName(name)) {
+                    ComposeRule rule = ComposeRule.InDataManipulation;
+                    NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
+                    privileges = DBPrivilegesHelper.getTablePrivileges(m_provider, getName(), table, rule);
+                }
+                else {
+                    privileges = m_provider.getMockPrivileges();
+                }
             }
             catch (java.sql.SQLException e) {
                 throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -137,16 +148,16 @@ public abstract class Role
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
-            ComposeRule rule = ComposeRule.InDataManipulation;
-            DriverProvider provider = m_connection.getProvider();
-            String privileges = String.join(", ", provider.getPrivileges(privilege));
+            String privileges = String.join(", ", m_provider.getPrivileges(privilege));
             try {
-                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                query = DBPrivilegesHelper.getGrantPrivilegesQuery(provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
+                ComposeRule rule = ComposeRule.InDataManipulation;
+                NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
+                query = DBPrivilegesHelper.getGrantPrivilegesQuery(m_provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
                 int resource = m_isrole ?
                                Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY :
                                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
                 getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
+                System.out.println("sdb.Role.grantPrivileges() Query: " + query);
                 DBTools.executeDDLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
@@ -168,17 +179,19 @@ public abstract class Role
     {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
-            ComposeRule rule = ComposeRule.InDataManipulation;
-            DriverProvider provider = m_connection.getProvider();
-            String privileges = String.join(", ", provider.getPrivileges(privilege));
+            String privileges = String.join(", ", m_provider.getPrivileges(privilege));
             try {
-                NamedComponents table = m_connection.getTablesInternal().getElement(name).getNamedComponents();
-                query = DBPrivilegesHelper.getRevokePrivilegesQuery(provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
-                int resource = m_isrole ?
-                               Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY :
-                               Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
-                getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
-                DBTools.executeDDLQuery(provider, query);
+                XNameAccess tables = m_connection.getTables();
+                if (tables.hasByName(name)) {
+                    ComposeRule rule = ComposeRule.InDataManipulation;
+                    NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
+                    query = DBPrivilegesHelper.getRevokePrivilegesQuery(m_provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
+                    int resource = m_isrole ?
+                                   Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY :
+                                   Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
+                    getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
+                    DBTools.executeDDLQuery(m_provider, query);
+                }
             }
             catch (java.sql.SQLException e) {
                 int resource = m_isrole ?

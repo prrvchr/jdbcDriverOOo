@@ -139,19 +139,23 @@ public interface DriverProvider
 
     // Does the underlying database driver support altering column type
     // Default value is true.
-    public Boolean supportsAlterColumnType();
+    public boolean supportsAlterColumnType();
 
     // Does the underlying database driver support altering column default value and not null constraint
     // Default value is true.
-    public Boolean supportsAlterColumnProperty();
+    public boolean supportsAlterColumnProperty();
 
     // Does the underlying database driver support adding, removing or altering primary key
     // Default value is true.
-    public Boolean supportsAlterPrimaryKey();
+    public boolean supportsAlterPrimaryKey();
 
     // Does the underlying database driver support adding, removing or altering foreign key
     // Default value is true.
-    public Boolean supportsAlterForeignKey();
+    public boolean supportsAlterForeignKey();
+
+    // Does the underlying database driver support system versioning table
+    // Default value is false.
+    public boolean supportsSystemVersioning();
 
     // Does the underlying database driver support java.sql.Statement.getGeneratedValues()
     // Default value is false.
@@ -180,13 +184,19 @@ public interface DriverProvider
 
     public boolean addIndexAppendix();
 
+    public String enquoteIdentifier(String identifier) throws java.sql.SQLException;
+
+    public String enquoteIdentifier(String identifier, boolean always) throws java.sql.SQLException;
+
+    public String getSystemVersioningColumnQuery(List<String> columns) throws java.sql.SQLException;
+
     public java.sql.ResultSet getTypeInfoResultSet() throws java.sql.SQLException;
 
     public java.sql.ResultSet getTypeInfoResultSet(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException;
 
     public java.sql.ResultSet getTableTypesResultSet(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException;
 
-    public String getCreateTableQuery(String table, String columns);
+    public String getCreateTableQuery(String table, String columns, boolean versioning);
 
     public String getDropTableQuery(String table);
 

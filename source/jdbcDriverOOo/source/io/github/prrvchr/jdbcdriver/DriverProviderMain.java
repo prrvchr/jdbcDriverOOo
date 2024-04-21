@@ -26,9 +26,11 @@
 package io.github.prrvchr.jdbcdriver;
 
 import java.sql.DriverManager;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -68,6 +70,7 @@ public abstract class DriverProviderMain
     protected boolean m_enhanced;
     protected boolean m_showsystem;
     protected boolean m_usebookmark;
+    private String m_separator = ", ";
 
     private boolean m_CatalogsInTableDefinitions;
     private boolean m_SchemasInTableDefinitions;
@@ -117,7 +120,7 @@ public abstract class DriverProviderMain
     private Object[] m_AlterViewCommands = {DBDefaultQuery.STR_QUERY_ALTER_VIEW};
     private String m_ColumnResetDefaultCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_DEFAULT;
     private String m_AlterUserCommand = DBDefaultQuery.STR_QUERY_ALTER_USER;
-    
+
     private String m_AlterColumnCommand = null;
     private String m_AddIdentityCommand = null;
     private String m_DropIdentityCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
@@ -136,6 +139,7 @@ public abstract class DriverProviderMain
     private Object[] m_RenameTableCommands = null;
     private Object[] m_ViewDefinitionCommands = null;
     private Object[] m_TypeInfoSettings = null;
+    private Object[] m_SystemVersioningCommands = null;
     private List<String> m_PrivilegeNames = null;
     private List<Integer> m_PrivilegeValues = null;
     private TypeInfoRows m_TypeInfoRows = null;
@@ -188,6 +192,64 @@ public abstract class DriverProviderMain
     public boolean useBookmark()
     {
         return m_usebookmark;
+    }
+
+    @Override
+    public boolean supportsSystemVersioning()
+    {
+        return m_SystemVersioningCommands != null && m_SystemVersioningCommands.length > 0;
+    }
+
+    @Override
+    public String getSystemVersioningColumnQuery(List<String> columns)
+        throws java.sql.SQLException
+    {
+        String query = "";
+        if (supportsSystemVersioning()) {
+            String command = (String) m_SystemVersioningCommands[0];
+            query = MessageFormat.format(command, getIdentifiersAsString(columns, true));
+        }
+        return query;
+    }
+
+    private String getIdentifiersAsString(final List<String> identifiers,
+                                          boolean quoted)
+        throws java.sql.SQLException
+    {
+        if (quoted) {
+            ListIterator<String> it = identifiers.listIterator();
+            while (it.hasNext()) {
+                it.set(enquoteIdentifier(it.next(), quoted));
+            }
+        }
+        return String.join(m_separator, identifiers);
+    }
+
+    @Override
+    public String enquoteIdentifier(String identifier)
+        throws java.sql.SQLException
+    {
+        return enquoteIdentifier(identifier, true);
+    }
+
+    @Override
+    public String enquoteIdentifier(String identifier, boolean always)
+        throws java.sql.SQLException
+    {
+        // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
+        if (always && !identifier.isBlank()) {
+            identifier = getStatement().enquoteIdentifier(identifier, always);
+        }
+        return identifier;
+    }
+
+    private String getSystemVersioningTableQuery()
+    {
+        String query = "";
+        if (supportsSystemVersioning() && m_SystemVersioningCommands.length > 1) {
+            query = " " + (String) m_SystemVersioningCommands[1];
+        }
+        return query;
     }
 
     @Override
@@ -249,9 +311,10 @@ public abstract class DriverProviderMain
 
     @Override
     public String getCreateTableQuery(String table,
-                                      String columns)
-    {
-        return DBTools.formatSQLQuery(m_CreateTableCommand, table, columns);
+                                      String columns,
+                                      boolean versioning)
+    {   String query = versioning ? getSystemVersioningTableQuery() : "";
+        return DBTools.formatSQLQuery(m_CreateTableCommand, table, columns, query);
     }
 
     @Override
@@ -420,7 +483,7 @@ public abstract class DriverProviderMain
         }
         List<Integer> positions = new ArrayList<Integer>();
         // XXX: For the parameterized PrepareStatement, we need to get the positions of the parameters
-        String sql = command.replaceAll("\\s","");
+        String sql = command.replaceAll("\\s", "");
         if (sql.chars().allMatch(Character::isDigit)) {
             char[] position = sql.toCharArray();
             for (int i = 0; i < position.length; i ++) {
@@ -658,6 +721,7 @@ public abstract class DriverProviderMain
         m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
         m_AlterUserCommand = getDriverCommandProperty(config1, "AlterUserCommand", m_AlterUserCommand);
 
+        m_SystemVersioningCommands = getDriverProperties(config1, "SystemVersioningCommands", m_SystemVersioningCommands);
         m_AlterViewCommands = getDriverCommandsProperty(config1, "AlterViewCommands", m_AlterViewCommands);
         m_RenameTableCommands = getDriverCommandsProperty(config1, "RenameTableCommands", m_RenameTableCommands);
 
@@ -764,19 +828,19 @@ public abstract class DriverProviderMain
         return m_AutoIncrementIsPrimaryKey;
     }
     @Override
-    public Boolean supportsAlterColumnType() {
+    public boolean supportsAlterColumnType() {
         return m_SupportsAlterColumnType;
     }
     @Override
-    public Boolean supportsAlterColumnProperty() {
+    public boolean supportsAlterColumnProperty() {
         return m_SupportsAlterColumnProperty;
     }
     @Override
-    public Boolean supportsAlterPrimaryKey() {
+    public boolean supportsAlterPrimaryKey() {
         return m_SupportsAlterPrimaryKey;
     }
     @Override
-    public Boolean supportsAlterForeignKey() {
+    public boolean supportsAlterForeignKey() {
         return m_SupportsAlterForeignKey;
     }
     @Override

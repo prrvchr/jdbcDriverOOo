@@ -55,7 +55,6 @@ import java.util.List;
 import com.sun.star.beans.Property;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
@@ -417,12 +416,11 @@ public class DBTools
                                                         XPropertySet table)
     {
         NamedComponents component = new NamedComponents();
-        XPropertySetInfo info = table.getPropertySetInfo();
-        if (info != null && hasDescriptorProperty(info, PropertyIds.NAME)) {
-            if (hasDescriptorProperty(info, PropertyIds.CATALOGNAME)) {
+        if (hasDescriptorProperty(table, PropertyIds.NAME)) {
+            if (hasDescriptorProperty(table, PropertyIds.CATALOGNAME)) {
                 component.setCatalog(getDescriptorStringValue(table, PropertyIds.CATALOGNAME));
             }
-            if (hasDescriptorProperty(info, PropertyIds.SCHEMANAME)) {
+            if (hasDescriptorProperty(table, PropertyIds.SCHEMANAME)) {
                 component.setSchema(getDescriptorStringValue(table, PropertyIds.SCHEMANAME));
             }
             component.setTable(getDescriptorStringValue(table, PropertyIds.NAME));
@@ -953,78 +951,78 @@ public class DBTools
         return info.supportsService(service);
     }
 
-    public static boolean hasDescriptorProperty(XPropertySetInfo properties,
+    public static boolean hasDescriptorProperty(XPropertySet descriptor,
                                                 PropertyIds pid)
     {
-        return properties.hasPropertyByName(pid.name);
+        return descriptor.getPropertySetInfo().hasPropertyByName(pid.name);
     }
 
-    public static String getDescriptorStringValue(XPropertySet properties,
+    public static String getDescriptorStringValue(XPropertySet descriptor,
                                                   PropertyIds pid)
     {
         try {
-            return getDescriptorStringValue(properties, pid, null);
+            return getDescriptorStringValue(descriptor, pid, null);
         }
         catch (java.sql.SQLException e) {
             return "";
         }
     }
 
-    public static String getDescriptorStringValue(XPropertySet properties,
+    public static String getDescriptorStringValue(XPropertySet descriptor,
                                                   PropertyIds pid,
                                                   XInterface source)
         throws java.sql.SQLException
     {
         try {
-            return AnyConverter.toString(properties.getPropertyValue(pid.name));
+            return AnyConverter.toString(descriptor.getPropertyValue(pid.name));
         }
         catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new java.sql.SQLException(e.getMessage(), e);
         }
     }
 
-    public static boolean getDescriptorBooleanValue(XPropertySet properties,
+    public static boolean getDescriptorBooleanValue(XPropertySet descriptor,
                                                     PropertyIds pid)
     {
         try {
-            return getDescriptorBooleanValue(properties, pid, null);
+            return getDescriptorBooleanValue(descriptor, pid, null);
         }
         catch (java.sql.SQLException e) {
             return false;
         }
     }
 
-    public static boolean getDescriptorBooleanValue(XPropertySet properties,
+    public static boolean getDescriptorBooleanValue(XPropertySet descriptor,
                                                     PropertyIds pid,
                                                     XInterface source)
         throws java.sql.SQLException
     {
         try {
-            return AnyConverter.toBoolean(properties.getPropertyValue(pid.name));
+            return AnyConverter.toBoolean(descriptor.getPropertyValue(pid.name));
         }
         catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new java.sql.SQLException(e.getMessage(), e);
         }
     }
 
-    public static int getDescriptorIntegerValue(XPropertySet properties,
-                                                    PropertyIds pid)
+    public static int getDescriptorIntegerValue(XPropertySet descriptor,
+                                                PropertyIds pid)
     {
         try {
-            return getDescriptorIntegerValue(properties, pid, null);
+            return getDescriptorIntegerValue(descriptor, pid, null);
         }
         catch (java.sql.SQLException e) {
             return 0;
         }
     }
 
-    public static int getDescriptorIntegerValue(XPropertySet properties,
-                                                    PropertyIds pid,
-                                                    XInterface source)
+    public static int getDescriptorIntegerValue(XPropertySet descriptor,
+                                                PropertyIds pid,
+                                                XInterface source)
         throws java.sql.SQLException
     {
         try {
-            return AnyConverter.toInt(properties.getPropertyValue(pid.name));
+            return AnyConverter.toInt(descriptor.getPropertyValue(pid.name));
         }
         catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new java.sql.SQLException(e.getMessage(), e);
