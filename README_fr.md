@@ -501,7 +501,7 @@ Désormais l'API UNO SDBCX peut être utilisée pour la création de bases de do
 
 L'utilisation de l'API UNO pour créer des bases de données vous permettra d'utiliser du code indépendant de la base de données sous-jacente.
 
-Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][100] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données avant la première connexion.
+Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][100] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données lors de la première connexion.
 
 ### Que reste-t-il à faire pour la version 1.3.2:
 
