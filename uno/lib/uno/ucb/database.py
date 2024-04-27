@@ -28,7 +28,6 @@
 """
 
 import uno
-import unohelper
 
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
@@ -46,26 +45,17 @@ from .unotool import getSimpleFile
 
 from .dbqueries import getSqlQuery
 
-from .dbtool import createStaticTable
+from .dbtool import createUser
 from .dbtool import currentDateTimeInTZ
 from .dbtool import currentUnoDateTime
-from .dbtool import executeSqlQueries
 from .dbtool import getDataSourceCall
-from .dbtool import getDataSourceConnection
 from .dbtool import getDataFromResult
-from .dbtool import executeQueries
 
-from .dbinit import getStaticTables
-from .dbinit import getQueries
-from .dbinit import getTablesAndStatements
+from .dbinit import createDataBase
+from .dbinit import getDataBaseConnection
 
 from .dbconfig import g_role
-from .dbconfig import g_dba
-from .dbconfig import g_csv
 from .dbconfig import g_version
-
-from .configuration import g_admin
-from .configuration import g_separator
 
 import os
 import traceback
@@ -78,11 +68,12 @@ class DataBase():
         self._url = url
         odb = url + '.odb'
         new = not getSimpleFile(ctx).exists(odb)
-        connection = getDataSourceConnection(ctx, url, user, pwd, new)
-        self._version = connection.getMetaData().getDriverVersion()
-        if new and self.isUptoDate():
-            self._createDataBase(connection, odb)
+        connection = getDataBaseConnection(ctx, url, user, pwd, new)
+        version = connection.getMetaData().getDriverVersion()
+        if new and checkVersion(version, g_version):
+            createDataBase(ctx, logger, connection, odb, version)
         self._statement = connection.createStatement()
+        self._version = version
         self._logger.logprb(INFO, 'DataBase', '__init__()', 401)
 
     @property
@@ -100,17 +91,6 @@ class DataBase():
         return checkVersion(self._version, g_version)
 
 # Procedures called by the DataSource
-    def _createDataBase(self, connection, odb):
-        self._logger.logprb(INFO, 'DataBase', '_createDataBase()', 411, self._version)
-        statement = connection.createStatement()
-        createStaticTable(self._ctx, statement, getStaticTables(), g_csv, True)
-        tables, statements = getTablesAndStatements(self._ctx, statement, self._version)
-        executeSqlQueries(statement, tables)
-        executeQueries(self._ctx, statement, getQueries())
-        statement.close()
-        connection.getParent().DatabaseDocument.storeAsURL(odb, ())
-        self._logger.logprb(INFO, 'DataBase', '_createDataBase()', 412)
-
     def getDataSource(self):
         return self.Connection.getParent().DatabaseDocument.DataSource
 
@@ -128,14 +108,9 @@ class DataBase():
         self._statement.execute(query)
 
     def createUser(self, name, password):
-        format = {'User': name, 'Password': password, 'Role': g_role, 'Admin': g_admin}
-        sql = getSqlQuery(self._ctx, 'createUser', format)
-        status = self._statement.executeUpdate(sql)
-        sql = getSqlQuery(self._ctx, 'grantRole', format)
-        status += self._statement.executeUpdate(sql)
-        return status == 0
+        return createUser(self.Connection, name, password, g_role)
 
-    def createSharedFolder(self, user, itemid, folder, mediatype, datetime, timestamp):
+    def createSharedFolder(self, user, itemid, folder, media, datetime, timestamp):
         call = self._getCall('insertSharedFolder')
         call.setString(1, user.Id)
         call.setString(2, user.RootId)
@@ -145,7 +120,7 @@ class DataBase():
         call.setString(6, folder)
         call.setTimestamp(7, timestamp)
         call.setTimestamp(8, timestamp)
-        call.setString(9, mediatype)
+        call.setString(9, media)
         call.setLong(10, 0)
         call.setNull(11, VARCHAR)
         call.setBoolean(12, False)
@@ -182,16 +157,9 @@ class DataBase():
         call.setString(2, user[1])
         call.setString(3, user[2])
         call.setString(4, root[0])
-        call.setString(5, root[1])
+        call.setTimestamp(5, root[1])
         call.setTimestamp(6, root[2])
-        call.setTimestamp(7, root[3])
-        call.setString(8, root[4])
-        call.setBoolean(9, root[5])
-        call.setBoolean(10, root[6])
-        call.setBoolean(11, root[7])
-        call.setBoolean(12, root[8])
-        call.setBoolean(13, root[9])
-        call.setObject(14, timestamp)
+        call.setObject(7, timestamp)
         result = call.executeQuery() 
         if result.next():
             data = getDataFromResult(result)
@@ -199,23 +167,17 @@ class DataBase():
         call.close()
         return data
 
-    def getContentType(self):
-        call = self._getCall('getContentType')
-        result = call.executeQuery()
-        if result.next():
-            folder = result.getString(1)
-            link = result.getString(2)
-        result.close()
-        call.close()
-        return folder, link
-
 # Procedures called by the Replicator
+    # XXX: Replicator uses its own database connection
     def getMetaData(self, user, item):
+        rootid = user.RootId
         itemid = item.get('Id')
-        metadata = self.getItem(user.Id, user.RootId, itemid, False)
-        atroot = metadata.get('ParentId') == user.RootId
-        metadata['AtRoot'] = atroot
-        return metadata
+        if item == rootid:
+            data = user.getRootMetaData()
+        else:
+            data = self.getItem(user.Id, itemid, False)
+        data['AtRoot'] = data.get('ParentId') == rootid
+        return data
 
     def updateNewItemId(self, oldid, newid, created, modified):
         print("DataBase.mergeNewFolder() 1 Item Id: %s - New Item Id: %s" % (oldid, newid))
@@ -228,14 +190,12 @@ class DataBase():
         return newid
 
 # Procedures called by the Content
-    def getItem(self, userid, rootid, itemid, rewrite=True):
+    def getItem(self, userid, identifier, ispath=True):
         item = None
-        isroot = itemid == rootid
-        query = 'getRoot' if isroot else 'getItem'
-        call = self._getCall(query)
-        call.setString(1, userid if isroot else itemid)
-        if not isroot:
-             call.setBoolean(2, rewrite)
+        call = self._getCall('getItem')
+        call.setString(1, userid)
+        call.setString(2, identifier)
+        call.setBoolean(3, ispath)
         result = call.executeQuery()
         if result.next():
             item = getDataFromResult(result)
@@ -243,23 +203,42 @@ class DataBase():
         call.close()
         return item
 
-    def getChildren(self, itemid, properties, mode, scheme):
+    def getChildren(self, path, properties, mode, scheme):
         #TODO: Can't have a ResultSet of type SCROLL_INSENSITIVE with a Procedure,
         #TODO: as a workaround we use a simple quey...
-        select = self._getCall('getChildren', properties)
+        call = self._getCall('getChildren', self._getChildrenformat(properties))
         scroll = uno.getConstantByName('com.sun.star.sdbc.ResultSetType.SCROLL_INSENSITIVE')
-        select.ResultSetType = scroll
+        call.ResultSetType = scroll
         # OpenOffice / LibreOffice Columns:
         #    ['Title', 'Size', 'DateModified', 'DateCreated', 'IsFolder', 'TargetURL', 'IsHidden',
         #    'IsVolume', 'IsRemote', 'IsRemoveable', 'IsFloppy', 'IsCompactDisc']
-        # "TargetURL" is done by: the given scheme + the database view Path + Uri Title
+        # "TargetURL" is done by: the given scheme + the database view Path + Title
         i = 1
         if 'TargetURL' in (property.Name for property in properties):
-            select.setString(i, scheme)
+            call.setString(i, scheme)
             i += 1
-        select.setShort(i , mode)
-        select.setString(i +1, itemid)
-        return select
+        call.setShort(i, mode)
+        call.setString(i + 1, path)
+        return call
+
+    def _getChildrenformat(self, properties):
+        return {'View': 'PUBLIC.PUBLIC."Children"',
+                'Columns': ', '.join(self._getChildrenColumns(properties))}
+
+    def _getChildrenColumns(self, properties):
+        columns = {'Title':         'C."Title"',
+                   'Size':          'C."Size"',
+                   'DateModified':  'C."DateModified"',
+                   'DateCreated':   'C."DateCreated"',
+                   'IsFolder':      'C."IsFolder"',
+                   'TargetURL':     '? || C."Path" || C."Title"',
+                   'IsHidden':      'FALSE',
+                   'IsVolume':      'FALSE',
+                   'IsRemote':      'FALSE',
+                   'IsRemoveable':  'FALSE',
+                   'IsFloppy':      'FALSE',
+                   'IsCompactDisc': 'FALSE'}
+        return ('%s AS "%s"' % (columns[p.Name], p.Name) for p in properties if p.Name in columns)
 
     def updateConnectionMode(self, userid, itemid, value):
         update = self._getCall('updateConnectionMode')
@@ -268,28 +247,6 @@ class DataBase():
         update.executeUpdate()
         update.close()
         return value
-
-    def getItemId(self, userid, url):
-        call = self._getCall('getItemId')
-        call.setString(1, userid)
-        call.setString(2, url)
-        call.execute()
-        itemid = call.getString(3)
-        if call.wasNull():
-            itemid = None
-        call.close()
-        return itemid
-
-    def getPath(self, userid, itemid):
-        call = self._getCall('getPath')
-        call.setString(1, userid)
-        call.setString(2, itemid)
-        call.execute()
-        path = call.getString(3)
-        if call.wasNull():
-            path = g_separator
-        call.close()
-        return path
 
     def getNewIdentifier(self, userid):
         identifier = ''
@@ -339,13 +296,12 @@ class DataBase():
             update.close()
         return updated, clear
 
-    def getNewTitle(self, title, parentid, isfolder):
+    def getNewTitle(self, title, parentid):
         call = self._getCall('getNewTitle')
         call.setString(1, title)
         call.setString(2, parentid)
-        call.setBoolean(3, isfolder)
         call.execute()
-        newtitle = call.getString(4)
+        newtitle = call.getString(3)
         call.close()
         return newtitle
 
@@ -367,10 +323,14 @@ class DataBase():
         call.setBoolean(14, item.get('IsReadOnly'))
         call.setBoolean(15, item.get('IsVersionable'))
         call.setString(16, item.get("ParentId"))
-        status = call.execute() == 0
-        item['Title'] = call.getString(17)
-        item['TitleOnServer'] = call.getString(18)
-        path = call.getString(19)
+        result = call.executeQuery
+        status = result.next()
+        if status:
+            item['Name'] = call.getString(1)
+            item['Title'] = call.getString(2)
+            item['TitleOnServer'] = call.getString(2)
+            item['Path'] = call.getString(3)
+        result.close()
         call.close()
         return status
 
@@ -387,11 +347,12 @@ class DataBase():
         call.close()
         return has
 
-    def getChildId(self, parentid, title):
+    def getChildId(self, parentid, path, title):
         itemid = None
         call = self._getCall('getChildId')
         call.setString(1, parentid)
-        call.setString(2, title)
+        call.setString(2, path)
+        call.setString(3, title)
         result = call.executeQuery()
         if result.next():
             itemid = result.getString(1)
@@ -441,6 +402,7 @@ class DataBase():
         call1 = self._getCall('mergeItem')
         call2 = self._getCall('mergeParent')
         call1.setString(1, userid)
+        call2.setString(1, userid)
         call1.setInt(2, mode)
         call1.setObject(3, timestamp)
         for item in iterator:
@@ -475,10 +437,6 @@ class DataBase():
         update.setString(2, userid)
         update.executeUpdate()
         update.close()
-
-    def setSession(self, user=g_dba):
-        query = getSqlQuery(self._ctx, 'setSession', user)
-        self._statement.execute(query)
 
     # Procedure to retrieve all the UPDATE AND INSERT in the 'Capabilities' table
     def getPushItems(self, userid, start, end):
@@ -561,9 +519,8 @@ class DataBase():
         return 1
 
     def _mergeParent(self, call, item, itemid, timestamp):
-        call.setString(1, itemid)
-        call.setString(2, item[12])
-        call.setArray(3, Array('VARCHAR', item[13]))
+        call.setString(2, itemid)
+        call.setArray(3, Array('VARCHAR', item[12]))
         call.setObject(4, timestamp)
         call.addBatch()
 
@@ -576,3 +533,4 @@ class DataBase():
         #query = self.Connection.getQueries().getByName(name).Command
         #self._CallsPool[name] = self.Connection.prepareCall(query)
         return self.Connection.prepareCommand(name, QUERY)
+

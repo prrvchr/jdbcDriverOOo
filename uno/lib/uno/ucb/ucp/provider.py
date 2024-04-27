@@ -55,8 +55,9 @@ from ..logger import getLogger
 
 from ..configuration import g_identifier
 from ..configuration import g_scheme
-from ..configuration import g_separator
 from ..configuration import g_chunk
+
+from .configuration import g_ucbseparator
 
 from dateutil import parser, tz
 from collections import OrderedDict
@@ -64,20 +65,13 @@ import traceback
 
 
 class Provider(object):
-    def __init__(self, ctx, logger, folder, link):
+    def __init__(self, ctx, logger):
         self._ctx = ctx
         self._logger = logger
-        self._folder = folder
-        self._link = link
         self.Scheme = g_scheme
         self.SourceURL = getResourceLocation(ctx, g_identifier, g_scheme)
         self._folders = []
         self._config = getConfiguration(ctx, g_identifier, False)
-
-    # Base properties
-    @property
-    def Error(self):
-        return self._Error
 
     # Must be implemented properties
     @property
@@ -93,22 +87,10 @@ class Provider(object):
     def UploadUrl(self):
         raise NotImplementedError
     @property
-    def Office(self):
-        raise NotImplementedError
-    @property
-    def Document(self):
-        raise NotImplementedError
-    @property
     def Chunk(self):
         raise NotImplementedError
     @property
     def Buffer(self):
-        raise NotImplementedError
-    @property
-    def Folder(self):
-        raise NotImplementedError
-    @property
-    def Link(self):
         raise NotImplementedError
 
     # Can be rewrited properties
@@ -124,9 +106,6 @@ class Provider(object):
     @property
     def FolderSyncModes(self):
         return (SYNC_FOLDER, )
-    @property
-    def SupportDuplicate(self):
-        return False
     @property
     def SupportSharedDocuments(self):
         return self._config.getByName('SupportShare') and self._config.getByName('SharedDocuments')
@@ -289,14 +268,6 @@ class Provider(object):
     def isOffLine(self):
         return ONLINE != getConnectionMode(self._ctx, self.Host)
 
-    # Can be rewrited method
-    def isFolder(self, contenttype):
-        return contenttype == self.Folder
-    def isLink(self, contenttype):
-        return contenttype == self.Link
-    def isDocument(self, contenttype):
-        return not (self.isFolder(contenttype) or self.isLink(contenttype))
-
     def getItem(self, request, identifier):
         parameter = self.getRequestParameter(request, 'getItem', identifier)
         return request.execute(parameter)
@@ -320,7 +291,7 @@ class Provider(object):
                 args = code + 1, data.get('Title')
             else:
                 parameter = self.getRequestParameter(user.Request, 'getUploadStream', location)
-                url = self.SourceURL + g_separator + item
+                url = self.SourceURL + g_ucbseparator + item
                 response = user.Request.upload(parameter, url, chunk, retry, delay)
                 if not response.Ok:
                     args = code + 2, data.get('Title'), response.Text

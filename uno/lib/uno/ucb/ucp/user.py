@@ -70,11 +70,15 @@ from .identifier import Identifier
 from .contenthelper import getContentInfo
 from .contenthelper import getExceptionMessage
 
+from .configuration import g_ucbfolder
+from .configuration import g_ucbfile
+from .configuration import g_ucbseparator
+
 from ..configuration import g_extension
 from ..configuration import g_scheme
-from ..configuration import g_separator
+from ..configuration import g_ucpfolder
 
-
+from threading import Event
 import binascii
 import traceback
 
@@ -110,6 +114,7 @@ class User():
                 # the OAuth2 Wizard, there is nothing more to do except throw an exception
                 msg = self._getExceptionMessage(method, 501, g_oauth2)
                 raise IllegalIdentifierException(msg, source)
+            print("User.__init__() Request: %s" % (request, ))
             user, root = self.Provider.getUser(source, request, name)
             metadata = database.insertUser(user, root)
             if metadata is None:
@@ -122,26 +127,25 @@ class User():
         self.MetaData = metadata
         self.DataBase = DataBase(ctx, logger, database.Url, name, password)
         rootid = metadata.get('RootId')
-        self._ids = {'': rootid, '/': rootid}
         self._paths = {}
         self._contents = {}
+        self._lock = None
         if new:
             # Start Replicator for pushing changes…
+            self._lock = Event()
             self._sync.set()
         self._logger.logprb(INFO, 'User', method, 509)
+        print("User.__init__()")
 
     @property
     def Name(self):
-        return self._name
+        return self.MetaData.get('UserName')
     @property
     def Id(self):
         return self.MetaData.get('UserId')
     @property
     def RootId(self):
         return self.MetaData.get('RootId')
-    @property
-    def RootName(self):
-        return self.MetaData.get('RootName')
     @property
     def Token(self):
         return self.MetaData.get('Token')
@@ -156,6 +160,12 @@ class User():
     def SessionMode(self):
         return self.Request.getSessionMode(self.Provider.Host)
     @property
+    def DateCreated(self):
+        return self.MetaData.get('DateCreated')
+    @property
+    def DateModified(self):
+        return self.MetaData.get('DateModified')
+    @property
     def TimeStamp(self):
         return self.MetaData.get('TimeStamp')
     @TimeStamp.setter
@@ -165,67 +175,100 @@ class User():
     def setToken(self, token):
         self.MetaData['Token'] = token
 
+    # method called from Replicator
+    def setLock(self):
+        blocking = self.SyncMode == 0
+        print("User.setLock() 1 bloking: %s" % blocking)
+        if self._lock is not None and not self.SyncMode:
+            self._lock.wait()
+        print("User.setLock() 2")
+
+    def releaseLock(self):
+        self.SyncMode = 1
+        print("User.releaseLock() 1")
+        if self._lock is not None and not self._lock.is_set():
+            print("User.releaseLock() 2")
+            self._lock.set()
+        print("User.releaseLock() 3")
+
     # method called from ContentResultSet.queryContent()
-    def getItemByUrl(self, url):
+    def getContentByUrl(self, authority, url):
         uri = self._getUriFactory().parse(url)
-        return self.getItemByUri(uri)
+        return self.getContent(authority, uri)
+
+    # method called from Content.getParent()
+    def getContentByParent(self, authority, itemid, path):
+        isroot = itemid == self.RootId
+        return self._getContent(authority, self._getPath(path, isroot), isroot)
 
     # method called from DataSource.queryContent()
-    def getItemByUri(self, uri):
-        path = uri.getPath()
-        if path in self._ids:
-            itemid = self._ids[path]
-        else:
-            itemid = self.DataBase.getItemId(self.Id, path)
-            if itemid is not None:
-                self._ids[path] = itemid
-                self._paths[itemid] = path
-        return itemid
+    def getContent(self, authority, uri):
+        isroot = uri.getPathSegmentCount() == 0
+        return self._getContent(authority, uri.getPath(), isroot)
 
-    # method called from DataSource.queryContent(), Content.getParent() and ContentResultSet.queryContent()
-    def getContent(self, authority, itemid):
+    def _getContent(self, authority, path, isroot):
+        data = None
+        itemid = None
         content = None
-        if itemid in self._contents:
-            data = self._contents[itemid]
+        if isroot:
+            itemid = self.RootId
+            data = self.getRootMetaData()
         else:
-            data = self.DataBase.getItem(self.Id, self.RootId, itemid)
-            if data is not None:
-                self._contents[itemid] = data
-        if data is not None:
-            content = Content(self._ctx, self, authority, data)
+            if path in self._paths:
+                itemid = self._paths[path]
+            else:
+                print("User._getContent() 2 Path: '%s'" % path)
+                data, itemid = self._getMetaData(path)
+        if itemid is not None:
+            if itemid in self._contents:
+                print("User._getContent() 3")
+                content = self._contents[itemid]
+            else:
+                if data is None:
+                    data, itemid = self._getMetaData(path)
+                print("User._getContent() 4")
+                content = Content(self._ctx, self, authority, data)
+                self._contents[itemid] = content
+        print("User._getContent() 5")
         return content
 
+    def _getMetaData(self, path):
+        data = self.DataBase.getItem(self.Id, path)
+        itemid = data.get('Id')
+        self._paths[path] = itemid
+        return data, itemid
+
     # method called from Content._identifier
-    def getContentIdentifier(self, authority, itemid, path, title):
-        identifier = self._getContentScheme(authority)
-        if itemid != self.RootId:
-            identifier += path + title
-        else:
-            identifier += g_separator
+    def getContentIdentifier(self, authority, path, title):
+        identifier = self._getContentScheme(authority) + path + title
+        print("User.getContentIdentifier() : %s" % identifier)
         return identifier
 
-    def createNewContent(self, authority, parentid, path, title, link, contentype):
-        data = self._getNewContent(parentid, path, title, link, contentype)
+    def createNewContent(self, authority, parentid, path, title, contentype):
+        data = self._getNewContent(parentid, path, title, contentype)
         content = Content(self._ctx, self, authority, data, True)
         return content
 
     def getTargetUrl(self, itemid):
-        return self.Provider.SourceURL + g_separator + itemid
+        return self.Provider.SourceURL + g_ucbseparator + itemid
 
     def getCreatableContentsInfo(self, canaddchild):
+        print("Content.getCreatableContentsInfo() 1")
         content = []
         if self.CanAddChild and canaddchild:
             properties = (getProperty('Title', 'string', BOUND), )
-            content.append(getContentInfo(self.Provider.Folder, KIND_FOLDER, properties))
-            content.append(getContentInfo(self.Provider.Office, KIND_DOCUMENT, properties))
+            content.append(getContentInfo(g_ucbfolder, KIND_FOLDER, properties))
+            content.append(getContentInfo(g_ucbfile, KIND_DOCUMENT, properties))
+            print("Content.getCreatableContentsInfo() 2")
             #if self.Provider.hasProprietaryFormat:
             #    content.append(getContentInfo(self.Provider.ProprietaryFormat, KIND_DOCUMENT, properties))
+        print("Content.getCreatableContentsInfo() 3")
         return tuple(content)
 
     def getDocumentContent(self, sf, content, size):
         size = 0
         itemid = content.getValue('Id')
-        url = self.getTargetUrl()
+        url = self.getTargetUrl(itemid)
         if content.getValue('ConnectionMode') == OFFLINE and sf.exists(url):
             size = sf.getSize(url)
             return url, size
@@ -249,8 +292,7 @@ class User():
             # Start Replicator for pushing changes…
             self._sync.set()
         if clear:
-            # if Title as been changed then we need to clear identifier cache
-            self._ids = {'': self.RootId, '/': self.RootId}
+            # if Title as been changed then we need to clear paths cache
             self._paths = {}
 
     def insertNewContent(self, authority, content):
@@ -265,57 +307,84 @@ class User():
         if self.Provider.GenerateIds:
             self.DataBase.deleteNewIdentifier(self.Id, itemid)
 
-    def getChildren(self, authority, itemid, properties):
+    def getChildren(self, authority, path, title, properties):
         scheme = self._getContentScheme(authority)
-        return self.DataBase.getChildren(itemid, properties, self.SessionMode, scheme)
+        return self.DataBase.getChildren(self._composePath(path, title), properties, self.SessionMode, scheme)
+
+    def getChildId(self, parentid, path, title, newtitle):
+        return self.DataBase.getChildId(parentid, self._composePath(path, title), newtitle)
 
     def updateConnectionMode(self, itemid, mode):
         return self.DataBase.updateConnectionMode(self.Id, itemid, mode)
 
+    def getRootMetaData(self):
+        return self._getContentMetaData(self.RootId, g_ucbseparator, '', None, True, True,
+                                        g_ucbfolder, self.DateCreated, self.DateModified)
+
     # Private methods
     def _getContentScheme(self, authority):
-        name = self.Name if authority else ''
-        return '%s://%s' % (g_scheme, name)
+        scheme = g_scheme + '://'
+        if authority:
+            scheme += self.Name
+        return scheme
+
+    def _getPath(self, path, isroot):
+        # XXX: If this is not the root then we need to remove any trailing slash
+        if not isroot:
+            path = path.rstrip(g_ucbseparator)
+        return path
+
+    def _composePath(self, path, title):
+        path += title
+        # XXX: If the path doesn't end with a slash, we need to add one
+        if not path.endswith(g_ucbseparator):
+            path += g_ucbseparator
+        return path
+
+    def _getNewContent(self, parentid, path, title, contentype):
+        timestamp = currentUnoDateTime()
+        isfolder = contentype == g_ucbfolder
+        itemid = self._getNewIdentifier()
+        path = path + title + g_ucbseparator if parentid != self.RootId else path
+        return self._getContentMetaData(itemid, path, 'New File', parentid, False,
+                                        isfolder, contentype, timestamp, timestamp)
+
+    def _getContentMetaData(self, itemid, path, title, parentid, isroot, isfolder, contentype, created, modified):
+        return {'Id':                   itemid,
+                'ObjectId':             itemid,
+                'Name':                 title,
+                'Path':                 path,
+                'Title':                title,
+                'TitleOnServer':        title,
+                'ParentId':             parentid,
+                'DateCreated':          created,
+                'DateModified':         modified,
+                'ContentType':          contentype,
+                'MediaType':            g_ucpfolder if isfolder else '',
+                'Size':                 0,
+                'Link':                 '',
+                'Trashed':              False,
+                'IsRoot':               isroot,
+                'IsFolder':             isfolder,
+                'IsLink':               False,
+                'IsDocument':           not isfolder,
+                'CanAddChild':          isfolder,
+                'CanRename':            True,
+                'IsReadOnly':           False,
+                'IsVersionable':        not isfolder,
+                'ConnectionMode':       1,
+                'IsHidden':             False,
+                'IsVolume':             False,
+                'IsRemote':             False,
+                'IsRemoveable':         False,
+                'IsFloppy':             False,
+                'IsCompactDisc':        False}
+        return data
 
     def _getUriFactory(self):
         if self._factory is None:
             self._factory = getUriFactory(self._ctx)
         return self._factory
-
-    def _getNewContent(self, parentid, path, title, link, contentype):
-        timestamp = currentUnoDateTime()
-        isfolder = self.Provider.isFolder(contentype)
-        isdocument = self.Provider.isDocument(contentype)
-        itemid = self._getNewIdentifier()
-        data = {'ConnectionMode':        1,
-                'ContentType':           contentype,
-                'DateCreated':           timestamp,
-                'DateModified':          timestamp,
-                'IsCompactDisc':         False,
-                'IsDocument':            isdocument,
-                'IsFloppy':              False,
-                'IsFolder':              isfolder,
-                'IsHidden':              False,
-                'IsReadOnly':            False,
-                'IsRemote':              False,
-                'IsRemoveable':          False,
-                'IsVersionable':         isdocument,
-                'IsVolume':              False,
-                'MediaType':             '' if isdocument else contentype,
-                'ObjectId':              itemid,
-                'ParentId':              parentid,
-                'Size':                  0,
-                'Title':                 '',
-                'TitleOnServer':         '',
-                'Id':                    itemid,
-                'Path':                  self._getPath(parentid, path, title),
-                'Link':                  link,
-                'Trashed':               False,
-                'IsRoot':                False,
-                'IsLink':                False,
-                'CanAddChild':           isfolder,
-                'CanRename':             True}
-        return data
 
     def _getNewIdentifier(self):
         if self.Provider.GenerateIds:
@@ -323,13 +392,6 @@ class User():
         else:
             identifier = binascii.hexlify(uno.generateUuid().value).decode('utf-8')
         return identifier
-
-    def _getPath(self, itemid, path, title):
-        if itemid != self.RootId:
-            path += title + g_separator
-        else:
-            path = g_separator
-        return path
 
     def _getExceptionMessage(self, method, code, *args):
         return getExceptionMessage(self._ctx, self._logger, 'User', method, code, g_extension, *args)
