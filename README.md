@@ -497,7 +497,8 @@ The UNO SDBCX API can now be used for creating databases, as is the case for the
 - Declaration of columns of types TIMESTAMP WITH TIME ZONE, TIMESTAMP, TIME WITH TIME ZONE, TIME with precision management (ie: from 0 to 9).
 - Declaration of [temporal system versioned tables][98]. These types of tables are used in the same extensions to facilitate data replication.
 - Declaration of [text tables][99]. These tables allow you to use data from files in csv format.
-- Declaration of primary keys, foreign keys, indexes, users, roles and associated privileges.  
+- Declaration of primary keys, foreign keys, indexes, users, roles and associated privileges.
+
 Using the UNO API to create databases will allow you to use code that is independent of the underlying database.
 
 Clients using the jdbcDriverOOo driver can access features of the underlying JDBC driver through the [XDriver.getPropertyInfo()][100] method to correctly display privileges. These parameters being accessible directly by the driver can be obtained before any connection and therefore allows the creation of the database before the first connection.

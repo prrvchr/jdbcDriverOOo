@@ -497,7 +497,8 @@ Désormais l'API UNO SDBCX peut être utilisée pour la création de bases de do
 - Déclaration de colonnes de types TIMESTAMP WITH TIME ZONE, TIMESTAMP, TIME WITH TIME ZONE, TIME avec gestion de la précision (ie: de 0 à 9).
 - Déclaration de tables [temporelles versionnées par le système][98] (temporal system versioned tables). Ces types de tables sont utilisés dans les mêmes extensions pour faciliter la réplication des données.
 - Déclaration de tables au [format texte][99]. Ces tables vous permettent d'utiliser les données de fichiers au format csv.
-- Déclaration des clés primaires, clés étrangères, index, utilisateurs, rôles et privilèges associés.  
+- Déclaration des clés primaires, clés étrangères, index, utilisateurs, rôles et privilèges associés.
+
 L'utilisation de l'API UNO pour créer des bases de données vous permettra d'utiliser du code indépendant de la base de données sous-jacente.
 
 Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][100] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données avant la première connexion.
