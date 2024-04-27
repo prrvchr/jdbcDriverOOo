@@ -54,13 +54,14 @@ public class DBDefaultQuery {
     public static final String STR_QUERY_DROP_VIEW                           = "DROP VIEW {0}";
     public static final String STR_QUERY_ALTER_VIEW                          = "ALTER VIEW {0} AS {4}";
 
-    public static final String STR_QUERY_CREATE_TABLE                        = "CREATE TABLE {0} ({1}){2}";
+    public static final String STR_QUERY_CREATE_TABLE                        = "CREATE {0} {1} ({2}){3}";
     public static final String STR_QUERY_DROP_TABLE                          = "DROP TABLE {0}";
 
     public static final String STR_QUERY_ALTER_TABLE_ADD_COLUMN              = "ALTER TABLE {0} ADD COLUMN {1}";
     public static final String STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY         = "ALTER TABLE {0} ADD PRIMARY KEY ({2})";
     public static final String STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY         = "ALTER TABLE {0} ADD FOREIGN KEY ({2}) REFERENCES {3} ({4}) {5} {6}";
-    public static final String STR_QUERY_ALTER_TABLE_ADD_INDEX               = "CREATE {0} INDEX {1} ON {2} ({3})";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_UNIQUE              = "ALTER TABLE {0} ADD CONSTRAINT {1} UNIQUE ({2})";
+    public static final String STR_QUERY_ALTER_TABLE_ADD_INDEX               = "CREATE INDEX {1} ON {0} ({2})";
     public static final String STR_QUERY_ALTER_TABLE_DROP_INDEX              = "DROP INDEX {1}";
     public static final String STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY        = "ALTER TABLE {0} DROP PRIMARY KEY";
     public static final String STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT         = "ALTER TABLE {0} DROP CONSTRAINT {1}";

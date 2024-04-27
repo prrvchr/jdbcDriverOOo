@@ -391,7 +391,7 @@ public abstract class ConnectionBase
         throws SQLException
     {
         checkDisposed();
-        return _getPreparedStatement(_substituteVariables(sql));
+        return _getPreparedStatement(sql);
 
     }
 
@@ -400,7 +400,7 @@ public abstract class ConnectionBase
         throws SQLException
     {
         checkDisposed();
-        return _getCallableStatement(_substituteVariables(sql));
+        return _getCallableStatement(sql);
 
     }
 
@@ -423,6 +423,7 @@ public abstract class ConnectionBase
     abstract protected XPreparedStatement _getPreparedStatement(String sql) throws SQLException;
     abstract protected XPreparedStatement _getCallableStatement(String sql) throws SQLException;
 
+    @SuppressWarnings("unused")
     private String _substituteVariables(String sql)
         throws SQLException
     {

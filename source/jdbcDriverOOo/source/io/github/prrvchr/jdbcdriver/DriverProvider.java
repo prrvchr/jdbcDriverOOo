@@ -41,6 +41,18 @@ import io.github.prrvchr.uno.sdbcx.ColumnBase;
 public interface DriverProvider
 {
 
+    public static String getDriverPropertyPath(String subprotocol, String path) {
+        return "Installed/" + subprotocol + ":*/" + path;
+    }
+
+    public static String getDriverPropertiesInfo(String subprotocol, String name) {
+        return getDriverPropertyPath(subprotocol, "Properties") + "/" + name + "/Value";
+    }
+
+    public static String getDriverMetaDataInfo(String subprotocol, String name) {
+        return getDriverPropertyPath(subprotocol, "MetaData") + "/" + name + "/Value";
+    }
+
     public String getProtocol();
 
     public String getSubProtocol();
@@ -196,9 +208,11 @@ public interface DriverProvider
 
     public java.sql.ResultSet getTableTypesResultSet(java.sql.DatabaseMetaData metadata) throws java.sql.SQLException;
 
-    public String getCreateTableQuery(String table, String columns, boolean versioning);
+    public String getCreateTableQuery(String type, String table, String columns, boolean versioning);
 
     public String getDropTableQuery(String table);
+
+    public String getAddIndexQuery(boolean unique, Object... args);
 
     public String getAlterUserQuery(String user, String password);
 

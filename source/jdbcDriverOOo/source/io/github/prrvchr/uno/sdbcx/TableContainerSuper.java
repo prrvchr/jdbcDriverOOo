@@ -81,9 +81,13 @@ public abstract class TableContainerSuper<T extends TableSuper<?>, C extends Con
     {
         List<String> queries = new ArrayList<String>();
         try {
+            String type = "TABLE";
+            if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.TABLETYPE)) {
+                type = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TABLETYPE);
+            }
             ComposeRule rule = ComposeRule.InTableDefinitions;
             String table = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
-            queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, rule, isCaseSensitive());
+            queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, type, rule, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && m_Connection.getProvider().supportsTableDescription()) {
                 String query = m_Connection.getProvider().getTableDescriptionQuery(table, description);

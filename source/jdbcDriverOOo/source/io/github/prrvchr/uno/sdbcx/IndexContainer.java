@@ -44,7 +44,6 @@ import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.helper.DBIndexHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
@@ -165,12 +164,11 @@ public final class IndexContainer
                 return false;
             }
             ComposeRule rule = ComposeRule.InIndexDefinitions;
-            List<Object> arguments = new ArrayList<Object>();
+            List<Object> arguments = new ArrayList<>();
             DriverProvider provider = getConnection().getProvider();
             boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
-            arguments.add(unique ? "UNIQUE" : "");
-            arguments.add(DBTools.enquoteIdentifier(provider, name, isCaseSensitive()));
             arguments.add(DBTools.composeTableName(provider, m_Table, rule, isCaseSensitive()));
+            arguments.add(DBTools.enquoteIdentifier(provider, name, isCaseSensitive()));
             XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
             XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
             List<String> indexes = new ArrayList<String>();
@@ -178,15 +176,14 @@ public final class IndexContainer
                 XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
                 String column = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
                 String index = DBTools.enquoteIdentifier(provider, column, isCaseSensitive());
-                if (provider.addIndexAppendix()) {
+                if (!unique && provider.addIndexAppendix()) {
                     index += DBTools.getDescriptorBooleanValue(property, PropertyIds.ISASCENDING) ? " ASC" : " DESC";
                 }
                 indexes.add(index);
             }
             if (!indexes.isEmpty()) {
-                String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX);
                 arguments.add(String.join(", ", indexes));
-                query = DBTools.formatSQLQuery(command, arguments.toArray(new Object[0]));
+                query = provider.getAddIndexQuery(unique, arguments.toArray(new Object[0]));
                 System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
                 table = DBTools.composeTableName(provider, m_Table, rule, false);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table, query);

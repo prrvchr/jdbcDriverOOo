@@ -51,6 +51,7 @@ public final class TableDescriptor
     private String m_CatalogName = "";
     private String m_SchemaName = "";
     private String m_Description = "";
+    private String m_Type = "TABLE";
 
     // The constructor method:
     public TableDescriptor(boolean sensitive)
@@ -102,8 +103,20 @@ public final class TableDescriptor
                     m_Description = (String) value;
                 }
             });
+        registerProperty(PropertyIds.TABLETYPE.name, PropertyIds.TABLETYPE.id, Type.STRING,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return m_Type;
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    m_Type = (String) value;
+                }
+            });
     }
-
 
 
     // com.sun.star.sdbcx.XColumnsSupplier:

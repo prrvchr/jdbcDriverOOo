@@ -112,6 +112,7 @@ public abstract class DriverProviderMain
     private String m_AddPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY;
     private String m_AddForeignKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY;
     private String m_AddIndexCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
+    private String m_AddUniqueCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_UNIQUE;
     private String m_DropPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY;
     private String m_DropConstraintCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT;
     private String m_DropIndexCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_INDEX;
@@ -287,6 +288,13 @@ public abstract class DriverProviderMain
     }
 
     @Override
+    public String getAddIndexQuery(boolean unique, Object... args) {
+        String command = unique ? m_AddUniqueCommand : m_AddIndexCommand;
+        return DBTools.formatSQLQuery(command, args);
+    }
+
+
+    @Override
     public String getTableDescriptionQuery(String table, String description) {
         return DBTools.formatSQLQuery(m_TableDescriptionCommand, table, description);
     }
@@ -310,11 +318,12 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public String getCreateTableQuery(String table,
+    public String getCreateTableQuery(String type,
+                                      String table,
                                       String columns,
                                       boolean versioning)
     {   String query = versioning ? getSystemVersioningTableQuery() : "";
-        return DBTools.formatSQLQuery(m_CreateTableCommand, table, columns, query);
+        return DBTools.formatSQLQuery(m_CreateTableCommand, type, table, columns, query);
     }
 
     @Override
@@ -708,6 +717,7 @@ public abstract class DriverProviderMain
         m_AddPrimaryKeyCommand = getDriverCommandProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
         m_AddForeignKeyCommand = getDriverCommandProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);
         m_AddIndexCommand = getDriverCommandProperty(config1, "AddIndexCommand", m_AddIndexCommand);
+        m_AddUniqueCommand = getDriverCommandProperty(config1, "AddUniqueCommand", m_AddUniqueCommand);
         m_DropPrimaryKeyCommand = getDriverCommandProperty(config1, "DropPrimaryKeyCommand", m_DropPrimaryKeyCommand);
         m_DropConstraintCommand = getDriverCommandProperty(config1, "DropConstraintCommand", m_DropConstraintCommand);
         m_AddIdentityCommand = getDriverCommandProperty(config1, "AddIdentityCommand", m_AddIdentityCommand);
@@ -971,6 +981,7 @@ public abstract class DriverProviderMain
                 info.Name.equals("UseCatalogInSelect") ||
                 info.Name.equals("UseSchemaInSelect") ||
                 info.Name.equals("AutoIncrementCreation") ||
+                info.Name.equals("RowVersionCreation") ||
                 info.Name.equals("Extension") ||
                 info.Name.equals("NoNameLengthLimit") ||
                 info.Name.equals("EnableSQL92Check") ||
@@ -1387,7 +1398,7 @@ public abstract class DriverProviderMain
     }
 
     private String getPropertyPath(String name) {
-        return "Installed/" + getSubProtocol() + ":*/MetaData/" + name + "/Value";
+        return DriverProvider.getDriverMetaDataInfo(getSubProtocol(), name);
     }
 
 }

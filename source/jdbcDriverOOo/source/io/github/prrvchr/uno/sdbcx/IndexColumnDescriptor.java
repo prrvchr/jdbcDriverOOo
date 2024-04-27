@@ -41,7 +41,7 @@ public final class IndexColumnDescriptor
     private static final String m_service = IndexColumnDescriptor.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumnDescriptor"};
 
-    private boolean m_IsAscending;
+    private boolean m_IsAscending = true;
 
 
     // The constructor method:

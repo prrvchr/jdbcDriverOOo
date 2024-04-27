@@ -184,6 +184,8 @@ public class DBTableHelper
      *      The descriptor of the new table.
      * @param table
      *      The name of the new table.
+     * @param type
+     *      The type of the new table (ie: TABLE or TEXT TABLE).
      * @param sensitive
      *      Is identifier case sensitive.
      * @return
@@ -197,6 +199,7 @@ public class DBTableHelper
     public static List<String> getCreateTableQueries(DriverProvider provider,
                                                      XPropertySet property,
                                                      String table,
+                                                     String type,
                                                      ComposeRule rule,
                                                      boolean sensitive)
         throws java.sql.SQLException, SQLException, WrappedTargetException, IndexOutOfBoundsException, UnknownPropertyException
@@ -253,7 +256,7 @@ public class DBTableHelper
         else if ((!alterpk && !hasAutoIncrement) || (alterpk && autopk && hasAutoIncrement)) {
             parts.addAll(DBConstraintHelper.getCreatePrimaryKeyParts(provider, property, sensitive));
         }
-        queries.add(0, provider.getCreateTableQuery(table, String.join(separator, parts), versioning));
+        queries.add(0, provider.getCreateTableQuery(type, table, String.join(separator, parts), versioning));
         return queries;
     }
 
