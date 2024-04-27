@@ -501,7 +501,7 @@ The UNO SDBCX API can now be used for creating databases, as is the case for the
 
 Using the UNO API to create databases will allow you to use code that is independent of the underlying database.
 
-Clients using the jdbcDriverOOo driver can access features of the underlying JDBC driver through the [XDriver.getPropertyInfo()][100] method to correctly display privileges. These parameters being accessible directly by the driver can be obtained before any connection and therefore allows the creation of the database before the first connection.
+Clients using the jdbcDriverOOo driver can access features of the underlying JDBC driver through the [XDriver.getPropertyInfo()][100] method in order to access the necessary parameter when creating tables and display privileges correctly. These parameters being accessible directly by the driver can be obtained before any connection and therefore allows the creation of the database before the first connection.
 
 ### What remains to be done for version 1.3.2:
 
