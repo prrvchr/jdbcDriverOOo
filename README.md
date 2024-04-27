@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.3.1][5]
+# version [1.3.2][5]
 
 ## Introduction:
 
@@ -491,7 +491,17 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 - Integration of all drivers embedded in the extension (excluding SQLite) in the management of users, roles and privileges on tables and views. I suppose that many malfunctions remain to be corrected, please let me know, detecting malfunctions takes me more time than correcting them....
 - Many corrections and improvements...
 
-### What remains to be done for version 1.3.1:
+### What has been done for version 1.3.2:
+
+The UNO SDBCX API can now be used for creating databases, as is the case for the latest versions of extensions using jdbcDriverOOo. It is possible to create tables, using the UNO API, with the following characteristics:
+  - Declaration of columns of types TIMESTAMP WITH TIME ZONE, TIMESTAMP, TIME WITH TIME ZONE, TIME with precision management (ie: from 0 to 9).
+  - Declaration of [temporal system versioned tables][98]. These types of tables are used in the same extensions to facilitate data replication.
+  - Declaration of [text tables][99]. These tables allow you to use data from files in csv format.
+  - Declaration of primary keys, foreign keys, indexes, users, roles and associated privileges.
+  Using the UNO API to create databases will allow you to use code that is independent of the underlying database.
+- Clients using the jdbcDriverOOo driver can access features of the underlying JDBC driver through the [XDriver.getPropertyInfo()][100] method to correctly display privileges. These parameters being accessible directly by the driver can be obtained before any connection and therefore allows the creation of the database before the first connection.
+
+### What remains to be done for version 1.3.2:
 
 - Add new languages for internationalization...
 
@@ -501,7 +511,7 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-131>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-132>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -526,7 +536,7 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 [27]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [28]: <img/jdbcDriverOOo.svg#middle>
 [29]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.1#right>
+[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.2#right>
 [31]: <img/jdbcDriverOOo-1.png>
 [32]: <img/jdbcDriverOOo-2.png>
 [33]: <img/jdbcDriverOOo-3.png>
@@ -594,3 +604,6 @@ Normally, I managed to cover the entire scope of the UNO API ([com.sun.star.sdbc
 [95]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset>
 [96]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
 [97]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
+[98]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
+[99]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
+[100]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L367>

@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.3.1][5]
+# version [1.3.2][5]
 
 ## Introduction:
 
@@ -491,7 +491,17 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 - Intégration de tous les pilotes embarqués dans l'extension (hors SQLite) dans la gestion des utilisateurs, des rôles et des privilèges sur les tables et les vues. Je suppose que de nombreux dysfonctionnements restent à corriger, merci de me le faire savoir, détecter les dysfonctionnements me prend plus de temps que les corriger....
 - De nombreuses corrections et améliorations...
 
-### Que reste-t-il à faire pour la version 1.3.1:
+### Ce qui a été fait pour la version 1.3.2:
+
+- Désormais l'API UNO SDBCX peut être utilisée pour la création de bases de données, comme c'est le cas pour les dernières versions des extensions utilisant jdbcDriverOOo. Il est possible de créer des tables, grâce à l'API UNO, avec les caractéristiques suivantes:
+  - Déclaration de colonnes de types TIMESTAMP WITH TIME ZONE, TIMESTAMP, TIME WITH TIME ZONE, TIME avec gestion de la précision (ie: de 0 à 9).
+  - Déclaration de tables [temporelles versionnées par le système][98] (temporal system versioned tables). Ces types de tables sont utilisés dans les mêmes extensions pour faciliter la réplication des données.
+  - Déclaration de tables au [format texte][99]. Ces tables vous permettent d'utiliser les données de fichiers au format csv.
+  - Déclaration des clés primaires, clés étrangères, index, utilisateurs, rôles et privilèges associés.
+  L'utilisation de l'API UNO pour créer des bases de données vous permettra d'utiliser du code indépendant de la base de données sous-jacente.
+- Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][100] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données avant la première connexion.
+
+### Que reste-t-il à faire pour la version 1.3.2:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -501,7 +511,7 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-131>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-132>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -526,7 +536,7 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [27]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [28]: <img/jdbcDriverOOo.svg#middle>
 [29]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.1#right>
+[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.2#right>
 [31]: <img/jdbcDriverOOo-1_fr.png>
 [32]: <img/jdbcDriverOOo-2_fr.png>
 [33]: <img/jdbcDriverOOo-3_fr.png>
@@ -594,3 +604,6 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 [95]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset>
 [96]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
 [97]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
+[98]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
+[99]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
+[100]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L367>
