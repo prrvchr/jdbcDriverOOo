@@ -79,16 +79,21 @@ public final class CallableStatement
     }
 
     @Override
-    protected XResultSet getResultSet(java.sql.ResultSet result)
+    public XResultSet getResultSet()
         throws SQLException
     {
-        ResultSet resultset = null;
+        java.sql.ResultSet result = getJdbcResultSet();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (result != null) {
-            resultset =  new ResultSet(getConnectionInternal(), result, this, m_UseBookmarks);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+        if (m_UseBookmarks) {
+            RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection, result, this);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+            return rowset;
         }
-        return resultset;
+        else {
+            ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), result, this);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            return resultset;
+        }
     }
 
 

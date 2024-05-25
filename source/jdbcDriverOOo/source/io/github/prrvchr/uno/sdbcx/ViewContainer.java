@@ -47,7 +47,7 @@ import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class ViewContainer
-    extends TableContainerMain<View, ConnectionSuper>
+    extends TableContainerMain<ConnectionSuper, View>
 {
     private static final String m_service = ViewContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Views",

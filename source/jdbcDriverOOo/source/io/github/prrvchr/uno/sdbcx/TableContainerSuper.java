@@ -52,8 +52,8 @@ import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
-public abstract class TableContainerSuper<T extends TableSuper<?>, C extends ConnectionSuper>
-    extends TableContainerMain<T, C>
+public abstract class TableContainerSuper<C extends ConnectionSuper, T extends TableSuper<?>>
+    extends TableContainerMain<C, T>
 {
 
     // The constructor method:

@@ -28,7 +28,11 @@ package io.github.prrvchr.uno.sdbc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
+import java.sql.CallableStatement;
 import java.sql.Wrapper;
+
+import javax.sql.rowset.CachedRowSet;
 
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.SQLWarning;
@@ -48,8 +52,17 @@ public final class WarningsSupplier
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
-                if (wrapper.isWrapperFor(ResultSet.class)) {
+                if (wrapper.isWrapperFor(CachedRowSet.class)) {
+                    wrapper.unwrap(CachedRowSet.class).clearWarnings();
+                }
+                else if (wrapper.isWrapperFor(ResultSet.class)) {
                     wrapper.unwrap(ResultSet.class).clearWarnings();
+                }
+                else if (wrapper.isWrapperFor(CallableStatement.class)) {
+                    wrapper.unwrap(CallableStatement.class).clearWarnings();
+                }
+                else if (wrapper.isWrapperFor(PreparedStatement.class)) {
+                    wrapper.unwrap(PreparedStatement.class).clearWarnings();
                 }
                 else if (wrapper.isWrapperFor(Statement.class)) {
                     wrapper.unwrap(Statement.class).clearWarnings();
@@ -72,8 +85,17 @@ public final class WarningsSupplier
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
-                if (wrapper.isWrapperFor(ResultSet.class)) {
+                if (wrapper.isWrapperFor(CachedRowSet.class)) {
+                    warning = wrapper.unwrap(CachedRowSet.class).getWarnings();
+                }
+                else if (wrapper.isWrapperFor(ResultSet.class)) {
                     warning = wrapper.unwrap(ResultSet.class).getWarnings();
+                }
+                else if (wrapper.isWrapperFor(CallableStatement.class)) {
+                    warning = wrapper.unwrap(CallableStatement.class).getWarnings();
+                }
+                else if (wrapper.isWrapperFor(PreparedStatement.class)) {
+                    warning = wrapper.unwrap(PreparedStatement.class).getWarnings();
                 }
                 else if (wrapper.isWrapperFor(Statement.class)) {
                     warning = wrapper.unwrap(Statement.class).getWarnings();

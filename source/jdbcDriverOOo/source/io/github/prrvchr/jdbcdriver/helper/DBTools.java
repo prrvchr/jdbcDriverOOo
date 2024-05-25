@@ -46,11 +46,16 @@
 package io.github.prrvchr.jdbcdriver.helper;
 
 import java.io.InputStream;
+import java.sql.ResultSetMetaData;
 import java.sql.RowIdLifetime;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ServiceLoader;
+
+import javax.sql.rowset.CachedRowSet;
+import javax.sql.rowset.RowSetFactory;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.UnknownPropertyException;
@@ -1215,7 +1220,7 @@ public class DBTools
         String keys = "";
         try(java.sql.ResultSet result = statement.getGeneratedKeys())
         {
-            java.sql.ResultSetMetaData metadata = result.getMetaData();
+            ResultSetMetaData metadata = result.getMetaData();
             int count = metadata.getColumnCount();
             List<String> rows = new ArrayList<String>();
             while (result.next()) {
@@ -1283,7 +1288,7 @@ public class DBTools
     public static void printResultSet(java.sql.ResultSet result)
         throws java.sql.SQLException
     {
-        java.sql.ResultSetMetaData metadata = result.getMetaData();
+        ResultSetMetaData metadata = result.getMetaData();
         while (result.next()) {
             System.out.println("Row: " + result.getRow() + "\t*********************");
             for (int i = 1; i <= metadata.getColumnCount(); i++) {
@@ -1396,6 +1401,58 @@ public class DBTools
             return length - 1;
         }
         return length;
+    }
+
+    public static CachedRowSet getCachedRowSet(DriverProvider provider,
+                                               java.sql.ResultSet result)
+        throws java.sql.SQLException
+    {
+        CachedRowSet rowset = null;
+        String table = getTableName(provider, result.getMetaData());
+        if (!table.isBlank()) {
+            ClassLoader loader = provider.getClass().getClassLoader();
+            rowset = getCachedRowSet(loader, provider.getSyncProvider());
+            if (rowset != null) {
+                result.getStatement().getConnection().setAutoCommit(false);
+                rowset.setTableName(table);
+                rowset.populate(result);
+            }
+        }
+        return rowset;
+    }
+
+    private static String getTableName(DriverProvider provider,
+                                       ResultSetMetaData metadata)
+        throws java.sql.SQLException
+    {
+        String name = "";
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        List<String> tables = new ArrayList<>();
+        int count = metadata.getColumnCount();
+        for (int i = 1; i <= count; i ++) {
+            String catalog = metadata.getCatalogName(i);
+            String schema = metadata.getSchemaName(i);
+            String table = metadata.getTableName(i);
+            name = composeTableName(provider, catalog, schema, table, true, rule);
+            if (!tables.contains(name)) {
+                tables.add(name);
+            }
+        }
+        return tables.isEmpty() ? name : tables.get(0);
+    }
+
+    private static CachedRowSet getCachedRowSet(ClassLoader loader,
+                                                String provider)
+        throws java.sql.SQLException
+    {
+        CachedRowSet rowset = null;
+        // XXX: We need to change class loader
+        ServiceLoader<RowSetFactory> services = ServiceLoader.load(RowSetFactory.class, loader);
+        for (RowSetFactory factory : services) {
+            rowset = factory.createCachedRowSet();
+            break;
+        }
+        return rowset;
     }
 
 }

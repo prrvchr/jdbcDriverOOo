@@ -71,6 +71,7 @@ public abstract class DriverProviderMain
     protected boolean m_showsystem;
     protected boolean m_usebookmark;
     private String m_separator = ", ";
+    private String m_SyncProvider = "io.github.prrvchr.rowset.providers.RIOptimisticProvider";
 
     private boolean m_CatalogsInTableDefinitions;
     private boolean m_SchemasInTableDefinitions;
@@ -98,7 +99,6 @@ public abstract class DriverProviderMain
     private boolean m_SupportsAlterPrimaryKey = true;
     private boolean m_SupportsAlterForeignKey = true;
     private boolean m_IsAutoRetrievingEnabled = false;
-    private boolean m_IsResultSetUpdatable = false;
     private String m_AutoRetrievingStatement = "";
     private boolean m_IgnoreDriverPrivileges = true;
     private boolean m_IgnoreCurrency = false;
@@ -199,6 +199,12 @@ public abstract class DriverProviderMain
     public boolean supportsSystemVersioning()
     {
         return m_SystemVersioningCommands != null && m_SystemVersioningCommands.length > 0;
+    }
+
+    @Override
+    public String getSyncProvider()
+    {
+        return m_SyncProvider;
     }
 
     @Override
@@ -764,21 +770,11 @@ public abstract class DriverProviderMain
         m_IsCatalogAtStart = metadata.isCatalogAtStart();
         m_CatalogSeparator = metadata.getCatalogSeparator();
         m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
-        m_IsResultSetUpdatable = isResultSetUpdatable(metadata);
         setPrivileges(setInfoProperties(infos, metadata));
-        System.out.println("DriverProvider.setConnection() 1 Holdability: " + connection.getHoldability() + "Support Update: " + m_IsResultSetUpdatable);
 
         // XXX: We do not keep the connection but the statement
         // XXX: which allows us to find the connection if necessary.
         m_statement = connection.createStatement();
-    }
-
-    private boolean isResultSetUpdatable(java.sql.DatabaseMetaData metadata)
-        throws java.sql.SQLException
-    {
-        return metadata.supportsResultSetConcurrency(java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                                     java.sql.ResultSet.CONCUR_UPDATABLE) &&
-               metadata.supportsResultSetHoldability(java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT);
     }
 
     @Override
@@ -807,13 +803,9 @@ public abstract class DriverProviderMain
         return m_IsCatalogAtStart;
     }
     @Override
-    public boolean isResultSetUpdatable() {
-        return m_IsResultSetUpdatable;
-    }
-    @Override
     public boolean useBookmarks(boolean use) {
-        System.out.println("DriverProvider.useBookmarks() 1 use: " + use + "Support Update: " + m_IsResultSetUpdatable + " - UseBookmark: " + m_usebookmark);
-        return use && m_IsResultSetUpdatable && m_usebookmark;
+        System.out.println("DriverProvider.useBookmarks() 1 use: " + use + " - UseBookmark: " + m_usebookmark);
+        return use && m_usebookmark;
     }
     @Override
     public String getCatalogSeparator() {
@@ -1181,9 +1173,12 @@ public abstract class DriverProviderMain
         support = (Boolean) getConnectionProperties(infos, "IsAutoRetrievingEnabled", null);
         // FIXME: If IsAutoRetrievingEnabled is not set, we retrieve the option from the underlying metadata driver.
         // FIXME: This allows you to correct possible failures of certain drivers (ie: like for Derby)
+        System.out.println("DriverProvider.getAutoRetrieving() 1 support: " + support);
         if (support == null) {
             support = metadata.supportsGetGeneratedKeys();
         }
+        System.out.println("DriverProvider.getAutoRetrieving() 2 support: " + metadata.supportsGetGeneratedKeys());
+        System.out.println("DriverProvider.getAutoRetrieving() 3 support: " + support);
         return support;
     }
 

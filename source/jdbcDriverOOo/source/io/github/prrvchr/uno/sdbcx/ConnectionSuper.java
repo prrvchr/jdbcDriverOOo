@@ -33,7 +33,6 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Any;
@@ -129,17 +128,7 @@ public abstract class ConnectionSuper
         refreshViews();
     }
 
-    @Override
-    protected XStatement _getStatement()
-    {
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
-        Statement statement = new Statement(this);
-        getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
-        return statement;
-    }
-
-    protected abstract TableContainerSuper<?,?> getTableContainer(List<String> names) throws ElementExistException;
+    protected abstract TableContainerSuper<?, ?> getTableContainer(List<String> names) throws ElementExistException;
     protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
 
     private void refreshTables()

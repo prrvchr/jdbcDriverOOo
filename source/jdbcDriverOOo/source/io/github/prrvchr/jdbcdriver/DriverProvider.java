@@ -55,6 +55,8 @@ public interface DriverProvider
 
     public String getProtocol();
 
+    public String getSyncProvider();
+
     public String getSubProtocol();
 
     public java.sql.Connection getConnection() throws java.sql.SQLException;
@@ -114,7 +116,6 @@ public interface DriverProvider
     // DataBaseMetadata cache data
     public boolean supportsTransactions();
     public boolean isCatalogAtStart();
-    public boolean isResultSetUpdatable();
     public String getCatalogSeparator();
     public String getIdentifierQuoteString();
 

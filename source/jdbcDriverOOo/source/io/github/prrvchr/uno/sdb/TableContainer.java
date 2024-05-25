@@ -40,7 +40,7 @@ import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 
 
 public final class TableContainer
-    extends TableContainerSuper<Table, Connection>
+    extends TableContainerSuper< Connection, Table>
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Tables",

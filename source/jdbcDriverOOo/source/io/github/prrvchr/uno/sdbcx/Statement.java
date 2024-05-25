@@ -25,54 +25,27 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
-import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
 public final class Statement
-    extends StatementBase<ConnectionSuper>
+    extends StatementSuper<Connection>
 {
     
     private static final String m_service = Statement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Statement",
                                                 "com.sun.star.sdbcx.Statement"};
-    protected boolean m_UseBookmarks = false;
 
     // The constructor method:
-    public Statement(ConnectionSuper connection)
+    public Statement(Connection connection)
     {
         super(m_service, m_services, connection);
-        registerProperties();
         System.out.println("sdbcx.Statement() 1");
-    }
-
-    private void registerProperties() {
-        registerProperty(PropertyIds.USEBOOKMARKS.name, PropertyIds.USEBOOKMARKS.id, Type.BOOLEAN,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdbcx.Statement._getUseBookmarks():" + m_UseBookmarks);
-                    return m_UseBookmarks;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    System.out.println("sdbcx.Statement._setUseBookmarks():" + (boolean) value);
-                    m_UseBookmarks = (boolean) value;
-                }
-            });
     }
 
     protected ConnectionLog getLogger()
@@ -81,25 +54,21 @@ public final class Statement
     }
 
     @Override
-    protected XResultSet getResultSet(java.sql.ResultSet result)
+    public XResultSet getResultSet()
     throws SQLException
     {
-        ResultSet resultset = null;
+        java.sql.ResultSet result = getJdbcResultSet();
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (result != null) {
-            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+        if (m_UseBookmarks) {
+            RowSet<Statement> rowset = new RowSet<Statement>(m_Connection, result, this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+            return rowset;
         }
-        return resultset;
+        else {
+            ResultSet<Statement> resultset =  new ResultSet<Statement>(m_Connection, result, this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            return resultset;
+        }
     }
-
-    @Override
-    protected java.sql.ResultSet getGeneratedResult(String command)
-        throws SQLException, java.sql.SQLException
-    {
-        // XXX: At this level of API (sdbcx or sdb) normally a ResultSet with all columns is already available... 
-        return getStatement().getGeneratedKeys();
-    }
-
 
 }

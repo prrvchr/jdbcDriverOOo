@@ -30,8 +30,8 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public final class ResultSet
-    extends ResultSetSuper<ConnectionSuper>
+public final class ResultSet<S extends StatementMain<?, ?>>
+    extends ResultSetSuper<ConnectionSuper, S>
 {
     private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet",
@@ -42,16 +42,15 @@ public final class ResultSet
                      java.sql.ResultSet resultset)
         throws SQLException
     {
-        this(connection, resultset, null, false);
+        this(connection, resultset, null);
     }
 
     public ResultSet(ConnectionSuper connection,
                      java.sql.ResultSet resultset,
-                     StatementMain<?,?> statement,
-                     boolean bookmark)
+                     S statement)
         throws SQLException
     {
-        super(m_service, m_services, connection, resultset, statement, bookmark);
+        super(m_service, m_services, connection, resultset, statement, false, false);
         System.out.println("sdbcx.ResultSet() 1");
     }
 

@@ -43,7 +43,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class CallableStatementBase<C extends ConnectionBase>
-    extends PreparedStatementMain<java.sql.CallableStatement, C>
+    extends PreparedStatementMain<C, java.sql.CallableStatement>
     implements XOutParameters,
                XRow
 {
@@ -63,15 +63,14 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     }
 
     @Override
-    protected java.sql.CallableStatement getStatement()
+    protected java.sql.CallableStatement getJdbcStatement()
         throws SQLException
     {
         checkDisposed();
         if (m_Statement == null) {
             try {
                 java.sql.CallableStatement statement;
-                if (m_Connection.getProvider().isResultSetUpdatable() &&
-                   (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
+                if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
                     statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
                 } 
                 else {
@@ -93,7 +92,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            getStatement().registerOutParameter(index, type, scale);
+            getJdbcStatement().registerOutParameter(index, type, scale);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -105,7 +104,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            getStatement().registerOutParameter(index, type, name);
+            getJdbcStatement().registerOutParameter(index, type, name);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -119,7 +118,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Array array = getStatement().getArray(index);
+            java.sql.Array array = getJdbcStatement().getArray(index);
             return (array != null) ? new Array(m_Connection, array) : null;
         }
         catch (java.sql.SQLException e) {
@@ -139,7 +138,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Blob blob = getStatement().getBlob(index);
+            java.sql.Blob blob = getJdbcStatement().getBlob(index);
             return (blob != null) ? new Blob(m_Connection, blob) : null;
         }
         catch (java.sql.SQLException e) {
@@ -152,7 +151,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getBoolean(index);
+            return getJdbcStatement().getBoolean(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -164,7 +163,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getByte(index);
+            return getJdbcStatement().getByte(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -176,7 +175,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-           return getStatement().getBytes(index);
+           return getJdbcStatement().getBytes(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -195,7 +194,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Clob clob = getStatement().getClob(index);
+            java.sql.Clob clob = getJdbcStatement().getClob(index);
             return (clob != null) ? new Clob(m_Connection, clob) : null;
         }
         catch (java.sql.SQLException e) {
@@ -208,7 +207,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Date value = getStatement().getDate(index);
+            java.sql.Date value = getJdbcStatement().getDate(index);
             return (value != null) ? UnoHelper.getUnoDate(value.toLocalDate()) : new Date();
         }
         catch (java.sql.SQLException e) {
@@ -221,7 +220,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getDouble(index);
+            return getJdbcStatement().getDouble(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -233,7 +232,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getFloat(index);
+            return getJdbcStatement().getFloat(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -245,7 +244,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getInt(index);
+            return getJdbcStatement().getInt(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -257,7 +256,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getLong(index);
+            return getJdbcStatement().getLong(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -268,7 +267,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     public Object getObject(int index, XNameAccess map) throws SQLException
     {
         try {
-            return DBTools.getObject(getStatement().getObject(index), map);
+            return DBTools.getObject(getJdbcStatement().getObject(index), map);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getLoggedSQLException(this, m_logger, e);
@@ -280,7 +279,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Ref ref = getStatement().getRef(index);
+            java.sql.Ref ref = getJdbcStatement().getRef(index);
             return ref != null ? new Ref(ref) : null;
         }
         catch (java.sql.SQLException e) {
@@ -293,7 +292,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().getShort(index);
+            return getJdbcStatement().getShort(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -305,7 +304,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            String value = getStatement().getString(index);
+            String value = getJdbcStatement().getString(index);
             return (value != null) ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -318,7 +317,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Time value = getStatement().getTime(index);
+            java.sql.Time value = getJdbcStatement().getTime(index);
             return (value != null) ? UnoHelper.getUnoTime(value.toLocalTime()) : new Time();
         }
         catch (java.sql.SQLException e) {
@@ -331,7 +330,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            java.sql.Timestamp value = getStatement().getTimestamp(index);
+            java.sql.Timestamp value = getJdbcStatement().getTimestamp(index);
             return (value != null) ? UnoHelper.getUnoDateTime(value.toLocalDateTime()) : new DateTime();
         }
         catch (java.sql.SQLException e) {
@@ -344,7 +343,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     {
         try
         {
-            return getStatement().wasNull();
+            return getJdbcStatement().wasNull();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

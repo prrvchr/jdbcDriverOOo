@@ -41,10 +41,11 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementBase<C extends ConnectionBase>
-    extends StatementMain<java.sql.Statement, C>
+    extends StatementMain<C, java.sql.Statement>
     implements XBatchExecution,
                XStatement
 {
@@ -59,6 +60,18 @@ public abstract class StatementBase<C extends ConnectionBase>
         super(service, services, connection);
         registerProperties();
     }
+
+   @Override
+   protected java.sql.ResultSet getJdbcResultSet()
+       throws SQLException
+   {
+       try {
+           return getJdbcStatement().executeQuery(m_Sql);
+       }
+       catch (java.sql.SQLException e) {
+           throw UnoHelper.getSQLException(e, this);
+       }
+   }
 
     private void registerProperties() {
         registerProperty(PropertyIds.ESCAPEPROCESSING.name, PropertyIds.ESCAPEPROCESSING.id, Type.BOOLEAN,
@@ -104,15 +117,14 @@ public abstract class StatementBase<C extends ConnectionBase>
     }
 
     @Override
-    protected java.sql.Statement getStatement()
+    protected java.sql.Statement getJdbcStatement()
         throws SQLException
     {
         checkDisposed();
         if (m_Statement == null) {
             try {
                 java.sql.Statement statement;
-                if (m_Connection.getProvider().isResultSetUpdatable() &&
-                   (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY)) {
+                if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
                     statement = m_Connection.getProvider().getConnection().createStatement(m_ResultSetType, m_ResultSetConcurrency);
                 } 
                 else {
@@ -133,7 +145,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         throws SQLException
     {
         try {
-            getStatement().addBatch(sql);
+            getJdbcStatement().addBatch(sql);
         }
         catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -145,7 +157,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         throws SQLException
     {
         try {
-            getStatement().clearBatch();
+            getJdbcStatement().clearBatch();
         }
         catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -156,7 +168,7 @@ public abstract class StatementBase<C extends ConnectionBase>
     public int[] executeBatch()
         throws SQLException {
         try {
-            return getStatement().executeBatch();
+            return getJdbcStatement().executeBatch();
         }
         catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -172,7 +184,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         try {
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE, sql);
             m_Sql = sql;
-            return getStatement().execute(sql);
+            return getJdbcStatement().execute(sql);
         }
         catch (java.sql.SQLException e) {
             e.printStackTrace();
@@ -184,15 +196,9 @@ public abstract class StatementBase<C extends ConnectionBase>
     public XResultSet executeQuery(String sql)
         throws SQLException
     {
-        try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
-            m_Sql = sql;
-            java.sql.ResultSet resultset = getStatement().executeQuery(sql);
-            return getResultSet(resultset);
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-        }
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
+        m_Sql = sql;
+        return getResultSet();
     }
 
     @Override
@@ -202,7 +208,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         try {
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_UPDATE, sql);
             m_Sql = sql;
-            return getStatement().executeUpdate(sql);
+            return getJdbcStatement().executeUpdate(sql);
         }
         catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);

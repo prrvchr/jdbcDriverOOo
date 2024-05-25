@@ -96,15 +96,18 @@ public class DBColumnHelper
         {
             while (result.next()) {
                 ColumnDescription description = new ColumnDescription();
-                description.columnName = result.getString(4);
-                description.type = provider.getDataType(result.getInt(5));
-                description.typeName = result.getString(6);
-                int ivalue = result.getInt(7);
+                String svalue = result.getString(4);
+                description.columnName = result.wasNull() ? "" : svalue;
+                int ivalue = result.getInt(5);
+                description.type = provider.getDataType(result.wasNull() ? 0 : ivalue);
+                svalue = result.getString(6);
+                description.typeName = result.wasNull() ? "" : svalue;
+                ivalue = result.getInt(7);
                 description.columnSize = result.wasNull() ? 0 : ivalue;
                 ivalue = result.getInt(9);
                 description.decimalDigits = result.wasNull() ? 0 : ivalue;
                 description.nullable = result.getInt(11);
-                String svalue = result.getString(12);
+                svalue = result.getString(12);
                 description.remarks = result.wasNull() ? "" : svalue;
                 svalue = result.getString(13);
                 description.defaultValue = result.wasNull() ? "" : svalue;

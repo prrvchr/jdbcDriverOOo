@@ -39,7 +39,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
-public abstract class TableContainerMain<T extends TableMain<?>, C extends ConnectionSuper>
+public abstract class TableContainerMain<C extends ConnectionSuper, T extends TableMain<?>>
     extends Container<T>
 {
     protected final C m_Connection;

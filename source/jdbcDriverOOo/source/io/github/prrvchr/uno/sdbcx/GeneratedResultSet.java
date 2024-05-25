@@ -47,7 +47,7 @@ public final class GeneratedResultSet
         throws SQLException
     {
         //statement.checkDisposed();
-        ResultSetSuper<?> resultset = null;
+        ResultSet<PreparedStatement> resultset = null;
         java.sql.ResultSet result;
         try {
             if (connection.supportsService("com.sun.star.sdbcx.Connection")) {
@@ -59,7 +59,7 @@ public final class GeneratedResultSet
                 result = statement.executeQuery(query);
             }
             logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            resultset = new ResultSet(connection, result);
+            resultset = new ResultSet<PreparedStatement>(connection, result);
             logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
             logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, DBTools.getGeneratedColumnNames(result, count));

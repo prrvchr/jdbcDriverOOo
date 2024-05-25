@@ -54,7 +54,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class StatementMain<S extends java.sql.Statement, C extends ConnectionBase>
+public abstract class StatementMain<C extends ConnectionBase, S extends java.sql.Statement>
     extends PropertySet
     implements XServiceInfo,
                XWarningsSupplier,
@@ -218,9 +218,8 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
             });
     }
 
-
-    protected abstract S getStatement() throws SQLException;
-    protected abstract XResultSet getResultSet(java.sql.ResultSet resultset) throws SQLException;
+    abstract protected S getJdbcStatement() throws SQLException;
+    abstract protected java.sql.ResultSet getJdbcResultSet() throws SQLException;
 
     protected S setStatement(S statement)
         throws java.sql.SQLException
@@ -471,7 +470,7 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     public void cancel()
     {
         try {
-            getStatement().cancel();
+            getJdbcStatement().cancel();
         }
         catch (SQLException | java.sql.SQLException e) {
             System.out.println("StatementMain.cancel() ERROR");
@@ -484,12 +483,12 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     public XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
-        ResultSet resultset = null;
+        ResultSet<PreparedStatement> resultset = null;
         try {
             String command = m_Connection.getProvider().getAutoRetrievingStatement();
             java.sql.ResultSet result = getGeneratedResult(command);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            resultset = new ResultSet(getConnectionInternal(), result);
+            resultset = new ResultSet<PreparedStatement>(getConnectionInternal(), result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, getColumnNames(result, count));
@@ -504,7 +503,7 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     protected java.sql.ResultSet getGeneratedResult(String command)
         throws SQLException, java.sql.SQLException
     {
-        return DBTools.getGeneratedResult(m_Connection.getProvider(), getStatement(),
+        return DBTools.getGeneratedResult(m_Connection.getProvider(), getJdbcStatement(),
                                           getGeneratedStatement(), getLogger(),
                                           this.getClass().getName(), "getGeneratedValues",
                                           command, m_Sql);
@@ -527,7 +526,7 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     public boolean getMoreResults() throws SQLException
     {
         try {
-            return getStatement().getMoreResults();
+            return getJdbcStatement().getMoreResults();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -535,21 +534,13 @@ public abstract class StatementMain<S extends java.sql.Statement, C extends Conn
     }
 
     @Override
-    public XResultSet getResultSet() throws SQLException
-    {
-        try {
-            return getResultSet(getStatement().getResultSet());
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-    }
+    public abstract XResultSet getResultSet() throws SQLException;
 
     @Override
     public int getUpdateCount() throws SQLException
     {
         try {
-            return getStatement().getUpdateCount();
+            return getJdbcStatement().getUpdateCount();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

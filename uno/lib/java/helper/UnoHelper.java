@@ -931,4 +931,28 @@ public class UnoHelper
         return option;
     }
 
+    public static String getCaller()
+    {
+        StackWalker stackWalker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+        StackWalker.StackFrame frame = stackWalker.walk(stream1 -> stream1.skip(2)
+                                                                          .findFirst()
+                                                                          .orElse(null));
+        if (frame == null) {
+            return "caller: null";
+        }
+        return String.format("caller: %s#%s, %s",
+                             frame.getClassName(),
+                             frame.getMethodName(),
+                             frame.getLineNumber());
+    }
+
+    public static void printStackTrace()
+    {
+        Thread thread = Thread.currentThread();
+        StackTraceElement[] stackTrace = thread.getStackTrace();
+        for (int i = 1; i < stackTrace.length; i++) {
+             System.out.println(stackTrace[i].getClassName() + " " + stackTrace[i].getMethodName() + " " + stackTrace[i].getLineNumber());
+        }
+    }
+
 }

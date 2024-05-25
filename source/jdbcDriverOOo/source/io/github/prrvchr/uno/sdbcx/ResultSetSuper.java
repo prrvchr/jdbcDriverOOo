@@ -25,56 +25,41 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.CompareBookmark;
-import com.sun.star.sdbcx.XDeleteRows;
-import com.sun.star.sdbcx.XRowLocate;
-import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Type;
-import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public abstract class ResultSetSuper<C extends ConnectionSuper>
-    extends ResultSetBase<C>
-    implements XRowLocate,
-               XDeleteRows,
-               XCancellable
+public abstract class ResultSetSuper<C extends ConnectionSuper, S extends StatementMain<?, ?>>
+    extends ResultSetBase<C, S>
 {
     private boolean m_IsBookmarkable = false;
-    private final boolean m_CanUpdateInsertedRows = false;
+    private boolean m_CanUpdateInsertedRows = false;
     
     // The constructor method:
     public ResultSetSuper(String service,
                           String[] services,
                           C connection,
                           java.sql.ResultSet resultset,
-                          StatementMain<?,?> statement,
-                          boolean bookmark)
+                          S statement,
+                          boolean bookmark,
+                          boolean updatable)
     throws SQLException
     {
         super(service, services, connection, resultset, statement);
         m_IsBookmarkable = bookmark;
+        m_CanUpdateInsertedRows = updatable;
         registerProperties();
-        try {
-            System.out.println("sdbcx.ResultSetSuper() 1 Holdability: " + connection.getProvider().getConnection().getHoldability() + " - Bookmark: " + m_IsBookmarkable);
-        } catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
     private void registerProperties() {
@@ -98,122 +83,11 @@ public abstract class ResultSetSuper<C extends ConnectionSuper>
             }, null);
     }
 
-    // com.sun.star.sdbcx.XRowLocate:
     @Override
-    public int compareBookmarks(Object object1, Object object2)
-    throws SQLException
+    protected java.sql.ResultSet getJdbcResultSet()
+        throws SQLException
     {
-        int compare = CompareBookmark.NOT_COMPARABLE;
-        int bookmark1 = 0, bookmark2 = 0;
-        try {
-            bookmark1 = AnyConverter.toInt(object1);
-            bookmark2 = AnyConverter.toInt(object2);
-        }
-        catch (IllegalArgumentException e) { }
-        if (bookmark1 != 0 && bookmark2 != 0) {
-            if (bookmark1 < bookmark2) {
-                compare = CompareBookmark.LESS;
-            }
-            else if (bookmark1 > bookmark2) {
-                compare = CompareBookmark.GREATER;
-            }
-            else {
-                compare = CompareBookmark.EQUAL;
-            }
-        }
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
-        return compare;
-    }
-
-    @Override
-    public Object getBookmark()
-    throws SQLException
-    {
-        int row = getRow();
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, Integer.toString(row));
-        return row;
-    }
-
-    @Override
-    public boolean hasOrderedBookmarks()
-    throws SQLException
-    {
-        return true;
-    }
-
-    @Override
-    public int hashBookmark(Object object)
-    throws SQLException
-    {
-        int bookmark;
-        try {
-            bookmark = AnyConverter.toInt(object);
-        }
-        catch (IllegalArgumentException e) {
-            throw new SQLException("Bad bookmark", this, StandardSQLState.SQL_INVALID_BOOKMARK_VALUE.text(), 0, null);
-        }
-        return bookmark;
-    }
-
-    @Override
-    public boolean moveRelativeToBookmark(Object object, int count)
-    throws SQLException
-    {
-        boolean moved = false;
-        try {
-            if (moveToBookmark(object)) {
-                moved = relative(count);
-            }
-            int bookmark = AnyConverter.toInt(object);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(bookmark), Boolean.toString(moved));
-        }
-        catch (IllegalArgumentException e) { }
-        return moved;
-    }
-
-    @Override
-    public boolean moveToBookmark(Object object)
-    throws SQLException
-    {
-        boolean moved = false;
-        try {
-            int bookmark = AnyConverter.toInt(object);
-            moved = absolute(bookmark);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_BOOKMARK, Integer.toString(bookmark), Boolean.toString(moved));
-        }
-        catch (IllegalArgumentException e) { }
-        return moved;
-    }
-
-
-    // com.sun.star.sdbcx.XDeleteRows:
-    @Override
-    public int[] deleteRows(Object[] bookmarks)
-    throws SQLException
-    {
-        List<Integer> rows = new ArrayList<Integer>();
-        for (Object bookmark: bookmarks) {
-            if (moveToBookmark(bookmark)) {
-                deleteRow();
-                rows.add(1);
-            }
-            else {
-                rows.add(0);
-            }
-        }
-        return rows.stream().mapToInt(Integer::intValue).toArray();
-    }
-
-    // com.sun.star.util.XCancellable:
-    @Override
-    public void cancel() {
-        try {
-            m_ResultSet.cancelRowUpdates();
-        }
-        catch (java.sql.SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        return super.getJdbcResultSet();
     }
 
     @Override

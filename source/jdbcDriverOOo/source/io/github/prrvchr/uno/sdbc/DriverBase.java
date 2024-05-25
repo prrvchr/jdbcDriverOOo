@@ -302,8 +302,10 @@ public abstract class DriverBase
         java.sql.Driver driver = null;
         boolean registered = false;
         try {
+            System.out.println("sdbc.DriverBase._registerDriver 1 : " + name);
             // XXX: Pick your JDBC driver at runtime: https://www.kfu.com/~nsayer/Java/dyn-jdbc.html
-            Class<?> clazz = Class.forName(name, true, new URLClassLoader(new URL[] {url}, DriverBase.class.getClassLoader()));
+            URLClassLoader loader = new URLClassLoader(new URL[] {url}, DriverBase.class.getClassLoader());
+            Class<?> clazz = Class.forName(name, true, loader);
             driver = new DriverWrapper((java.sql.Driver) clazz.getDeclaredConstructor().newInstance());
         }
         catch(ClassNotFoundException | NoSuchMethodException |
@@ -313,7 +315,7 @@ public abstract class DriverBase
         try {
             DriverManager.registerDriver(driver);
             registered = true;
-            System.out.println("sdbc.DriverBase._registerDriver: " + name);
+            System.out.println("sdbc.DriverBase._registerDriver 2 : " + name);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

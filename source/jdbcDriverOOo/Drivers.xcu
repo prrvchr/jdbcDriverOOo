@@ -638,7 +638,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/mariadb-java-client-3.3.3.jar</value>
+                        <value>%origin%/driver/mariadb-java-client-3.4.0.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -674,6 +674,146 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="DropIndexCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>DROP INDEX {1} ON {0}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">ALTER VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreCurrency" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT VIEW_DEFINITION, CHECK_OPTION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?|13</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameTableCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">RENAME TABLE {0} TO {7}|</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} RENAME COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterUserCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SET PASSWORD FOR {0} = PASSWORD({1})</value>
+                    </prop>
+                </node>
+                <node oor:name="CreateUserCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>CREATE USER {0} IDENTIFIED BY {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT user FROM mysql.user WHERE is_role = 'N'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT user FROM mysql.user WHERE is_role = 'Y'</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                    <!-- XXX: We use recursion to find privileges inherited from roles.
+                         XXX: We need to filter recursive entries (even role and user) -->
+                        <value>SELECT r.role FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.role = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.user = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'N' WHERE r.user != r.role AND r.role = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.role = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT CASE WHEN LOCATE('Select', Table_priv) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('Insert', Table_priv) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('Update', Table_priv) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('Delete', Table_priv) != 0 AND (LOCATE('Delete', Table_priv) != LOCATE('Delete versioning rows', Table_priv) OR LOCATE('Delete versioning rows', Table_priv) = 0) THEN 8 ELSE 0 END, CASE WHEN LOCATE('Delete versioning rows', Table_priv) = 0 THEN 0 ELSE 32 END, CASE WHEN LOCATE('Alter', Table_priv) = 0 THEN 0 ELSE 64 END, CASE WHEN LOCATE('Index', Table_priv) = 0 THEN 0 ELSE 128 END, CASE WHEN LOCATE('Drop', Table_priv) = 0 THEN 0 ELSE 256 END, CASE WHEN LOCATE('Trigger', Table_priv) = 0 THEN 0 ELSE 512 END FROM mysql.tables_priv WHERE User = ? AND Db = ? AND Table_name = ?|013</value>
+                    </prop>
+                </node>
+            </node>
+        </node>
+
+<!-- MySQL Driver ******************************************************************************** -->
+
+        <node oor:name="xdbc:mysql:*" oor:op="replace">
+            <prop oor:name="ParentURLPattern">
+                <value>xdbc:*</value>
+            </prop>
+            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+                <value xml:lang="en-US">MySQL Driver</value>
+                <value xml:lang="fr-FR">Pilote MySQL</value>
+            </prop>
+
+            <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
+                    </prop>
+                </node>
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClassPath" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>%origin%/driver/mysql-connector-j-8.4.0.jar</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClass" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>com.mysql.jdbc.Driver</value>
+                    </prop>
+                </node>
+                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoIncrementCreation" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>AUTO_INCREMENT</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoRetrievingStatement" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT * FROM {0} WHERE {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|DELETE HISTORY|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
+                    </prop>
+                </node>
+            </node>
+
+            <node oor:name="MetaData">
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="DropIndexCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>DROP INDEX {1} ON {0}</value>
@@ -1152,7 +1292,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/jaybird-5.0.5.java11.jar</value>
+                        <value>%origin%/driver/jaybird-6.0.0-20240512.161600-27.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1198,6 +1338,179 @@
                         <value>;</value>
                     </prop>
                 </node>
+                <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsColumnDescription" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="SupportsRenameView" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="AddColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ADD {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="DropColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} DROP {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="AddPrimaryKeyCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ADD CONSTRAINT {1} PRIMARY KEY ({2})</value>
+                    </prop>
+                </node>
+                <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+                    </prop>
+                </node>
+                <node oor:name="GrantRoleCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>GRANT {0} TO {1} {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="RevokeRoleCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} FROM {1} {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="GrantPrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>GRANT {0} ON {1} TO {2} {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RevokePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>REVOKE {0} ON {1} FROM {2} {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterViewCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">DROP VIEW {0}|CREATE VIEW {0} AS {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="ViewDefinitionCommands" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?|3</value>
+                    </prop>
+                </node>
+                <node oor:name="AlterColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {2} TYPE {3}</value>
+                    </prop>
+                </node>
+                <node oor:name="RenameColumnCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALTER TABLE {0} ALTER COLUMN {1} TO {2}</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT TRIM(SEC$USER_NAME) FROM SEC$USERS</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT TRIM(RDB$ROLE_NAME) FROM RDB$ROLES</value>
+                    </prop>
+                </node>
+                <node oor:name="GetUserGroupsCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT TRIM(P.RDB$RELATION_NAME) FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON TRIM(P.RDB$USER) = TRIM(U.SEC$USER_NAME) WHERE TRIM(P.RDB$PRIVILEGE) = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND TRIM(P.RDB$USER) = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupUsersCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN SEC$USERS AS U ON TRIM(P.RDB$USER) = TRIM(U.SEC$USER_NAME) WHERE TRIM(P.RDB$PRIVILEGE) = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND TRIM(P.RDB$RELATION_NAME) = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="GetGroupRolesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT TRIM(P.RDB$USER) FROM RDB$USER_PRIVILEGES AS P INNER JOIN RDB$ROLES AS R ON TRIM(P.RDB$USER) = TRIM(R.RDB$ROLE_NAME) WHERE TRIM(P.RDB$PRIVILEGE) = 'M' AND P.RDB$USER_TYPE = 8 AND P.RDB$OBJECT_TYPE = 13 AND TRIM(P.RDB$RELATION_NAME) = ?</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesCommand" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT CASE TRIM(RDB$PRIVILEGE) WHEN 'S' THEN 1 WHEN 'I' THEN 2 WHEN 'U' THEN 4 WHEN 'D' THEN 8 WHEN 'R' THEN 128 END FROM RDB$USER_PRIVILEGES WHERE RDB$OBJECT_TYPE = 0 AND TRIM(RDB$USER) = ? AND TRIM(RDB$RELATION_NAME) = ?|03</value>
+                    </prop>
+                </node>
+            </node>
+        </node>
+
+<!-- Trino Driver ******************************************************************************* -->
+
+        <node oor:name="xdbc:trino:*" oor:op="replace">
+            <prop oor:name="ParentURLPattern">
+                <value>xdbc:*</value>
+            </prop>
+            <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+                <value xml:lang="en-US">Trino Driver</value>
+                <value xml:lang="fr-FR">Pilote Trino</value>
+            </prop>
+
+            <node oor:name="Properties">
+                <node oor:name="TypeInfoSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">Column(1) = SMALLINT|Column(12) = 1|Column(1) = INTEGER|Column(12) = 1|Column(1) = BIGINT|Column(12) = 1</value>
+                    </prop>
+                </node>
+                <node oor:name="AddIndexAppendix" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClassPath" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>%origin%/driver/trino-jdbc-448.jar</value>
+                    </prop>
+                </node>
+                <node oor:name="JavaDriverClass" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>io.trino.jdbc.TrinoDriver</value>
+                    </prop>
+                </node>
+                <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoIncrementCreation" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>GENERATED BY DEFAULT AS IDENTITY</value>
+                    </prop>
+                </node>
+                <node oor:name="AutoRetrievingStatement" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>SELECT * FROM {0} WHERE {4}</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="IgnoreCurrency" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="TablePrivilegesSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
+                    </prop>
+                </node>
+            </node>
+
+            <node oor:name="MetaData">
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>

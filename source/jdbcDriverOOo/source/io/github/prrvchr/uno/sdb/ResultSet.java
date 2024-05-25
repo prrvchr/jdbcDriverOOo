@@ -29,13 +29,13 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public final class ResultSet
-    extends ResultSetSuper<Connection>
+public final class ResultSet<S extends StatementMain<?, ?>>
+    extends ResultSetSuper<Connection, S>
     implements XColumnsSupplier
 {
     private static final String m_service = ResultSet.class.getName();
@@ -47,11 +47,10 @@ public final class ResultSet
     // The constructor method:
     public ResultSet(Connection connection,
                      java.sql.ResultSet resultset,
-                     StatementMain<?,?> statement,
-                     boolean bookmark)
+                     S statement)
     throws SQLException
     {
-        super(m_service, m_services, connection, resultset, statement, bookmark);
+        super(m_service, m_services, connection, resultset, statement, false, false);
         System.out.println("sdb.ResultSet() 1");
     }
 
@@ -68,7 +67,7 @@ public final class ResultSet
         System.out.println("sdb.ResultSet.getColumns() 1 *********************************************");
         /*XNameAccess columns = null;
         try {
-            columns = new ColumnContainer((Connection) m_Connection, m_ResultSet);
+            columns = new ColumnContainer((Connection) m_Connection, m_Result);
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdb.ResultSet.getColumns() ERROR *****************************************");

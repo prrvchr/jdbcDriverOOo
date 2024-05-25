@@ -77,17 +77,22 @@ public final class PreparedStatement
     }
 
     @Override
-    protected XResultSet getResultSet(java.sql.ResultSet result)
+    public XResultSet getResultSet()
         throws SQLException
     {
         System.out.println("sdb.PreparedStatement._getResultSet()");
-        ResultSet resultset = null;
-        if (result != null) {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            resultset =  new ResultSet(getConnectionInternal(), result, this, m_UseBookmarks);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+        java.sql.ResultSet result = getJdbcResultSet();
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+        if (m_UseBookmarks) {
+            RowSet<PreparedStatement> rowset = new RowSet<PreparedStatement>(m_Connection, result, this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+            return rowset;
         }
-        return resultset;
+        else {
+            ResultSet<PreparedStatement> resultset =  new ResultSet<PreparedStatement>(getConnectionInternal(), result, this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            return resultset;
+        }
     }
 
 }

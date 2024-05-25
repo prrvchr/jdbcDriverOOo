@@ -41,6 +41,7 @@ import com.sun.star.sdb.XSQLQueryComposer;
 import com.sun.star.sdb.XSQLQueryComposerFactory;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
+import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.Exception;
@@ -216,6 +217,15 @@ public final class Connection
             refreshUsers();
         }
         return m_Users;
+    }
+
+    protected XStatement _getStatement()
+    {
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        Statement statement = new Statement(this);
+        getStatements().put(statement, statement);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        return statement;
     }
 
     @Override

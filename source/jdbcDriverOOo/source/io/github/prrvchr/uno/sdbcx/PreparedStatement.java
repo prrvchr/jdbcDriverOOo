@@ -48,16 +48,21 @@ public final class PreparedStatement
     }
 
     @Override
-    protected XResultSet getResultSet(java.sql.ResultSet result)
+    public XResultSet getResultSet()
         throws SQLException
     {
-        ResultSet resultset = null;
+        java.sql.ResultSet result = getJdbcResultSet();
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (result != null) {
-            resultset =  new ResultSet(m_Connection, result, this, m_UseBookmarks);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+        if (m_UseBookmarks) {
+            RowSet<PreparedStatement> rowset = new RowSet<PreparedStatement>(m_Connection, result, this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+            return rowset;
         }
-        return resultset;
+        else {
+            ResultSet<PreparedStatement> resultset =  new ResultSet<PreparedStatement>(m_Connection, result, this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            return resultset;
+        }
     }
 
 

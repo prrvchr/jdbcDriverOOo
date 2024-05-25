@@ -32,6 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
+import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
@@ -63,6 +64,15 @@ public final class Connection
     {
         super(ctx, m_service, m_services, provider, url, info);
         System.out.println("sdbcx.Connection() *************************");
+    }
+
+    protected XStatement _getStatement()
+    {
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
+        Statement statement = new Statement(this);
+        getStatements().put(statement, statement);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        return statement;
     }
 
     @Override

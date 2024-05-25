@@ -63,7 +63,6 @@ public abstract class ColumnDescriptorBase
                 @Override
                 public Object getValue() {
                     return m_Type;
-                    
                 }
             },
             new PropertySetter() {

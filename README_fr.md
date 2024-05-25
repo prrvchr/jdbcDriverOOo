@@ -36,23 +36,25 @@
 **jdbcDriverOOo** fait partie d'une [Suite][6] d'extensions [LibreOffice][7] ~~et/ou [OpenOffice][8]~~ permettant de vous offrir des services inovants dans ces suites bureautique.  
 
 Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l'API [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] et [com.sun.star.sdb][12] de UNO.
-Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.  
+**Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.**  
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][13] version 2.7.2
 - [SQLite via xerial sqlite-jdbc][14] version 3.45.1.6-SNAPSHOT
-- [MariaDB via Connector/J][15] version 3.3.3
+- [MariaDB via Connector/J][15] version 3.4.0
 - [PostgreSQL via pgJDBC][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [Firebird via Jaybird][19] version 5.0.4
+- [Firebird via Jaybird][19] version 6.0.0-20240512.161600-27
+- [MySQL via Connector/J][20] version 8.4.0
+- [Trino ou PrestoSQL][21] version 448
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite ou Derby, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
-Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][20]
+Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
 
 Etant un logiciel libre je vous encourage:
-- A dupliquer son [code source][21].
+- A dupliquer son [code source][31].
 - A apporter des modifications, des corrections, des améliorations.
-- D'ouvrir un [dysfonctionnement][22] si nécessaire.
+- D'ouvrir un [dysfonctionnement][32] si nécessaire.
 
 Bref, à participer au developpement de cette extension.  
 Car c'est ensemble que nous pouvons rendre le Logiciel Libre plus intelligent.
@@ -62,14 +64,14 @@ ___
 ## Prérequis:
 
 jdbcDriverOOo est un pilote JDBC écrit en Java.  
-Son utilisation nécessite [l'installation et la configuration][23] dans LibreOffice d'un **JRE version 11 ou ultérieure**.  
-Je vous recommande [Adoptium][24] comme source d'installation de Java.
+Son utilisation nécessite [l'installation et la configuration][33] dans LibreOffice d'un **JRE version 11 ou ultérieure**.  
+Je vous recommande [Adoptium][34] comme source d'installation de Java.
 
-Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement #139538][25]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
+Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement #139538][35]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
 - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
 - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
 
-Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][26].  
+Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][36].  
 
 **Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
 Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
@@ -77,7 +79,7 @@ Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utili
 Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
 `pip install --upgrade <package-name>`
 
-Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][27].
+Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][37].
 
 ___
 
@@ -86,7 +88,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- ![jdbcDriverOOo logo][28] Installer l'extension **[jdbcDriverOOo.oxt][29]** [![Version][30]][29]
+- ![jdbcDriverOOo logo][38] Installer l'extension **[jdbcDriverOOo.oxt][39]** [![Version][40]][39]
 
 Redémarrez LibreOffice après l'installation.  
 **Attention, redémarrer LibreOffice peut ne pas suffire.**
@@ -105,14 +107,14 @@ Ce mode d'utilisation vous explique comment vous connecter avec les protocoles *
 
 Dans LibreOffice / OpenOffice aller au menu: **Fichier -> Nouveau -> Base de données**
 
-![jdbcDriverOOo screenshot 1][31]
+![jdbcDriverOOo screenshot 1][41]
 
 A l'étape: **Sélectionner une base de données**
 - selectionner: Connecter une base de données existante
 - choisir: **Pilote HsqlDB**
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 2][32]
+![jdbcDriverOOo screenshot 2][42]
 
 A l'étape: **Paramètres de connexion**
 
@@ -129,22 +131,22 @@ A l'étape: **Paramètres de connexion**
 
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 3][33]
+![jdbcDriverOOo screenshot 3][43]
 
 A l'étape: **Paramétrer l'authentification de l'utilisateur**
 - cliquer sur le bouton: Tester la connexion
 
-![jdbcDriverOOo screenshot 4][34]
+![jdbcDriverOOo screenshot 4][44]
 
 Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
-![jdbcDriverOOo screenshot 5][35]
+![jdbcDriverOOo screenshot 5][45]
 
 Maintenant à vous d'en profiter...
 
 ### Comment mettre à jour le pilote JDBC:
 
-Si vous souhaitez mettre à jour une base de données HsqlDB intégrée (un seul fichier odb), veuillez vous référer à la section: [Comment migrer une base de données intégrée][36].
+Si vous souhaitez mettre à jour une base de données HsqlDB intégrée (un seul fichier odb), veuillez vous référer à la section: [Comment migrer une base de données intégrée][46].
 
 Il est possible de mettre à jour le pilote JDBC (hsqldb.jar, h2.jar, derbytools.jar) vers une version plus récente.  
 Si vous utilisez HsqlDB comme base de données, procédez comme suit:
@@ -165,27 +167,27 @@ Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateur
 
 La gestion des utilisateurs de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des utilisateurs**
 
-![jdbcDriverOOo screenshot 6][37]
+![jdbcDriverOOo screenshot 6][47]
 
 La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**  
 Si le privilège est hérité d'un rôle assigné, la case à cocher est de type à trois états.
 
-![jdbcDriverOOo screenshot 7][38]
+![jdbcDriverOOo screenshot 7][48]
 
 ### La gestion des rôles (groupes) dans Base:
 
 La gestion des rôles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
 
-![jdbcDriverOOo screenshot 8][39]
+![jdbcDriverOOo screenshot 8][49]
 
 La gestion des utilisateurs membres du groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Utilisateurs du groupe**
 
-![jdbcDriverOOo screenshot 9][40]
+![jdbcDriverOOo screenshot 9][50]
 
 La gestion des roles assignés au groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Roles du groupe**  
 Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que si le pilote LibreOffice / OpenOffice sous jacent le permet.
 
-![jdbcDriverOOo screenshot 10][41]
+![jdbcDriverOOo screenshot 10][51]
 
 ___
 
@@ -217,7 +219,7 @@ ___
 * LibreOffice 6.4.4.2 - Windows 7 SP1
 
 Je vous encourage en cas de problème :confused:  
-de créer un [dysfonctionnement][22]  
+de créer un [dysfonctionnement][32]  
 J'essaierai de le résoudre :smile:
 
 ___
@@ -229,7 +231,7 @@ ___
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][42].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][52].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -253,7 +255,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 0.0.1:
 
-- La rédaction de ce pilote a été facilitée par une [discussion avec Villeroy][43], sur le forum OpenOffice, que je tiens à remercier, car la connaissance ne vaut que si elle est partagée...
+- La rédaction de ce pilote a été facilitée par une [discussion avec Villeroy][53], sur le forum OpenOffice, que je tiens à remercier, car la connaissance ne vaut que si elle est partagée...
 
 - Utilisation de la nouvelle version de HsqlDB 2.5.1.
 
@@ -267,7 +269,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 0.0.3:
 
-- Je tiens particulièrement à remercier fredt à [hsqldb.org][44] pour:
+- Je tiens particulièrement à remercier fredt à [hsqldb.org][54] pour:
 
     - Son accueil pour ce projet et sa permission d'utiliser le logo HsqlDB dans l'extension.
 
@@ -287,21 +289,21 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 0.0.4:
 
-- Réécriture de [Driver][45] en Java version 11 OpenJDK amd64 sous Eclipse IDE for Java Developers version 4.23.0 avec les plugins:
+- Réécriture de [Driver][55] en Java version 11 OpenJDK amd64 sous Eclipse IDE for Java Developers version 4.23.0 avec les plugins:
     - LOEclipse ou LibreOffice Eclipse plugin for extension development version 4.0.1.
     - PyDev ou Python IDE for Eclipse version 9.3.0.
 
-- Ecriture des services `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` de JDBC (merci à hanya pour [MRI][46] qui m'a été d'une aide précieuse...)
+- Ecriture des services `Statement`, `PreparedStatement`, `CallableStatement`, `ResultSet`, `...` de JDBC (merci à hanya pour [MRI][56] qui m'a été d'une aide précieuse...)
 
-    - [com.sun.star.sdb.*][47]
-    - [com.sun.star.sdbc.*][48]
-    - [com.sun.star.sdbcx.*][49]
+    - [com.sun.star.sdb.*][57]
+    - [com.sun.star.sdbc.*][58]
+    - [com.sun.star.sdbcx.*][59]
 
 - Intégration dans jdbcDriverOOo des pilotes JDBC **H2** et **Derby** en plus de **HsqlDB**. Implémentation de Services Java:
 
-    - [Driver-HsqlDB.jar][50]
-    - [Driver-H2.jar][51]
-    - [Driver-Derby.jar][52]
+    - [Driver-HsqlDB.jar][60]
+    - [Driver-H2.jar][61]
+    - [Driver-Derby.jar][62]
 
     Afin de corriger d'éventuels défauts, ou incompatibilité avec l'API UNO, des pilotes JDBC embarqués. 
 
@@ -309,19 +311,19 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Prise en charge dans Base des **clés primaires auto incrémentées** pour HsqlDB, H2 et Derby.
 
-- Ecriture de [com.sun.star.sdbcx.Driver][53]. Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
+- Ecriture de [com.sun.star.sdbcx.Driver][63]. Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
 
-- Implémentation d'un fournisseur de services Java [UnoLogger.jar][54] pour l'API [SLF4J][55] afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*][56].
+- Implémentation d'un fournisseur de services Java [UnoLogger.jar][64] pour l'API [SLF4J][65] afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*][66].
 
-- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options][57], accessible par le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre:
+- Réécriture, en suivant le modèle MVC, de la fenêtre des [Options][67], accessible par le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, pour permettre:
 
     - La mise à jour et/ou l'ajout d'archives Java de pilotes JDBC.
     - L'activation de la journalisation du pilote de la base de la données sous-jacente.
 
-- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration][58] des utilisateurs et des rôles (groupes) et de leurs privilèges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
+- Ecriture, en suivant le modèle MVC, des [fenêtres d'administration][68] des utilisateurs et des rôles (groupes) et de leurs privilèges associés, accessible dans Base par le menu: **Administration -> Gestion des utilisateurs** et/ou **Administration -> Gestion des groupes**, permettant:
 
-    - La [gestion des utilisateurs][59] et de leurs privilèges.
-    - La [gestion des rôles][60] (groupes) et de leurs privilèges.
+    - La [gestion des utilisateurs][69] et de leurs privilèges.
+    - La [gestion des rôles][70] (groupes) et de leurs privilèges.
 
     Ces nouvelles fonctionnalités n'ont étés testées pour l'instant qu'avec le pilote HsqlDB.
 
@@ -333,15 +335,15 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.0.1:
 
-- Intégration de [SQLite JDBC][14] version 3.42.0.0. Je tiens tout particulièrement à remercier [gotson][61] pour les [nombreuses améliorations apportées au pilote SQLite JDBC][62] qui ont rendu possible l'utilisation de SQLite dans LibreOffice/OpenOffice.
+- Intégration de [SQLite JDBC][14] version 3.42.0.0. Je tiens tout particulièrement à remercier [gotson][71] pour les [nombreuses améliorations apportées au pilote SQLite JDBC][72] qui ont rendu possible l'utilisation de SQLite dans LibreOffice/OpenOffice.
 
-- Ce pilote peut être enveloppé par un autre pilote ([HyperSQLOOo][26] ou [SQLiteOOo][63]) grâce à une url de connexion désormais modifiable.
+- Ce pilote peut être enveloppé par un autre pilote ([HyperSQLOOo][26] ou [SQLiteOOo][73]) grâce à une url de connexion désormais modifiable.
 
 - Il est possible d'afficher ou non les tables système dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Options du pilote UNO -> Afficher les tables système**
 
 - Il est possible d'interdire l'utilisation de jeux de résultats actualisables dans: **Outils -> Options -> Pilotes Base -> Pilote JDBC -> Options du pilote UNO -> Utiliser les bookmarks**
 
-- De nombreuses corrections ont été apportées afin de rendre l'extension [SQLiteOOo][63] fonctionnelle.
+- De nombreuses corrections ont été apportées afin de rendre l'extension [SQLiteOOo][73] fonctionnelle.
 
 ### Ce qui a été fait pour la version 1.0.2:
 
@@ -353,32 +355,32 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Intégration de [H2][17] version 2.2.220.
 
-- Intégration de la journalisation dans les jeux de résultat ([ResultSetBase][64] and [ResultSetSuper][65]) afin d'en savoir plus sur le [dysfonctionnement 156512][66].
+- Intégration de la journalisation dans les jeux de résultat ([ResultSetBase][74] and [ResultSetSuper][75]) afin d'en savoir plus sur le [dysfonctionnement 156512][76].
 
 - Beaucoup d'autres correctifs...
 
 ### Ce qui a été fait pour la version 1.0.4:
 
-- Support dans la création de tables du paramètre [TypeInfoSettings][67] permettant de récupérer la précision pour les types SQL:
+- Support dans la création de tables du paramètre [TypeInfoSettings][77] permettant de récupérer la précision pour les types SQL:
 
     - TIME
     - TIMESTAMP
     - TIME WITH TIME ZONE
     - TIMESTAMP WITH TIME ZONE
 
-    Ceci n'est [integré][68] que pour le pilote [HsqlDB][69] pour le moment.
+    Ceci n'est [integré][78] que pour le pilote [HsqlDB][79] pour le moment.
 
 ### Ce qui a été fait pour la version 1.0.5:
 
-- Le résultat de l'accès à la méthode [XDatabaseMetaData.getDriverVersion()][70] est désormais enregistré dans le fichier journal.
+- Le résultat de l'accès à la méthode [XDatabaseMetaData.getDriverVersion()][80] est désormais enregistré dans le fichier journal.
 
 ### Ce qui a été fait pour la version 1.0.6:
 
-- Ajout du paquet Python `packaging` dans le `pythonpath` de l'extension. Merci à [artem78][71] d'avoir permis cette correction en signalant cet oubli dans le [dysfonctionnement #4][72].
+- Ajout du paquet Python `packaging` dans le `pythonpath` de l'extension. Merci à [artem78][81] d'avoir permis cette correction en signalant cet oubli dans le [dysfonctionnement #4][82].
 
 ### Ce qui a été fait pour la version 1.0.7:
 
-- Désormais, le pilote lève une exception si la création d'une nouvelle table échoue. Ceci est pour répondre au [dysfonctionnement #1][73] sur l'extension [HyperSQLOOo][26].
+- Désormais, le pilote lève une exception si la création d'une nouvelle table échoue. Ceci est pour répondre au [dysfonctionnement #1][83] sur l'extension [HyperSQLOOo][26].
 
 ### Ce qui a été fait pour la version 1.0.8:
 
@@ -386,10 +388,10 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.1.0:
 
-- Tous les paquets Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][74] suivant la [PEP 508][75].
+- Tous les paquets Python nécessaires à l'extension sont désormais enregistrés dans un fichier [requirements.txt][84] suivant la [PEP 508][85].
 - Désormais si vous n'êtes pas sous Windows alors les paquets Python nécessaires à l'extension peuvent être facilement installés avec la commande:  
   `pip install requirements.txt`
-- Modification de la section [Prérequis][76].
+- Modification de la section [Prérequis][86].
 
 ### Ce qui a été fait pour la version 1.1.1:
 
@@ -397,8 +399,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.1.2:
 
-- Implementation de l'interface UNO [com.sun.star.sdbc.XGeneratedResultSet][77]. Cette interface permet, lors d'une insertion de plusieurs lignes (ie: `INSERT INTO matable (Colonne1, Colonne2) VALUES (valeur1, valeur2), (valeur1, valeur2), ...`) dans une table disposant d'une clé primaire auto-incrémentée, de récupérer un ensemble de résultats à partir des lignes insérées dans la table et vous donne donc accès aux clés générées automatiquement en un seul coup.
-- Implémentation de l'interface UNO [com.sun.star.sdbcx.XAlterTable][78]. Cette interface permet la modification des colonnes d'une table. Avec HsqlDB, il est maintenant possible dans Base:
+- Implementation de l'interface UNO [com.sun.star.sdbc.XGeneratedResultSet][87]. Cette interface permet, lors d'une insertion de plusieurs lignes (ie: `INSERT INTO matable (Colonne1, Colonne2) VALUES (valeur1, valeur2), (valeur1, valeur2), ...`) dans une table disposant d'une clé primaire auto-incrémentée, de récupérer un ensemble de résultats à partir des lignes insérées dans la table et vous donne donc accès aux clés générées automatiquement en un seul coup.
+- Implémentation de l'interface UNO [com.sun.star.sdbcx.XAlterTable][88]. Cette interface permet la modification des colonnes d'une table. Avec HsqlDB, il est maintenant possible dans Base:
   - D'attribuez une description aux colonnes des tables.
   - De modifier le type d'une colonne si le transtypage (CAST) des données contenues dans cette colonne le permet, sinon il vous sera proposé de remplacer cette colonne ce qui entraîne la suppression des données...
 - Toutes les commandes DDL (ie: `CREATE TABLE...`, `ALTER TABLE...`) générées par jdbcDriverOOo sont désormais enregistrées dans la journalisation.
@@ -407,15 +409,15 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 ### Ce qui a été fait pour la version 1.1.3:
 
-- Pilote SQLite mis à jour vers la dernière version [SQLite-jdbc-3.45.1.3-SNAPSHOT.jar][79]. Ce nouveau pilote a été implémenté pour supporter une partie des spécifications JDBC 4.1 et plus particulièrement l'interface `java.sql.Statement.getGeneratedKeys()` et permet l'utilisation de l'interface [com.sun.star.sdbc.XGeneratedResultSet][77].
+- Pilote SQLite mis à jour vers la dernière version [SQLite-jdbc-3.45.1.3-SNAPSHOT.jar][89]. Ce nouveau pilote a été implémenté pour supporter une partie des spécifications JDBC 4.1 et plus particulièrement l'interface `java.sql.Statement.getGeneratedKeys()` et permet l'utilisation de l'interface [com.sun.star.sdbc.XGeneratedResultSet][87].
 
 ### Ce qui a été fait pour la version 1.1.4:
 
-- Pilote SQLite mis à jour vers la dernière version [SQLite-jdbc-3.45.1.6-SNAPSHOT.jar][80].
-- Intégration du driver [PostgreSQL pgJDBC][16] version 42.7.1 dans l'archive de jdbcDriverOOo. Cette intégration a été réalisée sans utiliser de service Java spécifique à PostgreSQL mais uniquement en configurant le fichier [Drivers.xcu][81] permettant de déclarer le pilote JDBC à LibreOffice.
-- Ouverture d'un [dysfonctionnement][82] pour le pilote [MariaDB Connector/J][15] afin qu'il prenne en charge `java.sql.Statement.getGeneratedKeys()` comme demandé par JDBC 4.1.
+- Pilote SQLite mis à jour vers la dernière version [SQLite-jdbc-3.45.1.6-SNAPSHOT.jar][90].
+- Intégration du driver [PostgreSQL pgJDBC][16] version 42.7.1 dans l'archive de jdbcDriverOOo. Cette intégration a été réalisée sans utiliser de service Java spécifique à PostgreSQL mais uniquement en configurant le fichier [Drivers.xcu][91] permettant de déclarer le pilote JDBC à LibreOffice.
+- Ouverture d'un [dysfonctionnement][92] pour le pilote [MariaDB Connector/J][15] afin qu'il prenne en charge `java.sql.Statement.getGeneratedKeys()` comme demandé par JDBC 4.1.
 - Normalement les prochaines versions de jdbcDriverOOo devraient pouvoir être mises à jour dans la liste des extensions installées sous LibreOffice: **Outils -> Gestionnaire des extensions... -> Vérifier les mises à jour**.
-- Désormais, seul le pilote HsqlDB a accès dans Base à l'administration des droits des utilisateurs et des groupes. Ceci est déterminé par le paramètre `IgnoreDriverPrivileges` dans le fichier [Drivers.xcu][81].
+- Désormais, seul le pilote HsqlDB a accès dans Base à l'administration des droits des utilisateurs et des groupes. Ceci est déterminé par le paramètre `IgnoreDriverPrivileges` dans le fichier [Drivers.xcu][91].
 - De nombreuses améliorations.
 
 ### Ce qui a été fait pour la version 1.1.5:
@@ -434,7 +436,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Des fonctions intelligentes sont appelées pour:
   - Le déplacement avec renommage des tables, pour les drivers le permettant et utilisant deux commandes SQL, l'ordre des commandes SQL sera optimisé (PostgreSQL).
   - Le Renommage d'une vue, si le pilote ne le supporte pas, elle sera supprimée puis recréée (SQLite).
-- Utilisation de [classe générique Java][83] pour la gestion des conteneurs utilisés pour la gestion des [tables][84], des [vues][85], des [colonnes][86], des [clefs][87] et des [indexes][88]. L'utilisation de classes génériques dans les [conteneurs][89] permettra de se passer de l'interface UNO XPropertySet et de pouvoir retranscrire le code existant en Java pur.
+- Utilisation de [classe générique Java][93] pour la gestion des conteneurs utilisés pour la gestion des [tables][94], des [vues][95], des [colonnes][96], des [clefs][97] et des [indexes][98]. L'utilisation de classes génériques dans les [conteneurs][99] permettra de se passer de l'interface UNO XPropertySet et de pouvoir retranscrire le code existant en Java pur.
 - De nombreuses améliorations.
 
 ### Ce qui a été fait pour la version 1.2.1:
@@ -463,8 +465,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - Intégration de Jaybird 5.0.4 le pilote JDBC pour Firebird.
 - Vous pouvez désormais supprimer une clé primaire avec PostgreSQL.
 - L'ajout ou la suppression d'une clé primaire génère une erreur si le pilote sous-jacent ne le supporte pas (SQLite).
-- Lors de la [création d'une table][90] avec une clé primaire, si le pilote sous-jacent le prend en charge, la création de la clé primaire peut être effectuée par une commande DDL distincte. Cela permet à Jaybird de contourner le [dysfonctionnement #791][91] en créant une clé primaire nommée et permet de gérer des cas particuliers comme MariaDB ou SQLite pour leur gestion des auto-increments.
-- Si le pilote sous-jacent le permet, lors de [la modification des colonnes][92] d'une table vous pouvez désormais:
+- Lors de la [création d'une table][100] avec une clé primaire, si le pilote sous-jacent le prend en charge, la création de la clé primaire peut être effectuée par une commande DDL distincte. Cela permet à Jaybird de contourner le [dysfonctionnement #791][101] en créant une clé primaire nommée et permet de gérer des cas particuliers comme MariaDB ou SQLite pour leur gestion des auto-increments.
+- Si le pilote sous-jacent le permet, lors de [la modification des colonnes][102] d'une table vous pouvez désormais:
   - La déclarer en auto-incrément (Identity) sans qu'elle soit nécessairement la clé primaire.
   - Ajouter ou retirer la contrainte Identity (auto-incrément).
   - Ajouter des commentaires.
@@ -476,7 +478,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
   - Lorsque vous renommez une table, cela renommera également le référencement de cette table dans les éventuelles clés étrangères pointant vers cette table.
   - Lorsque vous renommez une colonne, cela renommera également le référencement de cette colonne dans les éventuelles clés étrangères pointant vers cette colonne.
   - Ces mises à jour de clés étrangères prennent en compte le chargement paresseux des conteneurs des tables et des clés et ne seront effectuées que si Base a déjà accédé aux données impliquées.
-  - Un problème persiste lors de la création de clés étrangères entre des tables qui n'ont pas le même catalogue et/ou schéma, voir [dysfonctionnement #160375][93]. Ce problème semble être lié à Base, j'espère qu'il sera résolu rapidement.
+  - Un problème persiste lors de la création de clés étrangères entre des tables qui n'ont pas le même catalogue et/ou schéma, voir [dysfonctionnement #160375][103]. Ce problème semble être lié à Base, j'espère qu'il sera résolu rapidement.
 - Meilleure gestion des exceptions avec la possibilité de connaître l'état, le code SQL et le message de l'exception qui a été générée par le pilote sous-jacent.
 - De nombreuses corrections et améliorations.
 
@@ -484,10 +486,10 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 
 ### Ce qui a été fait pour la version 1.3.1:
 
-- Correction de l'implémentation de l'interface [XRowLocate][94] responsable de la gestion des signets (Bookmark) dans les jeux de résultats (ResultSet). Cette nouvelle implémentation fonctionne avec tous les pilotes à l'exception de SQLite qui ne prend pas en charge la mise à jour des jeux de résultats. La présence de cette interface dans les jeux de résultats permet à Base d'éditer des tables même en l'absence de clé primaire. Avec certains pilotes (HsqlDB, H2 et Derby) le rafraîchissement en cours de saisie ne sera pas automatique et devra être fait manuellement. L'utilisation des signets peut être désactivée dans les options de l'extension.
-- Mise en place de [jeu de resultats simulé][95] (java.sql.ResultSet) permettant de produire des ResultSet à partir des données de connexion fourni par le pilote, plus exactement à partir du fichier [Drivers.xcu][81]. L'utilisation de ces resultset simulé permet de fournir à Base des resultset conforme à ce qu'il attend même si le pilote sous jancent n'est pas capable de les produire. Ils servent à patcher les résultats obtenus les méthodes `getTypeInfo()`, `getTableTypes` et `getTablePrivileges()` de l'interface java.sql.DatabaseMetaData en utilisant respectivement les propriétés `TypeInfoSettings`, `TableTypesSettings` et `TablePrivilegesSettings` du fichier [Drivers.xcu][81].
-- Ecriture d'un [conteneur spécifique][96] pour gérer les utilisateurs d'un rôle ou les rôles d'un rôle. Ce conteneur n'est qu'un pointeur vers les elements des conteneurs utilisateur et/ou role de la base de données. Lors de la suppression d'un utilisateur ou d'un rôle, ce conteneur sera mis à jour si nécessaire.
-- Réécriture des fenêtres **Administration des utilisateurs** et **Administration des groupes** accessibles dans le menu **Administration** de Base. Désormais, si la propriété `TablePrivilegesSettings` est fournie par le pilote sous-jacent, seuls les privilèges déclarés dans cette propriété seront affichés. Cela permet une utilisation plus facile. Une [demande d'amélioration #160516][97] a été faite afin d'intégrer cette fonctionalité dans le code de Base.
+- Correction de l'implémentation de l'interface [XRowLocate][104] responsable de la gestion des signets (Bookmark) dans les jeux de résultats (ResultSet). Cette nouvelle implémentation fonctionne avec tous les pilotes à l'exception de SQLite qui ne prend pas en charge la mise à jour des jeux de résultats. La présence de cette interface dans les jeux de résultats permet à Base d'éditer des tables même en l'absence de clé primaire. Avec certains pilotes (HsqlDB, H2 et Derby) le rafraîchissement en cours de saisie ne sera pas automatique et devra être fait manuellement. L'utilisation des signets peut être désactivée dans les options de l'extension.
+- Mise en place de [jeu de resultats simulé][105] (java.sql.ResultSet) permettant de produire des ResultSet à partir des données de connexion fourni par le pilote, plus exactement à partir du fichier [Drivers.xcu][91]. L'utilisation de ces resultset simulé permet de fournir à Base des resultset conforme à ce qu'il attend même si le pilote sous jancent n'est pas capable de les produire. Ils servent à patcher les résultats obtenus les méthodes `getTypeInfo()`, `getTableTypes` et `getTablePrivileges()` de l'interface java.sql.DatabaseMetaData en utilisant respectivement les propriétés `TypeInfoSettings`, `TableTypesSettings` et `TablePrivilegesSettings` du fichier [Drivers.xcu][91].
+- Ecriture d'un [conteneur spécifique][106] pour gérer les utilisateurs d'un rôle ou les rôles d'un rôle. Ce conteneur n'est qu'un pointeur vers les elements des conteneurs utilisateur et/ou role de la base de données. Lors de la suppression d'un utilisateur ou d'un rôle, ce conteneur sera mis à jour si nécessaire.
+- Réécriture des fenêtres **Administration des utilisateurs** et **Administration des groupes** accessibles dans le menu **Administration** de Base. Désormais, si la propriété `TablePrivilegesSettings` est fournie par le pilote sous-jacent, seuls les privilèges déclarés dans cette propriété seront affichés. Cela permet une utilisation plus facile. Une [demande d'amélioration #160516][107] a été faite afin d'intégrer cette fonctionalité dans le code de Base.
 - Intégration de tous les pilotes embarqués dans l'extension (hors SQLite) dans la gestion des utilisateurs, des rôles et des privilèges sur les tables et les vues. Je suppose que de nombreux dysfonctionnements restent à corriger, merci de me le faire savoir, détecter les dysfonctionnements me prend plus de temps que les corriger....
 - De nombreuses corrections et améliorations...
 
@@ -495,13 +497,13 @@ Normalement, je suis arrivé à couvrir toute l'étendue de l'API UNO ([com.sun.
 
 Désormais l'API UNO SDBCX peut être utilisée pour la création de bases de données, comme c'est le cas pour les dernières versions des extensions utilisant jdbcDriverOOo. Il est possible de créer des tables, grâce à l'API UNO, avec les caractéristiques suivantes:
 - Déclaration de colonnes de types TIMESTAMP WITH TIME ZONE, TIMESTAMP, TIME WITH TIME ZONE, TIME avec gestion de la précision (ie: de 0 à 9).
-- Déclaration de tables [temporelles versionnées par le système][98] (temporal system versioned tables). Ces types de tables sont utilisés dans les mêmes extensions pour faciliter la réplication des données.
-- Déclaration de tables au [format texte][99]. Ces tables vous permettent d'utiliser les données de fichiers au format csv.
+- Déclaration de tables [temporelles versionnées par le système][108] (temporal system versioned tables). Ces types de tables sont utilisés dans les mêmes extensions pour faciliter la réplication des données.
+- Déclaration de tables au [format texte][109]. Ces tables vous permettent d'utiliser les données de fichiers au format csv.
 - Déclaration des clés primaires, clés étrangères, index, utilisateurs, rôles et privilèges associés.
 
 L'utilisation de l'API UNO pour créer des bases de données vous permettra d'utiliser du code indépendant de la base de données sous-jacente.
 
-Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][100] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données lors de la première connexion.
+Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][110] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données lors de la première connexion.
 
 ### Que reste-t-il à faire pour la version 1.3.2:
 
@@ -528,84 +530,86 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [17]: <https://www.h2database.com/html/main.html>
 [18]: <https://db.apache.org/derby/>
 [19]: <https://firebirdsql.org/en/jdbc-driver/>
-[20]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#url-de-connexion>
-[21]: <https://github.com/prrvchr/jdbcDriverOOo/>
-[22]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
-[23]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
-[24]: <https://adoptium.net/releases.html?variant=openjdk11>
-[25]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[26]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
-[27]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
-[28]: <img/jdbcDriverOOo.svg#middle>
-[29]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[30]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.2#right>
-[31]: <img/jdbcDriverOOo-1_fr.png>
-[32]: <img/jdbcDriverOOo-2_fr.png>
-[33]: <img/jdbcDriverOOo-3_fr.png>
-[34]: <img/jdbcDriverOOo-4_fr.png>
-[35]: <img/jdbcDriverOOo-5_fr.png>
-[36]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-migrer-une-base-de-donn%C3%A9es-int%C3%A9gr%C3%A9e>
-[37]: <img/jdbcDriverOOo-6_fr.png>
-[38]: <img/jdbcDriverOOo-7_fr.png>
-[39]: <img/jdbcDriverOOo-8_fr.png>
-[40]: <img/jdbcDriverOOo-9_fr.png>
-[41]: <img/jdbcDriverOOo-10_fr.png>
-[42]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[43]: <https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912>
-[44]: <http://hsqldb.org/>
-[45]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/Driver.java>
-[46]: <https://github.com/hanya/MRI>
-[47]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdb>
-[48]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc>
-[49]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx>
-[50]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-HsqlDB/source/io/github/prrvchr/jdbcdriver/hsqldb>
-[51]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-H2/source/io/github/prrvchr/jdbcdriver/h2>
-[52]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-Derby/source/io/github/prrvchr/jdbcdriver/derby>
-[53]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java>
-[54]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging>
-[55]: <https://www.slf4j.org/>
-[56]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html>
-[57]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/options>
-[58]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
-[59]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
-[60]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
-[61]: <https://github.com/gotson>
-[62]: <https://github.com/xerial/sqlite-jdbc/issues/786>
-[63]: <https://prrvchr.github.io/SQLiteOOo/README_fr>
-[64]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetBase.java>
-[65]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetSuper.java>
-[66]: <https://bugs.documentfoundation.org/show_bug.cgi?id=156512>
-[67]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/JDBCConnectionProperties.html#TypeInfoSettings>
-[68]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/CustomTypeInfo.java>
-[69]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu#L332>
-[70]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DatabaseMetaDataBase.java#L444>
-[71]: <https://github.com/artem78>
-[72]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
-[73]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
-[74]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/requirements.txt>
-[75]: <https://peps.python.org/pep-0508/>
-[76]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
-[77]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/XGeneratedResultSet.html>
-[78]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XAlterTable.html>
-[79]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.3-SNAPSHOT.jar>
-[80]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.6-SNAPSHOT.jar>
-[81]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu>
-[82]: <https://jira.mariadb.org/browse/CONJ-1160>
-[83]: <https://fr.wikibooks.org/wiki/Programmation_Java/Types_g%C3%A9n%C3%A9riques>
-[84]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/TableContainerSuper.java>
-[85]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ViewContainer.java>
-[86]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ColumnContainerBase.java>
-[87]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
-[88]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
-[89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
-[90]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L178>
-[91]: <https://github.com/FirebirdSQL/jaybird/issues/791>
-[92]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L276>
-[93]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160375>
-[94]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XRowLocate.html>
-[95]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset>
-[96]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
-[97]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
-[98]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
-[99]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
-[100]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L367>
+[20]: <https://dev.mysql.com/downloads/connector/j/>
+[21]: <https://trino.io/docs/current/client/jdbc.html#installing>
+[30]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#url-de-connexion>
+[31]: <https://github.com/prrvchr/jdbcDriverOOo/>
+[32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
+[33]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
+[34]: <https://adoptium.net/releases.html?variant=openjdk11>
+[35]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
+[36]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
+[37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
+[38]: <img/jdbcDriverOOo.svg#middle>
+[39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.2#right>
+[41]: <img/jdbcDriverOOo-1_fr.png>
+[42]: <img/jdbcDriverOOo-2_fr.png>
+[43]: <img/jdbcDriverOOo-3_fr.png>
+[44]: <img/jdbcDriverOOo-4_fr.png>
+[45]: <img/jdbcDriverOOo-5_fr.png>
+[46]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-migrer-une-base-de-donn%C3%A9es-int%C3%A9gr%C3%A9e>
+[47]: <img/jdbcDriverOOo-6_fr.png>
+[48]: <img/jdbcDriverOOo-7_fr.png>
+[49]: <img/jdbcDriverOOo-8_fr.png>
+[50]: <img/jdbcDriverOOo-9_fr.png>
+[51]: <img/jdbcDriverOOo-10_fr.png>
+[52]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[53]: <https://forum.openoffice.org/en/forum/viewtopic.php?f=13&t=103912>
+[54]: <http://hsqldb.org/>
+[55]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/Driver.java>
+[56]: <https://github.com/hanya/MRI>
+[57]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdb>
+[58]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc>
+[59]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx>
+[60]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-HsqlDB/source/io/github/prrvchr/jdbcdriver/hsqldb>
+[61]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-H2/source/io/github/prrvchr/jdbcdriver/h2>
+[62]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/Driver-Derby/source/io/github/prrvchr/jdbcdriver/derby>
+[63]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Driver.java>
+[64]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/UnoLogger/source/io/github/prrvchr/uno/logging>
+[65]: <https://www.slf4j.org/>
+[66]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/logging/module-ix.html>
+[67]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/options>
+[68]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/admin>
+[69]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/user>
+[70]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/service/pythonpath/jdbcdriver/group>
+[71]: <https://github.com/gotson>
+[72]: <https://github.com/xerial/sqlite-jdbc/issues/786>
+[73]: <https://prrvchr.github.io/SQLiteOOo/README_fr>
+[74]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetBase.java>
+[75]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/ResultSetSuper.java>
+[76]: <https://bugs.documentfoundation.org/show_bug.cgi?id=156512>
+[77]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/JDBCConnectionProperties.html#TypeInfoSettings>
+[78]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/CustomTypeInfo.java>
+[79]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu#L332>
+[80]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DatabaseMetaDataBase.java#L444>
+[81]: <https://github.com/artem78>
+[82]: <https://github.com/prrvchr/jdbcDriverOOo/issues/4>
+[83]: <https://github.com/prrvchr/HyperSQLOOo/issues/1>
+[84]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/requirements.txt>
+[85]: <https://peps.python.org/pep-0508/>
+[86]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#pr%C3%A9requis>
+[87]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbc/XGeneratedResultSet.html>
+[88]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XAlterTable.html>
+[89]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.3-SNAPSHOT.jar>
+[90]: <https://github.com/prrvchr/sqlite-jdbc/releases/download/3.45.1.3-SNAPSHOT/sqlite-jdbc-3.45.1.6-SNAPSHOT.jar>
+[91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/Drivers.xcu>
+[92]: <https://jira.mariadb.org/browse/CONJ-1160>
+[93]: <https://fr.wikibooks.org/wiki/Programmation_Java/Types_g%C3%A9n%C3%A9riques>
+[94]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/TableContainerSuper.java>
+[95]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ViewContainer.java>
+[96]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ColumnContainerBase.java>
+[97]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/KeyContainer.java>
+[98]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/IndexContainer.java>
+[99]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/Container.java>
+[100]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L178>
+[101]: <https://github.com/FirebirdSQL/jaybird/issues/791>
+[102]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/DBTableHelper.java#L276>
+[103]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160375>
+[104]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/XRowLocate.html>
+[105]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset>
+[106]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
+[107]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
+[108]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
+[109]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
+[110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L367>

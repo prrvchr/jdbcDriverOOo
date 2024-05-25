@@ -79,6 +79,14 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
             });
     }
 
+    @Override
+    protected java.sql.ResultSet getJdbcResultSet()
+        throws SQLException
+    {
+        return super.getJdbcResultSet();
+    }
+
+    @Override
     protected ConnectionLog getLogger()
     {
         return super.getLogger();
@@ -89,7 +97,7 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
         throws SQLException, java.sql.SQLException
     {
         // XXX: At this level of API (sdbcx or sdb) normally a ResultSet with all columns is already available... 
-        return getStatement().getGeneratedKeys();
+        return getJdbcStatement().getGeneratedKeys();
     }
 
 }
