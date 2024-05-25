@@ -110,24 +110,20 @@ class DataBase():
     def createUser(self, name, password):
         return createUser(self.Connection, name, password, g_role)
 
-    def createSharedFolder(self, user, itemid, folder, media, datetime, timestamp):
+    def createSharedFolder(self, user, itemid, folder, media, timestamp, datetime):
         call = self._getCall('insertSharedFolder')
         call.setString(1, user.Id)
         call.setString(2, user.RootId)
-        call.setLong(3, 0)
-        call.setObject(4, datetime)
-        call.setString(5, itemid)
-        call.setString(6, folder)
-        call.setTimestamp(7, timestamp)
-        call.setTimestamp(8, timestamp)
-        call.setString(9, media)
-        call.setLong(10, 0)
-        call.setNull(11, VARCHAR)
-        call.setBoolean(12, False)
-        call.setBoolean(13, False)
-        call.setBoolean(14, False)
-        call.setBoolean(15, False)
-        call.setBoolean(16, False)
+        call.setString(3, itemid)
+        call.setString(4, folder)
+        call.setString(5, media)
+        call.setBoolean(6, False)
+        call.setBoolean(7, False)
+        call.setBoolean(8, False)
+        call.setBoolean(9, False)
+        call.setTimestamp(10, timestamp)
+        call.setTimestamp(11, timestamp)
+        call.setObject(12, datetime)
         call.executeUpdate()
         call.close()
 
@@ -180,7 +176,6 @@ class DataBase():
         return data
 
     def updateNewItemId(self, oldid, newid, created, modified):
-        print("DataBase.mergeNewFolder() 1 Item Id: %s - New Item Id: %s" % (oldid, newid))
         call = self._getCall('updateNewItemId')
         call.setString(1, oldid)
         call.setString(2, newid)
@@ -190,11 +185,11 @@ class DataBase():
         return newid
 
 # Procedures called by the Content
-    def getItem(self, userid, identifier, ispath=True):
+    def getItem(self, userid, uri, ispath=True):
         item = None
         call = self._getCall('getItem')
         call.setString(1, userid)
-        call.setString(2, identifier)
+        call.setString(2, uri)
         call.setBoolean(3, ispath)
         result = call.executeQuery()
         if result.next():
@@ -203,7 +198,7 @@ class DataBase():
         call.close()
         return item
 
-    def getChildren(self, path, properties, mode, scheme):
+    def getChildren(self, userid, scheme, path, properties, mode):
         #TODO: Can't have a ResultSet of type SCROLL_INSENSITIVE with a Procedure,
         #TODO: as a workaround we use a simple quey...
         call = self._getCall('getChildren', self._getChildrenformat(properties))
@@ -217,12 +212,13 @@ class DataBase():
         if 'TargetURL' in (property.Name for property in properties):
             call.setString(i, scheme)
             i += 1
-        call.setShort(i, mode)
+        call.setString(i, userid)
         call.setString(i + 1, path)
+        call.setShort(i + 2, mode)
         return call
 
     def _getChildrenformat(self, properties):
-        return {'View': 'PUBLIC.PUBLIC."Children"',
+        return {'Children': 'PUBLIC.PUBLIC."Children"',
                 'Columns': ', '.join(self._getChildrenColumns(properties))}
 
     def _getChildrenColumns(self, properties):
@@ -270,8 +266,8 @@ class DataBase():
     def updateContent(self, userid, itemid, property, value):
         updated = clear = False
         timestamp = currentDateTimeInTZ()
-        if property == 'Title':
-            update = self._getCall('updateTitle')
+        if property == 'Name':
+            update = self._getCall('updateName')
             update.setObject(1, timestamp)
             update.setString(2, value)
             update.setString(3, itemid)
@@ -306,33 +302,38 @@ class DataBase():
         return newtitle
 
     def insertNewContent(self, userid, item, timestamp):
-        call = self._getCall('insertItem')
-        call.setString(1, userid)
-        call.setLong(2, 1)
-        call.setObject(3, timestamp)
-        call.setString(4, item.get("Id"))
-        call.setString(5, item.get("Title"))
-        call.setTimestamp(6, item.get('DateCreated'))
-        call.setTimestamp(7, item.get('DateModified'))
-        call.setString(8, item.get('MediaType'))
-        call.setLong(9, item.get('Size'))
-        call.setString(10, item.get('Link'))
-        call.setBoolean(11, item.get('Trashed'))
-        call.setBoolean(12, item.get('CanAddChild'))
-        call.setBoolean(13, item.get('CanRename'))
-        call.setBoolean(14, item.get('IsReadOnly'))
-        call.setBoolean(15, item.get('IsVersionable'))
-        call.setString(16, item.get("ParentId"))
-        result = call.executeQuery
-        status = result.next()
-        if status:
-            item['Name'] = call.getString(1)
-            item['Title'] = call.getString(2)
-            item['TitleOnServer'] = call.getString(2)
-            item['Path'] = call.getString(3)
-        result.close()
-        call.close()
-        return status
+        try:
+            inserted = False
+            call = self._getCall('insertItem')
+            call.setString(1, userid)
+            call.setLong(2, 1)
+            call.setObject(3, timestamp)
+            call.setString(4, item.get("Id"))
+            call.setString(5, item.get("Name"))
+            call.setTimestamp(6, item.get('DateCreated'))
+            call.setTimestamp(7, item.get('DateModified'))
+            call.setString(8, item.get('MediaType'))
+            call.setLong(9, item.get('Size'))
+            call.setString(10, item.get('Link'))
+            call.setBoolean(11, item.get('Trashed'))
+            call.setBoolean(12, item.get('CanAddChild'))
+            call.setBoolean(13, item.get('CanRename'))
+            call.setBoolean(14, item.get('IsReadOnly'))
+            call.setBoolean(15, item.get('IsVersionable'))
+            call.setString(16, item.get("ParentId"))
+            result = call.executeQuery()
+            print("DataBase.insertNewContent() 1")
+            if result.next():
+                item['Name'] = result.getString(1)
+                item['Title'] = result.getString(2)
+                item['Path'] = result.getString(3)
+                inserted = True
+            result.close()
+            call.close()
+            print("DataBase.insertNewContent() 2 Inserted: %s" % inserted)
+            return inserted
+        except Exception as e:
+            print("ERROR %s" % traceback.format_exc())
 
     def hasTitle(self, userid, parentid, title):
         has = True
@@ -521,7 +522,12 @@ class DataBase():
     def _mergeParent(self, call, item, itemid, timestamp):
         call.setString(2, itemid)
         call.setArray(3, Array('VARCHAR', item[12]))
-        call.setObject(4, timestamp)
+        path = item[13]
+        if path is None:
+            call.setNull(4, VARCHAR)
+        else:
+            call.setString(4, path)
+        call.setObject(5, timestamp)
         call.addBatch()
 
     def _getCall(self, name, format=None):
