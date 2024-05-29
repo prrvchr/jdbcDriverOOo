@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.3.2][5]
+# version [1.3.3][5]
 
 ## Introduction:
 
@@ -44,7 +44,7 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [PostgreSQL via pgJDBC][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [Firebird via Jaybird][19] version 6.0.0-20240512.161600-27
+- [Firebird via Jaybird][19] version 5.0.5
 - [MySQL via Connector/J][20] version 8.4.0
 - [Trino ou PrestoSQL][21] version 448
 
@@ -505,7 +505,12 @@ L'utilisation de l'API UNO pour créer des bases de données vous permettra d'ut
 
 Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalités du pilote JDBC sous-jacent à l'aide de la méthode [XDriver.getPropertyInfo()][110] afin d'accéder au paramètre nécessaire lors de la création de tables et d'afficher correctement les privilèges. Ces paramètres étant accessibles directement par le pilote, peuvent être obtenus avant toute connexion, et permettent donc la création de la base de données lors de la première connexion.
 
-### Que reste-t-il à faire pour la version 1.3.2:
+### Ce qui a été fait pour la version 1.3.3:
+
+- Modification de la gestion du paramètre de connexion `JavaDriverClassPath`. Ce paramètre peut désormais désigner un répertoire et dans ce cas tous les fichiers jar contenus seront ajoutés au `Java ClassPath`. Cela permet le chargement dynamique des pilotes JDBC nécessitant plusieurs archives (ie: Derby et Firebird).
+
+
+### Que reste-t-il à faire pour la version 1.3.3:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 

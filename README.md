@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.3.2][5]
+# version [1.3.3][5]
 
 ## Introduction:
 
@@ -44,7 +44,7 @@ It embeds the drivers for the following databases:
 - [PostgreSQL via pgJDBC][16] version 42.7.1
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
-- [Firebird via Jaybird][19] version 6.0.0-20240512.161600-27
+- [Firebird via Jaybird][19] version 5.0.5
 - [MySQL via Connector/J][20] version 8.4.0
 - [Trino or PrestoSQL][21] version 448
 
@@ -505,7 +505,12 @@ Using the UNO API to create databases will allow you to use code that is indepen
 
 Clients using the jdbcDriverOOo driver can access features of the underlying JDBC driver through the [XDriver.getPropertyInfo()][110] method in order to access the necessary parameter when creating tables and display privileges correctly. These parameters being accessible directly by the driver can be obtained before any connection and therefore allows the creation of the database during the first connection.
 
-### What remains to be done for version 1.3.2:
+### What has been done for version 1.3.3:
+
+- Modification of the handling of the `JavaDriverClassPath` connection parameter. This parameter can now designate a directory and in this case all contained jar files will be added to the `Java ClassPath`. This allows dynamic loading of JDBC drivers requiring multiple archives (ie: Derby and Jaybird).
+
+
+### What remains to be done for version 1.3.3:
 
 - Add new languages for internationalization...
 

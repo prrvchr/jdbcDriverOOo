@@ -366,7 +366,7 @@ public class UnoHelper
         return exception;
     }
 
-    public static java.sql.SQLException getSQLException(java.lang.Exception e)
+    public static java.sql.SQLException getSQLException(java.lang.Throwable e)
     {
         return new java.sql.SQLException(e.getMessage(), e);
     }

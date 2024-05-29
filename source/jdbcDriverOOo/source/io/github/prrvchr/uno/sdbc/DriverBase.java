@@ -25,9 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,10 +48,10 @@ import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDriver;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 import com.sun.star.util.XMacroExpander;
 import com.sun.star.lib.uno.helper.ComponentBase;
 
@@ -61,7 +66,8 @@ import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
 import io.github.prrvchr.jdbcdriver.DriverWrapper;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBException;
+//import io.github.prrvchr.jdbcdriver.helper.DBTools;
 
 
 public abstract class DriverBase
@@ -77,7 +83,8 @@ public abstract class DriverBase
     private static final String m_registredProtocol = "xdbc:";
     private static final String m_driverClassPath = "JavaDriverClassPath";
     private static final String m_driverClass = "JavaDriverClass";
-    private static final String m_expandSchema = "vnd.sun.star.expand:";
+    private static final String m_jar = "jar";
+    private static final String m_expand = "vnd.sun.star.expand:";
     public static final String m_identifier = "io.github.prrvchr.jdbcDriverOOo";
     private final boolean m_enhanced;
 
@@ -88,13 +95,13 @@ public abstract class DriverBase
                       final String service, 
                       final String[] services,
                       boolean enhanced)
-        throws Exception
+        throws SQLException
     {
         m_xContext = context;
         m_service = service;
         m_services = services;
         m_enhanced = enhanced;
-        m_xConfig = _getDriverConfiguration("org.openoffice.Office.DataAccess.Drivers");
+        m_xConfig = getDriverConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
 
         System.out.println("sdbc.DriverBase.DriverBase() 1");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
@@ -103,17 +110,6 @@ public abstract class DriverBase
         System.out.println("sdbc.DriverBase.DriverBase() 2");
     }
     
-
-    private XHierarchicalNameAccess _getDriverConfiguration(String path)
-        throws Exception
-    {
-        return UnoHelper.getConfiguration(m_xContext, path);
-    }
-
-    public final XComponentContext getComponentContext() {
-        return m_xContext;
-    }
-
 
     // com.sun.star.lang.XComponent:
     
@@ -150,199 +146,34 @@ public abstract class DriverBase
         throws SQLException
     {
         ConnectionBase connection = null;
+        System.out.println("sdbc.DriverBase.connect() 1 Url: " + url);
         m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
-        if (acceptsURL(url)) {
-            DriverProvider provider = _getDriverProvider(url, info);
-            String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
-            String level = provider.getDriverStringProperty(m_xConfig, "DriverLoggerLevel", "-1");
-            if (!_isDriverRegistered(location)) {
-                provider.setSystemProperties(level);
-                _registerDriver(_getUrlProtocol(url), info);
-            }
-
-            System.out.println("sdbc.DriverBase.connect() 1");
-            XHierarchicalNameAccess config;
-            try {
-                config = UnoHelper.getConfiguration(m_xContext, m_identifier);
-            }
-            catch (Exception e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-            }
-            try {
-                provider.setConnection(m_logger, m_xConfig, config, m_enhanced, location, info, level);
-            }
-            catch(java.sql.SQLException e) {
-                int resource = Resources.STR_LOG_NO_SYSTEM_CONNECTION;
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, location);
-                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT.text(), 0, e);
-            }
-            String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-            service = UnoHelper.getConfigurationOption(config, "ConnectionService", service);
-            UnoHelper.disposeComponent(config);
-            System.out.println("sdbc.DriverBase.connect() 2 Name: " + service);
-            service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
-            System.out.println("sdbc.DriverBase.connect() 3 Service: " + service);
-            connection = _getConnection(m_xContext, provider, url, info, ConnectionService.fromString(service));
-            m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getProvider().getLogger().getObjectId());
-            System.out.println("sdbc.DriverBase.connect() 4");
+        // XXX: The driver should return NULL if it realizes it is
+        // XXX: the wrong kind of driver to connect to the given URL
+        if (!acceptsURL(url)) {
+            return connection;
         }
+        DriverProvider provider = getDriverProvider(url, info);
+        String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
+        String level = provider.getDriverStringProperty(m_xConfig, "DriverLoggerLevel", "-1");
+        if (!isDriverRegistered(location)) {
+            provider.setSystemProperties(level);
+            registerDriver(url, info);
+        }
+
+        System.out.println("sdbc.DriverBase.connect() 2 Url: " + url);
+        XHierarchicalNameAccess config = getDriverConfiguration(m_xContext, m_identifier, this);
+        provider.setConnection(this, m_logger, m_enhanced, m_xConfig, config, location, info, level);
+        String service = ConnectionService.CSS_SDBC_CONNECTION.service();
+        service = UnoHelper.getConfigurationOption(config, "ConnectionService", service);
+        UnoHelper.disposeComponent(config);
+        System.out.println("sdbc.DriverBase.connect() 3 Name: " + service);
+        service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
+        System.out.println("sdbc.DriverBase.connect() 4 Service: " + service);
+        connection = getConnection(m_xContext, provider, url, info, ConnectionService.fromString(service));
+        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getProvider().getLogger().getObjectId());
+        System.out.println("sdbc.DriverBase.connect() 5");
         return connection;
-    }
-
-    private String _getUrlProtocol(final String url)
-    {
-        String protocol = String.join(":", Arrays.copyOfRange(url.split(":"), 0, 2));
-        return protocol + ":*";
-    }
-
-    private boolean _isDriverRegistered(String url)
-    {
-        try {
-            java.sql.DriverManager.getDriver(url);
-            return true;
-        }
-        catch (java.sql.SQLException e) {}
-        return false;
-    }
-
-    private void _registerDriver(final String protocol,
-                                 final PropertyValue[] info)
-        throws SQLException
-    {
-        System.out.println("sdbc.DriverBase._registerDriver() 1");
-        final String clazz = _getDriverClass(protocol, info);
-        URL path = _getDriverClassPath(protocol, info);
-        System.out.println("sdbc.DriverBase._registerDriver() 2 url: '" + path + "' name: '" + clazz + "'");
-        if (path != null && !clazz.isBlank()) {
-            System.out.println("sdbc.DriverBase._registerDriver() 3");
-            if (!_registerDriver(path, clazz)) {
-                System.out.println("sdbc.DriverBase._registerDriver() 4");
-                _registerDriver(clazz);
-            }
-        }
-        System.out.println("sdbc.DriverBase._registerDriver() 5");
-    }
-
-    private String _getDriverClass(final String protocol,
-                                   final PropertyValue[] info)
-        throws SQLException
-    {
-        String clazz = null;
-        try {
-            System.out.println("sdbc.DriverBase._getDriverClass() 1");
-            clazz = UnoHelper.getDefaultPropertyValue(info, m_driverClass, "");
-            System.out.println("sdbc.DriverBase._getDriverClass() 2");
-            if (clazz.isBlank()) {
-                final String property = "Installed/" + protocol + "/Properties/" + m_driverClass + "/Value";
-                if (m_xConfig.hasByHierarchicalName(property)) {
-                    System.out.println("sdbc.DriverBase._getDriverClass() 3");
-                    clazz = (String) m_xConfig.getByHierarchicalName(property);
-                }
-            }
-            return clazz;
-        }
-        catch (NoSuchElementException e) {
-            int resource = Resources.STR_LOG_NO_DRIVER_CLASS;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, protocol, clazz);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT.text(), 0, e);
-        }
-    }
-
-    private URL _getDriverClassPath(final String protocol,
-                                    final PropertyValue[] info)
-        throws SQLException
-    {
-        String url = null;
-         try {
-            url = UnoHelper.getDefaultPropertyValue(info, m_driverClassPath, "");
-            if (url.isBlank()) {
-                final String property = "Installed/" + protocol + "/Properties/" + m_driverClassPath + "/Value";
-                if (m_xConfig.hasByHierarchicalName(property)) {
-                    url = (String) m_xConfig.getByHierarchicalName(property);
-                }
-            }
-            if (!url.isBlank()) {
-                return _getDriverClassPathUrl(expandDriverClassPath(url));
-            }
-            return null;
-        }
-        catch (NoSuchElementException e) {
-            int resource = Resources.STR_LOG_NO_DRIVER_CLASS;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, protocol, url);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT.text(), 0, e);
-        }
-    }
-
-    private String expandDriverClassPath(String url)
-    {
-        if (url.startsWith(m_expandSchema)) {
-            Object service = m_xContext.getValueByName("/singletons/com.sun.star.util.theMacroExpander");
-            XMacroExpander expander = (XMacroExpander) UnoRuntime.queryInterface(XMacroExpander.class, service);
-            url = expander.expandMacros(url.replaceFirst(m_expandSchema, ""));
-        }
-        return url;
-    }
-
-    private URL _getDriverClassPathUrl(String location)
-        throws SQLException
-    {
-        URL url = null;
-        try {
-            url = new URL("jar:" + location + "!/");
-        }
-        catch (java.net.MalformedURLException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
-        }
-        return url;
-    }
-
-    private boolean _registerDriver(URL url, String name)
-        throws SQLException
-    {
-        java.sql.Driver driver = null;
-        boolean registered = false;
-        try {
-            System.out.println("sdbc.DriverBase._registerDriver 1 : " + name);
-            // XXX: Pick your JDBC driver at runtime: https://www.kfu.com/~nsayer/Java/dyn-jdbc.html
-            URLClassLoader loader = new URLClassLoader(new URL[] {url}, DriverBase.class.getClassLoader());
-            Class<?> clazz = Class.forName(name, true, loader);
-            driver = new DriverWrapper((java.sql.Driver) clazz.getDeclaredConstructor().newInstance());
-        }
-        catch(ClassNotFoundException | NoSuchMethodException |
-              InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
-        }
-        try {
-            DriverManager.registerDriver(driver);
-            registered = true;
-            System.out.println("sdbc.DriverBase._registerDriver 2 : " + name);
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
-        return registered;
-    }
-
-    private void _registerDriver(String name)
-        throws SQLException
-    {
-        java.sql.Driver driver = null;
-        try {
-            driver = (java.sql.Driver) Class.forName(name).getDeclaredConstructor().newInstance();
-        }
-        catch(ClassNotFoundException | NoSuchMethodException |
-              InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw UnoHelper.getSQLException(UnoHelper.getSQLException(e), this);
-        }
-        if (driver != null) {
-            try {
-                DriverManager.registerDriver(driver);
-                System.out.println("sdbc.DriverBase._registerDriver(name) 1");
-            }
-            catch (java.sql.SQLException e) {
-                throw UnoHelper.getSQLException(e, this);
-            }
-        }
     }
 
     public boolean acceptsURL(String url)
@@ -351,27 +182,13 @@ public abstract class DriverBase
         return url.startsWith(m_registredProtocol) && hasSubProtocol(url);
     }
 
-    private boolean hasSubProtocol(String url)
-    {
-        String[] protocol = url.split(":");
-        return (protocol.length > 1 && !protocol[1].isBlank());
-    }
-
-    private String getProtocol(String url)
-    {
-        String protocol = m_registredProtocol;
-        if (hasSubProtocol(url)) {
-            protocol += url.split(":")[1];
-        }
-        return protocol;
-    }
-
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] infos)
     throws SQLException
     {
         if (!acceptsURL(url)) {
-            String message = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_URI_SYNTAX_ERROR, url);
-            throw new SQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            final int resource = Resources.STR_URI_SYNTAX_ERROR;
+            final String message = SharedResources.getInstance().getResourceWithSubstitution(resource, url);
+            throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
         }
         List<DriverPropertyInfo> properties = new ArrayList<DriverPropertyInfo>();
         try {
@@ -446,9 +263,51 @@ public abstract class DriverBase
         return 0;
     }
 
+    // Protected methods:
+    protected final XComponentContext getComponentContext() {
+        return m_xContext;
+    }
 
-    private DriverProvider _getDriverProvider(String url,
-                                              PropertyValue[] info)
+    // Private methods:
+    private static XHierarchicalNameAccess getDriverConfiguration(final XComponentContext context,
+                                                                  final String path)
+    throws SQLException
+    {
+        return getDriverConfiguration(context, path, null);
+    }
+
+    private static XHierarchicalNameAccess getDriverConfiguration(final XComponentContext context,
+                                                                  final String path,
+                                                                  final XInterface source)
+    throws SQLException
+    {
+        try {
+            return UnoHelper.getConfiguration(context, path);
+        }
+        catch (Exception e) {
+            int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);
+            throw DBException.getSQLException(msg, source, StandardSQLState.SQL_GENERAL_ERROR);
+        }
+    }
+
+    private boolean hasSubProtocol(final String url)
+    {
+        String[] protocol = url.split(":");
+        return (protocol.length > 1 && !protocol[1].isBlank());
+    }
+
+    private String getProtocol(final String url)
+    {
+        String protocol = m_registredProtocol;
+        if (hasSubProtocol(url)) {
+            protocol += url.split(":")[1];
+        }
+        return protocol;
+    }
+
+    private DriverProvider getDriverProvider(final String url,
+                                             final PropertyValue[] info)
     {
         ServiceLoader<DriverProvider> loader = ServiceLoader.load(DriverProvider.class, ConnectionBase.class.getClassLoader());
         for (final DriverProvider provider : loader) {
@@ -459,11 +318,197 @@ public abstract class DriverBase
         return new DriverProviderDefault(url, info);
     }
 
-    abstract protected ConnectionBase _getConnection(XComponentContext ctx,
-                                                     DriverProvider provider,
-                                                     String url,
-                                                     PropertyValue[] info,
-                                                     ConnectionService service);
+    private boolean isDriverRegistered(final String url)
+    {
+        try {
+            java.sql.DriverManager.getDriver(url);
+            return true;
+        }
+        catch (java.sql.SQLException e) {}
+        return false;
+    }
 
+    private void registerDriver(final String url,
+                                final PropertyValue[] info)
+        throws SQLException
+    {
+        final String protocol = getUrlProtocol(url);
+        final String clazz = getDriverClass(protocol, info, url);
+        final URL[] path = getDriverClassUrls(protocol, info, clazz, url);
+        registerDriver(path, clazz);
+    }
+
+    private String getUrlProtocol(final String url)
+    {
+        String protocol = String.join(":", Arrays.copyOfRange(url.split(":"), 0, 2));
+        return protocol + ":*";
+    }
+
+    private String getDriverClass(final String protocol,
+                                  final PropertyValue[] info,
+                                  final String url)
+        throws SQLException
+    {
+        String clazz = UnoHelper.getDefaultPropertyValue(info, m_driverClass, "");
+        if (clazz.isBlank()) {
+            final String property = getConfigPropertyName(protocol, m_driverClass);
+            clazz = getConfigStringProperty(property, url, m_driverClass);
+        }
+        return clazz;
+    }
+
+    private URL[] getDriverClassUrls(final String protocol,
+                                     final PropertyValue[] info,
+                                     final String clazz,
+                                     final String url)
+        throws SQLException
+    {
+        String path = UnoHelper.getDefaultPropertyValue(info, m_driverClassPath, "");
+        if (path.isBlank()) {
+            final String property = getConfigPropertyName(protocol, m_driverClassPath);
+            path = getConfigStringProperty(property, url, m_driverClassPath);
+        }
+        return getDriverArchiveUrls(expandDriverClassPath(path), clazz);
+    }
+
+    private String getConfigPropertyName(final String protocol,
+                                         final String property)
+    {
+        return "Installed/" + protocol + "/Properties/" + property + "/Value";
+    }
+
+    private String getConfigStringProperty(final String name,
+                                           final String url,
+                                           final String property)
+        throws SQLException
+    {
+        try {
+            return (String) m_xConfig.getByHierarchicalName(name);
+        }
+        catch (NoSuchElementException e) {
+            final int resource = Resources.STR_LOG_DRIVER_REQUIRED_PARAMETER_NOT_FOUND;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, url, property);
+            throw DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT);
+        }
+    }
+
+    private URL[] getDriverArchiveUrls(final String location,
+                                       final String clazz)
+        throws SQLException
+    {
+        // XXX: In order to allow the loading of drivers requiring several Java archives,
+        // XXX: the JavaDriverClassPath parameter can be a file or a folder
+        File path = null;
+        try {
+            path = new File(new URI(location).normalize());
+        }
+        catch (URISyntaxException e) {
+            throw getClassPathParseError(e, location, clazz);
+        }
+        if (path == null || !path.exists()) {
+            final int resource = Resources.STR_LOG_DRIVER_CLASS_PATH_NOT_FOUND;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, location, clazz, m_driverClassPath);
+            throw DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT);
+        }
+        final List<URL> urls = new ArrayList<>();
+        if (path.isDirectory()) {
+            for (final File file : path.listFiles()) {
+                if (!file.isDirectory()) {
+                    addDriverArchiveUrl(urls, file, location, clazz);
+                }
+            }
+        }
+        else {
+            addDriverArchiveUrl(urls, path, location, clazz);
+        }
+
+        // XXX: JavaDriverClassPath must contain at least one archive
+        if (urls.isEmpty()) {
+            final int resource = path.isDirectory() ? Resources.STR_LOG_DRIVER_CLASS_PATH_EMPTY : Resources.STR_LOG_DRIVER_CLASS_PATH_NO_ARCHIVE;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, location, clazz, m_driverClassPath);
+            throw DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT);
+        }
+        return urls.toArray(new URL[0]);
+    }
+
+    private void addDriverArchiveUrl(List<URL> urls,
+                                     File file,
+                                     String url,
+                                     String clazz)
+        throws SQLException
+    {
+        try {
+            String name = file.getName();
+            if (name.toLowerCase().endsWith("." + m_jar)) {
+                urls.add(new URL(m_jar + ":" + Path.of(file.getAbsolutePath()).toUri() + "!/"));
+                m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, name);
+            }
+        }
+        catch (MalformedURLException e) {
+            throw getClassPathParseError(e, url, clazz);
+        }
+    }
+
+    private SQLException getClassPathParseError(Throwable e,
+                                                String url,
+                                                String clazz)
+    {
+        final int resource = Resources.STR_LOG_DRIVER_CLASS_PATH_ERROR;
+        final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, url, clazz, m_driverClassPath);
+        return DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
+    }
+
+    private String expandDriverClassPath(String url)
+    {
+        if (url.startsWith(m_expand)) {
+            final Object service = m_xContext.getValueByName("/singletons/com.sun.star.util.theMacroExpander");
+            final XMacroExpander expander = (XMacroExpander) UnoRuntime.queryInterface(XMacroExpander.class, service);
+            url = expander.expandMacros(url.replaceFirst(m_expand, ""));
+        }
+        return url;
+    }
+
+    private void registerDriver(final URL[] urls,
+                                final String name)
+        throws SQLException
+    {
+        java.sql.Driver driver = null;
+        try {
+            // XXX: Pick your JDBC driver at runtime: https://www.kfu.com/~nsayer/Java/dyn-jdbc.html
+            final URLClassLoader loader = new URLClassLoader(urls, DriverBase.class.getClassLoader());
+            final Class<?> clazz = Class.forName(name, true, loader);
+            driver = new DriverWrapper((java.sql.Driver) clazz.getDeclaredConstructor().newInstance());
+        }
+        catch(UnsupportedClassVersionError e) {
+            final String version = System.getProperty("java.version");
+            final int resource = Resources.STR_LOG_DRIVER_UNSUPPORTED_JAVA_VERSION;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, version, name);
+            throw DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
+        }
+        catch(ClassNotFoundException | IllegalAccessException e) {
+            final int resource = Resources.STR_LOG_DRIVER_JAVA_CLASS_NOT_FOUND;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, m_driverClassPath, m_driverClass);
+            throw DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
+        }
+        catch(NoSuchMethodException | InstantiationException | InvocationTargetException e) {
+            final int resource = Resources.STR_LOG_DRIVER_UNEXPECTED_LOADING_ERROR;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
+            throw DBException.getSQLException(msg, this, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
+        }
+        try {
+            DriverManager.registerDriver(driver);
+        }
+        catch (java.sql.SQLException e) {
+            final int resource = Resources.STR_LOG_DRIVER_REGISTER_ERROR;
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
+            throw DBException.getSQLException(msg, StandardSQLState.SQL_UNABLE_TO_CONNECT, DBException.getSQLException(this, e));
+        }
+    }
+
+    abstract protected ConnectionBase getConnection(final XComponentContext ctx,
+                                                    final DriverProvider provider,
+                                                    final String url,
+                                                    final PropertyValue[] info,
+                                                    final ConnectionService service);
 
 }

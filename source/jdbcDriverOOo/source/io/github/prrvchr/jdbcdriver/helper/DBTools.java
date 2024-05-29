@@ -1299,6 +1299,13 @@ public class DBTools
 
     public static SQLException getSQLException(String msg,
                                                XInterface context,
+                                               String state)
+    {
+        return new SQLException(msg, context, state, 0, null);
+    }
+
+    public static SQLException getSQLException(String msg,
+                                               XInterface context,
                                                String state,
                                                int code,
                                                com.sun.star.uno.Exception  e)

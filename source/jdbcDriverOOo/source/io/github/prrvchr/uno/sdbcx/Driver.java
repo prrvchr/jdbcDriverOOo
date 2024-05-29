@@ -65,7 +65,7 @@ public final class Driver
         System.out.println("sdbcx.Driver() 1");
     }
 
-    protected ConnectionBase _getConnection(XComponentContext ctx,
+    protected ConnectionBase getConnection(XComponentContext ctx,
                                             DriverProvider provider,
                                             String url,
                                             PropertyValue[] info,

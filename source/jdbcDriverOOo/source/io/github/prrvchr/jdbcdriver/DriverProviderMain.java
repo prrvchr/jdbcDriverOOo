@@ -42,13 +42,16 @@ import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.Privilege;
+import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.helper.DBException;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.resultset.TableTypesResultSet;
 import io.github.prrvchr.jdbcdriver.resultset.TypeInfoResultSet;
 import io.github.prrvchr.jdbcdriver.resultset.TypeInfoRows;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
+import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
@@ -687,94 +690,104 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public void setConnection(ResourceBasedEventLogger logger,
+    public void setConnection(XInterface source,
+                              ResourceBasedEventLogger logger,
+                              final boolean enhanced,
                               XHierarchicalNameAccess config1,
                               XHierarchicalNameAccess config2,
-                              final boolean enhanced,
                               final String location,
                               final PropertyValue[] infos,
                               String level)
-        throws java.sql.SQLException
+        throws SQLException
     {
-        m_infos = infos;
-        // XXX: SQLCommandSuffix is needed for building query from sql command.
-        m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
+        try {
+            System.out.println("DriverProvider.getJavaConnectionProperties() 1");
+            m_infos = infos;
+            // XXX: SQLCommandSuffix is needed for building query from sql command.
+            m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
 
-        m_AutoIncrementIsPrimaryKey = getDriverBooleanProperty(config1, "AutoIncrementIsPrimaryKey", m_AutoIncrementIsPrimaryKey);
-        m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);
-        m_SupportsRenameView = getDriverBooleanProperty(config1, "SupportsRenameView", m_SupportsRenameView);
-        m_SupportsColumnDescription = getDriverBooleanProperty(config1, "SupportsColumnDescription", m_SupportsColumnDescription);
-        m_SupportsAlterPrimaryKey = getDriverBooleanProperty(config1, "SupportsAlterPrimaryKey", m_SupportsAlterPrimaryKey);
-        m_SupportsAlterForeignKey = getDriverBooleanProperty(config1, "SupportsAlterForeignKey", m_SupportsAlterForeignKey);
+            m_AutoIncrementIsPrimaryKey = getDriverBooleanProperty(config1, "AutoIncrementIsPrimaryKey", m_AutoIncrementIsPrimaryKey);
+            m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);
+            m_SupportsRenameView = getDriverBooleanProperty(config1, "SupportsRenameView", m_SupportsRenameView);
+            m_SupportsColumnDescription = getDriverBooleanProperty(config1, "SupportsColumnDescription", m_SupportsColumnDescription);
+            m_SupportsAlterPrimaryKey = getDriverBooleanProperty(config1, "SupportsAlterPrimaryKey", m_SupportsAlterPrimaryKey);
+            m_SupportsAlterForeignKey = getDriverBooleanProperty(config1, "SupportsAlterForeignKey", m_SupportsAlterForeignKey);
 
-        m_SupportsAlterColumnType = getDriverBooleanProperty(config1, "SupportsAlterColumnType", m_SupportsAlterColumnType);
-        m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
+            m_SupportsAlterColumnType = getDriverBooleanProperty(config1, "SupportsAlterColumnType", m_SupportsAlterColumnType);
+            m_SupportsAlterColumnProperty = getDriverBooleanProperty(config1, "SupportsAlterColumnProperty", m_SupportsAlterColumnProperty);
 
-        m_CreateTableCommand = getDriverCommandProperty(config1, "CreateTableCommand", m_CreateTableCommand);
-        m_DropTableCommand = getDriverCommandProperty(config1, "DropTableCommand", m_DropTableCommand);
-        m_AddColumnCommand = getDriverCommandProperty(config1, "AddColumnCommand", m_AddColumnCommand);
-        m_DropColumnCommand = getDriverCommandProperty(config1, "DropColumnCommand", m_DropColumnCommand);
-        m_AlterColumnCommand = getDriverCommandProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
-        m_GetUsersCommand = getDriverCommandProperty(config1, "GetUsersCommand", m_GetUsersCommand);
-        m_GetGroupsCommand = getDriverCommandProperty(config1, "GetGroupsCommand", m_GetGroupsCommand);
-        m_GetUserGroupsCommand = getDriverCommandProperty(config1, "GetUserGroupsCommand", m_GetUserGroupsCommand);
-        m_GetGroupUsersCommand = getDriverCommandProperty(config1, "GetGroupUsersCommand", m_GetGroupUsersCommand);
-        m_GetGroupRolesCommand = getDriverCommandProperty(config1, "GetGroupRolesCommand", m_GetGroupRolesCommand);
-        m_AddPrimaryKeyCommand = getDriverCommandProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
-        m_AddForeignKeyCommand = getDriverCommandProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);
-        m_AddIndexCommand = getDriverCommandProperty(config1, "AddIndexCommand", m_AddIndexCommand);
-        m_AddUniqueCommand = getDriverCommandProperty(config1, "AddUniqueCommand", m_AddUniqueCommand);
-        m_DropPrimaryKeyCommand = getDriverCommandProperty(config1, "DropPrimaryKeyCommand", m_DropPrimaryKeyCommand);
-        m_DropConstraintCommand = getDriverCommandProperty(config1, "DropConstraintCommand", m_DropConstraintCommand);
-        m_AddIdentityCommand = getDriverCommandProperty(config1, "AddIdentityCommand", m_AddIdentityCommand);
-        m_DropIdentityCommand = getDriverCommandProperty(config1, "DropIdentityCommand", m_DropIdentityCommand);
-        m_TableDescriptionCommand = getDriverCommandProperty(config1, "TableDescriptionCommand", m_TableDescriptionCommand);
-        m_ColumnDescriptionCommand = getDriverCommandProperty(config1, "ColumnDescriptionCommand", m_ColumnDescriptionCommand);
-        m_CreateUserCommand = getDriverCommandProperty(config1, "CreateUserCommand", m_CreateUserCommand);
-        m_GrantPrivilegesCommand = getDriverCommandProperty(config1, "GrantPrivilegesCommand", m_GrantPrivilegesCommand);
-        m_RevokePrivilegesCommand = getDriverCommandProperty(config1, "RevokePrivilegesCommand", m_RevokePrivilegesCommand);
-        m_GrantRoleCommand = getDriverCommandProperty(config1, "GrantRoleCommand", m_GrantRoleCommand);
-        m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
-        m_AlterUserCommand = getDriverCommandProperty(config1, "AlterUserCommand", m_AlterUserCommand);
+            m_CreateTableCommand = getDriverCommandProperty(config1, "CreateTableCommand", m_CreateTableCommand);
+            m_DropTableCommand = getDriverCommandProperty(config1, "DropTableCommand", m_DropTableCommand);
+            m_AddColumnCommand = getDriverCommandProperty(config1, "AddColumnCommand", m_AddColumnCommand);
+            m_DropColumnCommand = getDriverCommandProperty(config1, "DropColumnCommand", m_DropColumnCommand);
+            m_AlterColumnCommand = getDriverCommandProperty(config1, "AlterColumnCommand", m_AlterColumnCommand);
+            m_GetUsersCommand = getDriverCommandProperty(config1, "GetUsersCommand", m_GetUsersCommand);
+            m_GetGroupsCommand = getDriverCommandProperty(config1, "GetGroupsCommand", m_GetGroupsCommand);
+            m_GetUserGroupsCommand = getDriverCommandProperty(config1, "GetUserGroupsCommand", m_GetUserGroupsCommand);
+            m_GetGroupUsersCommand = getDriverCommandProperty(config1, "GetGroupUsersCommand", m_GetGroupUsersCommand);
+            m_GetGroupRolesCommand = getDriverCommandProperty(config1, "GetGroupRolesCommand", m_GetGroupRolesCommand);
+            m_AddPrimaryKeyCommand = getDriverCommandProperty(config1, "AddPrimaryKeyCommand", m_AddPrimaryKeyCommand);
+            m_AddForeignKeyCommand = getDriverCommandProperty(config1, "AddForeignKeyCommand", m_AddForeignKeyCommand);
+            m_AddIndexCommand = getDriverCommandProperty(config1, "AddIndexCommand", m_AddIndexCommand);
+            m_AddUniqueCommand = getDriverCommandProperty(config1, "AddUniqueCommand", m_AddUniqueCommand);
+            m_DropPrimaryKeyCommand = getDriverCommandProperty(config1, "DropPrimaryKeyCommand", m_DropPrimaryKeyCommand);
+            m_DropConstraintCommand = getDriverCommandProperty(config1, "DropConstraintCommand", m_DropConstraintCommand);
+            m_AddIdentityCommand = getDriverCommandProperty(config1, "AddIdentityCommand", m_AddIdentityCommand);
+            m_DropIdentityCommand = getDriverCommandProperty(config1, "DropIdentityCommand", m_DropIdentityCommand);
+            m_TableDescriptionCommand = getDriverCommandProperty(config1, "TableDescriptionCommand", m_TableDescriptionCommand);
+            m_ColumnDescriptionCommand = getDriverCommandProperty(config1, "ColumnDescriptionCommand", m_ColumnDescriptionCommand);
+            m_CreateUserCommand = getDriverCommandProperty(config1, "CreateUserCommand", m_CreateUserCommand);
+            m_GrantPrivilegesCommand = getDriverCommandProperty(config1, "GrantPrivilegesCommand", m_GrantPrivilegesCommand);
+            m_RevokePrivilegesCommand = getDriverCommandProperty(config1, "RevokePrivilegesCommand", m_RevokePrivilegesCommand);
+            m_GrantRoleCommand = getDriverCommandProperty(config1, "GrantRoleCommand", m_GrantRoleCommand);
+            m_RevokeRoleCommand = getDriverCommandProperty(config1, "RevokeRoleCommand", m_RevokeRoleCommand);
+            m_AlterUserCommand = getDriverCommandProperty(config1, "AlterUserCommand", m_AlterUserCommand);
 
-        m_SystemVersioningCommands = getDriverProperties(config1, "SystemVersioningCommands", m_SystemVersioningCommands);
-        m_AlterViewCommands = getDriverCommandsProperty(config1, "AlterViewCommands", m_AlterViewCommands);
-        m_RenameTableCommands = getDriverCommandsProperty(config1, "RenameTableCommands", m_RenameTableCommands);
+            m_SystemVersioningCommands = getDriverProperties(config1, "SystemVersioningCommands", m_SystemVersioningCommands);
+            m_AlterViewCommands = getDriverCommandsProperty(config1, "AlterViewCommands", m_AlterViewCommands);
+            m_RenameTableCommands = getDriverCommandsProperty(config1, "RenameTableCommands", m_RenameTableCommands);
 
-        m_ViewDefinitionCommands = getDriverParametricCommandsProperty(config1, "ViewDefinitionCommands");
-        m_TablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "TablePrivilegesCommand");
-        m_GrantablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "GrantablePrivilegesCommand");
+            m_ViewDefinitionCommands = getDriverParametricCommandsProperty(config1, "ViewDefinitionCommands");
+            m_TablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "TablePrivilegesCommand");
+            m_GrantablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "GrantablePrivilegesCommand");
 
-        m_SupportedServices = getSupportedService(config1, "SupportedConnectionServices");
+            m_SupportedServices = getSupportedService(config1, "SupportedConnectionServices");
 
-        m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
-        m_showsystem = UnoHelper.getConfigurationOption(config2, "ShowSystemTable", false);
-        m_usebookmark = UnoHelper.getConfigurationOption(config2, "UseBookmark", true);
-        m_enhanced = enhanced;
-        String url = getConnectionUrl(location, level);
-        java.sql.Connection connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
-        java.sql.DatabaseMetaData metadata = connection.getMetaData();
+            m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
+            m_showsystem = UnoHelper.getConfigurationOption(config2, "ShowSystemTable", false);
+            m_usebookmark = UnoHelper.getConfigurationOption(config2, "UseBookmark", true);
+            m_enhanced = enhanced;
+            String url = getConnectionUrl(location, level);
+            java.sql.Connection connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
+            java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
-        m_CatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
-        m_SchemasInTableDefinitions = metadata.supportsSchemasInTableDefinitions();
-        m_CatalogsInIndexDefinitions = metadata.supportsCatalogsInIndexDefinitions();
-        m_SchemasInIndexDefinitions = metadata.supportsSchemasInIndexDefinitions();
-        m_CatalogsInDataManipulation = metadata.supportsCatalogsInDataManipulation();
-        m_SchemasInDataManipulation = metadata.supportsSchemasInDataManipulation();
-        m_CatalogsInProcedureCalls = metadata.supportsCatalogsInProcedureCalls();
-        m_SchemasInProcedureCalls = metadata.supportsSchemasInProcedureCalls();
-        m_CatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
-        m_SchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
+            m_CatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
+            m_SchemasInTableDefinitions = metadata.supportsSchemasInTableDefinitions();
+            m_CatalogsInIndexDefinitions = metadata.supportsCatalogsInIndexDefinitions();
+            m_SchemasInIndexDefinitions = metadata.supportsSchemasInIndexDefinitions();
+            m_CatalogsInDataManipulation = metadata.supportsCatalogsInDataManipulation();
+            m_SchemasInDataManipulation = metadata.supportsSchemasInDataManipulation();
+            m_CatalogsInProcedureCalls = metadata.supportsCatalogsInProcedureCalls();
+            m_SchemasInProcedureCalls = metadata.supportsSchemasInProcedureCalls();
+            m_CatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
+            m_SchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
 
-        m_SupportsTransactions = metadata.supportsTransactions();
-        m_IsCatalogAtStart = metadata.isCatalogAtStart();
-        m_CatalogSeparator = metadata.getCatalogSeparator();
-        m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
-        setPrivileges(setInfoProperties(infos, metadata));
+            m_SupportsTransactions = metadata.supportsTransactions();
+            m_IsCatalogAtStart = metadata.isCatalogAtStart();
+            m_CatalogSeparator = metadata.getCatalogSeparator();
+            m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
+            setPrivileges(setInfoProperties(infos, metadata));
 
-        // XXX: We do not keep the connection but the statement
-        // XXX: which allows us to find the connection if necessary.
-        m_statement = connection.createStatement();
+            // XXX: We do not keep the connection but the statement
+            // XXX: which allows us to find the connection if necessary.
+            m_statement = connection.createStatement();
+            System.out.println("DriverProvider.getJavaConnectionProperties() 3");
+        }
+        catch (java.sql.SQLException e) {
+            int resource = Resources.STR_LOG_NO_SYSTEM_CONNECTION;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, location);
+            throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
+        }
     }
 
     @Override

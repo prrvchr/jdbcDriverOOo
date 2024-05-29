@@ -32,6 +32,7 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -102,14 +103,15 @@ public interface DriverProvider
                                           String name,
                                           String value);
 
-    public void setConnection(ResourceBasedEventLogger logger,
+    public void setConnection(XInterface driver,
+                              ResourceBasedEventLogger logger,
+                              boolean enhanced,
                               XHierarchicalNameAccess config1,
                               XHierarchicalNameAccess config2,
-                              boolean enhanced,
                               String url,
                               PropertyValue[] info,
                               String level)
-        throws java.sql.SQLException;
+        throws SQLException;
 
     public String enquoteLiteral(String literal) throws java.sql.SQLException;
 
