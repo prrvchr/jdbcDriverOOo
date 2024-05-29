@@ -45,8 +45,8 @@ It embeds the drivers for the following databases:
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
 - [Firebird via Jaybird][19] version 5.0.5
-- [MySQL via Connector/J][20] version 8.4.0
-- [Trino or PrestoSQL][21] version 448
+- [MySQL via Connector/J][20] version 8.4.0 (currently being integrated, use with caution)
+- [Trino or PrestoSQL][21] version 448 (currently being integrated, use with caution)
 
 Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite or Derby, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
@@ -507,8 +507,12 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 ### What has been done for version 1.3.3:
 
-- Modification of the handling of the `JavaDriverClassPath` connection parameter. This parameter can now designate a directory and in this case all contained jar files will be added to the `Java ClassPath`. This allows dynamic loading of JDBC drivers requiring multiple archives (ie: Derby and Jaybird).
-
+- [Modification of the handling][111] of the `JavaDriverClassPath` connection parameter. This parameter can now designate a directory and in this case all contained jar files will be added to the `Java ClassPath`. This allows dynamic loading of JDBC drivers requiring multiple archives (ie: Derby and Jaybird embedded).
+- Resumed part of the implementation of `javax.sql.rowset.CachedRowSet` in ResultSet [sdbcx.RowSetSuper][112] in order to simulate the type `TYPE_SCROLL_SENSITIVE` from ResultSet of type `TYPE_FORWARD_ONLY`. This allows LibreOffice Base to use bookmarks (ie: the UNO interface [XRowLocate][104]) which allow positioned insertions, updates and deletions and therefore, for databases supporting it, the possibility of edit tables containing no primary key. This implementation progressively loading the entire ResultSet data into memory can result in a memory overflow. Implementing paging will eliminate this risk.
+- Added MySQL Connector/J version 8.4.0 driver. This driver does not seem to work correctly, quite surprising errors appear... I leave it in place in case people are ready to participate in its integration? Use with caution.
+- Following the request from [PeterSchmidt23][113] addition of the driver [Trino][114] version 448. Not knowing Trino, which also looks amazing, no integration has yet been carried out. Use with caution.
+- The implementation of `CachedRowSet` seems to have solved the problem of inserting cells from Calc, see [issue #7][115].
+- Many corrections and improvements...
 
 ### What remains to be done for version 1.3.3:
 
@@ -547,7 +551,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.2#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.3#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>
@@ -617,4 +621,9 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [107]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
 [108]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
 [109]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
-[110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L367>
+[110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L185>
+[111]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L395>
+[112]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RowSetSuper.java#L96>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
+[114]: <https://trino.io/>
+[115]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>

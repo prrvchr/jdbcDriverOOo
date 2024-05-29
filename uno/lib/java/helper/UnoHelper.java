@@ -32,7 +32,6 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.resource.XStringResourceResolver;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XRow;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.RuntimeException;
@@ -368,17 +367,17 @@ public class UnoHelper
 
     public static java.sql.SQLException getSQLException(java.lang.Throwable e)
     {
-        return new java.sql.SQLException(e.getMessage(), e);
+        return new java.sql.SQLException(e.getLocalizedMessage(), e);
     }
 
     public static SQLException getSQLException(java.sql.SQLException e)
     {
-        return new SQLException(e.getMessage());
+        return getUnoSQLException(e.getLocalizedMessage());
     }
 
     public static SQLException getSQLException(Exception e, XInterface component)
     {
-        SQLException exception = new SQLException(e.getMessage());
+        SQLException exception = getUnoSQLException(e.getMessage());
         exception.Context = component;
         return exception;
     }
@@ -387,25 +386,36 @@ public class UnoHelper
     {
         SQLException exception = null;
         if (e != null) {
-            exception = new SQLException(e.getMessage());
+            exception = getUnoSQLException(e.getLocalizedMessage());
             exception.Context = component;
-            exception.SQLState = e.getSQLState();
+            String state = e.getSQLState();
+            if (state != null) {
+                exception.SQLState = state;
+            }
             exception.ErrorCode = e.getErrorCode();
             SQLException ex = getNextSQLException(e.getNextException(), component);
-            exception.NextException = (ex == null) ? Any.VOID : ex;
+            if (ex != null) {
+                exception.NextException = ex;
+            }
         }
         return exception;
+    }
+
+    private static SQLException getUnoSQLException(String msg)
+    {
+        return msg != null ? new SQLException(msg) : new SQLException();
     }
 
     public static SQLException getSQLException(java.lang.Exception e,
                                                XInterface component)
     {
-        SQLException exception = new SQLException(e.getMessage());
+        SQLException exception = getUnoSQLException(e.getMessage());
         exception.Context = component;
         return exception;
     }
 
-    private static SQLException getNextSQLException(java.sql.SQLException e, XInterface component)
+    private static SQLException getNextSQLException(java.sql.SQLException e,
+                                                    XInterface component)
     {
         SQLException exception = null;
         if (e != null) {

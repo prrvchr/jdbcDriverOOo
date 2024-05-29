@@ -45,8 +45,8 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [H2 Database Engine][17] version 2.2.224 (2023-09-17)
 - [Apache Derby][18] version 10.15.2.0
 - [Firebird via Jaybird][19] version 5.0.5
-- [MySQL via Connector/J][20] version 8.4.0
-- [Trino ou PrestoSQL][21] version 448
+- [MySQL via Connector/J][20] version 8.4.0 (en cours d'intégration, à utiliser avec prudence)
+- [Trino ou PrestoSQL][21] version 448 (en cours d'intégration, à utiliser avec prudence)
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite ou Derby, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
 Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
@@ -507,8 +507,12 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 ### Ce qui a été fait pour la version 1.3.3:
 
-- Modification de la gestion du paramètre de connexion `JavaDriverClassPath`. Ce paramètre peut désormais désigner un répertoire et dans ce cas tous les fichiers jar contenus seront ajoutés au `Java ClassPath`. Cela permet le chargement dynamique des pilotes JDBC nécessitant plusieurs archives (ie: Derby et Firebird).
-
+- [Modification de la gestion][111] du paramètre de connexion `JavaDriverClassPath`. Ce paramètre peut désormais désigner un répertoire et dans ce cas tous les fichiers jar contenus seront ajoutés au `Java ClassPath`. Cela permet le chargement dynamique des pilotes JDBC nécessitant plusieurs archives (ie: Derby et Jaybird embedded).
+- Reprise d'une partie de l'implémentation de `javax.sql.rowset.CachedRowSet` dans les jeux de résultats [sdbcx.RowSetSuper][112] afin de simuler le type `TYPE_SCROLL_SENSITIVE` à partir de jeux de résultats de type `TYPE_FORWARD_ONLY`. Cela permet à LibreOffice Base d'utiliser des signets (ie: l'interface UNO [XRowLocate][104]) qui permettent des insertions, mises à jour et suppressions positionnées et donc, pour les bases de données le supportant, la possibilité d'éditer des tables ne contenant aucune clé primaire. Cette implémentation chargeant progressivement l’intégralité des données du jeu de résultats en mémoire peut entraîner un débordement de mémoire. La mise en œuvre d'une pagination éliminera ce risque.
+- Ajout du pilote MySQL Connector/J version 8.4.0. Ce driver ne semble pas fonctionner correctement, des erreurs assez surprenantes apparaissent... Je le laisse en place au cas où des gens seraient prêts à participer à son intégration? A utiliser avec précaution.
+- Suite à la demande de [PeterSchmidt23][113] ajout du pilote [Trino][114] version 448. Ne connaissant pas Trino, qui a l'air étonnant par ailleur, aucune intégration n'a encore été réalisée. A utiliser avec précaution.
+- L'implémentation de `CachedRowSet` semble avoir résolu le problème d'insertion de cellules depuis Calc, voir [dysfonctionnement #7][115].
+- De nombreuses corrections et améliorations...
 
 ### Que reste-t-il à faire pour la version 1.3.3:
 
@@ -547,7 +551,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.2#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.3.3#right>
 [41]: <img/jdbcDriverOOo-1_fr.png>
 [42]: <img/jdbcDriverOOo-2_fr.png>
 [43]: <img/jdbcDriverOOo-3_fr.png>
@@ -617,4 +621,9 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [107]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
 [108]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
 [109]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
-[110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L367>
+[110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L185>
+[111]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L395>
+[112]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RowSetSuper.java#L96>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
+[114]: <https://trino.io/>
+[115]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
