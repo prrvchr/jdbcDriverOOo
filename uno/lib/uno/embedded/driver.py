@@ -45,6 +45,7 @@ from .unotool import createService
 from .unotool import getConfiguration
 from .unotool import getExtensionVersion
 from .unotool import getPropertyValueSet
+from .unotool import getResourceLocation
 
 from .logger import getLogger
 
@@ -61,6 +62,7 @@ from .configuration import g_protocol
 from .configuration import g_url
 from .configuration import g_user
 from .configuration import g_lover
+from .configuration import g_driver
 
 import traceback
 
@@ -174,6 +176,9 @@ class Driver(unohelper.Base,
         newinfos = {'Url': g_url, 'ConnectionService': service}
         if g_user:
             newinfos['user'] = g_user
+        if g_driver:
+            path = getResourceLocation(self._ctx, g_identifier, g_driver)
+            newinfos['JavaDriverClassPath'] = path
         for info in infos:
             if info.Name == 'URL':
                 url = info.Value
