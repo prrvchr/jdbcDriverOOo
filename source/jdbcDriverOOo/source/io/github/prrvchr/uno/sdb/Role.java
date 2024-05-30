@@ -158,7 +158,7 @@ public abstract class Role
                                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
                 getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
                 System.out.println("sdb.Role.grantPrivileges() Query: " + query);
-                DBTools.executeDDLQuery(m_connection.getProvider(), query);
+                DBTools.executeSQLQuery(m_connection.getProvider(), query);
             }
             catch (java.sql.SQLException e) {
                 int resource = m_isrole ?
@@ -190,7 +190,7 @@ public abstract class Role
                                    Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY :
                                    Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
                     getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
-                    DBTools.executeDDLQuery(m_provider, query);
+                    DBTools.executeSQLQuery(m_provider, query);
                 }
             }
             catch (java.sql.SQLException e) {

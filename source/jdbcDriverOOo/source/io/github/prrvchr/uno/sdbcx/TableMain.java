@@ -175,7 +175,7 @@ public abstract class TableMain<C extends ConnectionSuper>
                 if (!queries.isEmpty()) {
                     String query = String.join("> <", queries);
                     getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    changed &= DBTools.executeDDLQueries(m_connection.getProvider(), queries);
+                    changed &= DBTools.executeSQLQueries(m_connection.getProvider(), queries);
                     skipped &= false;
                 }
             }
@@ -183,13 +183,13 @@ public abstract class TableMain<C extends ConnectionSuper>
                 if (!multiquery || moved) {
                     String query = queries.get(0);
                     getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), query);
+                    changed &= DBTools.executeSQLQuery(m_connection.getProvider(), query);
                     skipped &= false;
                 }
                 if (multiquery && renamed) {
                     String query = queries.get(1);
                     getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    changed &= DBTools.executeDDLQuery(m_connection.getProvider(), query);
+                    changed &= DBTools.executeSQLQuery(m_connection.getProvider(), query);
                     skipped &= false;
                 }
             }

@@ -109,7 +109,7 @@ public class GroupContainer
             query = DBRoleHelper.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), query);
+            return DBTools.executeSQLQuery(m_connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
@@ -140,7 +140,7 @@ public class GroupContainer
             query = DBRoleHelper.getDropGroupQuery(provider, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
-            if (DBTools.executeDDLQuery(provider, query)) {
+            if (DBTools.executeSQLQuery(provider, query)) {
                 // XXX: A role has just been deleted, it should also be deleted from any member user...
                 m_connection.getUsersInternal().removeRole(name);
             }

@@ -100,7 +100,7 @@ public abstract class TableContainerSuper<C extends ConnectionSuper, T extends T
                 for (String query : queries) {
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY, name, query);
                 }
-                return DBTools.executeDDLQueries(m_Connection.getProvider(), queries);
+                return DBTools.executeSQLQueries(m_Connection.getProvider(), queries);
             }
         }
         catch (java.sql.SQLException e) {
@@ -129,7 +129,9 @@ public abstract class TableContainerSuper<C extends ConnectionSuper, T extends T
         try {
             NamedComponents component = DBTools.qualifiedNameComponents(m_Connection.getProvider(), name, ComposeRule.InDataManipulation);
             try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
+                System.out.println("TableContainerSuper.createElement() 1");
                 if (result.next()) {
+                    System.out.println("TableContainerSuper.createElement() 2");
                     String type = result.getString(4);
                     type = result.wasNull() ? "" : m_Connection.getProvider().getTableType(type);
                     String remarks = result.getString(5);
@@ -147,6 +149,7 @@ public abstract class TableContainerSuper<C extends ConnectionSuper, T extends T
     private java.sql.ResultSet _getcreateElementResultSet(NamedComponents table)
             throws java.sql.SQLException
         {
+            System.out.println("TableContainerSuper._getcreateElementResultSet() 1 " + table.getCatalog() + " - " + table.getSchema() + " - " + table.getTableName());
             java.sql.DatabaseMetaData metadata = m_Connection.getProvider().getConnection().getMetaData();
             return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTableName(), null);
         }
@@ -174,7 +177,7 @@ public abstract class TableContainerSuper<C extends ConnectionSuper, T extends T
             query = m_Connection.getProvider().getDropTableQuery(table);
             System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
-            DBTools.executeDDLQuery(m_Connection.getProvider(), query);
+            DBTools.executeSQLQuery(m_Connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;

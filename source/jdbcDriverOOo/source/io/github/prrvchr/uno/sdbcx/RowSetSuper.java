@@ -349,7 +349,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper, S extends Statement
             System.out.println("RowSetSuper.deleteRow() 1 Size: " + getRowCount());
             if (moveAbsolute(row)) {
                 m_Result.deleteRow();
-                //int bookmark = m_CurrentRow + getDeletedRow(m_CurrentRow);
                 System.out.println("RowSetSuper.deleteRow() 2 Bookmark: " + row);
                 m_DeletedRows.add(row);
                 getRowData().remove(row);

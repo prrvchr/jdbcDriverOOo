@@ -357,7 +357,7 @@ public abstract class RoleContainer<T extends Role>
                            Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY;
             getLogger().logprb(LogLevel.INFO, resource, role1, role2, query);
             System.out.println("sdbcx.RoleContainer.grantRole() 1 IsRole: " + m_isrole + " - Query: " + query);
-            return DBTools.executeDDLQuery(getProvider(), query);
+            return DBTools.executeSQLQuery(getProvider(), query);
         }
         catch (java.sql.SQLException e) {
             int resource = m_isrole ?
@@ -382,7 +382,7 @@ public abstract class RoleContainer<T extends Role>
                            Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY;
             getLogger().logprb(LogLevel.INFO, resource, role1, role2, query);
             System.out.println("sdbcx.RoleContainer.revokeRole() 1 IsRole: " + m_isrole + " - Query: " + query);
-            return DBTools.executeDDLQuery(getProvider(), query);
+            return DBTools.executeSQLQuery(getProvider(), query);
        }
         catch (java.sql.SQLException e) {
             int resource = m_isrole ?

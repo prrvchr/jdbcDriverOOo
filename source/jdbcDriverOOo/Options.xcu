@@ -40,6 +40,9 @@
     <prop oor:name="ShowSystemTable" oor:op="fuse">
         <value>false</value>
     </prop>
+    <prop oor:name="SupportTransaction" oor:op="fuse">
+        <value>true</value>
+    </prop>
     <prop oor:name="UseBookmark" oor:op="fuse">
         <value>true</value>
     </prop>

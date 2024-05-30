@@ -206,7 +206,7 @@ public final class KeyContainer
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
             int resource = getCreateKeyResource(type, false);
             getLogger().logprb(LogLevel.INFO, resource, key, name, query);
-            return DBTools.executeDDLQuery(provider, query);
+            return DBTools.executeSQLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
             int resource = getCreateKeyResource(type, true);
@@ -331,7 +331,7 @@ public final class KeyContainer
             System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
             int resource = getRemoveKeyResource(type, false);
             getLogger().logprb(LogLevel.INFO, resource, name, table, query);
-            if (DBTools.executeDDLQuery(provider, query))
+            if (DBTools.executeSQLQuery(provider, query))
             {
                 // XXX: If we delete a primary key we must also delete the corresponding index.
                 if (type == KeyType.PRIMARY) {

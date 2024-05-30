@@ -125,7 +125,7 @@ public class UserContainer
             query = DBRoleHelper.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
-            return DBTools.executeDDLQuery(m_connection.getProvider(), query);
+            return DBTools.executeSQLQuery(m_connection.getProvider(), query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_QUERY_ERROR;
@@ -156,7 +156,7 @@ public class UserContainer
             query = DBRoleHelper.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
-            if (DBTools.executeDDLQuery(m_connection.getProvider(), query)) {
+            if (DBTools.executeSQLQuery(m_connection.getProvider(), query)) {
                 // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
                 m_connection.getGroupsInternal().removeRole(name);
             }

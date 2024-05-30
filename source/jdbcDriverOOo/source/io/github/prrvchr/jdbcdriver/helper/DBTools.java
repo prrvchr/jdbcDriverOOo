@@ -1034,16 +1034,16 @@ public class DBTools
         }
     }
 
-    public static boolean executeDDLQuery(DriverProvider provider,
+    public static boolean executeSQLQuery(DriverProvider provider,
                                           String query)
         throws java.sql.SQLException
     {
         Object[] parameters =  new Object[]{};
         Integer[] positions = new Integer[]{};
-        return executeDDLQuery(provider, query, parameters, positions);
+        return executeSQLQuery(provider, query, parameters, positions);
     }
 
-    public static boolean executeDDLQuery(DriverProvider provider,
+    public static boolean executeSQLQuery(DriverProvider provider,
                                           String query,
                                           Object[] parameters,
                                           Integer[] positions)
@@ -1052,28 +1052,29 @@ public class DBTools
         if (query.isBlank()) {
             return false;
         }
-        boolean autocommit = false;
+        boolean auto = false;
         boolean support = provider.supportsTransactions();
 
-        java.sql.Connection jdbc = provider.getConnection();
+        java.sql.Connection connection = provider.getConnection();
         try {
             if (support) {
-                autocommit = jdbc.getAutoCommit();
-                jdbc.setAutoCommit(false);
+                auto = connection.getAutoCommit();
+                connection.setAutoCommit(false);
             }
-            try (java.sql.PreparedStatement statement = jdbc.prepareStatement(query)) {
-                executeDDL(statement, parameters, positions);
+            provider.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_EXECUTE_QUERY, query);
+            try (java.sql.PreparedStatement statement = connection.prepareStatement(query)) {
+                executeSQL(statement, parameters, positions);
             }
             if (support) {
-                jdbc.commit();
-                jdbc.setAutoCommit(autocommit);
+                connection.commit();
+                connection.setAutoCommit(auto);
             }
         }
         catch (java.sql.SQLException e) {
             if (support) {
                 try {
-                    jdbc.rollback();
-                    jdbc.setAutoCommit(autocommit);
+                    connection.rollback();
+                    connection.setAutoCommit(auto);
                 }
                 catch (java.sql.SQLException ex) {
                     e.setNextException(ex);
@@ -1085,16 +1086,16 @@ public class DBTools
 
     }
 
-    public static boolean executeDDLQueries(DriverProvider provider,
+    public static boolean executeSQLQueries(DriverProvider provider,
                                             List<String> queries)
         throws java.sql.SQLException
     {
         Object[] parameters =  new Object[]{};
         List<Integer[]> positions = new ArrayList<Integer[]>();
-        return executeDDLQueries(provider, queries, parameters, positions);
+        return executeSQLQueries(provider, queries, parameters, positions);
     }
 
-    public static boolean executeDDLQueries(DriverProvider provider,
+    public static boolean executeSQLQueries(DriverProvider provider,
                                             List<String> queries,
                                             Object[] parameters,
                                             List<Integer[]> positions)
@@ -1102,13 +1103,13 @@ public class DBTools
     {
         int count = 0;
         int index = 0;
-        boolean autocommit = false;
+        boolean auto = false;
         boolean support = provider.supportsTransactions();
         System.out.println("DBTools.executeDDLQueries() Support Transaction:" + support);
         java.sql.Connection connection = provider.getConnection();
         try {
             if (support) {
-                autocommit = connection.getAutoCommit();
+                auto = connection.getAutoCommit();
                 connection.setAutoCommit(false);
             }
             for (String query : queries) {
@@ -1116,23 +1117,25 @@ public class DBTools
                     index ++;
                     continue;
                 }
+                provider.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_EXECUTE_QUERY, query);
                 try (java.sql.PreparedStatement statement = connection.prepareStatement(query)) {
                     Integer[] position = (positions.size() > index) ? positions.get(index) : new Integer[]{};
-                    executeDDL(statement, parameters, position);
+                    executeSQL(statement, parameters, position);
                     index ++;
                     count ++;
                 }
             }
             if (support) {
                 connection.commit();
-                connection.setAutoCommit(autocommit);
+                connection.setAutoCommit(auto);
             }
         }
         catch (java.sql.SQLException e) {
+            System.out.println("DBTools.executeDDLQueries() Error :" + e.getMessage());
             if (support) {
                 try {
                     connection.rollback();
-                    connection.setAutoCommit(autocommit);
+                    connection.setAutoCommit(auto);
                 }
                 catch (java.sql.SQLException ex) {
                     e.setNextException(ex);
@@ -1140,10 +1143,11 @@ public class DBTools
             }
             throw e;
         }
+        System.out.println("DBTools.executeDDLQueries() 2 Count: " + count);
         return count > 0;
     }
 
-    private static void executeDDL(java.sql.PreparedStatement statement,
+    private static void executeSQL(java.sql.PreparedStatement statement,
                                    Object[] parameters,
                                    Integer[] positions)
         throws java.sql.SQLException
@@ -1201,8 +1205,6 @@ public class DBTools
         }
         return result;
     }
-
-
 
     public static String getGeneratedColumnNames(java.sql.ResultSet result, int count)
         throws java.sql.SQLException 

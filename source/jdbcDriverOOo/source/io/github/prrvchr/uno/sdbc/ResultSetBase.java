@@ -760,7 +760,6 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     public boolean getBoolean(int index) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.getBoolean() 1 Index: " + index);
             return m_Result.getBoolean(index);
         }
         catch (java.sql.SQLException e) {
@@ -847,7 +846,6 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     public int getInt(int index) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.getInt() 1 Index: " + index);
             return m_Result.getInt(index);
         }
         catch (java.sql.SQLException e) {
@@ -858,11 +856,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     @Override
     public long getLong(int index) throws SQLException
     {
-        System.out.println("ResultSetBase.getLong() 1");
         try {
-            long value = m_Result.getLong(index);
-            System.out.println("ResultSetBase.getLong() 1 Index: " + index + " - Value: " + value);
-            return value;
+            return m_Result.getLong(index);
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -873,7 +868,6 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     public Object getObject(int index, XNameAccess map) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.getObject() 1 Index: " + index);
             return DBTools.getObject(m_Result.getObject(index), map);
         }
         catch (java.sql.SQLException e) {
@@ -897,7 +891,6 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     public short getShort(int index) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.getShort() 1 Index: " + index);
             return m_Result.getShort(index);
         }
         catch (java.sql.SQLException e) {
@@ -909,13 +902,11 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     public String getString(int index) throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.getString() 1");
             String value = m_Result.getString(index);
             if (value == null) {
                 value = "";
             }
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString", Integer.toString(index));
-            System.out.println("ResultSetBase.getString() 1 Index: " + index + " - Value: " + value);
             return value;
         }
         catch (java.sql.SQLException e) {

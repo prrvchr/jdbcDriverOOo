@@ -267,7 +267,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
-                if (DBTools.executeDDLQueries(provider, queries)) {
+                if (DBTools.executeSQLQueries(provider, queries)) {
                     // Column have changed its description value
                     if ((result & 32) == 32) {
                         oldcolumn.m_Description = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION);
@@ -420,7 +420,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
                     getConnection().getViewsInternal().removeView(view);
                     query = DBTools.getCreateViewQuery(provider, component, view.m_Command, rule, isCaseSensitive());
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
-                    if (DBTools.executeDDLQuery(provider, query)) {
+                    if (DBTools.executeSQLQuery(provider, query)) {
                         views.rename(table, name);
                         renamed = true;
                     }

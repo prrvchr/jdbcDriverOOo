@@ -111,7 +111,7 @@ public final class View
                 if (!queries.isEmpty()) {
                     String query = String.join("> <", queries);
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
-                    DBTools.executeDDLQueries(provider, queries);
+                    DBTools.executeSQLQueries(provider, queries);
                 }
             }
             catch (java.sql.SQLException e) {

@@ -116,7 +116,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
-                return DBTools.executeDDLQueries(provider, queries);
+                return DBTools.executeSQLQueries(provider, queries);
             }
         }
         catch (java.sql.SQLException e) {
@@ -210,7 +210,7 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
             query = provider.getDropColumnQuery(table, column);
             table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
             m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, table, query);
-            DBTools.executeDDLQuery(provider, query);
+            DBTools.executeSQLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;

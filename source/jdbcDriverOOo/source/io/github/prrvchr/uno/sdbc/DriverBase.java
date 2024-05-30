@@ -440,7 +440,8 @@ public abstract class DriverBase
         try {
             String name = file.getName();
             if (name.toLowerCase().endsWith("." + m_jar)) {
-                urls.add(new URL(m_jar + ":" + Path.of(file.getAbsolutePath()).toUri() + "!/"));
+                String jar = m_jar + ":" + Path.of(file.getAbsolutePath()).toUri() + "!/";
+                urls.add(new URL(jar));
                 m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, name);
             }
         }

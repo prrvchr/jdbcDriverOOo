@@ -701,7 +701,7 @@ public abstract class DriverProviderMain
         throws SQLException
     {
         try {
-            System.out.println("DriverProvider.getJavaConnectionProperties() 1");
+            System.out.println("DriverProvider.setConnection() 1");
             m_infos = infos;
             // XXX: SQLCommandSuffix is needed for building query from sql command.
             m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
@@ -758,7 +758,8 @@ public abstract class DriverProviderMain
             m_usebookmark = UnoHelper.getConfigurationOption(config2, "UseBookmark", true);
             m_enhanced = enhanced;
             String url = getConnectionUrl(location, level);
-            java.sql.Connection connection = DriverManager.getConnection(url, getJavaConnectionProperties(infos));
+            java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));
+            System.out.println("DriverProvider.setConnection() 2");
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
             m_CatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
@@ -772,7 +773,8 @@ public abstract class DriverProviderMain
             m_CatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
             m_SchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
 
-            m_SupportsTransactions = metadata.supportsTransactions();
+            boolean support = UnoHelper.getConfigurationOption(config2, "SupportTransaction", true);
+            m_SupportsTransactions = metadata.supportsTransactions() && support;
             m_IsCatalogAtStart = metadata.isCatalogAtStart();
             m_CatalogSeparator = metadata.getCatalogSeparator();
             m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
@@ -781,7 +783,7 @@ public abstract class DriverProviderMain
             // XXX: We do not keep the connection but the statement
             // XXX: which allows us to find the connection if necessary.
             m_statement = connection.createStatement();
-            System.out.println("DriverProvider.getJavaConnectionProperties() 3");
+            System.out.println("DriverProvider.setConnection() 3");
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_NO_SYSTEM_CONNECTION;
@@ -957,66 +959,78 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public Properties getJavaConnectionProperties(PropertyValue[] infos)
+    public Properties getJdbcConnectionProperties(PropertyValue[] infos)
+    {
+        Properties properties = new Properties();
+        for (PropertyValue info : infos) {
+            String property = info.Name;
+            if (isLibreOfficeProperty(property) || isInternalProperty(property)) {
+                continue;
+            }
+            System.out.println("DriverProvider.getJdbcConnectionProperties() ********************* Name: " + property);
+            properties.setProperty(property, String.format("%s", info.Value));
+            System.out.println("DriverProvider.getJdbcConnectionProperties() ********************* Value: " + info.Value);
+        }
+        return properties;
+    }
+
+    private boolean isLibreOfficeProperty(String property)
     {
         // XXX: These are properties used internally by LibreOffice,
         // XXX: and should not be passed to the JDBC driver
         // XXX: (which probably does not know anything about them anyway).
         // XXX: see: connectivity/source/drivers/jdbc/tools.cxx createStringPropertyArray()
-        Properties properties = new Properties();
-        for (PropertyValue info : infos) {
-            if (info.Name.equals("JavaDriverClass") ||
-                info.Name.equals("JavaDriverClassPath") ||
-                info.Name.equals("SystemProperties") ||
-                info.Name.equals("CharSet") ||
-                info.Name.equals("AppendTableAliasName") ||
-                info.Name.equals("AppendTableAliasInSelect") ||
-                info.Name.equals("DisplayVersionColumns") ||
-                info.Name.equals("GeneratedValues") ||
-                info.Name.equals("UseIndexDirectionKeyword") ||
-                info.Name.equals("UseKeywordAsBeforeAlias") ||
-                info.Name.equals("AddIndexAppendix") ||
-                info.Name.equals("FormsCheckRequiredFields") ||
-                info.Name.equals("GenerateASBeforeCorrelationName") ||
-                info.Name.equals("EscapeDateTime") ||
-                info.Name.equals("ParameterNameSubstitution") ||
-                info.Name.equals("IsPasswordRequired") ||
-                info.Name.equals("IsAutoRetrievingEnabled") ||
-                info.Name.equals("AutoRetrievingStatement") ||
-                info.Name.equals("UseCatalogInSelect") ||
-                info.Name.equals("UseSchemaInSelect") ||
-                info.Name.equals("AutoIncrementCreation") ||
-                info.Name.equals("RowVersionCreation") ||
-                info.Name.equals("Extension") ||
-                info.Name.equals("NoNameLengthLimit") ||
-                info.Name.equals("EnableSQL92Check") ||
-                info.Name.equals("EnableOuterJoinEscape") ||
-                info.Name.equals("BooleanComparisonMode") ||
-                info.Name.equals("IgnoreCurrency") ||
-                info.Name.equals("TypeInfoSettings") ||
-                info.Name.equals("IgnoreDriverPrivileges") ||
-                info.Name.equals("ImplicitCatalogRestriction") ||
-                info.Name.equals("ImplicitSchemaRestriction") ||
-                info.Name.equals("SupportsTableCreation") ||
-                info.Name.equals("UseJava") ||
-                info.Name.equals("Authentication") ||
-                info.Name.equals("PreferDosLikeLineEnds") ||
-                info.Name.equals("PrimaryKeySupport") ||
-                info.Name.equals("RespectDriverResultSetType") ||
-                info.Name.equals("TablePrivilegesSettings") ||
+        return property.equals("JavaDriverClass") ||
+               property.equals("JavaDriverClassPath") ||
+               property.equals("SystemProperties") ||
+               property.equals("CharSet") ||
+               property.equals("AppendTableAliasName") ||
+               property.equals("AppendTableAliasInSelect") ||
+               property.equals("DisplayVersionColumns") ||
+               property.equals("GeneratedValues") ||
+               property.equals("UseIndexDirectionKeyword") ||
+               property.equals("UseKeywordAsBeforeAlias") ||
+               property.equals("AddIndexAppendix") ||
+               property.equals("FormsCheckRequiredFields") ||
+               property.equals("GenerateASBeforeCorrelationName") ||
+               property.equals("EscapeDateTime") ||
+               property.equals("ParameterNameSubstitution") ||
+               property.equals("IsPasswordRequired") ||
+               property.equals("IsAutoRetrievingEnabled") ||
+               property.equals("AutoRetrievingStatement") ||
+               property.equals("UseCatalogInSelect") ||
+               property.equals("UseSchemaInSelect") ||
+               property.equals("AutoIncrementCreation") ||
+               property.equals("Extension") ||
+               property.equals("NoNameLengthLimit") ||
+               property.equals("EnableSQL92Check") ||
+               property.equals("EnableOuterJoinEscape") ||
+               property.equals("BooleanComparisonMode") ||
+               property.equals("IgnoreCurrency") ||
+               property.equals("TypeInfoSettings") ||
+               property.equals("IgnoreDriverPrivileges") ||
+               property.equals("ImplicitCatalogRestriction") ||
+               property.equals("ImplicitSchemaRestriction") ||
+               property.equals("SupportsTableCreation") ||
+               property.equals("UseJava") ||
+               property.equals("Authentication") ||
+               property.equals("PreferDosLikeLineEnds") ||
+               property.equals("PrimaryKeySupport") ||
+               property.equals("RespectDriverResultSetType");
+    }
 
-                info.Name.equals("DriverLoggerLevel") ||
-                info.Name.equals("InMemoryDataBase") ||
-                info.Name.equals("Type") ||
-                info.Name.equals("Url") ||
-                info.Name.equals("ConnectionService"))
-            {
-                continue;
-            }
-            System.out.println("DriverProvider.getJavaConnectionProperties() *********************: " + info.Name);
-            properties.setProperty(info.Name, String.format("%s", info.Value));
-        }
-        return properties;
+    private boolean isInternalProperty(String property)
+    {
+        // XXX: These are properties used internally by jdbcDriverOOo,
+        // XXX: and should not be passed to the JDBC driver
+        // XXX: (which probably does not know anything about them anyway).
+        return property.equals("TablePrivilegesSettings") ||
+               property.equals("RowVersionCreation") ||
+               property.equals("DriverLoggerLevel") ||
+               property.equals("InMemoryDataBase") ||
+               property.equals("Type") ||
+               property.equals("Url") ||
+               property.equals("ConnectionService");
     }
 
     @Override

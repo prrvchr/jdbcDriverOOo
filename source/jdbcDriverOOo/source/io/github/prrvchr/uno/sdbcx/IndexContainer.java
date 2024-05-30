@@ -187,7 +187,7 @@ public final class IndexContainer
                 System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
                 table = DBTools.composeTableName(provider, m_Table, rule, false);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table, query);
-                return DBTools.executeDDLQuery(provider, query);
+                return DBTools.executeSQLQuery(provider, query);
             }
             return false;
         }
@@ -226,7 +226,7 @@ public final class IndexContainer
             table = DBTools.composeTableName(provider, m_Table, rule, false);
             System.out.println("sdbcx.IndexContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY, name, table, query);
-            DBTools.executeDDLQuery(provider, query);
+            DBTools.executeSQLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_INDEXES_REMOVE_INDEX_QUERY_ERROR;

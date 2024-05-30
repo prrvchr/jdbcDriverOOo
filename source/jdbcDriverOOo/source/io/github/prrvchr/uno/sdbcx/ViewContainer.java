@@ -78,7 +78,7 @@ public final class ViewContainer
             query = DBTools.getCreateViewQuery(provider, descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
-            if (DBTools.executeDDLQuery(provider, query)) {
+            if (DBTools.executeSQLQuery(provider, query)) {
                 getConnection().getTablesInternal().insertElement(name, null);
                 return true;
             }
@@ -172,7 +172,7 @@ public final class ViewContainer
             String table = DBTools.buildName(provider, view.getNamedComponents(), rule, isCaseSensitive());
             query = DBTools.getDropViewQuery(provider, table);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
-            DBTools.executeDDLQuery(provider, query);
+            DBTools.executeSQLQuery(provider, query);
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY_ERROR;

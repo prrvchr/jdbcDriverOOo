@@ -283,7 +283,7 @@ public interface DriverProvider
 
     public boolean acceptsURL(String url);
 
-    public Properties getJavaConnectionProperties(PropertyValue[] infos);
+    public Properties getJdbcConnectionProperties(PropertyValue[] infos);
 
     public Object getConnectionProperties(PropertyValue[] infos,
                                           String name,
