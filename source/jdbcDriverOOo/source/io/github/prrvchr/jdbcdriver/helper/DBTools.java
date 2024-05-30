@@ -1105,7 +1105,6 @@ public class DBTools
         int index = 0;
         boolean auto = false;
         boolean support = provider.supportsTransactions();
-        System.out.println("DBTools.executeDDLQueries() Support Transaction:" + support);
         java.sql.Connection connection = provider.getConnection();
         try {
             if (support) {
@@ -1131,7 +1130,6 @@ public class DBTools
             }
         }
         catch (java.sql.SQLException e) {
-            System.out.println("DBTools.executeDDLQueries() Error :" + e.getMessage());
             if (support) {
                 try {
                     connection.rollback();
@@ -1143,7 +1141,6 @@ public class DBTools
             }
             throw e;
         }
-        System.out.println("DBTools.executeDDLQueries() 2 Count: " + count);
         return count > 0;
     }
 
