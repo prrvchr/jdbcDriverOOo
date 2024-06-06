@@ -546,6 +546,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="InsertVisibleInsensitive" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
