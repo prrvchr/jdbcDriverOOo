@@ -97,7 +97,7 @@ public class CachedResultSet
         m_ColumnCount = result.getMetaData().getColumnCount();
         m_IsUpdatable = provider.isResultSetUpdatable(result);
         m_InsertedColumns = new BitSet(m_ColumnCount);
-        System.out.println("CachedResultSet() IsUpdatable: " + m_IsUpdatable);
+        System.out.println("CachedResultSet() IsUpdatable: " + m_IsUpdatable + " - MakeUpdatable: " + m_MakeUpdatable);
     }
 
 
@@ -168,7 +168,7 @@ public class CachedResultSet
     public int getType()
         throws SQLException
     {
-        return m_Result.getType();
+        return ResultSet.TYPE_SCROLL_SENSITIVE;
     }
 
     @Override
