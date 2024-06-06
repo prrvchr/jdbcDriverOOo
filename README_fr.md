@@ -508,10 +508,10 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 ### Ce qui a été fait pour la version 1.3.3:
 
 - [Modification de la gestion][111] du paramètre de connexion `JavaDriverClassPath`. Ce paramètre peut désormais désigner un répertoire et dans ce cas tous les fichiers jar contenus seront ajoutés au `Java ClassPath`. Cela permet le chargement dynamique des pilotes JDBC nécessitant plusieurs archives (ie: Derby et Jaybird embedded). Cette modification a été apportée pour permettre à la nouvelle extension [JaybirdOOo][112] de fonctionner.
-- Reprise d'une partie de l'implémentation de `javax.sql.rowset.CachedRowSet` dans les jeux de résultats [sdbcx.RowSetSuper][113] afin de simuler le type `TYPE_SCROLL_SENSITIVE` à partir de jeux de résultats de type `TYPE_FORWARD_ONLY`. Cela permet à LibreOffice Base d'utiliser des signets (ie: l'interface UNO [XRowLocate][104]) qui permettent des insertions, mises à jour et suppressions positionnées et donc, pour les bases de données le supportant, la possibilité d'éditer des tables ne contenant aucune clé primaire. Cette implémentation chargeant progressivement l’intégralité des données du jeu de résultats en mémoire peut entraîner un débordement de mémoire. La mise en œuvre d'une pagination éliminera ce risque.
+- Reprise d'une partie de l'implémentation de `javax.sql.rowset.CachedRowSet` dans les jeux de résultats [ScrollableResultSet.java][113] et [SensitiveResultSet.java][114] afin de simuler le type `TYPE_SCROLL_SENSITIVE` à partir des jeux de résultats de type `TYPE_FORWARD_ONLY` et `TYPE_SCROLL_INSENSITIVE` respectivement. Cela permet à LibreOffice Base d'utiliser des signets (ie : l'interface UNO [XRowLocate][104]) qui permettent des insertions, mises à jour et suppressions positionnées et donc, pour les bases de données le supportant, la possibilité d'éditer des tables ne contenant aucune clé primaire. De plus, **un mode SQL permet de rendre éditable n'importe quel ResultSet.** Ce mode peut être validée dans les options de l'extension, elle est trés puissante et donc à utiliser avec prudence. Concernant les jeux de résultats de type `TYPE_FORWARD_ONLY`, leur implémentation chargeant progressivement l'intégralité des données du jeu de résultats en mémoire peut conduire à un débordement de mémoire. La mise en oeuvre d'une pagination éliminera ce risque.
 - Ajout du pilote MySQL Connector/J version 8.4.0. Ce driver ne semble pas fonctionner correctement, des erreurs assez surprenantes apparaissent... Je le laisse en place au cas où des gens seraient prêts à participer à son intégration? A utiliser avec précaution.
-- Suite à la demande de [PeterSchmidt23][114] ajout du pilote [Trino][115] version 448. Ne connaissant pas Trino, qui a l'air étonnant par ailleur, seulement un début d'intégration a été réalisée. A utiliser avec précaution.
-- L'implémentation de `CachedRowSet` semble avoir résolu le problème d'insertion de cellules depuis Calc, voir [dysfonctionnement #7][116].
+- Suite à la demande de [PeterSchmidt23][115] ajout du pilote [Trino][116] version 448. Ne connaissant pas Trino, qui a l'air étonnant par ailleur, seulement un début d'intégration a été réalisée. L'edition du contenu des tables n'est pas encore possible. Le nom des tables doit être en minuscule afin d'autoriser leur création.
+- L'implémentation de `CachedRowSet` semble avoir résolu le problème d'insertion de cellules depuis Calc, voir [dysfonctionnement #7][117].
 - De nombreuses corrections et améliorations...
 
 ### Que reste-t-il à faire pour la version 1.3.3:
@@ -524,7 +524,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-132>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-133>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -624,7 +624,8 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L185>
 [111]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L395>
 [112]: <https://prrvchr.github.io/JaybirdOOo/README_fr>
-[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RowSetSuper.java#L96>
-[114]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
-[115]: <https://trino.io/>
-[116]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/ScrollableResultSet.java#L53>
+[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/SensitiveResultSet.java#L52>
+[115]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
+[116]: <https://trino.io/>
+[117]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
