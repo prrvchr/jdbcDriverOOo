@@ -74,7 +74,7 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         throws SQLException
     {
         super(service, services, connection, getResultSet(provider, result, query), statement, true, true);
-        setResult(provider, result);
+        showResultVisibility(provider, result);
     }
 
     private static ResultSet getResultSet(DriverProvider provider, ResultSet result, String query)
@@ -104,7 +104,7 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         return result;
     }
 
-    private void setResult(DriverProvider provider, ResultSet result)
+    private void showResultVisibility(DriverProvider provider, ResultSet result)
         throws SQLException
     {
         try {
@@ -121,20 +121,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
             throw new SQLException();
         }
     }
-
-    // com.sun.star.lang.XComponent
-    @Override
-    protected synchronized void postDisposing()
-    {
-        super.postDisposing();
-        try {
-            m_Provider.getConnection().commit();
-        }
-        catch (java.sql.SQLException e) {
-            getLogger().logp(LogLevel.WARNING, e);
-        }
-    }
-
 
 
     // com.sun.star.sdbcx.XRowLocate:
