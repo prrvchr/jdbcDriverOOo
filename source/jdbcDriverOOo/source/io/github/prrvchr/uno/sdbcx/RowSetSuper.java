@@ -62,9 +62,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
     protected List<Integer> m_DeletedRows = new ArrayList<>();
     protected DriverProvider m_Provider;
     protected boolean m_UpdateOnClose = true;
-    protected boolean m_IsDeleteVisible;
-    protected boolean m_IsInsertVisible;
-    protected boolean m_IsUpdateVisible;
 
     // The constructor method:
     public RowSetSuper(String service,
@@ -87,19 +84,18 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
             int rstype = result.getType();
             boolean forwardonly = rstype == ResultSet.TYPE_FORWARD_ONLY;
             boolean sensitive = rstype == ResultSet.TYPE_SCROLL_SENSITIVE;
-            //m_IsUpdatable = result.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
             int fetchsize = result.getFetchSize();
             System.out.println("RowSetSuper.getResultSet() IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
-            if (rstype == ResultSet.TYPE_FORWARD_ONLY || rstype == ResultSet.TYPE_SCROLL_INSENSITIVE) {
-                result = new ScrollableResultSet(provider, result, query, true);
+            if (rstype == ResultSet.TYPE_FORWARD_ONLY) {
+                result = new ScrollableResultSet(provider, result, query);
                 System.out.println("RowSetSuper.getResultSet() ResultSet: ScrollableResultSet");
             }
             else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE) {
-                result = new SensitiveResultSet(provider, result, query, true);
+                result = new SensitiveResultSet(provider, result, query);
                 System.out.println("RowSetSuper.getResultSet() ResultSet: SensitiveResultSet");
             }
             else {
-                result = new CachedResultSet(provider, result, query, true);
+                result = new CachedResultSet(provider, result, query);
                 System.out.println("RowSetSuper.getResultSet() ResultSet: CachedResultSet");
             }
         } catch (java.sql.SQLException e) {
@@ -114,12 +110,12 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         try {
             m_Provider = provider;
             int rstype = result.getType();
-            m_IsDeleteVisible = provider.isDeleteVisible(rstype);
-            m_IsInsertVisible = provider.isInsertVisible(rstype);
-            m_IsUpdateVisible = provider.isUpdateVisible(rstype);
-            System.out.println("RowSetSuper() Delete are visible: " + m_IsDeleteVisible);
-            System.out.println("RowSetSuper() Update are visible: " + m_IsUpdateVisible);
-            System.out.println("RowSetSuper() Insert are visible: " + m_IsInsertVisible);
+            boolean deletevisible = provider.isDeleteVisible(rstype);
+            boolean insertvisible = provider.isInsertVisible(rstype);
+            boolean updatevisible = provider.isUpdateVisible(rstype);
+            System.out.println("RowSetSuper() Delete are visible: " + deletevisible);
+            System.out.println("RowSetSuper() Update are visible: " + insertvisible);
+            System.out.println("RowSetSuper() Insert are visible: " + updatevisible);
         }
         catch (java.sql.SQLException e) {
             throw new SQLException();

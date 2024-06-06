@@ -82,8 +82,7 @@ public class CachedResultSet
     // The constructor method:
     public CachedResultSet(DriverProvider provider,
                            ResultSet result,
-                           String query,
-                           boolean updatable)
+                           String query)
         throws SQLException
     {
         m_Provider = provider;
@@ -93,10 +92,10 @@ public class CachedResultSet
         m_IsDeleteVisible = provider.isDeleteVisible(rstype);
         m_IsInsertVisible = provider.isInsertVisible(rstype);
         m_IsUpdateVisible = provider.isUpdateVisible(rstype);
-        m_MakeUpdatable = updatable;
+        m_MakeUpdatable = provider.makeResultSetUpdatable();
         m_FetchSize = result.getFetchSize();
         m_ColumnCount = result.getMetaData().getColumnCount();
-        m_IsUpdatable = result.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
+        m_IsUpdatable = provider.isResultSetUpdatable(result);
         m_InsertedColumns = new BitSet(m_ColumnCount);
         System.out.println("CachedResultSet() IsUpdatable: " + m_IsUpdatable);
     }

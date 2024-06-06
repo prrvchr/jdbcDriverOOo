@@ -74,7 +74,7 @@ public abstract class DriverProviderMain
     protected boolean m_enhanced;
     protected boolean m_showsystem;
     protected boolean m_usebookmark;
-    protected boolean m_forcesql;
+    protected boolean m_sqlmode;
     private String m_separator = ", ";
     private String m_SyncProvider = "io.github.prrvchr.rowset.providers.RIOptimisticProvider";
 
@@ -211,9 +211,19 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean forceSQL()
+    public boolean makeResultSetUpdatable()
     {
-        return m_forcesql;
+        return m_sqlmode;
+    }
+
+    @Override
+    public boolean isResultSetUpdatable(java.sql.ResultSet result)
+        throws java.sql.SQLException
+    {
+        if (m_sqlmode) {
+            return false;
+        }
+        return result.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
     }
 
     @Override
@@ -784,7 +794,7 @@ public abstract class DriverProviderMain
             m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
             m_showsystem = UnoHelper.getConfigurationOption(config2, "ShowSystemTable", false);
             m_usebookmark = UnoHelper.getConfigurationOption(config2, "UseBookmark", true);
-            m_forcesql = UnoHelper.getConfigurationOption(config2, "ForceSQL", false);
+            m_sqlmode = UnoHelper.getConfigurationOption(config2, "SQLMode", false);
             m_enhanced = enhanced;
             String url = getConnectionUrl(location, level);
             java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));

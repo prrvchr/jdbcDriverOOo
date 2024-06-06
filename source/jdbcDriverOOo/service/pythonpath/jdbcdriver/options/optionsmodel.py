@@ -116,7 +116,8 @@ class OptionsModel(unohelper.Base):
         connection = self._services.get('Connection').index(self._getConnectionService())
         system = self._config.getByName('ShowSystemTable')
         bookmark = self._config.getByName('UseBookmark')
-        return driver, connection, self.isUpdated(), self._isConnectionLevelEnabled(driver), system, bookmark
+        mode = self._config.getByName('SQLMode')
+        return driver, connection, self.isUpdated(), self._isConnectionLevelEnabled(driver), system, bookmark, mode
 
     def isUpdated(self):
         return OptionsModel._level
@@ -199,6 +200,9 @@ class OptionsModel(unohelper.Base):
 
     def setBookmark(self, state):
         self._config.replaceByName('UseBookmark', bool(state))
+
+    def setSQLMode(self, state):
+        self._config.replaceByName('SQLMode', bool(state))
 
     def setPath(self, url):
         self._path = url.Protocol + url.Path

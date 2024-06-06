@@ -67,11 +67,10 @@ public class ScrollableResultSet
     // The constructor method:
     public ScrollableResultSet(DriverProvider provider,
                                ResultSet result,
-                               String query,
-                               boolean updatable)
+                               String query)
         throws SQLException
     {
-        super(provider, result, query, updatable);
+        super(provider, result, query);
         m_IsUpdatable = false;
         initCache(result);
     }

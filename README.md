@@ -38,7 +38,7 @@
 This extension is the transcription in pure Java of the [java.sql.*][9] API to the [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] and [com.sun.star.sdb][12] API of UNO.
 **It allows you to use the JDBC driver of your choice directly in Base.**  
 It embeds the drivers for the following databases:
-- [HyperSQL or HsqlDB][13] version 2.7.2
+- [HyperSQL or HsqlDB][13] version 2.7.3
 - [SQLite via xerial sqlite-jdbc][14] version 3.45.1.6-SNAPSHOT
 - [MariaDB via Connector/J][15] version 3.4.0
 - [PostgreSQL via pgJDBC][16] version 42.7.1

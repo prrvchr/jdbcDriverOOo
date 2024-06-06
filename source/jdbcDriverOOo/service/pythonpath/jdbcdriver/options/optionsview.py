@@ -103,6 +103,10 @@ class OptionsView(unohelper.Base):
 
     def setBookmark(self, state):
         self._getBookmark().State = int(state)
+        self.enableSQLMode(state)
+
+    def setSQLMode(self, state):
+        self._getSQLMode().State = int(state)
 
     def setProtocols(self, protocols, protocol):
         control = self._getProtocols()
@@ -198,6 +202,9 @@ class OptionsView(unohelper.Base):
         self._getReboot1().setVisible(state)
         self._getReboot2().setVisible(state)
 
+    def enableSQLMode(self, state):
+        self._getSQLMode().Model.Enabled = bool(state)
+
 # OptionsView private methods
     def _setLogger(self, enabled, selected):
         control = self._getLogger()
@@ -265,6 +272,9 @@ class OptionsView(unohelper.Base):
 
     def _getBookmark(self):
         return self._tab1.getControl('CheckBox2')
+
+    def _getSQLMode(self):
+        return self._tab1.getControl('CheckBox3')
 
     def _getReboot1(self):
         return self._tab1.getControl('Label3')

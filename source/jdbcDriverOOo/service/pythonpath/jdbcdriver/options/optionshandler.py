@@ -95,6 +95,9 @@ class Tab1Handler(unohelper.Base,
             elif method == 'UseBookmark':
                 self._manager.setBookmark(event.Source.State)
                 handled = True
+            elif method == 'SQLMode':
+                self._manager.setSQLMode(event.Source.State)
+                handled = True
             return handled
         except Exception as e:
             msg = "Tab1Handler.callHandlerMethod() Error: %s" % traceback.format_exc()
@@ -107,7 +110,8 @@ class Tab1Handler(unohelper.Base,
                 'Level1',
                 'Level2',
                 'SystemTable',
-                'UseBookmark')
+                'UseBookmark',
+                'SQLMode')
 
 
 class Tab2Handler(unohelper.Base,

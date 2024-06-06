@@ -124,6 +124,10 @@ class OptionsManager(unohelper.Base):
 
     def setBookmark(self, state):
         self._model.setBookmark(state)
+        self._view.enableSQLMode(state)
+
+    def setSQLMode(self, state):
+        self._model.setSQLMode(state)
 
     def updateArchive(self):
         archive = self._updateArchive()
@@ -194,11 +198,12 @@ class OptionsManager(unohelper.Base):
         self._disabled = True
 
     def _initView(self):
-        driver, connection, upadated, enabled, system, bookmark = self._model.getServicesLevel()
+        driver, connection, upadated, enabled, system, bookmark, mode = self._model.getServicesLevel()
         self._view.setDriverLevel(driver, upadated)
         self._view.setConnectionLevel(connection, enabled)
         self._view.setSystemTable(system)
         self._view.setBookmark(bookmark)
+        self._view.setSQLMode(mode)
         self._initViewProtocol()
 
     def _initViewProtocol(self, driver=None):

@@ -79,7 +79,9 @@ public interface DriverProvider
 
     public boolean useBookmark();
 
-    public boolean forceSQL();
+    public boolean makeResultSetUpdatable();
+
+    public boolean isResultSetUpdatable(java.sql.ResultSet result) throws java.sql.SQLException;
 
     public boolean isInsertVisible(int rstype) throws java.sql.SQLException;
 

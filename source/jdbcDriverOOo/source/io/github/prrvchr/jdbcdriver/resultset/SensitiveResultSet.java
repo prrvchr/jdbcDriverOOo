@@ -69,11 +69,10 @@ public class SensitiveResultSet
     // The constructor method:
     public SensitiveResultSet(DriverProvider provider,
                               ResultSet result,
-                              String query,
-                              boolean updatable)
+                              String query)
         throws SQLException
     {
-        super(provider, result, query, updatable);
+        super(provider, result, query);
     }
 
     @Override

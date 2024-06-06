@@ -38,7 +38,7 @@
 Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l'API [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] et [com.sun.star.sdb][12] de UNO.
 **Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.**  
 Elle embarque les pilotes pour les base de données suivantes:
-- [HyperSQL ou HsqlDB][13] version 2.7.2
+- [HyperSQL ou HsqlDB][13] version 2.7.3
 - [SQLite via xerial sqlite-jdbc][14] version 3.45.1.6-SNAPSHOT
 - [MariaDB via Connector/J][15] version 3.4.0
 - [PostgreSQL via pgJDBC][16] version 42.7.1

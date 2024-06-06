@@ -43,7 +43,7 @@
     <prop oor:name="UseBookmark" oor:op="fuse">
         <value>true</value>
     </prop>
-    <prop oor:name="ForceSQL" oor:op="fuse">
+    <prop oor:name="SQLMode" oor:op="fuse">
         <value>false</value>
     </prop>
     <prop oor:name="AdminGridColumns" oor:op="fuse">
