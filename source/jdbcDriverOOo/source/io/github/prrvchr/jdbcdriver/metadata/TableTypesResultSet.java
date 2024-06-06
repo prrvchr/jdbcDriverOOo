@@ -23,63 +23,48 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.resultset;
+package io.github.prrvchr.jdbcdriver.metadata;
 
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Map;
 
 
-public class TablePrivilegesResultSetMetaData extends ResultSetMetaData
+public class TableTypesResultSet
+    extends ResultSet
 {
 
-    private java.sql.ResultSet m_result;
-    private List<String> m_columns;
+    private Map<String, String> m_rows;
 
-    public TablePrivilegesResultSetMetaData(java.sql.ResultSetMetaData metadata,
-                                            List<String> columns)
-    {
-        this(metadata, null, columns);
-    }
-
-    public TablePrivilegesResultSetMetaData(java.sql.ResultSetMetaData metadata,
-                                            java.sql.ResultSet result,
-                                            List<String> columns)
-    {
-        super(metadata);
-        m_result = result;
-        m_columns = columns;
-    }
-
-    @Override
-    public int getColumnCount()
+    public TableTypesResultSet(java.sql.ResultSet resultset,
+                               Map<String, String> rows)
         throws SQLException
     {
-        return m_columns.size();
+        super(resultset);
+        m_rows = rows;
     }
 
     @Override
-    public String getColumnLabel(int index)
+    public String getString(int index)
         throws SQLException
     {
-        return m_columns.get(index - 1);
+        String value = super.getString(index);
+        return getValue(value);
     }
 
     @Override
-    public String getColumnName(int index)
-        throws SQLException 
-    {
-        return getColumnLabel(index);
-    }
-
-    @Override
-    int getIndex(int index)
+    public String getString(String label)
         throws SQLException
     {
-        // XXX: The index needs to be rewritten if we have a ResultSet
-        if (m_result != null) {
-            index = m_result.findColumn(getColumnLabel(index));
+        String value = super.getString(label);
+        return getValue(value);
+    }
+
+    private String getValue(String value)
+    {
+        if (m_rows.containsKey(value)) {
+            return m_rows.get(value);
         }
-        return index;
+        return value;
     }
 
 }

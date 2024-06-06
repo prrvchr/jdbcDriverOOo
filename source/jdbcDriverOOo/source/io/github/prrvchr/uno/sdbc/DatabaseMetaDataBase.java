@@ -1310,6 +1310,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             System.out.println("DatabaseMetaData.getTypeInfo() 1");
+            DBTools.printResultSet(m_Connection.getProvider().getTypeInfoResultSet(m_Metadata));
             java.sql.ResultSet resultset = m_Connection.getProvider().getTypeInfoResultSet(m_Metadata);
             return _getResultSet(resultset, "getTypeInfo");
         }

@@ -55,7 +55,7 @@ public final class CallableStatement
         java.sql.ResultSet result = getJdbcResultSet();
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (m_UseBookmarks) {
-            RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection, result, this);
+            RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection.getProvider(), m_Connection, result, this, m_Sql);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
             return rowset;
         }

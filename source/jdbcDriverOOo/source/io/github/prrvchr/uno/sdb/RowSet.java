@@ -30,6 +30,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.RowSetSuper;
 
@@ -45,12 +46,14 @@ public final class RowSet<S extends StatementMain<?, ?>>
 
 
     // The constructor method:
-    public RowSet(Connection connection,
+    public RowSet(DriverProvider provider,
+                  Connection connection,
                   java.sql.ResultSet resultset,
-                  S statement)
+                  S statement,
+                  String query)
         throws SQLException
     {
-        super(m_service, m_services, connection, resultset, statement);
+        super(m_service, m_services, provider, connection, resultset, statement, query);
         System.out.println("sdb.RowSet() 1");
     }
 

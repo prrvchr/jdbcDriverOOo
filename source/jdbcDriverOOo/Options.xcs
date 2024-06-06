@@ -35,8 +35,8 @@
         <prop oor:name="DriverService" oor:type="xs:string"/>
         <prop oor:name="ConnectionService" oor:type="xs:string"/>
         <prop oor:name="ShowSystemTable" oor:type="xs:boolean"/>
-        <prop oor:name="SupportTransaction" oor:type="xs:boolean"/>
         <prop oor:name="UseBookmark" oor:type="xs:boolean"/>
+        <prop oor:name="ForceSQL" oor:type="xs:boolean"/>
         <prop oor:name="AdminGridColumns" oor:type="xs:string"/>
         <prop oor:name="AdminGridOrders" oor:type="xs:string"/>
     </component>

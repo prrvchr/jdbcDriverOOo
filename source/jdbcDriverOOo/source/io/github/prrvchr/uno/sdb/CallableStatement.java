@@ -82,10 +82,10 @@ public final class CallableStatement
     public XResultSet getResultSet()
         throws SQLException
     {
-        java.sql.ResultSet result = getJdbcResultSet();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+        java.sql.ResultSet result = getJdbcResultSet();
         if (m_UseBookmarks) {
-            RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection, result, this);
+            RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection.getProvider(), m_Connection, result, this, m_Sql);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
             return rowset;
         }

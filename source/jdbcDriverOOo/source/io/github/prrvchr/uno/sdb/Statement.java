@@ -62,7 +62,7 @@ public final class Statement
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         java.sql.ResultSet result = getJdbcResultSet();
         if (m_UseBookmarks) {
-            RowSet<Statement> rowset = new RowSet<Statement>(m_Connection, result, this);
+            RowSet<Statement> rowset = new RowSet<Statement>(m_Connection.getProvider(), m_Connection, result, this, m_Sql);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
             return rowset;
         }

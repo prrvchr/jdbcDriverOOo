@@ -25,10 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
-
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-
 import java.util.BitSet;
 
 
@@ -44,28 +42,35 @@ public class InsertRow
     public boolean isCompleteRow(ResultSetMetaData metadata)
         throws SQLException
     {
-        int nonull = ResultSetMetaData.columnNoNulls;
-        for (int i = 0; i < m_Count; i++) {
-            if (!m_Updated.get(i) && metadata.isNullable(i + 1) == nonull) {
-                return false;
+        try {
+            System.out.println("InsertRow.isCompleteRow() 1");
+            int nonull = ResultSetMetaData.columnNoNulls;
+            System.out.println("InsertRow.isCompleteRow() 2");
+            for (int i = 0; i < m_Count; i++) {
+                System.out.println("InsertRow.isCompleteRow() 3");
+                if (!m_Updated.get(i) && metadata.isNullable(i + 1) == nonull) {
+                    System.out.println("InsertRow.isCompleteRow() 4");
+                    return false;
+                }
             }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         return true;
     }
 
-    public BitSet getInserted()
-        throws SQLException
+    public BitSet getInsertedColumns()
     {
         return (BitSet) m_Updated.clone();
     }
 
     public Object getColumnObject(int index)
-        throws SQLException
     {
-        if (!m_Updated.get(index - 1)) {
-            throw new SQLException();
+        if (m_Updated.get(index - 1)) {
+            return m_NewValues[index - 1];
         }
-        return m_Values[index - 1];
+        return null;
     }
 
 }

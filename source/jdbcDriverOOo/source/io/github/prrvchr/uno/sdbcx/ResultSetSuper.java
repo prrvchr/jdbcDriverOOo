@@ -40,7 +40,8 @@ import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public abstract class ResultSetSuper<C extends ConnectionSuper, S extends StatementMain<?, ?>>
+public abstract class ResultSetSuper<C extends ConnectionSuper,
+                                     S extends StatementMain<?, ?>>
     extends ResultSetBase<C, S>
 {
     private boolean m_IsBookmarkable = false;
@@ -78,6 +79,7 @@ public abstract class ResultSetSuper<C extends ConnectionSuper, S extends Statem
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
+                    System.out.println("ResultSetSuper.CanUpdateInsertedRows(): " + m_CanUpdateInsertedRows);
                     return m_CanUpdateInsertedRows;
                 }
             }, null);

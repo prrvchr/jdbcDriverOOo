@@ -40,19 +40,23 @@ public class Row extends BaseRow
     public Row(int count, Object[] values)
     {
         this(count);
-        System.arraycopy(values, 0, m_Values, 0, count);
+        System.arraycopy(values, 0, m_NewValues, 0, count);
     }
 
-    public void initColumnObject(ResultSet result, int index)
+    public void initColumnObject(ResultSet result,
+                                 int index)
         throws SQLException
     {
-        RowHelper.setColumnValue(m_Values, result, index);
+        m_OldValues[index - 1] = RowHelper.getResultSetValue(result, index);
     }
 
     public Object getColumnObject(int index)
-        throws SQLException
     {
-        return m_Values[index - 1];
+        if (isColumnUpdated(index)) {
+            return(m_NewValues[index - 1]);
+        } else {
+            return(m_OldValues[index - 1]);
+        }
     }
 
     public boolean isUpdated()

@@ -23,77 +23,64 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-/**************************************************************
- * 
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- *************************************************************/
 package io.github.prrvchr.jdbcdriver.rowset;
 
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.NClob;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Types;
-import java.util.BitSet;
+import java.sql.SQLException;
 
-import com.sun.star.sdbc.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.util.BitSet;
 
 
 public class RowHelper
 {
 
-    public static void setDefaultColumnValues(java.sql.ResultSet result,
+    public static void setDefaultColumnValues(ResultSet result,
                                               BitSet column)
-        throws java.sql.SQLException
+        throws SQLException
     {
-        // XXX: If we want to succeed, we need to set to NULL all auto-increment
-        // XXX: and nullable columns that have not been updated
-            System.out.println("DBTools.setDefaultColumnValues() 1");
-            ResultSetMetaData metadata = result.getMetaData();
-            int count = metadata.getColumnCount();
-            for (int index = 1; index <= count; index ++) {
-                if (!column.get(index - 1)) {
-                    boolean nullable = metadata.isNullable(index) != ResultSetMetaData.columnNoNulls;
-                    if (nullable) {
-                        System.out.println("DBTools.setDefaultColumnValues() 2 updateNull Index: " + index);
-                        result.updateNull(index);
-                    }
-                    System.out.println("DBTools.setDefaultColumnValues() 3");
+        // XXX: On insert if we want to succeed, we need to set to NULL all
+        // XXX: auto-increment and nullable columns that have not been updated
+        System.out.println("DBTools.setDefaultColumnValues() 1");
+        ResultSetMetaData metadata = result.getMetaData();
+        int count = metadata.getColumnCount();
+        for (int index = 1; index <= count; index ++) {
+            if (!column.get(index - 1)) {
+                boolean nullable = metadata.isNullable(index) != ResultSetMetaData.columnNoNulls;
+                if (nullable) {
+                    System.out.println("DBTools.setDefaultColumnValues() 2 updateNull Index: " + index);
+                    result.updateNull(index);
                 }
+                System.out.println("DBTools.setDefaultColumnValues() 3");
+            }
         }
     }
 
-    public static int setColumnValues(java.sql.ResultSet result,
+    public static int setColumnValues(ResultSet result,
                                       BaseRow row,
                                       int count,
                                       int insert)
-        throws SQLException, java.sql.SQLException
+        throws SQLException
     {
         return setColumnValues(result, row, count) ? insert : 0;
     }
 
-    public static boolean setColumnValues(java.sql.ResultSet result,
+    public static boolean setColumnValues(ResultSet result,
                                           BaseRow row,
                                           int count)
-        throws SQLException, java.sql.SQLException
+        throws SQLException
     {
         System.out.println("DBTools.setColumnValues() 1");
         boolean updated = true;
@@ -116,102 +103,192 @@ public class RowHelper
         return hasupdate && updated;
     }
 
-    public static void setColumnValue(Object[] values, ResultSet result, int index)
-        throws java.sql.SQLException
+    public static Object getResultSetValue(ResultSet result,
+                                           int index)
+        throws SQLException
     {
         Object value = null;
-        switch (result.getMetaData().getColumnType(index)) {
-        case Types.CHAR:
-        case Types.VARCHAR:
-        case Types.LONGVARCHAR:
-            value = result.getString(index);
-            break;
-        case Types.NCHAR:
-        case Types.NVARCHAR:
-        case Types.LONGNVARCHAR:
-            value = result.getNString(index);
-            break;
-        case Types.BOOLEAN:
-            value = result.getObject(index, Boolean.class);
-            break;
-        case Types.TINYINT:
-        case Types.SMALLINT:
-        case Types.INTEGER:
-            value = result.getObject(index, Integer.class);
-            break;
-        case Types.BIGINT:
-            value = result.getObject(index, Long.class);
-            break;
-        case Types.BINARY:
-        case Types.VARBINARY:
-        case Types.LONGVARBINARY:
-            value = result.getBytes(index);
-            break;
-        case Types.CLOB:
-            value = result.getObject(index, Clob.class);
-            break;
-        case Types.NCLOB:
-            value = result.getObject(index, NClob.class);
-            break;
-        case Types.BLOB:
-            value = result.getObject(index, Blob.class);
-            break;
-        case Types.ARRAY:
-            value = result.getObject(index, Array.class);
-            break;
-        default:
-            value = result.getObject(index);
+        int type = result.getMetaData().getColumnType(index);
+        switch (type) {
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+                value = result.getString(index);
+                break;
+            case Types.NCHAR:
+            case Types.NVARCHAR:
+            case Types.LONGNVARCHAR:
+                value = result.getNString(index);
+                break;
+            case Types.BOOLEAN:
+                value = result.getObject(index, Boolean.class);
+                break;
+            case Types.TINYINT:
+            case Types.SMALLINT:
+            case Types.INTEGER:
+                value = result.getObject(index, Integer.class);
+                break;
+            case Types.BIGINT:
+                value = result.getObject(index, Long.class);
+                break;
+            case Types.FLOAT:
+                value = result.getObject(index, Double.class);
+                break;
+            case Types.BINARY:
+            case Types.VARBINARY:
+            case Types.LONGVARBINARY:
+                value = result.getBytes(index);
+                break;
+            case Types.CLOB:
+                value = result.getObject(index, Clob.class);
+                break;
+            case Types.NCLOB:
+                value = result.getObject(index, NClob.class);
+                break;
+            case Types.BLOB:
+                value = result.getObject(index, Blob.class);
+                break;
+            case Types.ARRAY:
+                value = result.getObject(index, Array.class);
+                break;
+            case Types.DATE:
+                value = result.getObject(index, Date.class);
+                break;
+            case Types.TIME:
+                value = result.getObject(index, Time.class);
+                break;
+            case Types.TIMESTAMP:
+                value = result.getObject(index, Timestamp.class);
+                break;
+            case Types.TIME_WITH_TIMEZONE:
+                value = result.getObject(index, OffsetTime.class);
+                break;
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                value = result.getObject(index, OffsetDateTime.class);
+                break;
+            default:
+                value = result.getObject(index);
         }
-        values[index - 1] = result.wasNull() ? null : value;
+        return result.wasNull() ? null : value;
     }
 
-    public static boolean updateColumnValue(ResultSet result, int index, Object value)
-        throws java.sql.SQLException
+    public static boolean updateColumnValue(ResultSet result,
+                                            int index,
+                                            Object value)
+        throws SQLException
     {
-        switch (result.getMetaData().getColumnType(index)) {
-        case Types.CHAR:
-        case Types.VARCHAR:
-        case Types.LONGVARCHAR:
-            result.updateString(index, (String) value);
-            break;
-        case Types.NCHAR:
-        case Types.NVARCHAR:
-        case Types.LONGNVARCHAR:
-            result.updateNString(index, (String) value);
-            break;
-        case Types.BOOLEAN:
-            result.updateBoolean(index, (Boolean) value);
-            break;
-        case Types.TINYINT:
-        case Types.SMALLINT:
-        case Types.INTEGER:
-            result.updateInt(index, (Integer) value);
-            break;
-        case Types.BIGINT:
-            result.updateLong(index, (Long) value);
-            break;
-        case Types.BINARY:
-        case Types.VARBINARY:
-        case Types.LONGVARBINARY:
-            result.updateBytes(index, (byte[]) value);
-            break;
-        case Types.CLOB:
-            result.updateClob(index, (Clob) value);
-            break;
-        case Types.NCLOB:
-            result.updateNClob(index, (NClob) value);
-            break;
-        case Types.BLOB:
-            result.updateBlob(index, (Blob) value);
-            break;
-        case Types.ARRAY:
-            result.updateArray(index, (Array) value);
-            break;
-        default:
-            result.updateObject(index, value);
+        if (value != null) {
+            int type = result.getMetaData().getColumnType(index);
+            result.updateObject(index, value, JDBCType.valueOf(type));
+            /*switch (type) {
+                case Types.CHAR:
+                case Types.VARCHAR:
+                case Types.LONGVARCHAR:
+                    result.updateString(index, (String) value);
+                    break;
+                case Types.NCHAR:
+                case Types.NVARCHAR:
+                case Types.LONGNVARCHAR:
+                    result.updateNString(index, (String) value);
+                    break;
+                case Types.BOOLEAN:
+                    result.updateBoolean(index, (Boolean) value);
+                    break;
+                case Types.TINYINT:
+                case Types.SMALLINT:
+                case Types.INTEGER:
+                    result.updateInt(index, (Integer) value);
+                    break;
+                case Types.BIGINT:
+                    result.updateLong(index, (Long) value);
+                    break;
+                case Types.FLOAT:
+                    result.updateDouble(index, (Double) value);
+                    break;
+                case Types.BINARY:
+                case Types.VARBINARY:
+                case Types.LONGVARBINARY:
+                    result.updateBytes(index, (byte[]) value);
+                    break;
+                case Types.CLOB:
+                    result.updateClob(index, (Clob) value);
+                    break;
+                case Types.NCLOB:
+                    result.updateNClob(index, (NClob) value);
+                    break;
+                case Types.BLOB:
+                    result.updateBlob(index, (Blob) value);
+                    break;
+                case Types.ARRAY:
+                    result.updateArray(index, (Array) value);
+                    break;
+                case Types.DATE:
+                    result.updateDate(index, (Date) value);
+                    break;
+                case Types.TIME:
+                    result.updateTime(index, (Time) value);
+                    break;
+                case Types.TIMESTAMP:
+                    result.updateTimestamp(index, (Timestamp) value);
+                    break;
+                case Types.TIME_WITH_TIMEZONE:
+                    result.updateObject(index, (OffsetTime) value);
+                    break;
+                case Types.TIMESTAMP_WITH_TIMEZONE:
+                    result.updateObject(index, (OffsetDateTime) value);
+                    break;
+                default:
+                    result.updateObject(index, value);
+            }*/
+        }
+        else {
+            result.updateNull(index);
         }
         return true;
     }
 
+
+    public static void setRowValue(PreparedStatement statement,
+                                   int type,
+                                   int index,
+                                   Object value)
+        throws SQLException
+    {
+        if (value != null) {
+            statement.setObject(index, value, type);
+        }
+        else {
+            statement.setNull(index, type);
+        }
+    }
+
+    public static boolean isValidKeyType(int type)
+    {
+        boolean valid = false;
+        switch (type) {
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+            case Types.NCHAR:
+            case Types.NVARCHAR:
+            case Types.LONGNVARCHAR:
+            case Types.BOOLEAN:
+            case Types.TINYINT:
+            case Types.SMALLINT:
+            case Types.INTEGER:
+            case Types.BIGINT:
+            case Types.FLOAT:
+            case Types.DATE:
+            case Types.TIME:
+            case Types.TIMESTAMP:
+            case Types.TIME_WITH_TIMEZONE:
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                valid = true;
+                break;
+            default:
+                valid = false;
+        }
+        return valid;
+    }
 
 }

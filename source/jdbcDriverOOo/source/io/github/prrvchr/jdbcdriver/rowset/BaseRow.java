@@ -25,30 +25,25 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
-
-import java.sql.SQLException;
-
-import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 
 
 public abstract class BaseRow
 {
 
-    protected Object[] m_Values;
+    protected Object[] m_NewValues;
+    protected Object[] m_OldValues;
     protected BitSet m_Updated;
+
     protected int m_Count;
 
     protected BaseRow(int count)
     {
-        m_Values = new Object[count];
+        m_NewValues = new Object[count];
+        m_OldValues = new Object[count];
         m_Updated = new BitSet(count);
         m_Count = count;
-    }
-
-    public Object[] getValues()
-    {
-        return (m_Values != null) ? Arrays.copyOf(m_Values, m_Values.length) : null;
     }
 
     public boolean isColumnUpdated(int index)
@@ -58,10 +53,27 @@ public abstract class BaseRow
 
     public void setColumnObject(int index, Object value)
     {
-        m_Values[index - 1] = value;
+        m_NewValues[index - 1] = value;
         m_Updated.set(index - 1);
     }
 
-    public abstract Object getColumnObject(int index) throws SQLException;
+    public void clearUpdated(List<RowColumn> columns, int status)
+    {
+        for (RowColumn column : columns) {
+            int index = column.getIndex();
+            if (status != 0) {
+                m_OldValues[index - 1] = m_NewValues[index - 1];
+            }
+            m_NewValues[index - 1] = null;
+            m_Updated.clear(index - 1);
+        }
+    }
+
+    public Object getOldColumnObject(int index)
+    {
+        return(m_OldValues[index - 1]);
+    }
+
+    public abstract Object getColumnObject(int index);
 
 }

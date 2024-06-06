@@ -23,107 +23,92 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.resultset;
+package io.github.prrvchr.jdbcdriver.rowset;
 
-import java.sql.SQLException;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 
 
-public class TypeInfoResultSet
-    extends ResultSet
+public class RowColumn
 {
 
-    private TypeInfoRows m_rows;
+    private RowTable m_Table;
+    private String m_Name;
+    private String m_Identifier;
+    private int m_type = 0;
+    private int m_index = 0;
+    private boolean m_autoincrement = false;
 
-    public TypeInfoResultSet(java.sql.ResultSet resultset,
-                             TypeInfoRows rows)
-        throws SQLException
+    // The constructor method:
+    public RowColumn(RowCatalog catalog,
+                     Statement statement,
+                     ResultSetMetaData metadata,
+                     int index)
+        throws java.sql.SQLException
     {
-        super(resultset);
-        m_rows = rows;
+        m_Table = catalog.getTable(metadata, index);
+        m_Name = metadata.getColumnName(index);
+        m_Identifier = statement.enquoteIdentifier(m_Name, true);
+        m_type = metadata.getColumnType(index);
+        m_autoincrement = metadata.isAutoIncrement(index);
+        m_Table.setKeyColumn(index, m_Identifier, m_type);
+        m_index = index;
+        System.out.println("RowColumn() 1");
     }
 
-    @Override
-    public boolean next()
-        throws SQLException
+    public String getCatalogName()
     {
-        return m_rows.next(super.next());
+        return m_Table.getCatalogName();
     }
 
-    @Override
-    public boolean wasNull()
-        throws SQLException
+    public String getSchemaName()
     {
-        return m_rows.wasNull(super.wasNull());
+        return m_Table.getSchemaName();
     }
 
-    @Override
-    public String getString(int index)
-        throws SQLException
+    public String getTableName()
     {
-        return m_rows.getValue(index, super.getString(index));
+        return m_Table.getName();
     }
 
-    @Override
-    public String getString(String label)
-        throws SQLException
+    public String getName()
     {
-        return getString(super.findColumn(label));
+        return m_Name;
     }
 
-    @Override
-    public boolean getBoolean(int index)
-        throws SQLException
+    public String getUpdateParameter()
     {
-        return m_rows.getValue(index, super.getBoolean(index));
+        return String.format(m_Table.getParameter(), m_Identifier);
     }
 
-    @Override
-    public boolean getBoolean(String label)
-        throws SQLException
+    public String getIdentifier()
     {
-        return getBoolean(super.findColumn(label));
+        return m_Identifier;
     }
 
-    @Override
-    public short getShort(int index)
-        throws SQLException
+    public int getIndex()
     {
-        return m_rows.getNewValue(index, super.getShort(index));
+        return m_index;
     }
 
-    @Override
-    public short getShort(String label)
-        throws SQLException
+    public int getType()
     {
-        return getShort(super.findColumn(label));
+        return m_type;
     }
 
-    @Override
-    public int getInt(int index)
-        throws SQLException
+    public boolean isAutoIncrement()
     {
-        return m_rows.getValue(index, super.getInt(index));
+        return m_autoincrement;
     }
 
-    @Override
-    public int getInt(String label)
-        throws SQLException
+    public boolean isColumnOfTable(RowTable table)
     {
-        return getInt(super.findColumn(label));
+        return m_Table.equals(table);
     }
 
-    @Override
-    public long getLong(int index)
-        throws SQLException
+    public boolean isKeyColumn()
     {
-        return m_rows.getValue(index, super.getLong(index));
-    }
-
-    @Override
-    public long getLong(String label)
-        throws SQLException
-    {
-        return getLong(super.findColumn(label));
+        return m_Table.isKeyColumn(m_index);
     }
 
 }

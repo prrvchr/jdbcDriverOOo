@@ -26,6 +26,7 @@
 package io.github.prrvchr.jdbcdriver;
 
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,9 +48,9 @@ import com.sun.star.uno.XInterface;
 import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.helper.DBException;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.resultset.TableTypesResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.TypeInfoResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.TypeInfoRows;
+import io.github.prrvchr.jdbcdriver.metadata.TableTypesResultSet;
+import io.github.prrvchr.jdbcdriver.metadata.TypeInfoResultSet;
+import io.github.prrvchr.jdbcdriver.metadata.TypeInfoRows;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -73,8 +74,19 @@ public abstract class DriverProviderMain
     protected boolean m_enhanced;
     protected boolean m_showsystem;
     protected boolean m_usebookmark;
+    protected boolean m_forcesql;
     private String m_separator = ", ";
     private String m_SyncProvider = "io.github.prrvchr.rowset.providers.RIOptimisticProvider";
+
+    private Boolean m_InsertVisibleInsensitive;
+    private Boolean m_InsertVisibleSensitive;
+    private Boolean m_InsertVisibleForwardonly;
+    private Boolean m_DeleteVisibleInsensitive;
+    private Boolean m_DeleteVisibleSensitive;
+    private Boolean m_DeleteVisibleForwardonly;
+    private Boolean m_UpdateVisibleInsensitive;
+    private Boolean m_UpdateVisibleSensitive;
+    private Boolean m_UpdateVisibleForwardonly;
 
     private boolean m_CatalogsInTableDefinitions;
     private boolean m_SchemasInTableDefinitions;
@@ -196,6 +208,12 @@ public abstract class DriverProviderMain
     public boolean useBookmark()
     {
         return m_usebookmark;
+    }
+
+    @Override
+    public boolean forceSQL()
+    {
+        return m_forcesql;
     }
 
     @Override
@@ -706,6 +724,16 @@ public abstract class DriverProviderMain
             // XXX: SQLCommandSuffix is needed for building query from sql command.
             m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
 
+            m_InsertVisibleInsensitive = getDriverBooleanProperty(config1, "InsertVisibleInsensitive", null);
+            m_InsertVisibleSensitive = getDriverBooleanProperty(config1, "InsertVisibleSensitive", null);
+            m_InsertVisibleForwardonly = getDriverBooleanProperty(config1, "InsertVisibleForwardonly", null);
+            m_DeleteVisibleInsensitive = getDriverBooleanProperty(config1, "DeleteVisibleInsensitive", null);
+            m_DeleteVisibleSensitive = getDriverBooleanProperty(config1, "DeleteVisibleSensitive", null);
+            m_DeleteVisibleForwardonly = getDriverBooleanProperty(config1, "DeleteVisibleForwardonly", null);
+            m_UpdateVisibleInsensitive = getDriverBooleanProperty(config1, "UpdateVisibleInsensitive", null);
+            m_UpdateVisibleSensitive = getDriverBooleanProperty(config1, "UpdateVisibleSensitive", null);
+            m_UpdateVisibleForwardonly = getDriverBooleanProperty(config1, "UpdateVisibleForwardonly", null);
+
             m_AutoIncrementIsPrimaryKey = getDriverBooleanProperty(config1, "AutoIncrementIsPrimaryKey", m_AutoIncrementIsPrimaryKey);
             m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);
             m_SupportsRenameView = getDriverBooleanProperty(config1, "SupportsRenameView", m_SupportsRenameView);
@@ -756,6 +784,7 @@ public abstract class DriverProviderMain
             m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
             m_showsystem = UnoHelper.getConfigurationOption(config2, "ShowSystemTable", false);
             m_usebookmark = UnoHelper.getConfigurationOption(config2, "UseBookmark", true);
+            m_forcesql = UnoHelper.getConfigurationOption(config2, "ForceSQL", false);
             m_enhanced = enhanced;
             String url = getConnectionUrl(location, level);
             java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));
@@ -773,8 +802,7 @@ public abstract class DriverProviderMain
             m_CatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
             m_SchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
 
-            boolean support = UnoHelper.getConfigurationOption(config2, "SupportTransaction", true);
-            m_SupportsTransactions = metadata.supportsTransactions() && support;
+            m_SupportsTransactions = metadata.supportsTransactions() && getDriverBooleanProperty(config1, "SupportTransaction", true);
             m_IsCatalogAtStart = metadata.isCatalogAtStart();
             m_CatalogSeparator = metadata.getCatalogSeparator();
             m_IdentifierQuoteString = metadata.getIdentifierQuoteString();
@@ -790,6 +818,66 @@ public abstract class DriverProviderMain
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, location);
             throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
         }
+    }
+
+    @Override
+    public boolean isInsertVisible(int rstype)
+        throws java.sql.SQLException
+    {
+        boolean visible = false;
+        if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_InsertVisibleForwardonly != null) {
+            visible = m_InsertVisibleForwardonly;
+        }
+        else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_InsertVisibleInsensitive != null) {
+            visible = m_InsertVisibleInsensitive;
+        }
+        else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_InsertVisibleSensitive != null) {
+            visible = m_InsertVisibleSensitive;
+        }
+        else {
+            visible = getConnection().getMetaData().ownInsertsAreVisible(rstype);
+        }
+        return visible;
+    }
+
+    @Override
+    public boolean isUpdateVisible(int rstype)
+        throws java.sql.SQLException
+    {
+        boolean visible = false;
+        if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_UpdateVisibleForwardonly != null) {
+            visible = m_UpdateVisibleForwardonly;
+        }
+        else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_UpdateVisibleInsensitive != null) {
+            visible = m_UpdateVisibleInsensitive;
+        }
+        else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_UpdateVisibleSensitive != null) {
+            visible = m_UpdateVisibleSensitive;
+        }
+        else {
+            visible = getConnection().getMetaData().ownUpdatesAreVisible(rstype);
+        }
+        return visible;
+    }
+
+    @Override
+    public boolean isDeleteVisible(int rstype)
+        throws java.sql.SQLException
+    {
+        boolean visible = false;
+        if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_DeleteVisibleForwardonly != null) {
+            visible = m_DeleteVisibleForwardonly;
+        }
+        else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_DeleteVisibleInsensitive != null) {
+            visible = m_DeleteVisibleInsensitive;
+        }
+        else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_DeleteVisibleSensitive != null) {
+            visible = m_DeleteVisibleSensitive;
+        }
+        else {
+            visible = getConnection().getMetaData().ownDeletesAreVisible(rstype);
+        }
+        return visible;
     }
 
     @Override
@@ -1285,7 +1373,7 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean getDriverBooleanProperty(XHierarchicalNameAccess driver, String name, boolean value)
+    public Boolean getDriverBooleanProperty(XHierarchicalNameAccess driver, String name, Boolean value)
     {
         String property = getPropertyPath(name);
         try {

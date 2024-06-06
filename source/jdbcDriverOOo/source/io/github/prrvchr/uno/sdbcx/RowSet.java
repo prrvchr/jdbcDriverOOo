@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
@@ -38,12 +39,14 @@ public final class RowSet<S extends StatementMain<?, ?>>
                                                 "com.sun.star.sdbcx.ResultSet"};
 
     // The constructor method:
-    public RowSet(Connection connection,
+    public RowSet(DriverProvider provider,
+                  Connection connection,
                   java.sql.ResultSet result,
-                  S statement)
+                  S statement,
+                  String query)
         throws SQLException
     {
-        super(m_service, m_services, connection, result, statement);
+        super(m_service, m_services, provider, connection, result, statement, query);
         System.out.println("sdbcx.RowSet() 1");
     }
 

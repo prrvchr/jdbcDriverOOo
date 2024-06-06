@@ -334,7 +334,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/hsqldb-2.7.2.jar</value>
+                        <value>%origin%/driver/hsqldb-2.7.3.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1338,6 +1338,11 @@
                         <value>;</value>
                     </prop>
                 </node>
+                <node oor:name="InsertVisibleInsensitive" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -1458,9 +1463,14 @@
             </prop>
 
             <node oor:name="Properties">
+                <node oor:name="PrimaryKeySupport" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
                 <node oor:name="TypeInfoSettings" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
-                        <value oor:separator="|">Column(1) = SMALLINT|Column(12) = 1|Column(1) = INTEGER|Column(12) = 1|Column(1) = BIGINT|Column(12) = 1</value>
+                        <value oor:separator="|">Column(1) = tinyint|Column(12) = 1|Column(1) = smallint|Column(12) = 1|Column(1) = integer|Column(12) = 1|Column(1) = bigint|Column(12) = 1</value>
                     </prop>
                 </node>
                 <node oor:name="AddIndexAppendix" oor:op="replace">
@@ -1480,7 +1490,7 @@
                 </node>
                 <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
+                        <value>true</value>
                     </prop>
                 </node>
                 <node oor:name="AutoIncrementCreation" oor:op="replace">
@@ -1511,6 +1521,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="SupportTransaction" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>

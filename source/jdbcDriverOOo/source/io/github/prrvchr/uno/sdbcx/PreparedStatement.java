@@ -54,7 +54,7 @@ public final class PreparedStatement
         java.sql.ResultSet result = getJdbcResultSet();
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         if (m_UseBookmarks) {
-            RowSet<PreparedStatement> rowset = new RowSet<PreparedStatement>(m_Connection, result, this);
+            RowSet<PreparedStatement> rowset = new RowSet<PreparedStatement>(m_Connection.getProvider(), m_Connection, result, this, m_Sql);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
             return rowset;
         }

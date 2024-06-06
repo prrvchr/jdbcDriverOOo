@@ -23,95 +23,63 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.resultset;
+package io.github.prrvchr.jdbcdriver.metadata;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 
-public class TablePrivilegesRows
+public class TablePrivilegesResultSetMetaData extends ResultSetMetaData
 {
 
-    // XXX: We rewrite column indexes 4,5,6 and 7, index 5 and 6 will be assigned dynamically
-    private Map<Integer, Object> m_columns = new HashMap<>();
-    private boolean m_replaced = false;
-    private boolean m_wasnull = false;
+    private java.sql.ResultSet m_result;
+    private List<String> m_columns;
 
-    public TablePrivilegesRows(final String username)
+    public TablePrivilegesResultSetMetaData(java.sql.ResultSetMetaData metadata,
+                                            List<String> columns)
+    {
+        this(metadata, null, columns);
+    }
+
+    public TablePrivilegesResultSetMetaData(java.sql.ResultSetMetaData metadata,
+                                            java.sql.ResultSet result,
+                                            List<String> columns)
+    {
+        super(metadata);
+        m_result = result;
+        m_columns = columns;
+    }
+
+    @Override
+    public int getColumnCount()
         throws SQLException
     {
-        m_columns.put(4, null);
-        m_columns.put(5, username);
-        m_columns.put(7, "YES");
+        return m_columns.size();
     }
 
-    public void setPrivilege(final String privilege)
+    @Override
+    public String getColumnLabel(int index)
+        throws SQLException
     {
-        m_columns.put(6, privilege);
+        return m_columns.get(index - 1);
     }
 
-    public boolean wasNull(final boolean wasnull)
+    @Override
+    public String getColumnName(int index)
+        throws SQLException 
     {
-        return m_replaced ? m_wasnull : wasnull;
+        return getColumnLabel(index);
     }
 
-    public String getValue(final int index,
-                           final String value)
+    @Override
+    int getIndex(int index)
+        throws SQLException
     {
-        if (setValue(index)) {
-            return (String) getValue(index);
+        // XXX: The index needs to be rewritten if we have a ResultSet
+        if (m_result != null) {
+            index = m_result.findColumn(getColumnLabel(index));
         }
-        return value;
-    }
-
-    public boolean getValue(final int index,
-                            final boolean value)
-    {
-        if (setValue(index)) {
-            return (boolean) getValue(index);
-        }
-        return value;
-    }
-
-    public short getValue(final int index,
-                          final short value)
-    {
-        if (setValue(index)) {
-            return (short) getValue(index);
-        }
-        return value;
-    }
-
-    public int getValue(final int index,
-                        final int value)
-    {
-        if (setValue(index)) {
-            return (int) getValue(index);
-        }
-        return value;
-    }
-
-    public long getValue(final int index,
-                         final long value)
-    {
-        if (setValue(index)) {
-            return (long) getValue(index);
-        }
-        return value;
-    }
-
-    private boolean setValue(int index)
-    {
-        m_replaced = m_columns.containsKey(index);
-        return m_replaced;
-    }
-
-    private Object getValue(final int index)
-    {
-        Object value = m_columns.get(index);
-        m_wasnull = value == null;
-        return value;
+        return index;
     }
 
 }

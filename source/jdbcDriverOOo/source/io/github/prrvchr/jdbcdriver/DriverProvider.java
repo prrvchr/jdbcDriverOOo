@@ -79,6 +79,14 @@ public interface DriverProvider
 
     public boolean useBookmark();
 
+    public boolean forceSQL();
+
+    public boolean isInsertVisible(int rstype) throws java.sql.SQLException;
+
+    public boolean isDeleteVisible(int rstype) throws java.sql.SQLException;
+
+    public boolean isUpdateVisible(int rstype) throws java.sql.SQLException;
+
     public boolean hasTableTypesSettings();
 
     public boolean hasDocument();
@@ -95,9 +103,9 @@ public interface DriverProvider
 
     public XOfficeDatabaseDocument getDocument();
 
-    public boolean getDriverBooleanProperty(XHierarchicalNameAccess driver,
+    public Boolean getDriverBooleanProperty(XHierarchicalNameAccess driver,
                                             String property,
-                                            boolean value);
+                                            Boolean value);
 
     public String getDriverStringProperty(XHierarchicalNameAccess driver,
                                           String name,

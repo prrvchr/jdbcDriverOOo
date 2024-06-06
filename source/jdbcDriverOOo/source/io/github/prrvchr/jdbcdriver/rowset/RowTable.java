@@ -1,0 +1,162 @@
+/*
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+*/
+package io.github.prrvchr.jdbcdriver.rowset;
+
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import io.github.prrvchr.jdbcdriver.helper.DBTools;
+
+public class RowTable
+{
+
+    private RowCatalog m_Tables;
+    private Map<Integer, String> m_Keys = new HashMap<>();
+    private String m_Catalog;
+    private String m_Schema;
+    private String m_Name;
+    private String m_Where;
+
+    // The constructor method:
+    public RowTable(RowCatalog tables,
+                    ResultSetMetaData metadata,
+                    int index)
+        throws SQLException
+    {
+        m_Tables = tables;
+        m_Catalog = metadata.getCatalogName(index);
+        m_Schema = metadata.getSchemaName(index);
+        m_Name = metadata.getTableName(index);
+        System.out.println("RowTable() 1");
+    }
+
+    public String getCatalogName()
+    {
+        return m_Catalog;
+    }
+
+    public String getSchemaName()
+    {
+        return m_Schema;
+    }
+
+    public String getName()
+    {
+        return m_Name;
+    }
+
+    public String getComposedName(boolean quoted)
+        throws SQLException
+    {
+        return DBTools.buildName(m_Tables.getProvider(), m_Catalog, m_Schema, m_Name, m_Tables.getRule(), quoted);
+    }
+
+    public boolean isSameTable(ResultSetMetaData metadata,
+                               int index)
+        throws SQLException
+    {
+        return m_Catalog.equals(metadata.getCatalogName(index)) &&
+               m_Schema.equals(metadata.getSchemaName(index)) &&
+               m_Name.equals(metadata.getTableName(index));
+    }
+
+    public void setKeyColumn(int index, String identifier, int type) {
+        System.out.println("RowTable.setKeyColumn() 1 Key identifier: " + identifier + " - Type: " + type);
+        if (RowHelper.isValidKeyType(type)) {
+            System.out.println("RowTable.setKeyColumn() 2 Key identifier: " + identifier);
+            m_Keys.put(index, identifier);
+        }
+    }
+
+    public boolean isKeyColumn(int index) {
+        return m_Keys.containsKey(index);
+    }
+
+    public Integer[] getKeyIndex()
+    {
+        return m_Keys.keySet().toArray(new Integer[0]);
+    }
+
+    public String getWhereCmd()
+        throws SQLException
+    {
+        if (m_Where == null) {
+            List<String> columns = new ArrayList<>();
+            for (Entry<Integer, String> key : m_Keys.entrySet()) {
+                System.out.println("RowTable.getWhereCmd() 1 Key: " + key.getValue());
+
+                columns.add(String.format(m_Tables.getParameter(), key.getValue()));
+            }
+            m_Where = String.join(m_Tables.getAnd(), columns);
+        }
+        return m_Where;
+    }
+
+    public String getSeparator()
+    {
+        return m_Tables.getSeparator();
+    }
+
+    public String getParameter()
+    {
+        return m_Tables.getParameter();
+    }
+
+    public String getMark()
+    {
+        return m_Tables.getMark();
+    }
+
+    public int hashCode()
+    {
+        int code = 0;
+        try {
+            code = getComposedName(false).hashCode();
+        }
+        catch (SQLException e) { }
+        return code;
+    }
+
+    public boolean equals(Object object)
+    {
+        if (!(object instanceof RowTable)) {
+            return false;
+        }
+        boolean eq = false;
+        RowTable table = (RowTable) object;
+        try {
+            eq = getComposedName(false).equals(table.getComposedName(false));
+        }
+        catch (SQLException e) { }
+        return eq;
+    }
+
+}

@@ -23,7 +23,7 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.resultset;
+package io.github.prrvchr.jdbcdriver.metadata;
 
 import java.io.InputStream;
 import java.io.Reader;

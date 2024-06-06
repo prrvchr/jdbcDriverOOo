@@ -53,8 +53,8 @@ import com.sun.star.sdbc.SQLException;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.TablePrivilegesResultSetBase;
+import io.github.prrvchr.jdbcdriver.metadata.TablePrivilegesResultSet;
+import io.github.prrvchr.jdbcdriver.metadata.TablePrivilegesResultSetBase;
 
 
 public class DBPrivilegesHelper

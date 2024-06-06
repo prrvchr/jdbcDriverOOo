@@ -23,47 +23,94 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.resultset;
+package io.github.prrvchr.jdbcdriver.metadata;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 
-public class TableTypesResultSet
-    extends ResultSet
+public class TablePrivilegesRows
 {
 
-    private Map<String, String> m_rows;
+    // XXX: We rewrite column indexes 4,5,6 and 7, index 5 and 6 will be assigned dynamically
+    private Map<Integer, Object> m_columns = new HashMap<>();
+    private boolean m_replaced = false;
+    private boolean m_wasnull = false;
 
-    public TableTypesResultSet(java.sql.ResultSet resultset,
-                               Map<String, String> rows)
+    public TablePrivilegesRows(final String username)
         throws SQLException
     {
-        super(resultset);
-        m_rows = rows;
+        m_columns.put(4, null);
+        m_columns.put(5, username);
+        m_columns.put(7, "YES");
     }
 
-    @Override
-    public String getString(int index)
-        throws SQLException
+    public void setPrivilege(final String privilege)
     {
-        String value = super.getString(index);
-        return getValue(value);
+        m_columns.put(6, privilege);
     }
 
-    @Override
-    public String getString(String label)
-        throws SQLException
+    public boolean wasNull(final boolean wasnull)
     {
-        String value = super.getString(label);
-        return getValue(value);
+        return m_replaced ? m_wasnull : wasnull;
     }
 
-    private String getValue(String value)
+    public String getValue(final int index,
+                           final String value)
     {
-        if (m_rows.containsKey(value)) {
-            return m_rows.get(value);
+        if (setValue(index)) {
+            return (String) getValue(index);
         }
+        return value;
+    }
+
+    public boolean getValue(final int index,
+                            final boolean value)
+    {
+        if (setValue(index)) {
+            return (boolean) getValue(index);
+        }
+        return value;
+    }
+
+    public short getValue(final int index,
+                          final short value)
+    {
+        if (setValue(index)) {
+            return (short) getValue(index);
+        }
+        return value;
+    }
+
+    public int getValue(final int index,
+                        final int value)
+    {
+        if (setValue(index)) {
+            return (int) getValue(index);
+        }
+        return value;
+    }
+
+    public long getValue(final int index,
+                         final long value)
+    {
+        if (setValue(index)) {
+            return (long) getValue(index);
+        }
+        return value;
+    }
+
+    private boolean setValue(int index)
+    {
+        m_replaced = m_columns.containsKey(index);
+        return m_replaced;
+    }
+
+    private Object getValue(final int index)
+    {
+        Object value = m_columns.get(index);
+        m_wasnull = value == null;
         return value;
     }
 

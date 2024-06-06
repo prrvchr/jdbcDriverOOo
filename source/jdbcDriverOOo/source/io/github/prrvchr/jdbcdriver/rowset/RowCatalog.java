@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!--
+/*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
 ║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
@@ -23,33 +22,84 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
--->
-<oor:component-data
-  xml:lang="en-US"
-  xmlns:oor="http://openoffice.org/2001/registry"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  oor:package="io.github.prrvchr"
-  oor:name="jdbcDriverOOo">
-    <prop oor:name="DriverService" oor:op="fuse">
-        <value>io.github.prrvchr.jdbcdriver.sdbcx.Driver</value>
-    </prop>
-    <prop oor:name="ConnectionService" oor:op="fuse">
-        <value>com.sun.star.sdb.Connection</value>
-    </prop>
-    <prop oor:name="ShowSystemTable" oor:op="fuse">
-        <value>false</value>
-    </prop>
-    <prop oor:name="UseBookmark" oor:op="fuse">
-        <value>true</value>
-    </prop>
-    <prop oor:name="ForceSQL" oor:op="fuse">
-        <value>false</value>
-    </prop>
-    <prop oor:name="AdminGridColumns" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-    <prop oor:name="AdminGridOrders" oor:op="fuse">
-        <value>{}</value>
-    </prop>
-</oor:component-data>
+*/
+package io.github.prrvchr.jdbcdriver.rowset;
+
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import io.github.prrvchr.jdbcdriver.ComposeRule;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+
+public class RowCatalog
+    implements Iterable<RowTable>
+{
+
+    private DriverProvider m_Provider;
+    private List<RowTable> m_Tables = new ArrayList<>();
+    private ComposeRule rule = ComposeRule.InDataManipulation;
+    private String m_Mark = "?";
+    private String m_Parameter = "%s = ?";
+    private String m_And = " AND ";
+    private String m_Separator = ", ";
+
+    // The constructor method:
+    public RowCatalog(DriverProvider provider)
+        throws SQLException
+    {
+        m_Provider = provider;
+        System.out.println("RowCatalog() 1");
+    }
+
+    public RowTable getTable(ResultSetMetaData metadata, int index)
+        throws SQLException
+    {
+        for (RowTable table : m_Tables) {
+            if (table.isSameTable(metadata, index)) {
+                return table;
+            }
+        }
+        RowTable table = new RowTable(this, metadata, index);
+        m_Tables.add(table);
+        return table;
+    }
+
+    public DriverProvider getProvider()
+    {
+        return m_Provider;
+    }
+
+    public ComposeRule getRule()
+    {
+        return rule;
+    }
+
+    public String getMark()
+    {
+        return m_Mark;
+    }
+
+    public String getParameter()
+    {
+        return m_Parameter;
+    }
+
+    public String getAnd()
+    {
+        return m_And;
+    }
+
+    public String getSeparator()
+    {
+        return m_Separator;
+    }
+
+    @Override
+    public Iterator<RowTable> iterator() {
+        return m_Tables.iterator();
+    }
+
+}
