@@ -255,7 +255,6 @@ public class ScrollableResultSet
         if (!isOnInsertRow() && m_CurrentRow > 0 && (!m_RowCountFinal || m_CurrentRow <= m_RowCount)) {
             row = m_CurrentRow;
         }
-        System.out.println("ScrollableResultSet.getRow() 1 Row: " + row);
         return row;
     }
 
@@ -278,7 +277,6 @@ public class ScrollableResultSet
             while (!m_RowCountFinal && m_RowCount <= row) {
                 internalNext();
             }
-            System.out.println("ScrollableResultSet.absolute() 1 RowCount: " + m_RowCount + " - Row: " + row);
             if (m_RowCountFinal && row > m_RowCount) {
                 m_CurrentRow = m_RowCount + 1;
             }
@@ -324,7 +322,6 @@ public class ScrollableResultSet
     public String getString(int index)
         throws SQLException
     {
-        System.out.println("ScrollableResultSet.getString() 1 OnInsert: " + isOnInsertRow());
         String value = (String) getCurrentColumn(index);
         m_WasNull = value == null;
         return value;

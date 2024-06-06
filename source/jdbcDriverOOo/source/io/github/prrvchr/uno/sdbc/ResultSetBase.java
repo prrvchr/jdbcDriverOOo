@@ -119,7 +119,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return resultset.getMetaData().getColumnCount();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, statement);
         }
     }
@@ -139,51 +140,52 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     private void registerProperties() {
         short readonly = PropertyAttribute.READONLY;
         registerProperty(PropertyIds.CURSORNAME.name, PropertyIds.CURSORNAME.id, Type.STRING, readonly,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return _getCursorName();
-                    }
-                }, null);
-        registerProperty(PropertyIds.RESULTSETCONCURRENCY.name, PropertyIds.RESULTSETCONCURRENCY.id, Type.LONG,
-                readonly, new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return _getResultSetConcurrency();
-                    }
-                }, null);
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return _getCursorName();
+                }
+            }, null);
+        registerProperty(PropertyIds.RESULTSETCONCURRENCY.name, PropertyIds.RESULTSETCONCURRENCY.id, Type.LONG, readonly,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return _getResultSetConcurrency();
+                }
+            }, null);
         registerProperty(PropertyIds.RESULTSETTYPE.name, PropertyIds.RESULTSETTYPE.id, Type.LONG, readonly,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return _getResultSetType();
-                    }
-                }, null);
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return _getResultSetType();
+                }
+            }, null);
         registerProperty(PropertyIds.FETCHDIRECTION.name, PropertyIds.FETCHDIRECTION.id, Type.LONG,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        return _getFetchDirection();
-                    }
-                }, new PropertySetter() {
-                    @Override
-                    public void setValue(Object value)
-                            throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                        _setFetchDirection((int) value);
-                    }
-                });
-        registerProperty(PropertyIds.FETCHSIZE.name, PropertyIds.FETCHSIZE.id, Type.LONG, new PropertyGetter() {
-            @Override
-            public Object getValue() throws WrappedTargetException {
-                return _getFetchSize();
-            }
-        }, new PropertySetter() {
-            @Override
-            public void setValue(Object value)
-                    throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                _setFetchSize((int) value);
-            }
-        });
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return _getFetchDirection();
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    _setFetchDirection((int) value);
+                }
+            });
+        registerProperty(PropertyIds.FETCHSIZE.name, PropertyIds.FETCHSIZE.id, Type.LONG,
+            new PropertyGetter() {
+                @Override
+                public Object getValue() throws WrappedTargetException {
+                    return _getFetchSize();
+                }
+            },
+            new PropertySetter() {
+                @Override
+                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+                    _setFetchSize((int) value);
+                }
+            });
     }
 
     private String _getCursorName()
@@ -196,7 +198,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             }
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
             return cursor;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
@@ -208,7 +211,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             int direction = m_Result.getFetchDirection();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
             return direction;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
 
@@ -218,10 +222,10 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws WrappedTargetException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION,
-                    Integer.toString(direction));
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
             m_Result.setFetchDirection(direction);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
 
@@ -233,9 +237,9 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             int size = m_Result.getFetchSize();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
-            System.out.println("ResultSetBase._getFetchSize() 1 Size: " + size);
             return size;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
 
@@ -246,9 +250,9 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
-            System.out.println("ResultSetBase._setFetchSize() 1 Size: " + size);
             m_Result.setFetchSize(size);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
 
@@ -260,9 +264,9 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             int concurrency = m_Result.getConcurrency();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
-            System.out.println("ResultSetBase._getResultSetConcurrency() 1 Concurrency: " + concurrency);
             return concurrency;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
 
@@ -275,7 +279,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             int type = m_Result.getType();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
             return type;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
 
@@ -293,7 +298,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         if (m_Result != null) {
             try {
                 m_Result.close();
-            } catch (java.sql.SQLException e) {
+            }
+            catch (java.sql.SQLException e) {
                 m_logger.logp(LogLevel.WARNING, e);
             }
             m_Result = null;
@@ -316,7 +322,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.findColumn(name);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -327,14 +334,11 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.absolute() 1 CurrentRow: " + getRow() + " - Row: " + row);
             boolean moved = m_Result.absolute(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row),
-                    Boolean.toString(moved));
-            System.out.println("ResultSetBase.absolute() 2 Row: " + row + " - moved: " + moved);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row), Boolean.toString(moved));
             return moved;
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.absolute() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -345,8 +349,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.afterLast();
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.afterLast() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -356,11 +360,9 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.beforeFirst() 1");
             m_Result.beforeFirst();
-            System.out.println("ResultSetBase.beforeFirst() 2");
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.beforeFirst() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -371,8 +373,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.first();
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.first() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -383,8 +385,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getRow();
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.getRow() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -402,7 +404,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.isAfterLast();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -413,7 +416,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.isBeforeFirst();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -424,7 +428,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.isFirst();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -435,7 +440,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.isLast();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -446,7 +452,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.last();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -456,13 +463,11 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.next() 1");
             boolean next = m_Result.next();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
-            System.out.println("ResultSetBase.next() 2 Next: " + next);
             return next;
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.next() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -472,12 +477,9 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.previous() 1 Row: " + getRow());
-            boolean previous = m_Result.previous();
-            System.out.println("ResultSetBase.previous() 2 Previous: " + previous);
-            return previous;
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.previous() ERROR:\n" + UnoHelper.getStackTrace(e));
+            return m_Result.previous();
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -487,9 +489,9 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.refreshRow() 1");
             m_Result.refreshRow();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -499,14 +501,11 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.relative() 1 CurrentRow: " + getRow() + " - Row: " + row);
             boolean moved = m_Result.relative(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row),
-                    Boolean.toString(moved));
-            System.out.println("ResultSetBase.relative() 2 Row: " + row + " - moved: " + moved);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row), Boolean.toString(moved));
             return moved;
-        } catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.relative() ERROR:\n" + UnoHelper.getStackTrace(e));
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -519,7 +518,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             boolean deleted = m_Result.rowDeleted();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
             return deleted;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -533,7 +533,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             System.out.println("sdbcx.ResultSetBase.rowInserted() 1 Inserted: " + inserted);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
             return inserted;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -547,7 +548,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             System.out.println("sdbcx.ResultSetBase.rowUpdated() 1 Updated: " + updated);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
             return updated;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -609,7 +611,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             m_Result.insertRow();
             moveToCurrentRow();
             System.out.println("ResultSetBase.insertNewRow() 3");
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -633,7 +636,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
             m_Result.updateRow();
             System.out.println("ResultSetBase.updateCurrentRow() 2");
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             System.out.println("ResultSetBase.updateCurrentRow() ERROR");
             throw UnoHelper.getSQLException(e, this);
         }
@@ -657,7 +661,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
             m_Result.deleteRow();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -685,7 +690,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             } else {
                 m_Result.cancelRowUpdates();
             }
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_INVALID_CURSOR_STATE.text(), 0, e);
         }
     }
@@ -704,7 +710,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             m_Inserted.clear();
             m_OnInsert = true;
             System.out.println("ResultSetBase.moveToInsertRow() 3 OnInsert: " + isOnInsertRow());
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             System.out.println("ResultSetBase.moveToInsertRow() 4 ERROR" + e.getMessage());
             throw UnoHelper.getSQLException(e, this);
         }
@@ -720,7 +727,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             m_Result.moveToCurrentRow();
             m_OnInsert = false;
             System.out.println("ResultSetBase.moveToCurrentRow() 2 OnInsert: " + isOnInsertRow());
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -733,7 +741,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Array value = m_Result.getArray(index);
             return (value != null) ? new Array(m_Connection, value) : null;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -753,7 +762,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Blob value = m_Result.getBlob(index);
             return (value != null) ? new Blob(m_Connection, value) : null;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -764,7 +774,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getBoolean(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -775,7 +786,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getByte(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -786,7 +798,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getBytes(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -806,7 +819,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Clob value = m_Result.getClob(index);
             return value != null ? new Clob(m_Connection, value) : null;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -818,7 +832,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Date value = m_Result.getDate(index);
             return value != null ? UnoHelper.getUnoDate(value.toLocalDate()) : new Date();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -829,7 +844,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getDouble(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -840,7 +856,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getFloat(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -851,7 +868,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getInt(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -862,7 +880,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getLong(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -873,7 +892,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return DBTools.getObject(m_Result.getObject(index), map);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -885,7 +905,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Ref value = m_Result.getRef(index);
             return value != null ? new Ref(value) : null;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -896,7 +917,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.getShort(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -913,7 +935,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString",
                     Integer.toString(index));
             return value;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -925,7 +948,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Time value = m_Result.getTime(index);
             return value != null ? UnoHelper.getUnoTime(value.toLocalTime()) : new Time();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -937,7 +961,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.Timestamp value = m_Result.getTimestamp(index);
             return value != null ? UnoHelper.getUnoDateTime(value.toLocalDateTime()) : new DateTime();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -948,7 +973,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             return m_Result.wasNull();
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -960,7 +986,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateNull(index);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -971,7 +998,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateBoolean(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -982,7 +1010,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateByte(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -993,7 +1022,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateShort(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1004,7 +1034,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateInt(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1015,7 +1046,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateLong(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1026,7 +1058,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateFloat(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1037,7 +1070,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateDouble(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1053,7 +1087,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
                     Integer.toString(index), value);
             m_Result.updateString(index, value);
             System.out.println("ResultSetBase.updateString() 3");
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1064,7 +1099,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateBytes(index, value);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1075,7 +1111,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateDate(index, java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value)));
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1086,7 +1123,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateTime(index, java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value)));
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1097,7 +1135,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     {
         try {
             m_Result.updateTimestamp(index, java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value)));
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1109,7 +1148,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             m_Result.updateBinaryStream(index, input, lenght);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1122,7 +1162,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             Reader reader = new java.io.InputStreamReader(input);
             m_Result.updateCharacterStream(index, reader, lenght);
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -1163,7 +1204,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         try {
             java.sql.ResultSetMetaData metadata = m_Result.getMetaData();
             return (metadata != null) ? new ResultSetMetaData(m_Connection, metadata) : null;
-        } catch (java.sql.SQLException e) {
+        }
+        catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }

@@ -1287,9 +1287,11 @@ public class DBTools
     public static void printResultSet(java.sql.ResultSet result)
         throws java.sql.SQLException
     {
+        int row = 0;
         ResultSetMetaData metadata = result.getMetaData();
         while (result.next()) {
-            System.out.println("Row: " + result.getRow() + "\t*********************");
+            row ++;
+            System.out.println("Row: " + row + "\t*********************");
             for (int i = 1; i <= metadata.getColumnCount(); i++) {
                 System.out.println("Column: " + metadata.getColumnName(i) + " - Value: '" + result.getString(i) + "'");
             }
