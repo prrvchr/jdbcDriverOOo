@@ -87,7 +87,6 @@ public class SensitiveResultSet
             // XXX: will be done by a SQL command from the cached insert row.
             getRowSetWriter().insertRow(m_InsertRow);
             m_InsertRow = null;
-            m_Result.moveToCurrentRow();
         }
         else {
             throw new SQLException();
@@ -124,7 +123,16 @@ public class SensitiveResultSet
         else if (m_UpdateRow != null) {
             // XXX: The result set cannot be updated, the update
             // XXX: will be done by a SQL command from the current row.
-            getRowSetWriter().updateRow(m_UpdateRow);
+            try {
+                getRowSetWriter().updateRow(m_UpdateRow);
+            }
+            catch (java.sql.SQLException e) {
+                // XXX: It is important to undo the modification of the
+                // XXX: current row before throwing the exception
+                m_UpdateRow = null;
+                m_UpdatedRow = 0;
+                throw e;
+            }
             m_UpdateRow = null;
             m_UpdatedRow = 0;
         }

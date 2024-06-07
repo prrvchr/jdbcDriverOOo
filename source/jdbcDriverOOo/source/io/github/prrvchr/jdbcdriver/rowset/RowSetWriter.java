@@ -89,7 +89,8 @@ public class RowSetWriter
             System.out.println("RowSetWriter.updateRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
             status = 0;
             List<RowColumn> columns = getUpdatedColumns(table, row);
-            if (!columns.isEmpty() && isRowUnique(table, row)) {
+            if (!columns.isEmpty()) {
+                checkRowIsUnique(table, row, true);
                 try (PreparedStatement statement = getUpdateStatement(table, columns)) {
                     int index = setValueParameter(statement, columns, row);
                     setWhereParameter(statement, table, row, index);
@@ -108,11 +109,10 @@ public class RowSetWriter
         for (RowTable table: m_Catalog) {
             System.out.println("RowSetWriter.deleteRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
             status = 0;
-            if (isRowUnique(table, row)) {
-                try (PreparedStatement statement = getDeleteStatement(table)) {
-                    setWhereParameter(statement, table, row);
-                    status = statement.executeUpdate();
-                }
+            checkRowIsUnique(table, row, false);
+            try (PreparedStatement statement = getDeleteStatement(table)) {
+                setWhereParameter(statement, table, row);
+                status = statement.executeUpdate();
             }
         }
         return status != 0;
@@ -131,8 +131,9 @@ public class RowSetWriter
         return columns;
     }
 
-    private boolean isRowUnique(RowTable table,
-                                BaseRow row)
+    private void checkRowIsUnique(RowTable table,
+                                  BaseRow row,
+                                  boolean update)
         throws SQLException
     {
         int count = 0;
@@ -146,7 +147,10 @@ public class RowSetWriter
                 }
             }
         }
-        return count == 1;
+        if (count != 1) {
+            String msg = update ? "updateRow()" : "deleteRow()";
+            throw new SQLException(String.format("ERROR: It is not possible to precisely identify the record selected for %s", msg));
+        }
     }
 
     private PreparedStatement getInsertStatement(RowTable table,
