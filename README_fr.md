@@ -510,8 +510,8 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - [Modification de la gestion][111] du paramètre de connexion `JavaDriverClassPath`. Ce paramètre peut désormais désigner un répertoire et dans ce cas tous les fichiers jar contenus seront ajoutés au `Java ClassPath`. Cela permet le chargement dynamique des pilotes JDBC nécessitant plusieurs archives (ie: Derby et Jaybird embedded). Cette modification a été apportée pour permettre à la nouvelle extension [JaybirdOOo][112] de fonctionner.
 - Reprise d'une partie de l'implémentation de `javax.sql.rowset.CachedRowSet` dans les jeux de résultats [ScrollableResultSet.java][113] et [SensitiveResultSet.java][114] afin de simuler le type `TYPE_SCROLL_SENSITIVE` à partir des jeux de résultats de type `TYPE_FORWARD_ONLY` et `TYPE_SCROLL_INSENSITIVE` respectivement. Cela permet à LibreOffice Base d'utiliser des signets (ie : l'interface UNO [XRowLocate][104]) qui permettent des insertions, mises à jour et suppressions positionnées et donc, pour les bases de données le supportant, la possibilité d'éditer des tables ne contenant aucune clé primaire. De plus, un [mode SQL][115] **permet de rendre éditable n'importe quel ResultSet.** Ce mode peut être validée dans les options de l'extension, elle est trés puissante et donc à utiliser avec prudence. Concernant les jeux de résultats de type `TYPE_FORWARD_ONLY`, leur implémentation chargeant progressivement l'intégralité des données du jeu de résultats en mémoire peut conduire à un débordement de mémoire. La mise en oeuvre d'une pagination éliminera ce risque.
 - Ajout du pilote MySQL Connector/J version 8.4.0. Ce driver ne semble pas fonctionner correctement, des erreurs assez surprenantes apparaissent... Je le laisse en place au cas où des gens seraient prêts à participer à son intégration? A utiliser avec précaution.
-- Suite à la demande de [PeterSchmidt23][116] ajout du pilote [Trino][117] version 448. Ne connaissant pas Trino, qui a l'air étonnant par ailleur, seulement un début d'intégration a été réalisée. L'edition du contenu des tables n'est pas encore possible. Le nom des tables doit être en minuscule afin d'autoriser leur création.
-- L'implémentation de `CachedRowSet` semble avoir résolu le problème d'insertion de cellules depuis Calc, voir [dysfonctionnement #7][118].
+- Suite à la demande de [PeterSchmidt23][116] ajout du pilote [Trino][117] version 448. Ne connaissant pas Trino, qui a l'air étonnant par ailleur, seulement un début d'intégration a été réalisée. L'edition du contenu des tables n'est pas encore possible, voir [dysfonctionnement #22306][118]. Le nom des tables doit être en minuscule afin d'autoriser leur création.
+- L'implémentation de `CachedRowSet` semble avoir résolu le problème d'insertion de cellules depuis Calc, voir [dysfonctionnement #7][119].
 - De nombreuses corrections et améliorations...
 
 ### Que reste-t-il à faire pour la version 1.3.3:
@@ -629,4 +629,5 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [115]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/rowset/RowSetWriter.java#L41>
 [116]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
 [117]: <https://trino.io/>
-[118]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
+[118]: <https://github.com/trinodb/trino/issues/22306>
+[119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
