@@ -33,6 +33,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.PreparedStatementSuper;
 
 
@@ -80,18 +81,22 @@ public final class PreparedStatement
     public XResultSet getResultSet()
         throws SQLException
     {
-        System.out.println("sdb.PreparedStatement._getResultSet()");
-        java.sql.ResultSet result = getJdbcResultSet();
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (m_UseBookmarks) {
-            RowSet<PreparedStatement> rowset = new RowSet<PreparedStatement>(m_Connection.getProvider(), m_Connection, result, this, m_Sql);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
-            return rowset;
+        try {
+            System.out.println("sdb.PreparedStatement._getResultSet()");
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            if (m_UseBookmarks) {
+                RowSet<PreparedStatement> rowset = new RowSet<PreparedStatement>(m_Connection.getProvider(), m_Connection, getJdbcResultSet(), this, m_Sql);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+                return rowset;
+            }
+            else {
+                ResultSet<PreparedStatement> resultset =  new ResultSet<PreparedStatement>(getConnectionInternal(), getJdbcResultSet(), this);
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                return resultset;
+            }
         }
-        else {
-            ResultSet<PreparedStatement> resultset =  new ResultSet<PreparedStatement>(getConnectionInternal(), result, this);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
-            return resultset;
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver;
 
+import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
 
@@ -34,6 +35,9 @@ import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.jdbcdriver.rowset.RowTable;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -79,7 +83,18 @@ public interface DriverProvider
 
     public boolean useBookmark();
 
-    public boolean makeResultSetUpdatable();
+    public boolean isSQLMode();
+
+    public boolean useSQLDelete();
+
+    public boolean useSQLInsert();
+
+    public boolean useSQLUpdate();
+
+    public void setGeneratedKeys(Statement statement,
+                                 RowCatalog catalog,
+                                 RowTable table,
+                                 Row row) throws java.sql.SQLException;
 
     public boolean isResultSetUpdatable(java.sql.ResultSet result) throws java.sql.SQLException;
 

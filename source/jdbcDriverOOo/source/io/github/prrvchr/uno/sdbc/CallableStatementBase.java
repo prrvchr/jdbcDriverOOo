@@ -64,24 +64,18 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
 
     @Override
     protected java.sql.CallableStatement getJdbcStatement()
-        throws SQLException
+        throws java.sql.SQLException
     {
         checkDisposed();
         if (m_Statement == null) {
-            try {
-                java.sql.CallableStatement statement;
-                if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
-                    statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
-                } 
-                else {
-                    statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql);
-                }
-                m_Statement = setStatement(statement);
+            java.sql.CallableStatement statement;
+            if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
+                statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
             } 
-            catch (java.sql.SQLException e) {
-                System.out.println("sdbc.CallableStatementBase.getStatement() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
-                throw UnoHelper.getSQLException(e, this);
+            else {
+                statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql);
             }
+            m_Statement = setStatement(statement);
         }
         return m_Statement;
     }

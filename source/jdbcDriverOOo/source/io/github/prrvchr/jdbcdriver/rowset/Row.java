@@ -27,14 +27,26 @@ package io.github.prrvchr.jdbcdriver.rowset;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.BitSet;
+import java.util.List;
 
 
-public class Row extends BaseRow
+public class Row
 {
+
+    protected Object[] m_NewValues;
+    protected Object[] m_OldValues;
+    protected BitSet m_Updated;
+    protected int m_Count;
+    protected boolean m_Updatable = true;
+
 
     public Row(int count)
     {
-        super(count);
+        m_NewValues = new Object[count];
+        m_OldValues = new Object[count];
+        m_Updated = new BitSet(count);
+        m_Count = count;
     }
 
     public Row(int count, Object[] values)
@@ -43,30 +55,108 @@ public class Row extends BaseRow
         System.arraycopy(values, 0, m_NewValues, 0, count);
     }
 
+    public boolean isColumnUpdated(int index)
+    {
+        return m_Updated.get(index - 1);
+    }
+
     public void initColumnObject(ResultSet result,
                                  int index)
         throws SQLException
     {
-        m_OldValues[index - 1] = RowHelper.getResultSetValue(result, index);
+        Object value = RowHelper.getResultSetValue(result, index);
+        System.out.println("Row.initColumnObject() Index: " + index + " - Value: " + (value != null ? value.toString() : "null"));
+        m_OldValues[index - 1] = value;
+    }
+
+    public void setColumnDouble(int index, Double value, int type)
+        throws SQLException
+    {
+        if (m_Updatable) {
+            int i = index - 1;
+            m_NewValues[i] = RowHelper.getDoubleValue(value, type);
+            m_Updated.set(i);
+        }
+    }
+
+    public void setColumnObject(int index, Object value)
+    {
+        if (m_Updatable) {
+            int i = index - 1;
+            m_NewValues[i] = value;
+            m_Updated.set(i);
+        }
+    }
+
+    public void clearUpdated(List<RowColumn> columns, int status)
+    {
+        for (RowColumn column : columns) {
+            int i = column.getIndex() - 1;
+            if (status != 0) {
+                System.out.println("Row.clearUpdated() 1");
+                m_OldValues[i] = m_NewValues[i];
+            }
+            m_NewValues[i] = null;
+            m_Updated.clear(i);
+        }
+    }
+
+    public Object getOldColumnObject(int index)
+    {
+        return(m_OldValues[index - 1]);
+    }
+
+    public boolean isColumnNull(int index)
+    {
+        System.out.println("Row.isColumnNull() 1");
+        boolean isnull = true;
+        if (isColumnUpdated(index)) {
+            isnull = m_NewValues[index - 1] == null;
+        }
+        else {
+            isnull = m_OldValues[index - 1] == null;
+        }
+        System.out.println("Row.isColumnNull() 2: " + isnull);
+        return isnull;
     }
 
     public Object getColumnObject(int index)
     {
+        System.out.println("Row.getColumnObject() 1");
+        Object value = null;
         if (isColumnUpdated(index)) {
-            return(m_NewValues[index - 1]);
-        } else {
-            return(m_OldValues[index - 1]);
+            value = m_NewValues[index - 1];
         }
+        else {
+            value = m_OldValues[index - 1];
+        }
+        System.out.println("Row.getColumnObject() 2: " + value.getClass().getName());
+        return value;
     }
 
     public boolean isUpdated()
     {
+        // XXX: In order to be able to throw an exception again if necessary
+        // XXX: we need to reset the m_Updatable flag if it's set...
+        if (!m_Updatable) {
+            m_Updatable = true;
+        }
         for (int i = 1; i <= m_Count; i++) {
             if (isColumnUpdated(i)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean isUpdatable()
+    {
+        return m_Updatable;
+    }
+
+    public void clearUpdatable()
+    {
+        m_Updatable = false;
     }
 
 }

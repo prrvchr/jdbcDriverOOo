@@ -30,6 +30,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class CallableStatement
@@ -51,11 +52,15 @@ public final class CallableStatement
     public XResultSet getResultSet()
         throws SQLException
     {
-        java.sql.ResultSet result = getJdbcResultSet();
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), result, this);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
-        return resultset;
+        try {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), getJdbcResultSet(), this);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            return resultset;
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
 

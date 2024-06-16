@@ -32,8 +32,6 @@ import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
 import java.sql.Wrapper;
 
-import javax.sql.rowset.CachedRowSet;
-
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.SQLWarning;
 import com.sun.star.uno.Any;
@@ -52,10 +50,7 @@ public final class WarningsSupplier
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
-                if (wrapper.isWrapperFor(CachedRowSet.class)) {
-                    wrapper.unwrap(CachedRowSet.class).clearWarnings();
-                }
-                else if (wrapper.isWrapperFor(ResultSet.class)) {
+                if (wrapper.isWrapperFor(ResultSet.class)) {
                     wrapper.unwrap(ResultSet.class).clearWarnings();
                 }
                 else if (wrapper.isWrapperFor(CallableStatement.class)) {
@@ -85,10 +80,7 @@ public final class WarningsSupplier
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
-                if (wrapper.isWrapperFor(CachedRowSet.class)) {
-                    warning = wrapper.unwrap(CachedRowSet.class).getWarnings();
-                }
-                else if (wrapper.isWrapperFor(ResultSet.class)) {
+                if (wrapper.isWrapperFor(ResultSet.class)) {
                     warning = wrapper.unwrap(ResultSet.class).getWarnings();
                 }
                 else if (wrapper.isWrapperFor(CallableStatement.class)) {

@@ -199,10 +199,20 @@ public abstract class DriverBase
                     String value = null;
                     Object[] values = null;
                     switch (info.Name) {
+                    case "IsAutoRetrievingEnabled":
+                        Boolean state = (Boolean) m_xConfig.getByHierarchicalName(path);
+                        String[] choices1 = {"false", "true"};
+                        properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled", "Retrieve generated values.", true, state.toString(), choices1));
+                        break;
+                    case "AutoRetrievingStatement":
+                        value = (String) m_xConfig.getByHierarchicalName(path);
+                        String[] choices2 = {value, };
+                        properties.add(new DriverPropertyInfo("AutoRetrievingStatement", "getGeneratedKey() statement.", true, value, choices2));
+                        break;
                     case "AutoIncrementCreation":
                         value = (String) m_xConfig.getByHierarchicalName(path);
-                        String[] choices = {value, };
-                        properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, value, choices));
+                        String[] choices3 = {value, };
+                        properties.add(new DriverPropertyInfo("AutoIncrementCreation", "Auto-increment creation statement.", true, value, choices3));
                         break;
                     case "RowVersionCreation":
                         values = (Object[]) m_xConfig.getByHierarchicalName(path);

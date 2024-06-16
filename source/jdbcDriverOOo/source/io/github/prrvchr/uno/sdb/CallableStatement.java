@@ -33,6 +33,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.CallableStatementSuper;
 
 
@@ -82,17 +83,21 @@ public final class CallableStatement
     public XResultSet getResultSet()
         throws SQLException
     {
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        java.sql.ResultSet result = getJdbcResultSet();
-        if (m_UseBookmarks) {
-            RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection.getProvider(), m_Connection, result, this, m_Sql);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
-            return rowset;
+        try {
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            if (m_UseBookmarks) {
+                RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection.getProvider(), m_Connection, getJdbcResultSet(), this, m_Sql);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+                return rowset;
+            }
+            else {
+                ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), getJdbcResultSet(), this);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                return resultset;
+            }
         }
-        else {
-            ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), result, this);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
-            return resultset;
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
     }
 

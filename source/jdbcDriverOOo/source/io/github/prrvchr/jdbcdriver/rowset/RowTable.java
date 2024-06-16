@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
 public class RowTable
 {
@@ -45,7 +47,19 @@ public class RowTable
     private String m_Name;
     private String m_Where;
 
+
     // The constructor method:
+    public RowTable(RowCatalog tables,
+                    NamedComponents component)
+        throws SQLException
+    {
+        m_Tables = tables;
+        m_Catalog = component.getCatalogName();
+        m_Schema = component.getSchemaName();
+        m_Name = component.getTableName();
+        System.out.println("RowTable() 1");
+    }
+
     public RowTable(RowCatalog tables,
                     ResultSetMetaData metadata,
                     int index)
@@ -73,10 +87,10 @@ public class RowTable
         return m_Name;
     }
 
-    public String getComposedName(boolean quoted)
+    public String getComposedName(DriverProvider provider, boolean quoted)
         throws SQLException
     {
-        return DBTools.buildName(m_Tables.getProvider(), m_Catalog, m_Schema, m_Name, m_Tables.getRule(), quoted);
+        return DBTools.buildName(provider, m_Catalog, m_Schema, m_Name, m_Tables.getRule(), quoted);
     }
 
     public boolean isSameTable(ResultSetMetaData metadata,
@@ -135,28 +149,15 @@ public class RowTable
         return m_Tables.getMark();
     }
 
-    public int hashCode()
-    {
-        int code = 0;
-        try {
-            code = getComposedName(false).hashCode();
-        }
-        catch (SQLException e) { }
-        return code;
-    }
-
     public boolean equals(Object object)
     {
         if (!(object instanceof RowTable)) {
             return false;
         }
-        boolean eq = false;
         RowTable table = (RowTable) object;
-        try {
-            eq = getComposedName(false).equals(table.getComposedName(false));
-        }
-        catch (SQLException e) { }
-        return eq;
+        return getCatalogName().equals(table.getCatalogName()) &&
+               getSchemaName().equals(table.getSchemaName()) &&
+               getName().equals(table.getName());
     }
 
 }

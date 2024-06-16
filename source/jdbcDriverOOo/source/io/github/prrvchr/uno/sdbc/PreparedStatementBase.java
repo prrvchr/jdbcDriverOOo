@@ -25,10 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
-import com.sun.star.sdbc.SQLException;
-
-import io.github.prrvchr.uno.helper.UnoHelper;
-
 
 public abstract class PreparedStatementBase<C extends ConnectionBase>
     extends PreparedStatementMain<C, java.sql.PreparedStatement>
@@ -52,38 +48,31 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
 
     @Override
     protected java.sql.PreparedStatement getJdbcStatement()
-        throws SQLException
+        throws java.sql.SQLException
     {
         checkDisposed();
         System.out.println("sdbc.PreparedStatementBase.getStatement() 1");
         if (m_Statement == null) {
-            try {
-                java.sql.PreparedStatement statement;
-                if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
-                    int holdability = java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT;
-                    //int holdability = java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT;
-                    System.out.println("sdbc.PreparedStatementBase.getStatement()() 1 SQL: " + m_Sql);
-                    statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql,
-                                                                                            m_ResultSetType,
-                                                                                            m_ResultSetConcurrency,
-                                                                                            holdability);
-                }
-                else if (m_Connection.getProvider().isAutoRetrievingEnabled()) {
-                    int option = m_Connection.getProvider().getGeneratedKeysOption();
-                    System.out.println("sdbc.PreparedStatementBase.getStatement()() 2 Option: " + option + " SQL: " + m_Sql);
-                    statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, option);
-                }
-                else {
-                    System.out.println("sdbc.PreparedStatementBase.getStatement()() 3 SQL: " + m_Sql);
-                    statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql);
-                }
-                m_Statement = setStatement(statement);
-            } 
-            catch (java.sql.SQLException e) {
-                e.printStackTrace();
-                System.out.println("sdbc.PreparedStatementBase.getStatement()() ERROR: " + m_ResultSetType + " - " + m_ResultSetConcurrency + " - SQL: '" + m_Sql + "'");
-                throw UnoHelper.getSQLException(e, this);
+            java.sql.PreparedStatement statement;
+            if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
+                int holdability = java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT;
+                //int holdability = java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT;
+                System.out.println("sdbc.PreparedStatementBase.getStatement()() 1 SQL: " + m_Sql);
+                statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql,
+                                                                                        m_ResultSetType,
+                                                                                        m_ResultSetConcurrency,
+                                                                                        holdability);
             }
+            else if (m_Connection.getProvider().isAutoRetrievingEnabled()) {
+                int option = m_Connection.getProvider().getGeneratedKeysOption();
+                System.out.println("sdbc.PreparedStatementBase.getStatement()() 2 Option: " + option + " SQL: " + m_Sql);
+                statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql, option);
+            }
+            else {
+                System.out.println("sdbc.PreparedStatementBase.getStatement()() 3 SQL: " + m_Sql);
+                statement = m_Connection.getProvider().getConnection().prepareStatement(m_Sql);
+            }
+            m_Statement = setStatement(statement);
         }
         System.out.println("sdbc.PreparedStatementBase.getStatement() 3");
         return m_Statement;

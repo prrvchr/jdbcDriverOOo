@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver.helper;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,57 +37,44 @@ public final class DBQueryParser {
     private static final String TOKEN_ORACLE_HINT_START = "/*+";
     private static final String TOKEN_ORACLE_HINT_END = "*/";
     private static final String TOKEN_SINGLE_LINE_COMMENT = "--";
-    private static String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
+    private static final String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
     private static final String TOKEN_SEMI_COLON = ";";
-    private static final String TOKEN_PARAN_START = "(";
     private static final String TOKEN_COMMA = ",";
-    private static final String TOKEN_SET = "set";
-    private static final String TOKEN_OF = "of";
-    private static final String TOKEN_DUAL = "dual";
-    private static final String TOKEN_DELETE = "delete";
     private static final String TOKEN_INSERT = "insert";
-    private static final String TOKEN_REPLACE = "replace";
-    private static final String TOKEN_ASTERICK = "*";
 
     private static final String KEYWORD_INTO = "into";
-    private static final String KEYWORD_FROM = "from";
-    private static final String KEYWORD_UPDATE = "update";
 
-    private static final List<String> concerned = Arrays.asList(KEYWORD_INTO, KEYWORD_FROM, KEYWORD_UPDATE);
-    private static final List<String> ignored = Arrays.asList(TOKEN_PARAN_START, TOKEN_SET, TOKEN_OF, TOKEN_DUAL);
-    private static final List<String> inserted = Arrays.asList(KEYWORD_UPDATE, TOKEN_INSERT, TOKEN_REPLACE, TOKEN_DELETE);
-
-    private boolean update = false;
-    private String table = "";
+    private String m_Table = "";
 
     /**
-     * Extracts table name out of SQL if query is INSERT, UPDATE, REPLACE or DELETE
+     * Extracts table name out of SQL if query is INSERT
      * ie queries executed by: - java.sql.Statement.executeUpdate()
      *                         - java.sql.PreparedStatement.executeUpdate()
+     * For SELECT query, ResultSetMataData is used instead of this parser.
      * @param sql
      */
     public DBQueryParser(final String sql) {
         String nocomments = removeComments(sql);
         String normalized = normalized(nocomments);
         String cleansed = clean(normalized);
+        System.out.println("DBQueryParser() 1 Query: " + cleansed);
         String[] tokens = cleansed.split(REGEX_SPACE);
-        int index = 0;
-
-        String firstToken = tokens[index];
-        if (isUpdate(firstToken)) {
-            if (isOracleSpecialDelete(firstToken, tokens, index)) {
-                handleOracleSpecialDelete(firstToken, tokens, index);
-            }
-            else {
-                while (table.isEmpty() && moreTokens(tokens, index)) {
-                    String currentToken = tokens[index++];
-                    if (shouldProcess(currentToken)) {
-                        String nextToken = tokens[index++];
-                        considerInclusion(nextToken);
+        int i = 1;
+        for (String token : tokens) {
+            System.out.println("DBQueryParser() 2 Token: " + token + " - Index: " + i);
+            i ++;
+        }
+        int index = 1;
+        if (tokens.length > 0) {
+            String token = tokens[0];
+            if (isInsert(token)) {
+                while (moreTokens(tokens, index)) {
+                    token = tokens[index++];
+                    if (moreTokens(tokens, index) && shouldProcess(token)) {
+                        m_Table = tokens[index++];
                     }
                 }
             }
-            update = true;
         }
     }
 
@@ -98,48 +83,43 @@ public final class DBQueryParser {
      * @return the table name extracted out of sql
      */
     public String getTable() {
-        return table;
+        return m_Table;
     }
 
     /**
      * 
-     * @return is table name has been extracted out of sql
+     * @return if table name has been extracted out of sql
      */
     public boolean hasTable() {
-        return !table.isEmpty();
+        return !m_Table.isBlank();
     }
 
-    /**
-     * 
-     * @return if query extracted out of sql is an executeUpdate() (ie: insert, updated, replace...)
-     */
-    public boolean isExecuteUpdateStatement() {
-        return update;
-    }
-
-    private String removeComments(final String sql) {
-        StringBuilder sb = new StringBuilder(sql);
-        int nextCommentPosition = sb.indexOf(TOKEN_SINGLE_LINE_COMMENT);
-        while (nextCommentPosition > -1) {
-            int end = indexOfRegex(TOKEN_NEWLINE, sb.substring(nextCommentPosition));
+    private String removeComments(final String sql)
+    {
+        StringBuilder builder = new StringBuilder(sql);
+        int position = builder.indexOf(TOKEN_SINGLE_LINE_COMMENT);
+        while (position > -1) {
+            int end = indexOfRegex(TOKEN_NEWLINE, builder.substring(position));
             if (end == -1) {
-                return sb.substring(0, nextCommentPosition);
+                return builder.substring(0, position);
             }
             else {
-                sb.replace(nextCommentPosition, end + nextCommentPosition, "");
+                builder.replace(position, end + position, "");
             }
-            nextCommentPosition = sb.indexOf(TOKEN_SINGLE_LINE_COMMENT);
+            position = builder.indexOf(TOKEN_SINGLE_LINE_COMMENT);
         }
-        return sb.toString();
+        return builder.toString();
     }
 
-    private int indexOfRegex(String regex, String string) {
+    private int indexOfRegex(String regex, String string)
+    {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(string);
         return matcher.find() ? matcher.start() : -1;
     }
 
-    private String normalized(final String sql) {
+    private String normalized(final String sql)
+    {
         String normalized = sql.trim().replaceAll(TOKEN_NEWLINE, SPACE).replaceAll(TOKEN_COMMA, " , ")
                 .replaceAll("\\(", " ( ").replaceAll("\\)", " ) ");
         if (normalized.endsWith(TOKEN_SEMI_COLON)) {
@@ -148,54 +128,35 @@ public final class DBQueryParser {
         return normalized;
     }
 
-    private String clean(final String normalized) {
+    private String clean(final String normalized)
+    {
         int start = normalized.indexOf(TOKEN_ORACLE_HINT_START);
         int end = NO_INDEX;
         if (start != NO_INDEX) {
             end = normalized.indexOf(TOKEN_ORACLE_HINT_END);
             if (end != NO_INDEX) {
-                String firstHalf = normalized.substring(0, start);
-                String secondHalf = normalized.substring(end + 2, normalized.length());
-                return firstHalf.trim() + SPACE + secondHalf.trim();
+                String first = normalized.substring(0, start);
+                String second = normalized.substring(end + 2, normalized.length());
+                return first.trim() + SPACE + second.trim();
             }
         }
         return normalized;
     }
 
-    private boolean isOracleSpecialDelete(final String currentToken, final String[] tokens, int index) {
-        index++;// Point to next token
-        if (TOKEN_DELETE.equals(currentToken)) {
-            if (moreTokens(tokens, index)) {
-                String nextToken = tokens[index++];
-                if (!KEYWORD_FROM.equals(nextToken) && !TOKEN_ASTERICK.equals(nextToken)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    private boolean isInsert(final String token)
+    {
+        return TOKEN_INSERT.equals(token.toLowerCase());
     }
 
-    private void handleOracleSpecialDelete(final String currentToken, final String[] tokens, int index) {
-        String tableName = tokens[index + 1];
-        considerInclusion(tableName);
+    private boolean shouldProcess(final String token)
+    {
+        return KEYWORD_INTO.equals(token.toLowerCase());
     }
 
-    private boolean isUpdate(final String currentToken) {
-        return inserted.contains(currentToken.toLowerCase());
+    private boolean moreTokens(final String[] tokens, int index)
+    {
+        return m_Table.isEmpty() && index < tokens.length;
     }
 
-    private boolean shouldProcess(final String currentToken) {
-        return concerned.contains(currentToken.toLowerCase());
-    }
-
-    private boolean moreTokens(final String[] tokens, int index) {
-        return index < tokens.length;
-    }
-
-    private void considerInclusion(final String token) {
-        if (!ignored.contains(token.toLowerCase()) && table.isEmpty()) {
-            table = token;
-        }
-    }
 }
 

@@ -25,10 +25,8 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -40,48 +38,45 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 
 public class RowSetWriter
 {
-    private Connection m_Connection;
+
+    private DriverProvider m_Provider;
     private RowCatalog m_Catalog;
-    private RowColumn[] m_Columns;
-    private String m_SelectCmd = "SELECT * FROM %s WHERE %s";
     private String m_InsertCmd = "INSERT INTO %s (%s) VALUES (%s)";
     private String m_UpdateCmd = "UPDATE %s SET %s WHERE %s";
     private String m_DeleteCmd = "DELETE FROM %s WHERE %s";
 
+    // The constructor method:
     public RowSetWriter(DriverProvider provider,
                         ResultSet result)
         throws SQLException
     {
-        m_Connection = result.getStatement().getConnection();
-        Statement statement = m_Connection.createStatement();
-        ResultSetMetaData metadata = result.getMetaData();
-        m_Catalog = new RowCatalog(provider);
-        List<RowColumn> columns = new ArrayList<>();
-        for (int index = 1; index <= metadata.getColumnCount(); index++) {
-            columns.add(new RowColumn(m_Catalog, statement, metadata, index));
-        }
-        statement.close();
-        m_Columns = columns.toArray(new RowColumn[0]);
+        m_Provider = provider;
+        m_Catalog = new RowCatalog(provider.getStatement(), result);
     }
 
-    public boolean insertRow(BaseRow row)
+    public boolean insertRow(Row row)
         throws SQLException
     {
         int status = 0;
         for (RowTable table: m_Catalog) {
             System.out.println("RowSetWriter.insertRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
-            List<RowColumn> columns = getUpdatedColumns(table, row);
+            List<RowColumn> columns = getInsertedColumns(table, row);
             if (!columns.isEmpty()) {
                 try (PreparedStatement statement = getInsertStatement(table, columns)) {
-                    setValueParameter(statement, columns, row);
+                    setStatementParameter(statement, columns, row);
                     status = statement.executeUpdate();
+                    if (status == 1) {
+                        System.out.println("RowSetWriter.insertRow() 2");
+                        m_Provider.setGeneratedKeys(statement, m_Catalog, table, row);
+                    }
                 }
+                row.clearUpdated(columns, status);
             }
         }
         return status != 0;
     }
 
-    public boolean updateRow(BaseRow row)
+    public boolean updateRow(Row row)
         throws SQLException
     {
         int status = 0;
@@ -90,10 +85,10 @@ public class RowSetWriter
             status = 0;
             List<RowColumn> columns = getUpdatedColumns(table, row);
             if (!columns.isEmpty()) {
-                checkRowIsUnique(table, row, true);
+                checkForUpdate(table, row, columns);
                 try (PreparedStatement statement = getUpdateStatement(table, columns)) {
-                    int index = setValueParameter(statement, columns, row);
-                    setWhereParameter(statement, table, row, index);
+                    int index = setStatementParameter(statement, columns, row);
+                    RowHelper.setWhereParameter(statement, m_Catalog, table, row, index);
                     status = statement.executeUpdate();
                 }
                 row.clearUpdated(columns, status);
@@ -102,16 +97,16 @@ public class RowSetWriter
         return status != 0;
     }
 
-    public boolean deleteRow(BaseRow row)
+    public boolean deleteRow(Row row)
         throws SQLException
     {
         int status = 0;
         for (RowTable table: m_Catalog) {
             System.out.println("RowSetWriter.deleteRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
             status = 0;
-            checkRowIsUnique(table, row, false);
+            checkForDelete(table, row);
             try (PreparedStatement statement = getDeleteStatement(table)) {
-                setWhereParameter(statement, table, row);
+                RowHelper.setWhereParameter(statement, m_Catalog, table, row);
                 status = statement.executeUpdate();
             }
         }
@@ -119,11 +114,11 @@ public class RowSetWriter
     }
 
     // XXX: Private methods
-    private List<RowColumn> getUpdatedColumns(RowTable table,
-                                              BaseRow row)
+    private List<RowColumn> getInsertedColumns(RowTable table,
+                                               Row row)
     {
         List<RowColumn> columns = new ArrayList<>();
-        for (RowColumn column : m_Columns) {
+        for (RowColumn column : m_Catalog.getColumns()) {
             if (column.isColumnOfTable(table) && row.isColumnUpdated(column.getIndex())) {
                 columns.add(column);
             }
@@ -131,14 +126,48 @@ public class RowSetWriter
         return columns;
     }
 
-    private void checkRowIsUnique(RowTable table,
-                                  BaseRow row,
-                                  boolean update)
+    private List<RowColumn> getUpdatedColumns(RowTable table,
+                                              Row row)
+    {
+        List<RowColumn> columns = new ArrayList<>();
+        for (RowColumn column : m_Catalog.getColumns()) {
+            if (column.isColumnOfTable(table) && row.isColumnUpdated(column.getIndex())) {
+                columns.add(column);
+            }
+        }
+        return columns;
+    }
+
+    private void checkForUpdate(RowTable table,
+                                Row row,
+                                List<RowColumn> columns)
+        throws SQLException
+    {
+        int count = getResultRowCount(table, row);
+        if (count != 1) {
+            row.clearUpdated(columns, 0);
+            row.clearUpdatable();
+            throw new SQLException("ERROR: It is not possible to precisely identify the record selected for updateRow()");
+        }
+    }
+
+    private void checkForDelete(RowTable table,
+                                Row row)
+        throws SQLException
+    {
+        int count = getResultRowCount(table, row);
+        if (count != 1) {
+            throw new SQLException("ERROR: It is not possible to precisely identify the record selected for deleteRow()");
+        }
+    }
+
+    private int getResultRowCount(RowTable table,
+                                 Row row)
         throws SQLException
     {
         int count = 0;
-        try (PreparedStatement statement = getUniqueStatement(table)) {
-            setWhereParameter(statement, table, row);
+        try (PreparedStatement statement = m_Catalog.getSelectStatement(m_Provider, table)) {
+            RowHelper.setWhereParameter(statement, m_Catalog, table, row);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
                 count ++;
@@ -147,44 +176,33 @@ public class RowSetWriter
                 }
             }
         }
-        if (count != 1) {
-            String msg = update ? "updateRow()" : "deleteRow()";
-            throw new SQLException(String.format("ERROR: It is not possible to precisely identify the record selected for %s", msg));
-        }
+        return count;
     }
 
     private PreparedStatement getInsertStatement(RowTable table,
                                                  List<RowColumn> columns)
         throws SQLException
     {
-        String query = String.format(m_InsertCmd, table.getComposedName(true), getInsertColumns(table, columns), getInsertParameter(table, columns));
+        String query = String.format(m_InsertCmd, table.getComposedName(m_Provider, true), getInsertColumns(table, columns), getInsertParameter(table, columns));
         System.out.println("RowSetWriter.getInsertStatement() Query: " + query);
-        return m_Connection.prepareStatement(query);
+        return m_Provider.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
     }
 
     private PreparedStatement getUpdateStatement(RowTable table,
                                                  List<RowColumn> columns)
         throws SQLException
     {
-        String query = String.format(m_UpdateCmd, table.getComposedName(true), getUpdatedColumns(table, columns), table.getWhereCmd());
+        String query = String.format(m_UpdateCmd, table.getComposedName(m_Provider, true), getUpdatedColumns(table, columns), table.getWhereCmd());
         System.out.println("RowSetWriter.getUpdateStatement() Query: " + query);
-        return m_Connection.prepareStatement(query);
+        return m_Provider.getConnection().prepareStatement(query);
     }
 
     private PreparedStatement getDeleteStatement(RowTable table)
         throws SQLException
     {
-        String query = String.format(m_DeleteCmd, table.getComposedName(true), table.getWhereCmd());
+        String query = String.format(m_DeleteCmd, table.getComposedName(m_Provider, true), table.getWhereCmd());
         System.out.println("RowSetWriter.getDeleteStatement() Query: " + query);
-        return m_Connection.prepareStatement(query);
-    }
-
-    private PreparedStatement getUniqueStatement(RowTable table)
-        throws SQLException
-    {
-        String query = String.format(m_SelectCmd, table.getComposedName(true), table.getWhereCmd());
-        System.out.println("RowSetWriter.getUniqueStatement() Query: " + query);
-        return m_Connection.prepareStatement(query);
+        return m_Provider.getConnection().prepareStatement(query);
     }
 
     private String getInsertColumns(RowTable table,
@@ -215,41 +233,18 @@ public class RowSetWriter
         return String.join(table.getSeparator(), query);
     }
 
-    private int setValueParameter(PreparedStatement statement,
-                                  List<RowColumn> columns,
-                                  BaseRow row)
+    private int setStatementParameter(PreparedStatement statement,
+                                      List<RowColumn> columns,
+                                      Row row)
         throws SQLException
     {
         int i = 1;
         for (RowColumn column : columns) {
             Object value = row.getColumnObject(column.getIndex());
-            RowHelper.setRowValue(statement, column.getType(), i, value);
+            RowHelper.setStatementValue(statement, column.getType(), i, value);
             i ++;
         }
         return i;
-    }
-
-    private void setWhereParameter(PreparedStatement statement,
-                                   RowTable table,
-                                   BaseRow row)
-        throws SQLException
-    {
-        setWhereParameter(statement, table, row, 1);
-    }
-
-    private void setWhereParameter(PreparedStatement statement,
-                                   RowTable table,
-                                   BaseRow row,
-                                   int offset)
-        throws SQLException
-    {
-        int i = offset;
-        for (int index : table.getKeyIndex()) {
-            int type = m_Columns[index - 1].getType();
-            Object value = row.getOldColumnObject(index);
-            RowHelper.setRowValue(statement, type, i, value);
-            i ++;
-        }
     }
 
 }

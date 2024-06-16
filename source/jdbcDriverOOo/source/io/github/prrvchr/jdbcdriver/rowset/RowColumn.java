@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 
@@ -38,22 +39,44 @@ public class RowColumn
     private int m_type = 0;
     private int m_index = 0;
     private boolean m_autoincrement = false;
+    private String AUTOINCREMENT = "YES";
+
 
     // The constructor method:
-    public RowColumn(RowCatalog catalog,
+    public RowColumn(RowTable table,
+                     Statement statement,
+                     ResultSet result)
+        throws java.sql.SQLException
+    {
+        m_Table = table;
+        m_Name = result.getString(4);
+        m_Identifier = statement.enquoteIdentifier(m_Name, true);
+        m_type = result.getInt(5);
+        m_index = result.getInt(17);
+        m_autoincrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
+        m_Table.setKeyColumn(m_index, m_Identifier, m_type);
+        System.out.println("RowColumn() 1 Name: " + m_Name + " - AutoIncrement: " + m_autoincrement);
+    }
+
+    public RowColumn(RowTable table,
                      Statement statement,
                      ResultSetMetaData metadata,
                      int index)
         throws java.sql.SQLException
     {
-        m_Table = catalog.getTable(metadata, index);
+        m_Table = table;
         m_Name = metadata.getColumnName(index);
         m_Identifier = statement.enquoteIdentifier(m_Name, true);
         m_type = metadata.getColumnType(index);
         m_autoincrement = metadata.isAutoIncrement(index);
         m_Table.setKeyColumn(index, m_Identifier, m_type);
         m_index = index;
-        System.out.println("RowColumn() 1");
+        System.out.println("RowColumn() 1 Name: " + m_Name + " - AutoIncrement: " + m_autoincrement);
+    }
+
+    public RowTable getTable()
+    {
+        return m_Table;
     }
 
     public String getCatalogName()

@@ -76,13 +76,13 @@ public final class HsqlDBDriverProvider
         System.out.println("hsqldb.HsqlDBDriverProvider() 1");
     }
 
-    @Override
+/*    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
         }
         return type;
-    }
+    }*/
 
     @Override
     public String getConnectionUrl(final String location,

@@ -1187,7 +1187,8 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
             BigDecimal bigDecimal;
             if (AnyConverter.isDouble(value)) {
                 bigDecimal = BigDecimal.valueOf(AnyConverter.toDouble(value));
-            } else {
+            }
+            else {
                 bigDecimal = new BigDecimal(AnyConverter.toString(value));
             }
             m_Result.updateObject(index, bigDecimal, scale);
@@ -1215,7 +1216,7 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     }
 
     protected ResultSet getJdbcResultSet()
-        throws SQLException
+        throws java.sql.SQLException
     {
         return getJdbcStatement().getJdbcResultSet();
     }

@@ -76,14 +76,9 @@ public abstract class PreparedStatementMain<C extends ConnectionBase, S extends 
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws SQLException
+        throws java.sql.SQLException
     {
-        try {
-            return getJdbcStatement().executeQuery();
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        return getJdbcStatement().executeQuery();
     }
 
 
@@ -261,13 +256,19 @@ public abstract class PreparedStatementMain<C extends ConnectionBase, S extends 
     }
 
     @Override
-    public void setObject(int index, Object value) throws SQLException
+    public void setObject(int index, Object value)
+        throws SQLException
     {
-        if (!DBTools.setObject(getJdbcStatement(), index, value)) {
-            String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_PARA_TYPE,
-                                                                                     "$position$",
-                                                                                     Integer.toString(index));
-            throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        try {
+            if (!DBTools.setObject(getJdbcStatement(), index, value)) {
+                String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_PARA_TYPE,
+                                                                                         "$position$",
+                                                                                         Integer.toString(index));
+                throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
+        }
+        catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
         }
 
     }

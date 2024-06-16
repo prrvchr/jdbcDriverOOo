@@ -27,6 +27,8 @@ package io.github.prrvchr.jdbcdriver;
 
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,10 +49,16 @@ import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
 import io.github.prrvchr.jdbcdriver.helper.DBException;
+import io.github.prrvchr.jdbcdriver.helper.DBGeneratedKeys;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.metadata.TableTypesResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoRows;
+import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.jdbcdriver.rowset.RowColumn;
+import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowTable;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -87,6 +95,10 @@ public abstract class DriverProviderMain
     private Boolean m_UpdateVisibleInsensitive;
     private Boolean m_UpdateVisibleSensitive;
     private Boolean m_UpdateVisibleForwardonly;
+
+    private boolean m_UseSQLDelete = false;
+    private boolean m_UseSQLInsert = true;
+    private boolean m_UseSQLUpdate = false;
 
     private boolean m_CatalogsInTableDefinitions;
     private boolean m_SchemasInTableDefinitions;
@@ -211,18 +223,74 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean makeResultSetUpdatable()
+    public boolean isSQLMode()
     {
         return m_sqlmode;
+    }
+
+    public boolean useSQLDelete()
+    {
+        return m_UseSQLDelete;
+    }
+
+    public boolean useSQLInsert()
+    {
+        return m_UseSQLInsert;
+    }
+
+    public boolean useSQLUpdate()
+    {
+        return m_UseSQLUpdate;
+    }
+
+    public void setGeneratedKeys(Statement statement,
+                                 RowCatalog catalog,
+                                 RowTable table,
+                                 Row row)
+        throws java.sql.SQLException
+    {
+        System.out.println("DriverProvider.setGeneratedKeys() 1 AutoRetrieving: " + m_IsAutoRetrievingEnabled);
+        String command = getAutoRetrievingStatement();
+        if (!isAutoRetrievingEnabled() || command == null) {
+            return;
+        }
+        java.sql.ResultSet result = null;
+        Map<String, RowColumn> columns = catalog.getColumnNames(table);
+        if (command.isBlank()) {
+            result = statement.getGeneratedKeys();
+        }
+        else {
+            System.out.println("DriverProvider.setGeneratedKeys() 2");
+            result = DBGeneratedKeys.getGeneratedResult(this, statement, catalog, table, row, columns, command);
+        }
+        if (result != null) {
+            System.out.println("DriverProvider.setGeneratedKeys() 3");
+            ResultSetMetaData metadata = result.getMetaData();
+            int count = metadata.getColumnCount();
+            System.out.println("DriverProvider.setGeneratedKeys() 4");
+            if (result.next()) {
+                for (int i = 1; i <= count; i++) {
+                    System.out.println("DriverProvider.setGeneratedKeys() 5");
+                    // XXX: We are looking for column name and index as name because some databases
+                    // XXX: only give column index as an column name (ie: Derby)
+                    String name = metadata.getColumnName(i);
+                    String type = metadata.getColumnTypeName(i);
+                    System.out.println("DriverProvider.setGeneratedKeys() 6 Key Name: " + name + " - Type: " + type);
+                    if (columns.containsKey(name)) {
+                        // XXX: It is important to preserve the type of the original ResultSet columns
+                        RowColumn column = columns.get(name);
+                        Object value = RowHelper.getResultSetValue(result, i, column.getType());
+                        row.setColumnObject(column.getIndex(), value);
+                    }
+                }
+            }
+        }
     }
 
     @Override
     public boolean isResultSetUpdatable(java.sql.ResultSet result)
         throws java.sql.SQLException
     {
-        if (m_sqlmode) {
-            return false;
-        }
         return result.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
     }
 
@@ -743,6 +811,10 @@ public abstract class DriverProviderMain
             m_UpdateVisibleInsensitive = getDriverBooleanProperty(config1, "UpdateVisibleInsensitive", null);
             m_UpdateVisibleSensitive = getDriverBooleanProperty(config1, "UpdateVisibleSensitive", null);
             m_UpdateVisibleForwardonly = getDriverBooleanProperty(config1, "UpdateVisibleForwardonly", null);
+
+            m_UseSQLDelete = getDriverBooleanProperty(config1, "UseSQLDelete", m_UseSQLDelete);
+            m_UseSQLInsert = getDriverBooleanProperty(config1, "UseSQLInsert", m_UseSQLInsert);
+            m_UseSQLUpdate = getDriverBooleanProperty(config1, "UseSQLUpdate", m_UseSQLUpdate);
 
             m_AutoIncrementIsPrimaryKey = getDriverBooleanProperty(config1, "AutoIncrementIsPrimaryKey", m_AutoIncrementIsPrimaryKey);
             m_SupportsAlterIdentity = getDriverBooleanProperty(config1, "SupportsAlterIdentity", m_SupportsAlterIdentity);

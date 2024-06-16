@@ -41,7 +41,6 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementBase<C extends ConnectionBase>
@@ -63,14 +62,10 @@ public abstract class StatementBase<C extends ConnectionBase>
 
    @Override
    protected java.sql.ResultSet getJdbcResultSet()
-       throws SQLException
+       throws java.sql.SQLException
    {
-       try {
-           return getJdbcStatement().executeQuery(m_Sql);
-       }
-       catch (java.sql.SQLException e) {
-           throw UnoHelper.getSQLException(e, this);
-       }
+        m_parsed = false;
+        return getJdbcStatement().executeQuery(m_Sql);
    }
 
     private void registerProperties() {
@@ -118,23 +113,18 @@ public abstract class StatementBase<C extends ConnectionBase>
 
     @Override
     protected java.sql.Statement getJdbcStatement()
-        throws SQLException
+        throws java.sql.SQLException
     {
         checkDisposed();
         if (m_Statement == null) {
-            try {
-                java.sql.Statement statement;
-                if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
-                    statement = m_Connection.getProvider().getConnection().createStatement(m_ResultSetType, m_ResultSetConcurrency);
-                } 
-                else {
-                    statement = m_Connection.getProvider().getConnection().createStatement();
-                }
-                m_Statement = setStatement(statement);
+            java.sql.Statement statement;
+            if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
+                statement = m_Connection.getProvider().getConnection().createStatement(m_ResultSetType, m_ResultSetConcurrency);
             } 
-            catch (java.sql.SQLException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            else {
+                statement = m_Connection.getProvider().getConnection().createStatement();
             }
+            m_Statement = setStatement(statement);
         }
         return m_Statement;
     }

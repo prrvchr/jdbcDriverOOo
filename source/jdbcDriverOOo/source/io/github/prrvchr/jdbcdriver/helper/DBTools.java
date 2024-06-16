@@ -90,7 +90,6 @@ import io.github.prrvchr.css.util.DateWithTimezone;
 import io.github.prrvchr.css.util.Time;
 import io.github.prrvchr.css.util.TimeWithTimezone;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -418,7 +417,7 @@ public class DBTools
     }
 
     public static NamedComponents getTableNamedComponents(DriverProvider provider,
-                                                        XPropertySet table)
+                                                          XPropertySet table)
     {
         NamedComponents component = new NamedComponents();
         if (hasDescriptorProperty(table, PropertyIds.NAME)) {
@@ -465,30 +464,37 @@ public class DBTools
         return name;
     }
 
-    /** unquote the given table name (which may contain a catalog and a schema)
-     */
-    public static String unQuoteTableName(DriverProvider provider,
-                                          String name)
-    {
-        String quote = provider.getIdentifierQuoteString();
-        return name.replace(quote, "");
-    }
-
     /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
-     * @param metadata     meta data describing the connection where you got the table name from
-     * @param name     fully qualified table name
-     * @param rule       where do you need the name for
+     * @param metadata  meta data describing the connection where you got the table name from
+     * @param name      fully qualified table name
+     * @param rule      where do you need the name for
      * @return the NameComponents object with the catalog, schema and table
      */
     public static NamedComponents qualifiedNameComponents(DriverProvider provider,
-                                                         String name,
-                                                         ComposeRule rule)
+                                                          String name,
+                                                          ComposeRule rule)
+        throws java.sql.SQLException
+    {
+        return qualifiedNameComponents(provider, name, rule, false);
+    }
+
+    /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
+     * @param metadata  meta data describing the connection where you got the table name from
+     * @param name      fully qualified table name
+     * @param rule      where do you need the name for
+     * @param unquote   need to unquote the name before?
+     * @return the NameComponents object with the catalog, schema and table
+     */
+    public static NamedComponents qualifiedNameComponents(DriverProvider provider,
+                                                          String name,
+                                                          ComposeRule rule,
+                                                          boolean unquote)
         throws java.sql.SQLException
     {
         NamedComponents component = new NamedComponents();
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         String separator = provider.getCatalogSeparator();
-        String buffer = name;
+        String buffer = unquote ? unQuoteTableName(provider, name) : name;
         // do we have catalogs ?
         if (support.useCatalogs) {
             if (provider.isCatalogAtStart()) {
@@ -518,6 +524,15 @@ public class DBTools
         }
         component.setTable(buffer);
         return component;
+    }
+
+    /** unquote the given table name (which may contain a catalog and a schema)
+     */
+    public static String unQuoteTableName(DriverProvider provider,
+                                          String name)
+    {
+        String quote = provider.getIdentifierQuoteString();
+        return name.replace(quote, "");
     }
 
     /** creates a SQL CREATE VIEW statement
@@ -1162,97 +1177,6 @@ public class DBTools
         for (int position : positions) {
             statement.setString(i++, (String) parameters[position]);
         }
-    }
-
-    public final static java.sql.ResultSet getGeneratedResult(DriverProvider provider,
-                                                              java.sql.Statement statement,
-                                                              java.sql.Statement generated,
-                                                              ConnectionLog logger,
-                                                              String cls,
-                                                              String method,
-                                                              String command,
-                                                              String sql)
-        throws java.sql.SQLException
-    {
-        int resource;
-        java.sql.ResultSet result = null;
-        String query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_EMPTY_RESULTSET);
-        //String sql = provider.getAutoRetrievingStatement();
-        if (command != null) {
-            if (command.isBlank()) {
-                result = statement.getGeneratedKeys();
-            }
-            else {
-                DBQueryParser parser = new DBQueryParser(sql);
-                if (parser.isExecuteUpdateStatement() && parser.hasTable()) {
-                    String table = parser.getTable();
-                    resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
-                    logger.logprb(LogLevel.FINE, cls, method, resource, table, sql);
-                    String keys = getGeneratedKeys(statement);
-                    if (!keys.isBlank()) {
-                        query = String.format(command, table, keys);
-                    }
-                }
-            }
-        }
-        if (result == null) {
-            resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
-            logger.logprb(LogLevel.FINE, cls, method, resource, query);
-            result = generated.executeQuery(query);
-        }
-        return result;
-    }
-
-    public static String getGeneratedColumnNames(java.sql.ResultSet result, int count)
-        throws java.sql.SQLException 
-    {
-        List<String> names = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
-            names.add(result.getMetaData().getColumnName(i));
-        }
-        return String.join(", ", names);
-    }
-
-    public static String getGeneratedKeys(java.sql.Statement statement)
-        throws java.sql.SQLException
-    {
-        String keys = "";
-        try(java.sql.ResultSet result = statement.getGeneratedKeys())
-        {
-            ResultSetMetaData metadata = result.getMetaData();
-            int count = metadata.getColumnCount();
-            List<String> rows = new ArrayList<String>();
-            while (result.next()) {
-                List<String> columns = new ArrayList<String>();
-                for (int i = 1; i <= count; i++) {
-                    StringBuilder buffer = new StringBuilder(5);
-                    buffer.append(statement.enquoteIdentifier(metadata.getColumnName(i), true));
-                    buffer.append(" = ");
-                    String value = String.format("%s", result.getObject(i));
-                    if (metadata.getColumnClassName(i).equals("java.lang.String")) {
-                        value = statement.enquoteLiteral(value);
-                    }
-                    buffer.append(value);
-                    columns.add(buffer.toString());
-                }
-                String row = null;
-                if (columns.size() > 1) {
-                    StringBuilder buffer = new StringBuilder(3);
-                    buffer.append("(");
-                    buffer.append(String.join(" AND ", columns));
-                    buffer.append(")");
-                    row = buffer.toString();
-                }
-                else if (!columns.isEmpty()){
-                    row = columns.get(0);
-                }
-                if (row != null) {
-                    rows.add(row);
-                }
-            }
-            keys = String.join(" OR ", rows);
-        }
-        return keys;
     }
 
     public static void printDescriptor(XPropertySet descriptor)

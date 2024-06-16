@@ -143,7 +143,9 @@ public abstract class DatabaseMetaDataBase
     public boolean deletesAreDetected(int type) throws SQLException
     {
         try {
-            return m_Metadata.deletesAreDetected(type);
+            boolean detected = m_Metadata.deletesAreDetected(type);
+            System.out.println("sdbc.DatabaseMetaData.deletesAreDetected() " + detected);
+            return detected;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1369,11 +1371,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean insertsAreDetected(int arg0) throws SQLException
+    public boolean insertsAreDetected(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.insertsAreDetected()");
-            return m_Metadata.insertsAreDetected(arg0);
+            boolean detected = m_Metadata.insertsAreDetected(type);
+            System.out.println("sdbc.DatabaseMetaData.insertsAreDetected() " + detected);
+            return detected;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1529,11 +1532,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean othersDeletesAreVisible(int arg0) throws SQLException
+    public boolean othersDeletesAreVisible(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.othersDeletesAreVisible()");
-            return m_Metadata.othersDeletesAreVisible(arg0);
+            boolean visible = m_Metadata.othersDeletesAreVisible(type);
+            System.out.println("sdbc.DatabaseMetaData.othersDeletesAreVisible() " + visible);
+            return visible;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1550,11 +1554,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean othersInsertsAreVisible(int arg0) throws SQLException
+    public boolean othersInsertsAreVisible(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.othersInsertsAreVisible()");
-            return m_Metadata.othersInsertsAreVisible(arg0);
+            boolean visible = m_Metadata.othersInsertsAreVisible(type);
+            System.out.println("sdbc.DatabaseMetaData.othersInsertsAreVisible() " + visible);
+            return visible;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1571,11 +1576,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean othersUpdatesAreVisible(int arg0) throws SQLException
+    public boolean othersUpdatesAreVisible(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.othersUpdatesAreVisible()");
-            return m_Metadata.othersUpdatesAreVisible(arg0);
+            boolean visible = m_Metadata.othersUpdatesAreVisible(type);
+            System.out.println("sdbc.DatabaseMetaData.othersUpdatesAreVisible() " + visible);
+            return visible;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1592,11 +1598,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean ownDeletesAreVisible(int arg0) throws SQLException
+    public boolean ownDeletesAreVisible(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.ownDeletesAreVisible()");
-            return m_Metadata.ownDeletesAreVisible(arg0);
+            boolean visible = m_Metadata.ownDeletesAreVisible(type);
+            System.out.println("sdbc.DatabaseMetaData.ownDeletesAreVisible() " + visible);
+            return visible;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1613,11 +1620,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean ownInsertsAreVisible(int arg0) throws SQLException
+    public boolean ownInsertsAreVisible(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.ownInsertsAreVisible()");
-            return m_Metadata.ownInsertsAreVisible(arg0);
+            boolean visible = m_Metadata.ownInsertsAreVisible(type);
+            System.out.println("sdbc.DatabaseMetaData.ownInsertsAreVisible() " + visible);
+            return visible;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -1634,11 +1642,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean ownUpdatesAreVisible(int arg0) throws SQLException
+    public boolean ownUpdatesAreVisible(int type) throws SQLException
     {
         try {
-            System.out.println("sdbc.DatabaseMetaData.ownUpdatesAreVisible()");
-            return m_Metadata.ownUpdatesAreVisible(arg0);
+            boolean visible = m_Metadata.ownUpdatesAreVisible(type);
+            System.out.println("sdbc.DatabaseMetaData.ownUpdatesAreVisible() " + visible);
+            return visible;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2584,7 +2593,9 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsPositionedDelete() throws SQLException
     {
         try {
-            return m_Metadata.supportsPositionedDelete();
+            boolean support = m_Metadata.supportsPositionedDelete();
+            System.out.println("sdbc.DatabaseMetaData.supportsPositionedDelete() " + support);
+            return support;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -2604,7 +2615,9 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsPositionedUpdate() throws SQLException
     {
         try {
-            return m_Metadata.supportsPositionedUpdate();
+            boolean support = m_Metadata.supportsPositionedUpdate();
+            System.out.println("sdbc.DatabaseMetaData.supportsPositionedUpdate() " + support);
+            return support;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);
@@ -3003,10 +3016,12 @@ public abstract class DatabaseMetaDataBase
     }
 
     @Override
-    public boolean updatesAreDetected(int arg0) throws SQLException
+    public boolean updatesAreDetected(int type) throws SQLException
     {
         try {
-            return m_Metadata.updatesAreDetected(arg0);
+            boolean detected = m_Metadata.updatesAreDetected(type);
+            System.out.println("sdbc.DatabaseMetaData.updatesAreDetected() " + detected);
+            return detected;
         }
         catch (java.sql.SQLException e) {
             System.out.println("sdbc.DatabaseMetaData ********************************* ERROR: " + e);

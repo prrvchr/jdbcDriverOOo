@@ -23,57 +23,39 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver.rowset;
+package io.github.prrvchr.jdbcdriver.resultset;
 
-import java.util.BitSet;
-import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 
-public abstract class BaseRow
+public class ResultSetWrapper
+    extends ResultSet
 {
 
-    protected Object[] m_NewValues;
-    protected Object[] m_OldValues;
-    protected BitSet m_Updated;
+    private PreparedStatement m_Statement;
 
-    protected int m_Count;
-
-    protected BaseRow(int count)
+    // The constructor method:
+    public ResultSetWrapper(PreparedStatement statement)
+        throws SQLException
     {
-        m_NewValues = new Object[count];
-        m_OldValues = new Object[count];
-        m_Updated = new BitSet(count);
-        m_Count = count;
+        super(getResultSet(statement));
+        m_Statement = statement;
+        System.out.println("ResultSetWrapper() 1");
     }
 
-    public boolean isColumnUpdated(int index)
+    static private java.sql.ResultSet getResultSet(PreparedStatement statement)
+        throws SQLException
     {
-        return m_Updated.get(index - 1);
+        return statement.executeQuery();
     }
 
-    public void setColumnObject(int index, Object value)
+    @Override
+    public void close()
+        throws SQLException
     {
-        m_NewValues[index - 1] = value;
-        m_Updated.set(index - 1);
+        super.close();
+        m_Statement.close();
     }
-
-    public void clearUpdated(List<RowColumn> columns, int status)
-    {
-        for (RowColumn column : columns) {
-            int index = column.getIndex();
-            if (status != 0) {
-                m_OldValues[index - 1] = m_NewValues[index - 1];
-            }
-            m_NewValues[index - 1] = null;
-            m_Updated.clear(index - 1);
-        }
-    }
-
-    public Object getOldColumnObject(int index)
-    {
-        return(m_OldValues[index - 1]);
-    }
-
-    public abstract Object getColumnObject(int index);
 
 }

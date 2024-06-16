@@ -43,7 +43,11 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.helper.DBGeneratedKeys;
+import io.github.prrvchr.jdbcdriver.helper.DBQueryParser;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -69,6 +73,8 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
     protected C m_Connection;
     protected final ConnectionLog m_logger;
     protected S m_Statement = null;
+    protected RowCatalog m_Catalog = null;
+    protected boolean m_parsed = false;
     protected String m_Sql = "";
 
     private String m_CursorName = "";
@@ -218,8 +224,8 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
             });
     }
 
-    abstract protected S getJdbcStatement() throws SQLException;
-    abstract protected java.sql.ResultSet getJdbcResultSet() throws SQLException;
+    abstract protected S getJdbcStatement() throws java.sql.SQLException;
+    abstract protected java.sql.ResultSet getJdbcResultSet() throws java.sql.SQLException;
 
     protected S setStatement(S statement)
         throws java.sql.SQLException
@@ -472,7 +478,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
         try {
             getJdbcStatement().cancel();
         }
-        catch (SQLException | java.sql.SQLException e) {
+        catch (java.sql.SQLException e) {
             System.out.println("StatementMain.cancel() ERROR");
         }
     }
@@ -483,12 +489,33 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
     public XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
-        ResultSet<PreparedStatement> resultset = null;
+        ResultSet<Statement> resultset = null;
         try {
-            String command = m_Connection.getProvider().getAutoRetrievingStatement();
-            java.sql.ResultSet result = getGeneratedResult(command);
+            int resource;
+            java.sql.ResultSet result = null;
+            DriverProvider provider = m_Connection.getProvider();
+            String command = provider.getAutoRetrievingStatement();
+            if (provider.isAutoRetrievingEnabled() && command != null) {
+                if (command.isBlank()) {
+                    result = getJdbcStatement().getGeneratedKeys();
+                }
+                else {
+                    RowCatalog catalog = getStatementCatalog();
+                    if (catalog != null) {
+                        resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
+                        m_logger.logprb(LogLevel.FINE, resource, catalog.getMainTable().getName(), m_Sql);
+                        result = DBGeneratedKeys.getGeneratedResult(provider, getJdbcStatement(), catalog, command);
+                    }
+                }
+            }
+            if (result == null) {
+                resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
+                String query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_EMPTY_RESULTSET);
+                m_logger.logprb(LogLevel.FINE, resource, query);
+                result = provider.getStatement().executeQuery(query);
+            }
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            resultset = new ResultSet<PreparedStatement>(getConnectionInternal(), result);
+            resultset = new ResultSet<Statement>(getConnectionInternal(), result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, getColumnNames(result, count));
@@ -500,15 +527,18 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
         return resultset;
     }
 
-    protected java.sql.ResultSet getGeneratedResult(String command)
-        throws SQLException, java.sql.SQLException
+    private RowCatalog getStatementCatalog()
+        throws java.sql.SQLException
     {
-        return DBTools.getGeneratedResult(m_Connection.getProvider(), getJdbcStatement(),
-                                          getGeneratedStatement(), getLogger(),
-                                          this.getClass().getName(), "getGeneratedValues",
-                                          command, m_Sql);
+        if (!m_parsed) {
+            DBQueryParser parser = new DBQueryParser(m_Sql);
+            if (parser.hasTable()) {
+                m_Catalog = new RowCatalog(m_Connection.getProvider(), m_Statement, parser.getTable());
+            }
+            m_parsed = true;
+        }
+        return m_Catalog;
     }
-
 
     private String getColumnNames(java.sql.ResultSet result,
                                    int count)
@@ -520,6 +550,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
         }
         return String.join(", ", names);
     }
+
 
     // com.sun.star.sdbc.XMultipleResults:
     @Override

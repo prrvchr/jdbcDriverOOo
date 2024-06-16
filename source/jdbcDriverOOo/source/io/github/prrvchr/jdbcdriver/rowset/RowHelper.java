@@ -68,18 +68,9 @@ public class RowHelper
         }
     }
 
-    public static int setColumnValues(ResultSet result,
-                                      BaseRow row,
-                                      int count,
-                                      int insert)
-        throws SQLException
-    {
-        return setColumnValues(result, row, count) ? insert : 0;
-    }
-
-    public static boolean setColumnValues(ResultSet result,
-                                          BaseRow row,
-                                          int count)
+    public static boolean setCurrentRow(ResultSet result,
+                                        Row row,
+                                        int count)
         throws SQLException
     {
         System.out.println("DBTools.setColumnValues() 1");
@@ -103,12 +94,75 @@ public class RowHelper
         return hasupdate && updated;
     }
 
+    public static boolean updateColumnValue(ResultSet result,
+                                            int index,
+                                            Object value)
+        throws SQLException
+    {
+        if (value != null) {
+            int type = result.getMetaData().getColumnType(index);
+            result.updateObject(index, value, JDBCType.valueOf(type));
+        }
+        else {
+            result.updateNull(index);
+        }
+        return true;
+    }
+
+    public static void setStatementValue(PreparedStatement statement,
+                                         int type,
+                                         int index,
+                                         Object value)
+        throws SQLException
+    {
+        if (value != null) {
+            statement.setObject(index, value, type);
+        }
+        else {
+            statement.setNull(index, type);
+        }
+    }
+
+    public static void setWhereParameter(PreparedStatement statement,
+                                         RowCatalog catalog,
+                                         RowTable table,
+                                         Row row)
+        throws SQLException
+    {
+        setWhereParameter(statement, catalog, table, row, 1);
+    }
+
+    public static void setWhereParameter(PreparedStatement statement,
+                                         RowCatalog catalog,
+                                         RowTable table,
+                                         Row row,
+                                         int offset)
+        throws SQLException
+    {
+        int i = offset;
+        for (int index : table.getKeyIndex()) {
+            int type = catalog.getColumns()[index - 1].getType();
+            Object value = row.getOldColumnObject(index);
+            System.out.println("RowHelper.setWhereParameter() Value: " + value);
+            RowHelper.setStatementValue(statement, type, i, value);
+            i ++;
+        }
+    }
+
     public static Object getResultSetValue(ResultSet result,
                                            int index)
         throws SQLException
     {
-        Object value = null;
         int type = result.getMetaData().getColumnType(index);
+        return getResultSetValue(result, index, type);
+    }
+
+    public static Object getResultSetValue(ResultSet result,
+                                           int index,
+                                           int type)
+        throws SQLException
+    {
+        Object value = null;
         switch (type) {
             case Types.CHAR:
             case Types.VARCHAR:
@@ -120,10 +174,14 @@ public class RowHelper
             case Types.LONGNVARCHAR:
                 value = result.getNString(index);
                 break;
+            case Types.BIT:
             case Types.BOOLEAN:
                 value = result.getObject(index, Boolean.class);
                 break;
             case Types.TINYINT:
+                System.out.println("RowHelper.getResultSetValue() 1");
+                value = result.getObject(index, Byte.class);
+                break;
             case Types.SMALLINT:
             case Types.INTEGER:
                 value = result.getObject(index, Integer.class);
@@ -172,94 +230,32 @@ public class RowHelper
         return result.wasNull() ? null : value;
     }
 
-    public static boolean updateColumnValue(ResultSet result,
-                                            int index,
-                                            Object value)
+    public static Object getDoubleValue(Double value,
+                                        int type)
         throws SQLException
     {
-        if (value != null) {
-            int type = result.getMetaData().getColumnType(index);
-            result.updateObject(index, value, JDBCType.valueOf(type));
-            /*switch (type) {
-                case Types.CHAR:
-                case Types.VARCHAR:
-                case Types.LONGVARCHAR:
-                    result.updateString(index, (String) value);
-                    break;
-                case Types.NCHAR:
-                case Types.NVARCHAR:
-                case Types.LONGNVARCHAR:
-                    result.updateNString(index, (String) value);
-                    break;
-                case Types.BOOLEAN:
-                    result.updateBoolean(index, (Boolean) value);
-                    break;
-                case Types.TINYINT:
-                case Types.SMALLINT:
-                case Types.INTEGER:
-                    result.updateInt(index, (Integer) value);
-                    break;
-                case Types.BIGINT:
-                    result.updateLong(index, (Long) value);
-                    break;
-                case Types.FLOAT:
-                    result.updateDouble(index, (Double) value);
-                    break;
-                case Types.BINARY:
-                case Types.VARBINARY:
-                case Types.LONGVARBINARY:
-                    result.updateBytes(index, (byte[]) value);
-                    break;
-                case Types.CLOB:
-                    result.updateClob(index, (Clob) value);
-                    break;
-                case Types.NCLOB:
-                    result.updateNClob(index, (NClob) value);
-                    break;
-                case Types.BLOB:
-                    result.updateBlob(index, (Blob) value);
-                    break;
-                case Types.ARRAY:
-                    result.updateArray(index, (Array) value);
-                    break;
-                case Types.DATE:
-                    result.updateDate(index, (Date) value);
-                    break;
-                case Types.TIME:
-                    result.updateTime(index, (Time) value);
-                    break;
-                case Types.TIMESTAMP:
-                    result.updateTimestamp(index, (Timestamp) value);
-                    break;
-                case Types.TIME_WITH_TIMEZONE:
-                    result.updateObject(index, (OffsetTime) value);
-                    break;
-                case Types.TIMESTAMP_WITH_TIMEZONE:
-                    result.updateObject(index, (OffsetDateTime) value);
-                    break;
-                default:
-                    result.updateObject(index, value);
-            }*/
+        Object object;
+        switch (type) {
+            case Types.TINYINT:
+                System.out.println("RowHelper.getDoubleValue() 1");
+                object = value.byteValue();
+                break;
+            case Types.SMALLINT:
+                object = value.shortValue();
+                break;
+            case Types.INTEGER:
+                object = value.intValue();
+                break;
+            case Types.BIGINT:
+                object = value.longValue();
+                break;
+            case Types.FLOAT:
+                object = value.floatValue();
+                break;
+            default:
+                object = value;
         }
-        else {
-            result.updateNull(index);
-        }
-        return true;
-    }
-
-
-    public static void setRowValue(PreparedStatement statement,
-                                   int type,
-                                   int index,
-                                   Object value)
-        throws SQLException
-    {
-        if (value != null) {
-            statement.setObject(index, value, type);
-        }
-        else {
-            statement.setNull(index, type);
-        }
+        return object;
     }
 
     public static boolean isValidKeyType(int type)
@@ -274,10 +270,15 @@ public class RowHelper
             case Types.LONGNVARCHAR:
             case Types.BOOLEAN:
             case Types.TINYINT:
+            case Types.DOUBLE:
             case Types.SMALLINT:
             case Types.INTEGER:
             case Types.BIGINT:
             case Types.FLOAT:
+            case Types.REAL:
+            case Types.DECIMAL:
+            case Types.NUMERIC:
+            case Types.ROWID:
             case Types.DATE:
             case Types.TIME:
             case Types.TIMESTAMP:

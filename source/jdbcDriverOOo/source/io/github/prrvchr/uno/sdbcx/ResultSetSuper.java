@@ -87,7 +87,7 @@ public abstract class ResultSetSuper<C extends ConnectionSuper,
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws SQLException
+        throws java.sql.SQLException
     {
         return super.getJdbcResultSet();
     }

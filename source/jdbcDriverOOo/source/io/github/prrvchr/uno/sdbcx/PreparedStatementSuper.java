@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
@@ -81,7 +80,7 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws SQLException
+        throws java.sql.SQLException
     {
         return super.getJdbcResultSet();
     }
@@ -90,14 +89,6 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
     protected ConnectionLog getLogger()
     {
         return super.getLogger();
-    }
-
-    @Override
-    protected java.sql.ResultSet getGeneratedResult(String command)
-        throws SQLException, java.sql.SQLException
-    {
-        // XXX: At this level of API (sdbcx or sdb) normally a ResultSet with all columns is already available... 
-        return getJdbcStatement().getGeneratedKeys();
     }
 
 }
