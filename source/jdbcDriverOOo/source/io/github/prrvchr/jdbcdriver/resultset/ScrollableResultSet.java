@@ -74,7 +74,6 @@ public class ScrollableResultSet
         super(provider, result, query);
         m_IsUpdatable = false;
         initCache(result);
-        System.out.println("ScrollableResultSet() 1");
     }
 
 
@@ -99,7 +98,6 @@ public class ScrollableResultSet
     public void insertRow()
         throws SQLException
     {
-        System.out.println("ScollableResultSet.insertRow() 1");
         if (!isOnInsertRow()) {
             throw new SQLException("ERROR: insertRow() cannot be called when moveToInsertRow has not been called !");
         }
@@ -113,7 +111,6 @@ public class ScrollableResultSet
         // XXX: We must be able to respond positively to the insert
         m_InsertedRow = m_RowCount;
         m_CurrentRow = m_InsertedRow;
-        System.out.println("ScollableResultSet.insertRow() 2");
     }
 
     @Override

@@ -125,14 +125,11 @@ public class SensitiveResultSet
     public void moveToInsertRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.moveToInsertRow() 1");
         if (m_IsInsertVisible) {
-            System.out.println("SensitiveResultSet.moveToInsertRow() 2");
             m_Result.moveToInsertRow();
             m_InsertedColumns.clear();
         }
         else {
-            System.out.println("SensitiveResultSet.moveToInsertRow() 3");
             m_InsertRow = new Row(m_ColumnCount);
         }
         m_OnInsert = true;
@@ -142,21 +139,18 @@ public class SensitiveResultSet
     public void cancelRowUpdates()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.cancelRowUpdates() 1");
         if (isOnInsertRow()) {
             moveToCurrentRow();
         }
         else {
             m_Result.cancelRowUpdates();
         }
-        System.out.println("SensitiveResultSet.cancelRowUpdates() 2");
     }
 
     @Override
     public void moveToCurrentRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.moveToCurrentRow() 1");
         if (m_IsInsertVisible) {
             m_Result.moveToCurrentRow();
         }
@@ -164,7 +158,6 @@ public class SensitiveResultSet
             m_InsertRow = null;
         }
         m_OnInsert = false;
-        System.out.println("SensitiveResultSet.moveToCurrentRow() 2");
     }
 
 
@@ -172,31 +165,25 @@ public class SensitiveResultSet
     public void insertRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.insertRow() 1");
         Row row = null;
         boolean sqlinsert = m_InsertRow != null;
         if (m_SQLMode || m_SQLInsert) {
             row = sqlinsert ? m_InsertRow : getResultRow();
             getRowSetWriter().insertRow(row);
             moveToCurrentRow();
-            System.out.println("SensitiveResultSet.insertRow() 2");
         }
         else if (m_IsInsertVisible){
             super.insertRow();
-            System.out.println("SensitiveResultSet.insertRow() 3");
         }
         else {
-            System.out.println("SensitiveResultSet.insertRow() 4");
             row = sqlinsert ? m_InsertRow : getResultRow();
             if (sqlinsert) {
                 RowHelper.setCurrentRow(m_Result, row, m_ColumnCount);
             }
             super.insertRow();
-            System.out.println("SensitiveResultSet.insertRow() 5");
         }
         if (!m_IsInsertVisible) {
             int position = getRowCount() + 1;
-            System.out.println("SensitiveResultSet.insertRow() 6 Position: " + position);
             m_UpdatedData.add(row);
             m_UpdatedRows.add(position);
             m_Position = position;
@@ -205,7 +192,6 @@ public class SensitiveResultSet
         // XXX: For this, we monitor any movement in the ResultSet
         m_Inserted = true;
         m_Moved = false;
-        System.out.println("SensitiveResultSet.insertRow() 7");
     }
 
     @Override
@@ -215,7 +201,6 @@ public class SensitiveResultSet
         // XXX: We can assume the insertion is valid without any
         // XXX: movement in the ResultSet since the insertion.
         boolean inserted = !m_Moved && m_Inserted;
-        System.out.println("SensitiveResultSet.rowInserted() 1 Inserted: " + inserted);
         m_Inserted = false;
         return inserted;
     }
@@ -224,17 +209,14 @@ public class SensitiveResultSet
     public void updateRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.updateRow() 1");
         boolean updated = isUpdatedRow(m_Position);
         if (updated || m_SQLMode || m_SQLUpdate) {
             Row row = updated ? getCachedRow() : getResultRow();
             getRowSetWriter().updateRow(row);
         }
         else {
-            System.out.println("SensitiveResultSet.updateRow() 2");
             super.updateRow();
         }
-        System.out.println("SensitiveResultSet.updateRow() 3");
     }
 
     @Override
@@ -242,7 +224,6 @@ public class SensitiveResultSet
         throws SQLException
     {
         boolean updated = m_Result.rowUpdated();
-        System.out.println("SensitiveResultSet.rowUpdated() 1 Updated: " + updated);
         return updated;
     }
 
@@ -250,7 +231,6 @@ public class SensitiveResultSet
     public void deleteRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.deleteRow() 1 getRowCount(): " + getRowCount() + " - Position: " + m_Position);
         boolean visible = false;
         boolean updated = isUpdatedRow(m_Position);
         if (updated || m_SQLMode || m_SQLDelete) {
@@ -261,29 +241,23 @@ public class SensitiveResultSet
             if (updated) {
                 deleteCachedRow(m_Position);
             }
-            System.out.println("SensitiveResultSet.deleteRow() 2");
         }
         else if (m_IsDeleteVisible) {
             m_Result.deleteRow();
             m_RowCount --;
             visible = true;
-            System.out.println("SensitiveResultSet.deleteRow() 3");
         }
         else {
             m_Result.deleteRow();
-            System.out.println("SensitiveResultSet.deleteRow() 4");
         }
-        System.out.println("SensitiveResultSet.deleteRow() 5 Visible: " + visible);
         // XXX: If delete are not visible, as we are not maintaining a cache on the contents
         // XXX: of the ResultSet here, we need to keep in cache each delete...
         if (!visible) {
             m_DeletedRows.add(m_Position);
-            System.out.println("SensitiveResultSet.deleteRow() 6");
         }
         // XXX: We must be able to respond positively to the rowDeleted().
         m_Deleted = visible;
         m_Moved = !visible;
-        System.out.println("SensitiveResultSet.deleteRow() 7 getRowCount(): " + getRowCount());
     }
 
     @Override
@@ -295,7 +269,6 @@ public class SensitiveResultSet
         // XXX: movement in the ResultSet since the delete.
         deleted = m_Deleted && !m_Moved;
         m_Deleted = false;
-        System.out.println("SensitiveResultSet.rowDeleted() 1 Deleted: " + deleted);
         return deleted;
     }
 
@@ -305,19 +278,15 @@ public class SensitiveResultSet
     public boolean next()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.next() 1 RowCount: " + m_RowCount + " - CurrentPosition: " + m_Position + " - RowCountFinal: " + m_RowCountFinal);
         m_Moved = true;
         if (isEmpty()) {
-            System.out.println("SensitiveResultSet.next() 2");
             return false;
         }
         if (!m_RowCountFinal && m_Cursor == m_Position + 1) {
-            System.out.println("SensitiveResultSet.next() 3");
             putNextRowInCache();
             return true;
         }
         else {
-            System.out.println("SensitiveResultSet.next() 4");
             return internalAbsolute(m_Position + 1);
         }
     }
@@ -326,22 +295,17 @@ public class SensitiveResultSet
     public boolean previous()
         throws SQLException 
     {
-        System.out.println("SensitiveResultSet.previous() 1 CurrentPosition: " + m_Position);
         m_Moved = true;
         if (isEmpty()) {
             return false;
         }
-        boolean moved = false;
-        moved = internalAbsolute(m_Position - 1);
-        System.out.println("SensitiveResultSet.previous() 2 CurrentPosition: " + m_Position + " - Moved: " + moved);
-        return moved;
+        return internalAbsolute(m_Position - 1);
     }
 
     @Override
     public boolean isBeforeFirst()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.isBeforeFirst() 1");
         return isEmpty() ? false : m_Position == 0;
     }
 
@@ -349,7 +313,6 @@ public class SensitiveResultSet
     public boolean isFirst()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.isFirst() 1");
         return isEmpty() ? false : m_Position == 1;
     }
 
@@ -357,7 +320,6 @@ public class SensitiveResultSet
     public boolean isLast()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.isLast() 1");
         return isEmpty() || !m_RowCountFinal ? false : m_Position == getRowCount();
     }
 
@@ -365,7 +327,6 @@ public class SensitiveResultSet
     public boolean isAfterLast()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.isAfterLast() 1");
         return isEmpty() || !m_RowCountFinal ? false : m_Position == getRowCount() + 1;
     }
 
@@ -373,7 +334,6 @@ public class SensitiveResultSet
     public void beforeFirst()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.beforeFirst() 1");
         m_Moved = true;
         m_Position = 0;
     }
@@ -382,7 +342,6 @@ public class SensitiveResultSet
     public void afterLast()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.afterLast() 1");
         m_Moved = true;
         if (!m_RowCountFinal) {
             throw new SQLException();
@@ -394,7 +353,6 @@ public class SensitiveResultSet
     public boolean first()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.first() 1");
         m_Moved = true;
         if (isEmpty()) {
             return false;
@@ -410,17 +368,13 @@ public class SensitiveResultSet
         if (isEmpty() || !m_RowCountFinal) {
             return false;
         }
-        boolean moved = false;
-        moved = internalAbsolute(getRowCount());
-        System.out.println("SensitiveResultSet.last() 1 Moved: " + moved);
-        return moved;
+        return internalAbsolute(getRowCount());
     }
 
     @Override
     public boolean relative(int row)
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.relative() 1");
         m_Moved = true;
         if (m_Position <= 0 || (m_RowCountFinal && m_Position > getRowCount())) {
             throw new SQLException();
@@ -432,36 +386,25 @@ public class SensitiveResultSet
     public boolean absolute(int row)
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.absolute() 1 Row: " + row + " - Cursor: " + m_Cursor);
         m_Moved = true;
         if (!m_RowCountFinal && row < 0) {
             throw new SQLException();
         }
         if (!m_RowCountFinal && row == m_Cursor && row == m_Position + 1) {
-            System.out.println("SensitiveResultSet.absolute() 2");
             putNextRowInCache();
-            System.out.println("SensitiveResultSet.absolute() 3");
             return true;
         }
         if (row < 0) {
             row = getRowCount() + row;
         }
-        System.out.println("SensitiveResultSet.absolute() 4 row: " + row);
-        boolean moved = internalAbsolute(row);
-        System.out.println("SensitiveResultSet.absolute() 5 moved: " + moved);
-        return moved;
+        return internalAbsolute(row);
     }
 
     @Override
     public int getRow()
         throws SQLException
     {
-        int row = m_Position;
-        if (m_RowCountFinal && m_Position > getRowCount()) {
-            row = 0;
-        }
-        System.out.println("SensitiveResultSet.getRow() 1 Row: " + row);
-        return row;
+        return m_RowCountFinal && m_Position > getRowCount() ? 0 : m_Position;
     }
 
 
@@ -1731,9 +1674,7 @@ public class SensitiveResultSet
 
     private boolean isInCache(int row)
     {
-        boolean cached = isPrevious(row) || isUpdated(row) || isDeleted(row);
-        System.out.println("SensitiveResultSet.isInCache() 1 RowCount: " + m_RowCount + " - Row: " + row + " - Cached: " + cached);
-        return cached;
+        return isPrevious(row) || isUpdated(row) || isDeleted(row);
     }
 
     private boolean isPrevious()
@@ -1771,18 +1712,14 @@ public class SensitiveResultSet
     {
         checkIndex(index);
         if (isPrevious()) {
-            System.out.println("SensitiveResultSet.getCurrentRow() 1 Previous");
             return m_PreviousRow;
         }
         if (isUpdated()) {
-            System.out.println("SensitiveResultSet.getCurrentRow() 2 Udated");
             return getCachedRow();
         }
         if (isDeleted()) {
-            System.out.println("SensitiveResultSet.getCurrentRow() 3 Deleted");
             return m_DeletedRow;
         }
-        System.out.println("SensitiveResultSet.getCurrentRow() ERROR ***************************");
         throw new SQLException();
     }
 
@@ -1828,7 +1765,6 @@ public class SensitiveResultSet
     private void createCachedRow(Integer position)
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.createCachedRow() 1");
         m_UpdatedRows.add(position);
         m_UpdatedData.add(getResultRow());
     }
@@ -1836,12 +1772,8 @@ public class SensitiveResultSet
     private void deleteCachedRow(Integer position)
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.deleteCachedRow() 1");
         m_UpdatedData.remove(m_UpdatedRows.indexOf(position));
         m_UpdatedRows.remove(position);
-        for (Integer row : m_UpdatedRows) {
-            System.out.println("SensitiveResultSet.deleteCachedRow() 2 Row: " + row);
-        }
         if (m_IsDeleteVisible || isInsertedRow(position)) {
             for (int i = 0; i < m_UpdatedRows.size(); i++) {
                 int row = m_UpdatedRows.get(i);
@@ -1850,10 +1782,6 @@ public class SensitiveResultSet
                 }
             }
         }
-        for (Integer row : m_UpdatedRows) {
-            System.out.println("SensitiveResultSet.deleteCachedRow() 3 Row: " + row);
-        }
-        System.out.println("SensitiveResultSet.deleteCachedRow() 4");
     }
 
     private Row getCachedRow()
