@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.3.3][5]
+# version [1.4.0][5]
 
 ## Introduction:
 
@@ -514,7 +514,16 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The implementation of `CachedRowSet` seems to have solved the problem of inserting cells from Calc, see [issue #7][119].
 - Many corrections and improvements...
 
-### What remains to be done for version 1.3.3:
+### What has been done for version 1.4.0:
+
+- Updated Jaybird driver to final version 5.0.5.
+- Changed the implementation of the UNO interface [com.sun.star.sdbc.XGeneratedResultSet][87]. This new implementation supports drivers that do not follow the JDBC API but offer a specific implementation (ie: MariaDB and Derby). To be activated when using odb files created with a previous version, if present, it is necessary to modify the parameter: `Query of generated values` accessible by the menu: **Edit -> Database -> Advanced Settings... -> Generated Values** by the value: `SELECT * FROM %s WHERE %s`.
+- Added new settings supported by the [Drivers.xcu][91] configuration file. These new parameters allow you to modify the values ​​returned by the drivers regarding the visibility of modifications in the ResultSet (ie: insertion, update and deletion). They also allow you to force SQL mode for the desired modifications in the ResultSet.
+- Finalized the emulation implementation making any ResultSet modifiable, if the record is unique in this ResultSet. This implementation, using bookmarks, allows the editing of ResultSet coming from **Base Queries**, this simply makes **LibreOffice Base Queries editable**. Queries joining multiple tables are not yet supported and I am open to any technical proposals regarding a possible implementation.
+- To work around [issue #368][120] the HsqlDB driver uses SQL mode updates in ResultSet.
+- Many fixes and improvements...
+
+### What remains to be done for version 1.4.0:
 
 - Add new languages for internationalization...
 
@@ -524,7 +533,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-133>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-140>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -631,3 +640,4 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [117]: <https://trino.io/>
 [118]: <https://github.com/trinodb/trino/issues/22306>
 [119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
+[120]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>

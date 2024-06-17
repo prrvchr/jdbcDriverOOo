@@ -29,6 +29,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+
 
 public class RowColumn
 {
@@ -36,9 +38,9 @@ public class RowColumn
     private RowTable m_Table;
     private String m_Name;
     private String m_Identifier;
-    private int m_type = 0;
-    private int m_index = 0;
-    private boolean m_autoincrement = false;
+    private int m_Type = 0;
+    private int m_Index = 0;
+    private boolean m_AutoIncrement = false;
     private String AUTOINCREMENT = "YES";
 
 
@@ -51,11 +53,10 @@ public class RowColumn
         m_Table = table;
         m_Name = result.getString(4);
         m_Identifier = statement.enquoteIdentifier(m_Name, true);
-        m_type = result.getInt(5);
-        m_index = result.getInt(17);
-        m_autoincrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
-        m_Table.setKeyColumn(m_index, m_Identifier, m_type);
-        System.out.println("RowColumn() 1 Name: " + m_Name + " - AutoIncrement: " + m_autoincrement);
+        m_Type = result.getInt(5);
+        m_Index = result.getInt(17);
+        m_AutoIncrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
+        m_Table.setKeyColumn(m_Index, m_Identifier, m_Type);
     }
 
     public RowColumn(RowTable table,
@@ -67,11 +68,31 @@ public class RowColumn
         m_Table = table;
         m_Name = metadata.getColumnName(index);
         m_Identifier = statement.enquoteIdentifier(m_Name, true);
-        m_type = metadata.getColumnType(index);
-        m_autoincrement = metadata.isAutoIncrement(index);
-        m_Table.setKeyColumn(index, m_Identifier, m_type);
-        m_index = index;
-        System.out.println("RowColumn() 1 Name: " + m_Name + " - AutoIncrement: " + m_autoincrement);
+        m_Type = metadata.getColumnType(index);
+        m_AutoIncrement = metadata.isAutoIncrement(index);
+        m_Table.setKeyColumn(index, m_Identifier, m_Type);
+        m_Index = index;
+    }
+
+    public RowColumn(DriverProvider provider,
+                     RowTable table,
+                     ResultSetMetaData metadata,
+                     int index)
+        throws java.sql.SQLException
+    {
+        m_Table = table;
+        m_Name = metadata.getColumnName(index);
+        System.out.println("RowColumn() Column Name: " + m_Name);
+        m_Identifier = provider.getStatement().enquoteIdentifier(m_Name, true);
+        try (ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalogName(), table.getSchemaName(), table.getName(), m_Name)) {
+            if (result.next()) {
+                m_Type = result.getInt(5);
+                m_AutoIncrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
+                System.out.println("RowColumn() Column autoincrement: " + m_AutoIncrement);
+            }
+        }
+        m_Table.setKeyColumn(index, m_Identifier, m_Type);
+        m_Index = index;
     }
 
     public RowTable getTable()
@@ -111,17 +132,17 @@ public class RowColumn
 
     public int getIndex()
     {
-        return m_index;
+        return m_Index;
     }
 
     public int getType()
     {
-        return m_type;
+        return m_Type;
     }
 
     public boolean isAutoIncrement()
     {
-        return m_autoincrement;
+        return m_AutoIncrement;
     }
 
     public boolean isColumnOfTable(RowTable table)
@@ -131,7 +152,7 @@ public class RowColumn
 
     public boolean isKeyColumn()
     {
-        return m_Table.isKeyColumn(m_index);
+        return m_Table.isKeyColumn(m_Index);
     }
 
 }

@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.ResultSet;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,10 +59,7 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
     // XXX: If we want to be able to use Bookmarks (ie: XRowLocate)
     // XXX: we need to keep reference of deleted rows
     protected List<Integer> m_DeletedBookmarks = new ArrayList<>();
-    @SuppressWarnings("unused")
     private int m_DeletedRow = 0;
-    @SuppressWarnings("unused")
-    private boolean m_IsDeleteVisible = false;
 
     // The constructor method:
     public RowSetSuper(String service,
@@ -76,9 +72,9 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         throws SQLException
     {
         super(service, services, connection, getResultSet(provider, result, query), statement, true, true);
-        setDeleteVisibility(provider, result);
         showResultVisibility(provider, result);
     }
+
 
     private static ResultSet getResultSet(DriverProvider provider, ResultSet result, String query)
         throws SQLException
@@ -89,7 +85,7 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
             boolean forwardonly = rstype == ResultSet.TYPE_FORWARD_ONLY;
             boolean sensitive = rstype == ResultSet.TYPE_SCROLL_SENSITIVE;
             int fetchsize = result.getFetchSize();
-            System.out.println("RowSetSuper.getResultSet() IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
+            System.out.println("RowSetSuper.getResultSet() Updatable: " + updatable + " - IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
             if (!updatable || rstype == ResultSet.TYPE_FORWARD_ONLY) {
                 result = new ScrollableResultSet(provider, result, query);
                 System.out.println("RowSetSuper.getResultSet() ResultSet: ScrollableResultSet");
@@ -107,18 +103,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
             throw new SQLException();
         }
         return result;
-    }
-
-    private void setDeleteVisibility(DriverProvider provider, ResultSet result)
-        throws SQLException
-    {
-        try {
-            int rstype = result.getType();
-            m_IsDeleteVisible = provider.isDeleteVisible(rstype);
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException();
-        }
     }
 
     private void showResultVisibility(DriverProvider provider, ResultSet result)

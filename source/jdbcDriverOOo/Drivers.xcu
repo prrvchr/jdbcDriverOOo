@@ -1520,7 +1520,7 @@
                 </node>
                 <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                        <value>false</value>
                     </prop>
                 </node>
                 <node oor:name="AutoIncrementCreation" oor:op="replace">

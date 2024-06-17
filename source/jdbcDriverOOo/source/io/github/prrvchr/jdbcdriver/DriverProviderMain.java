@@ -249,7 +249,6 @@ public abstract class DriverProviderMain
                                  Row row)
         throws java.sql.SQLException
     {
-        System.out.println("DriverProvider.setGeneratedKeys() 1 AutoRetrieving: " + m_IsAutoRetrievingEnabled);
         String command = getAutoRetrievingStatement();
         if (!isAutoRetrievingEnabled() || command == null) {
             return;
@@ -260,22 +259,15 @@ public abstract class DriverProviderMain
             result = statement.getGeneratedKeys();
         }
         else {
-            System.out.println("DriverProvider.setGeneratedKeys() 2");
             result = DBGeneratedKeys.getGeneratedResult(this, statement, catalog, table, row, columns, command);
         }
         if (result != null) {
-            System.out.println("DriverProvider.setGeneratedKeys() 3");
             ResultSetMetaData metadata = result.getMetaData();
             int count = metadata.getColumnCount();
-            System.out.println("DriverProvider.setGeneratedKeys() 4");
             if (result.next()) {
                 for (int i = 1; i <= count; i++) {
-                    System.out.println("DriverProvider.setGeneratedKeys() 5");
-                    // XXX: We are looking for column name and index as name because some databases
-                    // XXX: only give column index as an column name (ie: Derby)
+                    // XXX: We are looking for column name
                     String name = metadata.getColumnName(i);
-                    String type = metadata.getColumnTypeName(i);
-                    System.out.println("DriverProvider.setGeneratedKeys() 6 Key Name: " + name + " - Type: " + type);
                     if (columns.containsKey(name)) {
                         // XXX: It is important to preserve the type of the original ResultSet columns
                         RowColumn column = columns.get(name);

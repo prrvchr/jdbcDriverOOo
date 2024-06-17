@@ -77,6 +77,7 @@ public class ScrollableResultSet
         System.out.println("ScrollableResultSet() 1");
     }
 
+
     // XXX: We want to emulate an updateable ResultSet
     @Override
     public int getConcurrency()

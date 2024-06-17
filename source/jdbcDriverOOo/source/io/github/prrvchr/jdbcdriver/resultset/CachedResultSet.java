@@ -78,7 +78,7 @@ public class CachedResultSet
         m_Provider = provider;
         m_Query = query;
         int rstype = result.getType();
-        m_IsDeleteVisible = provider.isDeleteVisible(rstype);
+        m_IsDeleteVisible = provider.isDeleteVisible(rstype) ;
         m_IsInsertVisible = provider.isInsertVisible(rstype);
         m_IsUpdateVisible = provider.isUpdateVisible(rstype);
         m_FetchSize = result.getFetchSize();
@@ -150,7 +150,6 @@ public class CachedResultSet
     public int getType()
         throws SQLException
     {
-        //return ResultSet.TYPE_SCROLL_SENSITIVE;
         return m_Result.getType();
     }
 
@@ -580,7 +579,7 @@ public class CachedResultSet
         throws SQLException
     {
         if (m_RowSetWriter == null) {
-            m_RowSetWriter = new RowSetWriter(m_Provider, m_Result);
+            m_RowSetWriter = new RowSetWriter(m_Provider, m_Result, m_Query);
         }
         return m_RowSetWriter;
     }

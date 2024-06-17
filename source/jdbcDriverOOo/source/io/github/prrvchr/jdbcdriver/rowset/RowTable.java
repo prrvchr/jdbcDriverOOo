@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBQueryParser;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
@@ -42,13 +44,30 @@ public class RowTable
 
     private RowCatalog m_Tables;
     private Map<Integer, String> m_Keys = new HashMap<>();
-    private String m_Catalog;
-    private String m_Schema;
-    private String m_Name;
+    private String m_Catalog = "";
+    private String m_Schema = "";
+    private String m_Name = "";
     private String m_Where;
 
 
     // The constructor method:
+    public RowTable(DriverProvider provider,
+                    RowCatalog tables,
+                    String query)
+        throws SQLException
+    {
+        m_Tables = tables;
+        DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_SELECT, query);
+        if (parser.hasTable()) {
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            NamedComponents component = DBTools.qualifiedNameComponents(provider, parser.getTable(), rule, true);
+            m_Catalog = component.getCatalogName();
+            m_Schema = component.getSchemaName();
+            m_Name = component.getTableName();
+        }
+        System.out.println("RowTable() 1");
+    }
+
     public RowTable(RowCatalog tables,
                     NamedComponents component)
         throws SQLException
@@ -70,6 +89,11 @@ public class RowTable
         m_Schema = metadata.getSchemaName(index);
         m_Name = metadata.getTableName(index);
         System.out.println("RowTable() 1");
+    }
+
+    public boolean isValid()
+    {
+        return !m_Name.isBlank();
     }
 
     public String getCatalogName()
@@ -102,10 +126,17 @@ public class RowTable
                m_Name.equals(metadata.getTableName(index));
     }
 
+    public boolean isSameTable(NamedComponents component)
+        throws SQLException
+    {
+        return component != null &&
+               m_Catalog.equals(component.getCatalogName()) &&
+               m_Schema.equals(component.getSchemaName()) &&
+               m_Name.equals(component.getTableName());
+    }
+
     public void setKeyColumn(int index, String identifier, int type) {
-        System.out.println("RowTable.setKeyColumn() 1 Key identifier: " + identifier + " - Type: " + type);
         if (RowHelper.isValidKeyType(type)) {
-            System.out.println("RowTable.setKeyColumn() 2 Key identifier: " + identifier);
             m_Keys.put(index, identifier);
         }
     }
@@ -125,8 +156,6 @@ public class RowTable
         if (m_Where == null) {
             List<String> columns = new ArrayList<>();
             for (Entry<Integer, String> key : m_Keys.entrySet()) {
-                System.out.println("RowTable.getWhereCmd() 1 Key: " + key.getValue());
-
                 columns.add(String.format(m_Tables.getParameter(), key.getValue()));
             }
             m_Where = String.join(m_Tables.getAnd(), columns);

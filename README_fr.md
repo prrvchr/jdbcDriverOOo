@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.3.3][5]
+# version [1.4.0][5]
 
 ## Introduction:
 
@@ -514,7 +514,16 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - L'implémentation de `CachedRowSet` semble avoir résolu le problème d'insertion de cellules depuis Calc, voir [dysfonctionnement #7][119].
 - De nombreuses corrections et améliorations...
 
-### Que reste-t-il à faire pour la version 1.3.3:
+### Ce qui a été fait pour la version 1.4.0:
+
+- Mise à jour du pilote Jaybird vers la version finale 5.0.5.
+- Modification de l'implémentation de l'interface UNO [com.sun.star.sdbc.XGeneratedResultSet][87]. Cette nouvelle implémentation prend en charge les pilotes qui ne suivent pas l'API JDBC mais proposent une implémentation spécifique (ie: MariaDB et Derby). Pour être activé lors de l'utilisation de fichiers odb créés avec une version précédente, s'il est présent, il est nécessaire de modifier le paramètre : `Requête des valeurs générées` accessible par le menu : **Edition -> Base de données -> Paramètres avancés... -> Valeurs générées** par la valeur : `SELECT * FROM %s WHERE %s`.
+- Ajout de nouveaux paramètres pris en charge par le fichier de configuration [Drivers.xcu][91]. Ces nouveaux paramètres permettent de modifier les valeurs renvoyées par les pilotes concernant la visibilité des modifications dans les jeux de résultats (ie: insertion, mise à jour et suppression). Ils permettent également de forcer le mode SQL pour les modifications souhaitées dans les jeux de résultats.
+- Finalisation de l'implémentation de l'émulation rendant tout jeu de résultats modifiable, si l'enregistrement est unique dans ce jeu de résultats. Cette implémentation, utilisant les signets (ie: bookmark), permet l'édition de jeu de résultats provenant de **Requêtes Base**, cela rend tout simplement les **Requêtes LibreOffice Base éditables**. Les requêtes joignant plusieurs tables ne sont pas encore supportées et je suis ouvert à toute proposition technique concernant une éventuelle implémentation.
+- Afin de contourner le [dysfonctionnement #368][120] le driver HsqlDB utilise des mises à jour en mode SQL dans les jeux de résultats.
+- De nombreuses corrections et améliorations...
+
+### Que reste-t-il à faire pour la version 1.4.0:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -524,7 +533,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-133>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-140>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -631,3 +640,4 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [117]: <https://trino.io/>
 [118]: <https://github.com/trinodb/trino/issues/22306>
 [119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
+[120]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>

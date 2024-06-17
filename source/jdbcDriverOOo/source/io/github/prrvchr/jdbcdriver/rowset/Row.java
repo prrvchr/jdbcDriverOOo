@@ -65,7 +65,6 @@ public class Row
         throws SQLException
     {
         Object value = RowHelper.getResultSetValue(result, index);
-        System.out.println("Row.initColumnObject() Index: " + index + " - Value: " + (value != null ? value.toString() : "null"));
         m_OldValues[index - 1] = value;
     }
 
@@ -93,7 +92,6 @@ public class Row
         for (RowColumn column : columns) {
             int i = column.getIndex() - 1;
             if (status != 0) {
-                System.out.println("Row.clearUpdated() 1");
                 m_OldValues[i] = m_NewValues[i];
             }
             m_NewValues[i] = null;
@@ -108,7 +106,6 @@ public class Row
 
     public boolean isColumnNull(int index)
     {
-        System.out.println("Row.isColumnNull() 1");
         boolean isnull = true;
         if (isColumnUpdated(index)) {
             isnull = m_NewValues[index - 1] == null;
@@ -116,13 +113,11 @@ public class Row
         else {
             isnull = m_OldValues[index - 1] == null;
         }
-        System.out.println("Row.isColumnNull() 2: " + isnull);
         return isnull;
     }
 
     public Object getColumnObject(int index)
     {
-        System.out.println("Row.getColumnObject() 1");
         Object value = null;
         if (isColumnUpdated(index)) {
             value = m_NewValues[index - 1];
@@ -130,7 +125,6 @@ public class Row
         else {
             value = m_OldValues[index - 1];
         }
-        System.out.println("Row.getColumnObject() 2: " + value.getClass().getName());
         return value;
     }
 

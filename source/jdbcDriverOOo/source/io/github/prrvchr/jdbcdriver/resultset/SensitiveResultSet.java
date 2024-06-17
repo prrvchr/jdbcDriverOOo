@@ -76,7 +76,6 @@ public class SensitiveResultSet
     private boolean m_RowCountFinal = false;
     private int m_RowCount = 0;
     private boolean m_Moved = false;
-    @SuppressWarnings("unused")
     private boolean m_Deleted = false;
     private boolean m_Inserted = false;
     private boolean m_WasNull = false;
@@ -102,6 +101,24 @@ public class SensitiveResultSet
         m_SQLMode = provider.isSQLMode();
         internalNext();
     }
+
+
+    // XXX: We want to emulate an updateable ResultSet
+    @Override
+    public int getConcurrency()
+        throws SQLException
+    {
+        return ResultSet.CONCUR_UPDATABLE;
+    }
+
+    // XXX: We want to emulate an scollable ResultSet
+    @Override
+    public int getType()
+        throws SQLException
+    {
+        return ResultSet.TYPE_SCROLL_SENSITIVE;
+    }
+
 
     // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx  Line 110: xUp->moveToInsertRow()
     @Override
@@ -1639,7 +1656,6 @@ public class SensitiveResultSet
     {
         return row > m_RowCount;
     }
-
 
     private int getRowCount()
         throws SQLException

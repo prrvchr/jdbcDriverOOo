@@ -531,7 +531,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
         throws java.sql.SQLException
     {
         if (!m_parsed) {
-            DBQueryParser parser = new DBQueryParser(m_Sql);
+            DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_INSERT, m_Sql);
             if (parser.hasTable()) {
                 m_Catalog = new RowCatalog(m_Connection.getProvider(), m_Statement, parser.getTable());
             }

@@ -48,6 +48,7 @@ import io.github.prrvchr.jdbcdriver.rowset.RowTable;
 public class DBGeneratedKeys
 {
 
+    // XXX: Method called from StatementMain.getGeneratedValues()
     public final static java.sql.ResultSet getGeneratedResult(DriverProvider provider,
                                                               java.sql.Statement statement,
                                                               RowCatalog catalog,
@@ -58,6 +59,7 @@ public class DBGeneratedKeys
         return getGeneratedKeys(provider, statement, catalog, table, catalog.getColumnNames(table), command);
     }
 
+    // XXX: Method called from DriverProviderMain.setGeneratedKeys()
     public final static java.sql.ResultSet getGeneratedResult(DriverProvider provider,
                                                               java.sql.Statement statement,
                                                               RowCatalog catalog,
@@ -68,23 +70,6 @@ public class DBGeneratedKeys
         throws SQLException
     {
         return getGeneratedKeys(provider, statement, catalog, table, columns, command);
-        /*if (result == null) {
-            System.out.println("DBGeneratedKeys.getGeneratedResult() 1");
-            result = catalog.getSelectResult(provider.getConnection(), table, row);
-        }
-        return result;*/
-    }
-
-    public static Map<String, RowColumn> getInsertedColumnNames(RowCatalog catalog,
-                                                                RowTable table)
-    {
-        Map<String, RowColumn> names = new HashMap<>();
-        for (RowColumn column : catalog.getColumns()) {
-            if (column.isColumnOfTable(table)) {
-                names.put(column.getName(), column);
-            }
-        }
-        return names;
     }
 
     private static ResultSet getGeneratedKeys(DriverProvider provider,
@@ -95,7 +80,6 @@ public class DBGeneratedKeys
                                               String command)
         throws SQLException
     {
-        System.out.println("DBGeneratedKeys.getGeneratedKeys() 1");
         Map<RowColumn, Object> keys = new HashMap<>();
         try (ResultSet result = statement.getGeneratedKeys()) {
             ResultSetMetaData metadata = result.getMetaData();
@@ -104,22 +88,18 @@ public class DBGeneratedKeys
                 for (int i = 1; i <= count; i++) {
                     RowColumn column = null;
                     String name = metadata.getColumnName(i);
-                    System.out.println("DBGeneratedKeys.getGeneratedKeys() 2 Key Name: " + name);
                     // XXX: First we follow the JDBC API and we are looking for column name...
                     if (columns.containsKey(name)) {
                         column = columns.get(name);
                         // XXX: It is important to preserve the type of the original ResultSet/Table columns
-                        System.out.println("DBGeneratedKeys.getGeneratedKeys() 3 Column Name: " + column.getName() + " - Type: " + column.getType());
                         keys.put(column, RowHelper.getResultSetValue(result, i, column.getType()));
                     }
                     // XXX: Here we assume that only one column is returned by getGeneratedKeys() and its name is unknown.
-                    // XXX: The first, auto-increment and same type, or otherwise only the same type, column of the table
-                    // XXX: concerned by the insert will be attached to the single value returned by getGeneratedKeys().
+                    // XXX: If it exists, the first auto-increment column of the table concerned by the insertion
+                    // XXX: will be attached to the unique value returned by getGeneratedKeys().
                     else {
-                        column = catalog.getAutoIncrementColumn(table, metadata.getColumnType(i));
-                        System.out.println("DBGeneratedKeys.getGeneratedKeys() 4 Column Name: " + column.getName() + " - Type: " + metadata.getColumnType(i));
+                        column = catalog.getAutoIncrementColumn(table);
                         if (column != null) {
-                            System.out.println("DBGeneratedKeys.getGeneratedKeys() 5 Column Name: " + column.getName() + " - Type: " + column.getType());
                             // XXX: It is important to preserve the type of the original ResultSet/Table columns
                             keys.put(column, RowHelper.getResultSetValue(result, i, column.getType()));
                             break;
@@ -131,13 +111,11 @@ public class DBGeneratedKeys
         if (!keys.isEmpty()) {
             // XXX: If we want to follow the UNO API we must return all the columns of the table
             String query = String.format(command, table.getComposedName(provider, true), getPredicates(catalog, keys));
-            System.out.println("DBGeneratedKeys.getGeneratedKeys() 6 Query: " + query);
             PreparedStatement prepared = provider.getConnection().prepareStatement(query);
             setPredicates(prepared, keys);
             // XXX: The statement will be wrapped in order to be closed correctly when closing the ResultSet.
             return new ResultSetWrapper(prepared);
         }
-        System.out.println("DBGeneratedKeys.getGeneratedKeys() 7");
         return null;
     }
 

@@ -30,6 +30,9 @@ import java.util.regex.Pattern;
 
 public final class DBQueryParser {
 
+    public static final String SQL_INSERT = "insert";
+    public static final String SQL_SELECT = "select";
+
     private static final int NO_INDEX = -1;
     private static final String SPACE = " ";
     private static final String REGEX_SPACE = "\\s+";
@@ -40,20 +43,22 @@ public final class DBQueryParser {
     private static final String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
     private static final String TOKEN_SEMI_COLON = ";";
     private static final String TOKEN_COMMA = ",";
-    private static final String TOKEN_INSERT = "insert";
 
     private static final String KEYWORD_INTO = "into";
+    private static final String KEYWORD_FROM = "from";
 
     private String m_Table = "";
 
     /**
-     * Extracts table name out of SQL if query is INSERT
+     * Extracts table name out of SQL if query is INSERT or SELECT
      * ie queries executed by: - java.sql.Statement.executeUpdate()
      *                         - java.sql.PreparedStatement.executeUpdate()
      * For SELECT query, ResultSetMataData is used instead of this parser.
      * @param sql
      */
-    public DBQueryParser(final String sql) {
+    public DBQueryParser(final String type,
+                         final String sql)
+    {
         String nocomments = removeComments(sql);
         String normalized = normalized(nocomments);
         String cleansed = clean(normalized);
@@ -67,10 +72,10 @@ public final class DBQueryParser {
         int index = 1;
         if (tokens.length > 0) {
             String token = tokens[0];
-            if (isInsert(token)) {
+            if (isToken(token, type)) {
                 while (moreTokens(tokens, index)) {
                     token = tokens[index++];
-                    if (moreTokens(tokens, index) && shouldProcess(token)) {
+                    if (moreTokens(tokens, index) && shouldProcess(token, type)) {
                         m_Table = tokens[index++];
                     }
                 }
@@ -143,14 +148,21 @@ public final class DBQueryParser {
         return normalized;
     }
 
-    private boolean isInsert(final String token)
+    private boolean isToken(final String token, final String type)
     {
-        return TOKEN_INSERT.equals(token.toLowerCase());
+        return type.equals(token.toLowerCase());
     }
 
-    private boolean shouldProcess(final String token)
+    private boolean shouldProcess(final String token, String type)
     {
-        return KEYWORD_INTO.equals(token.toLowerCase());
+        boolean process = false;
+        if (type.equals(SQL_INSERT)) {
+            process =  KEYWORD_INTO.equals(token.toLowerCase());
+        }
+        else if (type.equals(SQL_SELECT)) {
+            process = KEYWORD_FROM.equals(token.toLowerCase());
+        }
+        return process;
     }
 
     private boolean moreTokens(final String[] tokens, int index)

@@ -38,6 +38,7 @@ import java.util.Map;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.DBQueryParser;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.resultset.ResultSetWrapper;
@@ -48,7 +49,8 @@ public class RowCatalog
 
     private List<RowTable> m_Tables = new ArrayList<>();
     private RowColumn[] m_Columns;
-    private ComposeRule rule = ComposeRule.InDataManipulation;
+    private ComposeRule m_Rule = ComposeRule.InDataManipulation;
+    private NamedComponents m_Component = null;
     private String m_SelectCmd = "SELECT * FROM %s WHERE %s";
     private String m_Mark = "?";
     private String m_Parameter = "%s = ?";
@@ -63,8 +65,7 @@ public class RowCatalog
         throws SQLException
     {
         List<RowColumn> columns = new ArrayList<>();
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        NamedComponents component = DBTools.qualifiedNameComponents(provider, identifier, rule, true);
+        NamedComponents component = DBTools.qualifiedNameComponents(provider, identifier, m_Rule, true);
         RowTable table = new RowTable(this, component);
         try (ResultSet result = provider.getConnection().getMetaData().getColumns(component.getCatalog(), component.getSchema(), component.getTable(), "%")) {
             while (result.next()) {
@@ -73,21 +74,32 @@ public class RowCatalog
         }
         m_Tables.add(table);
         m_Columns = columns.toArray(new RowColumn[0]);
-        System.out.println("RowCatalog() 1");
     }
+
     // XXX: this constructor is called from rowset.RowSetWriter()
-    public RowCatalog(Statement statement,
-                      ResultSet result)
+    public RowCatalog(DriverProvider provider,
+                      ResultSet result,
+                      String query)
         throws SQLException
     {
         List<RowColumn> columns = new ArrayList<>();
+        Statement statement = provider.getStatement();
         ResultSetMetaData metadata = result.getMetaData();
         for (int index = 1; index <= metadata.getColumnCount(); index++) {
-            RowTable table = getTable(metadata, index);
-            columns.add(new RowColumn(table, statement, metadata, index));
+            if (metadata.getTableName(index).isBlank()) {
+                RowTable table = getTable(provider, query);
+                if (table.isValid()) {
+                    columns.add(new RowColumn(provider, table, metadata, index));
+                }
+            }
+            else {
+                RowTable table = getTable(metadata, index);
+                if (table.isValid()) {
+                    columns.add(new RowColumn(table, statement, metadata, index));
+                }
+            }
         }
         m_Columns = columns.toArray(new RowColumn[0]);
-        System.out.println("RowCatalog() 1");
     }
 
     public RowTable getMainTable()
@@ -128,7 +140,7 @@ public class RowCatalog
 
     public ComposeRule getRule()
     {
-        return rule;
+        return m_Rule;
     }
 
     public String getMark()
@@ -170,16 +182,10 @@ public class RowCatalog
         return new ResultSetWrapper(prepared);
     }
 
-    public RowColumn getAutoIncrementColumn(RowTable table, int type)
+    public RowColumn getAutoIncrementColumn(RowTable table)
     {
         for (RowColumn column : m_Columns) {
-            if (column.isColumnOfTable(table) && column.isAutoIncrement() && column.getType() == type) {
-                System.out.println("RowCatalog.getAutoIncrementColumn() 1");
-                return column;
-            }
-        }
-        for (RowColumn column : m_Columns) {
-            if (column.isColumnOfTable(table) && column.getType() == type) {
+            if (column.isColumnOfTable(table) && column.isAutoIncrement()) {
                 return column;
             }
         }
@@ -191,7 +197,8 @@ public class RowCatalog
         return m_Tables.iterator();
     }
 
-    private RowTable getTable(ResultSetMetaData metadata, int index)
+    private RowTable getTable(ResultSetMetaData metadata,
+                              int index)
         throws SQLException
     {
         for (RowTable table : m_Tables) {
@@ -200,8 +207,43 @@ public class RowCatalog
             }
         }
         RowTable table = new RowTable(this, metadata, index);
-        m_Tables.add(table);
+        if (table.isValid()) {
+            m_Tables.add(table);
+        }
         return table;
     }
+
+    private RowTable getTable(DriverProvider provider,
+                              String query)
+        throws SQLException
+    {
+        NamedComponents component = getNamedComponent(provider, query);
+        for (RowTable table : m_Tables) {
+            if (table.isSameTable(component)) {
+                return table;
+            }
+        }
+        RowTable table = new RowTable(this, component);
+        if (table.isValid()) {
+            System.out.println("RowCatalog.getTable() Table: " + table.getName());
+            m_Tables.add(table);
+        }
+        return table;
+    }
+    
+    private NamedComponents getNamedComponent(DriverProvider provider,
+                                              String query)
+        throws SQLException
+    {
+        if (m_Component == null) {
+            DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_SELECT, query);
+            if (parser.hasTable()) {
+                m_Component = DBTools.qualifiedNameComponents(provider, parser.getTable(), m_Rule, true);
+                System.out.println("RowCatalog.getNamedComponent() Table: " + parser.getTable());
+            }
+        }
+        return m_Component;
+    }
+
 
 }

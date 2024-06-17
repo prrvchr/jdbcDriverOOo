@@ -53,17 +53,14 @@ public class RowHelper
     {
         // XXX: On insert if we want to succeed, we need to set to NULL all
         // XXX: auto-increment and nullable columns that have not been updated
-        System.out.println("DBTools.setDefaultColumnValues() 1");
         ResultSetMetaData metadata = result.getMetaData();
         int count = metadata.getColumnCount();
         for (int index = 1; index <= count; index ++) {
             if (!column.get(index - 1)) {
                 boolean nullable = metadata.isNullable(index) != ResultSetMetaData.columnNoNulls;
                 if (nullable) {
-                    System.out.println("DBTools.setDefaultColumnValues() 2 updateNull Index: " + index);
                     result.updateNull(index);
                 }
-                System.out.println("DBTools.setDefaultColumnValues() 3");
             }
         }
     }
@@ -73,7 +70,6 @@ public class RowHelper
                                         int count)
         throws SQLException
     {
-        System.out.println("DBTools.setColumnValues() 1");
         boolean updated = true;
         boolean hasupdate = false;
         for (int i = 1; i <= count; i++) {
@@ -81,16 +77,13 @@ public class RowHelper
                 hasupdate = true;
                 Object value = row.getColumnObject(i);
                 if (value != null) {
-                    System.out.println("DBTools.setColumnValues() 2 Value: " + value.toString());
                     updated |= updateColumnValue(result, i, value);
                 }
                 else {
-                    System.out.println("DBTools.setColumnValues() 3");
                     result.updateNull(i);
                 }
             }
         }
-        System.out.println("DBTools.setColumnValues() 4");
         return hasupdate && updated;
     }
 
@@ -143,7 +136,6 @@ public class RowHelper
         for (int index : table.getKeyIndex()) {
             int type = catalog.getColumns()[index - 1].getType();
             Object value = row.getOldColumnObject(index);
-            System.out.println("RowHelper.setWhereParameter() Value: " + value);
             RowHelper.setStatementValue(statement, type, i, value);
             i ++;
         }
@@ -179,10 +171,11 @@ public class RowHelper
                 value = result.getObject(index, Boolean.class);
                 break;
             case Types.TINYINT:
-                System.out.println("RowHelper.getResultSetValue() 1");
                 value = result.getObject(index, Byte.class);
                 break;
             case Types.SMALLINT:
+                value = result.getObject(index, Short.class);
+                break;
             case Types.INTEGER:
                 value = result.getObject(index, Integer.class);
                 break;
@@ -237,7 +230,6 @@ public class RowHelper
         Object object;
         switch (type) {
             case Types.TINYINT:
-                System.out.println("RowHelper.getDoubleValue() 1");
                 object = value.byteValue();
                 break;
             case Types.SMALLINT:

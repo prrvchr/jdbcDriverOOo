@@ -47,11 +47,12 @@ public class RowSetWriter
 
     // The constructor method:
     public RowSetWriter(DriverProvider provider,
-                        ResultSet result)
+                        ResultSet result,
+                        String query)
         throws SQLException
     {
         m_Provider = provider;
-        m_Catalog = new RowCatalog(provider.getStatement(), result);
+        m_Catalog = new RowCatalog(provider, result, query);
     }
 
     public boolean insertRow(Row row)
@@ -59,14 +60,12 @@ public class RowSetWriter
     {
         int status = 0;
         for (RowTable table: m_Catalog) {
-            System.out.println("RowSetWriter.insertRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
             List<RowColumn> columns = getInsertedColumns(table, row);
             if (!columns.isEmpty()) {
                 try (PreparedStatement statement = getInsertStatement(table, columns)) {
                     setStatementParameter(statement, columns, row);
                     status = statement.executeUpdate();
                     if (status == 1) {
-                        System.out.println("RowSetWriter.insertRow() 2");
                         m_Provider.setGeneratedKeys(statement, m_Catalog, table, row);
                     }
                 }
@@ -81,7 +80,6 @@ public class RowSetWriter
     {
         int status = 0;
         for (RowTable table: m_Catalog) {
-            System.out.println("RowSetWriter.updateRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
             status = 0;
             List<RowColumn> columns = getUpdatedColumns(table, row);
             if (!columns.isEmpty()) {
@@ -102,7 +100,6 @@ public class RowSetWriter
     {
         int status = 0;
         for (RowTable table: m_Catalog) {
-            System.out.println("RowSetWriter.deleteRow() Catalog: " + table.getCatalogName() + " - Schema: " + table.getSchemaName() + " - Name: " + table.getName());
             status = 0;
             checkForDelete(table, row);
             try (PreparedStatement statement = getDeleteStatement(table)) {
@@ -183,9 +180,16 @@ public class RowSetWriter
                                                  List<RowColumn> columns)
         throws SQLException
     {
+        PreparedStatement statement = null;
         String query = String.format(m_InsertCmd, table.getComposedName(m_Provider, true), getInsertColumns(table, columns), getInsertParameter(table, columns));
         System.out.println("RowSetWriter.getInsertStatement() Query: " + query);
-        return m_Provider.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+        if (m_Provider.isAutoRetrievingEnabled()) {
+            statement = m_Provider.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+        }
+        else {
+            statement = m_Provider.getConnection().prepareStatement(query);
+        }
+        return statement;
     }
 
     private PreparedStatement getUpdateStatement(RowTable table,
