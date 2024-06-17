@@ -34,9 +34,9 @@ public final class DBQueryParser {
     public static final String SQL_SELECT = "select";
 
     private static final int NO_INDEX = -1;
+
     private static final String SPACE = " ";
     private static final String REGEX_SPACE = "\\s+";
-
     private static final String TOKEN_ORACLE_HINT_START = "/*+";
     private static final String TOKEN_ORACLE_HINT_END = "*/";
     private static final String TOKEN_SINGLE_LINE_COMMENT = "--";
@@ -52,31 +52,29 @@ public final class DBQueryParser {
     /**
      * Extracts table name out of SQL if query is INSERT or SELECT
      * ie queries executed by: - java.sql.Statement.executeUpdate()
+     *                         - java.sql.Statement.executeQuery()
      *                         - java.sql.PreparedStatement.executeUpdate()
-     * For SELECT query, ResultSetMataData is used instead of this parser.
+     *                         - java.sql.PreparedStatement.executeQuery()
+     * @param type of query (ie: select or insert)
      * @param sql
      */
     public DBQueryParser(final String type,
                          final String sql)
     {
         String nocomments = removeComments(sql);
-        String normalized = normalized(nocomments);
+        String normalized = normalize(nocomments);
         String cleansed = clean(normalized);
-        System.out.println("DBQueryParser() 1 Query: " + cleansed);
         String[] tokens = cleansed.split(REGEX_SPACE);
-        int i = 1;
-        for (String token : tokens) {
-            System.out.println("DBQueryParser() 2 Token: " + token + " - Index: " + i);
-            i ++;
-        }
+
         int index = 1;
         if (tokens.length > 0) {
             String token = tokens[0];
             if (isToken(token, type)) {
-                while (moreTokens(tokens, index)) {
+                while (index < tokens.length) {
                     token = tokens[index++];
-                    if (moreTokens(tokens, index) && shouldProcess(token, type)) {
-                        m_Table = tokens[index++];
+                    if (shouldProcess(token, type)) {
+                        m_Table = tokens[index];
+                        break;
                     }
                 }
             }
@@ -123,10 +121,12 @@ public final class DBQueryParser {
         return matcher.find() ? matcher.start() : -1;
     }
 
-    private String normalized(final String sql)
+    private String normalize(final String sql)
     {
-        String normalized = sql.trim().replaceAll(TOKEN_NEWLINE, SPACE).replaceAll(TOKEN_COMMA, " , ")
-                .replaceAll("\\(", " ( ").replaceAll("\\)", " ) ");
+        String normalized = sql.trim().replaceAll(TOKEN_NEWLINE, SPACE)
+                                      .replaceAll(TOKEN_COMMA, " , ")
+                                      .replaceAll("\\(", " ( ")
+                                      .replaceAll("\\)", " ) ");
         if (normalized.endsWith(TOKEN_SEMI_COLON)) {
             normalized = normalized.substring(0, normalized.length() - 1);
         }
@@ -163,11 +163,6 @@ public final class DBQueryParser {
             process = KEYWORD_FROM.equals(token.toLowerCase());
         }
         return process;
-    }
-
-    private boolean moreTokens(final String[] tokens, int index)
-    {
-        return m_Table.isEmpty() && index < tokens.length;
     }
 
 }
