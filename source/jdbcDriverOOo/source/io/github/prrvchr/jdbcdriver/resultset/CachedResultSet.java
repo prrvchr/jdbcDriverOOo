@@ -43,6 +43,7 @@ import java.util.BitSet;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowSetWriter;
 
@@ -52,11 +53,12 @@ public class CachedResultSet
 {
 
     protected DriverProvider m_Provider;
+    protected RowCatalog m_Catalog = null;
     protected int m_MinSize = 10;
     protected int m_ColumnCount = 0;
     protected int m_FetchSize;
     protected String m_Query;
-    protected boolean m_IsUpdatable = false;
+    protected boolean m_Insertable = false;
     // XXX: We need to know when we are on the insert row
     protected boolean m_OnInsert = false;
     // XXX: We need to keep the index references of the columns already assigned for insertion
@@ -83,9 +85,9 @@ public class CachedResultSet
         m_IsUpdateVisible = provider.isUpdateVisible(rstype);
         m_FetchSize = result.getFetchSize();
         m_ColumnCount = result.getMetaData().getColumnCount();
-        m_IsUpdatable = provider.isResultSetUpdatable(result);
+        m_Insertable = provider.isResultSetUpdatable(result);
         m_InsertedColumns = new BitSet(m_ColumnCount);
-        System.out.println("CachedResultSet() IsUpdatable: " + m_IsUpdatable);
+        System.out.println("CachedResultSet() Insertable: " + m_Insertable);
     }
 
 
@@ -105,7 +107,7 @@ public class CachedResultSet
     public void cancelRowUpdates()
         throws SQLException
     {
-        if (m_IsUpdatable) {
+        if (m_Insertable) {
             if (isOnInsertRow()) {
                 moveToCurrentRow();
             }
@@ -122,7 +124,7 @@ public class CachedResultSet
     public void moveToInsertRow()
         throws SQLException
     {
-        if (m_IsUpdatable) {
+        if (m_Insertable) {
             m_Result.moveToInsertRow();
             m_InsertedColumns.clear();
         }
@@ -133,7 +135,7 @@ public class CachedResultSet
     public void moveToCurrentRow()
         throws SQLException
     {
-        if (m_IsUpdatable) {
+        if (m_Insertable) {
             m_Result.moveToCurrentRow();
         }
         setInsertMode(false);
@@ -579,7 +581,7 @@ public class CachedResultSet
         throws SQLException
     {
         if (m_RowSetWriter == null) {
-            m_RowSetWriter = new RowSetWriter(m_Provider, m_Result, m_Query);
+            m_RowSetWriter = new RowSetWriter(m_Provider, m_Catalog, m_Result, m_Query);
         }
         return m_RowSetWriter;
     }

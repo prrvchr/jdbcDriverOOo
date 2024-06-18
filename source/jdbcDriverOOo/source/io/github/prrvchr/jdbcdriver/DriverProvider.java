@@ -36,7 +36,6 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.rowset.Row;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.rowset.RowTable;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -92,7 +91,6 @@ public interface DriverProvider
     public boolean useSQLUpdate();
 
     public void setGeneratedKeys(Statement statement,
-                                 RowCatalog catalog,
                                  RowTable table,
                                  Row row) throws java.sql.SQLException;
 

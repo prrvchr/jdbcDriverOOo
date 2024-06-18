@@ -133,10 +133,10 @@ public class RowHelper
         throws SQLException
     {
         int i = offset;
-        for (int index : table.getKeyIndex()) {
-            int type = catalog.getColumns()[index - 1].getType();
-            Object value = row.getOldColumnObject(index);
-            RowHelper.setStatementValue(statement, type, i, value);
+        for (String key : table.getRowIdentifier()) {
+            RowColumn column = table.getColumn(key);
+            Object value = row.getOldColumnObject(column.getIndex());
+            RowHelper.setStatementValue(statement, column.getType(), i, value);
             i ++;
         }
     }

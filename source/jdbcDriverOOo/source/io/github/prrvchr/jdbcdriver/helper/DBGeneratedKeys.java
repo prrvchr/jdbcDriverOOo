@@ -56,25 +56,23 @@ public class DBGeneratedKeys
         throws SQLException
     {
         RowTable table = catalog.getMainTable();
-        return getGeneratedKeys(provider, statement, catalog, table, catalog.getColumnNames(table), command);
+        return getGeneratedKeys(provider, statement, table, table.getColumnNames(), command);
     }
 
     // XXX: Method called from DriverProviderMain.setGeneratedKeys()
     public final static java.sql.ResultSet getGeneratedResult(DriverProvider provider,
                                                               java.sql.Statement statement,
-                                                              RowCatalog catalog,
                                                               RowTable table,
                                                               Row row,
                                                               Map<String, RowColumn> columns,
                                                               String command)
         throws SQLException
     {
-        return getGeneratedKeys(provider, statement, catalog, table, columns, command);
+        return getGeneratedKeys(provider, statement, table, columns, command);
     }
 
     private static ResultSet getGeneratedKeys(DriverProvider provider,
                                               Statement statement,
-                                              RowCatalog catalog,
                                               RowTable table,
                                               Map<String, RowColumn> columns,
                                               String command)
@@ -98,7 +96,7 @@ public class DBGeneratedKeys
                     // XXX: If it exists, the first auto-increment column of the table concerned by the insertion
                     // XXX: will be attached to the unique value returned by getGeneratedKeys().
                     else {
-                        column = catalog.getAutoIncrementColumn(table);
+                        column = table.getRowIdentifierColumn();
                         if (column != null) {
                             // XXX: It is important to preserve the type of the original ResultSet/Table columns
                             keys.put(column, RowHelper.getResultSetValue(result, i, column.getType()));
@@ -110,7 +108,7 @@ public class DBGeneratedKeys
         }
         if (!keys.isEmpty()) {
             // XXX: If we want to follow the UNO API we must return all the columns of the table
-            String query = String.format(command, table.getComposedName(provider, true), getPredicates(catalog, keys));
+            String query = String.format(command, table.getComposedName(true), getPredicates(table.getCatalog(), keys));
             PreparedStatement prepared = provider.getConnection().prepareStatement(query);
             setPredicates(prepared, keys);
             // XXX: The statement will be wrapped in order to be closed correctly when closing the ResultSet.

@@ -47,26 +47,31 @@ public class RowSetWriter
 
     // The constructor method:
     public RowSetWriter(DriverProvider provider,
+                        RowCatalog catalog,
                         ResultSet result,
                         String query)
         throws SQLException
     {
         m_Provider = provider;
-        m_Catalog = new RowCatalog(provider, result, query);
+        // XXX: We can make lazy loading on catalog if ResultSet is updatable
+        if (catalog == null) {
+            catalog = new RowCatalog(provider, result, query);
+        }
+        m_Catalog = catalog;
     }
 
     public boolean insertRow(Row row)
         throws SQLException
     {
         int status = 0;
-        for (RowTable table: m_Catalog) {
+        for (RowTable table: m_Catalog.getTables()) {
             List<RowColumn> columns = getInsertedColumns(table, row);
             if (!columns.isEmpty()) {
                 try (PreparedStatement statement = getInsertStatement(table, columns)) {
                     setStatementParameter(statement, columns, row);
                     status = statement.executeUpdate();
                     if (status == 1) {
-                        m_Provider.setGeneratedKeys(statement, m_Catalog, table, row);
+                        m_Provider.setGeneratedKeys(statement, table, row);
                     }
                 }
                 row.clearUpdated(columns, status);
@@ -79,7 +84,7 @@ public class RowSetWriter
         throws SQLException
     {
         int status = 0;
-        for (RowTable table: m_Catalog) {
+        for (RowTable table: m_Catalog.getTables()) {
             status = 0;
             List<RowColumn> columns = getUpdatedColumns(table, row);
             if (!columns.isEmpty()) {
@@ -99,7 +104,7 @@ public class RowSetWriter
         throws SQLException
     {
         int status = 0;
-        for (RowTable table: m_Catalog) {
+        for (RowTable table: m_Catalog.getTables()) {
             status = 0;
             checkForDelete(table, row);
             try (PreparedStatement statement = getDeleteStatement(table)) {
@@ -115,8 +120,8 @@ public class RowSetWriter
                                                Row row)
     {
         List<RowColumn> columns = new ArrayList<>();
-        for (RowColumn column : m_Catalog.getColumns()) {
-            if (column.isColumnOfTable(table) && row.isColumnUpdated(column.getIndex())) {
+        for (RowColumn column : table.getColumns()) {
+            if (row.isColumnUpdated(column.getIndex())) {
                 columns.add(column);
             }
         }
@@ -127,8 +132,8 @@ public class RowSetWriter
                                               Row row)
     {
         List<RowColumn> columns = new ArrayList<>();
-        for (RowColumn column : m_Catalog.getColumns()) {
-            if (column.isColumnOfTable(table) && row.isColumnUpdated(column.getIndex())) {
+        for (RowColumn column : table.getColumns()) {
+            if (row.isColumnUpdated(column.getIndex())) {
                 columns.add(column);
             }
         }
@@ -163,7 +168,7 @@ public class RowSetWriter
         throws SQLException
     {
         int count = 0;
-        try (PreparedStatement statement = m_Catalog.getSelectStatement(m_Provider, table)) {
+        try (PreparedStatement statement = m_Catalog.getSelectStatement(table)) {
             RowHelper.setWhereParameter(statement, m_Catalog, table, row);
             ResultSet result = statement.executeQuery();
             while (result.next()) {
@@ -181,7 +186,7 @@ public class RowSetWriter
         throws SQLException
     {
         PreparedStatement statement = null;
-        String query = String.format(m_InsertCmd, table.getComposedName(m_Provider, true), getInsertColumns(table, columns), getInsertParameter(table, columns));
+        String query = String.format(m_InsertCmd, table.getComposedName(true), getInsertColumns(table, columns), getInsertParameter(table, columns));
         System.out.println("RowSetWriter.getInsertStatement() Query: " + query);
         if (m_Provider.isAutoRetrievingEnabled()) {
             statement = m_Provider.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -196,7 +201,7 @@ public class RowSetWriter
                                                  List<RowColumn> columns)
         throws SQLException
     {
-        String query = String.format(m_UpdateCmd, table.getComposedName(m_Provider, true), getUpdatedColumns(table, columns), table.getWhereCmd());
+        String query = String.format(m_UpdateCmd, table.getComposedName(true), getUpdatedColumns(table, columns), table.getWhereCmd());
         System.out.println("RowSetWriter.getUpdateStatement() Query: " + query);
         return m_Provider.getConnection().prepareStatement(query);
     }
@@ -204,7 +209,7 @@ public class RowSetWriter
     private PreparedStatement getDeleteStatement(RowTable table)
         throws SQLException
     {
-        String query = String.format(m_DeleteCmd, table.getComposedName(m_Provider, true), table.getWhereCmd());
+        String query = String.format(m_DeleteCmd, table.getComposedName(true), table.getWhereCmd());
         System.out.println("RowSetWriter.getDeleteStatement() Query: " + query);
         return m_Provider.getConnection().prepareStatement(query);
     }

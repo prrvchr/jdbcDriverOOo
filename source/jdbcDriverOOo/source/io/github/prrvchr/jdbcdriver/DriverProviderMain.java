@@ -55,7 +55,6 @@ import io.github.prrvchr.jdbcdriver.metadata.TableTypesResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoRows;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.rowset.RowColumn;
 import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowTable;
@@ -244,7 +243,6 @@ public abstract class DriverProviderMain
     }
 
     public void setGeneratedKeys(Statement statement,
-                                 RowCatalog catalog,
                                  RowTable table,
                                  Row row)
         throws java.sql.SQLException
@@ -254,12 +252,12 @@ public abstract class DriverProviderMain
             return;
         }
         java.sql.ResultSet result = null;
-        Map<String, RowColumn> columns = catalog.getColumnNames(table);
+        Map<String, RowColumn> columns = table.getColumnNames();
         if (command.isBlank()) {
             result = statement.getGeneratedKeys();
         }
         else {
-            result = DBGeneratedKeys.getGeneratedResult(this, statement, catalog, table, row, columns, command);
+            result = DBGeneratedKeys.getGeneratedResult(this, statement, table, row, columns, command);
         }
         if (result != null) {
             ResultSetMetaData metadata = result.getMetaData();

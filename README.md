@@ -520,6 +520,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Changed the implementation of the UNO interface [com.sun.star.sdbc.XGeneratedResultSet][87]. This new implementation supports drivers that do not follow the JDBC API but offer a specific implementation (ie: MariaDB and Derby). To be activated when using odb files created with a previous version, if present, it is necessary to modify the parameter: `Query of generated values` accessible by the menu: **Edit -> Database -> Advanced Settings... -> Generated Values** by the value: `SELECT * FROM %s WHERE %s`.
 - Added new settings supported by the [Drivers.xcu][91] configuration file. These new parameters allow you to modify the values ​​returned by the drivers regarding the visibility of modifications in the ResultSet (ie: insertion, update and deletion). They also allow you to force SQL mode for the desired modifications in the ResultSet.
 - Finalized the emulation implementation making any ResultSet modifiable, if the record is unique in this ResultSet. This implementation, using bookmarks, allows the editing of ResultSet coming from **Base Queries**, this simply makes **LibreOffice Base Queries editable**. Queries joining multiple tables are not yet supported and I am open to any technical proposals regarding a possible implementation.
+- In order to make the ResultSet returned by the **Trino** driver modifiable and to precede [feature request #22408][120], a search for the primary key will be launched in order to find the first column, of result set, having no duplicates.
 - To work around [issue #368][120] the HsqlDB driver uses SQL mode updates in ResultSet.
 - Many fixes and improvements...
 
@@ -640,4 +641,5 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [117]: <https://trino.io/>
 [118]: <https://github.com/trinodb/trino/issues/22306>
 [119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
-[120]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
+[120]: <https://github.com/trinodb/trino/issues/22408>
+[121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>

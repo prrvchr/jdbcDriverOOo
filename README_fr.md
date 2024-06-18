@@ -520,7 +520,8 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Modification de l'implémentation de l'interface UNO [com.sun.star.sdbc.XGeneratedResultSet][87]. Cette nouvelle implémentation prend en charge les pilotes qui ne suivent pas l'API JDBC mais proposent une implémentation spécifique (ie: MariaDB et Derby). Pour être activé lors de l'utilisation de fichiers odb créés avec une version précédente, s'il est présent, il est nécessaire de modifier le paramètre : `Requête des valeurs générées` accessible par le menu : **Edition -> Base de données -> Paramètres avancés... -> Valeurs générées** par la valeur : `SELECT * FROM %s WHERE %s`.
 - Ajout de nouveaux paramètres pris en charge par le fichier de configuration [Drivers.xcu][91]. Ces nouveaux paramètres permettent de modifier les valeurs renvoyées par les pilotes concernant la visibilité des modifications dans les jeux de résultats (ie: insertion, mise à jour et suppression). Ils permettent également de forcer le mode SQL pour les modifications souhaitées dans les jeux de résultats.
 - Finalisation de l'implémentation de l'émulation rendant tout jeu de résultats modifiable, si l'enregistrement est unique dans ce jeu de résultats. Cette implémentation, utilisant les signets (ie: bookmark), permet l'édition de jeu de résultats provenant de **Requêtes Base**, cela rend tout simplement les **Requêtes LibreOffice Base éditables**. Les requêtes joignant plusieurs tables ne sont pas encore supportées et je suis ouvert à toute proposition technique concernant une éventuelle implémentation.
-- Afin de contourner le [dysfonctionnement #368][120] le driver HsqlDB utilise des mises à jour en mode SQL dans les jeux de résultats.
+- Afin de rendre modifiables les jeux de résultats retournés par le driver **Trino** et de précéder la [demande d'amélioration #22408][120], une recherche de la clé primaire sera lancée afin de retrouver la première colonne, du jeu de résultats, ayant pas de doublons.
+- Afin de contourner le [dysfonctionnement #368][121] le driver HsqlDB utilise des mises à jour en mode SQL dans les jeux de résultats.
 - De nombreuses corrections et améliorations...
 
 ### Que reste-t-il à faire pour la version 1.4.0:
@@ -640,4 +641,5 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [117]: <https://trino.io/>
 [118]: <https://github.com/trinodb/trino/issues/22306>
 [119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
-[120]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
+[120]: <https://github.com/trinodb/trino/issues/22408>
+[121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>

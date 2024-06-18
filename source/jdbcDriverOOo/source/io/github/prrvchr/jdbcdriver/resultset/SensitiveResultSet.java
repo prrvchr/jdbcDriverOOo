@@ -49,6 +49,7 @@ import java.util.Vector;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 
 
@@ -76,6 +77,7 @@ public class SensitiveResultSet
     private boolean m_RowCountFinal = false;
     private int m_RowCount = 0;
     private boolean m_Moved = false;
+    private boolean m_Updatable = false;
     private boolean m_Deleted = false;
     private boolean m_Inserted = false;
     private boolean m_WasNull = false;
@@ -99,6 +101,12 @@ public class SensitiveResultSet
         m_SQLInsert = provider.useSQLInsert();
         m_SQLUpdate = provider.useSQLUpdate();
         m_SQLMode = provider.isSQLMode();
+        boolean updatable = provider.isResultSetUpdatable(result);
+        if (!updatable) {
+            m_Catalog = new RowCatalog(provider, result, query);
+            updatable = m_Catalog.hasRowIdentifier();
+        }
+        m_Updatable = updatable;
         internalNext();
     }
 
@@ -108,7 +116,7 @@ public class SensitiveResultSet
     public int getConcurrency()
         throws SQLException
     {
-        return ResultSet.CONCUR_UPDATABLE;
+        return m_Updatable ? ResultSet.CONCUR_UPDATABLE : ResultSet.CONCUR_READ_ONLY;
     }
 
     // XXX: We want to emulate an scollable ResultSet

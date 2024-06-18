@@ -533,7 +533,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
         if (!m_parsed) {
             DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_INSERT, m_Sql);
             if (parser.hasTable()) {
-                m_Catalog = new RowCatalog(m_Connection.getProvider(), m_Statement, parser.getTable());
+                m_Catalog = new RowCatalog(m_Connection.getProvider(), parser.getTable());
             }
             m_parsed = true;
         }

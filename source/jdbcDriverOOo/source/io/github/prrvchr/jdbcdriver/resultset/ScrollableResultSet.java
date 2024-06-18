@@ -47,6 +47,7 @@ import java.util.Vector;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 
 
 //XXX: This ResultSet is supposed to emulate a TYPE_SCROLL_SENSITIVE from a TYPE_FORWARD_ONLY
@@ -64,6 +65,7 @@ public class ScrollableResultSet
     private int m_DeletedRow = 0;
     private int m_InsertedRow = 0;
     private boolean m_WasNull = false;
+    private boolean m_Updatable;
 
     // The constructor method:
     public ScrollableResultSet(DriverProvider provider,
@@ -72,8 +74,19 @@ public class ScrollableResultSet
         throws SQLException
     {
         super(provider, result, query);
-        m_IsUpdatable = false;
-        initCache(result);
+        try {
+            m_Insertable = false;
+            boolean updatable = provider.isResultSetUpdatable(result);
+            if (!updatable) {
+                m_Catalog = new RowCatalog(provider, result, query);
+                updatable = m_Catalog.hasRowIdentifier();
+            }
+            m_Updatable = updatable;
+            initCache(result);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -82,7 +95,7 @@ public class ScrollableResultSet
     public int getConcurrency()
         throws SQLException
     {
-        return ResultSet.CONCUR_UPDATABLE;
+        return m_Updatable ? ResultSet.CONCUR_UPDATABLE : ResultSet.CONCUR_READ_ONLY;
     }
 
     // XXX: We want to emulate an scollable ResultSet

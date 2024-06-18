@@ -25,11 +25,9 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-
-import io.github.prrvchr.jdbcdriver.DriverProvider;
 
 
 public class RowColumn
@@ -43,38 +41,42 @@ public class RowColumn
     private boolean m_AutoIncrement = false;
     private String AUTOINCREMENT = "YES";
 
-
     // The constructor method:
     public RowColumn(RowTable table,
-                     Statement statement,
+                     ResultSet result,
+                     int index)
+        throws java.sql.SQLException
+    {
+        this(table, result);
+        m_Index = index;
+    }
+
+    public RowColumn(RowTable table,
                      ResultSet result)
         throws java.sql.SQLException
     {
         m_Table = table;
         m_Name = result.getString(4);
-        m_Identifier = statement.enquoteIdentifier(m_Name, true);
+        m_Identifier = table.getCatalog().enquoteIdentifier(m_Name);
         m_Type = result.getInt(5);
         m_Index = result.getInt(17);
         m_AutoIncrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
-        m_Table.setKeyColumn(m_Index, m_Identifier, m_Type);
     }
 
     public RowColumn(RowTable table,
-                     Statement statement,
                      ResultSetMetaData metadata,
                      int index)
         throws java.sql.SQLException
     {
         m_Table = table;
         m_Name = metadata.getColumnName(index);
-        m_Identifier = statement.enquoteIdentifier(m_Name, true);
+        m_Identifier = table.getCatalog().enquoteIdentifier(m_Name);
         m_Type = metadata.getColumnType(index);
         m_AutoIncrement = metadata.isAutoIncrement(index);
-        m_Table.setKeyColumn(index, m_Identifier, m_Type);
         m_Index = index;
     }
 
-    public RowColumn(DriverProvider provider,
+    public RowColumn(Connection connection,
                      RowTable table,
                      ResultSetMetaData metadata,
                      int index)
@@ -82,16 +84,13 @@ public class RowColumn
     {
         m_Table = table;
         m_Name = metadata.getColumnName(index);
-        System.out.println("RowColumn() Column Name: " + m_Name);
-        m_Identifier = provider.getStatement().enquoteIdentifier(m_Name, true);
-        try (ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalogName(), table.getSchemaName(), table.getName(), m_Name)) {
+        m_Identifier = table.getCatalog().enquoteIdentifier(m_Name);
+        try (ResultSet result = connection.getMetaData().getColumns(table.getCatalogName(), table.getSchemaName(), table.getName(), m_Name)) {
             if (result.next()) {
                 m_Type = result.getInt(5);
                 m_AutoIncrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
-                System.out.println("RowColumn() Column autoincrement: " + m_AutoIncrement);
             }
         }
-        m_Table.setKeyColumn(index, m_Identifier, m_Type);
         m_Index = index;
     }
 
@@ -143,16 +142,6 @@ public class RowColumn
     public boolean isAutoIncrement()
     {
         return m_AutoIncrement;
-    }
-
-    public boolean isColumnOfTable(RowTable table)
-    {
-        return m_Table.equals(table);
-    }
-
-    public boolean isKeyColumn()
-    {
-        return m_Table.isKeyColumn(m_Index);
     }
 
 }

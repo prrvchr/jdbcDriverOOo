@@ -25,13 +25,14 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -42,40 +43,35 @@ import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 public class RowTable
 {
 
-    private RowCatalog m_Tables;
-    private Map<Integer, String> m_Keys = new HashMap<>();
-    private String m_Catalog = "";
-    private String m_Schema = "";
-    private String m_Name = "";
+    private RowCatalog m_Catalog;
+    private Map<String, RowColumn> m_Columns = new LinkedHashMap<>();
+    private List<String> m_Keys = new ArrayList<>();
+    private NamedComponents m_Component;
     private String m_Where;
 
 
     // The constructor method:
     public RowTable(DriverProvider provider,
-                    RowCatalog tables,
+                    RowCatalog catalog,
                     String query)
         throws SQLException
     {
-        m_Tables = tables;
+        m_Catalog = catalog;
         DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_SELECT, query);
-        if (parser.hasTable()) {
-            ComposeRule rule = ComposeRule.InDataManipulation;
-            NamedComponents component = DBTools.qualifiedNameComponents(provider, parser.getTable(), rule, true);
-            m_Catalog = component.getCatalogName();
-            m_Schema = component.getSchemaName();
-            m_Name = component.getTableName();
+        if (!parser.hasTable()) {
+            throw new SQLException();
         }
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        m_Component = DBTools.qualifiedNameComponents(provider, parser.getTable(), rule, true);
         System.out.println("RowTable() 1");
     }
 
-    public RowTable(RowCatalog tables,
+    public RowTable(RowCatalog catalog,
                     NamedComponents component)
         throws SQLException
     {
-        m_Tables = tables;
-        m_Catalog = component.getCatalogName();
-        m_Schema = component.getSchemaName();
-        m_Name = component.getTableName();
+        m_Catalog = catalog;
+        m_Component = component;
         System.out.println("RowTable() 1");
     }
 
@@ -84,70 +80,150 @@ public class RowTable
                     int index)
         throws SQLException
     {
-        m_Tables = tables;
-        m_Catalog = metadata.getCatalogName(index);
-        m_Schema = metadata.getSchemaName(index);
-        m_Name = metadata.getTableName(index);
+        m_Catalog = tables;
+        m_Component = DBTools.getNamedComponents(metadata, index);
         System.out.println("RowTable() 1");
     }
 
-    public boolean isValid()
-    {
-        return !m_Name.isBlank();
-    }
-
-    public String getCatalogName()
+    public RowCatalog getCatalog()
     {
         return m_Catalog;
     }
 
+    public boolean isValid()
+    {
+        return m_Component.getTable() != null && !m_Component.getTable().isBlank();
+    }
+
+    public void addColumn(RowColumn column)
+    {
+        m_Columns.put(column.getName(), column);
+    }
+
+    public boolean hasRowIdentifier()
+    {
+        return !m_Keys.isEmpty();
+    }
+
+    public void addRowIdentifier(String column, int index)
+    {
+        m_Keys.add(index, column);
+    }
+
+    public void setDefaultRowIdentifier()
+        throws SQLException
+    {
+        // XXX: We don't know the primary key of this table!!!!
+        // XXX: First auto-increment column become default row identifier
+        RowColumn column = getAutoIncrementColumn();
+        if (column == null) {
+            // XXX: Ok we need to find a unique row column...
+            column = getPseudoIdentifierColumn();
+        }
+        if (column != null) {
+            m_Keys.add(column.getName());
+        }
+    }
+
+    private RowColumn getPseudoIdentifierColumn()
+        throws SQLException
+    {
+        RowColumn identifier = null;
+        String query = m_Catalog.getUniqueQuery();
+        for (RowColumn column : m_Columns.values()) {
+            // We are looking only for certain column type.
+            if (RowHelper.isValidKeyType(column.getType())) {
+                String command = String.format(query, column.getIdentifier(), getComposedName(true));
+                try (ResultSet result = m_Catalog.getStatement().executeQuery(command)) {
+                    if (!result.next()) {
+                        identifier = column;
+                        break;
+                    }
+                }
+            }
+        }
+        return identifier;
+    }
+
+    public List<String> getRowIdentifier()
+    {
+        return m_Keys;
+    }
+
+    public boolean hasColumn(String column)
+    {
+        return m_Columns.containsKey(column);
+    }
+
+    public RowColumn getColumn(String column)
+    {
+        return m_Columns.get(column);
+    }
+
+    public Map<String, RowColumn> getColumnNames()
+    {
+        return m_Columns;
+    }
+
+    public RowColumn getRowIdentifierColumn()
+    {
+        RowColumn key = null;
+        if (!m_Keys.isEmpty()) {
+            key = m_Columns.get(m_Keys.get(0));
+        }
+        else {
+            key = getAutoIncrementColumn();
+        }
+        return key;
+    }
+
+    public RowColumn getAutoIncrementColumn()
+    {
+        for (RowColumn column : m_Columns.values()) {
+            if (column.isAutoIncrement()) {
+                return column;
+            }
+        }
+        return null;
+    }
+
+    public String getCatalogName()
+    {
+        return m_Component.getCatalogName();
+    }
+
     public String getSchemaName()
     {
-        return m_Schema;
+        return m_Component.getSchemaName();
     }
 
     public String getName()
     {
-        return m_Name;
+        return m_Component.getTableName();
     }
 
-    public String getComposedName(DriverProvider provider, boolean quoted)
+    public String getComposedName(boolean quoted)
         throws SQLException
     {
-        return DBTools.buildName(provider, m_Catalog, m_Schema, m_Name, m_Tables.getRule(), quoted);
+        return DBTools.buildName(m_Catalog.getStatement(), m_Component, m_Catalog.getNamedSupport(), quoted);
     }
 
     public boolean isSameTable(ResultSetMetaData metadata,
                                int index)
         throws SQLException
     {
-        return m_Catalog.equals(metadata.getCatalogName(index)) &&
-               m_Schema.equals(metadata.getSchemaName(index)) &&
-               m_Name.equals(metadata.getTableName(index));
+        return getCatalogName().equals(metadata.getCatalogName(index)) &&
+               getSchemaName().equals(metadata.getSchemaName(index)) &&
+               getName().equals(metadata.getTableName(index));
     }
 
     public boolean isSameTable(NamedComponents component)
         throws SQLException
     {
         return component != null &&
-               m_Catalog.equals(component.getCatalogName()) &&
-               m_Schema.equals(component.getSchemaName()) &&
-               m_Name.equals(component.getTableName());
-    }
-
-    public void setKeyColumn(int index, String identifier, int type) {
-        if (RowHelper.isValidKeyType(type)) {
-            m_Keys.put(index, identifier);
-        }
-    }
-
-    public boolean isKeyColumn(int index) {
-        return m_Keys.containsKey(index);
-    }
-
-    public Integer[] getKeyIndex()
-    {
-        return m_Keys.keySet().toArray(new Integer[0]);
+               getCatalogName().equals(component.getCatalogName()) &&
+               getSchemaName().equals(component.getSchemaName()) &&
+               getName().equals(component.getTableName());
     }
 
     public String getWhereCmd()
@@ -155,27 +231,27 @@ public class RowTable
     {
         if (m_Where == null) {
             List<String> columns = new ArrayList<>();
-            for (Entry<Integer, String> key : m_Keys.entrySet()) {
-                columns.add(String.format(m_Tables.getParameter(), key.getValue()));
+            for (String key : m_Keys) {
+                columns.add(String.format(m_Catalog.getParameter(), m_Columns.get(key).getIdentifier()));
             }
-            m_Where = String.join(m_Tables.getAnd(), columns);
+            m_Where = String.join(m_Catalog.getAnd(), columns);
         }
         return m_Where;
     }
 
     public String getSeparator()
     {
-        return m_Tables.getSeparator();
+        return m_Catalog.getSeparator();
     }
 
     public String getParameter()
     {
-        return m_Tables.getParameter();
+        return m_Catalog.getParameter();
     }
 
     public String getMark()
     {
-        return m_Tables.getMark();
+        return m_Catalog.getMark();
     }
 
     public boolean equals(Object object)
@@ -187,6 +263,11 @@ public class RowTable
         return getCatalogName().equals(table.getCatalogName()) &&
                getSchemaName().equals(table.getSchemaName()) &&
                getName().equals(table.getName());
+    }
+
+    public Collection<RowColumn> getColumns()
+    {
+        return m_Columns.values();
     }
 
 }

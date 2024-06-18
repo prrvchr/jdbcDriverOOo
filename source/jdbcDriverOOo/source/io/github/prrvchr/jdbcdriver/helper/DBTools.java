@@ -48,6 +48,7 @@ package io.github.prrvchr.jdbcdriver.helper;
 import java.io.InputStream;
 import java.sql.ResultSetMetaData;
 import java.sql.RowIdLifetime;
+import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -104,25 +105,35 @@ public class DBTools
     {
         boolean useCatalogs;
         boolean useSchemas;
-        
-        NameComponentSupport(boolean useCatalogs, boolean useSchemas)
+        boolean catalogAtStart;
+        String catalogSeparator;
+        String identifierQuote;
+
+        NameComponentSupport(boolean usecatalog,
+                             boolean useschema,
+                             boolean atstart,
+                             String separator,
+                             String quote)
         {
-            this.useCatalogs = useCatalogs;
-            this.useSchemas = useSchemas;
+            useCatalogs = usecatalog;
+            useSchemas = useschema;
+            catalogAtStart = atstart;
+            catalogSeparator = separator;
+            identifierQuote = quote;
         }
     }
 
     public static class NamedComponents
     {
-        private String catalog = "";
-        private String schema = "";
-        private String table = "";
+        private String m_Catalog;
+        private String m_Schema;
+        private String m_Table;
 
         public NamedComponents(String catalog, String schema, String table)
         {
-            this.catalog = catalog;
-            this.schema = schema;
-            this.table = table;
+            m_Catalog = catalog;
+            m_Schema = schema;
+            m_Table = table;
         }
 
         public NamedComponents() {
@@ -130,48 +141,55 @@ public class DBTools
 
         // Java DataBaseMetadata specific getter
         public String getCatalog() {
-            return catalog.isBlank() ? null : catalog;
+            return m_Catalog.isBlank() ? null : m_Catalog;
         }
 
         // UNO getter (String can not be null)
         public String getCatalogName()
         {
-            return catalog;
+            return m_Catalog != null ? m_Catalog : "";
         }
 
         public void setCatalog(String catalog)
         {
-            this.catalog = catalog;
+            m_Catalog = catalog;
         }
 
         // Java DataBaseMetadata specific getter
         public String getSchema() {
-            return schema.isBlank() ? null : schema;
+            return m_Schema.isBlank() ? null : m_Schema;
         }
 
+        // UNO getter (String can not be null)
         public String getSchemaName()
         {
-            return schema;
+            return m_Schema != null ? m_Schema : "";
         }
 
         public void setSchema(String schema)
         {
-            this.schema = schema;
+            m_Schema = schema;
         }
 
         // Java DataBaseMetadata specific getter
         public String getTable() {
-            return table;
+            return m_Table;
         }
 
         public String getTableName() {
-            return table;
+            return m_Table;
         }
 
         public void setTable(String table)
         {
-            this.table = table;
+            m_Table = table;
         }
+    }
+
+    public static NamedComponents getNamedComponents(ResultSetMetaData metadata, int index)
+        throws java.sql.SQLException
+    {
+        return new NamedComponents(metadata.getCatalogName(index), metadata.getSchemaName(index), metadata.getTableName(index));
     }
 
     public static NameComponentSupport getNameComponentSupport(DriverProvider provider,
@@ -180,21 +198,40 @@ public class DBTools
         switch (rule) {
         case InTableDefinitions:
             return new NameComponentSupport(provider.supportsCatalogsInTableDefinitions(),
-                                            provider.supportsSchemasInTableDefinitions());
+                                            provider.supportsSchemasInTableDefinitions(),
+                                            provider.isCatalogAtStart(),
+                                            provider.getCatalogSeparator(),
+                                            provider.getIdentifierQuoteString());
         case InIndexDefinitions:
             return new NameComponentSupport(provider.supportsCatalogsInIndexDefinitions(),
-                                            provider.supportsSchemasInIndexDefinitions());
+                                            provider.supportsSchemasInIndexDefinitions(),
+                                            provider.isCatalogAtStart(),
+                                            provider.getCatalogSeparator(),
+                                            provider.getIdentifierQuoteString());
         case InDataManipulation:
             return new NameComponentSupport(provider.supportsCatalogsInDataManipulation(),
-                                            provider.supportsSchemasInDataManipulation());
+                                            provider.supportsSchemasInDataManipulation(),
+                                            provider.isCatalogAtStart(),
+                                            provider.getCatalogSeparator(),
+                                            provider.getIdentifierQuoteString());
         case InProcedureCalls:
             return new NameComponentSupport(provider.supportsCatalogsInProcedureCalls(),
-                                            provider.supportsSchemasInProcedureCalls());
+                                            provider.supportsSchemasInProcedureCalls(),
+                                            provider.isCatalogAtStart(),
+                                            provider.getCatalogSeparator(),
+                                            provider.getIdentifierQuoteString());
         case InPrivilegeDefinitions:
             return new NameComponentSupport(provider.supportsCatalogsInPrivilegeDefinitions(),
-                                            provider.supportsSchemasInPrivilegeDefinitions());
+                                            provider.supportsSchemasInPrivilegeDefinitions(),
+                                            provider.isCatalogAtStart(),
+                                            provider.getCatalogSeparator(),
+                                            provider.getIdentifierQuoteString());
         case Complete:
-            return new NameComponentSupport(true, true);
+            return new NameComponentSupport(true,
+                                            true,
+                                            provider.isCatalogAtStart(),
+                                            provider.getCatalogSeparator(),
+                                            provider.getIdentifierQuoteString());
         default:
             throw new UnsupportedOperationException("Invalid/unknown enum value");
         }
@@ -228,27 +265,52 @@ public class DBTools
                                           ComposeRule rule)
         throws java.sql.SQLException
     {
-        StringBuilder buffer = new StringBuilder();
-        NameComponentSupport nameComponentSupport = getNameComponentSupport(provider, rule);
+        NameComponentSupport support = getNameComponentSupport(provider, rule);
+        return composeTableName(provider.getStatement(), catalog, schema, table, support, sensitive);
+    }
 
+    /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules
+     * @throws java.sql.SQLException 
+     */
+    public static String composeTableName(Statement statement,
+                                          NamedComponents component,
+                                          NameComponentSupport support,
+                                          boolean sensitive)
+        throws java.sql.SQLException
+    {
+        return composeTableName(statement, component.getCatalogName(), component.getSchemaName(), component.getTable(), support, sensitive);
+    }
+
+    /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules
+     * @throws java.sql.SQLException 
+     */
+    public static String composeTableName(Statement statement,
+                                          String catalog,
+                                          String schema,
+                                          String table,
+                                          NameComponentSupport support,
+                                          boolean sensitive)
+        throws java.sql.SQLException
+    {
+        StringBuilder buffer = new StringBuilder();
         String catalogSeparator = "";
         boolean catalogAtStart = true;
-        if (!catalog.isEmpty() && nameComponentSupport.useCatalogs) {
-            catalogSeparator = provider.getCatalogSeparator();
-            catalogAtStart = provider.isCatalogAtStart();
+        if (!catalog.isEmpty() && support.useCatalogs) {
+            catalogSeparator = support.catalogSeparator;
+            catalogAtStart = support.catalogAtStart;
             if (catalogAtStart && !catalogSeparator.isEmpty()) {
-                buffer.append(enquoteIdentifier(provider, catalog, sensitive));
+                buffer.append(enquoteIdentifier(statement, catalog, sensitive));
                 buffer.append(catalogSeparator);
             }
         }
-        if (!schema.isEmpty() && nameComponentSupport.useSchemas) {
-            buffer.append(enquoteIdentifier(provider, schema, sensitive));
+        if (!schema.isEmpty() && support.useSchemas) {
+            buffer.append(enquoteIdentifier(statement, schema, sensitive));
             buffer.append('.');
         }
-        buffer.append(enquoteIdentifier(provider, table, sensitive));
-        if (!catalog.isEmpty() && !catalogAtStart && !catalogSeparator.isEmpty() && nameComponentSupport.useCatalogs) {
+        buffer.append(enquoteIdentifier(statement, table, sensitive));
+        if (!catalog.isEmpty() && !catalogAtStart && !catalogSeparator.isEmpty() && support.useCatalogs) {
             buffer.append(catalogSeparator);
-            buffer.append(enquoteIdentifier(provider, catalog, sensitive));
+            buffer.append(enquoteIdentifier(statement, catalog, sensitive));
         }
         System.out.println("DataBaseTools.composeTableName(): Name: " + buffer.toString());
         return buffer.toString();
@@ -291,6 +353,15 @@ public class DBTools
     {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         return doComposeTableName(provider, support, catalog, schema, table, sensitive);
+    }
+
+    public static String buildName(Statement statement,
+                                   NamedComponents component,
+                                   NameComponentSupport support,
+                                   boolean sensitive)
+        throws java.sql.SQLException
+    {
+        return doComposeTableName(statement, support, component, sensitive);
     }
 
     public static String composeTableName(DriverProvider provider,
@@ -342,6 +413,7 @@ public class DBTools
                                   sensitive);
     }
 
+
     public static String doComposeTableName(DriverProvider provider,
                                             NameComponentSupport support,
                                             String catalog,
@@ -350,31 +422,51 @@ public class DBTools
                                             boolean sensitive)
         throws java.sql.SQLException
     {
+        return doComposeTableName(provider.getStatement(), support, catalog, schema, table, sensitive);
+    }
+
+
+    public static String doComposeTableName(Statement statement,
+                                            NameComponentSupport support,
+                                            NamedComponents component,
+                                            boolean sensitive)
+        throws java.sql.SQLException
+    {
+        return doComposeTableName(statement, support, component.getCatalog(), component.getSchema(), component.getTable(), sensitive);
+    }
+
+    public static String doComposeTableName(Statement statement,
+                                            NameComponentSupport support,
+                                            String catalog,
+                                            String schema,
+                                            String table,
+                                            boolean sensitive)
+        throws java.sql.SQLException
+    {
         StringBuilder buffer = new StringBuilder();
-        UnoHelper.ensure(!table.isEmpty(), "At least the table name should be non-empty", provider.getLogger());
 
         String catalogSeparator = "";
         boolean catalogAtStart = true;
         if (!catalog.isEmpty() && support.useCatalogs) {
-            catalogSeparator = provider.getCatalogSeparator();
-            catalogAtStart = provider.isCatalogAtStart();
+            catalogSeparator = support.catalogSeparator;
+            catalogAtStart = support.catalogAtStart;
             
             if (catalogAtStart && !catalogSeparator.isEmpty()) {
-                buffer.append(enquoteIdentifier(provider, catalog, sensitive));
+                buffer.append(enquoteIdentifier(statement, catalog, sensitive));
                 buffer.append(catalogSeparator);
             }
         }
 
         if (!schema.isEmpty() && support.useSchemas) {
-            buffer.append(enquoteIdentifier(provider, schema, sensitive));
+            buffer.append(enquoteIdentifier(statement, schema, sensitive));
             buffer.append(".");
         }
 
-        buffer.append(enquoteIdentifier(provider, table, sensitive));
+        buffer.append(enquoteIdentifier(statement, table, sensitive));
 
         if (!catalog.isEmpty() && !catalogAtStart && !catalogSeparator.isEmpty() && support.useCatalogs) {
             buffer.append(catalogSeparator);
-            buffer.append(enquoteIdentifier(provider, catalog, sensitive));
+            buffer.append(enquoteIdentifier(statement, catalog, sensitive));
         }
         return buffer.toString();
     }
@@ -442,12 +534,21 @@ public class DBTools
                                            boolean sensitive)
         throws java.sql.SQLException
     {
+        return enquoteIdentifier(provider.getStatement(), name, sensitive);
+    }
+
+    public static String enquoteIdentifier(Statement statement,
+                                           String name,
+                                           boolean sensitive)
+        throws java.sql.SQLException
+    {
         // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
         if (sensitive && !name.isBlank()) {
-            name = provider.getStatement().enquoteIdentifier(name, sensitive);
+            name = statement.enquoteIdentifier(name, sensitive);
         }
         return name;
     }
+
 
     /** quote the given table name (which may contain a catalog and a schema) according to the rules provided by the meta data
      */
@@ -478,6 +579,7 @@ public class DBTools
         return qualifiedNameComponents(provider, name, rule, false);
     }
 
+
     /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
      * @param metadata  meta data describing the connection where you got the table name from
      * @param name      fully qualified table name
@@ -491,15 +593,30 @@ public class DBTools
                                                           boolean unquote)
         throws java.sql.SQLException
     {
-        NamedComponents component = new NamedComponents();
         NameComponentSupport support = getNameComponentSupport(provider, rule);
-        String separator = provider.getCatalogSeparator();
-        String buffer = unquote ? unQuoteTableName(provider, name) : name;
+        return qualifiedNameComponents(provider.getStatement(), name, support, unquote);
+    }
+
+    /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
+     * @param metadata  meta data describing the connection where you got the table name from
+     * @param name      fully qualified table name
+     * @param rule      where do you need the name for
+     * @param unquote   need to unquote the name before?
+     * @return the NameComponents object with the catalog, schema and table
+     */
+    public static NamedComponents qualifiedNameComponents(Statement statement,
+                                                          String name,
+                                                          NameComponentSupport support,
+                                                          boolean unquote)
+        throws java.sql.SQLException
+    {
+        NamedComponents component = new NamedComponents();
+        String buffer = unquote ? unQuoteTableName(support, name) : name;
         // do we have catalogs ?
         if (support.useCatalogs) {
-            if (provider.isCatalogAtStart()) {
+            if (support.catalogAtStart) {
                 // search for the catalog name at the beginning
-                int index = buffer.indexOf(separator);
+                int index = buffer.indexOf(support.catalogSeparator);
                 if (-1 != index) {
                     component.setCatalog(buffer.substring(0, index));
                     buffer = buffer.substring(index + 1);
@@ -507,7 +624,7 @@ public class DBTools
             }
             else {
                 // catalog name at end
-                int index = buffer.lastIndexOf(separator);
+                int index = buffer.lastIndexOf(support.catalogSeparator);
                 if (-1 != index) {
                     component.setCatalog(buffer.substring(index + 1));
                     buffer = buffer.substring(0, index);
@@ -528,11 +645,10 @@ public class DBTools
 
     /** unquote the given table name (which may contain a catalog and a schema)
      */
-    public static String unQuoteTableName(DriverProvider provider,
+    public static String unQuoteTableName(NameComponentSupport support,
                                           String name)
     {
-        String quote = provider.getIdentifierQuoteString();
-        return name.replace(quote, "");
+        return name.replace(support.identifierQuote, "");
     }
 
     /** creates a SQL CREATE VIEW statement
