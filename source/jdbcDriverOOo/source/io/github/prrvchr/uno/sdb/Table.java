@@ -43,7 +43,7 @@ import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public final class Table
-    extends TableSuper<Connection>
+    extends TableSuper
 {
 
     private static final String m_service = Table.class.getName();
@@ -201,14 +201,20 @@ public final class Table
         return super.getNamedComponents();
     }
 
+
+    @Override
     protected String getCatalogName()
     {
-        return m_CatalogName;
+        return super.getCatalogName();
     }
+
+    @Override
     protected String getSchemaName()
     {
-        return m_SchemaName;
+        return super.getSchemaName();
     }
+
+    @Override
     protected String getName()
     {
         return super.getName();

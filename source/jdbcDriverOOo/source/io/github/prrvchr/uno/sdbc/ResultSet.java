@@ -27,27 +27,47 @@ package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 
-public final class ResultSet<S extends StatementMain<?, ?>>
-    extends ResultSetBase<ConnectionBase, S>
+
+public final class ResultSet
+    extends ResultSetBase
 {
     private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
 
 
     // The constructor method:
-    public ResultSet(ConnectionBase connection,
+    public ResultSet(Connection connection,
                      java.sql.ResultSet resultset)
         throws SQLException
     {
         this(connection, resultset, null);
     }
-    public ResultSet(ConnectionBase connection,
+
+    public ResultSet(Connection connection,
                      java.sql.ResultSet resultset,
-                     S statement)
+                     StatementMain statement)
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement);
+    }
+
+    public ResultSet(ConnectionBase connection,
+                     java.sql.ResultSet resultset)
+        throws SQLException
+    {
+        super(m_service, m_services, connection, resultset, null);
+    }
+
+    @Override
+    protected Connection getConnection() {
+        return (Connection) m_Connection;
+    }
+
+    @Override
+    protected ConnectionLog getLogger() {
+        return m_logger;
     }
 
 }

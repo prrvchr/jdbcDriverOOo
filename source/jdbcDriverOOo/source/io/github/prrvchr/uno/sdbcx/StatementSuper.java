@@ -36,8 +36,8 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.StatementBase;
 
 
-public abstract class StatementSuper<C extends ConnectionSuper>
-    extends StatementBase<C>
+public abstract class StatementSuper
+    extends StatementBase
 {
 
     protected boolean m_UseBookmarks = false;
@@ -45,7 +45,7 @@ public abstract class StatementSuper<C extends ConnectionSuper>
     // The constructor method:
     public StatementSuper(String service,
                           String[] services,
-                          C connection)
+                          ConnectionSuper connection)
     {
         super(service, services, connection);
         registerProperties();

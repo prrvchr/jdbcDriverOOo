@@ -40,7 +40,7 @@ import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 
 
 public final class TableContainer
-    extends TableContainerSuper< Connection, Table>
+    extends TableContainerSuper<Table>
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Tables",
@@ -80,18 +80,23 @@ public final class TableContainer
         return table;
     }
 
+    protected Connection getConnection()
+    {
+        return (Connection) m_Connection;
+    }
+
     @Override
     protected Table getElement(String name)
         throws SQLException
     {
-        return super.getElement(name);
+        return (Table) super.getElement(name);
     }
 
     @Override
     protected Table getElement(int index)
         throws SQLException
     {
-        return super.getElement(index);
+        return (Table) super.getElement(index);
     }
 
 }

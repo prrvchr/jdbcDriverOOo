@@ -3081,10 +3081,10 @@ public abstract class DatabaseMetaDataBase
                                        String method)
         throws SQLException
     {
-        ResultSet<Statement> resultset = null;
+        ResultSet resultset = null;
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
         if (result != null) {
-            resultset = new ResultSet<Statement>(m_Connection, result);
+            resultset = new ResultSet(m_Connection, result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getLogger().getObjectId());
         }
         return resultset;

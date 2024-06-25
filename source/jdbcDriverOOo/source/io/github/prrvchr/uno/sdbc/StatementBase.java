@@ -43,8 +43,8 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class StatementBase<C extends ConnectionBase>
-    extends StatementMain<C, java.sql.Statement>
+public abstract class StatementBase
+    extends StatementMain
     implements XBatchExecution,
                XStatement
 {
@@ -54,7 +54,7 @@ public abstract class StatementBase<C extends ConnectionBase>
     // The constructor method:
    public StatementBase(String service,
                         String[] services,
-                        C connection)
+                        ConnectionBase connection)
     {
         super(service, services, connection);
         registerProperties();
@@ -172,7 +172,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE, sql);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE, sql);
             m_Sql = sql;
             return getJdbcStatement().execute(sql);
         }
@@ -186,7 +186,7 @@ public abstract class StatementBase<C extends ConnectionBase>
     public XResultSet executeQuery(String sql)
         throws SQLException
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
         m_Sql = sql;
         return getResultSet();
     }
@@ -196,7 +196,7 @@ public abstract class StatementBase<C extends ConnectionBase>
         throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_UPDATE, sql);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_UPDATE, sql);
             m_Sql = sql;
             return getJdbcStatement().executeUpdate(sql);
         }

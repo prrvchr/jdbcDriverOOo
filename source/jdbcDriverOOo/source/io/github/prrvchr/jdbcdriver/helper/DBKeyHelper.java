@@ -86,7 +86,7 @@ public class DBKeyHelper
     }
 
     public static Key readKey(DriverProvider provider,
-                              TableSuper<?> table,
+                              TableSuper table,
                               NamedComponents component,
                               String keyname,
                               ComposeRule rule,
@@ -245,7 +245,7 @@ public class DBKeyHelper
     }
 
     private static Key readPrimaryKey(DriverProvider provider,
-                                      TableSuper<?> table,
+                                      TableSuper table,
                                       NamedComponents component,
                                       String keyname,
                                       boolean sensitive)
@@ -277,7 +277,7 @@ public class DBKeyHelper
     }
 
     private static Key readForeignKey(DriverProvider provider,
-                                      TableSuper<?> table,
+                                      TableSuper table,
                                       NamedComponents component,
                                       String keyname,
                                       ComposeRule rule,

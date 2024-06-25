@@ -41,7 +41,6 @@ public class ResultSetWrapper
     {
         super(getResultSet(statement));
         m_Statement = statement;
-        System.out.println("ResultSetWrapper() 1");
     }
 
     static private java.sql.ResultSet getResultSet(PreparedStatement statement)

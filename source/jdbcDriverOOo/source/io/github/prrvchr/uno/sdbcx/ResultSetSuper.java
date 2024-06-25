@@ -40,9 +40,8 @@ import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public abstract class ResultSetSuper<C extends ConnectionSuper,
-                                     S extends StatementMain<?, ?>>
-    extends ResultSetBase<C, S>
+public abstract class ResultSetSuper
+    extends ResultSetBase
 {
     private boolean m_IsBookmarkable = false;
     private boolean m_CanUpdateInsertedRows = false;
@@ -50,9 +49,9 @@ public abstract class ResultSetSuper<C extends ConnectionSuper,
     // The constructor method:
     public ResultSetSuper(String service,
                           String[] services,
-                          C connection,
+                          ConnectionSuper connection,
                           java.sql.ResultSet resultset,
-                          S statement,
+                          StatementMain statement,
                           boolean bookmark,
                           boolean updatable)
     throws SQLException

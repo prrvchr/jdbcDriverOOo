@@ -37,8 +37,8 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.CallableStatementBase;
 
 
-public abstract class CallableStatementSuper<C extends ConnectionSuper>
-    extends CallableStatementBase<C>
+public abstract class CallableStatementSuper
+    extends CallableStatementBase
 {
 
     protected boolean m_UseBookmarks  = false;
@@ -50,7 +50,7 @@ public abstract class CallableStatementSuper<C extends ConnectionSuper>
     // XXX: - io.github.prrvchr.uno.sdbcx.CallableStatement()
     public CallableStatementSuper(String service,
                                   String[] services,
-                                  C connection,
+                                  ConnectionSuper connection,
                                   String sql)
     {
         super(service, services, connection, sql);

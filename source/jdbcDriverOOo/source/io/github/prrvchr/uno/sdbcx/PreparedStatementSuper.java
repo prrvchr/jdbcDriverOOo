@@ -38,8 +38,8 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
 
 
-public abstract class PreparedStatementSuper<C extends ConnectionSuper>
-    extends PreparedStatementBase<C>
+public abstract class PreparedStatementSuper
+    extends PreparedStatementBase
 {
 
 
@@ -49,7 +49,7 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
     // XXX: - io.github.prrvchr.uno.sdbcx.PreparedStatement()
     public PreparedStatementSuper(String service,
                                   String[] services,
-                                  C connection,
+                                  ConnectionSuper connection,
                                   String sql)
     {
         super(service, services, connection, sql);
@@ -62,7 +62,7 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS, Boolean.toString(m_UseBookmarks));
                     System.out.println("sdbc.PreparedStatementSuper.getUseBookmark(): " + m_UseBookmarks);
                     return m_UseBookmarks;
                 }
@@ -70,8 +70,8 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
             new PropertySetter() {
                 @Override
                 public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
-                    boolean usebookmark = m_Connection.getProvider().useBookmarks((boolean) value);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS, value.toString());
+                    boolean usebookmark = getConnectionInternal().getProvider().useBookmarks((boolean) value);
                     System.out.println("sdbc.PreparedStatementSuper.setUseBookmark(): " + usebookmark);
                     m_UseBookmarks = usebookmark;
                 }
@@ -89,6 +89,12 @@ public abstract class PreparedStatementSuper<C extends ConnectionSuper>
     protected ConnectionLog getLogger()
     {
         return super.getLogger();
+    }
+
+    @Override
+    protected ConnectionSuper getConnectionInternal()
+    {
+        return (ConnectionSuper) m_Connection;
     }
 
 }

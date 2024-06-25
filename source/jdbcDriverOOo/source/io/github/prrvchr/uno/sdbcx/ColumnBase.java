@@ -35,12 +35,12 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public abstract class ColumnBase<T extends TableSuper<?>>
+public abstract class ColumnBase
     extends Descriptor
     implements XDataDescriptorFactory
 {
 
-    protected final T m_table;
+    protected final TableSuper m_table;
     protected int m_Type;
     private int m_Precision;
     private int m_Scale;
@@ -55,7 +55,7 @@ public abstract class ColumnBase<T extends TableSuper<?>>
     // The constructor method:
     public ColumnBase(String service,
                       String[] services,
-                      T table,
+                      TableSuper table,
                       boolean sensitive,
                       String name,
                       final String typename,

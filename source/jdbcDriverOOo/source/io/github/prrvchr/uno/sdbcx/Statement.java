@@ -31,11 +31,13 @@ import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Statement
-    extends StatementSuper<Connection>
+    extends StatementSuper
 {
     
     private static final String m_service = Statement.class.getName();
@@ -59,15 +61,25 @@ public final class Statement
     throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            Connection connection = getConnectionInternal();
             if (m_UseBookmarks) {
-                RowSet<Statement> rowset = new RowSet<Statement>(m_Connection.getProvider(), m_Connection, getJdbcResultSet(), this, m_Sql);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
-                return rowset;
+                RowCatalog catalog = null;
+                java.sql.ResultSet result = getJdbcResultSet();
+                if (ResultSetHelper.isResultSetUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
+                    RowSet rowset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
+                    return rowset;
+                }
+                else {
+                    ResultSet resultset =  new ResultSet(connection, result, this);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    return resultset;
+                }
             }
             else {
-                ResultSet<Statement> resultset =  new ResultSet<Statement>(m_Connection, getJdbcResultSet(), this);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                ResultSet resultset =  new ResultSet(connection, getJdbcResultSet(), this);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
                 return resultset;
             }
         }
@@ -75,5 +87,11 @@ public final class Statement
             throw UnoHelper.getSQLException(e, this);
         }
     }
+
+    @Override
+    protected Connection getConnectionInternal() {
+        return (Connection) m_Connection;
+    }
+
 
 }

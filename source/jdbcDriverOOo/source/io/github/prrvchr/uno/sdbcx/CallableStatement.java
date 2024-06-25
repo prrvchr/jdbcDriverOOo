@@ -31,11 +31,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class CallableStatement
-    extends CallableStatementSuper<Connection>
+    extends CallableStatementSuper
 {
     private static final String m_service = CallableStatement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement",
@@ -54,21 +56,36 @@ public final class CallableStatement
         throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            Connection connection = getConnectionInternal();
             if (m_UseBookmarks) {
-                RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection.getProvider(), m_Connection, getJdbcResultSet(), this, m_Sql);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
-                return rowset;
+                RowCatalog catalog = null;
+                java.sql.ResultSet result = getJdbcResultSet();
+                if (ResultSetHelper.isResultSetUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
+                    RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    return resultset;
+                }
+                else {
+                    ResultSet resultset =  new ResultSet(connection, result, this);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    return resultset;
+                }
             }
             else {
-                ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(m_Connection, getJdbcResultSet(), this);
-                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                ResultSet resultset =  new ResultSet(connection, getJdbcResultSet(), this);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
                 return resultset;
             }
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    @Override
+    protected Connection getConnectionInternal() {
+        return (Connection) m_Connection;
     }
 
 

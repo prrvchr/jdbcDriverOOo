@@ -33,12 +33,14 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.CallableStatementSuper;
 
 
 public final class CallableStatement
-    extends CallableStatementSuper<Connection>
+    extends CallableStatementSuper
     implements XColumnsSupplier
 {
 
@@ -85,13 +87,23 @@ public final class CallableStatement
     {
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            Connection connection = getConnectionInternal();
             if (m_UseBookmarks) {
-                RowSet<CallableStatement> rowset = new RowSet<CallableStatement>(m_Connection.getProvider(), m_Connection, getJdbcResultSet(), this, m_Sql);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, rowset.getLogger().getObjectId());
-                return rowset;
+                RowCatalog catalog = null;
+                java.sql.ResultSet result = getJdbcResultSet();
+                if (ResultSetHelper.isResultSetUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
+                    RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    return resultset;
+                }
+                else {
+                    ResultSet resultset =  new ResultSet(connection, result, this);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    return resultset;
+                }
             }
             else {
-                ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), getJdbcResultSet(), this);
+                ResultSet resultset =  new ResultSet(connection, getJdbcResultSet(), this);
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
                 return resultset;
             }
@@ -99,6 +111,11 @@ public final class CallableStatement
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    @Override
+    protected Connection getConnectionInternal() {
+        return (Connection) m_Connection;
     }
 
 

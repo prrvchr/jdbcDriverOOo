@@ -62,11 +62,11 @@ public final class IndexContainer
     private static final String[] m_services = {"com.sun.star.sdbcx.Indexes",
                                                 "com.sun.star.sdbcx.Container"};
 
-    private final TableSuper<?> m_Table;
+    private final TableSuper m_Table;
     private final ConnectionLog m_logger;
 
     // The constructor method:
-    public IndexContainer(TableSuper<?> table,
+    public IndexContainer(TableSuper table,
                           boolean sensitive,
                           List<String> indexes)
     throws ElementExistException

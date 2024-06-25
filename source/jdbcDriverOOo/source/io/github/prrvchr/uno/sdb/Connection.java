@@ -336,9 +336,4 @@ public final class Connection
        return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
     }
 
-    @Override
-    protected TableContainer getTablesInternal() {
-        return (TableContainer) super.getTablesInternal();
-    }
-
 }

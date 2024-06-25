@@ -53,7 +53,7 @@ public abstract class ConnectionSuper
                XViewsSupplier
 {
 
-    private TableContainerSuper<?,?> m_Tables = null;
+    protected TableContainerSuper<?> m_Tables = null;
     private ViewContainer m_Views = null;
 
     protected DriverProvider getProvider()
@@ -103,7 +103,7 @@ public abstract class ConnectionSuper
     }
 
     // Protected methods
-    protected synchronized TableContainerSuper<?,?> getTablesInternal()
+    protected synchronized TableContainerSuper<?> getTablesInternal()
     {
         checkDisposed();
         if (m_Tables == null) {
@@ -128,7 +128,7 @@ public abstract class ConnectionSuper
         refreshViews();
     }
 
-    protected abstract TableContainerSuper<?, ?> getTableContainer(List<String> names) throws ElementExistException;
+    protected abstract TableContainerSuper<?> getTableContainer(List<String> names) throws ElementExistException;
     protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
 
     private void refreshTables()

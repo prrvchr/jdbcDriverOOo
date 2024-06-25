@@ -23,51 +23,80 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.rowset;
+package io.github.prrvchr.jdbcdriver.rowset;
 
-import java.sql.SQLException;
+import java.util.BitSet;
 
-public class CachedResultSet
-    extends CachedRowSetImpl
+
+public class InsertRow
+    extends BaseRow
 {
 
-    private static final long serialVersionUID = 1884577171200622430L;
+    protected BitSet m_Inserted;
 
-    /**
-     * Constructs a new default <code>CachedResultSetImpl</code> object with
-     * the capacity to hold 100 rows. This new object has no metadata
-     * and has the following default values:
-     * <pre>
-     *     onInsertRow = false
-     *     insertRow = null
-     *     cursorPos = 0
-     *     numRows = 0
-     *     showDeleted = false
-     *     queryTimeout = 0
-     *     maxRows = 0
-     *     maxFieldSize = 0
-     *     rowSetType = ResultSet.TYPE_SCROLL_INSENSITIVE
-     *     concurrency = ResultSet.CONCUR_UPDATABLE
-     *     readOnly = false
-     *     isolation = Connection.TRANSACTION_READ_COMMITTED
-     *     escapeProcessing = true
-     *     onInsertRow = false
-     *     insertRow = null
-     *     cursorPos = 0
-     *     absolutePos = 0
-     *     numRows = 0
-     * </pre>
-     * A <code>CachedResultSetImpl</code> object is configured to use the default
-     * <code>RIOptimisticProvider</code> implementation to provide connectivity
-     * and synchronization capabilities to the set data source.
-     * <P>
-     * @throws SQLException if an error occurs
-     */
-    public CachedResultSet()
-        throws SQLException
+
+    public InsertRow(int count)
     {
-        super();
-        System.out.println("CachedResultSetImpl() 1");
+        super(count);
+        m_Inserted = new BitSet(count);
+    }
+
+    public InsertRow(InsertRow row)
+    {
+        super(row);
+        m_Inserted = new BitSet(m_Count);
+        for (int i = 1; i <= m_Count; i++) {
+            if (row.isColumnSet(i)) {
+                m_Inserted.set(i - 1);
+            }
+        }
+    }
+
+    public InsertRow clown()
+    {
+        return new InsertRow(this);
+    }
+
+    @Override
+    public Object getColumnObject(int index)
+    {
+        Object value = null;
+        if (isColumnSet(index)) {
+            value = m_OldValues[index - 1];
+        }
+        return value;
+    }
+
+    @Override
+    public boolean isColumnNull(int index)
+    {
+        boolean isnull = true;
+        if (isColumnSet(index)) {
+            isnull = m_OldValues[index - 1] == null;
+        }
+        return isnull;
+    }
+
+    @Override
+    public void setColumnObject(int index, Object value)
+    {
+        int i = index - 1;
+        m_OldValues[i] = value;
+        m_Inserted.set(i);
+    }
+
+    @Override
+    public void setColumnDouble(int index, Double value, int type)
+    {
+        int i = index - 1;
+        m_OldValues[i] = RowHelper.getDoubleValue(value, type);
+        m_Inserted.set(i);
+    }
+
+    @Override
+    public boolean isColumnSet(int index)
+    {
+        return m_Inserted.get(index - 1);
     }
 
 }

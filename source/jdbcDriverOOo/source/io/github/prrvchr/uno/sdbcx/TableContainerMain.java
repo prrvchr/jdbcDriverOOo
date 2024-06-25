@@ -39,16 +39,16 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 
 
-public abstract class TableContainerMain<C extends ConnectionSuper, T extends TableMain<?>>
+public abstract class TableContainerMain<T extends TableMain>
     extends Container<T>
 {
-    protected final C m_Connection;
+    protected final ConnectionSuper m_Connection;
     private final ConnectionLog m_logger;
 
     // The constructor method:
     public TableContainerMain(String service,
                               String[] services,
-                              C connection,
+                              ConnectionSuper connection,
                               boolean sensitive,
                               List<String> names,
                               LoggerObjectType logtype)
@@ -64,7 +64,7 @@ public abstract class TableContainerMain<C extends ConnectionSuper, T extends Ta
         return m_logger;
     }
 
-    protected C getConnection()
+    protected ConnectionSuper getConnection()
     {
         return m_Connection;
     }

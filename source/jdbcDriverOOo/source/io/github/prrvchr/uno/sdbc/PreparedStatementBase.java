@@ -25,9 +25,10 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.sql.PreparedStatement;
 
-public abstract class PreparedStatementBase<C extends ConnectionBase>
-    extends PreparedStatementMain<C, java.sql.PreparedStatement>
+public abstract class PreparedStatementBase
+    extends PreparedStatementMain
 {
 
     protected boolean m_UseBookmarks = false;
@@ -39,7 +40,7 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
     // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatementSuper()
     public PreparedStatementBase(String service,
                                  String[] services,
-                                 C connection,
+                                 ConnectionBase connection,
                                  String sql)
     {
         super(service, services, connection);
@@ -47,13 +48,13 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
     }
 
     @Override
-    protected java.sql.PreparedStatement getJdbcStatement()
+    protected PreparedStatement getJdbcStatement()
         throws java.sql.SQLException
     {
         checkDisposed();
         System.out.println("sdbc.PreparedStatementBase.getStatement() 1");
         if (m_Statement == null) {
-            java.sql.PreparedStatement statement;
+            PreparedStatement statement;
             if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
                 int holdability = java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT;
                 //int holdability = java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT;
@@ -75,7 +76,7 @@ public abstract class PreparedStatementBase<C extends ConnectionBase>
             m_Statement = setStatement(statement);
         }
         System.out.println("sdbc.PreparedStatementBase.getStatement() 3");
-        return m_Statement;
+        return (PreparedStatement) m_Statement;
     }
 
 

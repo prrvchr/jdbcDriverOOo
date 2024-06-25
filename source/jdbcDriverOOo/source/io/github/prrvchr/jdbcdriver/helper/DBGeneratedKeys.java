@@ -38,7 +38,6 @@ import java.util.Map.Entry;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.resultset.ResultSetWrapper;
-import io.github.prrvchr.jdbcdriver.rowset.Row;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.rowset.RowColumn;
 import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
@@ -63,7 +62,6 @@ public class DBGeneratedKeys
     public final static java.sql.ResultSet getGeneratedResult(DriverProvider provider,
                                                               java.sql.Statement statement,
                                                               RowTable table,
-                                                              Row row,
                                                               Map<String, RowColumn> columns,
                                                               String command)
         throws SQLException
@@ -122,7 +120,7 @@ public class DBGeneratedKeys
     {
         List<String> predicates = new ArrayList<>();
         for (RowColumn column : keys.keySet()) {
-            predicates.add(String.format(catalog.getParameter(), column.getIdentifier()));
+            predicates.add(String.format(column.getPredicate()));
         }
         return String.join(catalog.getAnd(), predicates);
     }

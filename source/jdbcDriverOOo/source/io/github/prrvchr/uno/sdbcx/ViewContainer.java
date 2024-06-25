@@ -47,7 +47,7 @@ import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class ViewContainer
-    extends TableContainerMain<ConnectionSuper, View>
+    extends TableContainerMain<View>
 {
     private static final String m_service = ViewContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Views",
@@ -79,7 +79,8 @@ public final class ViewContainer
             System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
             if (DBTools.executeSQLQuery(provider, query)) {
-                getConnection().getTablesInternal().insertElement(name, null);
+                TableContainerMain<?> tables = getConnection().getTablesInternal();
+                tables.insertElement(name, null);
                 return true;
             }
         }
@@ -154,7 +155,7 @@ public final class ViewContainer
                                          String name)
         throws SQLException
     {
-        View view = getElement(index);
+        View view = (View) getElement(index);
         if (view == null) {
             throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }

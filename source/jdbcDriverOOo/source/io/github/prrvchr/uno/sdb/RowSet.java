@@ -31,12 +31,14 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.RowSetSuper;
 
 
-public final class RowSet<S extends StatementMain<?, ?>>
-    extends RowSetSuper<Connection, S>
+public final class RowSet
+    extends RowSetSuper
     implements XColumnsSupplier
 {
     private static final String m_service = ResultSet.class.getName();
@@ -48,12 +50,13 @@ public final class RowSet<S extends StatementMain<?, ?>>
     // The constructor method:
     public RowSet(DriverProvider provider,
                   Connection connection,
-                  java.sql.ResultSet resultset,
-                  S statement,
+                  java.sql.ResultSet result,
+                  StatementMain statement,
+                  RowCatalog catalog,
                   String query)
         throws SQLException
     {
-        super(m_service, m_services, provider, connection, resultset, statement, query);
+        super(m_service, m_services, provider, connection, ResultSetHelper.getCachedResultSet(provider, result, catalog, query), statement, query);
         System.out.println("sdb.RowSet() 1");
     }
 
@@ -79,6 +82,11 @@ public final class RowSet<S extends StatementMain<?, ?>>
         System.out.println("sdb.ResultSet.getColumns() 2 *********************************************");
         return columns;*/
         return null;
+    }
+
+    @Override
+    protected Connection getConnection() {
+        return (Connection) m_Connection;
     }
 
 

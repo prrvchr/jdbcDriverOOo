@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class KeyColumn
-    extends ColumnBase<TableSuper<?>>
+    extends ColumnBase
 {
     private static final String m_service = KeyColumn.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn"};
@@ -44,7 +44,7 @@ public final class KeyColumn
     protected String m_RelatedColumn;
 
     // The constructor method:
-    public KeyColumn(TableSuper<?> table,
+    public KeyColumn(TableSuper table,
                      final boolean sensitive,
                      final String name,
                      final String typename,

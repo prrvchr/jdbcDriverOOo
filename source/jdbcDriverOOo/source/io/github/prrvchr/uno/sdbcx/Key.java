@@ -50,7 +50,7 @@ public final class Key
     private static final String[] m_services = {"com.sun.star.sdbcx.Key"};
     
     protected KeyColumnContainer m_columns = null;
-    private final TableSuper<?> m_table;
+    private final TableSuper m_table;
     
     public int m_Type;
     protected String m_ReferencedTable;
@@ -58,7 +58,7 @@ public final class Key
     protected int m_DeleteRule;
 
     // The constructor method:
-    public Key(TableSuper<?> table,
+    public Key(TableSuper table,
                boolean sensitive,
                String name,
                String reference,
@@ -149,7 +149,7 @@ public final class Key
         return new KeyDescriptor(isCaseSensitive());
     }
 
-    public TableSuper<?> getTable()
+    public TableSuper getTable()
     {
         return m_table;
     }

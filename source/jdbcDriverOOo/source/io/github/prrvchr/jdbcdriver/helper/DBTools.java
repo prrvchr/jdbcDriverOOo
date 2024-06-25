@@ -53,10 +53,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ServiceLoader;
-
-import javax.sql.rowset.CachedRowSet;
-import javax.sql.rowset.RowSetFactory;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.UnknownPropertyException;
@@ -141,7 +137,7 @@ public class DBTools
 
         // Java DataBaseMetadata specific getter
         public String getCatalog() {
-            return m_Catalog.isBlank() ? null : m_Catalog;
+            return m_Catalog;
         }
 
         // UNO getter (String can not be null)
@@ -157,7 +153,7 @@ public class DBTools
 
         // Java DataBaseMetadata specific getter
         public String getSchema() {
-            return m_Schema.isBlank() ? null : m_Schema;
+            return m_Schema;
         }
 
         // UNO getter (String can not be null)
@@ -1449,58 +1445,6 @@ public class DBTools
             return length - 1;
         }
         return length;
-    }
-
-    public static CachedRowSet getCachedRowSet(DriverProvider provider,
-                                               java.sql.ResultSet result)
-        throws java.sql.SQLException
-    {
-        CachedRowSet rowset = null;
-        String table = getTableName(provider, result.getMetaData());
-        if (!table.isBlank()) {
-            ClassLoader loader = provider.getClass().getClassLoader();
-            rowset = getCachedRowSet(loader, provider.getSyncProvider());
-            if (rowset != null) {
-                result.getStatement().getConnection().setAutoCommit(false);
-                rowset.setTableName(table);
-                rowset.populate(result);
-            }
-        }
-        return rowset;
-    }
-
-    private static String getTableName(DriverProvider provider,
-                                       ResultSetMetaData metadata)
-        throws java.sql.SQLException
-    {
-        String name = "";
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        List<String> tables = new ArrayList<>();
-        int count = metadata.getColumnCount();
-        for (int i = 1; i <= count; i ++) {
-            String catalog = metadata.getCatalogName(i);
-            String schema = metadata.getSchemaName(i);
-            String table = metadata.getTableName(i);
-            name = composeTableName(provider, catalog, schema, table, true, rule);
-            if (!tables.contains(name)) {
-                tables.add(name);
-            }
-        }
-        return tables.isEmpty() ? name : tables.get(0);
-    }
-
-    private static CachedRowSet getCachedRowSet(ClassLoader loader,
-                                                String provider)
-        throws java.sql.SQLException
-    {
-        CachedRowSet rowset = null;
-        // XXX: We need to change class loader
-        ServiceLoader<RowSetFactory> services = ServiceLoader.load(RowSetFactory.class, loader);
-        for (RowSetFactory factory : services) {
-            rowset = factory.createCachedRowSet();
-            break;
-        }
-        return rowset;
     }
 
 }

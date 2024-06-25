@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.sql.CallableStatement;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.sdbc.SQLException;
@@ -42,8 +44,8 @@ import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class CallableStatementBase<C extends ConnectionBase>
-    extends PreparedStatementMain<C, java.sql.CallableStatement>
+public abstract class CallableStatementBase
+    extends PreparedStatementMain
     implements XOutParameters,
                XRow
 {
@@ -54,7 +56,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementSuper()
     public CallableStatementBase(String service,
                                  String[] services,
-                                 C connection,
+                                 ConnectionBase connection,
                                  String sql)
     {
         super(service, services, connection);
@@ -77,7 +79,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
             }
             m_Statement = setStatement(statement);
         }
-        return m_Statement;
+        return (CallableStatement) m_Statement;
     }
 
     // com.sun.star.sdbc.XOutParameters:
@@ -264,7 +266,7 @@ public abstract class CallableStatementBase<C extends ConnectionBase>
             return DBTools.getObject(getJdbcStatement().getObject(index), map);
         }
         catch (java.sql.SQLException e) {
-            throw UnoHelper.getLoggedSQLException(this, m_logger, e);
+            throw UnoHelper.getLoggedSQLException(this, getLogger(), e);
         }
     }
 

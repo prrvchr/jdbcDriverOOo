@@ -36,7 +36,7 @@ import io.github.prrvchr.jdbcdriver.Resources;
 
 
 public final class TableContainer
-    extends TableContainerSuper<Connection, Table>
+    extends TableContainerSuper<Table>
 {
     private static final String m_service = TableContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Tables",
@@ -68,5 +68,9 @@ public final class TableContainer
         return table;
     }
 
+    protected Connection getConnection()
+    {
+        return (Connection) m_Connection;
+    }
 
 }

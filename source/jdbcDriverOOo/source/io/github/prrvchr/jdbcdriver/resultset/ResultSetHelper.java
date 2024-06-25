@@ -23,79 +23,65 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.rowset.factory;
+package io.github.prrvchr.jdbcdriver.resultset;
 
-import java.sql.SQLException;
+import java.sql.ResultSet;
 
-import javax.sql.rowset.CachedRowSet;
-import javax.sql.rowset.FilteredRowSet;
-import javax.sql.rowset.JdbcRowSet;
-import javax.sql.rowset.JoinRowSet;
-import javax.sql.rowset.RowSetProvider;
-import javax.sql.rowset.WebRowSet;
+import com.sun.star.sdbc.SQLException;
 
-import javax.sql.rowset.spi.SyncFactory;
+import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 
 
-public class RowSetFactory 
-    implements javax.sql.rowset.RowSetFactory
+public  class ResultSetHelper
 {
 
-    final static String CUSTOM_ROWSET_FACTORY = "io.github.prrvchr.rowset.RowSetFactoryImpl";
-    final static String CUSTOM_SYNC_PROVIDER  = "io.github.prrvchr.rowset.providers.RIOptimisticProvider";
-    final static String DEFAULT_SYNC_PROVIDER = "com.sun.rowset.providers.RIOptimisticProvider";
-
-    @Override
-    public CachedRowSet createCachedRowSet()
+    public static boolean isResultSetUpdatable(DriverProvider provider,
+                                               java.sql.ResultSet result,
+                                               RowCatalog catalog,
+                                               String query)
         throws SQLException
     {
-        System.out.println("RowSetFactory.createCachedRowSet()");
-        ClassLoader context = Thread.currentThread().getContextClassLoader();
-        CachedRowSet rowset = getRowSetProvider().createCachedRowSet();
-        Thread.currentThread().setContextClassLoader(context);
-        return rowset;
+        try {
+            boolean updatable = provider.isResultSetUpdatable(result);
+            if (!updatable) {
+                catalog = new RowCatalog(provider, result, query);
+                updatable = catalog.hasRowIdentifier();
+            }
+            return updatable;
+        }
+        catch (java.sql.SQLException e) {
+            throw new SQLException();
+        }
     }
 
-    @Override
-    public FilteredRowSet createFilteredRowSet()
+    public static CachedResultSet getCachedResultSet(DriverProvider provider,
+                                                     java.sql.ResultSet result,
+                                                     RowCatalog catalog,
+                                                     String query)
         throws SQLException
     {
-        return getRowSetProvider().createFilteredRowSet();
-    }
-
-    @Override
-    public JdbcRowSet createJdbcRowSet()
-        throws SQLException
-    {
-        return getRowSetProvider().createJdbcRowSet();
-    }
-
-    @Override
-    public JoinRowSet createJoinRowSet()
-        throws SQLException
-    {
-        return getRowSetProvider().createJoinRowSet();
-    }
-
-    @Override
-    public WebRowSet createWebRowSet()
-        throws SQLException
-    {
-        return getRowSetProvider().createWebRowSet();
-    }
-
-    private javax.sql.rowset.RowSetFactory getRowSetProvider()
-        throws SQLException
-    {
-        // XXX: As the jdbcDriverOOo extension is loaded using an URL ClassLoader by LibreOffice
-        // XXX: it is necessary to modify the current Thread classLoader accordingly...
-        ClassLoader loader = RowSetFactory.class.getClassLoader();
-        Thread.currentThread().setContextClassLoader(loader);
-        // XXX: If we want the RIOptimisticProvider to be loaded with the correct
-        // XXX: classloader we must first unregister the RIOptimisticProvider.
-        SyncFactory.unregisterProvider(DEFAULT_SYNC_PROVIDER);
-        SyncFactory.registerProvider(CUSTOM_SYNC_PROVIDER);
-        return RowSetProvider.newFactory(CUSTOM_ROWSET_FACTORY, loader);
+        try {
+            CachedResultSet resultset;
+            int rstype = result.getType();
+            boolean updatable = provider.isResultSetUpdatable(result);
+            boolean forwardonly = rstype == ResultSet.TYPE_FORWARD_ONLY;
+            boolean sensitive = rstype == ResultSet.TYPE_SCROLL_SENSITIVE;
+            int fetchsize = result.getFetchSize();
+            System.out.println("ResultSetHelper.getCachedResultSet() Updatable: " + updatable + " - IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
+            if (rstype == ResultSet.TYPE_FORWARD_ONLY) {
+                resultset = new ScrollableResultSet(provider, result, catalog, query);
+                System.out.println("ResultSetHelper.getCachedResultSet() ResultSet: ScrollableResultSet");
+            }
+            else {
+                resultset = new SensitiveResultSet(provider, result, catalog, query);
+                System.out.println("ResultSetHelper.getCachedResultSet() ResultSet: SensitiveResultSet");
+            }
+            return resultset;
+        }
+        catch (java.sql.SQLException e) {
+            throw new SQLException();
+        }
     }
 
 }

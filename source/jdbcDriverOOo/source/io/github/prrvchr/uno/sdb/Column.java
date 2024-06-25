@@ -40,7 +40,7 @@ import io.github.prrvchr.uno.sdbcx.ColumnSuper;
 
 
 public final class Column
-    extends ColumnSuper<Table>
+    extends ColumnSuper
 {
     private static final String m_service = Column.class.getName();
     private static final String[] m_services = {"com.sun.star.sdb.Column",
@@ -202,7 +202,8 @@ public final class Column
     @Override
     public XPropertySet createDataDescriptor()
     {
-        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
+        Table table = (Table) m_table;
+        ColumnDescriptor descriptor = new ColumnDescriptor(table.getCatalogName(), table.getSchemaName(), table.getName(), isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

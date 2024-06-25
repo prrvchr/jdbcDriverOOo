@@ -34,8 +34,8 @@ import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public final class ResultSet<S extends StatementMain<?, ?>>
-    extends ResultSetSuper<Connection, S>
+public final class ResultSet
+    extends ResultSetSuper
     implements XColumnsSupplier
 {
     private static final String m_service = ResultSet.class.getName();
@@ -47,7 +47,7 @@ public final class ResultSet<S extends StatementMain<?, ?>>
     // The constructor method:
     public ResultSet(Connection connection,
                      java.sql.ResultSet resultset,
-                     S statement)
+                     StatementMain statement)
     throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement, false, false);
@@ -76,6 +76,11 @@ public final class ResultSet<S extends StatementMain<?, ?>>
         System.out.println("sdb.ResultSet.getColumns() 2 *********************************************");
         return columns;*/
         return null;
+    }
+
+    @Override
+    protected Connection getConnection() {
+        return (Connection) m_Connection;
     }
 
 

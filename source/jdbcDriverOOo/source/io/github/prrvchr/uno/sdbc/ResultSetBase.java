@@ -75,15 +75,24 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
-public abstract class ResultSetBase<C extends ConnectionBase, S extends StatementMain<?, ?>> extends PropertySet
-        implements XServiceInfo, XCloseable, XColumnLocate, XResultSet, XResultSetMetaDataSupplier, XRow,
-        XWarningsSupplier, XResultSetUpdate, XRowUpdate {
+public abstract class ResultSetBase
+    extends PropertySet
+    implements XServiceInfo,
+               XCloseable,
+               XColumnLocate,
+               XResultSet,
+               XResultSetMetaDataSupplier,
+               XRow,
+               XWarningsSupplier,
+               XResultSetUpdate,
+               XRowUpdate
+{
 
     private final String m_service;
     private final String[] m_services;
-    protected C m_Connection;
-    protected java.sql.ResultSet m_Result;
-    protected S m_Statement;
+    protected ConnectionBase m_Connection;
+    protected ResultSet m_Result;
+    protected StatementMain m_Statement;
     // XXX: We need to keep the index references of the columns already assigned for
     // insertion
     protected BitSet m_Inserted;
@@ -91,17 +100,20 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
     protected boolean m_OnInsert = false;
     // XXX: Is the last value read null
     protected boolean m_WasNull = false;
-    private final ConnectionLog m_logger;
+    protected final ConnectionLog m_logger;
 
     // The constructor method:
 
-    public ResultSetBase(String service, String[] services, C connection, java.sql.ResultSet result)
+    public ResultSetBase(String service,
+                         String[] services,
+                         ConnectionBase connection,
+                         ResultSet result)
         throws SQLException
     {
         this(service, services, connection, result, null);
     }
 
-    public ResultSetBase(String service, String[] services, C connection, java.sql.ResultSet resultset, S statement)
+    public ResultSetBase(String service, String[] services, ConnectionBase connection, ResultSet resultset, StatementMain statement)
         throws SQLException
     {
         m_service = service;
@@ -114,7 +126,7 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         registerProperties();
     }
 
-    static private int getResultColumnCount(java.sql.ResultSet resultset, StatementMain<?, ?> statement)
+    static private int getResultColumnCount(java.sql.ResultSet resultset, StatementMain statement)
         throws SQLException
     {
         try {
@@ -125,15 +137,14 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         }
     }
 
-    protected C getConnection() {
-        return m_Connection;
-    }
-
-    protected S getJdbcStatement() {
+    protected StatementMain getJdbcStatement() {
         return m_Statement;
     }
 
-    protected ConnectionLog getLogger() {
+    protected abstract ConnectionBase getConnection();
+
+    protected ConnectionLog getLogger()
+    {
         return m_logger;
     }
 
@@ -1081,12 +1092,7 @@ public abstract class ResultSetBase<C extends ConnectionBase, S extends Statemen
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateString() 1");
-            System.out.println("ResultSetBase.updateString() 2 Index: " + index + " - Value: " + value);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_PARAMETER, "updateString",
-                    Integer.toString(index), value);
             m_Result.updateString(index, value);
-            System.out.println("ResultSetBase.updateString() 3");
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

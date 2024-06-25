@@ -34,7 +34,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Statement
-extends StatementBase<ConnectionBase>
+extends StatementBase
 {
     private static final String m_service = Statement.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.Statement"};
@@ -51,14 +51,21 @@ extends StatementBase<ConnectionBase>
         throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            ResultSet<Statement> resultset =  new ResultSet<Statement>(m_Connection, getJdbcResultSet(), this);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            ResultSet resultset =  new ResultSet(getConnectionInternal(), getJdbcResultSet(), this);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             return resultset;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
+
+
+    @Override
+    protected Connection getConnectionInternal() {
+        return (Connection) m_Connection;
+    }
+
 
 }

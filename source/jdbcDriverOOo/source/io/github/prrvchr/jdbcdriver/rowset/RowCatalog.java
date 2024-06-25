@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -65,12 +66,7 @@ public class RowCatalog
         m_Statement = provider.getStatement();
         m_Support = DBTools.getNameComponentSupport(provider, m_Rule);
         NamedComponents component = DBTools.qualifiedNameComponents(provider, identifier, m_Rule, true);
-        RowTable table = new RowTable(this, component);
-        try (ResultSet result = provider.getConnection().getMetaData().getColumns(component.getCatalog(), component.getSchema(), component.getTable(), "%")) {
-            while (result.next()) {
-                table.addColumn(new RowColumn(table, result));
-            }
-        }
+        RowTable table = new RowTable(provider.getConnection(), this, component, true);
         m_Tables.add(table);
         setRowIdentifier(table);
     }
@@ -82,28 +78,30 @@ public class RowCatalog
         throws SQLException
     {
         RowTable table = null;
+        boolean retrieved = true;
         NamedComponents component = null;
         m_Statement = provider.getStatement();
+        Connection connection = provider.getConnection();
         m_Support = DBTools.getNameComponentSupport(provider, m_Rule);
         ResultSetMetaData metadata = result.getMetaData();
         for (int index = 1; index <= metadata.getColumnCount(); index++) {
-            if (metadata.getTableName(index).isBlank()) {
-                table = getTable(component, query);
-                if (table.isValid()) {
-                    table.addColumn(new RowColumn(provider.getConnection(), table, metadata, index));
-                }
+            String name = metadata.getTableName(index);
+            if (name == null || name.isBlank()) {
+                table = getTable(connection, component, query);
             }
             else {
-                table = getTable(metadata, index);
-                if (table.isValid()) {
-                    table.addColumn(new RowColumn(table, metadata, index));
-                }
+                table = getTable(connection, metadata, index);
+            }
+            if (table.isValid()) {
+                retrieved |= table.setIndexColumn(metadata.getColumnName(index), index);
             }
         }
         if (table == null) {
             throw new SQLException();
         }
-        setRowIdentifier(table);
+        if (table.isValid() && retrieved) {
+            setRowIdentifier(table);
+        }
     }
 
     private void setRowIdentifier(RowTable table)
@@ -125,12 +123,16 @@ public class RowCatalog
 
     public boolean hasRowIdentifier()
     {
+        boolean has = true;
         for (RowTable table : m_Tables) {
-            if (table.hasRowIdentifier()) {
-                return true;
-            }
+            has |= table.hasRowIdentifier();
         }
-        return false;
+        return !m_Tables.isEmpty() && has;
+    }
+
+    public int getTableCount()
+    {
+        return m_Tables.size();
     }
 
     public NameComponentSupport getNamedSupport()
@@ -210,7 +212,8 @@ public class RowCatalog
         return m_Tables;
     }
 
-    private RowTable getTable(ResultSetMetaData metadata,
+    private RowTable getTable(Connection connection,
+                              ResultSetMetaData metadata,
                               int index)
         throws SQLException
     {
@@ -219,14 +222,15 @@ public class RowCatalog
                 return table;
             }
         }
-        RowTable table = new RowTable(this, metadata, index);
+        RowTable table = new RowTable(connection, this, metadata, index);
         if (table.isValid()) {
             m_Tables.add(table);
         }
         return table;
     }
 
-    private RowTable getTable(NamedComponents component,
+    private RowTable getTable(Connection connection,
+                              NamedComponents component,
                               String query)
         throws SQLException
     {
@@ -238,7 +242,7 @@ public class RowCatalog
                 return table;
             }
         }
-        RowTable table = new RowTable(this, component);
+        RowTable table = new RowTable(connection, this, component);
         if (table.isValid()) {
             m_Tables.add(table);
         }
@@ -255,6 +259,5 @@ public class RowCatalog
         NamedComponents component = DBTools.qualifiedNameComponents(m_Statement, parser.getTable(), m_Support, true);
         return component;
     }
-
 
 }

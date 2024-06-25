@@ -68,7 +68,7 @@ public abstract class ConnectionBase
     private final DriverProvider m_provider;
     private String m_url;
     private PropertyValue[] m_info;
-    private final WeakMap<StatementMain<?,?>, StatementMain<?,?>> m_statements = new WeakMap<StatementMain<?,?>, StatementMain<?,?>>();
+    private final WeakMap<StatementMain, StatementMain> m_statements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
     public ConnectionBase(XComponentContext ctx,
@@ -96,7 +96,7 @@ public abstract class ConnectionBase
     {
         return m_provider.getLogger();
     }
-    protected WeakMap<StatementMain<?,?>, StatementMain<?,?>> getStatements()
+    protected WeakMap<StatementMain, StatementMain> getStatements()
     {
         return m_statements;
     }
@@ -107,8 +107,8 @@ public abstract class ConnectionBase
     {
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
         try {
-            for (Iterator<StatementMain<?,?>> it = m_statements.keySet().iterator(); it.hasNext();) {
-                StatementMain<?,?> statement = it.next();
+            for (Iterator<StatementMain> it = m_statements.keySet().iterator(); it.hasNext();) {
+                StatementMain statement = it.next();
                 it.remove();
                 statement.dispose();
             }

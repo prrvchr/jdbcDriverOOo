@@ -67,8 +67,8 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public abstract class TableSuper<C extends ConnectionSuper>
-    extends TableMain<C>
+public abstract class TableSuper
+    extends TableMain
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
@@ -86,7 +86,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
     // The constructor method:
     public TableSuper(String service,
                       String[] services,
-                      C connection,
+                      ConnectionSuper connection,
                       String catalog,
                       String schema,
                       boolean sensitive,
@@ -212,7 +212,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
         throws SQLException, IndexOutOfBoundsException
     {
         checkDisposed();
-        ColumnSuper<?> oldcolumn = m_columns.getElement(index);
+        ColumnSuper oldcolumn = m_columns.getElement(index);
         if (oldcolumn != null) {
             alterColumn(oldcolumn, newcolumn);
         }
@@ -223,13 +223,13 @@ public abstract class TableSuper<C extends ConnectionSuper>
         throws SQLException, NoSuchElementException
     {
         checkDisposed();
-        ColumnSuper<?> oldcolumn = m_columns.getElement(name);
+        ColumnSuper oldcolumn = m_columns.getElement(name);
         if (oldcolumn != null) {
             alterColumn(oldcolumn, newcolumn);
         }
     }
 
-    private void alterColumn(ColumnSuper<?> oldcolumn, XPropertySet newcolumn)
+    private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
         throws SQLException
     {
         DriverProvider provider = getConnection().getProvider();
@@ -404,7 +404,7 @@ public abstract class TableSuper<C extends ConnectionSuper>
             NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
             if (isview) {
                 ViewContainer views = getConnection().getViewsInternal();
-                View view = views.getElement(table);
+                View view = (View) views.getElement(table);
                 if (view == null) {
                     int resource = Resources.STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR;
                     String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);

@@ -73,7 +73,7 @@ public class RowHelper
         boolean updated = true;
         boolean hasupdate = false;
         for (int i = 1; i <= count; i++) {
-            if (row.isColumnUpdated(i)) {
+            if (row.isColumnSet(i)) {
                 hasupdate = true;
                 Object value = row.getColumnObject(i);
                 if (value != null) {
@@ -129,15 +129,14 @@ public class RowHelper
                                          RowCatalog catalog,
                                          RowTable table,
                                          Row row,
-                                         int offset)
+                                         int index)
         throws SQLException
     {
-        int i = offset;
         for (String key : table.getRowIdentifier()) {
             RowColumn column = table.getColumn(key);
             Object value = row.getOldColumnObject(column.getIndex());
-            RowHelper.setStatementValue(statement, column.getType(), i, value);
-            i ++;
+            RowHelper.setStatementValue(statement, column.getType(), index, value);
+            index ++;
         }
     }
 
@@ -225,7 +224,6 @@ public class RowHelper
 
     public static Object getDoubleValue(Double value,
                                         int type)
-        throws SQLException
     {
         Object object;
         switch (type) {

@@ -50,7 +50,7 @@ import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
 public final class View
-    extends TableMain<ConnectionSuper>
+    extends TableMain
     implements XAlterView
 {
     private static final String m_service = View.class.getName();

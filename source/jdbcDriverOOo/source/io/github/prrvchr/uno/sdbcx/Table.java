@@ -35,7 +35,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Table
-    extends TableSuper<Connection>
+    extends TableSuper
 {
 
     private static final String m_service = Table.class.getName();

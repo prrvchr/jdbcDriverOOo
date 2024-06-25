@@ -43,66 +43,28 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.helper.DBException;
 import io.github.prrvchr.jdbcdriver.resultset.CachedResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.ScrollableResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.SensitiveResultSet;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public abstract class RowSetSuper<C extends ConnectionSuper,
-                                  S extends StatementMain<?, ?>>
-    extends ResultSetSuper<C, S>
+public abstract class RowSetSuper
+    extends ResultSetSuper
     implements XRowLocate,
                XDeleteRows,
                XCancellable
 {
 
-    // XXX: If we want to be able to use Bookmarks (ie: XRowLocate)
-    // XXX: we need to keep reference of deleted rows
-    protected List<Integer> m_DeletedBookmarks = new ArrayList<>();
-    private int m_DeletedRow = 0;
-
     // The constructor method:
     public RowSetSuper(String service,
                        String[] services,
                        DriverProvider provider,
-                       C connection,
-                       ResultSet result,
-                       S statement,
+                       ConnectionSuper connection,
+                       CachedResultSet result,
+                       StatementMain statement,
                        String query)
         throws SQLException
     {
-        super(service, services, connection, getResultSet(provider, result, query), statement, true, true);
+        super(service, services, connection, result, statement, true, true);
         showResultVisibility(provider, result);
-    }
-
-
-    private static ResultSet getResultSet(DriverProvider provider, ResultSet result, String query)
-        throws SQLException
-    {
-        try {
-            int rstype = result.getType();
-            boolean updatable = provider.isResultSetUpdatable(result);
-            boolean forwardonly = rstype == ResultSet.TYPE_FORWARD_ONLY;
-            boolean sensitive = rstype == ResultSet.TYPE_SCROLL_SENSITIVE;
-            int fetchsize = result.getFetchSize();
-            System.out.println("RowSetSuper.getResultSet() Updatable: " + updatable + " - IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
-            if (!updatable || rstype == ResultSet.TYPE_FORWARD_ONLY) {
-                result = new ScrollableResultSet(provider, result, query);
-                System.out.println("RowSetSuper.getResultSet() ResultSet: ScrollableResultSet");
-            }
-            else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE) {
-                result = new SensitiveResultSet(provider, result, query);
-                System.out.println("RowSetSuper.getResultSet() ResultSet: SensitiveResultSet");
-            }
-            else {
-                result = new CachedResultSet(provider, result, query);
-                System.out.println("RowSetSuper.getResultSet() ResultSet: CachedResultSet");
-            }
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException();
-        }
-        return result;
     }
 
     private void showResultVisibility(DriverProvider provider, ResultSet result)
@@ -122,31 +84,36 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         }
     }
 
+    protected CachedResultSet getResultSet()
+    {
+        return (CachedResultSet) m_Result;
+    }
+
 
     // com.sun.star.sdbcx.XRowLocate:
     @Override
-    public int compareBookmarks(Object object1, Object object2)
+    public int compareBookmarks(Object bookmark1, Object bookmark2)
         throws SQLException
     {
         int compare = CompareBookmark.NOT_COMPARABLE;
-        int bookmark1 = 0, bookmark2 = 0;
+        int row1 = 0, row2 = 0;
         try {
-            bookmark1 = AnyConverter.toInt(object1);
-            bookmark2 = AnyConverter.toInt(object2);
+            row1 = AnyConverter.toInt(bookmark1);
+            row2 = AnyConverter.toInt(bookmark2);
         }
         catch (IllegalArgumentException e) { }
-        if (bookmark1 != 0 && bookmark2 != 0) {
-            if (bookmark1 < bookmark2) {
+        if (row1 != 0 && row2 != 0) {
+            if (row1 < row2) {
                 compare = CompareBookmark.LESS;
             }
-            else if (bookmark1 > bookmark2) {
+            else if (row1 > row2) {
                 compare = CompareBookmark.GREATER;
             }
             else {
                 compare = CompareBookmark.EQUAL;
             }
         }
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(bookmark1), Integer.toString(bookmark2), Integer.toString(compare));
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(row1), Integer.toString(row2), Integer.toString(compare));
         return compare;
     }
 
@@ -154,8 +121,7 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
     public Object getBookmark()
         throws SQLException
     {
-        int row = getBookmarkFromRow(getRow());
-        System.out.println("RowSetSuper.getBookmark() 1 Row: " + row);
+        int row = getResultSet().getBookmark();
         Object bookmark = (row != 0) ? row : Any.VOID;
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, bookmark.toString());
         return bookmark;
@@ -169,60 +135,65 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
     }
 
     @Override
-    public int hashBookmark(Object object)
+    public int hashBookmark(Object bookmark)
         throws SQLException
     {
-        int bookmark;
+        int row;
         try {
-            bookmark = AnyConverter.toInt(object);
+            row = AnyConverter.toInt(bookmark);
         }
         catch (IllegalArgumentException e) {
             throw new SQLException("Bad bookmark", this, StandardSQLState.SQL_INVALID_BOOKMARK_VALUE.text(), 0, null);
         }
-        return bookmark;
+        return row;
     }
 
     @Override
-    public boolean moveRelativeToBookmark(Object object, int count)
+    public boolean moveRelativeToBookmark(Object bookmark, int count)
         throws SQLException
     {
-        System.out.println("RowSetSuper.moveRelativeToBookmark() 1");
-        boolean moved = false;
-        int bookmark = AnyConverter.toInt(object);
-        int row = getRowFromBookmark(bookmark);
-        if (absolute(row)) {
-            moved = relative(count);
+        try {
+            boolean moved = false;
+            int row = AnyConverter.toInt(bookmark);
+            if (getResultSet().moveToBookmark(row)) {
+                moved = relative(count);
+            }
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(row), Boolean.toString(moved));
+            if (!moved) {
+                afterLast();
+            }
+            return moved;
         }
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(row), Boolean.toString(moved));
-        if (!moved) {
-            afterLast();
+        catch (java.sql.SQLException e) {
+            throw DBException.getSQLException(this, e);
         }
-        return moved;
     }
 
     @Override
-    public boolean moveToBookmark(Object object)
+    public boolean moveToBookmark(Object bookmark)
         throws SQLException
     {
-        int bookmark = AnyConverter.toInt(object);
-        int row = getRowFromBookmark(bookmark);
-        System.out.println("RowSetSuper.moveToBookmark() 1 Bookmark: " + bookmark + " - Row: " + row);
-        boolean moved = absolute(row);
-        if (!moved) {
-            afterLast();
+        try {
+            int row = AnyConverter.toInt(bookmark);
+            boolean moved = getResultSet().moveToBookmark(row);
+            if (!moved) {
+                afterLast();
+            }
+            return moved;
         }
-        return moved;
+        catch (java.sql.SQLException e) {
+            throw DBException.getSQLException(this, e);
+        }
     }
 
     // com.sun.star.sdbcx.XDeleteRows:
     @Override
-    public int[] deleteRows(Object[] objects)
+    public int[] deleteRows(Object[] bookmarks)
         throws SQLException
     {
         List<Integer> rows = new ArrayList<Integer>();
-        for (int i = 0; i < objects.length; i ++) {
-            int bookmark = AnyConverter.toInt(objects[i]);
-            int row = getRowFromBookmark(bookmark);
+        for (Object bookmark : bookmarks) {
+            int row = AnyConverter.toInt(bookmark);
             if (absolute(row)) {
                 deleteRow();
                 rows.add(0, 1);
@@ -271,7 +242,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
     public void deleteRow() throws SQLException
     {
         try {
-            m_DeletedRow = getBookmarkFromRow(getRow());
             m_Result.deleteRow();
         }
         catch (java.sql.SQLException e) {
@@ -283,7 +253,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
     @Override
     public void cancelRowUpdates() throws SQLException
     {
-        System.out.println("RowSetSuper.cancelRowUpdates() 1");
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
         // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
         // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
@@ -296,14 +265,12 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
-        System.out.println("RowSetSuper.cancelRowUpdates() 2");
     }
 
     // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx  Line 110: xUp->moveToInsertRow()
     @Override
     public void moveToInsertRow() throws SQLException
     {
-        System.out.println("RowSetSuper.moveToInsertRow() 1");
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
         try {
             m_Result.moveToInsertRow();
@@ -311,7 +278,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
-        System.out.println("RowSetSuper.moveToInsertRow() 2");
     }
 
     @Override
@@ -332,16 +298,10 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         boolean deleted = false;
         try {
             deleted = m_Result.rowDeleted();
-            if (deleted && m_DeletedRow != 0) {
-                m_DeletedBookmarks.add(m_DeletedRow);
-                m_DeletedRow = 0;
-            }
-            System.out.println("RowSetSuper.rowDeleted() 1 Deleted: " + deleted);
         }
         catch (java.sql.SQLException e) {
             throw new SQLException();
         }
-        System.out.println("RowSetSuper.rowDeleted() 2 Deleted: " + deleted);
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
         return deleted;
     }
@@ -358,38 +318,6 @@ public abstract class RowSetSuper<C extends ConnectionSuper,
         }
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
         return inserted;
-    }
-
-    private int getRowFromBookmark(int bookmark)
-    {
-        return bookmark - getRowOffset(bookmark);
-    }
-
-    private int getBookmarkFromRow(int row)
-    {
-        return row + getBookmarkOffset(row);
-    }
-
-    private int getRowOffset(int bookmark)
-    {
-        int offset = 0;
-        for (int row : m_DeletedBookmarks) {
-            if (row < bookmark) {
-                offset ++;
-            }
-        }
-        return offset;
-    }
-
-    private int getBookmarkOffset(int bookmark)
-    {
-        int offset = 0;
-        for (int row : m_DeletedBookmarks) {
-            if (row <= bookmark) {
-                offset ++;
-            }
-        }
-        return offset;
     }
 
 }

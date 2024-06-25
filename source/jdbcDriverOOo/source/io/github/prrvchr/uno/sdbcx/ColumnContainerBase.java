@@ -57,18 +57,18 @@ import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class ColumnContainerBase<T extends TableSuper<?>>
-    extends Container<ColumnSuper<?>>
+public abstract class ColumnContainerBase<C extends ColumnSuper>
+    extends Container<C>
 {
 
     private Map<String, ColumnDescription> m_descriptions = new HashMap<>();
     private Map<String, ExtraColumnInfo> m_extrainfos = new HashMap<>();
-    protected final T m_table;
+    protected final TableSuper m_table;
 
     // The constructor method:
     public ColumnContainerBase(String service,
                                String[] services,
-                               T table,
+                               TableSuper table,
                                boolean sensitive,
                                List<ColumnDescription> descriptions)
         throws ElementExistException
@@ -90,10 +90,10 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
     }
 
     @Override
-    protected ColumnSuper<?> appendElement(XPropertySet descriptor)
+    protected C appendElement(XPropertySet descriptor)
         throws SQLException
     {
-        ColumnSuper<?> column = null;
+        C column = null;
         String name = getElementName(descriptor);
         if (createColumn(descriptor, name)) {
             column = createElement(name);
@@ -136,10 +136,10 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
     }
 
     @Override
-    protected ColumnSuper<?> createElement(String name)
+    protected C createElement(String name)
         throws SQLException
     {
-        ColumnSuper<?> column = null;
+        C column = null;
         try {
             @SuppressWarnings("unused")
             boolean queryInfo = true;
@@ -184,8 +184,8 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
                 nullable = ColumnValue.NO_NULLS;
             }
             column = getColumn(name, description.typeName, description.defaultValue, description.remarks,
-                                nullable, description.columnSize, description.decimalDigits, description.type,
-                                isAutoIncrement, false, isCurrency);
+                               nullable, description.columnSize, description.decimalDigits, description.type,
+                               isAutoIncrement, false, isCurrency);
         }
         catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -240,16 +240,16 @@ public abstract class ColumnContainerBase<T extends TableSuper<?>>
         return m_table.getConnection();
     }
 
-    protected abstract ColumnSuper<?> getColumn(String name,
-                                                String typename,
-                                                String defaultvalue,
-                                                String description,
-                                                int nullable,
-                                                int precision,
-                                                int scale,
-                                                int type,
-                                                boolean autoincrement,
-                                                boolean rowversion,
-                                                boolean currency);
+    protected abstract C getColumn(String name,
+                                   String typename,
+                                   String defaultvalue,
+                                   String description,
+                                   int nullable,
+                                   int precision,
+                                   int scale,
+                                   int type,
+                                   boolean autoincrement,
+                                   boolean rowversion,
+                                   boolean currency);
 
 }

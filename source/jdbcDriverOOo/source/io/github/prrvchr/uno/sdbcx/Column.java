@@ -30,7 +30,7 @@ import com.sun.star.beans.XPropertySet;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class Column
-    extends ColumnSuper<Table>
+    extends ColumnSuper
 {
     private static final String m_service = Column.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Column"};

@@ -58,7 +58,6 @@ abstract public class ResultSet
         throws SQLException
     {
         m_Result = result;
-        System.out.println("ResultSet() 1");
     }
 
 
@@ -231,7 +230,7 @@ abstract public class ResultSet
     }
 
 
-    // XXX: java.sql.ResultSet moover
+    // XXX: java.sql.ResultSet mover
     @Override
     public boolean next()
         throws SQLException

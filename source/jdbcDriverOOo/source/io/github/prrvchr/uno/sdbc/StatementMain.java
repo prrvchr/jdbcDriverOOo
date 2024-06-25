@@ -58,7 +58,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
-public abstract class StatementMain<C extends ConnectionBase, S extends java.sql.Statement>
+public abstract class StatementMain
     extends PropertySet
     implements XServiceInfo,
                XWarningsSupplier,
@@ -70,9 +70,9 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
 
     private final String m_service;
     private final String[] m_services;
-    protected C m_Connection;
-    protected final ConnectionLog m_logger;
-    protected S m_Statement = null;
+    protected ConnectionBase m_Connection;
+    private final ConnectionLog m_logger;
+    protected java.sql.Statement m_Statement = null;
     protected RowCatalog m_Catalog = null;
     protected boolean m_parsed = false;
     protected String m_Sql = "";
@@ -92,7 +92,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
     // The constructor method:
     public StatementMain(String service,
                          String[] services,
-                         C connection)
+                         ConnectionBase connection)
     {
         m_service = service;
         m_services = services;
@@ -101,10 +101,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
         registerProperties();
     }
 
-    protected C getConnectionInternal()
-    {
-        return m_Connection;
-    }
+    protected abstract ConnectionBase getConnectionInternal();
 
     protected ConnectionLog getLogger()
     {
@@ -224,10 +221,10 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
             });
     }
 
-    abstract protected S getJdbcStatement() throws java.sql.SQLException;
+    abstract protected java.sql.Statement getJdbcStatement() throws java.sql.SQLException;
     abstract protected java.sql.ResultSet getJdbcResultSet() throws java.sql.SQLException;
 
-    protected S setStatement(S statement)
+    protected java.sql.Statement setStatement(java.sql.Statement statement)
         throws java.sql.SQLException
     {
         if (!m_CursorName.isBlank()) {
@@ -489,7 +486,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
     public XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
-        ResultSet<Statement> resultset = null;
+        ResultSet resultset = null;
         try {
             int resource;
             java.sql.ResultSet result = null;
@@ -515,7 +512,7 @@ public abstract class StatementMain<C extends ConnectionBase, S extends java.sql
                 result = provider.getStatement().executeQuery(query);
             }
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            resultset = new ResultSet<Statement>(getConnectionInternal(), result);
+            resultset = new ResultSet(getConnectionInternal(), result);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, getColumnNames(result, count));

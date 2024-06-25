@@ -300,7 +300,7 @@ public class DBTableHelper
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static byte getAlterColumnQueries(List<String> queries,
                                              DriverProvider provider,
-                                             TableSuper<?> table,
+                                             TableSuper table,
                                              XPropertySet descriptor1,
                                              XPropertySet descriptor2,
                                              boolean alterkey,

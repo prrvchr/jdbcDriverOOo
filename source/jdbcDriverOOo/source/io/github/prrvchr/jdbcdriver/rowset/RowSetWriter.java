@@ -60,12 +60,12 @@ public class RowSetWriter
         m_Catalog = catalog;
     }
 
-    public boolean insertRow(Row row)
+    public boolean insertRow(BaseRow row)
         throws SQLException
     {
         int status = 0;
         for (RowTable table: m_Catalog.getTables()) {
-            List<RowColumn> columns = getInsertedColumns(table, row);
+            List<RowColumn> columns = getModifiedColumns(table, row);
             if (!columns.isEmpty()) {
                 try (PreparedStatement statement = getInsertStatement(table, columns)) {
                     setStatementParameter(statement, columns, row);
@@ -74,7 +74,6 @@ public class RowSetWriter
                         m_Provider.setGeneratedKeys(statement, table, row);
                     }
                 }
-                row.clearUpdated(columns, status);
             }
         }
         return status != 0;
@@ -86,7 +85,7 @@ public class RowSetWriter
         int status = 0;
         for (RowTable table: m_Catalog.getTables()) {
             status = 0;
-            List<RowColumn> columns = getUpdatedColumns(table, row);
+            List<RowColumn> columns = getModifiedColumns(table, row);
             if (!columns.isEmpty()) {
                 checkForUpdate(table, row, columns);
                 try (PreparedStatement statement = getUpdateStatement(table, columns)) {
@@ -116,24 +115,12 @@ public class RowSetWriter
     }
 
     // XXX: Private methods
-    private List<RowColumn> getInsertedColumns(RowTable table,
-                                               Row row)
+    private List<RowColumn> getModifiedColumns(RowTable table,
+                                               BaseRow row)
     {
         List<RowColumn> columns = new ArrayList<>();
         for (RowColumn column : table.getColumns()) {
-            if (row.isColumnUpdated(column.getIndex())) {
-                columns.add(column);
-            }
-        }
-        return columns;
-    }
-
-    private List<RowColumn> getUpdatedColumns(RowTable table,
-                                              Row row)
-    {
-        List<RowColumn> columns = new ArrayList<>();
-        for (RowColumn column : table.getColumns()) {
-            if (row.isColumnUpdated(column.getIndex())) {
+            if (row.isColumnSet(column.getIndex())) {
                 columns.add(column);
             }
         }
@@ -237,14 +224,14 @@ public class RowSetWriter
     {
         List<String> query = new ArrayList<>();
         for (RowColumn column : columns) {
-            query.add(column.getUpdateParameter());
+            query.add(column.getPredicate());
         }
         return String.join(table.getSeparator(), query);
     }
 
     private int setStatementParameter(PreparedStatement statement,
                                       List<RowColumn> columns,
-                                      Row row)
+                                      BaseRow row)
         throws SQLException
     {
         int i = 1;

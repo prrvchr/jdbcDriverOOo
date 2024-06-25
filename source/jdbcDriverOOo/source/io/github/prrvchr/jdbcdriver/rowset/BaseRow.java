@@ -23,49 +23,62 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.jdbcdriver.rowset;
 
-import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XResultSet;
-
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.uno.helper.UnoHelper;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 
-public final class PreparedStatement
-    extends PreparedStatementBase
+public abstract class BaseRow
 {
 
-    private static final String m_service = PreparedStatement.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.PreparedStatement"};
+    protected Object[] m_OldValues;
+    protected int m_Count;
 
-    // The constructor method:
-    public PreparedStatement(Connection connection,
-                             String sql)
+
+    public BaseRow(int count)
     {
-        super(m_service, m_services, connection, sql);
-        System.out.println("sdbc.PreparedStatement() 1: '" + sql + "'");
+        m_OldValues = new Object[count];
+        m_Count = count;
     }
 
-    @Override
-    public XResultSet getResultSet()
-    throws SQLException
+    public BaseRow(BaseRow row)
     {
-        try {
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            ResultSet resultset =  new ResultSet(getConnectionInternal(), getJdbcResultSet(), this);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
-            return resultset;
-        }
-        catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+        this(row.getCount());
+        System.arraycopy(row.getOldValues(), 0, m_OldValues, 0, m_Count);
     }
 
-    @Override
-    protected Connection getConnectionInternal() {
-        return (Connection) m_Connection;
+    public Object[] getOldValues() {
+        return m_OldValues;
     }
+
+    public int getCount() {
+        return m_Count;
+    }
+
+    public void initColumnObject(ResultSet result,
+                                 int index)
+        throws SQLException
+    {
+        Object value = RowHelper.getResultSetValue(result, index);
+        initColumnObject(index, value);
+    }
+
+    public void initColumnObject(int index,
+                                 Object value)
+        throws SQLException
+    {
+        m_OldValues[index - 1] = value;
+    }
+
+    public abstract boolean isColumnNull(int index);
+
+    public abstract boolean isColumnSet(int index);
+
+    public abstract Object getColumnObject(int index);
+
+    public abstract void setColumnObject(int index, Object value);
+
+    public abstract void setColumnDouble(int index, Double value, int type) throws SQLException;
 
 }

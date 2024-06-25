@@ -54,7 +54,7 @@ import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.metadata.TableTypesResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoRows;
-import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.RowColumn;
 import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowTable;
@@ -83,7 +83,6 @@ public abstract class DriverProviderMain
     protected boolean m_usebookmark;
     protected boolean m_sqlmode;
     private String m_separator = ", ";
-    private String m_SyncProvider = "io.github.prrvchr.rowset.providers.RIOptimisticProvider";
 
     private Boolean m_InsertVisibleInsensitive;
     private Boolean m_InsertVisibleSensitive;
@@ -244,7 +243,7 @@ public abstract class DriverProviderMain
 
     public void setGeneratedKeys(Statement statement,
                                  RowTable table,
-                                 Row row)
+                                 BaseRow row)
         throws java.sql.SQLException
     {
         String command = getAutoRetrievingStatement();
@@ -257,7 +256,7 @@ public abstract class DriverProviderMain
             result = statement.getGeneratedKeys();
         }
         else {
-            result = DBGeneratedKeys.getGeneratedResult(this, statement, table, row, columns, command);
+            result = DBGeneratedKeys.getGeneratedResult(this, statement, table, columns, command);
         }
         if (result != null) {
             ResultSetMetaData metadata = result.getMetaData();
@@ -270,6 +269,7 @@ public abstract class DriverProviderMain
                         // XXX: It is important to preserve the type of the original ResultSet columns
                         RowColumn column = columns.get(name);
                         Object value = RowHelper.getResultSetValue(result, i, column.getType());
+                        System.out.println("DriverProvider.setGeneratedKeys() 1 value: " + value);
                         row.setColumnObject(column.getIndex(), value);
                     }
                 }
@@ -288,12 +288,6 @@ public abstract class DriverProviderMain
     public boolean supportsSystemVersioning()
     {
         return m_SystemVersioningCommands != null && m_SystemVersioningCommands.length > 0;
-    }
-
-    @Override
-    public String getSyncProvider()
-    {
-        return m_SyncProvider;
     }
 
     @Override
@@ -748,7 +742,7 @@ public abstract class DriverProviderMain
 
     @Override
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnBase<?> column)
+                                     ColumnBase column)
     {
         return null;
     }

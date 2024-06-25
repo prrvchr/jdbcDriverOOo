@@ -35,7 +35,7 @@ import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.rowset.Row;
+import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.RowTable;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
@@ -58,8 +58,6 @@ public interface DriverProvider
     }
 
     public String getProtocol();
-
-    public String getSyncProvider();
 
     public String getSubProtocol();
 
@@ -92,7 +90,7 @@ public interface DriverProvider
 
     public void setGeneratedKeys(Statement statement,
                                  RowTable table,
-                                 Row row) throws java.sql.SQLException;
+                                 BaseRow row) throws java.sql.SQLException;
 
     public boolean isResultSetUpdatable(java.sql.ResultSet result) throws java.sql.SQLException;
 
@@ -297,7 +295,7 @@ public interface DriverProvider
     public String[] getPrivileges(int privilege);
 
     public String getDropColumnQuery(ConnectionBase connection,
-                                     ColumnBase<?> column);
+                                     ColumnBase column);
 
     public String getDropUserQuery(ConnectionBase connection,
                                    String user);

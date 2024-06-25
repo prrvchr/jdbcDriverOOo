@@ -50,12 +50,12 @@ import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
-public abstract class TableMain<C extends ConnectionSuper>
+public abstract class TableMain
     extends Descriptor
     implements XRename
 {
 
-    private final C m_connection;
+    private final ConnectionSuper m_connection;
     private final ConnectionLog m_logger; 
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
@@ -63,7 +63,7 @@ public abstract class TableMain<C extends ConnectionSuper>
     // The constructor method:
     public TableMain(String service,
                      String[] services,
-                     C connection,
+                     ConnectionSuper connection,
                      String catalog,
                      String schema,
                      boolean sensitive,
@@ -96,12 +96,25 @@ public abstract class TableMain<C extends ConnectionSuper>
             }, null);
     }
 
+    protected String getCatalogName()
+    {
+        return m_CatalogName;
+    }
+    protected String getSchemaName()
+    {
+        return m_SchemaName;
+    }
+    protected String getName()
+    {
+        return super.getName();
+    }
+
     protected ConnectionLog getLogger()
     {
         return m_logger;
     }
 
-    protected C getConnection()
+    protected ConnectionSuper getConnection()
     {
         return m_connection;
     }

@@ -25,9 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 
 
 public class RowColumn
@@ -44,54 +42,15 @@ public class RowColumn
     // The constructor method:
     public RowColumn(RowTable table,
                      ResultSet result,
-                     int index)
-        throws java.sql.SQLException
-    {
-        this(table, result);
-        m_Index = index;
-    }
-
-    public RowColumn(RowTable table,
-                     ResultSet result)
+                     boolean ordinal)
         throws java.sql.SQLException
     {
         m_Table = table;
         m_Name = result.getString(4);
         m_Identifier = table.getCatalog().enquoteIdentifier(m_Name);
         m_Type = result.getInt(5);
-        m_Index = result.getInt(17);
+        m_Index = ordinal ? result.getInt(17) : 0;
         m_AutoIncrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
-    }
-
-    public RowColumn(RowTable table,
-                     ResultSetMetaData metadata,
-                     int index)
-        throws java.sql.SQLException
-    {
-        m_Table = table;
-        m_Name = metadata.getColumnName(index);
-        m_Identifier = table.getCatalog().enquoteIdentifier(m_Name);
-        m_Type = metadata.getColumnType(index);
-        m_AutoIncrement = metadata.isAutoIncrement(index);
-        m_Index = index;
-    }
-
-    public RowColumn(Connection connection,
-                     RowTable table,
-                     ResultSetMetaData metadata,
-                     int index)
-        throws java.sql.SQLException
-    {
-        m_Table = table;
-        m_Name = metadata.getColumnName(index);
-        m_Identifier = table.getCatalog().enquoteIdentifier(m_Name);
-        try (ResultSet result = connection.getMetaData().getColumns(table.getCatalogName(), table.getSchemaName(), table.getName(), m_Name)) {
-            if (result.next()) {
-                m_Type = result.getInt(5);
-                m_AutoIncrement = AUTOINCREMENT.equalsIgnoreCase(result.getString(23));
-            }
-        }
-        m_Index = index;
     }
 
     public RowTable getTable()
@@ -119,7 +78,7 @@ public class RowColumn
         return m_Name;
     }
 
-    public String getUpdateParameter()
+    public String getPredicate()
     {
         return String.format(m_Table.getParameter(), m_Identifier);
     }
@@ -132,6 +91,11 @@ public class RowColumn
     public int getIndex()
     {
         return m_Index;
+    }
+
+    public void setIndex(int index)
+    {
+        m_Index = index;
     }
 
     public int getType()

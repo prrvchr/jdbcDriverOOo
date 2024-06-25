@@ -25,66 +25,31 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.List;
 
 
 public class Row
+    extends BaseRow
 {
 
     protected Object[] m_NewValues;
-    protected Object[] m_OldValues;
     protected BitSet m_Updated;
-    protected int m_Count;
     protected boolean m_Updatable = true;
 
 
     public Row(int count)
     {
+        super(count);
         m_NewValues = new Object[count];
-        m_OldValues = new Object[count];
         m_Updated = new BitSet(count);
-        m_Count = count;
     }
 
-    public Row(int count, Object[] values)
+    public Row(BaseRow row)
     {
-        this(count);
-        System.arraycopy(values, 0, m_NewValues, 0, count);
-    }
-
-    public boolean isColumnUpdated(int index)
-    {
-        return m_Updated.get(index - 1);
-    }
-
-    public void initColumnObject(ResultSet result,
-                                 int index)
-        throws SQLException
-    {
-        Object value = RowHelper.getResultSetValue(result, index);
-        m_OldValues[index - 1] = value;
-    }
-
-    public void setColumnDouble(int index, Double value, int type)
-        throws SQLException
-    {
-        if (m_Updatable) {
-            int i = index - 1;
-            m_NewValues[i] = RowHelper.getDoubleValue(value, type);
-            m_Updated.set(i);
-        }
-    }
-
-    public void setColumnObject(int index, Object value)
-    {
-        if (m_Updatable) {
-            int i = index - 1;
-            m_NewValues[i] = value;
-            m_Updated.set(i);
-        }
+        super(row);
+        m_NewValues = new Object[m_Count];
+        m_Updated = new BitSet(m_Count);
     }
 
     public void clearUpdated(List<RowColumn> columns, int status)
@@ -101,31 +66,7 @@ public class Row
 
     public Object getOldColumnObject(int index)
     {
-        return(m_OldValues[index - 1]);
-    }
-
-    public boolean isColumnNull(int index)
-    {
-        boolean isnull = true;
-        if (isColumnUpdated(index)) {
-            isnull = m_NewValues[index - 1] == null;
-        }
-        else {
-            isnull = m_OldValues[index - 1] == null;
-        }
-        return isnull;
-    }
-
-    public Object getColumnObject(int index)
-    {
-        Object value = null;
-        if (isColumnUpdated(index)) {
-            value = m_NewValues[index - 1];
-        }
-        else {
-            value = m_OldValues[index - 1];
-        }
-        return value;
+        return m_OldValues[index - 1];
     }
 
     public boolean isUpdated()
@@ -136,7 +77,7 @@ public class Row
             m_Updatable = true;
         }
         for (int i = 1; i <= m_Count; i++) {
-            if (isColumnUpdated(i)) {
+            if (isColumnSet(i)) {
                 return true;
             }
         }
@@ -152,5 +93,58 @@ public class Row
     {
         m_Updatable = false;
     }
+
+    @Override
+    public boolean isColumnNull(int index)
+    {
+        boolean isnull = true;
+        if (isColumnSet(index)) {
+            isnull = m_NewValues[index - 1] == null;
+        }
+        else {
+            isnull = m_OldValues[index - 1] == null;
+        }
+        return isnull;
+    }
+
+    @Override
+    public Object getColumnObject(int index)
+    {
+        Object value = null;
+        if (isColumnSet(index)) {
+            value = m_NewValues[index - 1];
+        }
+        else {
+            value = m_OldValues[index - 1];
+        }
+        return value;
+    }
+
+    @Override
+    public void setColumnObject(int index, Object value)
+    {
+        if (m_Updatable) {
+            int i = index - 1;
+            m_NewValues[i] = value;
+            m_Updated.set(i);
+        }
+    }
+
+    @Override
+    public void setColumnDouble(int index, Double value, int type)
+    {
+        if (m_Updatable) {
+            int i = index - 1;
+            m_NewValues[i] = RowHelper.getDoubleValue(value, type);
+            m_Updated.set(i);
+        }
+    }
+
+    @Override
+    public boolean isColumnSet(int index)
+    {
+        return m_Updated.get(index - 1);
+    }
+
 
 }

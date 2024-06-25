@@ -36,7 +36,7 @@ import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class IndexColumn
-    extends ColumnBase<TableSuper<?>>
+    extends ColumnBase
 {
     private static final String m_service = IndexColumn.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumn"};
@@ -45,7 +45,7 @@ public final class IndexColumn
 
 
     // The constructor method:
-    public IndexColumn(final TableSuper<?> table,
+    public IndexColumn(final TableSuper table,
                        final boolean sensitive,
                        final String name,
                        final String typename,

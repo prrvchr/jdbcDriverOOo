@@ -117,7 +117,7 @@ public final class Array
     {
         try {
             java.sql.ResultSet result = m_Array.getResultSet();
-            return result != null ? new ResultSet<Statement>(m_Connection, result) : null;
+            return result != null ? new ResultSet(m_Connection, result) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -130,7 +130,7 @@ public final class Array
     {
         try {
             java.sql.ResultSet result = m_Array.getResultSet(index, count);
-            return result != null ? new ResultSet<Statement>(m_Connection, result) : null;
+            return result != null ? new ResultSet(m_Connection, result) : null;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

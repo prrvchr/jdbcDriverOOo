@@ -65,11 +65,11 @@ public final class KeyContainer
     private static final String[] m_services = {"com.sun.star.sdbcx.Keys",
                                                 "com.sun.star.sdbcx.Container"};
 
-    protected final TableSuper<?> m_table;
+    protected final TableSuper m_table;
     private final ConnectionLog m_logger; 
 
     // The constructor method:
-    public KeyContainer(TableSuper<?> table,
+    public KeyContainer(TableSuper table,
                         boolean sensitive,
                         List<String> keys)
         throws ElementExistException
@@ -122,8 +122,8 @@ public final class KeyContainer
         try {
             System.out.println("sdbcx.KeyContainer.appendElement() 1");
             boolean failed = false;
-            ColumnSuper<?> col1 = null;
-            ColumnSuper<?> col2 = null;
+            ColumnSuper col1 = null;
+            ColumnSuper col2 = null;
             int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
             // XXX: For foreign keys, we check if the type between the foreign key and the primary key is the same.
             if (type == KeyType.FOREIGN) {
@@ -133,7 +133,7 @@ public final class KeyContainer
                     String table = DBKeyHelper.getKeyFromDescriptor(getConnection().getProvider(), descriptor, columns);
                     System.out.println("sdbcx.KeyContainer.appendElement() 3 Table: " + table + " ********************************** ");
                     ColumnContainerBase<?> columns1 = m_table.getColumnsInternal();
-                    TableContainerSuper<?, ?> tables = m_table.getConnection().getTablesInternal();
+                    TableContainerSuper<?> tables = m_table.getConnection().getTablesInternal();
                     System.out.println("sdbcx.KeyContainer.appendElement() 3");
                     if (tables.hasByName(table)) {
                         ColumnContainerBase<?> columns2 = tables.getElement(table).getColumnsInternal();

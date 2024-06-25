@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -34,9 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBQueryParser;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
@@ -51,38 +49,36 @@ public class RowTable
 
 
     // The constructor method:
-    public RowTable(DriverProvider provider,
-                    RowCatalog catalog,
-                    String query)
+    public RowTable (Connection connection,
+                     RowCatalog catalog,
+                     ResultSetMetaData metadata,
+                     int index)
         throws SQLException
     {
-        m_Catalog = catalog;
-        DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_SELECT, query);
-        if (!parser.hasTable()) {
-            throw new SQLException();
-        }
-        ComposeRule rule = ComposeRule.InDataManipulation;
-        m_Component = DBTools.qualifiedNameComponents(provider, parser.getTable(), rule, true);
-        System.out.println("RowTable() 1");
+        this(connection, catalog, DBTools.getNamedComponents(metadata, index), false);
     }
 
-    public RowTable(RowCatalog catalog,
-                    NamedComponents component)
+    public RowTable (Connection connection,
+                     RowCatalog catalog,
+                     NamedComponents component)
+        throws SQLException
+    {
+        this(connection, catalog, component, false);
+    }
+
+    public RowTable (Connection connection,
+                     RowCatalog catalog,
+                     NamedComponents component,
+                     boolean ordinal)
         throws SQLException
     {
         m_Catalog = catalog;
         m_Component = component;
-        System.out.println("RowTable() 1");
-    }
-
-    public RowTable(RowCatalog tables,
-                    ResultSetMetaData metadata,
-                    int index)
-        throws SQLException
-    {
-        m_Catalog = tables;
-        m_Component = DBTools.getNamedComponents(metadata, index);
-        System.out.println("RowTable() 1");
+        try (ResultSet result = connection.getMetaData().getColumns(component.getCatalog(), component.getSchema(), component.getTable(), "%")) {
+            while (result.next()) {
+                addColumn(new RowColumn(this, result, ordinal));
+            }
+        }
     }
 
     public RowCatalog getCatalog()
@@ -98,6 +94,16 @@ public class RowTable
     public void addColumn(RowColumn column)
     {
         m_Columns.put(column.getName(), column);
+    }
+
+    public boolean setIndexColumn(String name, int index)
+    {
+        if (m_Columns.containsKey(name)) {
+            RowColumn column = m_Columns.get(name);
+            column.setIndex(index);
+            return true;
+        }
+        return false;
     }
 
     public boolean hasRowIdentifier()
@@ -152,7 +158,10 @@ public class RowTable
 
     public boolean hasColumn(String column)
     {
-        return m_Columns.containsKey(column);
+        if (m_Columns.containsKey(column)) {
+            return m_Columns.get(column).getIndex() > 0;
+        }
+        return false;
     }
 
     public RowColumn getColumn(String column)
@@ -180,7 +189,7 @@ public class RowTable
     public RowColumn getAutoIncrementColumn()
     {
         for (RowColumn column : m_Columns.values()) {
-            if (column.isAutoIncrement()) {
+            if (column.isAutoIncrement() && column.getIndex() > 0) {
                 return column;
             }
         }
@@ -232,7 +241,7 @@ public class RowTable
         if (m_Where == null) {
             List<String> columns = new ArrayList<>();
             for (String key : m_Keys) {
-                columns.add(String.format(m_Catalog.getParameter(), m_Columns.get(key).getIdentifier()));
+                columns.add(m_Columns.get(key).getPredicate());
             }
             m_Where = String.join(m_Catalog.getAnd(), columns);
         }

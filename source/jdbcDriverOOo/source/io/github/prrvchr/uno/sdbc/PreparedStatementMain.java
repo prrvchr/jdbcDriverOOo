@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbc;
 
 import java.io.InputStream;
+import java.sql.PreparedStatement;
 
 import com.sun.star.io.XInputStream;
 import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
@@ -53,8 +54,8 @@ import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public abstract class PreparedStatementMain<C extends ConnectionBase, S extends java.sql.PreparedStatement>
-    extends StatementMain<C, S>
+public abstract class PreparedStatementMain
+    extends StatementMain
     implements XParameters,
                XPreparedBatchExecution,
                XPreparedStatement,
@@ -69,7 +70,7 @@ public abstract class PreparedStatementMain<C extends ConnectionBase, S extends 
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementBase()
     public PreparedStatementMain(String service,
                                  String[] services,
-                                 C connection)
+                                 ConnectionBase connection)
     {
         super(service, services, connection);
     }
@@ -81,6 +82,7 @@ public abstract class PreparedStatementMain<C extends ConnectionBase, S extends 
         return getJdbcStatement().executeQuery();
     }
 
+    protected abstract PreparedStatement getJdbcStatement() throws java.sql.SQLException;
 
     // com.sun.star.sdbc.XParameters:
     @Override

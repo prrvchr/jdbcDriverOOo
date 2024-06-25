@@ -34,7 +34,7 @@ import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
 
 
 public final class ColumnContainer
-    extends ColumnContainerBase<Table>
+    extends ColumnContainerBase<Column>
 {
     private static final String m_service = ColumnContainer.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbcx.Columns",
@@ -67,7 +67,6 @@ public final class ColumnContainer
                                boolean rowversion,
                                boolean currency)
     {
-        return new Column(m_table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        return new Column((Table) m_table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
-
 }

@@ -52,19 +52,24 @@ import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
-public abstract class TableContainerSuper<C extends ConnectionSuper, T extends TableSuper<?>>
-    extends TableContainerMain<C, T>
+public abstract class TableContainerSuper<T extends TableSuper>
+    extends TableContainerMain<T>
 {
 
     // The constructor method:
     public TableContainerSuper(String service,
                                String[] services,
-                               C connection,
+                               ConnectionSuper connection,
                                boolean sensitive,
                                List<String> names)
         throws ElementExistException
     {
         super(service, services, connection, sensitive, names, LoggerObjectType.TABLECONTAINER);
+    }
+
+    protected ConnectionSuper getConnection()
+    {
+        return m_Connection;
     }
 
     @Override
@@ -151,7 +156,7 @@ public abstract class TableContainerSuper<C extends ConnectionSuper, T extends T
         {
             System.out.println("TableContainerSuper._getcreateElementResultSet() 1 " + table.getCatalog() + " - " + table.getSchema() + " - " + table.getTableName());
             java.sql.DatabaseMetaData metadata = m_Connection.getProvider().getConnection().getMetaData();
-            return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTableName(), null);
+            return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTable(), null);
         }
 
     @Override
@@ -162,7 +167,7 @@ public abstract class TableContainerSuper<C extends ConnectionSuper, T extends T
         String query = null;
         try {
             boolean isview = false;
-            T element = getElement(name);
+            TableSuper element = (TableSuper) getElement(name);
             if (element != null) {
                 isview = element.m_Type.toUpperCase().contains("VIEW");
             }

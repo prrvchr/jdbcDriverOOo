@@ -34,7 +34,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class CallableStatement
-    extends CallableStatementBase<Connection>
+    extends CallableStatementBase
 {
 
     private static final String m_service = CallableStatement.class.getName();
@@ -53,14 +53,19 @@ public final class CallableStatement
         throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            ResultSet<CallableStatement> resultset =  new ResultSet<CallableStatement>(getConnectionInternal(), getJdbcResultSet(), this);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            ResultSet resultset =  new ResultSet(getConnectionInternal(), getJdbcResultSet(), this);
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
             return resultset;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    @Override
+    protected Connection getConnectionInternal() {
+        return (Connection) m_Connection;
     }
 
 

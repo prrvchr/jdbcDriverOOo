@@ -28,11 +28,13 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
-public final class RowSet<S extends StatementMain<?, ?>>
-    extends RowSetSuper<Connection, S>
+public final class RowSet
+    extends RowSetSuper
 {
     private static final String m_service = ResultSet.class.getName();
     private static final String[] m_services = {"com.sun.star.sdbc.ResultSet",
@@ -42,12 +44,17 @@ public final class RowSet<S extends StatementMain<?, ?>>
     public RowSet(DriverProvider provider,
                   Connection connection,
                   java.sql.ResultSet result,
-                  S statement,
+                  StatementMain statement,
+                  RowCatalog catalog,
                   String query)
         throws SQLException
     {
-        super(m_service, m_services, provider, connection, result, statement, query);
+        super(m_service, m_services, provider, connection, ResultSetHelper.getCachedResultSet(provider, result, catalog, query), statement, query);
         System.out.println("sdbcx.RowSet() 1");
+    }
+
+    protected Connection getConnection() {
+        return (Connection) m_Connection;
     }
 
 }
