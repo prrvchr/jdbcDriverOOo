@@ -532,7 +532,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
   - [CachedResultSet.class][122]  
   These ResultSets are capable of editing almost all queries created in LibreOffice Base, even views...
 - Removed the use of generic classes where they were not needed. This made the driver faster...
-- Added special parameters in: **Edit -> Database -> Advanced parameters... -> Special parameters** in order to respond to the request for integration of the Trino driver (see [improvement request #8 ][116]). It is necessary to recreate the odb files in order to have access to these new parameters.
+- Added special parameters in: **Edit -> Database -> Advanced parameters... -> Special parameters** in order to respond to the request for integration of the Trino driver (see [improvement request #8 ][123]). It is necessary to recreate the odb files in order to have access to these new parameters.
 
 ### What remains to be done for version 1.4.1:
 
@@ -644,8 +644,8 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L185>
 [111]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L395>
 [112]: <https://prrvchr.github.io/JaybirdOOo/>
-[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/ScrollableResultSet.java#L53>
-[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/SensitiveResultSet.java#L52>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/ScrollableResultSet.java#L57>
+[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/SensitiveResultSet.java#L60>
 [115]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/rowset/RowSetWriter.java#L41>
 [116]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
 [117]: <https://trino.io/>
@@ -654,3 +654,4 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [120]: <https://github.com/trinodb/trino/issues/22408>
 [121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
 [122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/CachedResultSet.java#L55>
+[123]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8#issuecomment-2182445391>
