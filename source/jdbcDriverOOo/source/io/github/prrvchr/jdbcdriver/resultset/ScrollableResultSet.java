@@ -62,7 +62,6 @@ public class ScrollableResultSet
     private boolean m_RowCountFinal = false;
     private int m_InsertedRow = 0;
     private boolean m_WasNull = false;
-    private boolean m_Updatable;
 
     // The constructor method:
     public ScrollableResultSet(DriverProvider provider,
@@ -72,19 +71,9 @@ public class ScrollableResultSet
         throws SQLException
     {
         super(provider, result, catalog, query);
-        try {
-            m_Insertable = false;
-            boolean updatable = provider.isResultSetUpdatable(result);
-            if (!updatable) {
-                m_Catalog = new RowCatalog(provider, result, query);
-                updatable = m_Catalog.hasRowIdentifier();
-            }
-            m_Updatable = updatable;
-            loadNextRow();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        m_Updatable = false;
+        System.out.println("ScrollableResultSet() 1");
+        loadNextRow();
     }
 
 
@@ -93,7 +82,7 @@ public class ScrollableResultSet
     public int getConcurrency()
         throws SQLException
     {
-        return m_Updatable ? ResultSet.CONCUR_UPDATABLE : ResultSet.CONCUR_READ_ONLY;
+        return ResultSet.CONCUR_UPDATABLE;
     }
 
     // XXX: We want to emulate an scollable ResultSet

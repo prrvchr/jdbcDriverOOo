@@ -44,6 +44,7 @@ public class RowTable
     private RowCatalog m_Catalog;
     private Map<String, RowColumn> m_Columns = new LinkedHashMap<>();
     private List<String> m_Keys = new ArrayList<>();
+    private boolean m_IsPrimary = false;
     private NamedComponents m_Component;
     private String m_Where;
 
@@ -96,14 +97,12 @@ public class RowTable
         m_Columns.put(column.getName(), column);
     }
 
-    public boolean setIndexColumn(String name, int index)
+    public void setIndexColumn(String name, int index)
     {
         if (m_Columns.containsKey(name)) {
             RowColumn column = m_Columns.get(name);
             column.setIndex(index);
-            return true;
         }
-        return false;
     }
 
     public boolean hasRowIdentifier()
@@ -111,9 +110,19 @@ public class RowTable
         return !m_Keys.isEmpty();
     }
 
+    public boolean isIdentifierPrimaryKey()
+    {
+        return m_IsPrimary;
+    }
+
     public void addRowIdentifier(String column, int index)
     {
         m_Keys.add(index, column);
+    }
+
+    public void setIdentifierAsPrimaryKey()
+    {
+        m_IsPrimary = true;
     }
 
     public void setDefaultRowIdentifier()
@@ -261,17 +270,6 @@ public class RowTable
     public String getMark()
     {
         return m_Catalog.getMark();
-    }
-
-    public boolean equals(Object object)
-    {
-        if (!(object instanceof RowTable)) {
-            return false;
-        }
-        RowTable table = (RowTable) object;
-        return getCatalogName().equals(table.getCatalogName()) &&
-               getSchemaName().equals(table.getSchemaName()) &&
-               getName().equals(table.getName());
     }
 
     public Collection<RowColumn> getColumns()

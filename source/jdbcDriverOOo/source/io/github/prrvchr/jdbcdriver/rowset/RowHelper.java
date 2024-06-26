@@ -135,6 +135,7 @@ public class RowHelper
         for (String key : table.getRowIdentifier()) {
             RowColumn column = table.getColumn(key);
             Object value = row.getOldColumnObject(column.getIndex());
+            System.out.println("RowSetWriter.getModifiedColumns() Column: " + column.getName() + " - Value: " + value);
             RowHelper.setStatementValue(statement, column.getType(), index, value);
             index ++;
         }

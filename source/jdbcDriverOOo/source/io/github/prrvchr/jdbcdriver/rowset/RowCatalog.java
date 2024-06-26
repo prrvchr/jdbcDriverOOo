@@ -78,7 +78,6 @@ public class RowCatalog
         throws SQLException
     {
         RowTable table = null;
-        boolean retrieved = true;
         NamedComponents component = null;
         m_Statement = provider.getStatement();
         Connection connection = provider.getConnection();
@@ -93,39 +92,23 @@ public class RowCatalog
                 table = getTable(connection, metadata, index);
             }
             if (table.isValid()) {
-                retrieved |= table.setIndexColumn(metadata.getColumnName(index), index);
+                table.setIndexColumn(metadata.getColumnName(index), index);
             }
         }
-        if (table == null) {
-            throw new SQLException();
-        }
-        if (table.isValid() && retrieved) {
-            setRowIdentifier(table);
-        }
-    }
-
-    private void setRowIdentifier(RowTable table)
-        throws SQLException
-    {
-        try (ResultSet result = m_Statement.getConnection().getMetaData().getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName())) {
-            while (result.next()) {
-                String key = result.getString(4);
-                if (!result.wasNull() && table.hasColumn(key)) {
-                    short index = result.getShort(5);
-                    table.addRowIdentifier(key, index - 1);
-                }
-            }
-        }
-        if (!table.hasRowIdentifier()) {
-            table.setDefaultRowIdentifier();
-        }
+        setTableIdentifier();
     }
 
     public boolean hasRowIdentifier()
     {
         boolean has = true;
+        boolean multiple = getTableCount() > 1;
         for (RowTable table : m_Tables) {
-            has |= table.hasRowIdentifier();
+            if (multiple) {
+                has &= table.hasRowIdentifier() && table.isIdentifierPrimaryKey();
+            }
+            else {
+                has = table.hasRowIdentifier();
+            }
         }
         return !m_Tables.isEmpty() && has;
     }
@@ -210,6 +193,35 @@ public class RowCatalog
 
     public List<RowTable> getTables() {
         return m_Tables;
+    }
+
+
+    private void setTableIdentifier()
+        throws SQLException
+    {
+        for (RowTable table : getTables()) {
+            if (table.isValid()) {
+                setRowIdentifier(table);
+            }
+        }
+    }
+
+    private void setRowIdentifier(RowTable table)
+        throws SQLException
+    {
+        try (ResultSet result = m_Statement.getConnection().getMetaData().getPrimaryKeys(table.getCatalogName(), table.getSchemaName(), table.getName())) {
+            while (result.next()) {
+                String key = result.getString(4);
+                if (!result.wasNull() && table.hasColumn(key)) {
+                    short index = result.getShort(5);
+                    table.addRowIdentifier(key, index - 1);
+                    table.setIdentifierAsPrimaryKey();
+                }
+            }
+        }
+        if (!table.hasRowIdentifier()) {
+            table.setDefaultRowIdentifier();
+        }
     }
 
     private RowTable getTable(Connection connection,

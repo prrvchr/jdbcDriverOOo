@@ -529,10 +529,10 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Nouvelle implémentation, que j'espère définitive, des signets (bookmarks). Il est basé sur trois fichiers et est tiré de l'implémentation par Sun de `javax.sql.rowset.CachedRowSet` :
   - [ScollableResultSet.class][113]
   - [SensitiveResultSet.class][114]
-  - [CachedResultSet.class][122]  
-  Ces ResultSets sont capables d'éditer presque toutes les requêtes créées dans LibreOffice Base, même les vues...
+  - [CachedResultSet.class][122]
+- **Ces ResultSets sont capables d'éditer presque toutes les requêtes créées dans LibreOffice Base, même les vues...** Mais afin de garantir une bonne fonctionnalité, certaines règles doivent être respectées afin de rendre un jeu de résultats éditable. Si la requête concerne plusieurs tables alors il est impératif d'inclure les clés primaires de chaque table dans la liste des colonnes du jeu de résultats. Si la requête ne concerne qu'une seule table alors le jeu de résultats sera modifiable s'il existe une colonne qui ne contient pas de doublon (ie: une clé naturelle). Cela permet de rendre modifiables les jeux de résultats provenant du pilote Trino.
 - Suppression de l'utilisation de classes génériques là où elles n'étaient pas nécessaires. Cela a rendu le pilote plus rapide...
-- Ajout de paramètres spéciaux dans : **Edition -> Base de données -> Paramètres avancés... -> Paramètres spéciaux** afin de répondre à la demande d'intégration du pilote Trino (voir [demande d'amélioration n°8][123]). Il est nécessaire de recréer les fichiers odb afin d'avoir accès à ces nouveaux paramètres.
+- Ajout de paramètres spéciaux dans: **Edition -> Base de données -> Paramètres avancés... -> Paramètres spéciaux** afin de répondre à la demande d'intégration du pilote Trino (voir [demande d'amélioration n°8][123]). Il est nécessaire de recréer les fichiers odb afin d'avoir accès à ces nouveaux paramètres.
 
 ### Que reste-t-il à faire pour la version 1.4.1:
 

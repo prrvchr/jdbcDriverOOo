@@ -81,7 +81,7 @@ public abstract class CachedResultSet
     // XXX: If ResultSet is not updatable then we need to emulate the insert row.
     protected InsertRow m_InsertRow = null;
 
-    protected boolean m_Insertable = false;
+    protected boolean m_Updatable = false;
     // XXX: We need to know when we are on the insert row
     protected boolean m_OnInsert = false;
     // XXX: We need to keep the index references of the columns already assigned for insertion
@@ -108,9 +108,9 @@ public abstract class CachedResultSet
         m_IsUpdateVisible = updatable && provider.isUpdateVisible(rstype);
         m_FetchSize = result.getFetchSize();
         m_ColumnCount = result.getMetaData().getColumnCount();
-        m_Insertable = updatable;
         m_InsertedColumns = new BitSet(m_ColumnCount);
-        System.out.println("CachedResultSet() Insertable: " + m_Insertable);
+        m_Updatable = updatable;
+        System.out.println("CachedResultSet() Updatable: " + m_Updatable);
     }
 
 
@@ -130,7 +130,7 @@ public abstract class CachedResultSet
     public void cancelRowUpdates()
         throws SQLException
     {
-        if (m_Insertable) {
+        if (m_Updatable) {
             if (isOnInsertRow()) {
                 moveToCurrentRow();
             }
@@ -147,7 +147,7 @@ public abstract class CachedResultSet
     public void moveToInsertRow()
         throws SQLException
     {
-        if (m_Insertable) {
+        if (m_Updatable) {
             m_Result.moveToInsertRow();
             m_InsertedColumns.clear();
         }
@@ -158,7 +158,7 @@ public abstract class CachedResultSet
     public void moveToCurrentRow()
         throws SQLException
     {
-        if (m_Insertable) {
+        if (m_Updatable) {
             m_Result.moveToCurrentRow();
         }
         setInsertMode(false);

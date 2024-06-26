@@ -68,7 +68,6 @@ public class SensitiveResultSet
     private List<Integer> m_InsertedRows = new ArrayList<>();
     private Vector<Row> m_InsertedData = null;
     private int m_RowCount = 0;
-    private boolean m_Updatable = false;
     private int m_Inserted = -1;
     private boolean m_WasNull = false;
     private boolean m_SQLDelete = false;
@@ -92,14 +91,7 @@ public class SensitiveResultSet
         m_SQLInsert = provider.useSQLInsert();
         m_SQLUpdate = provider.useSQLUpdate();
         m_SQLMode = provider.isSQLMode();
-        boolean updatable = provider.isResultSetUpdatable(result);
-        if (!updatable) {
-            m_Catalog = new RowCatalog(provider, result, query);
-            updatable = m_Catalog.hasRowIdentifier();
-            System.out.println("SensitiveResultSet()1 TableCount: " + m_Catalog.getTableCount());
-        }
-        System.out.println("SensitiveResultSet() 2 Updatable: " + updatable);
-        m_Updatable = updatable;
+        System.out.println("SensitiveResultSet() 1");
         loadLastRow();
     }
 
@@ -109,7 +101,7 @@ public class SensitiveResultSet
     public int getConcurrency()
         throws SQLException
     {
-        return m_Updatable ? ResultSet.CONCUR_UPDATABLE : ResultSet.CONCUR_READ_ONLY;
+        return ResultSet.CONCUR_UPDATABLE;
     }
 
     // XXX: We want to emulate an scollable ResultSet
