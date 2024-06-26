@@ -544,7 +544,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-140>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-141>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -571,7 +571,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.0#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.1#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>
