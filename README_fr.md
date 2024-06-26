@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.4.0][5]
+# version [1.4.1][5]
 
 ## Introduction:
 
@@ -524,7 +524,17 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Afin de contourner le [dysfonctionnement #368][121] le driver HsqlDB utilise des mises à jour en mode SQL dans les jeux de résultats.
 - De nombreuses corrections et améliorations...
 
-### Que reste-t-il à faire pour la version 1.4.0:
+### Ce qui a été fait pour la version 1.4.1:
+
+- Nouvelle implémentation, que j'espère définitive, des signets (bookmarks). Il est basé sur trois fichiers et est tiré de l'implémentation par Sun de `javax.sql.rowset.CachedRowSet` :
+  - [ScollableResultSet.class][113]
+  - [SensitiveResultSet.class][114]
+  - [CachedResultSet.class][122]  
+  Ces ResultSets sont capables d'éditer presque toutes les requêtes créées dans LibreOffice Base, même les vues...
+- Suppression de l'utilisation de classes génériques là où elles n'étaient pas nécessaires. Cela a rendu le pilote plus rapide...
+- Ajout de paramètres spéciaux dans : **Edition -> Base de données -> Paramètres avancés... -> Paramètres spéciaux** afin de répondre à la demande d'intégration du pilote Trino (voir [demande d'amélioration n°8][116]). Il est nécessaire de recréer les fichiers odb afin d'avoir accès à ces nouveaux paramètres.
+
+### Que reste-t-il à faire pour la version 1.4.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -643,3 +653,4 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
 [120]: <https://github.com/trinodb/trino/issues/22408>
 [121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
+[122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/CachedResultSet.java#L55>

@@ -39,6 +39,8 @@
                 <value xml:lang="en-US">JDBC Driver</value>
                 <value xml:lang="fr-FR">Pilote JDBC</value>
             </prop>
+
+
 <!-- "Properties" node is the _supported_ properties -->
             <node oor:name="Properties">
                 <node oor:name="PreferDosLikeLineEnds" oor:op="replace">
@@ -67,13 +69,12 @@
                         <value>true</value>
                     </prop>
                 </node>
-
-               <node oor:name="RowVersionCreation" oor:op="replace">
+                <node oor:name="RowVersionCreation" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value></value>
                     </prop>
                 </node>
-               <node oor:name="AutoIncrementCreation" oor:op="replace">
+                <node oor:name="AutoIncrementCreation" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value></value>
                     </prop>
@@ -88,7 +89,6 @@
                         <value>false</value>
                     </prop>
                 </node>
-
                 <node oor:name="RespectDriverResultSetType" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -124,18 +124,7 @@
                         <value>true</value>
                     </prop>
                 </node>
-
-<!--            <node oor:name="EnableSQL92Check" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="UseSchemaInSelect" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseCatalogInSelect" oor:op="replace">
+                <node oor:name="EnableSQL92Check" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
@@ -145,17 +134,22 @@
                         <value>true</value>
                     </prop>
                 </node>
+                <node oor:name="ParameterNameSubstitution" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="DisplayVersionColumns" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="EnableOuterJoinEscape" oor:op="replace">
+                <node oor:name="UseSchemaInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+                <node oor:name="UseCatalogInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -165,12 +159,18 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="ParameterNameSubstitution" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
+                <node oor:name="BooleanComparisonMode" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:int">
+                        <value>0</value>
                     </prop>
                 </node>
-                <node oor:name="Forms" oor:op="replace">
+                <node oor:name="EnableOuterJoinEscape" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+
+<!--            <node oor:name="Forms" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>io.github.prrvchr.jdbcDriverOOo.DefinitionContainer</value>
                     </prop>
@@ -187,6 +187,8 @@
                 </node> -->
 
             </node>
+
+
 <!-- "Features" node is the properties that are supposed to be exposed in the UI in: Base -> Edit -> DataBase -> Advenced settings -->
             <node oor:name="Features">
                 <node oor:name="UseDOSLineEnds" oor:op="replace">
@@ -215,7 +217,6 @@
                         <value>true</value>
                     </prop>
                 </node>
-
                 <node oor:name="RespectDriverResultSetType" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -241,23 +242,7 @@
                         <value>false</value>
                     </prop>
                 </node>
-
-<!--            <node oor:name="UseSchemaInSelect" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseCatalogInSelect" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="BooleanComparisonMode" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="DisplayVersionColumns" oor:op="replace">
+                <node oor:name="UseBracketedOuterJoinSyntax" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -267,7 +252,7 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="UseIndexDirectionKeyword" oor:op="replace">
+                <node oor:name="UseSQL92NamingConstraints" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
@@ -277,18 +262,34 @@
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="UseSQL92NamingConstraints" oor:op="replace">
+                <node oor:name="DisplayVersionColumns" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
                 </node>
-                <node oor:name="UseBracketedOuterJoinSyntax" oor:op="replace">
+                <node oor:name="UseSchemaInSelect" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
                     </prop>
-                </node> -->
-
+                </node>
+                <node oor:name="UseCatalogInSelect" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="UseIndexDirectionKeyword" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
+                <node oor:name="BooleanComparisonMode" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
             </node>
+
+
             <node oor:name="MetaData">
                 <node oor:name="UseJava" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">

@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.0][5]
+# version [1.4.1][5]
 
 ## Introduction:
 
@@ -524,7 +524,17 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - To work around [issue #368][120] the HsqlDB driver uses SQL mode updates in ResultSet.
 - Many fixes and improvements...
 
-### What remains to be done for version 1.4.0:
+### What has been done for version 1.4.1:
+
+- New implementation, which I hope is definitive, of bookmarks. It is based on three files and is taken from Sun's implementation of `javax.sql.rowset.CachedRowSet`:
+  - [ScollableResultSet.class][113]
+  - [SensitiveResultSet.class][114]
+  - [CachedResultSet.class][122]  
+  These ResultSets are capable of editing almost all queries created in LibreOffice Base, even views...
+- Removed the use of generic classes where they were not needed. This made the driver faster...
+- Added special parameters in: **Edit -> Database -> Advanced parameters... -> Special parameters** in order to respond to the request for integration of the Trino driver (see [improvement request #8 ][116]). It is necessary to recreate the odb files in order to have access to these new parameters.
+
+### What remains to be done for version 1.4.1:
 
 - Add new languages for internationalization...
 
@@ -643,3 +653,4 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [119]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
 [120]: <https://github.com/trinodb/trino/issues/22408>
 [121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
+[122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/CachedResultSet.java#L55>
