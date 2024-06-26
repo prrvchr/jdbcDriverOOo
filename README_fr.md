@@ -529,7 +529,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Nouvelle implémentation, que j'espère définitive, des signets (bookmarks). Il est basé sur trois fichiers et est tiré de l'implémentation par Sun de `javax.sql.rowset.CachedRowSet` :
   - [ScollableResultSet.class][113]
   - [SensitiveResultSet.class][114]
-  - [CachedResultSet.class][122]
+  - [CachedResultSet.class][122]  
   Ces ResultSets sont capables d'éditer presque toutes les requêtes créées dans LibreOffice Base, même les vues...
 - Suppression de l'utilisation de classes génériques là où elles n'étaient pas nécessaires. Cela a rendu le pilote plus rapide...
 - Ajout de paramètres spéciaux dans : **Edition -> Base de données -> Paramètres avancés... -> Paramètres spéciaux** afin de répondre à la demande d'intégration du pilote Trino (voir [demande d'amélioration n°8][116]). Il est nécessaire de recréer les fichiers odb afin d'avoir accès à ces nouveaux paramètres.
