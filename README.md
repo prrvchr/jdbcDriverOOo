@@ -529,7 +529,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - New implementation, which I hope is definitive, of bookmarks. It is based on three files and is taken from Sun's implementation of `javax.sql.rowset.CachedRowSet`:
   - [ScollableResultSet.class][113]
   - [SensitiveResultSet.class][114]
-  - [CachedResultSet.class][122]  
+  - [CachedResultSet.class][122]
   These ResultSets are capable of editing almost all queries created in LibreOffice Base, even views...
 - Removed the use of generic classes where they were not needed. This made the driver faster...
 - Added special parameters in: **Edit -> Database -> Advanced parameters... -> Special parameters** in order to respond to the request for integration of the Trino driver (see [improvement request #8 ][116]). It is necessary to recreate the odb files in order to have access to these new parameters.
