@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.4.1][5]
+# version [1.4.2][5]
 
 ## Introduction:
 
@@ -46,7 +46,7 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [Apache Derby][18] version 10.15.2.0
 - [Firebird via Jaybird][19] version 5.0.5
 - [MySQL via Connector/J][20] version 8.4.0 (en cours d'intégration, à utiliser avec prudence)
-- [Trino ou PrestoSQL][21] version 448 (en cours d'intégration, à utiliser avec prudence)
+- [Trino ou PrestoSQL][21] version 453 (en cours d'intégration, à utiliser avec prudence)
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite ou Derby, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
 Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
@@ -534,7 +534,13 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Suppression de l'utilisation de classes génériques là où elles n'étaient pas nécessaires. Cela a rendu le pilote plus rapide...
 - Ajout de paramètres spéciaux dans: **Edition -> Base de données -> Paramètres avancés... -> Paramètres spéciaux** afin de répondre à la demande d'intégration du pilote Trino (voir [demande d'amélioration n°8][123]). Il est nécessaire de recréer les fichiers odb afin d'avoir accès à ces nouveaux paramètres.
 
-### Que reste-t-il à faire pour la version 1.4.1:
+### Ce qui a été fait pour la version 1.4.2:
+
+- Pilote JDBC Trino mis à jour vers la version 453.
+- Mise à jour du paquet [Python packaging][124] vers la version 24.1.
+- Mise à jour du paquet [Python setuptools][125] vers la version 72.1.0 afin de répondre à l'[alerte de sécurité Dependabot][126].
+
+### Que reste-t-il à faire pour la version 1.4.2:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -544,7 +550,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-141>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-142>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -571,7 +577,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.1#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.2#right>
 [41]: <img/jdbcDriverOOo-1_fr.png>
 [42]: <img/jdbcDriverOOo-2_fr.png>
 [43]: <img/jdbcDriverOOo-3_fr.png>
@@ -655,3 +661,6 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
 [122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/CachedResultSet.java#L55>
 [123]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8#issuecomment-2182445391>
+[124]: <https://pypi.org/project/packaging/>
+[125]: <https://pypi.org/project/setuptools/>
+[126]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>

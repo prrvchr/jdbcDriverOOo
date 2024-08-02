@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.1][5]
+# version [1.4.2][5]
 
 ## Introduction:
 
@@ -46,7 +46,7 @@ It embeds the drivers for the following databases:
 - [Apache Derby][18] version 10.15.2.0
 - [Firebird via Jaybird][19] version 5.0.5
 - [MySQL via Connector/J][20] version 8.4.0 (currently being integrated, use with caution)
-- [Trino or PrestoSQL][21] version 448 (currently being integrated, use with caution)
+- [Trino or PrestoSQL][21] version 453 (currently being integrated, use with caution)
 
 Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite or Derby, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
@@ -534,7 +534,13 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Removed the use of generic classes where they were not needed. This made the driver faster...
 - Added special parameters in: **Edit -> Database -> Advanced parameters... -> Special parameters** in order to respond to the request for integration of the Trino driver (see [improvement request #8 ][123]). It is necessary to recreate the odb files in order to have access to these new parameters.
 
-### What remains to be done for version 1.4.1:
+### What has been done for version 1.4.2:
+
+- Trino JDBC driver updated to version 453.
+- Updated the [Python packaging][124] package to version 24.1.
+- Updated the [Python setuptools][125] package to version 72.1.0 in order to respond to the [Dependabot security alert][126].
+
+### What remains to be done for version 1.4.2:
 
 - Add new languages for internationalization...
 
@@ -544,7 +550,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-141>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-142>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -571,7 +577,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.1#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.2#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>
@@ -655,3 +661,6 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [121]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
 [122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/jdbcdriver/resultset/CachedResultSet.java#L55>
 [123]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8#issuecomment-2182445391>
+[124]: <https://pypi.org/project/packaging/>
+[125]: <https://pypi.org/project/setuptools/>
+[126]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>
