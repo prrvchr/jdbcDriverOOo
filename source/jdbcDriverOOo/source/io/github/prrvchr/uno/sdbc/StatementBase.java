@@ -93,7 +93,7 @@ public abstract class StatementBase
         return super.setStatement(statement);
     }
 
-    protected void _setEscapeProcessing(boolean value)
+    protected synchronized void _setEscapeProcessing(boolean value)
     {
         m_EscapeProcessing = value;
         if (m_Statement != null) {

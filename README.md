@@ -197,16 +197,16 @@ Certain databases such as hsqlDB, H2, SQLite or Derby allow the creation of the 
 This feature makes it as easy to create databases as Writer documents. Generally it is enough to add the option expected by the driver to the connection URL.
 This connection URL may be different depending on the operating system of your computer (Windows, Linux or MacOS).  
 To create a database, in LibreOffice go to the menu: **File -> New -> Database -> Connect to an existing database**, then according to your choice:
-- **Pilote HsqlDB**:
+- **HsqlDB Driver**:
   - Linux: `file:///home/prrvchr/testdb/hsqldb/db;hsqldb.default_table_type=cached;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\hsqldb\db;hsqldb.default_table_type=cached;create=true`
-- **Pilote H2**:
+- **H2 Driver**:
   - Linux: `file:///home/prrvchr/testdb/h2/db`
   - Windows: `C:\Utilisateurs\prrvc\testdb\h2\db`
-- **Pilote SQLite**:
+- **SQLite Driver**:
   - Linux: `file:///home/prrvchr/testdb/sqlite/test.db`
   - Windows: `C:/Utilisateurs/prrvc/testdb/sqlite/test.db`
-- **Pilote Derby**:
+- **Derby Driver**:
   - Linux: `/home/prrvchr/testdb/derby;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\derby;create=true`
 

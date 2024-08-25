@@ -424,7 +424,7 @@ public abstract class StatementMain
 
     // com.sun.star.sdbc.XWarningsSupplier:
     @Override
-    public void clearWarnings() throws SQLException
+    public synchronized void clearWarnings() throws SQLException
     {
         // XXX: clearWargnings() should not prevent the Statement from lazy loading
         if (m_Connection.getProvider().supportWarningsSupplier())
@@ -432,7 +432,7 @@ public abstract class StatementMain
     }
 
     @Override
-    public Object getWarnings() throws SQLException
+    public synchronized Object getWarnings() throws SQLException
     {
         // XXX: getWarnings() should not prevent the Statement from lazy loading
         if (m_Connection.getProvider().supportWarningsSupplier())
@@ -445,26 +445,30 @@ public abstract class StatementMain
     @Override
     protected synchronized void postDisposing()
     {
+        System.out.println("StatementMain.postDisposing() 1");
         m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
         super.postDisposing();
         try {
             if (m_Statement != null) {
                 m_Statement.close();
+                m_Statement = null;
             }
         }
         catch (java.sql.SQLException e) {
             m_logger.logp(LogLevel.WARNING, e);
         }
-        //m_Statement = null;
+        System.out.println("StatementMain.postDisposing() 2");
     }
 
 
     // com.sun.star.sdbc.XCloseable
     @Override
-    public void close() throws SQLException
+    public synchronized void close() throws SQLException
     {
+        System.out.println("StatementMain.close() 1");
         checkDisposed();
         dispose();
+        System.out.println("StatementMain.close() 2");
     }
 
 
@@ -472,18 +476,20 @@ public abstract class StatementMain
     @Override
     public void cancel()
     {
+        System.out.println("StatementMain.cancel() 1");
         try {
             getJdbcStatement().cancel();
         }
         catch (java.sql.SQLException e) {
             System.out.println("StatementMain.cancel() ERROR");
         }
+        System.out.println("StatementMain.cancel() 2");
     }
 
 
     // com.sun.star.sdbc.XGeneratedResultSet:
     @Override
-    public XResultSet getGeneratedValues() throws SQLException
+    public synchronized XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
         ResultSet resultset = null;

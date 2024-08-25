@@ -7,6 +7,7 @@ plugins:
 favicon: true
 logo: /img/jdbcdriver.svg
 email: prrvchr@gmail.com
+google_analytics: G-2V0KEBE1MT
 title: jdbcDriverOOo
 blank_title: true
 description: The new pure Java JDBC type 4 to UNO SDBC driver

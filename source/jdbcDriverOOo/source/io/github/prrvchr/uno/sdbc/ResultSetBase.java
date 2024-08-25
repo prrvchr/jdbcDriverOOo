@@ -300,14 +300,15 @@ public abstract class ResultSetBase
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        if (m_Statement != null) {
-            // FIXME: If we use logging and this ResultSet come from DatabaseMetaData
-            // FIXME: then it may produce Fatal exception: Signal 11 (SIGSEGV)
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
-        }
-        super.postDisposing();
+        System.out.println("ResultSetBase.postDisposing() 1");
         if (m_Result != null) {
+            super.postDisposing();
             try {
+                if (m_Statement != null) {
+                    // FIXME: If we use logging and this ResultSet come from DatabaseMetaData
+                    // FIXME: then it may produce Fatal exception: Signal 11 (SIGSEGV)
+                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
+                }
                 m_Result.close();
             }
             catch (java.sql.SQLException e) {
@@ -315,6 +316,7 @@ public abstract class ResultSetBase
             }
             m_Result = null;
         }
+        System.out.println("ResultSetBase.postDisposing() 2");
     }
 
     // com.sun.star.sdbc.XCloseable
@@ -322,7 +324,6 @@ public abstract class ResultSetBase
     public void close()
         throws SQLException
     {
-        checkDisposed();
         dispose();
     }
 
