@@ -55,12 +55,12 @@ from ...configuration import g_identifier
 class LogManager(unohelper.Base):
     def __init__(self, ctx, parent, requirements, filter, *defaults):
         self._ctx = ctx
-        self._model = LogModel(ctx, PoolListener(self), defaults)
-        self._view = LogWindow(ctx, WindowHandler(self), parent)
         self._requirements = requirements
         self._filter = filter
         self._dialog = None
         self._disabled = False
+        self._model = LogModel(ctx, PoolListener(self), defaults)
+        self._view = LogWindow(ctx, WindowHandler(self), parent)
         self._view.initLogger(self._model.getLoggerNames(filter))
 
     # TODO: One shot disabler handler

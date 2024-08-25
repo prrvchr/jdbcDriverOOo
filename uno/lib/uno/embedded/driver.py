@@ -92,7 +92,7 @@ class Driver(unohelper.Base,
         if storage is None or location is None:
             self._logException(112, url, ' ')
             raise self._getException(1001, None, 111, 112, url, '\n')
-        handler = self._getDocumentHandler(location)
+        handler = self._getDocumentHandler(driver, location)
         # XXX: Getting path from handler unpacks the database files
         path = handler.getConnectionUrl(storage)
         self._logger.logprb(INFO, 'Driver', 'connect()', 113, location)
@@ -202,11 +202,11 @@ class Driver(unohelper.Base,
                 document = handler
         return document
 
-    def _getDocumentHandler(self, location):
+    def _getDocumentHandler(self, driver, location):
         with self._lock:
             handler = self._getHandler(location)
             if handler is None:
-                handler = DocumentHandler(self._ctx, self._lock, self._logger, location)
+                handler = DocumentHandler(self._ctx, self._lock, self._logger, driver, location)
             return handler
 
     def _setDocumentHandler(self, document, handler):

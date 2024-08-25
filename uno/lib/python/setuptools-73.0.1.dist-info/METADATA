@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 72.1.0
+Version: 73.0.1
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Author-email: Python Packaging Authority <distutils-sig@python.org>
 Project-URL: Source, https://github.com/pypa/setuptools
@@ -22,7 +22,6 @@ License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: core
 Requires-Dist: packaging >=24 ; extra == 'core'
-Requires-Dist: ordered-set >=3.1.1 ; extra == 'core'
 Requires-Dist: more-itertools >=8.8 ; extra == 'core'
 Requires-Dist: jaraco.text >=3.7 ; extra == 'core'
 Requires-Dist: wheel >=0.43.0 ; extra == 'core'
@@ -44,6 +43,7 @@ Requires-Dist: sphinx-reredirects ; extra == 'doc'
 Requires-Dist: sphinxcontrib-towncrier ; extra == 'doc'
 Requires-Dist: sphinx-notfound-page <2,>=1 ; extra == 'doc'
 Requires-Dist: pyproject-hooks !=1.1 ; extra == 'doc'
+Requires-Dist: towncrier <24.7 ; extra == 'doc'
 Provides-Extra: ssl
 Provides-Extra: test
 Requires-Dist: pytest !=8.1.*,>=6 ; extra == 'test'
@@ -52,7 +52,7 @@ Requires-Dist: pytest-cov ; extra == 'test'
 Requires-Dist: pytest-mypy ; extra == 'test'
 Requires-Dist: pytest-enabler >=2.2 ; extra == 'test'
 Requires-Dist: virtualenv >=13.0.0 ; extra == 'test'
-Requires-Dist: wheel ; extra == 'test'
+Requires-Dist: wheel >=0.44.0 ; extra == 'test'
 Requires-Dist: pip >=19.1 ; extra == 'test'
 Requires-Dist: packaging >=23.2 ; extra == 'test'
 Requires-Dist: jaraco.envs >=2.2 ; extra == 'test'
