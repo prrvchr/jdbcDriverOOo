@@ -285,6 +285,7 @@ class LogController(LogWrapper):
                     msg = self._resolver.resolveString(136).format(name, e, traceback.format_exc())
                 self._logger.logp(level, clazz, method, msg)
 
+
 # This LogConfig is a wrapper around the logger configuration
 class LogConfig():
     def __init__(self, level=ALL, handler='com.sun.star.logging.FileHandler'):

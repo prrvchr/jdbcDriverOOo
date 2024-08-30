@@ -63,6 +63,10 @@ class LogModel(LogController):
         self._pool.addModifyListener(listener)
 
     # Public getter method
+    def getInitViewData(self, filter):
+        names = self.getLoggerNames(filter)
+        return names, self.getLoggerSetting(names[0])
+
     def getLoggerNames(self, filter=None):
         names = list(self._names)
         others = self._pool.getLoggerNames() if filter is None else self._pool.getFilteredLoggerNames(filter)

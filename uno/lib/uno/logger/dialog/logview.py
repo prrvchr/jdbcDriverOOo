@@ -39,7 +39,7 @@ from ...configuration import g_extension
 
 
 class LogWindow():
-    def __init__(self, ctx, handler, parent):
+    def __init__(self, ctx, parent, handler):
         self._window = getContainerWindow(ctx, parent, handler, g_extension, 'LogWindow')
         self._window.setVisible(True)
 

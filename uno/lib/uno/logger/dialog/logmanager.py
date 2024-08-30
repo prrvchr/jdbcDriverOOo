@@ -60,7 +60,7 @@ class LogManager(unohelper.Base):
         self._dialog = None
         self._disabled = False
         self._model = LogModel(ctx, PoolListener(self), defaults)
-        self._view = LogWindow(ctx, WindowHandler(self), parent)
+        self._view = LogWindow(ctx, parent, WindowHandler(self))
         self._view.initLogger(self._model.getLoggerNames(filter))
 
     # TODO: One shot disabler handler
@@ -96,7 +96,6 @@ class LogManager(unohelper.Base):
     # LogManager setter methods called by WindowHandler
     def setLogger(self, name):
         logger = name if self._filter is None else getLoggerName(name)
-        self.disableHandler()
         self._view.setLogSetting(self._model.getLoggerSetting(logger))
 
     def enableLogger(self, enabled):
