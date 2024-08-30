@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.2][5]
+# version [1.4.3][5]
 
 ## Introduction:
 
@@ -540,7 +540,12 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Updated the [Python packaging][124] package to version 24.1.
 - Updated the [Python setuptools][125] package to version 72.1.0 in order to respond to the [Dependabot security alert][126].
 
-### What remains to be done for version 1.4.2:
+### What has been done for version 1.4.3:
+
+- Updated the [Python setuptools][125] package to version 73.0.1.
+- Logging accessible in extension options now displays correctly on Windows.
+
+### What remains to be done for version 1.4.3:
 
 - Add new languages for internationalization...
 
@@ -550,7 +555,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-142>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-143>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -577,7 +582,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.2#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.3#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>

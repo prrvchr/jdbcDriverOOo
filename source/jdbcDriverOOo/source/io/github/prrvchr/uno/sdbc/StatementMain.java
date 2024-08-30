@@ -445,19 +445,17 @@ public abstract class StatementMain
     @Override
     protected synchronized void postDisposing()
     {
-        System.out.println("StatementMain.postDisposing() 1");
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
-        super.postDisposing();
-        try {
-            if (m_Statement != null) {
+        if (m_Statement != null) {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
+            super.postDisposing();
+            try {
                 m_Statement.close();
-                m_Statement = null;
             }
+            catch (java.sql.SQLException e) {
+                m_logger.logp(LogLevel.WARNING, e);
+            }
+            m_Statement = null;
         }
-        catch (java.sql.SQLException e) {
-            m_logger.logp(LogLevel.WARNING, e);
-        }
-        System.out.println("StatementMain.postDisposing() 2");
     }
 
 
@@ -465,10 +463,8 @@ public abstract class StatementMain
     @Override
     public synchronized void close() throws SQLException
     {
-        System.out.println("StatementMain.close() 1");
         checkDisposed();
         dispose();
-        System.out.println("StatementMain.close() 2");
     }
 
 
@@ -476,14 +472,12 @@ public abstract class StatementMain
     @Override
     public void cancel()
     {
-        System.out.println("StatementMain.cancel() 1");
         try {
             getJdbcStatement().cancel();
         }
         catch (java.sql.SQLException e) {
             System.out.println("StatementMain.cancel() ERROR");
         }
-        System.out.println("StatementMain.cancel() 2");
     }
 
 

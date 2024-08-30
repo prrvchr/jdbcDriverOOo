@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.4.2][5]
+# version [1.4.3][5]
 
 ## Introduction:
 
@@ -540,7 +540,12 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Mise à jour du paquet [Python packaging][124] vers la version 24.1.
 - Mise à jour du paquet [Python setuptools][125] vers la version 72.1.0 afin de répondre à l'[alerte de sécurité Dependabot][126].
 
-### Que reste-t-il à faire pour la version 1.4.2:
+### Ce qui a été fait pour la version 1.4.3:
+
+- Mise à jour du paquet [Python setuptools][125] vers la version 73.0.1.
+- La journalisation accessible dans les options de l’extension s’affiche désormais correctement sous Windows.
+
+### Que reste-t-il à faire pour la version 1.4.3:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -550,7 +555,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-142>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-143>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -577,7 +582,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.2#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.3#right>
 [41]: <img/jdbcDriverOOo-1_fr.png>
 [42]: <img/jdbcDriverOOo-2_fr.png>
 [43]: <img/jdbcDriverOOo-3_fr.png>
