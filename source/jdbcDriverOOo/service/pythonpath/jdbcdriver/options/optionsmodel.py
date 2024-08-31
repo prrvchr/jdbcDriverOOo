@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -56,7 +54,7 @@ from collections import OrderedDict
 import traceback
 
 
-class OptionsModel(unohelper.Base):
+class OptionsModel():
 
     _level = False
     _reboot = False
@@ -96,8 +94,8 @@ class OptionsModel(unohelper.Base):
         self._logger.logprb(INFO, 'OptionsDialog', '__init__()', 101)
 
 # OptionsModel getter methods
-    def getTabData(self):
-        return self._getTabTitle(1), self._getTabTitle(2), OptionsModel._reboot
+    def getTabTitles(self):
+        return self._getTabTitle(1), self._getTabTitle(2)
 
     def needReboot(self):
         return OptionsModel._reboot

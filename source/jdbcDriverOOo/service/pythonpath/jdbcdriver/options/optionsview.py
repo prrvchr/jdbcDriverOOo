@@ -28,7 +28,6 @@
 """
 
 import uno
-import unohelper
 
 from ..unotool import getContainerWindow
 
@@ -37,8 +36,8 @@ from ..configuration import g_extension
 import traceback
 
 
-class OptionsView(unohelper.Base):
-    def __init__(self, ctx, window, handler1, handler2, title1, title2, reboot):
+class OptionsView():
+    def __init__(self, ctx, window, handler1, handler2, listener, title1, title2):
         self._tab = 'Tab1'
         self._window = window
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
@@ -47,15 +46,9 @@ class OptionsView(unohelper.Base):
         self._tab1.setVisible(True)
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'JdbcDriverDialog')
         self._tab2.setVisible(True)
-        self._setStep(1)
-        # XXX: If we modify the Dialog.Model.Step, we need
-        # XXX: to restore the visibility of the control
-        self.setReboot(reboot)
+        self._getTab().addTabPageContainerListener(listener)
 
 # OptionsView getter methods
-    def getTab(self):
-        return self._getTab()
-
     def getLoggerParent(self):
         return self._tab1.getPeer()
 
@@ -85,6 +78,13 @@ class OptionsView(unohelper.Base):
         return level
 
 # OptionsView setter methods
+    def initView(self, reboot):
+        self._setStep(1)
+        self.setReboot(reboot)
+
+    def removeTabListener(self, listener):
+        self._getTab().removeTabPageContainerListener(listener)
+
     def setDriverLevel(self, level, updated):
         self._getDriverService(level).State = 1
         if updated:

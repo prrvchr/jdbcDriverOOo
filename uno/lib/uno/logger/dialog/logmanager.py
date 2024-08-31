@@ -27,9 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -52,16 +49,15 @@ from ...configuration import g_extension
 from ...configuration import g_identifier
 
 
-class LogManager(unohelper.Base):
-    def __init__(self, ctx, parent, requirements, filter, *defaults):
+class LogManager():
+    def __init__(self, ctx, parent, requirements, *defaults):
         self._ctx = ctx
         self._requirements = requirements
-        self._filter = filter
         self._dialog = None
         self._disabled = False
         self._model = LogModel(ctx, PoolListener(self), defaults)
         self._view = LogWindow(ctx, parent, WindowHandler(self))
-        self._view.initLogger(self._model.getLoggerNames(filter))
+        self._view.initLogger(self._model.getLoggerNames())
 
     # TODO: One shot disabler handler
     def isHandlerEnabled(self):
@@ -72,13 +68,13 @@ class LogManager(unohelper.Base):
     def disableHandler(self):
         self._disabled = True
 
-    # LogManager getter methods called by OptionsHandler
-    def saveSetting(self):
-        return self._model.saveSetting()
-
 # LogManager setter methods
     def dispose(self):
         self._model.dispose()
+
+    # LogManager setter methods called by OptionsManager
+    def saveSetting(self):
+        self._model.saveSetting()
 
     # LogManager setter methods called by OptionsHandler
     def loadSetting(self):
@@ -88,30 +84,33 @@ class LogManager(unohelper.Base):
     # LogManager setter methods called by LoggerListener
     def updateLoggers(self):
         logger = self._view.getLogger()
-        loggers = self._model.getLoggerNames(self._filter)
+        loggers = self._model.getLoggerNames()
         self._view.updateLoggers(loggers)
         if logger in loggers:
+            self.disableHandler()
             self._view.setLogger(logger)
 
     # LogManager setter methods called by WindowHandler
     def setLogger(self, name):
-        logger = name if self._filter is None else getLoggerName(name)
-        self._view.setLogSetting(self._model.getLoggerSetting(logger))
+        logger = getLoggerName(name)
+        self._view.setLogSetting(*self._model.getLoggerSetting(logger))
 
     def enableLogger(self, enabled):
-        self._model.setLogSetting(self._view.getLogSetting())
+        self._model.enableLogger(enabled, self._view.getLogLevel())
         self._view.enableLogger(enabled)
 
-    def toggleHandler(self, enabled):
-        self._model.setLogSetting(self._view.getLogSetting())
-        self._view.toggleHandler(enabled)
+    def toggleHandler(self, index):
+        self._model.toggleHandler(index)
+        self._view.enableViewer(index == 2)
+
+    def setLevel(self, level):
+        self._model.setLevel(level)
 
     def viewLog(self):
         handler = DialogHandler(self)
         parent = self._view.getParent()
-        writable = True
         data = self._model.getLoggerData()
-        self._dialog = LogDialog(self._ctx, handler, parent, g_extension, True, *data)
+        self._dialog = LogDialog(self._ctx, handler, parent, *data)
         listener = LoggerListener(self)
         self._model.addModifyListener(listener)
         dialog = self._dialog.getDialog()
@@ -119,9 +118,6 @@ class LogManager(unohelper.Base):
         dialog.dispose()
         self._model.removeModifyListener(listener)
         self._dialog = None
-
-    def setLevel(self):
-        self._model.setLogSetting(self._view.getLogSetting())
 
     # LogManager setter methods called by DialogHandler
     def logInfos(self):

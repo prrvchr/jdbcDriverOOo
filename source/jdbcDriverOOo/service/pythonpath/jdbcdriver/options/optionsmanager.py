@@ -27,9 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.logging.LogLevel import INFO
@@ -60,7 +57,7 @@ from collections import OrderedDict
 import traceback
 
 
-class OptionsManager(unohelper.Base):
+class OptionsManager():
     def __init__(self, ctx, window):
         self._ctx = ctx
         self._lock = Condition()
@@ -69,10 +66,10 @@ class OptionsManager(unohelper.Base):
         self._listener = TabListener(self)
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), *self._model.getTabData())
-        self._logmanager = LogManager(ctx, self._view.getLoggerParent(), 'requirements.txt', g_identifier, 'Driver')
-        self._view.getTab().addTabPageContainerListener(self._listener)
+        self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), self._listener, *self._model.getTabTitles())
+        self._view.initView(self._model.needReboot())
         self._initView()
+        self._logmanager = LogManager(ctx, self._view.getLoggerParent(), 'requirements.txt', 'Driver')
 
     def dispose(self):
         self._logmanager.dispose()
@@ -87,7 +84,7 @@ class OptionsManager(unohelper.Base):
 
 # OptionsManager setter methods
     def activateTab2(self):
-        self._view.getTab().removeTabPageContainerListener(self._listener)
+        self._view.removeTabListener(self._listener)
         self._model.setDriverVersions(self.updateView)
 
     def updateView(self, versions):
