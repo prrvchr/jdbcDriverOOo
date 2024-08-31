@@ -36,6 +36,6 @@
     <dlg:checkbox dlg:id="CheckBox3" dlg:tab-index="10" dlg:left="180" dlg:top="120" dlg:width="75" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.CheckBox3.HelpText" dlg:value="&amp;UnoDriverDialog.CheckBox3.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SQLMode" script:language="UNO"/>
     </dlg:checkbox>
-    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="11" dlg:left="10" dlg:top="140" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label1.HelpText" dlg:value="&amp;OptionsDialog.Label1.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label3" dlg:tab-index="11" dlg:left="10" dlg:top="140" dlg:width="240" dlg:height="15" dlg:help-text="&amp;UnoDriverDialog.Label3.HelpText" dlg:value="&amp;UnoDriverDialog.Label3.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

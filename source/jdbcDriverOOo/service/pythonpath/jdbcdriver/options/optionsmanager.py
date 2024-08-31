@@ -66,10 +66,11 @@ class OptionsManager():
         self._listener = TabListener(self)
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), self._listener, *self._model.getTabTitles())
-        self._view.initView(self._model.needReboot())
+        self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), self._listener, OptionsManager._restart, *self._model.getTabTitles())
         self._initView()
         self._logmanager = LogManager(ctx, self._view.getLoggerParent(), 'requirements.txt', 'Driver')
+
+    _restart = False
 
     def dispose(self):
         self._logmanager.dispose()
@@ -99,15 +100,14 @@ class OptionsManager():
                     self._view.setVersion(versions[protocol])
 
     def saveSetting(self):
-        self._logmanager.saveSetting()
-        if self._model.saveSetting() and self._model.isUpdated():
-            self._view.disableDriverLevel()
+        if self._logmanager.saveSetting() or self._model.saveSetting():
+            OptionsManager._restart = True
+            self._view.setRestart(True)
 
     def loadSetting(self):
         self._logmanager.loadSetting()
         # XXX: We need to exit from Add new Driver mode if needed...
-        reboot = self._model.needReboot()
-        self._view.exitAdd(reboot)
+        self._view.exitAdd()
         self._initView()
 
     def setDriverService(self, driver):
@@ -162,16 +162,14 @@ class OptionsManager():
         archive = self._view.getNewArchive()
         logger = self._view.getLogger()
         protocol = self._model.saveDriver(subprotocol, name, clazz, archive, logger)
-        reboot = self._model.needReboot()
-        self._view.clearAdd(reboot)
+        self._view.clearAdd()
         self._initViewProtocol(protocol)
 
     def cancelDriver(self):
         self._view.enableProtocols(True)
         protocol = self._view.getSelectedProtocol()
         root = self._model.isNotRoot(protocol)
-        reboot = self._model.needReboot()
-        self._view.disableAdd(root, reboot)
+        self._view.disableAdd(root)
 
     def checkDriver(self):
         protocol = self._view.getNewSubProtocol()
@@ -195,8 +193,8 @@ class OptionsManager():
         self._disabled = True
 
     def _initView(self):
-        driver, connection, upadated, enabled, system, bookmark, mode = self._model.getServicesLevel()
-        self._view.setDriverLevel(driver, upadated)
+        driver, connection, enabled, system, bookmark, mode = self._model.getServicesLevel()
+        self._view.setDriverLevel(driver)
         self._view.setConnectionLevel(connection, enabled)
         self._view.setSystemTable(system)
         self._view.setBookmark(bookmark)
@@ -229,7 +227,6 @@ class OptionsManager():
         self._view.enableButton(self._model.isNotRoot(protocol))
 
     def _addDriver(self):
-        reboot = self._model.needReboot()
-        self._view.enableAdd(reboot)
+        self._view.enableAdd()
         self.checkDriver()
 

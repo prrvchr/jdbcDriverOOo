@@ -51,7 +51,7 @@ class LogWindow():
         return self._getLevel().getSelectedItemPos()
 
 # LogWindow setter methods
-    def initLogger(self, loggers):
+    def initView(self, loggers):
         control = self._getLoggers()
         control.Model.StringItemList = loggers
         control.selectItemPos(0, True)

@@ -55,10 +55,6 @@ import traceback
 
 
 class OptionsModel():
-
-    _level = False
-    _reboot = False
-
     def __init__(self, ctx, lock):
         self._ctx = ctx
         self._lock = lock
@@ -67,6 +63,7 @@ class OptionsModel():
         self._default = 'Version: N/A'
         self._versions = {}
         self._config = getConfiguration(ctx, g_identifier, True)
+        self._service = self._getDriverService()
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._configuration = getConfiguration(ctx, path, True)
         self._dbloggers = ('h2', 'derby', 'hsqldb')
@@ -74,8 +71,6 @@ class OptionsModel():
                             'derby': 'memory:dbversion;create=true',
                             'hsqldb': 'mem:dbversion',
                             'smallsql': None}
-        #self._services = ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
-        #                  'io.github.prrvchr.jdbcdriver.sdbcx.Driver')
         self._services = {'Driver': ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
                                      'io.github.prrvchr.jdbcdriver.sdbcx.Driver'),
                           'Connection': ('com.sun.star.sdbc.Connection',
@@ -97,9 +92,6 @@ class OptionsModel():
     def getTabTitles(self):
         return self._getTabTitle(1), self._getTabTitle(2)
 
-    def needReboot(self):
-        return OptionsModel._reboot
-
     def getPath(self):
         if self._path is None:
             self._path = getPathSettings(self._ctx).Work
@@ -115,10 +107,7 @@ class OptionsModel():
         system = self._config.getByName('ShowSystemTable')
         bookmark = self._config.getByName('UseBookmark')
         mode = self._config.getByName('SQLMode')
-        return driver, connection, self.isUpdated(), self._isConnectionLevelEnabled(driver), system, bookmark, mode
-
-    def isUpdated(self):
-        return OptionsModel._level
+        return driver, connection, self._isConnectionLevelEnabled(driver), system, bookmark, mode
 
     def getProtocols(self):
         return tuple(self._drivers.keys())
@@ -178,11 +167,9 @@ class OptionsModel():
     def setDriverVersions(self, *args):
         with self._lock:
             self._versions = {}
-        if not self.needReboot():
             Thread(target=self._setDriverVersions, args=args).start()
 
     def setDriverService(self, driver):
-        OptionsModel._level = True
         self._config.replaceByName('DriverService', self._services.get('Driver')[driver])
         connection = self._services.get('Connection').index(self._getConnectionService())
         if driver and not connection:
@@ -216,15 +203,14 @@ class OptionsModel():
 
     def saveSetting(self):
         driver = self._configuration.hasPendingChanges()
-        config = self._config.hasPendingChanges()
         if driver:
             self._configuration.commitChanges()
+        config = self._config.hasPendingChanges()
         if config:
             self._config.commitChanges()
-        if driver or (config and OptionsModel._level):
-            OptionsModel._reboot = True
-            return True
-        return False
+            if self._service != self._getDriverService():
+                return True
+        return driver
 
     def saveDriver(self, subprotocol, name, clazz, archive, level):
         protocol = self._getProtocol(subprotocol)

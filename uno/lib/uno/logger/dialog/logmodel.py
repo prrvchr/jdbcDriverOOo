@@ -103,6 +103,8 @@ class LogModel():
     def saveSetting(self):
         if self._config.hasPendingChanges():
             self._config.commitChanges()
+            return True
+        return False
 
 # Public setter method
     def dispose(self):

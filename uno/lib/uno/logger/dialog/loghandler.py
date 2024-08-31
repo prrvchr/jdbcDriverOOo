@@ -47,8 +47,7 @@ class WindowHandler(unohelper.Base,
         try:
             handled = False
             if method == 'SetLogger':
-                if self._manager.isHandlerEnabled():
-                    self._manager.setLogger(event.Source.getSelectedItem())
+                self._manager.setLogger(event.Source.getSelectedItem())
                 handled = True
             elif method == 'EnableLogger':
                 self._manager.enableLogger(bool(event.Source.State))
@@ -63,8 +62,7 @@ class WindowHandler(unohelper.Base,
                 self._manager.viewLog()
                 handled = True
             elif method == 'SetLevel':
-                if self._manager.isHandlerEnabled():
-                    self._manager.setLevel(event.Source.getSelectedItemPos())
+                self._manager.setLevel(event.Source.getSelectedItemPos())
                 handled = True
             return handled
         except Exception as e:

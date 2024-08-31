@@ -37,7 +37,7 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, ctx, window, handler1, handler2, listener, title1, title2):
+    def __init__(self, ctx, window, handler1, handler2, listener, restart, title1, title2):
         self._tab = 'Tab1'
         self._window = window
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
@@ -47,6 +47,7 @@ class OptionsView():
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'JdbcDriverDialog')
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
+        self.setRestart(restart)
 
 # OptionsView getter methods
     def getLoggerParent(self):
@@ -78,25 +79,15 @@ class OptionsView():
         return level
 
 # OptionsView setter methods
-    def initView(self, reboot):
-        self._setStep(1)
-        self.setReboot(reboot)
-
     def removeTabListener(self, listener):
         self._getTab().removeTabPageContainerListener(listener)
 
-    def setDriverLevel(self, level, updated):
+    def setDriverLevel(self, level):
         self._getDriverService(level).State = 1
-        if updated:
-            self.disableDriverLevel()
 
     def setConnectionLevel(self, level, enabled):
         self._getConnectionService(level).State = 1
         self._getConnectionService(0).Model.Enabled = enabled
-
-    def disableDriverLevel(self):
-        self._getDriverService(0).Model.Enabled = False
-        self._getDriverService(1).Model.Enabled = False
 
     def setSystemTable(self, state):
         self._getSytemTable().State = int(state)
@@ -154,35 +145,32 @@ class OptionsView():
         self._getRemove().Model.Enabled = enabled
         self._getUpdate().Model.Enabled = enabled
 
-    def enableAdd(self, reboot):
+    def enableAdd(self):
         self._setStep(2)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self.setReboot(reboot)
         self._getNew().Model.Enabled = False
         self._getRemove().Model.Enabled = False
         self._getUpdate().Model.Enabled = True
         self.setLogger()
         self._getNewSubProtocol().setFocus()
 
-    def disableAdd(self, enabled, reboot):
+    def disableAdd(self, enabled):
         self._setStep(1)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self.setReboot(reboot)
         self._getNew().Model.Enabled = True
         self._getRemove().Model.Enabled = enabled
         self._getUpdate().Model.Enabled = enabled
 
-    def exitAdd(self, reboot):
+    def exitAdd(self):
         self._setStep(1)
         # XXX: If we modify the Dialog.Model.Step, we need
         # XXX: to restore the visibility of the control
-        self.setReboot(reboot)
         self._getNew().Model.Enabled = True
 
-    def clearAdd(self, reboot):
-        self.exitAdd(reboot)
+    def clearAdd(self):
+        self.exitAdd()
         self._getNewSubProtocol().Text = ''
         self._getNewName().Text = ''
         self._getNewClass().Text = ''
@@ -198,9 +186,9 @@ class OptionsView():
     def setNewArchive(self, archive):
         self._getNewArchive().Text = archive
 
-    def setReboot(self, state):
-        self._getReboot1().setVisible(state)
-        self._getReboot2().setVisible(state)
+    def setRestart(self, enabled):
+        self._getRestart1().setVisible(enabled)
+        self._getRestart2().setVisible(enabled)
 
     def enableSQLMode(self, state):
         self._getSQLMode().Model.Enabled = bool(state)
@@ -276,10 +264,10 @@ class OptionsView():
     def _getSQLMode(self):
         return self._tab1.getControl('CheckBox3')
 
-    def _getReboot1(self):
+    def _getRestart1(self):
         return self._tab1.getControl('Label3')
 
-    def _getReboot2(self):
+    def _getRestart2(self):
         return self._tab2.getControl('Label10')
 
     def _getProtocols(self):
