@@ -276,15 +276,10 @@ def getDialog(ctx, library, xdl, handler=None, window=None):
     return dialog
 
 def getContainerWindow(ctx, parent, handler, library, xdl):
-    window = None
     service = 'com.sun.star.awt.ContainerWindowProvider'
     provider = createService(ctx, service)
     url = getDialogUrl(library, xdl)
-    try:
-        window = provider.createContainerWindow(url, '', parent, handler)
-    except WrappedTargetRuntimeException as e:
-        print("unotool.getContainerWindow() ERROR: %s - %s" % (e, traceback.format_exc()))
-    return window
+    return provider.createContainerWindow(url, '', parent, handler)
 
 def getFileUrl(ctx, title, path, filters=(), multi=False):
     url = None
