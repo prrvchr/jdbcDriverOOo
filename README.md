@@ -214,9 +214,11 @@ ___
 
 ## Has been tested with:
 
-* LibreOffice 7.0.4.2 - Ubuntu 20.04 - LxQt 0.14.1
+* LibreOffice 24.2.1.2 (x86_64)- Windows 10
 
-* LibreOffice 6.4.4.2 - Windows 7 SP1
+* LibreOffice 7.3.7.2 - Lubuntu 22.04
+
+* LibreOffice 24.2.1.2 - Lubuntu 22.04
 
 I encourage you in case of problem :confused:  
 to create an [issue][32]  
