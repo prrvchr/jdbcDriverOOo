@@ -546,6 +546,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 - Mise à jour du paquet [Python setuptools][125] vers la version 73.0.1.
 - La journalisation accessible dans les options de l’extension s’affiche désormais correctement sous Windows.
+- Les options de l'extension sont désormais accessibles via: **Outils -> Options... -> LibreOffice Base -> Pilote JDBC**
 
 ### Que reste-t-il à faire pour la version 1.4.3:
 

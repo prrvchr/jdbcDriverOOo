@@ -546,6 +546,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 - Updated the [Python setuptools][125] package to version 73.0.1.
 - Logging accessible in extension options now displays correctly on Windows.
+- The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> JDBC Driver**
 
 ### What remains to be done for version 1.4.3:
 
