@@ -27,20 +27,12 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
-from ..unotool import getContainerWindow
-
-from ..configuration import g_extension
-
 import traceback
 
 
-class OptionsView(unohelper.Base):
-    def __init__(self, window, driver, connection, updated, enabled, version, reboot):
+class OptionsView():
+    def __init__(self, window):
         self._window = window
-        self.initView(driver, connection, updated, enabled, version, reboot)
 
 # OptionsView setter methods
     def initView(self, driver, connection, updated, enabled, version, reboot):

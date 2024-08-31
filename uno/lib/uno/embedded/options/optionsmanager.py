@@ -27,9 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.logging.LogLevel import INFO
@@ -38,18 +35,9 @@ from com.sun.star.logging.LogLevel import SEVERE
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 from .optionshandler import OptionsListener
-from .optionshandler import Tab1Handler
-from .optionshandler import Tab2Handler
-
-from ..unotool import createService
-from ..unotool import getFilePicker
-from ..unotool import getSimpleFile
-from ..unotool import getUrl
 
 from ..logger import LogManager
 
-from ..configuration import g_extension
-from ..configuration import g_identifier
 from ..configuration import g_defaultlog
 
 import os
@@ -57,15 +45,16 @@ import sys
 import traceback
 
 
-class OptionsManager(unohelper.Base):
+class OptionsManager():
     def __init__(self, ctx, window, url=None):
         self._ctx = ctx
         self._disposed = False
         self._disabled = False
         self._model = OptionsModel(ctx, url)
         window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(window, *self._model.getViewData())
-        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_identifier, g_defaultlog)
+        self._view = OptionsView(window)
+        self._view.initView(*self._model.getViewData())
+        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_defaultlog)
 
     def dispose(self):
         self._logmanager.dispose()

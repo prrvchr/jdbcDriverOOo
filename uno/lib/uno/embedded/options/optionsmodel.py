@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import unohelper
-
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
@@ -46,7 +44,7 @@ g_basename = 'OptionsDialog'
 import traceback
 
 
-class OptionsModel(unohelper.Base):
+class OptionsModel():
 
     _level = False
     _reboot = False

@@ -79,7 +79,7 @@ class LogManager():
     # LogManager setter methods called by OptionsHandler
     def loadSetting(self):
         self.disableHandler()
-        self._view.setLogSetting(self._model.loadSetting())
+        self._view.setLogSetting(*self._model.loadSetting())
 
     # LogManager setter methods called by LoggerListener
     def updateLoggers(self):
