@@ -1,8 +1,2 @@
 title,cwe,description,cvss,cvss_v4,finding,stream,kind,where,snippet,method
-011. Use of software with known vulnerabilities,CWE-94,"Use of setuptools at version 69.0.3 with ['GHSA-cx63-2mw6-8hw5', 'CVE-2024-6345'] in jdbcDriverOOo/source/jdbcDriverOOo/dist/.ooo-debug/user/extensions/tmp/extensions/lu3090270ei6jro.tmp_/jdbcDriverOOo.oxt/requirements.txt",CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H/E:U/RL:O/RC:C,CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:A/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N/E:U,https://help.fluidattacks.com/portal/en/kb/articles/criteria-vulnerabilities-011,skims,SCA,2,"
-  1 | packaging==23.2
-> 2 | setuptools==69.0.3
-  3 | six==1.16.0
-    ^ Col 0
-",pip.pip_requirements_txt
-Summary: 1 vulnerabilities were found in your targets.
+Summary: No vulnerabilities were found in your targets.
