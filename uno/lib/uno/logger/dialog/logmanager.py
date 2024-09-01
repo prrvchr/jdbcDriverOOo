@@ -42,12 +42,6 @@ from .loghandler import PoolListener
 
 from ..loghelper import getLoggerName
 
-from ...unotool import getDialog
-from ...unotool import getFileSequence
-
-from ...configuration import g_extension
-from ...configuration import g_identifier
-
 
 class LogManager():
     def __init__(self, ctx, parent, requirements, *defaults):
@@ -112,9 +106,8 @@ class LogManager():
         self._dialog = LogDialog(self._ctx, handler, parent, *data)
         listener = LoggerListener(self)
         self._model.addModifyListener(listener)
-        dialog = self._dialog.getDialog()
-        dialog.execute()
-        dialog.dispose()
+        self._dialog.execute()
+        self._dialog.dispose()
         self._model.removeModifyListener(listener)
         self._dialog = None
 

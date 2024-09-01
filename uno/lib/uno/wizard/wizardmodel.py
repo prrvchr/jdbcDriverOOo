@@ -33,7 +33,6 @@ import unohelper
 from ..unotool import getStringResource
 
 from ..configuration import g_identifier
-from ..configuration import g_extension
 
 import traceback
 
@@ -44,7 +43,7 @@ class WizardModel(unohelper.Base):
         self._currentPageId = -1
         self._disabledPages = []
         self._roadmap = None
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'Wizard')
         self._resources = {'Roadmap': 'Wizard.Roadmap.Text'}
 
     def setRoadmapModel(self, model):

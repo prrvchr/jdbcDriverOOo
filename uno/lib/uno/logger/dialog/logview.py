@@ -32,12 +32,12 @@ import uno
 from ...unotool import getContainerWindow
 from ...unotool import getDialog
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 
 class LogWindow():
     def __init__(self, ctx, parent, handler):
-        self._window = getContainerWindow(ctx, parent, handler, g_extension, 'LogWindow')
+        self._window = getContainerWindow(ctx, parent, handler, g_identifier, 'LogWindow')
         self._window.setVisible(True)
 
 # LogWindow getter methods
@@ -111,15 +111,17 @@ class LogWindow():
 
 class LogDialog():
     def __init__(self, ctx, handler, parent, url, text, length):
-        self._dialog = getDialog(ctx, g_extension, 'LogDialog', handler, parent)
+        self._dialog = getDialog(ctx, g_identifier, 'LogDialog', handler, parent)
         self._dialog.Title = url
         self.updateLogger(text, length)
 
-# LogDialog getter methods
-    def getDialog(self):
-        return self._dialog
-
 # LogDialog setter methods
+    def execute(self):
+        self._dialog.execute()
+
+    def dispose(self):
+        self._dialog.dispose()
+
     def updateLogger(self, text, length):
         control = self._getLogger()
         control.Text = text
