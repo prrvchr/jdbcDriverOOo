@@ -31,12 +31,12 @@ import unohelper
 
 from ...unotool import getDialog
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 
 class MemberView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent, title, members, available):
-        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+        self._dialog = getDialog(ctx, g_identifier, xdl, handler, parent)
         self._dialog.setTitle(title)
         self._getSelectedMembers().Model.StringItemList = members
         self._getAvailableMembers().Model.StringItemList = available

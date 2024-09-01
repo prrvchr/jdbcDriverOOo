@@ -32,12 +32,12 @@ import unohelper
 
 from ...unotool import getDialog
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 
 class PrivilegeView():
     def __init__(self, ctx, flags, table, columns, privileges, grantables, inherited):
-        self._dialog = getDialog(ctx, g_extension, 'PrivilegesDialog')
+        self._dialog = getDialog(ctx, g_identifier, 'PrivilegesDialog')
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 10, 10, 90, 15)
         self._createCheckBox(columns, rectangle)
         self._dialog.Title = table

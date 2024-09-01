@@ -96,13 +96,13 @@ class AdminManager(unohelper.Base):
         self._flags = tuple(columns.values())
         self._view = view
         window = self._view.getGridWindow()
-        url = getResourceLocation(ctx, g_identifier, g_extension)
+        url = getResourceLocation(ctx, g_identifier, 'img')
         model = GridModel(ctx, user, groups, grantees, tables, self._flags, isuser, url)
         quote = connection.getMetaData().getIdentifierQuoteString()
-        resolver = getStringResource(ctx, g_identifier, g_extension)
+        resolver = getStringResource(ctx, g_identifier, 'dialogs', 'PrivilegesDialog')
         resources = (resolver, 'PrivilegesDialog.CheckBox%s.Label')
         manager = GridManager(ctx, datasource, GridListener(self), self._columns, url, model, window, quote, 'AdminGrid', SINGLE, resources, None, True)
-        self._model = AdminModel(manager, users, members, tables, name, resolver)
+        self._model = AdminModel(ctx, manager, users, members, tables, name)
         self._dialog = None
         self._disabled = True
         self._view.initGrantees(self._model.getGrantees())

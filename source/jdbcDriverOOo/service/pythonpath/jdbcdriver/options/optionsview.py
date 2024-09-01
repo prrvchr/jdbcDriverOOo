@@ -31,7 +31,7 @@ import uno
 
 from ..unotool import getContainerWindow
 
-from ..configuration import g_extension
+from ..configuration import g_identifier
 
 import traceback
 
@@ -42,9 +42,9 @@ class OptionsView():
         self._window = window
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
         tab1, tab2 = self._getTabPages(window, rectangle, title1, title2)
-        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_extension, 'UnoDriverDialog')
+        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_identifier, 'UnoDriverDialog')
         self._tab1.setVisible(True)
-        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_extension, 'JdbcDriverDialog')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_identifier, 'JdbcDriverDialog')
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
         self.setRestart(restart)

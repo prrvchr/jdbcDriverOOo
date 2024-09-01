@@ -48,7 +48,7 @@
             <value xml:lang="fr-FR">Pilote JDBC</value>
           </prop>
           <prop oor:name="OptionsPage">
-            <value>%origin%/jdbcDriverOOo/OptionsDialog.xdl</value>
+            <value>%origin%/dialogs/OptionsDialog.xdl</value>
           </prop>
           <prop oor:name="EventHandlerService">
             <value>io.github.prrvchr.jdbcDriverOOo.OptionsHandler</value>

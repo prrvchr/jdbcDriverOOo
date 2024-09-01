@@ -31,12 +31,12 @@ import unohelper
 
 from ...unotool import getDialog
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 
 class GranteeView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+        self._dialog = getDialog(ctx, g_identifier, xdl, handler, parent)
         self._background = {True: 16777215, False: 15790320}
 
     def execute(self):

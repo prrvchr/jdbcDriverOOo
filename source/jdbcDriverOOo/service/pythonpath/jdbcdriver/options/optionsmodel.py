@@ -39,15 +39,13 @@ from ..unotool import getStringResource
 from ..unotool import getResourceLocation
 from ..unotool import getUrl
 
-from ..configuration import g_identifier
-from ..configuration import g_extension
-
 from ..dbconfig import g_folder
-
-from ..configuration import g_extension
 
 from ..logger import getLogger
 g_basename = 'OptionsDialog'
+
+from ..configuration import g_identifier
+from ..configuration import g_extension
 
 from threading import Thread
 from collections import OrderedDict
@@ -78,7 +76,7 @@ class OptionsModel():
                                          'com.sun.star.sdb.Connection')}
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
-        self._resolver = getStringResource(ctx, g_identifier, g_extension)
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
         self._resources = {'TabTitle1' : 'OptionsDialog.Tab1.Title',
                            'TabTitle2' : 'OptionsDialog.Tab2.Title'}
         config = self._configuration.getByName('Installed')

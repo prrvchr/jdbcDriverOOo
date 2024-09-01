@@ -152,7 +152,7 @@ class AdminDispatch(unohelper.Base,
         return close, connection
 
     def _getDialogData(self):
-        resolver = getStringResource(self._ctx, g_identifier, g_extension)
+        resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
         message = resolver.resolveString('MessageBox.Admin.Message')
         title = resolver.resolveString('MessageBox.Admin.Title')
         return message, title, 'error', 1

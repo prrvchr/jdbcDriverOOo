@@ -31,12 +31,12 @@ import unohelper
 
 from ...unotool import getDialog
 
-from ...configuration import g_extension
+from ...configuration import g_identifier
 
 
 class PasswordView(unohelper.Base):
     def __init__(self, ctx, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, 'PasswordDialog', handler, parent)
+        self._dialog = getDialog(ctx, g_identifier, 'PasswordDialog', handler, parent)
 
     def execute(self):
         return self._dialog.execute()

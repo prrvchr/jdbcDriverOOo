@@ -34,12 +34,12 @@ from com.sun.star.view.SelectionType import SINGLE
 
 from ..unotool import getDialog
 
-from ..configuration import g_extension
+from ..configuration import g_identifier
 
 
 class AdminView(unohelper.Base):
     def __init__(self, ctx, xdl, handler, parent):
-        self._dialog = getDialog(ctx, g_extension, xdl, handler, parent)
+        self._dialog = getDialog(ctx, g_identifier, xdl, handler, parent)
 
     def initGrantees(self, grantees, grantee=None):
         control = self._getGrantees()

@@ -42,20 +42,23 @@ from com.sun.star.style.HorizontalAlignment import LEFT
 
 from com.sun.star.container import ElementExistException
 
+from ..unotool import getStringResource
 from ..unotool import hasInterface
+
+from ..configuration import g_identifier
 
 import traceback
 
 
 class AdminModel(unohelper.Base):
-    def __init__(self, manager, users, members, tables, username, resolver):
+    def __init__(self, ctx, manager, users, members, tables, username):
         self._grid = manager
         self._users = users
         self._members = members
         self._tables = tables
         self._username = username
         self._grantee = ''
-        self._resolver = resolver
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'MessageBox')
         self._resources = {'DropGroupTitle'        : 'MessageBox.DropGroup.Title',
                            'DropGroupMessage'      : 'MessageBox.DropGroup.Message',
                            'DropUserTitle'         : 'MessageBox.DropUser.Title',
