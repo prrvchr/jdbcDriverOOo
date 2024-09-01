@@ -220,6 +220,8 @@ ___
 
 * LibreOffice 24.2.1.2 - Lubuntu 22.04
 
+* LibreOffice 24.8.0.3 (X86_64) - Windows 10(x64) - Python version 3.9.19 (sous Lubuntu 22.04 / VirtualBox 6.1.38)
+
 Je vous encourage en cas de problème :confused:  
 de créer un [dysfonctionnement][32]  
 J'essaierai de le résoudre :smile:
@@ -548,6 +550,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - La journalisation accessible dans les options de l’extension s’affiche désormais correctement sous Windows.
 - Les options de l'extension sont désormais accessibles via: **Outils -> Options... -> LibreOffice Base -> Pilote JDBC**
 - Les modifications apportées aux options d'extension, qui nécessitent un redémarrage de LibreOffice, entraîneront l'affichage d'un message.
+- Support de LibreOffice version 24.8.x.
 
 ### Que reste-t-il à faire pour la version 1.4.3:
 
