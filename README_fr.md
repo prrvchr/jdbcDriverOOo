@@ -556,6 +556,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 - Il est désormais possible d'insérer des données dans une table vide lors de l'utilisation d'un ResultSet `TYPE_FORWARD_ONLY` (ie: SQLite).
 - Le bouton options est désormais accessible dans la liste des extensions installées obtenue par le menu : **Outils -> Gestionnaire d'extensions...**
+- Les options de l'extension sont désormais accessibles via: **Outils -> Options... -> LibreOffice Base -> Pilote JDBC pure Java**
 - Les options de l'extension: **Voir les tables système**, **Utiliser les signets** et **Forcer le mode SQL** seront recherchées dans les informations fournies lors de la connexion et auront la priorité si elles sont présentes.
 
 ### Que reste-t-il à faire pour la version 1.4.4:
