@@ -46,7 +46,7 @@ Elle embarque les pilotes pour les base de données suivantes:
 - [Apache Derby][18] version 10.15.2.0
 - [Firebird via Jaybird][19] version 5.0.5
 - [MySQL via Connector/J][20] version 8.4.0 (en cours d'intégration, à utiliser avec prudence)
-- [Trino ou PrestoSQL][21] version 453 (en cours d'intégration, à utiliser avec prudence)
+- [Trino ou PrestoSQL][21] version 455 (en cours d'intégration, à utiliser avec prudence)
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite ou Derby, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
 Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
@@ -558,6 +558,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Le bouton options est désormais accessible dans la liste des extensions installées obtenue par le menu : **Outils -> Gestionnaire d'extensions...**
 - Les options de l'extension sont désormais accessibles via: **Outils -> Options... -> LibreOffice Base -> Pilote JDBC pure Java**
 - Les options de l'extension: **Voir les tables système**, **Utiliser les signets** et **Forcer le mode SQL** seront recherchées dans les informations fournies lors de la connexion et auront la priorité si elles sont présentes.
+- Pilote Trino mis à jour vers la version 455.
 
 ### Que reste-t-il à faire pour la version 1.4.4:
 

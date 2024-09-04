@@ -46,7 +46,7 @@ It embeds the drivers for the following databases:
 - [Apache Derby][18] version 10.15.2.0
 - [Firebird via Jaybird][19] version 5.0.5
 - [MySQL via Connector/J][20] version 8.4.0 (currently being integrated, use with caution)
-- [Trino or PrestoSQL][21] version 453 (currently being integrated, use with caution)
+- [Trino or PrestoSQL][21] version 455 (currently being integrated, use with caution)
 
 Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite or Derby, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
@@ -558,6 +558,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The options button is now accessible in the list of installed extensions obtained by the menu: **Tools -> Extensions Manager...**
 - The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> Pur Java JDBC Driver**
 - The extension options: **View system tables**, **Use bookmarks** and **Force SQL mode** will be searched in the information provided when connecting and will take precedence if present.
+- Updated Trino driver to version 455.
 
 ### What remains to be done for version 1.4.4:
 
