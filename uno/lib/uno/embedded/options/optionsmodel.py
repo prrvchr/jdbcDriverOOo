@@ -45,10 +45,6 @@ import traceback
 
 
 class OptionsModel():
-
-    _level = False
-    _reboot = False
-
     def __init__(self, ctx, url=None):
         self._ctx = ctx
         self._url = url
@@ -58,56 +54,50 @@ class OptionsModel():
                                          'com.sun.star.sdbcx.Connection',
                                          'com.sun.star.sdb.Connection')}
         self._config = getConfiguration(ctx, g_identifier, True)
+        self._service = self._getDriverService()
 
 # OptionsModel getter methods
     def getViewData(self):
         driver = self._services.get('Driver').index(self._getDriverService())
         connection = self._services.get('Connection').index(self._getConnectionService())
-        return driver, connection, self.isUpdated(), self._isConnectionEnabled(driver), self._getDriverVersion(), OptionsModel._reboot
+        return driver, connection, self._isConnectionEnabled(driver), self._getDriverVersion()
 
     def loadSetting(self):
         self._config = getConfiguration(self._ctx, g_identifier, True)
         return self.getViewData()
 
-    def needReboot(self):
-        return OptionsModel._reboot
-
     def getServicesLevel(self):
         driver = self._services.get('Driver').index(self._getDriverService())
         connection = self._services.get('Connection').index(self._getConnectionService())
-        return driver, connection, self.isUpdated(), self._isConnectionEnabled(driver)
-
-    def isUpdated(self):
-        return OptionsModel._level
-
-    def _getDriverService(self):
-        return self._config.getByName('DriverService')
-
-    def _getConnectionService(self):
-        return self._config.getByName('ConnectionService')
+        return driver, connection, self._isConnectionEnabled(driver)
 
 # OptionsModel setter methods
     def setDriverService(self, driver):
-        OptionsModel._level = True
         self._config.replaceByName('DriverService', self._services.get('Driver')[driver])
         connection = self._services.get('Connection').index(self._getConnectionService())
         if driver and not connection:
             connection = 1
-            self._config.replaceByName('ConnectionService', self._services.get('Connection')[connection])
+            self.setConnectionService(connection)
         return connection, self._isConnectionEnabled(driver)
 
     def setConnectionService(self, level):
         self._config.replaceByName('ConnectionService', self._services.get('Connection')[level])
 
     def saveSetting(self):
-        if self._config.hasPendingChanges():
+        config = self._config.hasPendingChanges()
+        if config:
             self._config.commitChanges()
-            if OptionsModel._level:
-                OptionsModel._reboot = True
-            return True
+            if self._service != self._getDriverService():
+                return True
         return False
 
 # OptionsModel private methods
+    def _getDriverService(self):
+        return self._config.getByName('DriverService')
+
+    def _getConnectionService(self):
+        return self._config.getByName('ConnectionService')
+
     def _isConnectionEnabled(self, driver):
         return driver == 0
 
@@ -119,7 +109,7 @@ class OptionsModel():
         if self._url is None:
             return version
         try:
-            service = self._config.getByName('DriverService')
+            service = self._getDriverService()
             driver = createService(self._ctx, service)
             # FIXME: If jdbcDriverOOo extension has not been installed then driver is None
             if driver is not None:

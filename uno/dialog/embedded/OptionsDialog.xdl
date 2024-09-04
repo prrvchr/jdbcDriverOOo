@@ -29,6 +29,6 @@
         <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:Level2" script:language="UNO"/>
       </dlg:radio>
     </dlg:radiogroup>
-    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:left="10" dlg:top="140" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label5" dlg:tab-index="10" dlg:left="10" dlg:top="145" dlg:width="240" dlg:height="15" dlg:help-text="&amp;OptionsDialog.Label5.HelpText" dlg:value="&amp;OptionsDialog.Label5.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>
