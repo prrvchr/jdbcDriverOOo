@@ -57,7 +57,7 @@ import io.github.prrvchr.jdbcdriver.metadata.TablePrivilegesResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TablePrivilegesResultSetBase;
 
 
-public class DBPrivilegesHelper
+public class PrivilegesHelper
 {
 
     public static String getGrantPrivilegesQuery(DriverProvider provider,
@@ -69,7 +69,7 @@ public class DBPrivilegesHelper
                                                  boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, isrole, grantee, rule, sensitive);
+        Object[] arguments = ParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, isrole, grantee, rule, sensitive);
         String query = provider.getGrantPrivilegesQuery(arguments);
         System.out.println("DBPrivilegesHelper.getGrantPrivilegesQuery() SQL: " + query);
         return query;
@@ -84,7 +84,7 @@ public class DBPrivilegesHelper
                                                   boolean sensitive)
         throws java.sql.SQLException, SQLException
     {
-        Object[] arguments = DBParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, isrole, grantee, rule, sensitive);
+        Object[] arguments = ParameterHelper.getAlterPrivilegesArguments(provider, table, privileges, isrole, grantee, rule, sensitive);
         String query = provider.getRevokePrivilegesQuery(arguments);
         System.out.println("DBPrivilegesHelper.getRevokePrivilegesQuery() SQL: " + query);
         return query;
@@ -241,7 +241,7 @@ public class DBPrivilegesHelper
                                      ComposeRule rule)
     throws java.sql.SQLException, SQLException
     {
-        String[] arguments = DBParameterHelper.getPrivilegesArguments(provider, grantee, table, rule);
+        String[] arguments = ParameterHelper.getPrivilegesArguments(provider, grantee, table, rule);
         return getPrivileges(provider, arguments, positions, query);
     }
 

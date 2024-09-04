@@ -39,7 +39,7 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBParameterHelper;
+import io.github.prrvchr.jdbcdriver.helper.ParameterHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -180,7 +180,7 @@ public abstract class TableMain
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
-            Object[] parameters = DBParameterHelper.getRenameTableArguments(m_connection.getProvider(), component,
+            Object[] parameters = ParameterHelper.getRenameTableArguments(m_connection.getProvider(), component,
                                                                             getNamedComponents(), oldname, reversed, rule, isCaseSensitive());
             queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
             int resource = getRenameTableResource(isview, false);

@@ -36,7 +36,6 @@ import java.util.List;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBQueryParser;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NameComponentSupport;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
@@ -74,7 +73,7 @@ public class RowCatalog
     // XXX: this constructor is called from rowset.RowSetWriter()
     public RowCatalog(DriverProvider provider,
                       ResultSet result,
-                      String query)
+                      String identifier)
         throws SQLException
     {
         RowTable table = null;
@@ -86,7 +85,7 @@ public class RowCatalog
         for (int index = 1; index <= metadata.getColumnCount(); index++) {
             String name = metadata.getTableName(index);
             if (name == null || name.isBlank()) {
-                table = getTable(connection, component, query);
+                table = getTable(connection, component, identifier);
             }
             else {
                 table = getTable(connection, metadata, index);
@@ -243,11 +242,11 @@ public class RowCatalog
 
     private RowTable getTable(Connection connection,
                               NamedComponents component,
-                              String query)
+                              String identifier)
         throws SQLException
     {
         if (component == null) {
-            component = getNamedComponent(query);
+            component = getNamedComponent(identifier);
         }
         for (RowTable table : m_Tables) {
             if (table.isSameTable(component)) {
@@ -261,15 +260,10 @@ public class RowCatalog
         return table;
     }
 
-    private NamedComponents getNamedComponent(String query)
+    private NamedComponents getNamedComponent(String identifier)
         throws SQLException
     {
-        DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_SELECT, query);
-        if (!parser.hasTable()) {
-            throw new SQLException();
-        }
-        NamedComponents component = DBTools.qualifiedNameComponents(m_Statement, parser.getTable(), m_Support, true);
-        return component;
+        return DBTools.qualifiedNameComponents(m_Statement, identifier, m_Support, true);
     }
 
 }

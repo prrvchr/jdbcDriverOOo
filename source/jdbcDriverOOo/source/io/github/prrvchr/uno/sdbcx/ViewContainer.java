@@ -37,7 +37,7 @@ import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBParameterHelper;
+import io.github.prrvchr.jdbcdriver.helper.ParameterHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -104,10 +104,10 @@ public final class ViewContainer
             NamedComponents cpt = DBTools.qualifiedNameComponents(provider, name, rule);
             if (provider.supportViewDefinition()) {
                 List<Integer[]> positions = new ArrayList<Integer[]>();
-                Object[] parameters = DBParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, isCaseSensitive());
+                Object[] parameters = ParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, isCaseSensitive());
                 List<String> queries = provider.getViewDefinitionQuery(positions, parameters);
                 if (!queries.isEmpty() && !positions.isEmpty()) {
-                    parameters = DBParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, false);
+                    parameters = ParameterHelper.getViewDefinitionArguments(provider, cpt, name, rule, false);
                     try (java.sql.PreparedStatement smt = provider.getConnection().prepareStatement(queries.get(0)))
                     {
                         int i = 1;

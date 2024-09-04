@@ -68,7 +68,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
-public class DBTableHelper
+public class TableHelper
 {
 
     private static class ColumnProperties
@@ -254,7 +254,7 @@ public class DBTableHelper
         // XXX: SQLite only allows creating PK with table creation and if there is no auto increment column (first test)
         // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         else if ((!alterpk && !hasAutoIncrement) || (alterpk && autopk && hasAutoIncrement)) {
-            parts.addAll(DBConstraintHelper.getCreatePrimaryKeyParts(provider, property, sensitive));
+            parts.addAll(ConstraintHelper.getCreatePrimaryKeyParts(provider, property, sensitive));
         }
         queries.add(0, provider.getCreateTableQuery(type, table, String.join(separator, parts), versioning));
         return queries;
@@ -359,7 +359,7 @@ public class DBTableHelper
                             query =  provider.getAddIdentityQuery();
                         }
                         else {
-                            query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN);
+                            query = provider.getSQLQuery(DefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN);
                             alldone = true;
                         }
                     }
@@ -380,7 +380,7 @@ public class DBTableHelper
                             query =  provider.getAlterColumnQuery();
                         }
                         else {
-                            query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN);
+                            query = provider.getSQLQuery(DefaultQuery.STR_QUERY_ALTER_TABLE_ALTER_COLUMN);
                         }
                         // XXX: If an Identity have been added we must first change the type
                         index = (autochanged && auto2) ? 0 : index;
@@ -403,7 +403,7 @@ public class DBTableHelper
                         query = provider.getColumnResetDefaultQuery();
                     }
                     else {
-                        query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_DEFAULT);
+                        query = provider.getSQLQuery(DefaultQuery.STR_QUERY_ALTER_COLUMN_SET_DEFAULT);
                     }
                     queries.add(DBTools.formatSQLQuery(query, arguments));
                     result |= 8;
@@ -414,10 +414,10 @@ public class DBTableHelper
                 boolean nullablechanged = nullable2 != nullable1;
                 if (nullablechanged) {
                     if (nullable2 == ColumnValue.NO_NULLS) {
-                        query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_COLUMN_SET_NOT_NULL);
+                        query = provider.getSQLQuery(DefaultQuery.STR_QUERY_ALTER_COLUMN_SET_NOT_NULL);
                     }
                     else {
-                        query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_NOT_NULL);
+                        query = provider.getSQLQuery(DefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_NOT_NULL);
                     }
                     queries.add(DBTools.formatSQLQuery(query, arguments));
                     result |= 16;
@@ -624,7 +624,7 @@ public class DBTableHelper
             for (int i = 0; i < keys.getCount(); i++) {
                 XPropertySet key = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
                 if (key != null) {
-                    queries.add(DBConstraintHelper.getCreateConstraintQuery(provider, key, table, name, rule, sensitive));
+                    queries.add(ConstraintHelper.getCreateConstraintQuery(provider, key, table, name, rule, sensitive));
                 }
             }
         }

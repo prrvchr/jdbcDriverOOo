@@ -65,7 +65,7 @@ public abstract class CachedResultSet
     protected int m_MinSize = 10;
     protected int m_ColumnCount = 0;
     protected int m_FetchSize;
-    protected String m_Query;
+    protected String m_Table;
     // XXX: If we want to be able to manage deletion visibility then we need to
     // XXX: maintain a cursor that supports deleted lines
     protected int m_Cursor = 0;
@@ -94,13 +94,13 @@ public abstract class CachedResultSet
     public CachedResultSet(DriverProvider provider,
                            java.sql.ResultSet result,
                            RowCatalog catalog,
-                           String query)
+                           String table)
         throws SQLException
     {
         super(result);
         m_Provider = provider;
         m_Catalog = catalog;
-        m_Query = query;
+        m_Table = table;
         int rstype = result.getType();
         boolean updatable = provider.isResultSetUpdatable(result);
         m_IsDeleteVisible = updatable && provider.isDeleteVisible(rstype);
@@ -110,7 +110,6 @@ public abstract class CachedResultSet
         m_ColumnCount = result.getMetaData().getColumnCount();
         m_InsertedColumns = new BitSet(m_ColumnCount);
         m_Updatable = updatable;
-        System.out.println("CachedResultSet() Updatable: " + m_Updatable);
     }
 
 
@@ -163,21 +162,6 @@ public abstract class CachedResultSet
         }
         setInsertMode(false);
     }
-
-    @Override
-    public int getConcurrency()
-        throws SQLException
-    {
-        return m_Result.getConcurrency();
-    }
-
-    @Override
-    public int getType()
-        throws SQLException
-    {
-        return m_Result.getType();
-    }
-
 
     @Override
     public boolean rowDeleted()
@@ -879,7 +863,7 @@ public abstract class CachedResultSet
         throws SQLException
     {
         if (m_RowSetWriter == null) {
-            m_RowSetWriter = new RowSetWriter(m_Provider, m_Catalog, m_Result, m_Query);
+            m_RowSetWriter = new RowSetWriter(m_Provider, m_Catalog, m_Result, m_Table);
         }
         return m_RowSetWriter;
     }

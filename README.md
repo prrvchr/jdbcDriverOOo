@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.3][5]
+# version [1.4.4][5]
 
 ## Introduction:
 
@@ -552,7 +552,14 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
 - Support for LibreOffice version 24.8.x.
 
-### What remains to be done for version 1.4.3:
+### What has been done for version 1.4.4:
+
+- It is now possible to insert data into an empty table when using an `TYPE_FORWARD_ONLY` ResultSet (ie: SQLite, Trino).
+- The options button is now accessible in the list of installed extensions obtained by the menu: **Tools -> Extensions Manager...**
+- The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> Pur Java JDBC Driver**
+- The extension options: **View system tables**, **Use bookmarks** and **Force SQL mode** will be searched in the information provided when connecting and will take precedence if present.
+
+### What remains to be done for version 1.4.4:
 
 - Add new languages for internationalization...
 
@@ -562,7 +569,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-143>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-144>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -589,7 +596,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.3#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.4#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>

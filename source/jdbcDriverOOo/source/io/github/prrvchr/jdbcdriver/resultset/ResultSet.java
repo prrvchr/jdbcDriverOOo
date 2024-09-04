@@ -47,7 +47,7 @@ import java.util.Calendar;
 import java.util.Map;
 
 
-abstract public class ResultSet
+public abstract class ResultSet
     implements java.sql.ResultSet
 {
 

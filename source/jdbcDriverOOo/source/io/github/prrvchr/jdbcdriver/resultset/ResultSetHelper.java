@@ -25,27 +25,26 @@
 */
 package io.github.prrvchr.jdbcdriver.resultset;
 
-import java.sql.ResultSet;
-
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 
 
-public  class ResultSetHelper
+public class ResultSetHelper
 {
 
-    public static boolean isResultSetUpdatable(DriverProvider provider,
-                                               java.sql.ResultSet result,
-                                               RowCatalog catalog,
-                                               String query)
+    public static boolean isUpdatable(DriverProvider provider,
+                                      java.sql.ResultSet result,
+                                      RowCatalog catalog,
+                                      SqlCommand sql)
         throws SQLException
     {
         try {
             boolean updatable = provider.isResultSetUpdatable(result);
-            if (!updatable) {
-                catalog = new RowCatalog(provider, result, query);
+            if (!updatable && sql.hasTable() && sql.isSelectCommand()) {
+                catalog = new RowCatalog(provider, result, sql.getTable());
                 updatable = catalog.hasRowIdentifier();
             }
             return updatable;
@@ -55,26 +54,27 @@ public  class ResultSetHelper
         }
     }
 
-    public static CachedResultSet getCachedResultSet(DriverProvider provider,
-                                                     java.sql.ResultSet result,
-                                                     RowCatalog catalog,
-                                                     String query)
+    // XXX: getResultSet() will be called only if isUpdatable() return true.
+    public static CachedResultSet getResultSet(DriverProvider provider,
+                                               java.sql.ResultSet result,
+                                               RowCatalog catalog,
+                                               String table)
         throws SQLException
     {
         try {
             CachedResultSet resultset;
             int rstype = result.getType();
             boolean updatable = provider.isResultSetUpdatable(result);
-            boolean forwardonly = rstype == ResultSet.TYPE_FORWARD_ONLY;
-            boolean sensitive = rstype == ResultSet.TYPE_SCROLL_SENSITIVE;
+            boolean forwardonly = rstype == java.sql.ResultSet.TYPE_FORWARD_ONLY;
+            boolean sensitive = rstype == java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
             int fetchsize = result.getFetchSize();
             System.out.println("ResultSetHelper.getCachedResultSet() Updatable: " + updatable + " - IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
-            if (rstype == ResultSet.TYPE_FORWARD_ONLY) {
-                resultset = new ScrollableResultSet(provider, result, catalog, query);
+            if (rstype == java.sql.ResultSet.TYPE_FORWARD_ONLY) {
+                resultset = new ScrollableResultSet(provider, result, catalog, table);
                 System.out.println("ResultSetHelper.getCachedResultSet() ResultSet: ScrollableResultSet");
             }
             else {
-                resultset = new SensitiveResultSet(provider, result, catalog, query);
+                resultset = new SensitiveResultSet(provider, result, catalog, table);
                 System.out.println("ResultSetHelper.getCachedResultSet() ResultSet: SensitiveResultSet");
             }
             return resultset;

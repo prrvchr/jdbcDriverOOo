@@ -80,10 +80,10 @@ public class SensitiveResultSet
     public SensitiveResultSet(DriverProvider provider,
                               ResultSet result,
                               RowCatalog catalog,
-                              String query)
+                              String table)
         throws SQLException
     {
-        super(provider, result, catalog, query);
+        super(provider, result, catalog, table);
         int size = m_FetchSize < m_MinSize ? m_MinSize : m_FetchSize;
         m_UpdatedData = new Vector<Row>(size);
         m_InsertedData = new Vector<Row>(size);

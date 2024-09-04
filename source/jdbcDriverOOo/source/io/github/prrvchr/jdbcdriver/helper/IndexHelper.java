@@ -31,7 +31,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
 
-public class DBIndexHelper
+public class IndexHelper
 {
 
     public static ArrayList<String> readIndexes(DriverProvider provider,

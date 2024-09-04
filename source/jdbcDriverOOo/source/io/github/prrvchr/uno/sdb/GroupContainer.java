@@ -34,7 +34,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.helper.RoleHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -106,7 +106,7 @@ public class GroupContainer
     {
         String query = null;
         try {
-            query = DBRoleHelper.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = RoleHelper.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
             return DBTools.executeSQLQuery(m_connection.getProvider(), query);
@@ -137,7 +137,7 @@ public class GroupContainer
         String query = null;
         DriverProvider provider = m_connection.getProvider();
         try {
-            query = DBRoleHelper.getDropGroupQuery(provider, name, isCaseSensitive());
+            query = RoleHelper.getDropGroupQuery(provider, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
             if (DBTools.executeSQLQuery(provider, query)) {

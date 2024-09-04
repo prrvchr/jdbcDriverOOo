@@ -58,7 +58,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
 
 
-public class DBColumnHelper
+public class ColumnHelper
 {
 
     public static class ColumnDescription
@@ -164,7 +164,7 @@ public class DBColumnHelper
         throws java.sql.SQLException
     {
         Map<String, ExtraColumnInfo> columns = new TreeMap<>();
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_METADATA_RESULTSET);
+        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_METADATA_RESULTSET);
         String sql = DBTools.formatSQLQuery(command, columnName, composedName);
         java.sql.Statement statement = provider.getStatement();
         statement.setEscapeProcessing(false);

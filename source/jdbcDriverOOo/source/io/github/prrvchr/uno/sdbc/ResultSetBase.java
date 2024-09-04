@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbc;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.util.BitSet;
 
 import com.sun.star.beans.PropertyAttribute;
@@ -91,7 +90,7 @@ public abstract class ResultSetBase
     private final String m_service;
     private final String[] m_services;
     protected ConnectionBase m_Connection;
-    protected ResultSet m_Result;
+    protected java.sql.ResultSet m_Result;
     protected StatementMain m_Statement;
     // XXX: We need to keep the index references of the columns already assigned for
     // insertion
@@ -107,13 +106,17 @@ public abstract class ResultSetBase
     public ResultSetBase(String service,
                          String[] services,
                          ConnectionBase connection,
-                         ResultSet result)
+                         java.sql.ResultSet result)
         throws SQLException
     {
         this(service, services, connection, result, null);
     }
 
-    public ResultSetBase(String service, String[] services, ConnectionBase connection, ResultSet resultset, StatementMain statement)
+    public ResultSetBase(String service,
+                         String[] services,
+                         ConnectionBase connection,
+                         java.sql.ResultSet resultset,
+                         StatementMain statement)
         throws SQLException
     {
         m_service = service;
@@ -126,7 +129,8 @@ public abstract class ResultSetBase
         registerProperties();
     }
 
-    static private int getResultColumnCount(java.sql.ResultSet resultset, StatementMain statement)
+    static private int getResultColumnCount(java.sql.ResultSet resultset,
+                                            StatementMain statement)
         throws SQLException
     {
         try {
@@ -535,7 +539,6 @@ public abstract class ResultSetBase
     {
         try {
             boolean inserted = m_Result.rowInserted();
-            System.out.println("sdbcx.ResultSetBase.rowInserted() 1 Inserted: " + inserted);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
             return inserted;
         }
@@ -550,7 +553,6 @@ public abstract class ResultSetBase
     {
         try {
             boolean updated = m_Result.rowUpdated();
-            System.out.println("sdbcx.ResultSetBase.rowUpdated() 1 Updated: " + updated);
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
             return updated;
         }
@@ -598,7 +600,6 @@ public abstract class ResultSetBase
     public void insertRow()
         throws SQLException
     {
-        System.out.println("ResultSetBase.insertRow() 1");
         if (!isOnInsertRow()) {
             throw new SQLException("ERROR: insertRow cannot be called when moveToInsertRow has not been called !", this,
                     StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
@@ -611,11 +612,9 @@ public abstract class ResultSetBase
     {
         try {
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
-            System.out.println("ResultSetBase.insertNewRow() 2");
             RowHelper.setDefaultColumnValues(m_Result, m_Inserted);
             m_Result.insertRow();
             moveToCurrentRow();
-            System.out.println("ResultSetBase.insertNewRow() 3");
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -637,13 +636,10 @@ public abstract class ResultSetBase
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.updateCurrentRow() 1");
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
             m_Result.updateRow();
-            System.out.println("ResultSetBase.updateCurrentRow() 2");
         }
         catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.updateCurrentRow() ERROR");
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -653,7 +649,6 @@ public abstract class ResultSetBase
         throws SQLException
     {
         if (isOnInsertRow()) {
-            System.out.println("ResultSetBase.deleteRow() ERROR");
             throw new SQLException("ERROR: deleteRow cannot be called when moveToInsertRow has been called!", this,
                     StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
         }
@@ -679,25 +674,27 @@ public abstract class ResultSetBase
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.cancelRowUpdates() 1 OnInsert: " + isOnInsertRow());
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
-            // FIXME: *** LibreOffice Base call this method just after calling
-            // moveToInsertRow() ***
-            // FIXME: Java documentation say: Throws: SQLException - if a database access
-            // error occurs;
-            // FIXME: this method is called on a closed result set; the result set
-            // concurrency is CONCUR_READ_ONLY
-            // FIXME: or if this method is called when the cursor is on the insert row
-            // FIXME: see:
-            // https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
-            if (isOnInsertRow()) {
-                moveToCurrentRow();
-            } else {
-                m_Result.cancelRowUpdates();
-            }
+            cancelRowUpdatesInternal();
         }
         catch (java.sql.SQLException e) {
             throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_INVALID_CURSOR_STATE.text(), 0, e);
+        }
+    }
+
+    protected void cancelRowUpdatesInternal()
+        throws java.sql.SQLException
+    {
+        // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
+        // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
+        // FIXME: this method is called on a closed result set; the result set concurrency is CONCUR_READ_ONLY
+        // FIXME: or if this method is called when the cursor is on the insert row
+        // FIXME: see: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
+        if (isOnInsertRow()) {
+            moveToCurrentRowInternal();
+        }
+        else {
+            m_Result.cancelRowUpdates();
         }
     }
 
@@ -708,18 +705,20 @@ public abstract class ResultSetBase
         throws SQLException
     {
         try {
-            System.out.println("ResultSetBase.moveToInsertRow() 1 OnInsert: " + isOnInsertRow());
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
-            m_Result.moveToInsertRow();
-            System.out.println("ResultSetBase.moveToInsertRow() 2");
-            m_Inserted.clear();
-            m_OnInsert = true;
-            System.out.println("ResultSetBase.moveToInsertRow() 3 OnInsert: " + isOnInsertRow());
+            moveToInsertRowInternal();
         }
         catch (java.sql.SQLException e) {
-            System.out.println("ResultSetBase.moveToInsertRow() 4 ERROR" + e.getMessage());
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    protected void moveToInsertRowInternal()
+        throws java.sql.SQLException
+    {
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
+        m_Result.moveToInsertRow();
+        m_Inserted.clear();
+        m_OnInsert = true;
     }
 
     @Override
@@ -728,14 +727,18 @@ public abstract class ResultSetBase
     {
         try {
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENTROW);
-            System.out.println("ResultSetBase.moveToCurrentRow() 1 OnInsert: " + isOnInsertRow());
-            m_Result.moveToCurrentRow();
-            m_OnInsert = false;
-            System.out.println("ResultSetBase.moveToCurrentRow() 2 OnInsert: " + isOnInsertRow());
+            moveToCurrentRowInternal();
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+    }
+
+    protected void moveToCurrentRowInternal()
+        throws java.sql.SQLException
+    {
+        m_Result.moveToCurrentRow();
+        m_OnInsert = false;
     }
 
     // com.sun.star.sdbc.XRow:
@@ -1215,7 +1218,7 @@ public abstract class ResultSetBase
         return m_OnInsert;
     }
 
-    protected ResultSet getJdbcResultSet()
+    protected java.sql.ResultSet getJdbcResultSet()
         throws java.sql.SQLException
     {
         return getJdbcStatement().getJdbcResultSet();

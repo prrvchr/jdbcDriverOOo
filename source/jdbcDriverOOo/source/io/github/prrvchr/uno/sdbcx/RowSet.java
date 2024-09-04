@@ -46,10 +46,10 @@ public final class RowSet
                   java.sql.ResultSet result,
                   StatementMain statement,
                   RowCatalog catalog,
-                  String query)
+                  String table)
         throws SQLException
     {
-        super(m_service, m_services, provider, connection, ResultSetHelper.getCachedResultSet(provider, result, catalog, query), statement, query);
+        super(m_service, m_services, provider, connection, ResultSetHelper.getResultSet(provider, result, catalog, table), statement);
         System.out.println("sdbcx.RowSet() 1");
     }
 

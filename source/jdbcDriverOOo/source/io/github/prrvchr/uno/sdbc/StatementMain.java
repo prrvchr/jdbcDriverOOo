@@ -44,9 +44,9 @@ import com.sun.star.util.XCancellable;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
-import io.github.prrvchr.jdbcdriver.helper.DBGeneratedKeys;
-import io.github.prrvchr.jdbcdriver.helper.DBQueryParser;
+import io.github.prrvchr.jdbcdriver.helper.DefaultQuery;
+import io.github.prrvchr.jdbcdriver.helper.GeneratedKeys;
+import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -75,7 +75,7 @@ public abstract class StatementMain
     protected java.sql.Statement m_Statement = null;
     protected RowCatalog m_Catalog = null;
     protected boolean m_parsed = false;
-    protected String m_Sql = "";
+    protected SqlCommand m_Sql = null;
 
     private String m_CursorName = "";
     private int m_FetchDirection = java.sql.ResultSet.FETCH_FORWARD;
@@ -472,11 +472,13 @@ public abstract class StatementMain
     @Override
     public void cancel()
     {
-        try {
-            getJdbcStatement().cancel();
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("StatementMain.cancel() ERROR");
+        if (m_Sql != null) {
+            try {
+                getJdbcStatement().cancel();
+            }
+            catch (java.sql.SQLException e) {
+                System.out.println("StatementMain.cancel() ERROR");
+            }
         }
     }
 
@@ -486,6 +488,7 @@ public abstract class StatementMain
     public synchronized XResultSet getGeneratedValues() throws SQLException
     {
         checkDisposed();
+        checkSqlCommand();
         ResultSet resultset = null;
         try {
             int resource;
@@ -501,13 +504,13 @@ public abstract class StatementMain
                     if (catalog != null) {
                         resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
                         m_logger.logprb(LogLevel.FINE, resource, catalog.getMainTable().getName(), m_Sql);
-                        result = DBGeneratedKeys.getGeneratedResult(provider, getJdbcStatement(), catalog, command);
+                        result = GeneratedKeys.getGeneratedResult(provider, getJdbcStatement(), catalog, command);
                     }
                 }
             }
             if (result == null) {
                 resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
-                String query = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_EMPTY_RESULTSET);
+                String query = provider.getSQLQuery(DefaultQuery.STR_QUERY_EMPTY_RESULTSET);
                 m_logger.logprb(LogLevel.FINE, resource, query);
                 result = provider.getStatement().executeQuery(query);
             }
@@ -527,12 +530,10 @@ public abstract class StatementMain
     private RowCatalog getStatementCatalog()
         throws java.sql.SQLException
     {
-        if (!m_parsed) {
-            DBQueryParser parser = new DBQueryParser(DBQueryParser.SQL_INSERT, m_Sql);
-            if (parser.hasTable()) {
-                m_Catalog = new RowCatalog(m_Connection.getProvider(), parser.getTable());
+        if (m_Catalog == null) {
+            if (m_Sql.hasTable() && m_Sql.isInsertCommand()) {
+                m_Catalog = new RowCatalog(m_Connection.getProvider(), m_Sql.getTable());
             }
-            m_parsed = true;
         }
         return m_Catalog;
     }
@@ -553,6 +554,7 @@ public abstract class StatementMain
     @Override
     public boolean getMoreResults() throws SQLException
     {
+        checkSqlCommand();
         try {
             return getJdbcStatement().getMoreResults();
         }
@@ -567,6 +569,7 @@ public abstract class StatementMain
     @Override
     public int getUpdateCount() throws SQLException
     {
+        checkSqlCommand();
         try {
             return getJdbcStatement().getUpdateCount();
         }
@@ -574,5 +577,13 @@ public abstract class StatementMain
             throw UnoHelper.getSQLException(e, this);
         }
     }
+
+    public void checkSqlCommand() throws SQLException
+    {
+        if (m_Sql == null) {
+            throw UnoHelper.getUnoSQLException("ERROR: checkSqlCommand not set");
+        }
+    }
+
 
 }

@@ -47,8 +47,8 @@ import com.sun.star.uno.Exception;
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBConstraintHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBKeyHelper;
+import io.github.prrvchr.jdbcdriver.helper.ConstraintHelper;
+import io.github.prrvchr.jdbcdriver.helper.KeyHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -104,7 +104,7 @@ public final class KeyContainer
         try {
             System.out.println("KeyContainer.createElement() 1 Name: " + name);
             if (!name.isEmpty()) {
-                key = DBKeyHelper.readKey(getConnection().getProvider(), m_table, m_table.getNamedComponents(),
+                key = KeyHelper.readKey(getConnection().getProvider(), m_table, m_table.getNamedComponents(),
                                           name, ComposeRule.InDataManipulation, isCaseSensitive());
             }
         }
@@ -130,7 +130,7 @@ public final class KeyContainer
                 try {
                     System.out.println("sdbcx.KeyContainer.appendElement() 2");
                     Map<String, String> columns = new TreeMap<>();
-                    String table = DBKeyHelper.getKeyFromDescriptor(getConnection().getProvider(), descriptor, columns);
+                    String table = KeyHelper.getKeyFromDescriptor(getConnection().getProvider(), descriptor, columns);
                     System.out.println("sdbcx.KeyContainer.appendElement() 3 Table: " + table + " ********************************** ");
                     ColumnContainerBase<?> columns1 = m_table.getColumnsInternal();
                     TableContainerSuper<?> tables = m_table.getConnection().getTablesInternal();
@@ -202,7 +202,7 @@ public final class KeyContainer
 
         try {
             name = DBTools.buildName(provider, table, rule);
-            query = DBConstraintHelper.getCreateConstraintQuery(provider, descriptor, table, key, rule, isCaseSensitive());
+            query = ConstraintHelper.getCreateConstraintQuery(provider, descriptor, table, key, rule, isCaseSensitive());
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
             int resource = getCreateKeyResource(type, false);
             getLogger().logprb(LogLevel.INFO, resource, key, name, query);
@@ -268,7 +268,7 @@ public final class KeyContainer
                     }
                 }
             }
-            List<String> columns = DBConstraintHelper.getKeyColumns(provider, descriptor, PropertyIds.NAME, false);
+            List<String> columns = ConstraintHelper.getKeyColumns(provider, descriptor, PropertyIds.NAME, false);
             return new Key(m_table, isCaseSensitive(), newname, referencedName, type, update, delete, columns);
         }
         catch (java.sql.SQLException e) {

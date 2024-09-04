@@ -38,7 +38,7 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBParameterHelper;
+import io.github.prrvchr.jdbcdriver.helper.ParameterHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -106,7 +106,7 @@ public final class View
                 ComposeRule rule = ComposeRule.InDataManipulation;
                 DriverProvider provider = getConnection().getProvider();
                 name = DBTools.buildName(provider, component, rule);
-                Object[] arguments = DBParameterHelper.getAlterViewArguments(provider, component, name, command, rule, isCaseSensitive());
+                Object[] arguments = ParameterHelper.getAlterViewArguments(provider, component, name, command, rule, isCaseSensitive());
                 queries =  provider.getAlterViewQueries(arguments);
                 if (!queries.isEmpty()) {
                     String query = String.join("> <", queries);

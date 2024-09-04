@@ -35,7 +35,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBRoleHelper;
+import io.github.prrvchr.jdbcdriver.helper.RoleHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -122,7 +122,7 @@ public class UserContainer
     {
         String query = null;
         try {
-            query = DBRoleHelper.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = RoleHelper.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
             return DBTools.executeSQLQuery(m_connection.getProvider(), query);
@@ -153,7 +153,7 @@ public class UserContainer
     {
         String query = null;
         try {
-            query = DBRoleHelper.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
+            query = RoleHelper.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
             if (DBTools.executeSQLQuery(m_connection.getProvider(), query)) {

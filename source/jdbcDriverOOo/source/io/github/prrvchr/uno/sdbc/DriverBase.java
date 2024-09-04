@@ -103,11 +103,10 @@ public abstract class DriverBase
         m_enhanced = enhanced;
         m_xConfig = getDriverConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
 
-        System.out.println("sdbc.DriverBase.DriverBase() 1");
         SharedResources.registerClient(context, m_identifier, "resource", "Driver");
         m_logger = new ResourceBasedEventLogger(context, m_identifier, "resource", "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, m_identifier);
-        System.out.println("sdbc.DriverBase.DriverBase() 2");
+        System.out.println("sdbc.DriverBase.DriverBase()");
     }
     
 
@@ -161,18 +160,15 @@ public abstract class DriverBase
             registerDriver(url, info);
         }
 
-        System.out.println("sdbc.DriverBase.connect() 2 Url: " + url);
         XHierarchicalNameAccess config = getDriverConfiguration(m_xContext, m_identifier, this);
         provider.setConnection(this, m_logger, m_enhanced, m_xConfig, config, location, info, level);
         String service = ConnectionService.CSS_SDBC_CONNECTION.service();
         service = UnoHelper.getConfigurationOption(config, "ConnectionService", service);
         UnoHelper.disposeComponent(config);
-        System.out.println("sdbc.DriverBase.connect() 3 Name: " + service);
         service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
-        System.out.println("sdbc.DriverBase.connect() 4 Service: " + service);
+        System.out.println("sdbc.DriverBase.connect() 2 Service: " + service);
         connection = getConnection(m_xContext, provider, url, info, ConnectionService.fromString(service));
         m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getProvider().getLogger().getObjectId());
-        System.out.println("sdbc.DriverBase.connect() 5");
         return connection;
     }
 

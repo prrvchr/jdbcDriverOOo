@@ -48,7 +48,7 @@ import io.github.prrvchr.uno.sdbcx.Key;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
-public class DBKeyHelper
+public class KeyHelper
 {
 
     public static String getKeyFromDescriptor(DriverProvider provider,

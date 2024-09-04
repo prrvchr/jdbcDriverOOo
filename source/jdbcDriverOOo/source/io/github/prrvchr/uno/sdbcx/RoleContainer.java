@@ -54,7 +54,7 @@ import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBParameterHelper;
+import io.github.prrvchr.jdbcdriver.helper.ParameterHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -350,7 +350,7 @@ public abstract class RoleContainer<T extends Role>
         String role1 = m_isrole ? m_name : name;
         String role2 = m_isrole ? name : m_name;
         try {
-            Object[] Arguments = DBParameterHelper.getAlterRoleArguments(getProvider(), role1, role2, m_isrole, m_role, isCaseSensitive());
+            Object[] Arguments = ParameterHelper.getAlterRoleArguments(getProvider(), role1, role2, m_isrole, m_role, isCaseSensitive());
             query = getProvider().getGrantRoleQuery(Arguments);
             int resource = m_isrole ?
                            Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY :
@@ -375,7 +375,7 @@ public abstract class RoleContainer<T extends Role>
         String role1 = m_isrole ? m_name : name;
         String role2 = m_isrole ? name : m_name;
         try {
-            Object[] Arguments = DBParameterHelper.getAlterRoleArguments(getProvider(), role1, role2, m_isrole, m_role, isCaseSensitive());
+            Object[] Arguments = ParameterHelper.getAlterRoleArguments(getProvider(), role1, role2, m_isrole, m_role, isCaseSensitive());
             query = getProvider().getRevokeRoleQuery(Arguments);
             int resource = m_isrole ?
                            Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY :

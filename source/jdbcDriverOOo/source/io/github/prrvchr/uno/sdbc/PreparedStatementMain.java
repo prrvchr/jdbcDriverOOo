@@ -79,7 +79,8 @@ public abstract class PreparedStatementMain
     protected java.sql.ResultSet getJdbcResultSet()
         throws java.sql.SQLException
     {
-        return getJdbcStatement().executeQuery();
+        java.sql.PreparedStatement statement = getJdbcStatement();
+        return statement.executeQuery();
     }
 
     protected abstract PreparedStatement getJdbcStatement() throws java.sql.SQLException;

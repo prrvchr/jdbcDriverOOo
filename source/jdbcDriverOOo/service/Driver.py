@@ -51,11 +51,9 @@ g_ImplementationName = '%s.Driver' % g_identifier
 class Driver(unohelper.Base,
              XServiceInfo):
     def __new__(cls, ctx, *args, **kwargs):
-        print("Driver.__new__() 1")
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    print("Driver.__new__() 2 *******************************")
                     service = getConfiguration(ctx, g_identifier).getByName('DriverService')
                     cls._instance = createService(ctx, service)
         return cls._instance

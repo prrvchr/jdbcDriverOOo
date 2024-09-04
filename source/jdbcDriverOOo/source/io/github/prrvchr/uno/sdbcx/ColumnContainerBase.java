@@ -46,9 +46,9 @@ import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
-import io.github.prrvchr.jdbcdriver.helper.DBTableHelper;
+import io.github.prrvchr.jdbcdriver.helper.ColumnHelper;
+import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.helper.TableHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -112,7 +112,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
 
             DriverProvider provider = getConnection().getProvider();
             table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);
-            DBTableHelper.getAlterColumnQueries(queries, provider, m_table, oldcolumn, descriptor, false, isCaseSensitive());
+            TableHelper.getAlterColumnQueries(queries, provider, m_table, oldcolumn, descriptor, false, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 m_table.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
@@ -152,7 +152,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             ColumnDescription description = m_descriptions.get(name);
             if (description == null) {
                 // could be a recently added column. Refresh:
-                List<ColumnDescription> newcolumns = DBColumnHelper.readColumns(provider, m_table.getNamedComponents());
+                List<ColumnDescription> newcolumns = ColumnHelper.readColumns(provider, m_table.getNamedComponents());
                 for (ColumnDescription newcolumn : newcolumns) {
                     if (newcolumn.columnName.equals(name)) {
                         m_descriptions.put(name, newcolumn);
@@ -168,7 +168,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             ExtraColumnInfo info = m_extrainfos.get(name);
             if (info == null) {
                 String composedName = DBTools.composeTableNameForSelect(provider, m_table, isCaseSensitive());
-                m_extrainfos = DBColumnHelper.collectColumnInformation(provider, composedName, "*");
+                m_extrainfos = ColumnHelper.collectColumnInformation(provider, composedName, "*");
                 info = m_extrainfos.get(name);
             }
             if (info != null) {

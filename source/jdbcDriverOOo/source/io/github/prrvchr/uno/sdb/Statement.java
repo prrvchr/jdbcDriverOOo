@@ -68,8 +68,8 @@ public final class Statement
             if (m_UseBookmarks) {
                 RowCatalog catalog = null;
                 java.sql.ResultSet result = getJdbcResultSet();
-                if (ResultSetHelper.isResultSetUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
-                    RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql);
+                if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
+                    RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql.getTable());
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
                     return resultset;
                 }

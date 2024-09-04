@@ -45,7 +45,7 @@
  *************************************************************/
 package io.github.prrvchr.jdbcdriver.helper;
 
-public class DBDefaultQuery {
+public class DefaultQuery {
 
     public static final String STR_QUERY_EMPTY_RESULTSET                     = "SELECT 1 WHERE 0 = 1";
     public static final String STR_QUERY_METADATA_RESULTSET                  = "SELECT {0} FROM {1} WHERE 0 = 1";

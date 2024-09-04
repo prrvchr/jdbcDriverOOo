@@ -35,7 +35,7 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.helper.PrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -732,13 +732,13 @@ public abstract class DatabaseMetaDataBase
         throws SQLException
     {
         try {
-            java.sql.ResultSet result = DBPrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
+            java.sql.ResultSet result = PrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
                                                                                        m_Metadata,
                                                                                        _getPattern(catalog),
                                                                                        _getPattern(schema),
                                                                                        table);
             DBTools.printResultSet(result);
-            result = DBPrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
+            result = PrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
                                                                     m_Metadata,
                                                                     _getPattern(catalog),
                                                                     _getPattern(schema),

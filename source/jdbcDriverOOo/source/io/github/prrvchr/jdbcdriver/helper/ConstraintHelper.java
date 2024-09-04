@@ -43,7 +43,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 
-public class DBConstraintHelper
+public class ConstraintHelper
 {
 
     public static String getCreateConstraintQuery(DriverProvider provider,
@@ -59,7 +59,7 @@ public class DBConstraintHelper
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
         String command = provider.getAddConstraintQuery(type);
         args.add(DBTools.buildName(provider, table, rule, sensitive));
-        String keyname = DBKeyHelper.getKeyName(name, table.getTableName(), type);
+        String keyname = KeyHelper.getKeyName(name, table.getTableName(), type);
         args.add(DBTools.enquoteIdentifier(provider, keyname, sensitive));
         args.add(String.join(", ", getKeyColumns(provider, descriptor, PropertyIds.NAME, sensitive)));
         if (type == KeyType.FOREIGN) {

@@ -68,7 +68,6 @@ public abstract class ResultSetSuper
             new PropertyGetter() {
                 @Override
                 public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdbcx.ResultSetSuper.getIsBookmarkable() 1 IsBookmarkable: " + m_IsBookmarkable);
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
                     return m_IsBookmarkable;
                 }
@@ -78,7 +77,6 @@ public abstract class ResultSetSuper
                 @Override
                 public Object getValue() throws WrappedTargetException {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
-                    System.out.println("ResultSetSuper.CanUpdateInsertedRows(): " + m_CanUpdateInsertedRows);
                     return m_CanUpdateInsertedRows;
                 }
             }, null);

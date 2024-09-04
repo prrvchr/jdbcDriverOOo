@@ -39,6 +39,7 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
@@ -65,7 +66,7 @@ public abstract class StatementBase
        throws java.sql.SQLException
    {
         m_parsed = false;
-        return getJdbcStatement().executeQuery(m_Sql);
+        return getJdbcStatement().executeQuery(m_Sql.getCommand());
    }
 
     private void registerProperties() {
@@ -135,6 +136,7 @@ public abstract class StatementBase
         throws SQLException
     {
         try {
+            m_Sql = new SqlCommand(sql);
             getJdbcStatement().addBatch(sql);
         }
         catch (java.sql.SQLException e) {
@@ -146,23 +148,29 @@ public abstract class StatementBase
     public void clearBatch()
         throws SQLException
     {
-        try {
-            getJdbcStatement().clearBatch();
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        if (m_Sql != null) {
+            try {
+                getJdbcStatement().clearBatch();
+            }
+            catch (java.sql.SQLException e) {
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
         }
     }
 
     @Override
     public int[] executeBatch()
-        throws SQLException {
-        try {
-            return getJdbcStatement().executeBatch();
+        throws SQLException
+    {
+        if (m_Sql !=null) {
+            try {
+                return getJdbcStatement().executeBatch();
+            }
+            catch (java.sql.SQLException e) {
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
         }
-        catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-        }
+        return new int[0];
     }
 
 
@@ -173,7 +181,7 @@ public abstract class StatementBase
     {
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE, sql);
-            m_Sql = sql;
+            m_Sql = new SqlCommand(sql);
             return getJdbcStatement().execute(sql);
         }
         catch (java.sql.SQLException e) {
@@ -187,7 +195,7 @@ public abstract class StatementBase
         throws SQLException
     {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
-        m_Sql = sql;
+        m_Sql = new SqlCommand(sql);
         return getResultSet();
     }
 
@@ -197,7 +205,7 @@ public abstract class StatementBase
     {
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_UPDATE, sql);
-            m_Sql = sql;
+            m_Sql = new SqlCommand(sql);
             return getJdbcStatement().executeUpdate(sql);
         }
         catch (java.sql.SQLException e) {

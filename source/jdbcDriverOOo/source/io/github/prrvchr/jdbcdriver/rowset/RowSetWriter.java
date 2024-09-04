@@ -49,13 +49,13 @@ public class RowSetWriter
     public RowSetWriter(DriverProvider provider,
                         RowCatalog catalog,
                         ResultSet result,
-                        String query)
+                        String table)
         throws SQLException
     {
         m_Provider = provider;
         // XXX: We can make lazy loading on catalog if ResultSet is updatable
         if (catalog == null) {
-            catalog = new RowCatalog(provider, result, query);
+            catalog = new RowCatalog(provider, result, table);
         }
         m_Catalog = catalog;
     }

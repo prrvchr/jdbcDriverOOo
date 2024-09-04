@@ -67,16 +67,15 @@ public class ScrollableResultSet
     public ScrollableResultSet(DriverProvider provider,
                                ResultSet result,
                                RowCatalog catalog,
-                               String query)
+                               String table)
         throws SQLException
     {
-        super(provider, result, catalog, query);
+        super(provider, result, catalog, table);
         m_Updatable = false;
-        System.out.println("ScrollableResultSet() 1");
         loadNextRow();
     }
 
-
+/*
     // XXX: We want to emulate an updateable ResultSet
     @Override
     public int getConcurrency()
@@ -92,7 +91,7 @@ public class ScrollableResultSet
     {
         return ResultSet.TYPE_SCROLL_SENSITIVE;
     }
-
+*/
 
     @Override
     public void insertRow()
@@ -926,7 +925,7 @@ public class ScrollableResultSet
     @Override
     protected int getRowCount() 
     {
-        return m_RowData.size();
+        return m_RowData != null ? m_RowData.size() : 0;
     }
 
     @Override

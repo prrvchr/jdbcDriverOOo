@@ -43,7 +43,7 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.helper.DBTableHelper;
+import io.github.prrvchr.jdbcdriver.helper.TableHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -92,7 +92,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
             }
             ComposeRule rule = ComposeRule.InTableDefinitions;
             String table = DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, isCaseSensitive());
-            queries = DBTableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, type, rule, isCaseSensitive());
+            queries = TableHelper.getCreateTableQueries(m_Connection.getProvider(), descriptor, table, type, rule, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && m_Connection.getProvider().supportsTableDescription()) {
                 String query = m_Connection.getProvider().getTableDescriptionQuery(table, description);

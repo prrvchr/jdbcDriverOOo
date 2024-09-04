@@ -47,9 +47,9 @@ import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.helper.DBDefaultQuery;
+import io.github.prrvchr.jdbcdriver.helper.DefaultQuery;
 import io.github.prrvchr.jdbcdriver.helper.DBException;
-import io.github.prrvchr.jdbcdriver.helper.DBGeneratedKeys;
+import io.github.prrvchr.jdbcdriver.helper.GeneratedKeys;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.metadata.TableTypesResultSet;
 import io.github.prrvchr.jdbcdriver.metadata.TypeInfoResultSet;
@@ -129,37 +129,37 @@ public abstract class DriverProviderMain
     private boolean m_IgnoreCurrency = false;
     private boolean m_SupportsRenameView = true;
     private boolean m_SupportsAlterIdentity = false;
-    private String m_CreateTableCommand = DBDefaultQuery.STR_QUERY_CREATE_TABLE;
-    private String m_DropTableCommand = DBDefaultQuery.STR_QUERY_DROP_TABLE;
-    private String m_AddColumnCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_COLUMN;
-    private String m_DropColumnCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_COLUMN;
-    private String m_RenameColumnCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_RENAME_COLUMN;
-    private String m_AddPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY;
-    private String m_AddForeignKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY;
-    private String m_AddIndexCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
-    private String m_AddUniqueCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_ADD_UNIQUE;
-    private String m_DropPrimaryKeyCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY;
-    private String m_DropConstraintCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT;
-    private String m_DropIndexCommand = DBDefaultQuery.STR_QUERY_ALTER_TABLE_DROP_INDEX;
-    private String m_TableDescriptionCommand = DBDefaultQuery.STR_QUERY_ADD_TABLE_COMMENT;;
-    private String m_ColumnDescriptionCommand = DBDefaultQuery.STR_QUERY_ADD_COLUMN_COMMENT;
-    private Object[] m_AlterViewCommands = {DBDefaultQuery.STR_QUERY_ALTER_VIEW};
-    private String m_ColumnResetDefaultCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_DEFAULT;
-    private String m_AlterUserCommand = DBDefaultQuery.STR_QUERY_ALTER_USER;
+    private String m_CreateTableCommand = DefaultQuery.STR_QUERY_CREATE_TABLE;
+    private String m_DropTableCommand = DefaultQuery.STR_QUERY_DROP_TABLE;
+    private String m_AddColumnCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_ADD_COLUMN;
+    private String m_DropColumnCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_DROP_COLUMN;
+    private String m_RenameColumnCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_RENAME_COLUMN;
+    private String m_AddPrimaryKeyCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_ADD_PRIMARY_KEY;
+    private String m_AddForeignKeyCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_ADD_FOREIGN_KEY;
+    private String m_AddIndexCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_ADD_INDEX;
+    private String m_AddUniqueCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_ADD_UNIQUE;
+    private String m_DropPrimaryKeyCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_DROP_PRIMARY_KEY;
+    private String m_DropConstraintCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_DROP_CONSTRAINT;
+    private String m_DropIndexCommand = DefaultQuery.STR_QUERY_ALTER_TABLE_DROP_INDEX;
+    private String m_TableDescriptionCommand = DefaultQuery.STR_QUERY_ADD_TABLE_COMMENT;;
+    private String m_ColumnDescriptionCommand = DefaultQuery.STR_QUERY_ADD_COLUMN_COMMENT;
+    private Object[] m_AlterViewCommands = {DefaultQuery.STR_QUERY_ALTER_VIEW};
+    private String m_ColumnResetDefaultCommand = DefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_DEFAULT;
+    private String m_AlterUserCommand = DefaultQuery.STR_QUERY_ALTER_USER;
 
     private String m_AlterColumnCommand = null;
     private String m_AddIdentityCommand = null;
-    private String m_DropIdentityCommand = DBDefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
-    private String m_CreateUserCommand = DBDefaultQuery.STR_QUERY_CREATE_USER;
+    private String m_DropIdentityCommand = DefaultQuery.STR_QUERY_ALTER_COLUMN_DROP_IDENTITY;;
+    private String m_CreateUserCommand = DefaultQuery.STR_QUERY_CREATE_USER;
     private String m_GetUsersCommand = null;
     private String m_GetGroupsCommand = null;
     private String m_GetUserGroupsCommand = null;
     private String m_GetGroupUsersCommand = null;
     private String m_GetGroupRolesCommand = null;
-    private String m_GrantRoleCommand = DBDefaultQuery.STR_QUERY_GRANT_ROLE;
-    private String m_RevokeRoleCommand = DBDefaultQuery.STR_QUERY_REVOKE_ROLE;
-    private String m_GrantPrivilegesCommand = DBDefaultQuery.STR_QUERY_GRANT_PRIVILEGE;
-    private String m_RevokePrivilegesCommand = DBDefaultQuery.STR_QUERY_REVOKE_PRIVILEGE;
+    private String m_GrantRoleCommand = DefaultQuery.STR_QUERY_GRANT_ROLE;
+    private String m_RevokeRoleCommand = DefaultQuery.STR_QUERY_REVOKE_ROLE;
+    private String m_GrantPrivilegesCommand = DefaultQuery.STR_QUERY_GRANT_PRIVILEGE;
+    private String m_RevokePrivilegesCommand = DefaultQuery.STR_QUERY_REVOKE_PRIVILEGE;
     private Object[] m_TablePrivilegesCommands = null;
     private Object[] m_GrantablePrivilegesCommands = null;
     private Object[] m_RenameTableCommands = null;
@@ -256,7 +256,7 @@ public abstract class DriverProviderMain
             result = statement.getGeneratedKeys();
         }
         else {
-            result = DBGeneratedKeys.getGeneratedResult(this, statement, table, columns, command);
+            result = GeneratedKeys.getGeneratedResult(this, statement, table, columns, command);
         }
         if (result != null) {
             ResultSetMetaData metadata = result.getMetaData();
@@ -852,6 +852,7 @@ public abstract class DriverProviderMain
             m_usebookmark = UnoHelper.getConfigurationOption(config2, "UseBookmark", true);
             m_sqlmode = UnoHelper.getConfigurationOption(config2, "SQLMode", false);
             m_enhanced = enhanced;
+
             String url = getConnectionUrl(location, level);
             java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));
             System.out.println("DriverProvider.setConnection() 2");
@@ -1184,7 +1185,10 @@ public abstract class DriverProviderMain
                property.equals("InMemoryDataBase") ||
                property.equals("Type") ||
                property.equals("Url") ||
-               property.equals("ConnectionService");
+               property.equals("ConnectionService") ||
+               property.equals("ShowSystemTable") ||
+               property.equals("UseBookmark") ||
+               property.equals("SQLMode");
     }
 
     @Override
@@ -1274,6 +1278,15 @@ public abstract class DriverProviderMain
                 if (autoretrieving) {
                     m_IsAutoRetrievingEnabled = (boolean) info.Value;
                 }
+                break;
+            case "ShowSystemTable":
+                m_showsystem = (boolean) info.Value;
+                break;
+            case "UseBookmark":
+                m_usebookmark = (boolean) info.Value;
+                break;
+            case "SQLMode":
+                m_sqlmode = (boolean) info.Value;
                 break;
             }
         }

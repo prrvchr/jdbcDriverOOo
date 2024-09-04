@@ -41,6 +41,7 @@ import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -60,7 +61,7 @@ public abstract class CallableStatementBase
                                  String sql)
     {
         super(service, services, connection);
-        m_Sql = sql;
+        m_Sql = new SqlCommand(sql);
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");
     }
 
@@ -72,10 +73,10 @@ public abstract class CallableStatementBase
         if (m_Statement == null) {
             java.sql.CallableStatement statement;
             if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
-                statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql, m_ResultSetType, m_ResultSetConcurrency);
+                statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql.getCommand(), m_ResultSetType, m_ResultSetConcurrency);
             } 
             else {
-                statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql);
+                statement = m_Connection.getProvider().getConnection().prepareCall(m_Sql.getCommand());
             }
             m_Statement = setStatement(statement);
         }

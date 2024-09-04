@@ -31,7 +31,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
 
-import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 

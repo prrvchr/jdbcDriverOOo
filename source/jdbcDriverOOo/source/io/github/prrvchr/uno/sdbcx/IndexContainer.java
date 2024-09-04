@@ -44,7 +44,7 @@ import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBIndexHelper;
+import io.github.prrvchr.jdbcdriver.helper.IndexHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.helper.SharedResources;
@@ -130,7 +130,7 @@ public final class IndexContainer
                 }
             }
             if (found) {
-                Boolean primary = DBIndexHelper.isPrimaryKeyIndex(metadata, table, subname);
+                Boolean primary = IndexHelper.isPrimaryKeyIndex(metadata, table, subname);
                 boolean clustered = type == IndexType.CLUSTERED;
                 index = new Index(m_Table, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
             }

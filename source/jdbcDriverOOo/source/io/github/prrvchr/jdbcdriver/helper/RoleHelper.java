@@ -51,7 +51,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 
 
-public class DBRoleHelper
+public class RoleHelper
 {
 
     /** creates a SQL CREATE USER statement
@@ -100,7 +100,7 @@ public class DBRoleHelper
                                           boolean sensitive)
         throws java.sql.SQLException
     {
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_DROP_USER);
+        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_DROP_USER);
         return DBTools.formatSQLQuery(command, DBTools.enquoteIdentifier(provider, name, sensitive));
     }
 
@@ -151,7 +151,7 @@ public class DBRoleHelper
                                              boolean sensitive)
         throws java.sql.SQLException
     {
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_CREATE_ROLE);
+        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_CREATE_ROLE);
         return DBTools.formatSQLQuery(command, DBTools.enquoteIdentifier(provider, name, sensitive));
     }
 
@@ -173,7 +173,7 @@ public class DBRoleHelper
                                            boolean sensitive)
         throws java.sql.SQLException
     {
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_DROP_ROLE);
+        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_DROP_ROLE);
         return DBTools.formatSQLQuery(command, DBTools.enquoteIdentifier(provider, name, sensitive));
     }
 

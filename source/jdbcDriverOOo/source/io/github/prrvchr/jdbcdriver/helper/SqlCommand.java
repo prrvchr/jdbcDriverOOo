@@ -28,10 +28,7 @@ package io.github.prrvchr.jdbcdriver.helper;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class DBQueryParser {
-
-    public static final String SQL_INSERT = "insert";
-    public static final String SQL_SELECT = "select";
+public final class SqlCommand {
 
     private static final int NO_INDEX = -1;
 
@@ -47,7 +44,15 @@ public final class DBQueryParser {
     private static final String KEYWORD_INTO = "into";
     private static final String KEYWORD_FROM = "from";
 
+    private static final String SQL_INSERT = "insert";
+    private static final String SQL_SELECT = "select";
+    
+    private static final String[] SQL_COMMANDS = {SQL_INSERT, SQL_SELECT};
+
+
     private String m_Table = "";
+    private String m_Command = "";
+    private String m_Type = "";
 
     /**
      * Extracts table name out of SQL if query is INSERT or SELECT
@@ -55,12 +60,11 @@ public final class DBQueryParser {
      *                         - java.sql.Statement.executeQuery()
      *                         - java.sql.PreparedStatement.executeUpdate()
      *                         - java.sql.PreparedStatement.executeQuery()
-     * @param type of query (ie: select or insert)
      * @param sql
      */
-    public DBQueryParser(final String type,
-                         final String sql)
+    public SqlCommand(final String sql)
     {
+        m_Command = sql;
         String nocomments = removeComments(sql);
         String normalized = normalize(nocomments);
         String cleansed = clean(normalized);
@@ -69,10 +73,10 @@ public final class DBQueryParser {
         int index = 1;
         if (tokens.length > 0) {
             String token = tokens[0];
-            if (isToken(token, type)) {
+            if (isToken(token)) {
                 while (index < tokens.length) {
                     token = tokens[index++];
-                    if (shouldProcess(token, type)) {
+                    if (shouldProcess(token)) {
                         m_Table = tokens[index];
                         break;
                     }
@@ -83,7 +87,23 @@ public final class DBQueryParser {
 
     /**
      * 
-     * @return the table name extracted out of sql
+     * @return the SQL command
+     */
+    public String toString() {
+        return m_Command;
+    }
+
+    /**
+     * 
+     * @return the SQL command
+     */
+    public String getCommand() {
+        return m_Command;
+    }
+
+    /**
+     * 
+     * @return the table name extracted out of SQL command
      */
     public String getTable() {
         return m_Table;
@@ -91,10 +111,26 @@ public final class DBQueryParser {
 
     /**
      * 
-     * @return if table name has been extracted out of sql
+     * @return if table name has been extracted out of SQL command
      */
     public boolean hasTable() {
         return !m_Table.isBlank();
+    }
+
+    /**
+     * 
+     * @return if SQL command is an SELECT command
+     */
+    public boolean isSelectCommand() {
+        return m_Type.equals(SQL_SELECT);
+    }
+
+    /**
+     * 
+     * @return if SQL command is an INSERT command
+     */
+    public boolean isInsertCommand() {
+        return m_Type.equals(SQL_INSERT);
     }
 
     private String removeComments(final String sql)
@@ -148,18 +184,24 @@ public final class DBQueryParser {
         return normalized;
     }
 
-    private boolean isToken(final String token, final String type)
+    private boolean isToken(final String token)
     {
-        return type.equals(token.toLowerCase());
+        for (String type : SQL_COMMANDS) {
+            if (type.equals(token.toLowerCase())) {
+                m_Type = type;
+                return true;
+            }
+        }
+        return false;
     }
 
-    private boolean shouldProcess(final String token, String type)
+    private boolean shouldProcess(final String token)
     {
         boolean process = false;
-        if (type.equals(SQL_INSERT)) {
+        if (m_Type.equals(SQL_INSERT)) {
             process =  KEYWORD_INTO.equals(token.toLowerCase());
         }
-        else if (type.equals(SQL_SELECT)) {
+        else if (m_Type.equals(SQL_SELECT)) {
             process = KEYWORD_FROM.equals(token.toLowerCase());
         }
         return process;

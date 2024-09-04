@@ -44,7 +44,7 @@ import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowTable;
 
 
-public class DBGeneratedKeys
+public class GeneratedKeys
 {
 
     // XXX: Method called from StatementMain.getGeneratedValues()

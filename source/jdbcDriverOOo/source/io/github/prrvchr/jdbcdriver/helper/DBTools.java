@@ -694,14 +694,14 @@ public class DBTools
                                              String view,
                                              String sql)
     {
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_CREATE_VIEW);
+        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_CREATE_VIEW);
         return formatSQLQuery(command, view, sql);
     }
 
     public static String getDropViewQuery(DriverProvider provider,
                                           String view)
     {
-        String command = provider.getSQLQuery(DBDefaultQuery.STR_QUERY_DROP_VIEW);
+        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_DROP_VIEW);
         return formatSQLQuery(command, view);
     }
 

@@ -32,7 +32,7 @@ import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 
 
-public class DBParameterHelper
+public class ParameterHelper
 {
 
     public static String[] getPrivilegesArguments(DriverProvider provider,

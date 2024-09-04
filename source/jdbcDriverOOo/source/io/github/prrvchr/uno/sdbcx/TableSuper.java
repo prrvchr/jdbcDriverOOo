@@ -50,12 +50,12 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBColumnHelper.ColumnDescription;
-import io.github.prrvchr.jdbcdriver.helper.DBIndexHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBKeyHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBTableHelper;
+import io.github.prrvchr.jdbcdriver.helper.ColumnHelper;
+import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.jdbcdriver.helper.IndexHelper;
+import io.github.prrvchr.jdbcdriver.helper.KeyHelper;
+import io.github.prrvchr.jdbcdriver.helper.PrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.helper.TableHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
@@ -130,7 +130,7 @@ public abstract class TableSuper
         try {
             System.out.println("sdbcx.TableSuper.getPrivileges() 1");
             DriverProvider provider = getConnection().getProvider();
-            int privileges = DBPrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
+            int privileges = PrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
             if (privileges == 0) {
                 privileges = provider.getMockPrivileges();
             }
@@ -263,7 +263,7 @@ public abstract class TableSuper
             boolean alterfk = isForeignKeyColumn(oldname);
             boolean alteridx = isIndexColumn(oldname);
             boolean alterkey = alterpk || alterfk;
-            byte result = DBTableHelper.getAlterColumnQueries(queries, provider, this, oldcolumn, newcolumn, alterkey, isCaseSensitive());
+            byte result = TableHelper.getAlterColumnQueries(queries, provider, this, oldcolumn, newcolumn, alterkey, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
@@ -297,7 +297,7 @@ public abstract class TableSuper
                             getKeysInternal().renameKeyColumn(KeyType.PRIMARY, oldname, newname);
                             // XXX: If the renamed column is a primary key, we need to know if it is referenced as a foreign key.
                             // XXX: If this is the case then we need to rename the corresponding column in these foreign keys.
-                            Map<String, List<String>> tables = DBKeyHelper.getExportedTablesColumns(provider, component, newname, rule);
+                            Map<String, List<String>> tables = KeyHelper.getExportedTablesColumns(provider, component, newname, rule);
                             if (!tables.isEmpty()) {
                                 getConnection().getTablesInternal().renameForeignKeyColumn(tables, table, oldname, newname);
                             }
@@ -438,7 +438,7 @@ public abstract class TableSuper
                 // XXX: If renamed table is not a view and are part of a foreign key the referenced table name is not any more valid.
                 // XXX: So we need to rename the referenced table name in all other table having a foreign keys referencing this table.
                 if (!isview) {
-                    List<String> filter = DBKeyHelper.getExportedTables(provider, component, rule);
+                    List<String> filter = KeyHelper.getExportedTables(provider, component, rule);
                     getConnection().getTablesInternal().renameReferencedTableName(filter, table, name);
                 }
             }
@@ -453,7 +453,7 @@ public abstract class TableSuper
     protected void refreshColumns()
     {
         try {
-            List<ColumnDescription> columns = DBColumnHelper.readColumns(getConnection().getProvider(), getNamedComponents());
+            List<ColumnDescription> columns = ColumnHelper.readColumns(getConnection().getProvider(), getNamedComponents());
             if (m_columns == null) {
                 m_columns = getColumnContainer(columns);
             }
@@ -478,7 +478,7 @@ public abstract class TableSuper
     {
         try {
             DriverProvider provider = getConnection().getProvider();
-            List<String> keys = DBKeyHelper.refreshKeys(provider, getNamedComponents());
+            List<String> keys = KeyHelper.refreshKeys(provider, getNamedComponents());
             System.out.println("TableSuper.refreshKeys() Table: " + getName() + " - Keys: " + String.join(", ", keys));
             if (m_keys == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
@@ -497,7 +497,7 @@ public abstract class TableSuper
     protected void refreshIndexes()
     {
         try {
-            List<String> indexes = DBIndexHelper.readIndexes(getConnection().getProvider(), getNamedComponents(), m_qualifiedindex);
+            List<String> indexes = IndexHelper.readIndexes(getConnection().getProvider(), getNamedComponents(), m_qualifiedindex);
             if (m_indexes == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_INDEXES);
                 m_indexes = new IndexContainer(this, isCaseSensitive(), indexes);

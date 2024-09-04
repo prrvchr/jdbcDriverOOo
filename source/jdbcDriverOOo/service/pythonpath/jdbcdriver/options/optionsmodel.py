@@ -172,7 +172,7 @@ class OptionsModel():
         connection = self._services.get('Connection').index(self._getConnectionService())
         if driver and not connection:
             connection = 1
-            self._config.replaceByName('ConnectionService', self._services.get('Connection')[connection])
+            self.setConnectionService(connection)
         return connection, self._isConnectionLevelEnabled(driver)
 
     def setConnectionService(self, level):
@@ -350,5 +350,3 @@ class OptionsModel():
     def _getTabTitle(self, tab):
         resource = self._resources.get('TabTitle%s' % tab)
         return self._resolver.resolveString(resource)
-
-

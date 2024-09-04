@@ -37,7 +37,7 @@ import com.sun.star.sdbcx.XGroupsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ComposeRule;
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBPrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.helper.PrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.Resources;
@@ -99,10 +99,10 @@ public abstract class Role
                     NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
                     java.sql.DatabaseMetaData metadata = m_provider.getConnection().getMetaData();
                     if (!m_isrole && getName().equals(metadata.getUserName())) {
-                        privileges = DBPrivilegesHelper.getTablePrivileges(m_provider, metadata, table);
+                        privileges = PrivilegesHelper.getTablePrivileges(m_provider, metadata, table);
                     }
                     else {
-                        privileges = DBPrivilegesHelper.getGrantablePrivileges(m_provider, getName(), table, rule);
+                        privileges = PrivilegesHelper.getGrantablePrivileges(m_provider, getName(), table, rule);
                     }
                 }
                 else {
@@ -127,7 +127,7 @@ public abstract class Role
                 if (tables.hasByName(name)) {
                     ComposeRule rule = ComposeRule.InDataManipulation;
                     NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
-                    privileges = DBPrivilegesHelper.getTablePrivileges(m_provider, getName(), table, rule);
+                    privileges = PrivilegesHelper.getTablePrivileges(m_provider, getName(), table, rule);
                 }
                 else {
                     privileges = m_provider.getMockPrivileges();
@@ -152,7 +152,7 @@ public abstract class Role
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
                 NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
-                query = DBPrivilegesHelper.getGrantPrivilegesQuery(m_provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
+                query = PrivilegesHelper.getGrantPrivilegesQuery(m_provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
                 int resource = m_isrole ?
                                Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY :
                                Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
@@ -185,7 +185,7 @@ public abstract class Role
                 if (tables.hasByName(name)) {
                     ComposeRule rule = ComposeRule.InDataManipulation;
                     NamedComponents table = DBTools.qualifiedNameComponents(m_provider, name, rule);
-                    query = DBPrivilegesHelper.getRevokePrivilegesQuery(m_provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
+                    query = PrivilegesHelper.getRevokePrivilegesQuery(m_provider, table, privileges, m_isrole, getName(), rule, isCaseSensitive());
                     int resource = m_isrole ?
                                    Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY :
                                    Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;

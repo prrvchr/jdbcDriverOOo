@@ -41,11 +41,11 @@
       <node oor:name="Leaves">
         <node oor:name="io.github.prrvchr.jdbcDriverOOo" oor:op="fuse">
           <prop oor:name="Id">
-            <value>io.github.prrvchr.BaseDriver.jdbcDriverOOo</value>
+            <value>io.github.prrvchr.jdbcDriverOOo</value>
           </prop>
           <prop oor:name="Label">
-            <value xml:lang="en-US">JDBC Driver</value>
-            <value xml:lang="fr-FR">Pilote JDBC</value>
+            <value xml:lang="en-US">Pure Java JDBC Driver</value>
+            <value xml:lang="fr-FR">Pilote JDBC pure Java</value>
           </prop>
           <prop oor:name="OptionsPage">
             <value>%origin%/dialogs/OptionsDialog.xdl</value>

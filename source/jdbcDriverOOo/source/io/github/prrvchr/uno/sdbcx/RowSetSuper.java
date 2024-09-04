@@ -25,10 +25,10 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CompareBookmark;
@@ -59,15 +59,15 @@ public abstract class RowSetSuper
                        DriverProvider provider,
                        ConnectionSuper connection,
                        CachedResultSet result,
-                       StatementMain statement,
-                       String query)
+                       StatementMain statement)
         throws SQLException
     {
         super(service, services, connection, result, statement, true, true);
         showResultVisibility(provider, result);
     }
 
-    private void showResultVisibility(DriverProvider provider, ResultSet result)
+    private void showResultVisibility(DriverProvider provider,
+                                      java.sql.ResultSet result)
         throws SQLException
     {
         try {
@@ -89,6 +89,21 @@ public abstract class RowSetSuper
         return (CachedResultSet) m_Result;
     }
 
+    @Override
+    protected int _getResultSetConcurrency()
+        throws WrappedTargetException
+    {
+        // XXX: We want to emulate an updateable ResultSet
+        return java.sql.ResultSet.CONCUR_UPDATABLE;
+    }
+
+    @Override
+    protected int _getResultSetType()
+        throws WrappedTargetException
+    {
+        // XXX: We want to emulate an scollable ResultSet
+        return java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
+    }
 
     // com.sun.star.sdbcx.XRowLocate:
     @Override
@@ -208,7 +223,8 @@ public abstract class RowSetSuper
 
     // com.sun.star.util.XCancellable:
     @Override
-    public void cancel() {
+    public void cancel()
+    {
         // TODO: implement me
     }
 
