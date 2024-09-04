@@ -45,7 +45,7 @@
           </prop>
           <prop oor:name="Label">
             <value xml:lang="en-US">Pure Java JDBC Driver</value>
-            <value xml:lang="fr-FR">Pilote JDBC pure Java</value>
+            <value xml:lang="fr-FR">Pilote JDBC pur Java</value>
           </prop>
           <prop oor:name="OptionsPage">
             <value>%origin%/dialogs/OptionsDialog.xdl</value>

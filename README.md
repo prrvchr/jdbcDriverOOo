@@ -556,7 +556,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 - It is now possible to insert data into an empty table when using an `TYPE_FORWARD_ONLY` ResultSet (ie: SQLite, Trino).
 - The options button is now accessible in the list of installed extensions obtained by the menu: **Tools -> Extensions Manager...**
-- The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> Pur Java JDBC Driver**
+- The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> Pure Java JDBC Driver**
 - The extension options: **View system tables**, **Use bookmarks** and **Force SQL mode** will be searched in the information provided when connecting and will take precedence if present.
 - Updated Trino driver to version 455.
 
