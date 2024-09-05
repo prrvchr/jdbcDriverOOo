@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.4][5]
+# version [1.4.5][5]
 
 ## Introduction:
 
@@ -560,7 +560,11 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The extension options: **View system tables**, **Use bookmarks** and **Force SQL mode** will be searched in the information provided when connecting and will take precedence if present.
 - Updated Trino driver to version 455.
 
-### What remains to be done for version 1.4.4:
+### What has been done for version 1.4.5:
+
+- Fix to allow the eMailerOOo extension to work properly in version 1.2.5.
+
+### What remains to be done for version 1.4.5:
 
 - Add new languages for internationalization...
 
@@ -597,7 +601,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.4#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.5#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>

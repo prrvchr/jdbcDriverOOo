@@ -159,31 +159,7 @@ public class RowTable
                 }
             }
         }
-        testMetadataOnEmptyResultSet();
         return identifier;
-    }
-
-    private void testMetadataOnEmptyResultSet()
-            throws SQLException
-    {
-        String query = "SELECT * FROM %1$s WHERE (1 = 0)";
-        String command = String.format(query, getComposedName(true));
-        System.out.println("RowTable.testMetadataOnEmptyResultSet() 1 Query: " + command);
-        try (ResultSet result = m_Catalog.getStatement().executeQuery(command)) {
-            ResultSetMetaData meta = result.getMetaData();
-            if (meta != null) {
-                int count = meta.getColumnCount();
-                System.out.println("RowTable.testMetadataOnEmptyResultSet() 2 ColumnCount: " + count);
-                for (int i = 1; i <= count; i++) {
-                    System.out.println("RowTable.testMetadataOnEmptyResultSet() 3 ColumnName: " + meta.getColumnName(i));
-                    System.out.println("RowTable.testMetadataOnEmptyResultSet() 4 ColumnTypeName: " + meta.getColumnTypeName(i));
-                    System.out.println("RowTable.testMetadataOnEmptyResultSet() 5 ColumnNullable: " + meta.isNullable(i));
-                }
-            }
-            else {
-                System.out.println("RowTable.testMetadataOnEmptyResultSet() 6");
-            }
-        }
     }
 
     public List<String> getRowIdentifier()
