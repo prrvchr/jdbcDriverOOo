@@ -27,15 +27,56 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .dialog import LogManager
-from .dialog import LoggerListener
+from com.sun.star.logging.LogLevel import SEVERE
 
-from .logger import Logger
+from .logwrapper import LogWrapper
 
-from .loggerpool import LoggerPool
+from .logconfig import LogConfig
 
 from .loghandler import RollerHandler
+from .loghandler import getRollerHandlerUrl
 
-from .loghelper import getLogger
+from ..unotool import getSimpleFile
+from ..unotool import getStringResourceWithLocation
 
-from .logcontroller import LogController
+from ..configuration import g_basename
+
+import traceback
+
+# XXX: This LogController allows to use a deletable log file as used in eMailerOOo
+class LogController(LogWrapper):
+    def __init__(self, ctx, name, basename=g_basename, listener=None):
+        super().__init__(ctx, name, basename)
+        self._listener = listener
+        self._setting = None
+        self._config = LogConfig(ctx)
+        if listener is not None:
+            self._logger.addModifyListener(listener)
+
+    # Public getter method
+    def getLogContent(self, roller=False):
+        return self._config.getLoggerContent(self.Name, roller)
+
+    # Public setter method
+    def dispose(self):
+        if self._listener is not None:
+            self._logger.removeModifyListener(self._listener)
+
+    def clearLogger(self):
+        url = getRollerHandlerUrl(self._ctx, self.Name)
+        sf = getSimpleFile(self._ctx)
+        if sf.exists(url):
+            sf.kill(url)
+            resolver = getStringResourceWithLocation(self._ctx, self._url, 'Logger')
+            msg = resolver.resolveString(111)
+            handler = RollerHandler(self._ctx, self.Name)
+            self.addRollerHandler(handler)
+            self._logger.logp(SEVERE, 'Logger', 'clearLogger()', msg)
+            self.removeRollerHandler(handler)
+
+    def addModifyListener(self, listener):
+        self._logger.addModifyListener(listener)
+
+    def removeModifyListener(self, listener):
+        self._logger.removeModifyListener(listener)
+

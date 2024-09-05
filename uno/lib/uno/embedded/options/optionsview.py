@@ -36,11 +36,15 @@ class OptionsView():
         self.setRestart(restart)
 
 # OptionsView setter methods
-    def initView(self, driver, connection, enabled, version):
+    def initView(self, driver, connection, enabled, version, system, bookmark, mode):
         self._getVersion().Text = version
         self._getDriverService(driver).State = 1
         self._getConnectionService(connection).State = 1
         self._getConnectionService(0).Model.Enabled = enabled
+        self._getSytemTable().State = int(system)
+        self._getBookmark().State = int(bookmark)
+        self.enableSQLMode(bookmark)
+        self._getSQLMode().State = int(mode)
 
     def setDriverVersion(self, version):
         self._getVersion().Text = version
@@ -55,12 +59,24 @@ class OptionsView():
     def setRestart(self, enabled):
         self._getRestart().setVisible(enabled)
 
+    def enableSQLMode(self, state):
+        self._getSQLMode().Model.Enabled = bool(state)
+
 # OptionsView private control methods
     def _getDriverService(self, index):
         return self._window.getControl('OptionButton%s' % (index + 1))
 
     def _getConnectionService(self, index):
         return self._window.getControl('OptionButton%s' % (index + 3))
+
+    def _getSytemTable(self):
+        return self._window.getControl('CheckBox1')
+
+    def _getBookmark(self):
+        return self._window.getControl('CheckBox2')
+
+    def _getSQLMode(self):
+        return self._window.getControl('CheckBox3')
 
     def _getVersion(self):
         return self._window.getControl('Label2')

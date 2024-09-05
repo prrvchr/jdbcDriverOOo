@@ -96,3 +96,13 @@ class OptionsManager():
     def setConnectionService(self, level):
         self._model.setConnectionService(level)
 
+    def setSystemTable(self, state):
+        self._model.setSystemTable(state)
+
+    def setBookmark(self, state):
+        self._model.setBookmark(state)
+        self._view.enableSQLMode(state)
+
+    def setSQLMode(self, state):
+        self._model.setSQLMode(state)
+

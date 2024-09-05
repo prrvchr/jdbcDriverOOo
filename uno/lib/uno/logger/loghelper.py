@@ -27,106 +27,15 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
+from .logwrapper import LogWrapper
+from .logwrapper import getLogName
 
-from com.sun.star.logging.LogLevel import ALL
-
-from .loggerpool import LoggerPool
-
-from ..unotool import getResourceLocation
-from ..unotool import getStringResourceWithLocation
-
-from ..configuration import g_identifier
-from ..configuration import g_resource
 from ..configuration import g_defaultlog
 from ..configuration import g_basename
-
-import traceback
-
 
 def getLogger(ctx, logger=g_defaultlog, basename=g_basename):
     return LogWrapper(ctx, logger, basename)
 
 def getLoggerName(name):
-    return '%s.%s' % (g_identifier, name)
-
-
-# This LogWrapper allows using variable number of argument in python
-# while the UNO API does not allow it
-class LogWrapper(object):
-    def __init__(self, ctx, name, basename):
-        self._ctx = ctx
-        self._basename = basename
-        self._url, self._logger = self._getPoolLogger(name, basename)
-        self._level = ALL
-
-    # XLogger
-    @property
-    def Name(self):
-        return self._logger.Name
-
-    @property
-    def Level(self):
-        return self._logger.Level
-    @Level.setter
-    def Level(self, value):
-        self._logger.Level = value
-
-    # Public getter method
-    def isLoggable(self, level):
-        return self._logger.isLoggable(level)
-
-    def resolveString(self, resource, *args):
-        if self._logger.hasEntryForId(resource):
-            return self._logger.resolveString(resource, args)
-        else:
-            return self._getErrorMessage(resource)
-
-    # Public setter method
-    def addLogHandler(self, handler):
-        self._logger.addLogHandler(handler)
-
-    def removeLogHandler(self, handler):
-        self._logger.removeLogHandler(handler)
-
-    def addRollerHandler(self, handler):
-        self._level = self.Level
-        self.Level = ALL
-        self.addLogHandler(handler)
-
-    def removeRollerHandler(self, handler):
-        self._logger.removeLogHandler(handler)
-        handler.dispose()
-        self.Level = self._level
-
-    def log(self, level, message):
-        self._logger.log(level, message)
-
-    def logp(self, level, clazz, method, message):
-        self._logger.logp(level, clazz, method, message)
-
-    def logrb(self, level, resource, *args):
-        if self._logger.hasEntryForId(resource):
-            self._logger.logrb(level, resource, args)
-        else:
-            self._logger.log(level, self._getErrorMessage(resource))
-
-    def logprb(self, level, clazz, method, resource, *args):
-        if self._logger.hasEntryForId(resource):
-            self._logger.logprb(level, clazz, method, resource, args)
-        else:
-            self._logger.logp(level, clazz, method, self._getErrorMessage(resource))
-
-    # Private getter method
-    def _getErrorMessage(self, resource):
-        resolver = getStringResourceWithLocation(self._ctx, self._url, 'Logger')
-        return self._resolveErrorMessage(resolver, resource)
-
-    def _resolveErrorMessage(self, resolver, resource):
-        return resolver.resolveString(101).format(resource, self._url, self._basename)
-
-    def _getPoolLogger(self, name, basename):
-        url = getResourceLocation(self._ctx, g_identifier, g_resource)
-        logger = LoggerPool(self._ctx).getLocalizedLogger(getLoggerName(name), url, basename)
-        return url, logger
+    return getLogName(name)
 

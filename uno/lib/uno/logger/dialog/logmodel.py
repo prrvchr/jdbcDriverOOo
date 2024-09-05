@@ -41,11 +41,10 @@ from com.sun.star.logging.LogLevel import OFF
 
 from ..loggerpool import LoggerPool
 
+from ..logconfig import LogConfig
+
 from ..loghelper import getLoggerName
 
-from ...unotool import createService
-from ...unotool import getConfiguration
-from ...unotool import getFileSequence
 from ...unotool import getResourceLocation
 from ...unotool import getSimpleFile
 from ...unotool import getStringResourceWithLocation
@@ -69,7 +68,7 @@ class LogModel():
         self._setting = '/org.openoffice.Office.Logging/Settings'
         self._url = getResourceLocation(ctx, g_identifier, g_resource)
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
-        self._config = getConfiguration(ctx, self._setting, True)
+        self._config = LogConfig(ctx)
         self._pool = LoggerPool(ctx)
         self._pool.addModifyListener(listener)
         self._logger = self._pool.getLocalizedLogger(getLoggerName(names[0]), self._url, g_basename)
@@ -87,43 +86,36 @@ class LogModel():
         return self._getLoggerSetting(name)
 
     def loadSetting(self):
-        self._config = getConfiguration(self._ctx, self._setting, True)
+        self._config.loadSetting()
         return self._getLoggerSetting(self._logger.Name)
 
     def getLogContent(self):
-        url, text, length = self.getLoggerData()
-        return text, length
+        return self._config.getLoggerContent(self._logger.Name)
 
     def getLoggerData(self):
-        url = self._getLoggerUrl()
-        length, sequence = getFileSequence(self._ctx, url)
-        text = sequence.value.decode('utf-8')
-        return url, text, length
+        return self._config.getLoggerData(self._logger.Name)
 
     def saveSetting(self):
-        if self._config.hasPendingChanges():
-            self._config.commitChanges()
-            return True
-        return False
+        return self._config.saveSetting()
 
 # Public setter method
     def dispose(self):
         self._pool.removeModifyListener(self._listener)
 
     def enableLogger(self, enabled, level):
-        config = self._getLogConfig(self._logger.Name)
+        config = self._config.getSetting(self._logger.Name)
         config.LogLevel = self._getLogLevels(level) if enabled else OFF
 
     def toggleHandler(self, index):
-        config = self._getLogConfig(self._logger.Name)
+        config = self._config.getSetting(self._logger.Name)
         config.DefaultHandler = self._getLogHandler(index)
 
     def setLevel(self, level):
-        config = self._getLogConfig(self._logger.Name)
+        config = self._config.getSetting(self._logger.Name)
         config.LogLevel = self._getLogLevels(level)
 
     def setLogSetting(self, setting):
-        config = self._getLogConfig(self._logger.Name)
+        config = self._config.getSetting(self._logger.Name)
         config.LogLevel = setting.LogLevel
         config.DefaultHandler = setting.DefaultHandler
 
@@ -146,15 +138,10 @@ class LogModel():
 
 # Private getter method
     def _getLoggerSetting(self, name):
-        config = self._getLogConfig(name)
+        config = self._config.getSetting(name)
         level = config.LogLevel
         enabled = level != OFF
         return enabled, self._getLevelIndex(level), self._getHandlerIndex(config.DefaultHandler)
-
-    def _getLogConfig(self, name):
-        if not self._config.hasByName(name):
-            self._config.insertByName(name, self._config.createInstance())
-        return self._config.getByName(name)
 
     def _getLogLevels(self, level):
         return self._logLevels()[level]
@@ -230,13 +217,4 @@ class LogModel():
                 except Exception as e:
                     msg = self._resolver.resolveString(136).format(name, e, traceback.format_exc())
                 self._logger.logp(level, clazz, method, msg)
-
-    def _getLoggerUrl(self):
-        url = '$(userurl)/$(loggername).log'
-        settings = self._getLogConfig(self._logger.Name).getByName('HandlerSettings')
-        if settings.hasByName('FileURL'):
-            url = settings.getByName('FileURL')
-        path = createService(self._ctx, 'com.sun.star.util.PathSubstitution')
-        url = url.replace('$(loggername)', self._logger.Name)
-        return path.substituteVariables(url, True)
 
