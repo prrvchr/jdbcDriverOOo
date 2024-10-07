@@ -48,7 +48,6 @@ import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.InsertRow;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
-import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowSetWriter;
 
 
@@ -56,16 +55,17 @@ public abstract class CachedResultSet
     extends ResultSet
 {
 
-    protected DriverProvider m_Provider;
+    private DriverProvider m_Provider;
     // XXX: If ResultSet cannot be updated, we use a RowSetWriter
     // XXX: which allows us to send the correct SQL queries
-    protected RowSetWriter m_RowSetWriter = null;
+    private RowSetWriter m_RowSetWriter = null;
     // XXX: If we use RowSetWriter we need the RowCatalog
-    protected RowCatalog m_Catalog = null;
+    private RowCatalog m_Catalog = null;
+    private String m_Table;
+
     protected int m_MinSize = 10;
     protected int m_ColumnCount = 0;
     protected int m_FetchSize;
-    protected String m_Table;
     // XXX: If we want to be able to manage deletion visibility then we need to
     // XXX: maintain a cursor that supports deleted lines
     protected int m_Cursor = 0;
@@ -81,14 +81,14 @@ public abstract class CachedResultSet
     // XXX: If ResultSet is not updatable then we need to emulate the insert row.
     protected InsertRow m_InsertRow = null;
 
-    protected boolean m_Updatable = false;
     // XXX: We need to know when we are on the insert row
     protected boolean m_OnInsert = false;
     // XXX: We need to keep the index references of the columns already assigned for insertion
     protected BitSet m_InsertedColumns;
-    protected boolean m_IsDeleteVisible;
-    protected boolean m_IsInsertVisible;
-    protected boolean m_IsUpdateVisible;
+
+    // XXX: Is the last ResultSet value null
+    protected boolean m_WasNull = false;
+
 
     // The constructor method:
     public CachedResultSet(DriverProvider provider,
@@ -101,78 +101,26 @@ public abstract class CachedResultSet
         m_Provider = provider;
         m_Catalog = catalog;
         m_Table = table;
-        int rstype = result.getType();
-        boolean updatable = provider.isResultSetUpdatable(result);
-        m_IsDeleteVisible = updatable && provider.isDeleteVisible(rstype);
-        m_IsInsertVisible = updatable && provider.isInsertVisible(rstype);
-        m_IsUpdateVisible = updatable && provider.isUpdateVisible(rstype);
         m_FetchSize = result.getFetchSize();
         m_ColumnCount = result.getMetaData().getColumnCount();
         m_InsertedColumns = new BitSet(m_ColumnCount);
-        m_Updatable = updatable;
     }
 
 
     @Override
-    public void insertRow()
-        throws SQLException
-    {
-        // XXX: Base does not allow auto-increment columns to be entered,
-        // XXX: some drivers force us to update these columns to null
-        RowHelper.setDefaultColumnValues(m_Result, m_InsertedColumns);
-        m_InsertedColumns.clear();
-        m_Result.insertRow();
-        moveToCurrentRow();
-    }
+    public abstract void moveToCurrentRow() throws SQLException;
 
     @Override
-    public void cancelRowUpdates()
-        throws SQLException
-    {
-        if (m_Updatable) {
-            if (isOnInsertRow()) {
-                moveToCurrentRow();
-            }
-            else {
-                m_Result.cancelRowUpdates();
-            }
-        }
-        if (isOnInsertRow()) {
-            setInsertMode(false);
-        }
-    }
+    public abstract void moveToInsertRow() throws SQLException;
 
     @Override
-    public void moveToInsertRow()
-        throws SQLException
-    {
-        if (m_Updatable) {
-            m_Result.moveToInsertRow();
-            m_InsertedColumns.clear();
-        }
-        setInsertMode(true);
-    }
+    public abstract void cancelRowUpdates() throws SQLException;
 
     @Override
-    public void moveToCurrentRow()
-        throws SQLException
-    {
-        if (m_Updatable) {
-            m_Result.moveToCurrentRow();
-        }
-        setInsertMode(false);
-    }
+    public abstract void insertRow() throws SQLException;
 
     @Override
-    public boolean rowDeleted()
-        throws SQLException
-    {
-        boolean deleted = false;
-        // XXX: We can assume the delete is valid without any
-        // XXX: movement in the ResultSet since the delete.
-        deleted = m_DeletedRows.contains(m_Cursor);
-        return deleted;
-    }
+    public abstract boolean rowDeleted() throws SQLException;
 
 
     // XXX: java.sql.ResultSet mover
@@ -180,11 +128,8 @@ public abstract class CachedResultSet
     public boolean next()
         throws SQLException
     {
-        /*
-         * make sure things look sane. The cursor must be
-         * positioned in the rowset or before first (0) or
-         * after last (numRows + 1)
-         */
+         // XXX: Make sure things look sane. The cursor must be positioned in the ResultSet
+         // XXX: or before first row (0) or after last row (RowCount + 1)
         if (m_Cursor < 0 || m_Cursor > getRowCount() + 1) {
             throw new SQLException();
         }
@@ -195,11 +140,8 @@ public abstract class CachedResultSet
     public boolean previous()
         throws SQLException 
     {
-        /*
-         * make sure things look sane. The cursor must be
-         * positioned in the rowset or before first (0) or
-         * after last (numRows + 1)
-         */
+        // XXX: Make sure things look sane. The cursor must be positioned in the ResultSet
+        // XXX: or before first row (0) or after last row (RowCount + 1)
         if (m_Cursor < 0 || m_Cursor > getRowCount() + 1) {
             throw new SQLException();
         }
@@ -217,7 +159,7 @@ public abstract class CachedResultSet
     public boolean isFirst()
         throws SQLException
     {
-        // this becomes nasty because of deletes.
+        // XXX: This becomes nasty because of deletes.
         boolean first = false;
         int cursor = m_Cursor;
         int position = m_Position;
@@ -236,6 +178,7 @@ public abstract class CachedResultSet
     public boolean isLast()
         throws SQLException
     {
+        // XXX: This becomes nasty because of deletes.
         boolean last = false;
         int cursor = m_Cursor;
         int position = m_Position;
@@ -354,7 +297,7 @@ public abstract class CachedResultSet
                         break;
                 }
             }
-            return internalAbsolute(m_Position, row);
+            return moveResultSet(m_Position, row);
         }
         return false;
     }
@@ -378,6 +321,8 @@ public abstract class CachedResultSet
     public boolean moveToBookmark(int row)
         throws SQLException
     {
+        boolean moved = false;
+        System.out.println("CachedResultSet.moveToBookmark() 1 Cursor: " + m_Cursor + " - row: " + row);
         if (checkAbsolute(row)) {
             // XXX: Now move towards the absolute row that we're looking for
             while (m_Cursor != row) {
@@ -390,9 +335,10 @@ public abstract class CachedResultSet
                         break;
                 }
             }
-            return internalAbsolute(m_Cursor, row);
+            moved = moveResultSet(m_Cursor, row);
         }
-        return false;
+        System.out.println("CachedResultSet.moveToBookmark() 2 Cursor: " + m_Cursor + " - moved: " + moved);
+        return moved;
     }
 
 
@@ -491,7 +437,9 @@ public abstract class CachedResultSet
     public void updateString(int index, String value)
         throws SQLException
     {
+        System.out.println("CachedResultSet.updateString() 1 Value: " + value);
         m_Result.updateString(index, value);
+        System.out.println("CachedResultSet.updateString() 2 Value: " + m_Result.getString(index));
         if (isOnInsertRow()) {
             m_InsertedColumns.set(index - 1);
         }
@@ -833,6 +781,7 @@ public abstract class CachedResultSet
         Row row = new Row(m_ColumnCount);
         for (int i = 1; i <= m_ColumnCount; i++) {
             row.initColumnObject(m_Result, i);
+            System.out.println("CachedResultSet.getResultRow() 1 Value: " + m_Result.getObject(i).toString());
         }
         return row;
     }
@@ -845,13 +794,6 @@ public abstract class CachedResultSet
             row.initColumnObject(m_Result, i);
         }
         return row;
-    }
-
-    protected boolean setResultPosition()
-        throws SQLException
-    {
-        int position = m_IsDeleteVisible ? m_Position : m_Cursor;
-        return m_Result.absolute(position);
     }
 
     protected boolean isDeleted()
@@ -868,12 +810,76 @@ public abstract class CachedResultSet
         return m_RowSetWriter;
     }
 
+    protected int getMaxPosition()
+    {
+        return getRowCount() - m_DeletedRows.size();
+    }
+
+    protected void setColumnObject(int index, Object value)
+        throws SQLException
+    {
+        getCurrentRow().setColumnObject(index, value);
+    }
+
+    protected void setColumnDouble(int index, Double value)
+        throws SQLException
+    {
+        int type = m_Result.getMetaData().getColumnType(index);
+        getCurrentRow().setColumnDouble(index, value, type);
+    }
+
+    protected void checkCursor()
+        throws SQLException
+    {
+        if (m_Cursor <= 0 || m_Cursor > getRowCount()) {
+            throw new SQLException("ERROR Row is out of range");
+        }
+    }
+
+    protected boolean isDeleted(int row)
+    {
+        return m_DeletedRows.contains(row);
+    }
+
+    protected abstract boolean isEmpty();
+
+    protected abstract int getRowCount();
+
+    protected abstract BaseRow getCurrentRow() throws SQLException;
+
+    protected abstract void incrementCursor() throws SQLException;
+
+    protected abstract boolean moveResultSet(Integer position, int row) throws SQLException;
+
+
+    private boolean internalFirst()
+        throws SQLException
+    {
+        if (!isEmpty()) {
+            m_Cursor = 0;
+            m_Position = 0;
+            return internalNext();
+        }
+        return false;
+    }
+
+    private boolean internalLast()
+        throws SQLException
+    {
+        if (!isEmpty()) {
+            m_Cursor = getRowCount();
+            m_Position = getMaxPosition();
+            return internalPrevious();
+        }
+        return false;
+    }
+
     protected boolean internalNext()
         throws SQLException
     {
         boolean moved = false;
+        int count = getRowCount();
         do {
-            int count = getRowCount();
             if (m_Cursor < count) {
                 incrementCursor();
                 moved = true;
@@ -892,97 +898,6 @@ public abstract class CachedResultSet
         }
         else {
             m_Position = getMaxPosition() + 1;
-        }
-        return moved;
-    }
-
-    protected int getMaxPosition()
-    {
-        return getRowCount() - m_DeletedRows.size();
-    }
-
-    protected void incrementCursor()
-        throws SQLException
-    {
-        ++m_Cursor;
-    }
-
-    protected void setColumnObject(int index, Object value)
-        throws SQLException
-    {
-        getCurrentRow(index).setColumnObject(index, value);
-    }
-
-    protected void setColumnDouble(int index, Double value)
-        throws SQLException
-    {
-        int type = m_Result.getMetaData().getColumnType(index);
-        getCurrentRow(index).setColumnDouble(index, value, type);
-    }
-
-    protected void checkCursor()
-        throws SQLException
-    {
-        if (m_Cursor <= 0 || m_Cursor > getRowCount()) {
-            throw new SQLException("ERROR Row is out of range");
-        }
-    }
-
-
-    protected abstract boolean isEmpty();
-
-    protected abstract int getRowCount();
-
-    protected abstract BaseRow getCurrentRow(int index) throws SQLException;
-
-    protected abstract boolean internalAbsolute(Integer position, int row) throws SQLException;
-
-
-    private boolean isDeleted(int row)
-    {
-        return m_DeletedRows.contains(row);
-    }
-
-    private boolean internalFirst()
-        throws SQLException
-    {
-        boolean moved = false;
-        if (!isEmpty()) {
-            m_Cursor = 1;
-            if (isDeleted()) {
-                moved = internalNext();
-            }
-            else {
-                moved = true;
-            }
-        }
-        if (moved) {
-            m_Position = 1;
-        }
-        else {
-            m_Position = 0;
-        }
-        return moved;
-    }
-
-    private boolean internalLast()
-        throws SQLException
-    {
-        boolean moved = false;
-        if (!isEmpty()) {
-            m_Cursor = getRowCount();
-            if (isDeleted()) {
-                moved = internalPrevious();
-            }
-            else {
-                moved = true;
-            }
-        }
-        if (moved) {
-            m_Position = getMaxPosition();
-        }
-        else {
-            m_Position = 0;
         }
         return moved;
     }

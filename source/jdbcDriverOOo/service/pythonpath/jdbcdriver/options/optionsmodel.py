@@ -60,8 +60,6 @@ class OptionsModel():
         self._version = 'Version: %s'
         self._default = 'Version: N/A'
         self._versions = {}
-        self._config = getConfiguration(ctx, g_identifier, True)
-        self._service = self._getDriverService()
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._configuration = getConfiguration(ctx, path, True)
         self._dbloggers = ('h2', 'derby', 'hsqldb')
@@ -69,11 +67,6 @@ class OptionsModel():
                             'derby': 'memory:dbversion;create=true',
                             'hsqldb': 'mem:dbversion',
                             'smallsql': None}
-        self._services = {'Driver': ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
-                                     'io.github.prrvchr.jdbcdriver.sdbcx.Driver'),
-                          'Connection': ('com.sun.star.sdbc.Connection',
-                                         'com.sun.star.sdbcx.Connection',
-                                         'com.sun.star.sdb.Connection')}
         self._connectProtocol = 'jdbc:'
         self._registeredProtocol = 'xdbc:'
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
@@ -99,25 +92,11 @@ class OptionsModel():
         location = '%s/%s' % (g_folder, url.Name)
         return getResourceLocation(self._ctx, g_identifier, location)
 
-    def getServicesLevel(self):
-        driver = self._services.get('Driver').index(self._getDriverService())
-        connection = self._services.get('Connection').index(self._getConnectionService())
-        system = self._config.getByName('ShowSystemTable')
-        bookmark = self._config.getByName('UseBookmark')
-        mode = self._config.getByName('SQLMode')
-        return driver, connection, self._isConnectionLevelEnabled(driver), system, bookmark, mode
-
     def getProtocols(self):
         return tuple(self._drivers.keys())
 
     def getSubProtocol(self, protocol):
         return protocol.split(':')[1]
-
-    def _getDriverService(self):
-        return self._config.getByName('DriverService')
-
-    def _getConnectionService(self):
-        return self._config.getByName('ConnectionService')
 
     def getDriverName(self, protocol):
         return self._drivers[protocol].getByName('DriverTypeDisplayName')
@@ -167,26 +146,6 @@ class OptionsModel():
             self._versions = {}
             Thread(target=self._setDriverVersions, args=args).start()
 
-    def setDriverService(self, driver):
-        self._config.replaceByName('DriverService', self._services.get('Driver')[driver])
-        connection = self._services.get('Connection').index(self._getConnectionService())
-        if driver and not connection:
-            connection = 1
-            self.setConnectionService(connection)
-        return connection, self._isConnectionLevelEnabled(driver)
-
-    def setConnectionService(self, level):
-        self._config.replaceByName('ConnectionService', self._services.get('Connection')[level])
-
-    def setSystemTable(self, state):
-        self._config.replaceByName('ShowSystemTable', bool(state))
-
-    def setBookmark(self, state):
-        self._config.replaceByName('UseBookmark', bool(state))
-
-    def setSQLMode(self, state):
-        self._config.replaceByName('SQLMode', bool(state))
-
     def setPath(self, url):
         self._path = url.Protocol + url.Path
 
@@ -200,15 +159,10 @@ class OptionsModel():
         return False
 
     def saveSetting(self):
-        driver = self._configuration.hasPendingChanges()
-        if driver:
+        changed = self._configuration.hasPendingChanges()
+        if changed:
             self._configuration.commitChanges()
-        config = self._config.hasPendingChanges()
-        if config:
-            self._config.commitChanges()
-            if self._service != self._getDriverService():
-                return True
-        return driver
+        return changed
 
     def saveDriver(self, subprotocol, name, clazz, archive, level):
         protocol = self._getProtocol(subprotocol)
@@ -224,9 +178,6 @@ class OptionsModel():
         self._drivers[protocol].setHierarchicalPropertyValue(property, self._getLevelValue(level))
 
 # OptionsModel private methods
-    def _isConnectionLevelEnabled(self, driver):
-        return driver == 0
-
     def _getLevelValue(self, level):
         return '%d' % level
 
@@ -269,10 +220,10 @@ class OptionsModel():
         url = getUrl(self._ctx, path)
         return url.Name
 
-    def _setDriverVersions(self, update):
+    def _setDriverVersions(self, name, update):
         versions = {}
         property = 'Properties/InMemoryDataBase/Value'
-        service = createService(self._ctx, self._getDriverService())
+        service = createService(self._ctx, name)
         for protocol, driver in self._drivers.items():
             if driver.hasByHierarchicalName(property):
                 url = driver.getByHierarchicalName(property)

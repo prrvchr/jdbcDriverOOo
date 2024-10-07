@@ -72,10 +72,4 @@ public final class SQLiteDriverProvider
         return new SQLiteDatabaseMetaData(connection);
     }
 
-    @Override
-    public boolean supportCreateTableKeyParts()
-    {
-        return false;
-    }
-
 }

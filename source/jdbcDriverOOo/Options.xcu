@@ -34,8 +34,8 @@
     <prop oor:name="DriverService" oor:op="fuse">
         <value>io.github.prrvchr.jdbcdriver.sdbcx.Driver</value>
     </prop>
-    <prop oor:name="ConnectionService" oor:op="fuse">
-        <value>com.sun.star.sdb.Connection</value>
+    <prop oor:name="ApiLevel" oor:op="fuse">
+        <value>com.sun.star.sdb</value>
     </prop>
     <prop oor:name="ShowSystemTable" oor:op="fuse">
         <value>false</value>

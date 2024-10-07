@@ -25,12 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
 import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -50,9 +52,13 @@ public final class Table
                  String type,
                  String remarks)
     {
-        super(m_service, m_services, connection, catalog, schema, sensitive, name);
-        m_Type = type;
-        m_Description = remarks;
+        super(m_service, m_services, connection, sensitive, catalog, schema, name, type, remarks);
+        registerProperties(new HashMap<String, PropertyWrapper>());
+    }
+
+    protected Connection getConnection()
+    {
+        return (Connection) m_connection;
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory

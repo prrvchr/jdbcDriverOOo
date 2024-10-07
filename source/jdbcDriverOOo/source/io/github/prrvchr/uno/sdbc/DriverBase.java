@@ -60,7 +60,7 @@ import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.logging.UnoLoggerPool;
-import io.github.prrvchr.jdbcdriver.ConnectionService;
+import io.github.prrvchr.jdbcdriver.ApiLevel;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.DriverProviderDefault;
 import io.github.prrvchr.jdbcdriver.DriverWrapper;
@@ -154,21 +154,22 @@ public abstract class DriverBase
         }
         DriverProvider provider = getDriverProvider(url, info);
         String location = url.replaceFirst(m_registredProtocol, m_connectProtocol);
-        String level = provider.getDriverStringProperty(m_xConfig, "DriverLoggerLevel", "-1");
+        String loglevel = provider.getDriverStringProperty(m_xConfig, "DriverLoggerLevel", "-1");
         if (!isDriverRegistered(location)) {
-            provider.setSystemProperties(level);
+            provider.setSystemProperties(loglevel);
             registerDriver(url, info);
         }
 
         XHierarchicalNameAccess config = getDriverConfiguration(m_xContext, m_identifier, this);
-        provider.setConnection(this, m_logger, m_enhanced, m_xConfig, config, location, info, level);
-        String service = ConnectionService.CSS_SDBC_CONNECTION.service();
-        service = UnoHelper.getConfigurationOption(config, "ConnectionService", service);
+        provider.setConnection(this, m_logger, m_enhanced, m_xConfig, config, location, info, loglevel);
+        String apilevel = ApiLevel.COM_SUN_STAR_SDBC.service();
+        apilevel = UnoHelper.getConfigurationOption(config, "ApiLevel", apilevel);
         UnoHelper.disposeComponent(config);
-        service = UnoHelper.getDefaultPropertyValue(info, "ConnectionService", service);
-        System.out.println("sdbc.DriverBase.connect() 2 Service: " + service);
-        connection = getConnection(m_xContext, provider, url, info, ConnectionService.fromString(service));
-        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, connection.getProvider().getLogger().getObjectId());
+        apilevel = UnoHelper.getDefaultPropertyValue(info, "ApiLevel", apilevel);
+        System.out.println("sdbc.DriverBase.connect() 2 Service: " + apilevel);
+        connection = getConnection(m_xContext, provider, url, info, ApiLevel.fromString(apilevel));
+        String services = String.join(", ", connection.getSupportedServiceNames());
+        m_logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services, connection.getProvider().getLogger().getObjectId());
         return connection;
     }
 
@@ -516,6 +517,6 @@ public abstract class DriverBase
                                                     final DriverProvider provider,
                                                     final String url,
                                                     final PropertyValue[] info,
-                                                    final ConnectionService service);
+                                                    final ApiLevel service);
 
 }

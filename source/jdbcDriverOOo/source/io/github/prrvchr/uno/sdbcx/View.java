@@ -26,7 +26,9 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.ElementExistException;
@@ -44,6 +46,7 @@ import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
@@ -75,21 +78,32 @@ public final class View
     }
 
     private void registerProperties() {
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.COMMAND.name, PropertyIds.COMMAND.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Command;
-                }
-            }, null);
-        registerProperty(PropertyIds.CHECKOPTION.name, PropertyIds.CHECKOPTION.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_CheckOption;
-                }
-            }, null);
+
+        properties.put(PropertyIds.CHECKOPTION.getName(),
+                       new PropertyWrapper(Type.LONG, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_CheckOption;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.COMMAND.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Command;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
 

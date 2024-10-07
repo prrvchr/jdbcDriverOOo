@@ -25,12 +25,15 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.HashMap;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
@@ -51,6 +54,7 @@ public final class ResultSet
     throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement, false, false);
+        registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.ResultSet() 1");
     }
 

@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.Map;
+
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
@@ -33,6 +35,7 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySet;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
@@ -47,6 +50,7 @@ public abstract class Descriptor
     private final String[] m_services;
     private String m_Name;
     private final boolean m_sensitive;
+    private final boolean m_readonly;
 
     // The constructor method:
     public Descriptor(String service,
@@ -62,36 +66,48 @@ public abstract class Descriptor
     {
         this(service, services, sensitive, name, true);
     }
+
     private Descriptor(String service,
-                      String[] services,
-                      boolean sensitive,
-                      String name,
-                      boolean readonly)
+                       String[] services,
+                       boolean sensitive,
+                       String name,
+                       boolean readonly)
     {
         m_service = service;
         m_services = services;
         m_sensitive = sensitive;
         m_Name = name;
-        registerProperties(readonly);
+        m_readonly = readonly;
     }
 
-    private void registerProperties(boolean readonly) {
-        short attribute = readonly ? PropertyAttribute.READONLY : 0;
-        registerProperty(PropertyIds.NAME.name, PropertyIds.NAME.id, Type.STRING, attribute,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Name;
-                }
-            },
-            readonly ? null :
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Name = (String) value;
-                }
-            });
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties)
+    {
+        short readonly = m_readonly ? PropertyAttribute.READONLY : 0;
+        PropertySetter setter = m_readonly ? null : new PropertySetter() {
+                                                        @Override
+                                                        public void setValue(Object value) throws PropertyVetoException,
+                                                                                                  IllegalArgumentException,
+                                                                                                  WrappedTargetException
+                                                        {
+                                                            m_Name = (String) value;
+                                                        }
+                                                    };
+
+        properties.put(PropertyIds.NAME.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Name;
+                                               }
+                                           },
+                                           setter));
+
+        super.registerProperties(properties);
     }
+
 
     // com.sun.star.lang.XServiceInfo:
     @Override

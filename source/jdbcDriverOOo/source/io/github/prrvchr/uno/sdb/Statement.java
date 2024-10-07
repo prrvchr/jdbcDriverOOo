@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.HashMap;
+
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
@@ -33,6 +35,7 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.StatementSuper;
 
@@ -49,6 +52,7 @@ public final class Statement
     public Statement(Connection connection)
     {
         super(m_service, m_services, connection);
+        registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.Statement() 1");
     }
 
@@ -65,23 +69,26 @@ public final class Statement
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             Connection connection = getConnectionInternal();
+            java.sql.ResultSet result = getJdbcResultSet();
             if (m_UseBookmarks) {
                 RowCatalog catalog = null;
-                java.sql.ResultSet result = getJdbcResultSet();
                 if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
                     RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql.getTable());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    String services = String.join(", ", resultset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
                     return resultset;
                 }
                 else {
                     ResultSet resultset =  new ResultSet(connection, result, this);
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                    String services = String.join(", ", resultset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
                     return resultset;
                 }
             }
             else {
-                ResultSet resultset =  new ResultSet(connection, getJdbcResultSet(), this);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+                ResultSet resultset =  new ResultSet(connection, result, this);
+                String services = String.join(", ", resultset.getSupportedServiceNames());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
                 return resultset;
             }
         }

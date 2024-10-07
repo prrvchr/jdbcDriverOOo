@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdb;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.sun.star.container.ElementExistException;
@@ -35,6 +36,7 @@ import com.sun.star.sdbcx.XUsersSupplier;
 
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -53,6 +55,7 @@ public final class Group
                  String name)
     {
         super(m_service, m_services, connection, sensitive, name, LoggerObjectType.GROUP, true);
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
 

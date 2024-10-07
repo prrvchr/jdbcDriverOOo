@@ -262,7 +262,7 @@ public final class KeyContainer
                     if (!hasByName(name)) {
                         // XXX: Now that the key has been created we know its name and we need to update
                         // XXX: the descriptor name in order to be able to insert it into the key container.
-                        descriptor.setPropertyValue(PropertyIds.NAME.name, name);
+                        descriptor.setPropertyValue(PropertyIds.NAME.getName(), name);
                         newname = name;
                         break;
                     }

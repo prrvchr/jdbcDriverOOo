@@ -72,9 +72,9 @@ public enum StandardSQLState
     SQL_CONNECTION_DOES_NOT_EXIST("08003"),
     SQL_ERROR_UNSPECIFIED("");
 
-    private String text;
+    private final String text;
 
-    private StandardSQLState(String text)
+    private StandardSQLState(final String text)
     {
         this.text = text;
     }

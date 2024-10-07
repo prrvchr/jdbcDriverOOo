@@ -36,16 +36,13 @@ import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.sdbcx.TableContainerSuper;
-import io.github.prrvchr.uno.sdbcx.TableDescriptor;
 
 
 public final class TableContainer
     extends TableContainerSuper<Table>
 {
     private static final String m_service = TableContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdb.Tables",
-                                                "com.sun.star.sdbcx.Tables",
-                                                "com.sun.star.sdbcx.Container"};
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public TableContainer(Connection connection,

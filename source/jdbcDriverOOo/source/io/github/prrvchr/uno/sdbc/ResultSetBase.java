@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.BitSet;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.PropertyVetoException;
@@ -68,6 +69,7 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.PropertySet;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -126,7 +128,6 @@ public abstract class ResultSetBase
         m_Statement = statement;
         m_Inserted = new BitSet(getResultColumnCount(resultset, statement));
         m_logger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.RESULTSET);
-        registerProperties();
     }
 
     static private int getResultColumnCount(java.sql.ResultSet resultset,
@@ -152,55 +153,82 @@ public abstract class ResultSetBase
         return m_logger;
     }
 
-    private void registerProperties() {
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CURSORNAME.name, PropertyIds.CURSORNAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getCursorName();
-                }
-            }, null);
-        registerProperty(PropertyIds.RESULTSETCONCURRENCY.name, PropertyIds.RESULTSETCONCURRENCY.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getResultSetConcurrency();
-                }
-            }, null);
-        registerProperty(PropertyIds.RESULTSETTYPE.name, PropertyIds.RESULTSETTYPE.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getResultSetType();
-                }
-            }, null);
-        registerProperty(PropertyIds.FETCHDIRECTION.name, PropertyIds.FETCHDIRECTION.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getFetchDirection();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setFetchDirection((int) value);
-                }
-            });
-        registerProperty(PropertyIds.FETCHSIZE.name, PropertyIds.FETCHSIZE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getFetchSize();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setFetchSize((int) value);
-                }
-            });
+
+        properties.put(PropertyIds.CURSORNAME.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getCursorName();
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.FETCHDIRECTION.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getFetchDirection();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setFetchDirection((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.FETCHSIZE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getFetchSize();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setFetchSize((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.RESULTSETCONCURRENCY.getName(),
+                       new PropertyWrapper(Type.LONG, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getResultSetConcurrency();
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.RESULTSETTYPE.getName(),
+                       new PropertyWrapper(Type.LONG, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getResultSetType();
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
     private String _getCursorName()
@@ -230,7 +258,6 @@ public abstract class ResultSetBase
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
-
     }
 
     private synchronized void _setFetchDirection(int direction)
@@ -243,7 +270,6 @@ public abstract class ResultSetBase
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
-
     }
 
     protected int _getFetchSize()
@@ -257,7 +283,6 @@ public abstract class ResultSetBase
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
-
     }
 
     protected synchronized void _setFetchSize(int size)
@@ -270,7 +295,6 @@ public abstract class ResultSetBase
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
-
     }
 
     protected int _getResultSetConcurrency()
@@ -284,7 +308,6 @@ public abstract class ResultSetBase
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
-
     }
 
     protected int _getResultSetType()
@@ -298,7 +321,6 @@ public abstract class ResultSetBase
         catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
-
     }
 
     // com.sun.star.lang.XComponent
@@ -459,6 +481,7 @@ public abstract class ResultSetBase
     public boolean last()
         throws SQLException
     {
+        System.out.println("ResultSetBase.last() 1");
         try {
             return m_Result.last();
         }
@@ -471,6 +494,7 @@ public abstract class ResultSetBase
     public boolean next()
         throws SQLException
     {
+        System.out.println("ResultSetBase.next() 1");
         try {
             boolean next = m_Result.next();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));

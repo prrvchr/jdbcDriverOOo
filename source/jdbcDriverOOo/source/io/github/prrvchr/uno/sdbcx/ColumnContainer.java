@@ -37,8 +37,7 @@ public final class ColumnContainer
     extends ColumnContainerBase<Column>
 {
     private static final String m_service = ColumnContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Columns",
-                                                "com.sun.star.sdbcx.Container"};
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public ColumnContainer(Table table,

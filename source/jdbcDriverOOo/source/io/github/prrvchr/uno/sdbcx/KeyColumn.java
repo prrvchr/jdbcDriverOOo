@@ -25,12 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
@@ -68,14 +72,21 @@ public final class KeyColumn
 
 
     private void registerProperties() {
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.RELATEDCOLUMN.name, PropertyIds.RELATEDCOLUMN.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_RelatedColumn;
-                }
-            }, null);
+
+        properties.put(PropertyIds.RELATEDCOLUMN.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_RelatedColumn;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
 

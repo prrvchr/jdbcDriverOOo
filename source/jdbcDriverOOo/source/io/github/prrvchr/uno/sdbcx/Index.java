@@ -25,7 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
@@ -39,6 +41,7 @@ import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
@@ -83,40 +86,65 @@ public final class Index
     }
 
     private void registerProperties() {
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CATALOG.name, PropertyIds.CATALOG.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Catalog;
-                }
-            }, null);
-        registerProperty(PropertyIds.ISUNIQUE.name, PropertyIds.ISUNIQUE.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsUnique;
-                }
-            }, null);
-        registerProperty(PropertyIds.ISPRIMARYKEYINDEX.name, PropertyIds.ISPRIMARYKEYINDEX.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsPrimaryKeyIndex;
-                }
-            }, null);
-        registerProperty(PropertyIds.ISCLUSTERED.name, PropertyIds.ISCLUSTERED.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsClustered;
-                }
-            }, null);
+
+        properties.put(PropertyIds.CATALOG.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Catalog;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.ISCLUSTERED.getName(),
+                       new PropertyWrapper(Type.BOOLEAN, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_IsClustered;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.ISPRIMARYKEYINDEX.getName(),
+                       new PropertyWrapper(Type.BOOLEAN, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_IsPrimaryKeyIndex;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.ISUNIQUE.getName(),
+                       new PropertyWrapper(Type.BOOLEAN, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_IsUnique;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
     protected IndexColumnContainer getColumnsInternal() {
         return m_columns;
     }
+
+    public TableSuper getTable()
+    {
+        return m_table;
+    }
+
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
@@ -140,12 +168,5 @@ public final class Index
     {
         return m_columns;
     }
-
-
-    public TableSuper getTable()
-    {
-        return m_table;
-    }
-
 
 }

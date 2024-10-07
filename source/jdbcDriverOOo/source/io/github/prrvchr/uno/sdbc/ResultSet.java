@@ -25,9 +25,12 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.HashMap;
+
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public final class ResultSet
@@ -51,6 +54,7 @@ public final class ResultSet
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, statement);
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     public ResultSet(ConnectionBase connection,
@@ -58,6 +62,7 @@ public final class ResultSet
         throws SQLException
     {
         super(m_service, m_services, connection, resultset, null);
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     @Override

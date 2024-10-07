@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 
@@ -84,6 +85,10 @@ public abstract class DriverProviderMain
     protected boolean m_sqlmode;
     private String m_separator = ", ";
 
+    // XXX: Default setting for ResultSet
+    private boolean m_UseSQLDelete = false;
+    private boolean m_UseSQLInsert = true;
+    private boolean m_UseSQLUpdate = false;
     private Boolean m_InsertVisibleInsensitive;
     private Boolean m_InsertVisibleSensitive;
     private Boolean m_InsertVisibleForwardonly;
@@ -93,10 +98,6 @@ public abstract class DriverProviderMain
     private Boolean m_UpdateVisibleInsensitive;
     private Boolean m_UpdateVisibleSensitive;
     private Boolean m_UpdateVisibleForwardonly;
-
-    private boolean m_UseSQLDelete = false;
-    private boolean m_UseSQLInsert = true;
-    private boolean m_UseSQLUpdate = false;
 
     private boolean m_CatalogsInTableDefinitions;
     private boolean m_SchemasInTableDefinitions;
@@ -170,7 +171,9 @@ public abstract class DriverProviderMain
     private List<Integer> m_PrivilegeValues = null;
     private TypeInfoRows m_TypeInfoRows = null;
     private Map<String, String> m_TableTypes = null;
-    private List<ConnectionService> m_SupportedServices = null;
+    private List<ApiLevel> m_SupportedServices = null;
+
+    private String m_LogLevel = "OFF";
 
     @Override
     public ConnectionLog getLogger() {
@@ -221,9 +224,10 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean isSQLMode()
+    public boolean useSQLMode(java.sql.ResultSet result)
+        throws java.sql.SQLException
     {
-        return m_sqlmode;
+        return m_sqlmode || !isResultSetUpdatable(result);
     }
 
     public boolean useSQLDelete()
@@ -348,7 +352,7 @@ public abstract class DriverProviderMain
         return m_document != null;
     }
 
-    public boolean supportService(ConnectionService service)
+    public boolean supportService(ApiLevel service)
     {
         return m_SupportedServices.contains(service);
     }
@@ -635,11 +639,25 @@ public abstract class DriverProviderMain
     @Override
     public String[] getTableTypes()
     {
-        String[] types = null;
+        String[] tabletypes = null;
         if (!m_showsystem) {
-            types = new String[]{"TABLE", "VIEW"};
+            List<String> types = new ArrayList<>(List.of("TABLE", "VIEW"));
+            if (hasTableTypesSettings()) {
+                for (int i = 0; i < types.size(); i++) {
+                    String type = types.get(i);
+                    if (m_TableTypes.containsValue(type)) {
+                        for (Entry<String, String> entry : m_TableTypes.entrySet()) {
+                            if (entry.getValue().equals(type)) {
+                                types.set(i, entry.getKey());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            tabletypes = types.toArray(new String[0]);
         }
-        return types;
+        return tabletypes;
     }
 
     @Override
@@ -651,7 +669,7 @@ public abstract class DriverProviderMain
     @Override
     public String getTableType(String type)
     {
-        if (m_TableTypes != null && m_TableTypes.containsKey(type)) {
+        if (hasTableTypesSettings() && m_TableTypes.containsKey(type)) {
             return m_TableTypes.get(type);
         }
         return type;
@@ -845,6 +863,9 @@ public abstract class DriverProviderMain
             m_TablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "TablePrivilegesCommand");
             m_GrantablePrivilegesCommands = getDriverParametricCommandsProperty(config1, "GrantablePrivilegesCommand");
 
+            m_LogLevel = getDriverStringProperty(config1, "LogLevel", m_LogLevel);
+            System.out.println("DriverProvider.setConnection() LogLevel: " + m_LogLevel);
+
             m_SupportedServices = getSupportedService(config1, "SupportedConnectionServices");
 
             m_logger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
@@ -854,8 +875,9 @@ public abstract class DriverProviderMain
             m_enhanced = enhanced;
 
             String url = getConnectionUrl(location, level);
-            java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));
             System.out.println("DriverProvider.setConnection() 2");
+            java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));
+            System.out.println("DriverProvider.setConnection() 3");
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
             m_CatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
@@ -878,7 +900,7 @@ public abstract class DriverProviderMain
             // XXX: We do not keep the connection but the statement
             // XXX: which allows us to find the connection if necessary.
             m_statement = connection.createStatement();
-            System.out.println("DriverProvider.setConnection() 3");
+            System.out.println("DriverProvider.setConnection() 4");
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_NO_SYSTEM_CONNECTION;
@@ -888,7 +910,13 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean isInsertVisible(int rstype)
+    public boolean isInsertVisible(ResultSet result)
+        throws java.sql.SQLException
+    {
+        return isResultSetUpdatable(result) && isInsertVisible(result.getType());
+    }
+
+    private boolean isInsertVisible(int rstype)
         throws java.sql.SQLException
     {
         boolean visible = false;
@@ -908,7 +936,13 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean isUpdateVisible(int rstype)
+    public boolean isUpdateVisible(ResultSet result)
+        throws java.sql.SQLException
+    {
+        return isResultSetUpdatable(result) && isUpdateVisible(result.getType());
+    }
+
+    private boolean isUpdateVisible(int rstype)
         throws java.sql.SQLException
     {
         boolean visible = false;
@@ -928,22 +962,32 @@ public abstract class DriverProviderMain
     }
 
     @Override
-    public boolean isDeleteVisible(int rstype)
+    public boolean isDeleteVisible(ResultSet result)
+        throws java.sql.SQLException
+    {
+        return isResultSetUpdatable(result) && isDeleteVisible(result.getType());
+    }
+
+    private boolean isDeleteVisible(int rstype)
         throws java.sql.SQLException
     {
         boolean visible = false;
+        System.out.println("DriverProviderMain.isDeleteVisible() 1 rstype: " + rstype);
         if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_DeleteVisibleForwardonly != null) {
             visible = m_DeleteVisibleForwardonly;
         }
         else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_DeleteVisibleInsensitive != null) {
+            System.out.println("DriverProviderMain.isDeleteVisible() 2 visible: " + m_DeleteVisibleInsensitive);
             visible = m_DeleteVisibleInsensitive;
         }
         else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_DeleteVisibleSensitive != null) {
             visible = m_DeleteVisibleSensitive;
         }
         else {
+            System.out.println("DriverProviderMain.isDeleteVisible() 3");
             visible = getConnection().getMetaData().ownDeletesAreVisible(rstype);
         }
+        System.out.println("DriverProviderMain.isDeleteVisible() 4 visible: " + visible);
         return visible;
     }
 
@@ -1038,7 +1082,7 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         java.sql.ResultSet result = metadata.getTableTypes();
-        if (m_TableTypes != null) {
+        if (hasTableTypesSettings()) {
             return new TableTypesResultSet(result, m_TableTypes);
         }
         return result;
@@ -1185,7 +1229,7 @@ public abstract class DriverProviderMain
                property.equals("InMemoryDataBase") ||
                property.equals("Type") ||
                property.equals("Url") ||
-               property.equals("ConnectionService") ||
+               property.equals("ApiLevel") ||
                property.equals("ShowSystemTable") ||
                property.equals("UseBookmark") ||
                property.equals("SQLMode");
@@ -1229,12 +1273,6 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         return new DatabaseMetaData(connection);
-    }
-
-    @Override
-    public boolean supportCreateTableKeyParts()
-    {
-        return true;
     }
 
     private Object[] setInfoProperties(final PropertyValue[] infos,
@@ -1454,7 +1492,7 @@ public abstract class DriverProviderMain
     @Override
     public Boolean getDriverBooleanProperty(XHierarchicalNameAccess driver, String name, Boolean value)
     {
-        String property = getPropertyPath(name);
+        String property = getMetaDataPropertyPath(name);
         try {
             if (driver.hasByHierarchicalName(property)) {
                 value = (boolean) driver.getByHierarchicalName(property);
@@ -1467,7 +1505,7 @@ public abstract class DriverProviderMain
     @Override
     public String getDriverStringProperty(XHierarchicalNameAccess driver, String name, String value)
     {
-        String property = getPropertyPath(name);
+        String property = getMetaDataPropertyPath(name);
         try {
             if (driver.hasByHierarchicalName(property)) {
                 value = (String) driver.getByHierarchicalName(property);
@@ -1477,21 +1515,21 @@ public abstract class DriverProviderMain
         return value;
     }
 
-    private List<ConnectionService> getSupportedService(XHierarchicalNameAccess driver,
+    private List<ApiLevel> getSupportedService(XHierarchicalNameAccess driver,
                                                         String name)
     {
-        List<ConnectionService> services = null;
+        List<ApiLevel> services = null;
         Object[] supported = getDriverProperties(driver, name, null);
         if (supported != null) {
             services = new ArrayList<>();
             for (Object service: supported) {
-                services.add(ConnectionService.fromString(service.toString()));
+                services.add(ApiLevel.fromString(service.toString()));
             }
         }
         else {
-            services = Arrays.asList(ConnectionService.CSS_SDBC_CONNECTION,
-                                     ConnectionService.CSS_SDBCX_CONNECTION,
-                                     ConnectionService.CSS_SDB_CONNECTION);
+            services = Arrays.asList(ApiLevel.COM_SUN_STAR_SDBC,
+                                     ApiLevel.COM_SUN_STAR_SDBCX,
+                                     ApiLevel.COM_SUN_STAR_SDB);
         }
         System.out.println("DriverProvider.getSupportedService() Service: " + services.size());
         return services;
@@ -1509,7 +1547,7 @@ public abstract class DriverProviderMain
                                             String value,
                                             boolean parametric)
     {
-        String property = getPropertyPath(name);
+        String property = getMetaDataPropertyPath(name);
         try {
             if (driver.hasByHierarchicalName(property)) {
                 value = (String) driver.getByHierarchicalName(property);
@@ -1560,7 +1598,7 @@ public abstract class DriverProviderMain
                                          String name,
                                          Object[] values)
     {
-        String property = getPropertyPath(name);
+        String property = getMetaDataPropertyPath(name);
         if (driver.hasByHierarchicalName(property)) {
             try {
                 values = (Object[]) driver.getByHierarchicalName(property);
@@ -1586,7 +1624,7 @@ public abstract class DriverProviderMain
         }
     }
 
-    private String getPropertyPath(String name) {
+    private String getMetaDataPropertyPath(String name) {
         return DriverProvider.getDriverMetaDataInfo(getSubProtocol(), name);
     }
 

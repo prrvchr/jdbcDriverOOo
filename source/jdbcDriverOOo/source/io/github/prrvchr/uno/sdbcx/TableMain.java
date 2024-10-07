@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.ElementExistException;
@@ -46,6 +47,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
@@ -55,7 +57,7 @@ public abstract class TableMain
     implements XRename
 {
 
-    private final ConnectionSuper m_connection;
+    protected final ConnectionSuper m_connection;
     private final ConnectionLog m_logger; 
     protected String m_CatalogName = "";
     protected String m_SchemaName = "";
@@ -75,25 +77,35 @@ public abstract class TableMain
         m_logger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
         m_CatalogName = catalog;
         m_SchemaName = schema;
-        registerProperties();
     }
 
-    private void registerProperties() {
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.CATALOGNAME.name, PropertyIds.CATALOGNAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_CatalogName;
-                }
-            }, null);
-        registerProperty(PropertyIds.SCHEMANAME.name, PropertyIds.SCHEMANAME.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_SchemaName;
-                }
-            }, null);
+
+        properties.put(PropertyIds.CATALOGNAME.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_CatalogName;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.SCHEMANAME.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_SchemaName;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
     protected String getCatalogName()

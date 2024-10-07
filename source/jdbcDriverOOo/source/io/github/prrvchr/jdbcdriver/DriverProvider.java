@@ -80,7 +80,7 @@ public interface DriverProvider
 
     public boolean useBookmark();
 
-    public boolean isSQLMode();
+    public boolean useSQLMode(java.sql.ResultSet result) throws java.sql.SQLException;
 
     public boolean useSQLDelete();
 
@@ -94,17 +94,17 @@ public interface DriverProvider
 
     public boolean isResultSetUpdatable(java.sql.ResultSet result) throws java.sql.SQLException;
 
-    public boolean isInsertVisible(int rstype) throws java.sql.SQLException;
+    public boolean isInsertVisible(java.sql.ResultSet result) throws java.sql.SQLException;
 
-    public boolean isDeleteVisible(int rstype) throws java.sql.SQLException;
+    public boolean isDeleteVisible(java.sql.ResultSet result) throws java.sql.SQLException;
 
-    public boolean isUpdateVisible(int rstype) throws java.sql.SQLException;
+    public boolean isUpdateVisible(java.sql.ResultSet result) throws java.sql.SQLException;
 
     public boolean hasTableTypesSettings();
 
     public boolean hasDocument();
 
-    public boolean supportService(ConnectionService service);
+    public boolean supportService(ApiLevel service);
 
     public int getMockPrivileges();
 
@@ -335,7 +335,5 @@ public interface DriverProvider
     public String getAddIdentityQuery();
 
     public String getDropIdentityQuery();
-
-    public boolean supportCreateTableKeyParts();
 
 }

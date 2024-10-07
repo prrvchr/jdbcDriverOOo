@@ -65,57 +65,8 @@ class TabListener(unohelper.Base,
         pass
 
 
-class Tab1Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
-        try:
-            handled = False
-            if method == 'Base':
-                self._manager.setDriverService(0)
-                handled = True
-            elif method == 'Enhanced':
-                self._manager.setDriverService(1)
-                handled = True
-            elif method == 'Level0':
-                self._manager.setConnectionService(0)
-                handled = True
-            elif method == 'Level1':
-                self._manager.setConnectionService(1)
-                handled = True
-            elif method == 'Level2':
-                self._manager.setConnectionService(2)
-                handled = True
-            elif method == 'SystemTable':
-                self._manager.setSystemTable(event.Source.State)
-                handled = True
-            elif method == 'UseBookmark':
-                self._manager.setBookmark(event.Source.State)
-                handled = True
-            elif method == 'SQLMode':
-                self._manager.setSQLMode(event.Source.State)
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "Tab1Handler.callHandlerMethod() Error: %s" % traceback.format_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ('Base',
-                'Enhanced',
-                'Level0',
-                'Level1',
-                'Level2',
-                'SystemTable',
-                'UseBookmark',
-                'SQLMode')
-
-
-class Tab2Handler(unohelper.Base,
-                  XContainerWindowEventHandler):
+class TabHandler(unohelper.Base,
+                 XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -165,7 +116,7 @@ class Tab2Handler(unohelper.Base,
                 handled = True
             return handled
         except Exception as e:
-            msg = "Tab2Handler.callHandlerMethod() Error: %s" % traceback.format_exc()
+            msg = "TabHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):

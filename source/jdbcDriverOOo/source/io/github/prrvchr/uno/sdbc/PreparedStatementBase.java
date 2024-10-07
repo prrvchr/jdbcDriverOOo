@@ -33,9 +33,6 @@ public abstract class PreparedStatementBase
     extends PreparedStatementMain
 {
 
-    protected boolean m_UseBookmarks = false;
-
-
     // The constructor method:
     // XXX: Constructor called from methods:
     // XXX: - io.github.prrvchr.uno.sdbc.PreparedStatement()

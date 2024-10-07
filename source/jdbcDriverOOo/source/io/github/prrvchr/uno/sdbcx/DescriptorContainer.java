@@ -37,8 +37,7 @@ public abstract class DescriptorContainer<T extends Descriptor>
     extends Container<T>
 {
     private static final String m_service = DescriptorContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Descriptors",
-                                                "com.sun.star.sdbcx.Container"};
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public DescriptorContainer(Object lock,

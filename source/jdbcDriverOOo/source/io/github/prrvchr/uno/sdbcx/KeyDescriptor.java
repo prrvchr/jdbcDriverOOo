@@ -25,6 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
@@ -32,6 +35,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
@@ -62,58 +66,85 @@ public final class KeyDescriptor
     }
 
     private void registerProperties() {
-        registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Type;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Type = (int) value;
-                }
-            });
-        registerProperty(PropertyIds.REFERENCEDTABLE.name, PropertyIds.REFERENCEDTABLE.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_ReferencedTable;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_ReferencedTable = (String) value;
-                }
-            });
-        registerProperty(PropertyIds.UPDATERULE.name, PropertyIds.UPDATERULE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_UpdateRule;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_UpdateRule = (int) value;
-                }
-            });
-        registerProperty(PropertyIds.DELETERULE.name, PropertyIds.DELETERULE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_DeleteRule;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_DeleteRule = (int) value;
-                }
-            });
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+
+        properties.put(PropertyIds.DELETERULE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_DeleteRule;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_DeleteRule = (int) value;
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.REFERENCEDTABLE.getName(),
+                       new PropertyWrapper(Type.STRING,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_ReferencedTable;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_ReferencedTable = (String) value;
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.TYPE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Type;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_Type = (int) value;
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.UPDATERULE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_UpdateRule;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_UpdateRule = (int) value;
+                                               }
+                                           }));
+
+        super.registerProperties(properties);
     }
 
 

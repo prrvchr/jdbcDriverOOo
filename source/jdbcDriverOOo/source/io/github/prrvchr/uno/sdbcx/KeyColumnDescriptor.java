@@ -25,11 +25,15 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
@@ -52,19 +56,28 @@ public final class KeyColumnDescriptor
     }
 
     private void registerProperties() {
-        registerProperty(PropertyIds.RELATEDCOLUMN.name, PropertyIds.RELATEDCOLUMN.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_RelatedColumn;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_RelatedColumn = (String) value;
-                }
-            });
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+
+        properties.put(PropertyIds.RELATEDCOLUMN.getName(),
+                       new PropertyWrapper(Type.STRING,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_RelatedColumn;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_RelatedColumn = (String) value;
+                                               }
+                                           }));
+
+        super.registerProperties(properties);
     }
 
 }

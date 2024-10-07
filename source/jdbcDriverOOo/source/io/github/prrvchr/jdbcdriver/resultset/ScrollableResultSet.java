@@ -61,7 +61,6 @@ public class ScrollableResultSet
     private Vector<Row> m_RowData = null;
     private boolean m_RowCountFinal = false;
     private int m_InsertedRow = 0;
-    private boolean m_WasNull = false;
 
     // The constructor method:
     public ScrollableResultSet(DriverProvider provider,
@@ -71,27 +70,31 @@ public class ScrollableResultSet
         throws SQLException
     {
         super(provider, result, catalog, table);
-        m_Updatable = false;
         loadNextRow();
     }
 
-/*
-    // XXX: We want to emulate an updateable ResultSet
     @Override
-    public int getConcurrency()
+    public void moveToCurrentRow()
         throws SQLException
     {
-        return ResultSet.CONCUR_UPDATABLE;
+        setInsertMode(false);
     }
 
-    // XXX: We want to emulate an scollable ResultSet
     @Override
-    public int getType()
+    public void moveToInsertRow()
         throws SQLException
     {
-        return ResultSet.TYPE_SCROLL_SENSITIVE;
+        setInsertMode(true);
     }
-*/
+
+    @Override
+    public void cancelRowUpdates()
+        throws SQLException
+    {
+        if (isOnInsertRow()) {
+            setInsertMode(false);
+        }
+    }
 
     @Override
     public void insertRow()
@@ -113,6 +116,17 @@ public class ScrollableResultSet
         setInsertMode(false);
         // XXX: We must be able to respond positively to the insert
         m_InsertedRow = cursor;
+    }
+
+    @Override
+    public boolean rowDeleted()
+        throws SQLException
+    {
+        boolean deleted = false;
+        // XXX: We can assume the delete is valid without any
+        // XXX: movement in the ResultSet since the delete.
+        deleted = isDeleted(m_Cursor);
+        return deleted;
     }
 
     @Override
@@ -166,8 +180,9 @@ public class ScrollableResultSet
     public String getString(int index)
         throws SQLException
     {
+        checkIndex(index);
         String value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (String) row.getColumnObject(index);
@@ -179,8 +194,9 @@ public class ScrollableResultSet
     public boolean getBoolean(int index)
         throws SQLException
     {
+        checkIndex(index);
         boolean value = false;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Boolean) row.getColumnObject(index);
@@ -192,8 +208,9 @@ public class ScrollableResultSet
     public byte getByte(int index)
         throws SQLException
     {
+        checkIndex(index);
         byte value = 0;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Byte) row.getColumnObject(index);
@@ -205,8 +222,9 @@ public class ScrollableResultSet
     public short getShort(int index)
         throws SQLException
     {
+        checkIndex(index);
         short value = 0;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Short) row.getColumnObject(index);
@@ -218,8 +236,9 @@ public class ScrollableResultSet
     public int getInt(int index)
         throws SQLException
     {
+        checkIndex(index);
         int value = 0;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Integer) row.getColumnObject(index);
@@ -231,8 +250,9 @@ public class ScrollableResultSet
     public long getLong(int index)
         throws SQLException
     {
+        checkIndex(index);
         long value = 0;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Long) row.getColumnObject(index);
@@ -244,8 +264,9 @@ public class ScrollableResultSet
     public float getFloat(int index)
         throws SQLException
     {
+        checkIndex(index);
         float value = 0;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Float) row.getColumnObject(index);
@@ -257,8 +278,9 @@ public class ScrollableResultSet
     public double getDouble(int index)
         throws SQLException
     {
+        checkIndex(index);
         double value = 0;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Double) row.getColumnObject(index);
@@ -270,8 +292,9 @@ public class ScrollableResultSet
     public BigDecimal getBigDecimal(int index, int scale)
         throws SQLException
     {
+        checkIndex(index);
         BigDecimal value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (BigDecimal) row.getColumnObject(index);
@@ -283,8 +306,9 @@ public class ScrollableResultSet
     public byte[] getBytes(int index)
         throws SQLException
     {
+        checkIndex(index);
         byte[] value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (byte[]) row.getColumnObject(index);
@@ -296,8 +320,9 @@ public class ScrollableResultSet
     public Date getDate(int index)
         throws SQLException
     {
+        checkIndex(index);
         Date value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Date) row.getColumnObject(index);
@@ -309,8 +334,9 @@ public class ScrollableResultSet
     public Time getTime(int index)
         throws SQLException
     {
+        checkIndex(index);
         Time value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Time) row.getColumnObject(index);
@@ -322,8 +348,9 @@ public class ScrollableResultSet
     public Timestamp getTimestamp(int index)
         throws SQLException
     {
+        checkIndex(index);
         Timestamp value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Timestamp) row.getColumnObject(index);
@@ -335,8 +362,9 @@ public class ScrollableResultSet
     public InputStream getAsciiStream(int index)
         throws SQLException
     {
+        checkIndex(index);
         InputStream value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (InputStream) row.getColumnObject(index);
@@ -348,8 +376,9 @@ public class ScrollableResultSet
     public InputStream getUnicodeStream(int index)
         throws SQLException
     {
+        checkIndex(index);
         InputStream value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (InputStream) row.getColumnObject(index);
@@ -361,8 +390,9 @@ public class ScrollableResultSet
     public InputStream getBinaryStream(int index)
         throws SQLException
     {
+        checkIndex(index);
         InputStream value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (InputStream) row.getColumnObject(index);
@@ -374,8 +404,9 @@ public class ScrollableResultSet
     public Object getObject(int index)
         throws SQLException
     {
+        checkIndex(index);
         Object value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Object) row.getColumnObject(index);
@@ -387,8 +418,9 @@ public class ScrollableResultSet
     public Reader getCharacterStream(int index)
         throws SQLException
     {
+        checkIndex(index);
         Reader value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Reader) row.getColumnObject(index);
@@ -400,8 +432,9 @@ public class ScrollableResultSet
     public BigDecimal getBigDecimal(int index)
         throws SQLException
     {
+        checkIndex(index);
         BigDecimal value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (BigDecimal) row.getColumnObject(index);
@@ -413,8 +446,9 @@ public class ScrollableResultSet
     public Object getObject(int index, Map<String, Class<?>> map)
         throws SQLException
     {
+        checkIndex(index);
         Object value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Object) row.getColumnObject(index);
@@ -426,8 +460,9 @@ public class ScrollableResultSet
     public Ref getRef(int index)
         throws SQLException
     {
+        checkIndex(index);
         Ref value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Ref) row.getColumnObject(index);
@@ -439,8 +474,9 @@ public class ScrollableResultSet
     public Blob getBlob(int index)
         throws SQLException
     {
+        checkIndex(index);
         Blob value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Blob) row.getColumnObject(index);
@@ -452,8 +488,9 @@ public class ScrollableResultSet
     public Clob getClob(int index)
         throws SQLException
     {
+        checkIndex(index);
         Clob value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Clob) row.getColumnObject(index);
@@ -465,8 +502,9 @@ public class ScrollableResultSet
     public Array getArray(int index)
         throws SQLException
     {
+        checkIndex(index);
         Array value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Array) row.getColumnObject(index);
@@ -478,8 +516,9 @@ public class ScrollableResultSet
     public Date getDate(int index, Calendar cal)
         throws SQLException
     {
+        checkIndex(index);
         Date value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Date) row.getColumnObject(index);
@@ -491,8 +530,9 @@ public class ScrollableResultSet
     public Time getTime(int index, Calendar cal)
         throws SQLException
     {
+        checkIndex(index);
         Time value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Time) row.getColumnObject(index);
@@ -504,8 +544,9 @@ public class ScrollableResultSet
     public Timestamp getTimestamp(int index, Calendar cal)
         throws SQLException
     {
+        checkIndex(index);
         Timestamp value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Timestamp) row.getColumnObject(index);
@@ -517,8 +558,9 @@ public class ScrollableResultSet
     public URL getURL(int index)
         throws SQLException
     {
+        checkIndex(index);
         URL value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (URL) row.getColumnObject(index);
@@ -530,8 +572,9 @@ public class ScrollableResultSet
     public RowId getRowId(int index)
         throws SQLException
     {
+        checkIndex(index);
         RowId value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (RowId) row.getColumnObject(index);
@@ -543,8 +586,9 @@ public class ScrollableResultSet
     public NClob getNClob(int index)
         throws SQLException
     {
+        checkIndex(index);
         NClob value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (NClob) row.getColumnObject(index);
@@ -556,8 +600,9 @@ public class ScrollableResultSet
     public SQLXML getSQLXML(int index)
         throws SQLException
     {
+        checkIndex(index);
         SQLXML value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (SQLXML) row.getColumnObject(index);
@@ -569,8 +614,9 @@ public class ScrollableResultSet
     public String getNString(int index)
         throws SQLException
     {
+        checkIndex(index);
         String value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (String) row.getColumnObject(index);
@@ -582,8 +628,9 @@ public class ScrollableResultSet
     public Reader getNCharacterStream(int index)
         throws SQLException
     {
+        checkIndex(index);
         Reader value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (Reader) row.getColumnObject(index);
@@ -596,8 +643,9 @@ public class ScrollableResultSet
     public <T> T getObject(int index, Class<T> type)
         throws SQLException
     {
+        checkIndex(index);
         T value = null;
-        BaseRow row = getCurrentRow(index);
+        BaseRow row = getCurrentRow();
         m_WasNull = row.isColumnNull(index);
         if (!m_WasNull) {
             value = (T) row.getColumnObject(index);
@@ -937,7 +985,7 @@ public class ScrollableResultSet
     }
 
     @Override
-    protected boolean internalAbsolute(Integer position, int row)
+    protected boolean moveResultSet(Integer position, int row)
         throws SQLException
     {
         if (isAfterLast() || isBeforeFirst()) {
@@ -948,11 +996,14 @@ public class ScrollableResultSet
     }
 
     @Override
-    protected BaseRow getCurrentRow(int index)
+    protected BaseRow getCurrentRow()
         throws SQLException
     {
-        checkIndex(index);
-        return getCurrentRow();
+        if (isOnInsertRow()) {
+            return m_InsertRow;
+        }
+        checkCursor();
+        return getRowData().get(m_Cursor - 1);
     }
 
     // XXX: Private methods
@@ -962,16 +1013,6 @@ public class ScrollableResultSet
         if (!m_RowCountFinal) {
             loadNextRow();
         }
-    }
-
-    private BaseRow getCurrentRow()
-        throws SQLException
-    {
-        if (isOnInsertRow()) {
-            return m_InsertRow;
-        }
-        checkCursor();
-        return getRowData().get(m_Cursor - 1);
     }
 
     private Vector<Row> getRowData()

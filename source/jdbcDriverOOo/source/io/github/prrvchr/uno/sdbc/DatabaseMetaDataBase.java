@@ -36,8 +36,10 @@ import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.helper.PrivilegesHelper;
+import io.github.prrvchr.jdbcdriver.helper.DBException;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -330,6 +332,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             String value = m_Metadata.getExtraNameCharacters();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_EXTRA_NAME_CHARACTERS, value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -342,6 +345,7 @@ public abstract class DatabaseMetaDataBase
     {
         try {
             String value = m_Metadata.getIdentifierQuoteString();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_IDENTIFIER_QUOTE, value);
             return value != null ? value : "";
         }
         catch (java.sql.SQLException e) {
@@ -412,7 +416,9 @@ public abstract class DatabaseMetaDataBase
     public int getMaxColumnNameLength() throws SQLException
     {
         try {
-            return m_Metadata.getMaxColumnNameLength();
+            int value = m_Metadata.getMaxColumnNameLength();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_COLUMN_NAME_LENGTH, value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -566,7 +572,9 @@ public abstract class DatabaseMetaDataBase
     public int getMaxTableNameLength() throws SQLException
     {
         try {
-            return m_Metadata.getMaxTableNameLength();
+            int value = m_Metadata.getMaxTableNameLength();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_TABLE_NAME_LENGTH, value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1095,7 +1103,9 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsAlterTableWithAddColumn() throws SQLException
     {
         try {
-            return m_Metadata.supportsAlterTableWithAddColumn();
+            boolean value = m_Metadata.supportsAlterTableWithAddColumn();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_ALTER_TABLE_WITH_ADD_COLUMN, value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1106,7 +1116,9 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsAlterTableWithDropColumn() throws SQLException
     {
         try {
-            return m_Metadata.supportsAlterTableWithDropColumn();
+            boolean value = m_Metadata.supportsAlterTableWithDropColumn();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_ALTER_TABLE_WITH_DROP_COLUMN, value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1372,7 +1384,9 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsMixedCaseIdentifiers() throws SQLException
     {
         try {
-            return m_Metadata.supportsMixedCaseIdentifiers();
+            boolean value = m_Metadata.supportsMixedCaseIdentifiers();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_ID, value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1383,7 +1397,9 @@ public abstract class DatabaseMetaDataBase
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
     {
         try {
-            return m_Metadata.supportsMixedCaseQuotedIdentifiers();
+            boolean value = m_Metadata.supportsMixedCaseQuotedIdentifiers();
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_QUOTED_ID, value);
+            return value;
         }
         catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1757,12 +1773,15 @@ public abstract class DatabaseMetaDataBase
                                        String method)
         throws SQLException
     {
-        ResultSet resultset = null;
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_METADATA_RESULTSET, method);
-        if (result != null) {
-            resultset = new ResultSet(m_Connection, result);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_METADATA_RESULTSET_ID, resultset.getLogger().getObjectId());
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET, method);
+        if (result == null) {
+            System.out.println("sdbc.DatabaseMetaData._getResultSet() ERROR method: " + method);
+            String message = m_logger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR, method);
+            m_logger.logp(LogLevel.SEVERE, message);
+            throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
         }
+        ResultSet resultset = new ResultSet(m_Connection, result);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID, method, resultset.getLogger().getObjectId());
         return resultset;
     }
 

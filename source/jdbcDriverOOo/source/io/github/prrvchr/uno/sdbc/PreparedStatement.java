@@ -25,11 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.HashMap;
+
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
 import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -45,6 +48,7 @@ public final class PreparedStatement
                              String sql)
     {
         super(m_service, m_services, connection, sql);
+        registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbc.PreparedStatement() 1: '" + sql + "'");
     }
 
@@ -55,7 +59,8 @@ public final class PreparedStatement
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             ResultSet resultset =  new ResultSet(getConnectionInternal(), getJdbcResultSet(), this);
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            String services = String.join(", ", resultset.getSupportedServiceNames());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
             return resultset;
         }
         catch (java.sql.SQLException e) {

@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.Map;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
@@ -40,6 +42,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
@@ -58,7 +61,6 @@ public abstract class StatementBase
                         ConnectionBase connection)
     {
         super(service, services, connection);
-        registerProperties();
     }
 
    @Override
@@ -69,24 +71,34 @@ public abstract class StatementBase
         return getJdbcStatement().executeQuery(m_Sql.getCommand());
    }
 
-    private void registerProperties() {
-        registerProperty(PropertyIds.ESCAPEPROCESSING.name, PropertyIds.ESCAPEPROCESSING.id, Type.BOOLEAN,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    System.out.println("sdbc.StatementBase._getEscapeProcessing(): " + m_EscapeProcessing);
-                    return _getEscapeProcessing();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    System.out.println("sdbc.StatementBase._setEscapeProcessing(): " + (boolean) value);
-                    _setEscapeProcessing((boolean) value);
-                }
-            });
-    }
+   @Override
+   protected void registerProperties(Map<String, PropertyWrapper> properties) {
 
+       properties.put(PropertyIds.ESCAPEPROCESSING.getName(),
+                      new PropertyWrapper(Type.BOOLEAN,
+                                          new PropertyGetter() {
+                                              @Override
+                                              public Object getValue() throws WrappedTargetException
+                                              {
+                                                  System.out.println("sdbc.StatementBase._getEscapeProcessing(): " + m_EscapeProcessing);
+                                                  return _getEscapeProcessing();
+                                              }
+                                          },
+                                          new PropertySetter() {
+                                              @Override
+                                              public void setValue(Object value) throws PropertyVetoException,
+                                                                                        IllegalArgumentException,
+                                                                                        WrappedTargetException
+                                              {
+                                                  System.out.println("sdbc.StatementBase._setEscapeProcessing(): " + (boolean) value);
+                                                  _setEscapeProcessing((boolean) value);
+                                              }
+                                          }));
+
+       super.registerProperties(properties);
+   }
+
+    @Override
     protected java.sql.Statement setStatement(java.sql.Statement statement)
         throws java.sql.SQLException
     {

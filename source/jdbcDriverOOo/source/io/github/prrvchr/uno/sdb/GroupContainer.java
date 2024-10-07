@@ -48,9 +48,7 @@ public class GroupContainer
     extends Container<Group>
 {
     private static final String m_service = GroupContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Groups",
-                                                "com.sun.star.sdbcx.Container"};
-
+    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
 
     protected final Connection m_connection;
     private final ConnectionLog m_logger; 

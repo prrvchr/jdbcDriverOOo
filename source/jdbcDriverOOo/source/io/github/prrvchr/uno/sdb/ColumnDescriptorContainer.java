@@ -23,37 +23,43 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.jdbcdriver;
+package io.github.prrvchr.uno.sdb;
+
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.sdbc.SQLException;
+
+import io.github.prrvchr.uno.sdbcx.ColumnDescriptorContainerSuper;
+import io.github.prrvchr.uno.sdbcx.TableDescriptorSuper;
 
 
-public enum ConnectionService {
-    CSS_SDBC_CONNECTION("com.sun.star.sdbc.Connection"),
-    CSS_SDBCX_CONNECTION("com.sun.star.sdbcx.Connection"),
-    CSS_SDB_CONNECTION("com.sun.star.sdb.Connection");
-    
-    private String service;
-    
-    private ConnectionService(String service)
+public final class ColumnDescriptorContainer
+    extends ColumnDescriptorContainerSuper<ColumnDescriptor>
+{
+
+    // The constructor method:
+    public ColumnDescriptorContainer(TableDescriptorSuper table,
+                                     boolean sensitive)
     {
-        this.service = service;
+        super(table, sensitive);
+        System.out.println("sdb.ColumnDescriptorContainer() ***************************************************");
     }
-    
-    public String service()
+
+    @Override
+    protected ColumnDescriptor appendElement(XPropertySet descriptor)
+        throws SQLException
     {
-        return service;
-    }
-    
-    public static ConnectionService fromString(String service)
-    {
-        for (ConnectionService connection : ConnectionService.values()) {
-            if (connection.service.equalsIgnoreCase(service)) {
-                return connection;
-            }
-        }
-        // FIXME: By default we return a connection whose type can work with the two possible
-        // FIXME: drivers (ie: com.sun.star.sdbc.Driver or com.sun.star.sdbcx.Driver)
-        return ConnectionService.CSS_SDBCX_CONNECTION;
+        return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
 
 
+    @Override
+    protected XPropertySet createDescriptor() {
+        System.out.println("sdb.ColumnDescriptorContainer._createDescriptor()");
+        return new ColumnDescriptor(getTable().getCatalogName(), getTable().getSchemaName(), getTable().getName(), isCaseSensitive());
+    }
+
+    private TableDescriptor getTable() {
+        return (TableDescriptor) m_table;
+    }
+    
 }

@@ -220,7 +220,8 @@ public class RowHelper
             default:
                 value = result.getObject(index);
         }
-        return result.wasNull() ? null : value;
+        //return result.wasNull() ? null : value;
+        return value;
     }
 
     public static Object getDoubleValue(Double value,

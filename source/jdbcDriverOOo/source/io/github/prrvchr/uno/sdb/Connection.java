@@ -46,6 +46,7 @@ import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
@@ -88,6 +89,7 @@ public final class Connection
                       PropertyValue[] info)
     {
         super(ctx, m_service, m_services, provider, url, info);
+        System.out.println("sdb.Connection() *************************");
     }
 
     // com.sun.star.lang.XComponent
@@ -104,14 +106,15 @@ public final class Connection
  
     // com.sun.star.container.XChild:
     @Override
-    public Object getParent()
+    public XInterface getParent()
     {
-        System.out.println("sdb.Connection.getParent() 1");
+        XInterface parent = null;
+        System.out.println("sdb.Connection.getParent() 1 *************************");
         if (getProvider().hasDocument()) {
-            System.out.println("sdb.Connection.getParent() 2");
-            return getProvider().getDocument().getDataSource();
+            System.out.println("sdb.Connection.getParent() 2 *************************");
+            parent = getProvider().getDocument().getDataSource();
         }
-        return null;
+        return parent;
     }
 
 
@@ -224,7 +227,8 @@ public final class Connection
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        String services = String.join(", ", statement.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, services, statement.getLogger().getObjectId());
         return statement;
     }
 
@@ -235,7 +239,8 @@ public final class Connection
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
+        String services = String.join(", ", statement.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, services, statement.getLogger().getObjectId());
         return statement;
     }
 
@@ -246,7 +251,8 @@ public final class Connection
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
+        String services = String.join(", ", statement.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, services, statement.getLogger().getObjectId());
         return statement;
     }
 
@@ -326,14 +332,18 @@ public final class Connection
     protected TableContainer getTableContainer(List<String> names)
         throws ElementExistException
     {
-        return  new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        System.out.println("sdb.Connection.getTableContainer() *************************");
+        return tables;
     }
 
     @Override
     protected ViewContainer getViewContainer(List<String> names)
         throws ElementExistException
     {
-       return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+        ViewContainer views = new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+        System.out.println("sdb.Connection.getViewContainer() *************************");
+        return views;
     }
 
 }

@@ -25,12 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
@@ -60,45 +64,66 @@ public final class IndexDescriptor
     }
 
     private void registerProperties() {
-        registerProperty(PropertyIds.CATALOG.name, PropertyIds.CATALOG.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Catalog;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Catalog = (String) value;
-                }
-            });
-        registerProperty(PropertyIds.ISUNIQUE.name, PropertyIds.ISUNIQUE.id, Type.BOOLEAN,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsUnique;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_IsUnique = (boolean) value;
-                }
-            });
-        registerProperty(PropertyIds.ISCLUSTERED.name, PropertyIds.ISCLUSTERED.id, Type.BOOLEAN,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsClustered;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_IsClustered = (boolean) value;
-                }
-            });
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+
+        properties.put(PropertyIds.CATALOG.getName(),
+                       new PropertyWrapper(Type.STRING,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Catalog;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_Catalog = (String) value;
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.ISCLUSTERED.getName(),
+                       new PropertyWrapper(Type.BOOLEAN,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_IsClustered;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_IsClustered = (boolean) value;
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.ISUNIQUE.getName(),
+                       new PropertyWrapper(Type.BOOLEAN,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_IsUnique;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_IsUnique = (boolean) value;
+                                               }
+                                           }));
+
+        super.registerProperties(properties);
     }
 
 

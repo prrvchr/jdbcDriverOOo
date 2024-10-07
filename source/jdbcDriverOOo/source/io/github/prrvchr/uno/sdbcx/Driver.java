@@ -38,7 +38,7 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.ConnectionService;
+import io.github.prrvchr.jdbcdriver.ApiLevel;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
@@ -69,22 +69,22 @@ public final class Driver
                                             DriverProvider provider,
                                             String url,
                                             PropertyValue[] info,
-                                            ConnectionService service)
+                                            ApiLevel level)
     {
         ConnectionBase connection = null;
-        switch(service) {
-        case CSS_SDB_CONNECTION:
-            if (provider.supportService(service)) {
+        switch(level) {
+        case COM_SUN_STAR_SDB:
+            if (provider.supportService(level)) {
                 connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info);
                 break;
             }
-            service = ConnectionService.CSS_SDBCX_CONNECTION;
-        case CSS_SDBCX_CONNECTION:
-            if (provider.supportService(service)) {
+            level = ApiLevel.COM_SUN_STAR_SDBCX;
+        case COM_SUN_STAR_SDBCX:
+            if (provider.supportService(level)) {
                 connection = new Connection(ctx, provider, url, info);
                 break;
             }
-        case CSS_SDBC_CONNECTION:
+        case COM_SUN_STAR_SDBC:
             connection = new io.github.prrvchr.uno.sdbc.Connection(ctx, provider, url, info);
             break;
         }

@@ -52,6 +52,7 @@ import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.InsertRow;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
 
 
 // XXX: This ResultSet is supposed to emulate a TYPE_SCROLL_SENSITIVE from a TYPE_SCROLL_INSENSITIVE
@@ -69,11 +70,14 @@ public class SensitiveResultSet
     private Vector<Row> m_InsertedData = null;
     private int m_RowCount = 0;
     private int m_Inserted = -1;
-    private boolean m_WasNull = false;
-    private boolean m_SQLDelete = false;
-    private boolean m_SQLInsert = true;
-    private boolean m_SQLUpdate = false;
-    private boolean m_SQLMode = false;
+    private int m_Deleted = -1;
+
+    private boolean m_SQLDelete;
+    private boolean m_SQLInsert;
+    private boolean m_SQLUpdate;
+    private boolean m_IsDeleteVisible;
+    private boolean m_IsInsertVisible;
+    private boolean m_IsUpdateVisible;
 
 
     // The constructor method:
@@ -87,31 +91,40 @@ public class SensitiveResultSet
         int size = m_FetchSize < m_MinSize ? m_MinSize : m_FetchSize;
         m_UpdatedData = new Vector<Row>(size);
         m_InsertedData = new Vector<Row>(size);
-        m_SQLDelete = provider.useSQLDelete();
-        m_SQLInsert = provider.useSQLInsert();
-        m_SQLUpdate = provider.useSQLUpdate();
-        m_SQLMode = provider.isSQLMode();
+        boolean SQLMode = provider.useSQLMode(result);
+        m_SQLDelete = SQLMode || provider.useSQLDelete();
+        m_SQLInsert = SQLMode || provider.useSQLInsert();
+        m_SQLUpdate = SQLMode || provider.useSQLUpdate();
+        m_IsDeleteVisible = !m_SQLDelete && provider.isDeleteVisible(result);
+        m_IsInsertVisible = !m_SQLInsert && provider.isInsertVisible(result);
+        m_IsUpdateVisible = !m_SQLUpdate && provider.isUpdateVisible(result);
         System.out.println("SensitiveResultSet() 1");
+        System.out.println("SensitiveResultSet() Use SQL Delete: " + m_SQLDelete);
+        System.out.println("SensitiveResultSet() Use SQL Insert: " + m_SQLInsert);
+        System.out.println("SensitiveResultSet() Use SQL Update: " + m_SQLUpdate);
+        System.out.println("SensitiveResultSet() Delete are visible: " + m_IsDeleteVisible);
+        System.out.println("SensitiveResultSet() Insert are visible: " + m_IsInsertVisible);
+        System.out.println("SensitiveResultSet() Update are visible: " + m_IsUpdateVisible);
         loadLastRow();
     }
 
-    // XXX: We want to emulate an updatable ResultSet and it is the presence of
-    // XXX: primary key in the catalog which determines if the ResultSet is updatable.
     @Override
-    public int getConcurrency()
+    public void moveToCurrentRow()
         throws SQLException
     {
-        return ResultSet.CONCUR_UPDATABLE;
+        if (m_OnInsert) {
+            if (m_IsInsertVisible) {
+                System.out.println("SensitiveResultSet.moveToCurrentRow() 2");
+                m_Result.moveToCurrentRow();
+            }
+            else {
+                System.out.println("SensitiveResultSet.moveToCurrentRow() 1");
+                m_InsertRow = null;
+            }
+            m_Cursor = m_CurrentRow;
+            m_OnInsert = false;
+        }
     }
-
-    // XXX: We want to emulate an scollable ResultSet
-    @Override
-    public int getType()
-        throws SQLException
-    {
-        return ResultSet.TYPE_SCROLL_SENSITIVE;
-    }
-
 
     // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx  Line 110: xUp->moveToInsertRow()
     @Override
@@ -119,10 +132,12 @@ public class SensitiveResultSet
         throws SQLException
     {
         if (m_IsInsertVisible) {
+            System.out.println("SensitiveResultSet.moveToInsertRow() 2");
             m_Result.moveToInsertRow();
             m_InsertedColumns.clear();
         }
         else {
+            System.out.println("SensitiveResultSet.moveToInsertRow() 1");
             m_InsertRow = new InsertRow(m_ColumnCount);
         }
         m_OnInsert = true;
@@ -142,64 +157,77 @@ public class SensitiveResultSet
     }
 
     @Override
-    public void moveToCurrentRow()
-        throws SQLException
-    {
-        if (m_OnInsert) {
-            if (m_IsInsertVisible) {
-                m_Result.moveToCurrentRow();
-            }
-            else {
-                m_InsertRow = null;
-            }
-            m_Cursor = m_CurrentRow;
-            m_OnInsert = false;
-        }
-    }
-
-
-    @Override
     public void insertRow()
         throws SQLException
     {
         BaseRow insert = null;
-        if (!m_IsInsertVisible || m_SQLMode || m_SQLInsert) {
-            insert = m_InsertRow != null ? m_InsertRow.clown() : getResultInsertRow();
+        System.out.println("SensitiveResultSet.insertRow() 1 Cursor: " + m_Cursor + " - InsertVisible: " + m_IsInsertVisible);
+        if (m_IsInsertVisible) {
+            System.out.println("SensitiveResultSet.insertRow() 2");
+            // XXX: Base does not allow auto-increment columns to be entered,
+            // XXX: some drivers force us to update these columns to null
+            RowHelper.setDefaultColumnValues(m_Result, m_InsertedColumns);
+            m_InsertedColumns.clear();
+            m_Result.insertRow();
+            System.out.println("SensitiveResultSet.insertRow() 3");
+        }
+        else {
+            if (m_InsertRow == null) {
+                throw new SQLException("ERROR: insertRow() cannot be called when moveToInsertRow has not been called !");
+            }
+            System.out.println("SensitiveResultSet.insertRow() 4");
+            insert = m_InsertRow.clown();
             getRowSetWriter().insertRow(insert);
-            moveToCurrentRow();
         }
-        else{
-            super.insertRow();
-        }
+        moveToCurrentRow();
         int cursor = 0;
         int position = 0;
-        if (m_IsInsertVisible) {
+        if (insert != null) {
+            // XXX: As we have inserted a new row by an SQL command then
+            // XXX: we need to put this new row in the cache
+            System.out.println("SensitiveResultSet.insertRow() 5");
+            cursor = getRowCount() + 1;
+            position = getMaxPosition() + 1;
+            Row row = new Row(insert);
+            m_InsertedData.add(row);
+            m_InsertedRows.add(cursor);
+            System.out.println("SensitiveResultSet.insertRow() 6 at Cursor: " + cursor);
+        }
+        else {
+            System.out.println("SensitiveResultSet.insertRow() 7");
+            // XXX: Since we are maintaining the row count of the ResultSet, we need to increment it.
             m_RowCount ++;
             cursor = m_RowCount;
             position = getMaxPosition();
-        }
-        else {
-            cursor = getRowCount() + 1;
-            position = getMaxPosition() + 1;
-            Row row = insert != null ? new Row(insert) : new Row(getResultRow());
-            m_InsertedData.add(row);
-            m_InsertedRows.add(cursor);
         }
         // XXX: cursor and position must be set on the inserted row
         m_Cursor = cursor;
         m_Position = position;
         // XXX: We must be able to respond positively to the insert
         m_Inserted = cursor;
+        System.out.println("SensitiveResultSet.insertRow() 8 Cursor: " + m_Cursor);
+    }
+
+    @Override
+    public boolean rowDeleted()
+        throws SQLException
+    {
+        boolean deleted = isDeleted(m_Deleted);
+        m_Deleted = -1;
+        System.out.println("SensitiveResultSet.rowDeleted() 1 : " + deleted);
+        return deleted;
     }
 
     @Override
     public boolean rowInserted()
         throws SQLException
     {
+        System.out.println("SensitiveResultSet.rowInserted() 1");
         // XXX: We can assume the insertion is valid without any
         // XXX: movement in the ResultSet since the insertion.
         boolean inserted = m_Inserted == m_Cursor;
         m_Inserted = -1;
+        System.out.println("SensitiveResultSet.rowInserted() 2 : " + inserted);
         return inserted;
     }
 
@@ -207,21 +235,25 @@ public class SensitiveResultSet
     public void updateRow()
         throws SQLException
     {
-        boolean updated = isCachedRow();
-        if (updated || m_SQLMode || m_SQLUpdate) {
-            Row row = updated ? getCachedRow() : getResultRow();
-            getRowSetWriter().updateRow(row);
+        System.out.println("SensitiveResultSet.updateRow() 1");
+        if (updateCachedRow()) {
+            System.out.println("SensitiveResultSet.updateRow() 2");
+            getRowSetWriter().updateRow(getCachedRow());
         }
         else {
+            System.out.println("SensitiveResultSet.updateRow() 3");
             super.updateRow();
         }
+        System.out.println("SensitiveResultSet.updateRow() 4");
     }
 
     @Override
     public boolean rowUpdated()
         throws SQLException
     {
+        System.out.println("SensitiveResultSet.rowUpdated() 1");
         boolean updated = m_Result.rowUpdated();
+        System.out.println("SensitiveResultSet.rowUpdated() 2 : " + updated);
         return updated;
     }
 
@@ -229,22 +261,38 @@ public class SensitiveResultSet
     public void deleteRow()
         throws SQLException
     {
-        int position = m_Cursor;
+        m_Deleted = m_Cursor;
+        System.out.println("SensitiveResultSet.deleteRow() 1 Position: " + m_Deleted);
         boolean incache = isCachedRow();
-        if (incache || m_SQLMode || m_SQLDelete) {
-            Row row = incache ? getCachedRow() : getResultRow();
-            getRowSetWriter().deleteRow(row);
-            // XXX: Are we trying to delete a row that has been inserted or updated and which will be in cache?
-            if (incache) {
-                deleteCachedRow(position);
-            }
+        if (m_IsDeleteVisible) {
+            int row = m_Result.getRow();
+            System.out.println("SensitiveResultSet.deleteRow() 3 getRow: " + row);
+            m_Result.last();
+            int last = m_Result.getRow();
+            System.out.println("SensitiveResultSet.deleteRow() 4 Last Row: " + last);
+            m_Result.absolute(row);
+            m_Result.deleteRow();
+            m_Result.last();
+            last = m_Result.getRow();
+            System.out.println("SensitiveResultSet.deleteRow() 5 Last Row: " + last);
+            m_Result.absolute(row -1);
+            // XXX: The row preceding the deleted row becomes the current row
+            //previous();
+            System.out.println("SensitiveResultSet.deleteRow() 6 getRow: " + m_Result.getRow());
         }
         else {
-            m_Result.deleteRow();
+            System.out.println("SensitiveResultSet.deleteRow() 2");
+            Row row = incache ? getCachedRow() : getResultRow();
+            getRowSetWriter().deleteRow(row);
+        }
+        // XXX: Are we trying to delete a row that has been inserted or updated and which will be in cache?
+        if (incache) {
+            deleteCachedRow(m_Deleted);
         }
         // XXX: Managing bookmark requires us to manage a cursor taking into account the deleted lines.
-        m_DeletedRows.add(position);
+        m_DeletedRows.add(m_Deleted);
     }
+
 
     // XXX: java.sql.ResultSet mover
     @Override
@@ -253,7 +301,7 @@ public class SensitiveResultSet
     {
         boolean moved = super.next();
         if (moved && !isInCache()) {
-            moved = setResultPosition();
+            moved = moveResultSet();
         }
         return moved;
     }
@@ -264,7 +312,7 @@ public class SensitiveResultSet
     {
         boolean moved = super.previous();
         if (moved && !isInCache()) {
-            moved = setResultPosition();
+            moved = moveResultSet();
         }
         return moved;
     }
@@ -275,7 +323,7 @@ public class SensitiveResultSet
     {
         boolean first = super.first();
         if (first && !isInCache()) {
-            first = setResultPosition();
+            first = moveResultSet();
         }
         return first;
     }
@@ -284,9 +332,13 @@ public class SensitiveResultSet
     public boolean last()
         throws SQLException
     {
+        System.out.println("SensitiveResultSet.last() 1");
         boolean last = super.last();
+        System.out.println("SensitiveResultSet.last() 2 : " + last + " - IsInCache: " + isInCache());
+        System.out.println("SensitiveResultSet.last() 3 isUpdated: " + isUpdated() + " - isInserted: " + isInserted() + " - isDeleted: " + isDeleted() + " - isOnInsertRow: " + isOnInsertRow());
         if (last && !isInCache()) {
-            last = setResultPosition();
+            System.out.println("SensitiveResultSet.last() 4 Cursor: " + m_Cursor + " - Position: " + m_Position);
+            last = moveResultSet();
         }
         return last;
     }
@@ -297,7 +349,7 @@ public class SensitiveResultSet
     {
         boolean moved = super.relative(row);
         if (moved && !isCachedRow()) {
-            moved = setResultPosition();
+            moved = moveResultSet();
         }
         return moved;
     }
@@ -317,14 +369,17 @@ public class SensitiveResultSet
     {
         String value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (String) row.getColumnObject(index);
+                System.out.println("SensitiveResultSet.getString() 1 : " + value);
             }
         }
         else {
             value = m_Result.getString(index);
+            System.out.println("SensitiveResultSet.getString() 2 : " + value + " - Row: " + m_Result.getRow());
             m_WasNull = m_Result.wasNull();
         }
         return value;
@@ -336,7 +391,8 @@ public class SensitiveResultSet
     {
         boolean value = false;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Boolean) row.getColumnObject(index);
@@ -355,7 +411,8 @@ public class SensitiveResultSet
     {
         byte value = 0;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Byte) row.getColumnObject(index);
@@ -374,7 +431,8 @@ public class SensitiveResultSet
     {
         short value = 0;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Short) row.getColumnObject(index);
@@ -393,7 +451,8 @@ public class SensitiveResultSet
     {
         int value = 0;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Integer) row.getColumnObject(index);
@@ -412,7 +471,8 @@ public class SensitiveResultSet
     {
         long value = 0;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Long) row.getColumnObject(index);
@@ -431,7 +491,8 @@ public class SensitiveResultSet
     {
         float value = 0;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Float) row.getColumnObject(index);
@@ -450,7 +511,8 @@ public class SensitiveResultSet
     {
         double value = 0;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Double) row.getColumnObject(index);
@@ -466,10 +528,11 @@ public class SensitiveResultSet
     @Override
     public BigDecimal getBigDecimal(int index, int scale)
         throws SQLException
-    {   
+    {
         BigDecimal value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (BigDecimal) row.getColumnObject(index);
@@ -488,7 +551,8 @@ public class SensitiveResultSet
     {
         byte[] value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (byte[]) row.getColumnObject(index);
@@ -507,7 +571,8 @@ public class SensitiveResultSet
     {
         Date value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Date) row.getColumnObject(index);
@@ -526,7 +591,8 @@ public class SensitiveResultSet
     {
         Time value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Time) row.getColumnObject(index);
@@ -545,7 +611,8 @@ public class SensitiveResultSet
     {
         Timestamp value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Timestamp) row.getColumnObject(index);
@@ -564,7 +631,8 @@ public class SensitiveResultSet
     {
         InputStream value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (InputStream) row.getColumnObject(index);
@@ -584,7 +652,8 @@ public class SensitiveResultSet
     {
         InputStream value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (InputStream) row.getColumnObject(index);
@@ -603,7 +672,8 @@ public class SensitiveResultSet
     {
         InputStream value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (InputStream) row.getColumnObject(index);
@@ -622,7 +692,8 @@ public class SensitiveResultSet
     {
         Object value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Object) row.getColumnObject(index);
@@ -641,7 +712,8 @@ public class SensitiveResultSet
     {
         Reader value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Reader) row.getColumnObject(index);
@@ -660,7 +732,8 @@ public class SensitiveResultSet
     {
         BigDecimal value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (BigDecimal) row.getColumnObject(index);
@@ -679,7 +752,8 @@ public class SensitiveResultSet
     {
         Object value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Object) row.getColumnObject(index);
@@ -698,7 +772,8 @@ public class SensitiveResultSet
     {
         Ref value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Ref) row.getColumnObject(index);
@@ -717,7 +792,8 @@ public class SensitiveResultSet
     {
         Blob value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Blob) row.getColumnObject(index);
@@ -736,7 +812,8 @@ public class SensitiveResultSet
     {
         Clob value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Clob) row.getColumnObject(index);
@@ -755,7 +832,8 @@ public class SensitiveResultSet
     {
         Array value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Array) row.getColumnObject(index);
@@ -774,7 +852,8 @@ public class SensitiveResultSet
     {
         Date value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Date) row.getColumnObject(index);
@@ -793,7 +872,8 @@ public class SensitiveResultSet
     {
         Time value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Time) row.getColumnObject(index);
@@ -812,7 +892,8 @@ public class SensitiveResultSet
     {
         Timestamp value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Timestamp) row.getColumnObject(index);
@@ -831,7 +912,8 @@ public class SensitiveResultSet
     {
         URL value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (URL) row.getColumnObject(index);
@@ -850,7 +932,8 @@ public class SensitiveResultSet
     {
         RowId value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (RowId) row.getColumnObject(index);
@@ -869,7 +952,8 @@ public class SensitiveResultSet
     {
         NClob value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (NClob) row.getColumnObject(index);
@@ -888,7 +972,8 @@ public class SensitiveResultSet
     {
         SQLXML value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (SQLXML) row.getColumnObject(index);
@@ -907,7 +992,8 @@ public class SensitiveResultSet
     {
         String value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (String) row.getColumnObject(index);
@@ -926,7 +1012,8 @@ public class SensitiveResultSet
     {
         Reader value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (Reader) row.getColumnObject(index);
@@ -946,7 +1033,8 @@ public class SensitiveResultSet
     {
         T value = null;
         if (isInCache()) {
-            BaseRow row = getCurrentRow(index);
+            checkIndex(index);
+            BaseRow row = getCurrentRow();
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (T) row.getColumnObject(index);
@@ -968,7 +1056,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, null);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNull(index);
         }
     }
@@ -980,7 +1068,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBoolean(index, value);
         }
     }
@@ -992,7 +1080,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateByte(index, value);
         }
     }
@@ -1004,7 +1092,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateShort(index, value);
         }
     }
@@ -1016,7 +1104,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateInt(index, value);
         }
     }
@@ -1028,7 +1116,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateLong(index, value);
         }
     }
@@ -1040,7 +1128,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateFloat(index, value);
         }
     }
@@ -1051,10 +1139,11 @@ public class SensitiveResultSet
     {
         // XXX: Base using updateDouble() for most numeric SQL types,
         // XXX: it is necessary to convert to the native column type
+        System.out.println("SensitiveResultSet.updateDouble() 1 Value: " + value);
         if (updateCache()) {
             setColumnDouble(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateDouble(index, value);
         }
     }
@@ -1066,7 +1155,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBigDecimal(index, value);
         }
     }
@@ -1075,12 +1164,16 @@ public class SensitiveResultSet
     public void updateString(int index, String value)
         throws SQLException
     {
+        System.out.println("SensitiveResultSet.updateString() 1 Value: " + value);
         if (updateCache()) {
+            System.out.println("SensitiveResultSet.updateString() 2");
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
+            System.out.println("SensitiveResultSet.updateString() 3");
             super.updateString(index, value);
         }
+        System.out.println("SensitiveResultSet.updateString() 4");
     }
 
     @Override
@@ -1090,7 +1183,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBytes(index, value);
         }
     }
@@ -1102,7 +1195,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateDate(index, value);
         }
     }
@@ -1114,7 +1207,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateTime(index, value);
         }
     }
@@ -1126,7 +1219,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateTimestamp(index, value);
         }
     }
@@ -1138,7 +1231,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateAsciiStream(index, value, length);
         }
     }
@@ -1150,7 +1243,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBinaryStream(index, value, length);
         }
     }
@@ -1162,7 +1255,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateCharacterStream(index, value, length);
         }
     }
@@ -1174,7 +1267,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateObject(index, value, length);
         }
     }
@@ -1186,7 +1279,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateObject(index, value);
         }
     }
@@ -1198,7 +1291,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateRef(index, value);
         }
     }
@@ -1210,7 +1303,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBlob(index, value);
         }
     }
@@ -1222,7 +1315,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateClob(index, value);
         }
     }
@@ -1234,7 +1327,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateArray(index, value);
         }
     }
@@ -1246,7 +1339,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNCharacterStream(index, value, length);
         }
     }
@@ -1258,7 +1351,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             updateAsciiStream(index, value, length);
         }
-        else {
+        if (updateResultSet()) {
             super.updateAsciiStream(index, value);
         }
     }
@@ -1270,7 +1363,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBinaryStream(index, value, length);
         }
     }
@@ -1282,7 +1375,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateCharacterStream(index, value, length);
         }
     }
@@ -1294,7 +1387,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBlob(index, value, length);
         }
     }
@@ -1306,7 +1399,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateClob(index, value, length);
         }
     }
@@ -1318,7 +1411,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNClob(index, value, length);
         }
     }
@@ -1330,7 +1423,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNCharacterStream(index, value);
         }
     }
@@ -1342,7 +1435,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateAsciiStream(index, value);
         }
     }
@@ -1354,7 +1447,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBinaryStream(index, value);
         }
     }
@@ -1366,7 +1459,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateCharacterStream(index, value);
         }
     }
@@ -1378,7 +1471,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateBlob(index, value);
         }
     }
@@ -1390,7 +1483,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateClob(index, value);
         }
     }
@@ -1402,7 +1495,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNClob(index, value);
         }
     }
@@ -1414,7 +1507,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateSQLXML(index, value);
         }
     }
@@ -1426,7 +1519,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNString(index, value);
         }
     }
@@ -1438,7 +1531,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateNClob(index, value);
         }
     }
@@ -1450,7 +1543,7 @@ public class SensitiveResultSet
         if (updateCache()) {
             setColumnObject(index, value);
         }
-        else {
+        if (updateResultSet()) {
             super.updateRowId(index, value);
         }
     }
@@ -1462,16 +1555,6 @@ public class SensitiveResultSet
     {
         int count = m_RowCount + m_InsertedRows.size() - m_DeletedRows.size();
         return count == 0;
-    }
-
-    private boolean isCachedRow()
-    {
-        return isCachedRow(m_Cursor);
-    }
-
-    private boolean isInCache()
-    {
-        return isUpdated() || isInserted() || isDeleted() || isOnInsertRow();
     }
 
     @Override
@@ -1486,37 +1569,7 @@ public class SensitiveResultSet
     }
 
     @Override
-    protected boolean internalNext()
-        throws SQLException
-    {
-        boolean moved = false;
-        int count = getRowCount();
-        do {
-            if (m_Cursor < count) {
-                ++m_Cursor;
-                moved = true;
-            }
-            else if (m_Cursor == count) {
-                // increment to after last
-                ++m_Cursor;
-                moved = false;
-                break;
-            }
-        } while (isDeleted());
-        /* each call to internalNext may increment cursor m_Cursor multiple
-         * times however, the m_Position only increments once per call.
-         */
-        if (moved) {
-            m_Position++;
-        }
-        else {
-            m_Position = getMaxPosition() + 1;
-        }
-        return moved;
-    }
-
-    @Override
-    protected boolean internalAbsolute(Integer position, int row)
+    protected boolean moveResultSet(Integer position, int row)
         throws SQLException
     {
         boolean moved = false;
@@ -1526,7 +1579,9 @@ public class SensitiveResultSet
             }
             // XXX: For loading the first row Base use absolute(1) will the current row is beforeFirst.
             boolean cached = isCachedRow();
-            moved = cached ? true : setResultPosition();
+            System.out.println("SensitiveResultSet.internalAbsolute() 1 Cursor: " + m_Cursor + " - Cached: " + cached);
+            moved = cached ? true : moveResultSet();
+            System.out.println("SensitiveResultSet.internalAbsolute() 2 Cursor: " + m_Cursor);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -1535,10 +1590,9 @@ public class SensitiveResultSet
     }
 
     @Override
-    protected BaseRow getCurrentRow(int index)
+    protected BaseRow getCurrentRow()
         throws SQLException
     {
-        checkIndex(index);
         if (m_OnInsert) {
             return m_InsertRow;
         }
@@ -1549,17 +1603,69 @@ public class SensitiveResultSet
         return getCachedRow();
     }
 
-    private boolean updateCache()
+    @Override
+    protected void incrementCursor()
+        throws SQLException
     {
-        return m_InsertRow != null || isOnUpdatableRows() || isOnInsertedRows();
+        ++m_Cursor;
     }
 
-    private boolean isOnUpdatableRows()
+
+    // XXX: Private methods
+    private boolean isInCache()
+    {
+        return isUpdated() || isInserted() || isDeleted() || isOnInsertRow();
+    }
+
+    private boolean updateCache()
+    {
+        // XXX: We update Cached if:
+        // XXX: - We do an insert and insert are not visible
+        // XXX: - We do an update and update are not visible
+        // XXX: - The current row is an inserted row in cache
+        return isInsertNotVisible() || isUpdateNotVisible() || isOnInsertedRow();
+    }
+
+    private boolean updateResultSet()
+    {
+        // XXX: We don't update ResultSet if:
+        // XXX: - We do an insert and use SQL mode for insert
+        // XXX: - We do an update and use SQL mode for update
+        // XXX: - The current row is an inserted row in cache
+        return !(isSQLInsert() || isSQLUpdate() || isOnInsertedRow());
+    }
+
+    private boolean isCachedRow()
+    {
+        return isCachedRow(m_Cursor);
+    }
+
+    private boolean updateCachedRow()
+    {
+        return (m_SQLUpdate && isUpdatedRow()) || (m_SQLInsert && isInsertedRow());
+    }
+
+    private boolean isInsertNotVisible()
+    {
+        return m_OnInsert && !m_IsInsertVisible;
+    }
+
+    private boolean isUpdateNotVisible()
     {
         return !m_OnInsert && !m_IsUpdateVisible;
     }
 
-    private boolean isOnInsertedRows()
+    private boolean isSQLInsert()
+    {
+        return m_OnInsert && m_SQLInsert;
+    }
+
+    private boolean isSQLUpdate()
+    {
+        return !m_OnInsert && m_SQLUpdate;
+    }
+
+    private boolean isOnInsertedRow()
     {
         return !m_OnInsert && !m_IsInsertVisible && isInsertedRow();
     }
@@ -1640,6 +1746,13 @@ public class SensitiveResultSet
             row = m_InsertedData.get(m_InsertedRows.indexOf(m_Cursor));
         }
         return row;
+    }
+
+    private boolean moveResultSet()
+        throws SQLException
+    {
+        int position = m_IsDeleteVisible ? m_Position : m_Cursor;
+        return m_Result.absolute(position);
     }
 
     // Private methods for managing last row cache

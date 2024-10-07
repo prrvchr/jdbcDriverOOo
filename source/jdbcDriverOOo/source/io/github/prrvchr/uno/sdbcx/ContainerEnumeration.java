@@ -58,19 +58,19 @@ import com.sun.star.uno.UnoRuntime;
 public final class ContainerEnumeration
     extends WeakBase
     implements XEnumeration,
-    XEventListener
+               XEventListener
 {
 
     private XIndexAccess collection;
     private int position;
     boolean isListening;
-    
+
     public ContainerEnumeration(XIndexAccess collection)
     {
         this.collection = collection;
         startDisposeListening();
     }
-    
+
     @Override
     public void disposing(EventObject event)
     {
@@ -80,7 +80,7 @@ public final class ContainerEnumeration
             }
         }
     }
-    
+
     @Override
     public boolean hasMoreElements()
     {
@@ -97,11 +97,11 @@ public final class ContainerEnumeration
             return false;
         }
     }
-    
+
     @Override
     public Object nextElement()
         throws NoSuchElementException,
-        WrappedTargetException
+               WrappedTargetException
     {
         Object value = null;
         synchronized (this) {
@@ -125,7 +125,7 @@ public final class ContainerEnumeration
         }
         return value;
     }
-    
+
     private void startDisposeListening()
     {
         synchronized (this) {
@@ -139,7 +139,7 @@ public final class ContainerEnumeration
             }
         }
     }
-    
+
     private void stopDisposeListening()
     {
         synchronized (this) {
@@ -153,6 +153,5 @@ public final class ContainerEnumeration
             }
         }
     }
-
 
 }

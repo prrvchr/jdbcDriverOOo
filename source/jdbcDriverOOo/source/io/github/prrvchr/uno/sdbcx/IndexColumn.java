@@ -25,12 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
@@ -66,14 +70,21 @@ public final class IndexColumn
 
 
     private void registerProperties() {
-        short attribute = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.ISASCENDING.name, PropertyIds.ISASCENDING.id, Type.BOOLEAN, attribute,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_IsAscending;
-                }
-            }, null);
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+        short readonly = PropertyAttribute.READONLY;
+
+        properties.put(PropertyIds.ISASCENDING.getName(),
+                       new PropertyWrapper(Type.BOOLEAN, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_IsAscending;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
 

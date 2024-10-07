@@ -71,7 +71,8 @@ public final class Connection
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, statement.getLogger().getObjectId());
+        String services = String.join(", ", statement.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, services, statement.getLogger().getObjectId());
         return statement;
     }
 
@@ -82,7 +83,8 @@ public final class Connection
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, statement.getLogger().getObjectId());
+        String services = String.join(", ", statement.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, services, statement.getLogger().getObjectId());
         return statement;
     }
 
@@ -93,7 +95,8 @@ public final class Connection
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, statement.getLogger().getObjectId());
+        String services = String.join(", ", statement.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, services, statement.getLogger().getObjectId());
         return statement;
     }
 

@@ -54,7 +54,6 @@ import io.github.prrvchr.jdbcdriver.helper.ColumnHelper;
 import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.jdbcdriver.helper.IndexHelper;
 import io.github.prrvchr.jdbcdriver.helper.KeyHelper;
-import io.github.prrvchr.jdbcdriver.helper.PrivilegesHelper;
 import io.github.prrvchr.jdbcdriver.helper.TableHelper;
 import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
@@ -62,6 +61,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
@@ -87,61 +87,45 @@ public abstract class TableSuper
     public TableSuper(String service,
                       String[] services,
                       ConnectionSuper connection,
+                      boolean sensitive,
                       String catalog,
                       String schema,
-                      boolean sensitive,
-                      String name)
+                      String name,
+                      String type,
+                      String remarks)
     {
         super(service, services, connection, catalog, schema, sensitive, name, LoggerObjectType.TABLE);
-        registerProperties();
+        m_Type = type;
+        m_Description = remarks;
     }
 
-    private void registerProperties() {
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.PRIVILEGES.name, PropertyIds.PRIVILEGES.id, Type.LONG, readonly,
-                new PropertyGetter() {
-                    @Override
-                    public Object getValue() throws WrappedTargetException {
-                        System.out.println("sdbcx.TableSuper.getPrivileges() 1");
-                        int privileges = getPrivileges();
-                        System.out.println("sdbcx.TableSuper.getPrivileges() 2 Privileges: " + privileges);
-                        return privileges;
-                    }
-                }, null);
-        registerProperty(PropertyIds.DESCRIPTION.name, PropertyIds.DESCRIPTION.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Description;
-                }
-            }, null);
-        registerProperty(PropertyIds.TABLETYPE.name, PropertyIds.TABLETYPE.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Type;
-                }
-            }, null);
-    }
 
-    private int getPrivileges()
-        throws WrappedTargetException
-    {
-        try {
-            System.out.println("sdbcx.TableSuper.getPrivileges() 1");
-            DriverProvider provider = getConnection().getProvider();
-            int privileges = PrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
-            if (privileges == 0) {
-                privileges = provider.getMockPrivileges();
-            }
-            System.out.println("sdbcx.TableSuper.getPrivileges() 2: " + privileges);
-            return privileges;
-        }
-        catch (java.sql.SQLException e) {
-            System.out.println("sdbcx.TableSuper.getPrivileges() 2 ERROR ******************");
-            throw UnoHelper.getWrappedException(e);
-        }
+        properties.put(PropertyIds.DESCRIPTION.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Description;
+                                               }
+                                           },
+                                           null));
 
+        properties.put(PropertyIds.TYPE.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Type;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
     protected ColumnContainerBase<?> getColumnsInternal()

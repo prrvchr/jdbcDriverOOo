@@ -25,6 +25,8 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.HashMap;
+
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
@@ -34,6 +36,7 @@ import io.github.prrvchr.jdbcdriver.helper.DBTools;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
@@ -52,6 +55,7 @@ public final class User
                 String name)
     {
         super(m_service, m_services, connection, sensitive, name, LoggerObjectType.USER, false);
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     // com.sun.star.sdbcx.XUser:

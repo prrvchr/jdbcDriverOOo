@@ -25,11 +25,15 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
@@ -52,20 +56,28 @@ public final class UserDescriptor
     }
 
     private void registerProperties() {
-        registerProperty(PropertyIds.PASSWORD.name, PropertyIds.PASSWORD.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Password;
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    m_Password = (String) value;
-                }
-            });
-    }
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
 
+        properties.put(PropertyIds.PASSWORD.getName(),
+                       new PropertyWrapper(Type.STRING,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Password;
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   m_Password = (String) value;
+                                               }
+                                           }));
+
+        super.registerProperties(properties);
+    }
 
 }

@@ -30,17 +30,14 @@ import com.sun.star.sdbc.SQLException;
 
 
 public final class ColumnDescriptorContainer
-    extends DescriptorContainer<ColumnDescriptor>
+    extends ColumnDescriptorContainerSuper<ColumnDescriptor>
 {
 
-    protected TableDescriptor m_table;
-
     // The constructor method:
-    public ColumnDescriptorContainer(TableDescriptor table,
+    public ColumnDescriptorContainer(TableDescriptorSuper table,
                                      boolean sensitive)
     {
         super(table, sensitive);
-        m_table = table;
         System.out.println("sdbcx.ColumnDescriptorContainer() ***************************************************");
     }
 

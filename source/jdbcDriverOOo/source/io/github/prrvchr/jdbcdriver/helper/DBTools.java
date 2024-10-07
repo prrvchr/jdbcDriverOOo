@@ -1086,7 +1086,7 @@ public class DBTools
     public static boolean hasDescriptorProperty(XPropertySet descriptor,
                                                 PropertyIds pid)
     {
-        return descriptor.getPropertySetInfo().hasPropertyByName(pid.name);
+        return descriptor.getPropertySetInfo().hasPropertyByName(pid.getName());
     }
 
     public static String getDescriptorStringValue(XPropertySet descriptor,
@@ -1106,7 +1106,7 @@ public class DBTools
         throws java.sql.SQLException
     {
         try {
-            return AnyConverter.toString(descriptor.getPropertyValue(pid.name));
+            return AnyConverter.toString(descriptor.getPropertyValue(pid.getName()));
         }
         catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new java.sql.SQLException(e.getMessage(), e);
@@ -1130,7 +1130,7 @@ public class DBTools
         throws java.sql.SQLException
     {
         try {
-            return AnyConverter.toBoolean(descriptor.getPropertyValue(pid.name));
+            return AnyConverter.toBoolean(descriptor.getPropertyValue(pid.getName()));
         }
         catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new java.sql.SQLException(e.getMessage(), e);
@@ -1154,7 +1154,7 @@ public class DBTools
         throws java.sql.SQLException
     {
         try {
-            return AnyConverter.toInt(descriptor.getPropertyValue(pid.name));
+            return AnyConverter.toInt(descriptor.getPropertyValue(pid.getName()));
         }
         catch (WrappedTargetException | UnknownPropertyException | IllegalArgumentException e) {
             throw new java.sql.SQLException(e.getMessage(), e);

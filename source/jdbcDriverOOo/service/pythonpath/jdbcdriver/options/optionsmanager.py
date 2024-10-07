@@ -33,27 +33,22 @@ from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
 from .optionsmodel import OptionsModel
+
 from .optionsview import OptionsView
+
 from .optionshandler import OptionsListener
 from .optionshandler import TabListener
-from .optionshandler import Tab1Handler
-from .optionshandler import Tab2Handler
+from .optionshandler import TabHandler
 
-from ..unotool import createService
+from ..jdbc import JdbcManager
+
 from ..unotool import getFilePicker
 from ..unotool import getSimpleFile
 from ..unotool import getUrl
 
-from ..logger import LogManager
-
 from ..dbconfig import g_jar
 
-from ..configuration import g_identifier
-
-import os
-import sys
 from threading import Condition
-from collections import OrderedDict
 import traceback
 
 
@@ -66,14 +61,15 @@ class OptionsManager():
         self._listener = TabListener(self)
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(ctx, window, Tab1Handler(self), Tab2Handler(self), self._listener, OptionsManager._restart, *self._model.getTabTitles())
+        self._view = OptionsView(ctx, window, TabHandler(self), self._listener, OptionsManager._restart, *self._model.getTabTitles())
+        self._jdbcmanager = JdbcManager(ctx, self._view.getTab1(), 'Driver')
         self._initView()
-        self._logmanager = LogManager(ctx, self._view.getLoggerParent(), 'requirements.txt', 'Driver')
 
     _restart = False
 
     def dispose(self):
-        self._logmanager.dispose()
+        self._jdbcmanager.dispose()
+        self._view.dispose()
         self._disposed = True
 
     # TODO: One shot disabler handler
@@ -86,7 +82,7 @@ class OptionsManager():
 # OptionsManager setter methods
     def activateTab2(self):
         self._view.removeTabListener(self._listener)
-        self._model.setDriverVersions(self.updateView)
+        self._model.setDriverVersions(self._jdbcmanager.getDriverService(), self.updateView)
 
     def updateView(self, versions):
         with self._lock:
@@ -100,21 +96,23 @@ class OptionsManager():
                     self._view.setVersion(versions[protocol])
 
     def saveSetting(self):
-        if self._logmanager.saveSetting() or self._model.saveSetting():
+        saved = self._jdbcmanager.saveSetting()
+        if self._model.saveSetting() or saved:
             OptionsManager._restart = True
             self._view.setRestart(True)
 
     def loadSetting(self):
-        self._logmanager.loadSetting()
+        self._jdbcmanager.loadSetting()
         # XXX: We need to exit from Add new Driver mode if needed...
         self._view.exitAdd()
         self._initView()
 
     def setDriverService(self, driver):
-        self._view.setConnectionLevel(*self._model.setDriverService(driver))
+        level = self._view.getApiLevel()
+        self._view.setApiLevel(*self._model.setDriverService(driver, level))
 
-    def setConnectionService(self, level):
-        self._model.setConnectionService(level)
+    def setApiLevel(self, level):
+        self._view.enableOptions(*self._model.setApiLevel(level))
 
     def setSystemTable(self, state):
         self._model.setSystemTable(state)
@@ -131,7 +129,7 @@ class OptionsManager():
         if archive is not None:
             protocol = self._view.getSelectedProtocol()
             self._model.updateArchive(protocol, archive)
-            self._initViewProtocol(protocol)
+            self._initView(protocol)
 
     def searchArchive(self):
         archive = self._updateArchive()
@@ -153,7 +151,7 @@ class OptionsManager():
     def removeDriver(self):
         protocol = self._view.getSelectedProtocol()
         if self._model.removeProtocol(protocol):
-            self._initViewProtocol()
+            self._initView()
 
     def saveDriver(self):
         subprotocol = self._view.getNewSubProtocol()
@@ -163,7 +161,7 @@ class OptionsManager():
         logger = self._view.getLogger()
         protocol = self._model.saveDriver(subprotocol, name, clazz, archive, logger)
         self._view.clearAdd()
-        self._initViewProtocol(protocol)
+        self._initView(protocol)
 
     def cancelDriver(self):
         self._view.enableProtocols(True)
@@ -192,16 +190,7 @@ class OptionsManager():
     def _disableHandler(self):
         self._disabled = True
 
-    def _initView(self):
-        driver, connection, enabled, system, bookmark, mode = self._model.getServicesLevel()
-        self._view.setDriverLevel(driver)
-        self._view.setConnectionLevel(connection, enabled)
-        self._view.setSystemTable(system)
-        self._view.setBookmark(bookmark)
-        self._view.setSQLMode(mode)
-        self._initViewProtocol()
-
-    def _initViewProtocol(self, driver=None):
+    def _initView(self, driver=None):
         self._disableHandler()
         self._view.setProtocols(self._model.getProtocols(), driver)
 

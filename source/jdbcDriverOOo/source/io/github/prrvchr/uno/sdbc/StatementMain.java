@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
@@ -52,6 +53,7 @@ import io.github.prrvchr.jdbcdriver.PropertyIds;
 import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 import io.github.prrvchr.uno.helper.PropertySet;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
@@ -98,7 +100,6 @@ public abstract class StatementMain
         m_services = services;
         m_Connection = connection;
         m_logger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.STATEMENT);
-        registerProperties();
     }
 
     protected abstract ConnectionBase getConnectionInternal();
@@ -114,111 +115,162 @@ public abstract class StatementMain
         return m_Connection.getProvider().getStatement();
     }
 
-    private void registerProperties() {
-        registerProperty(PropertyIds.CURSORNAME.name, PropertyIds.CURSORNAME.id, Type.STRING,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getCursorName();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setCursorName((String)value);
-                }
-            });
-        registerProperty(PropertyIds.RESULTSETCONCURRENCY.name, PropertyIds.RESULTSETCONCURRENCY.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getResultSetConcurrency();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setResultSetConcurrency((int)value);
-                }
-            });
-        registerProperty(PropertyIds.RESULTSETTYPE.name, PropertyIds.RESULTSETTYPE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getResultSetType();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setResultSetType((int)value);
-                }
-            });
-        registerProperty(PropertyIds.FETCHDIRECTION.name, PropertyIds.FETCHDIRECTION.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getFetchDirection();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setFetchDirection((int)value);
-                }
-            });
-        registerProperty(PropertyIds.FETCHSIZE.name, PropertyIds.FETCHSIZE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getFetchSize();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setFetchSize((int)value);
-                }
-            });
-        registerProperty(PropertyIds.MAXFIELDSIZE.name, PropertyIds.MAXFIELDSIZE.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getMaxFieldSize();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setMaxFieldSize((int)value);
-                }
-            });
-        registerProperty(PropertyIds.MAXROWS.name, PropertyIds.MAXROWS.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getMaxRows();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setMaxRows((int)value);
-                }
-            });
-        registerProperty(PropertyIds.QUERYTIMEOUT.name, PropertyIds.QUERYTIMEOUT.id, Type.LONG,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return _getQueryTimeout();
-                }
-            },
-            new PropertySetter() {
-                @Override
-                public void setValue(Object value) throws PropertyVetoException, IllegalArgumentException, WrappedTargetException {
-                    _setQueryTimeout((int)value);
-                }
-            });
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+
+        properties.put(PropertyIds.CURSORNAME.getName(),
+                       new PropertyWrapper(Type.STRING,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getCursorName();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setCursorName((String) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.FETCHDIRECTION.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getFetchDirection();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setFetchDirection((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.FETCHSIZE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getFetchSize();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setFetchSize((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.MAXFIELDSIZE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getMaxFieldSize();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setMaxFieldSize((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.MAXROWS.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getMaxRows();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setMaxRows((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.QUERYTIMEOUT.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getQueryTimeout();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setQueryTimeout((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.RESULTSETCONCURRENCY.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getResultSetConcurrency();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setResultSetConcurrency((int) value);
+                                               }
+                                           }));
+
+        properties.put(PropertyIds.RESULTSETTYPE.getName(),
+                       new PropertyWrapper(Type.LONG,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return _getResultSetType();
+                                               }
+                                           },
+                                           new PropertySetter() {
+                                               @Override
+                                               public void setValue(Object value) throws PropertyVetoException,
+                                                                                         IllegalArgumentException,
+                                                                                         WrappedTargetException
+                                               {
+                                                   _setResultSetType((int) value);
+                                               }
+                                           }));
+
+        super.registerProperties(properties);
     }
 
     abstract protected java.sql.Statement getJdbcStatement() throws java.sql.SQLException;
@@ -279,6 +331,7 @@ public abstract class StatementMain
     private synchronized void _setFetchSize(int value)
         throws WrappedTargetException
     {
+        System.out.println("StatementMain._setFetchSize() FetchSize: " + value);
         m_FetchSize = value;
         if (m_Statement != null) {
             try {
@@ -291,6 +344,7 @@ public abstract class StatementMain
     }
     private int _getFetchSize()
     {
+        System.out.println("StatementMain._getFetchSize() FetchSize: " + m_FetchSize);
         return m_FetchSize;
     }
 
@@ -516,7 +570,8 @@ public abstract class StatementMain
             }
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset = new ResultSet(getConnectionInternal(), result);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, resultset.getLogger().getObjectId());
+            String services = String.join(", ", resultset.getSupportedServiceNames());
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, getColumnNames(result, count));
         }

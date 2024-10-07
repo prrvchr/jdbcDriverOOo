@@ -44,12 +44,12 @@ from ..loghelper import getLoggerName
 
 
 class LogManager():
-    def __init__(self, ctx, parent, requirements, *defaults):
+    def __init__(self, ctx, window, requirements, *defaults):
         self._ctx = ctx
         self._requirements = requirements
         self._dialog = None
         self._model = LogModel(ctx, PoolListener(self), defaults)
-        self._view = LogWindow(ctx, parent, WindowHandler(self))
+        self._view = LogWindow(ctx, window, WindowHandler(self))
         # FIXME: If we want to load data using handlers,
         # FIXME: it is necessary to devalidate all resulting updates
         self._update = False
@@ -59,6 +59,7 @@ class LogManager():
 # LogManager setter methods
     def dispose(self):
         self._model.dispose()
+        self._view.dispose()
 
     # LogManager setter methods called by OptionsManager
     def saveSetting(self):

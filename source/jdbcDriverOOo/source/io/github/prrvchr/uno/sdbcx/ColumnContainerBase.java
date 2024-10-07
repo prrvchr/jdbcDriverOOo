@@ -108,7 +108,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         List<String> queries = new ArrayList<String>();
         try {
             XPropertySet oldcolumn = createDataDescriptor();
-            oldcolumn.setPropertyValue(PropertyIds.ISNULLABLE.name, ColumnValue.NULLABLE);
+            oldcolumn.setPropertyValue(PropertyIds.ISNULLABLE.getName(), ColumnValue.NULLABLE);
 
             DriverProvider provider = getConnection().getProvider();
             table = DBTools.composeTableName(provider, m_table, ComposeRule.InTableDefinitions, false);

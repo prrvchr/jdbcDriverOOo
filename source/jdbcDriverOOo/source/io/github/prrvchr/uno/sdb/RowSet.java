@@ -25,14 +25,16 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.util.HashMap;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.RowSetSuper;
 
@@ -56,7 +58,8 @@ public final class RowSet
                   String table)
         throws SQLException
     {
-        super(m_service, m_services, provider, connection, ResultSetHelper.getResultSet(provider, result, catalog, table), statement);
+        super(m_service, m_services, provider, connection, result, statement, catalog, table);
+        registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.RowSet() 1");
     }
 

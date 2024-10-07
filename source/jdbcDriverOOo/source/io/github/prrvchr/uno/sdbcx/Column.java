@@ -25,8 +25,11 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
+
 import com.sun.star.beans.XPropertySet;
 
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class Column
@@ -51,6 +54,7 @@ public final class Column
                   final boolean currency)
     {
         super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     // XDataDescriptorFactory

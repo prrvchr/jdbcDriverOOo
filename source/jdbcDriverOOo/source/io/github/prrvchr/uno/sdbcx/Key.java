@@ -25,7 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
@@ -37,6 +39,7 @@ import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
@@ -52,10 +55,10 @@ public final class Key
     protected KeyColumnContainer m_columns = null;
     private final TableSuper m_table;
     
-    public int m_Type;
-    protected String m_ReferencedTable;
-    protected int m_UpdateRule;
     protected int m_DeleteRule;
+    protected String m_ReferencedTable;
+    public int m_Type;
+    protected int m_UpdateRule;
 
     // The constructor method:
     public Key(TableSuper table,
@@ -80,40 +83,60 @@ public final class Key
     }
 
     private void registerProperties() {
+        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.TYPE.name, PropertyIds.TYPE.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_Type;
-                }
-            }, null);
-        registerProperty(PropertyIds.REFERENCEDTABLE.name, PropertyIds.REFERENCEDTABLE.id, Type.STRING, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_ReferencedTable;
-                }
-            }, null);
-        registerProperty(PropertyIds.UPDATERULE.name, PropertyIds.UPDATERULE.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_UpdateRule;
-                }
-            }, null);
-        registerProperty(PropertyIds.DELETERULE.name, PropertyIds.DELETERULE.id, Type.LONG, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    return m_DeleteRule;
-                }
-            }, null);
+
+        properties.put(PropertyIds.DELETERULE.getName(),
+                       new PropertyWrapper(Type.LONG, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_DeleteRule;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.REFERENCEDTABLE.getName(),
+                       new PropertyWrapper(Type.STRING, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_ReferencedTable;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.TYPE.getName(),
+                       new PropertyWrapper(Type.LONG, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_Type;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.UPDATERULE.getName(),
+                       new PropertyWrapper(Type.LONG, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   return m_UpdateRule;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
     protected KeyColumnContainer getColumnsInternal() {
         return m_columns;
     }
+
 
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override

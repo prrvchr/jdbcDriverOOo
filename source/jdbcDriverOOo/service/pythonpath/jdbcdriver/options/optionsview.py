@@ -37,21 +37,19 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, ctx, window, handler1, handler2, listener, restart, title1, title2):
+    def __init__(self, ctx, window, handler, listener, restart, title1, title2):
         self._tab = 'Tab1'
         self._window = window
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
-        tab1, tab2 = self._getTabPages(window, rectangle, title1, title2)
-        self._tab1 = getContainerWindow(ctx, tab1.getPeer(), handler1, g_identifier, 'UnoDriverDialog')
-        self._tab1.setVisible(True)
-        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler2, g_identifier, 'JdbcDriverDialog')
+        self._tab1, tab2 = self._getTabPages(window, rectangle, title1, title2)
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, 'JdbcDriverDialog')
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
         self.setRestart(restart)
 
 # OptionsView getter methods
-    def getLoggerParent(self):
-        return self._tab1.getPeer()
+    def getTab1(self):
+        return self._tab1
 
     def getSelectedProtocol(self):
         return self._getProtocols().getSelectedItem()
@@ -79,25 +77,11 @@ class OptionsView():
         return level
 
 # OptionsView setter methods
+    def dispose(self):
+        self._tab2.dispose()
+
     def removeTabListener(self, listener):
         self._getTab().removeTabPageContainerListener(listener)
-
-    def setDriverLevel(self, level):
-        self._getDriverService(level).State = 1
-
-    def setConnectionLevel(self, level, enabled):
-        self._getConnectionService(level).State = 1
-        self._getConnectionService(0).Model.Enabled = enabled
-
-    def setSystemTable(self, state):
-        self._getSytemTable().State = int(state)
-
-    def setBookmark(self, state):
-        self._getBookmark().State = int(state)
-        self.enableSQLMode(state)
-
-    def setSQLMode(self, state):
-        self._getSQLMode().State = int(state)
 
     def setProtocols(self, protocols, protocol):
         control = self._getProtocols()
@@ -187,11 +171,7 @@ class OptionsView():
         self._getNewArchive().Text = archive
 
     def setRestart(self, enabled):
-        self._getRestart1().setVisible(enabled)
-        self._getRestart2().setVisible(enabled)
-
-    def enableSQLMode(self, state):
-        self._getSQLMode().Model.Enabled = bool(state)
+        self._getRestart().setVisible(enabled)
 
 # OptionsView private methods
     def _setLogger(self, enabled, selected):
@@ -249,25 +229,7 @@ class OptionsView():
     def _getTab(self):
         return self._window.getControl(self._tab)
 
-    def _getDriverService(self, index):
-        return self._tab1.getControl('OptionButton%s' % (index + 1))
-
-    def _getConnectionService(self, index):
-        return self._tab1.getControl('OptionButton%s' % (index + 3))
-
-    def _getSytemTable(self):
-        return self._tab1.getControl('CheckBox1')
-
-    def _getBookmark(self):
-        return self._tab1.getControl('CheckBox2')
-
-    def _getSQLMode(self):
-        return self._tab1.getControl('CheckBox3')
-
-    def _getRestart1(self):
-        return self._tab1.getControl('Label3')
-
-    def _getRestart2(self):
+    def _getRestart(self):
         return self._tab2.getControl('Label10')
 
     def _getProtocols(self):

@@ -29,7 +29,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   oor:package="org.openoffice.Office.DataAccess"
   oor:name="Drivers">
-<!--  View: https://github.com/LibreOffice/core/tree/master/connectivity/registry#readme -->
+<!-- View: https://github.com/LibreOffice/core/tree/master/connectivity/registry#readme -->
     <node oor:name="Installed">
         <node oor:name="xdbc:*" oor:op="replace">
             <prop oor:name="Driver">
@@ -189,7 +189,7 @@
             </node>
 
 
-<!-- "Features" node is the properties that are supposed to be exposed in the UI in: Base -> Edit -> DataBase -> Advenced settings -->
+<!-- "Features" node is the properties that are supposed to be exposed in the UI in: Base -> Edit -> DataBase -> Advanced settings -->
             <node oor:name="Features">
                 <node oor:name="UseDOSLineEnds" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
@@ -335,7 +335,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/hsqldb-2.7.3.jar</value>
+                        <value>%origin%/driver/hsqldb-2.7.4-releasecandidate2.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -387,17 +387,17 @@
 
             <!-- MetaData node is for the driver properties -->
             <node oor:name="MetaData">
-                <node oor:name="UseSQLUpdate" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
-                <node oor:name="UseSQLDelete" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>true</value>
-                    </prop>
-                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="DeleteVisibleInsensitive" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>false</value>
+                    </prop>
+                </node>
+                <node oor:name="UseSQLInsert" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
                     </prop>
@@ -484,6 +484,28 @@
                         <value oor:separator="|">SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND GRANTEE = ? AND TABLE_CATALOG = ? AND TABLE_SCHEMA = ? AND TABLE_NAME = ?|0123</value>
                     </prop>
                 </node>
+
+                <node oor:name="LogLevel" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>ALL</value>
+                    </prop>
+                </node>
+                <node oor:name="LoggerLevels" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">1|1|1|2|2|3|3|3</value>
+                    </prop>
+                </node>
+                <node oor:name="LoggerUrl" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>;hsqldb.extlog={0};hsqldb.applog={0};hsqldb.sqllog={0}</value>
+                    </prop>
+                </node>
+                <node oor:name="LoggerSystemProperties" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">hsqldb.reconfig_logging = true</value>
+                    </prop>
+                </node>
+
             </node>
         </node>
 
@@ -1241,6 +1263,21 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="LoggerLevels" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">50000|40000|40000|30000|30000|20000|20000|0</value>
+                    </prop>
+                </node>
+                <node oor:name="LoggerSettings" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:string">
+                        <value>{"SystemProperties": [{"derby.stream.error.method": "io.github.prrvchr.jdbcdriver.logger.DerbyLoggerBridge.bridge"}, {"derby.stream.error.logSeverityLevel": null}]}</value>
+                    </prop>
+                </node>
+                <node oor:name="LoggerSystemProperties" oor:op="replace">
+                    <prop oor:name="Value" oor:type="oor:string-list">
+                        <value oor:separator="|">derby.stream.error.method|io.github.prrvchr.jdbcdriver.logger.DerbyLoggerBridge.bridge|derby.stream.error.logSeverityLevel|LoggerLevels</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -1304,15 +1341,15 @@
             </node>
         </node>
 
-<!-- Firebird Driver ******************************************************************************* -->
+<!-- Jaybird Driver ******************************************************************************* -->
 
         <node oor:name="xdbc:firebird:*" oor:op="replace">
             <prop oor:name="ParentURLPattern">
                 <value>xdbc:*</value>
             </prop>
             <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-                <value xml:lang="en-US">Firebird Driver</value>
-                <value xml:lang="fr-FR">Pilote Firebird</value>
+                <value xml:lang="en-US">Jaybird Driver</value>
+                <value xml:lang="fr-FR">Pilote Jaybird</value>
             </prop>
 
             <node oor:name="Properties">
@@ -1328,7 +1365,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/jaybird-5.0.5.java11.jar</value>
+                        <value>%origin%/driver/jaybird-5.0.6.java11-20240917.105835-4.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1372,11 +1409,6 @@
                 <node oor:name="SQLCommandSuffix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>;</value>
-                    </prop>
-                </node>
-                <node oor:name="InsertVisibleInsensitive" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
                     </prop>
                 </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
@@ -1516,7 +1548,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/trino-jdbc-455.jar</value>
+                        <value>%origin%/driver/trino-jdbc-458-SNAPSHOT.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1536,7 +1568,7 @@
                 </node>
                 <node oor:name="AutoRetrievingStatement" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>SELECT * FROM %s WHERE %s</value>
+                        <value></value>
                     </prop>
                 </node>
                 <node oor:name="IgnoreDriverPrivileges" oor:op="replace">

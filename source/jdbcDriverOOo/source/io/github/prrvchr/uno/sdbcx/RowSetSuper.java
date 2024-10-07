@@ -43,6 +43,8 @@ import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.StandardSQLState;
 import io.github.prrvchr.jdbcdriver.helper.DBException;
 import io.github.prrvchr.jdbcdriver.resultset.CachedResultSet;
+import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
+import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
@@ -58,30 +60,13 @@ public abstract class RowSetSuper
                        String[] services,
                        DriverProvider provider,
                        ConnectionSuper connection,
-                       CachedResultSet result,
-                       StatementMain statement)
+                       java.sql.ResultSet result,
+                       StatementMain statement,
+                       RowCatalog catalog,
+                       String table)
         throws SQLException
     {
-        super(service, services, connection, result, statement, true, true);
-        showResultVisibility(provider, result);
-    }
-
-    private void showResultVisibility(DriverProvider provider,
-                                      java.sql.ResultSet result)
-        throws SQLException
-    {
-        try {
-            int rstype = result.getType();
-            boolean deletevisible = provider.isDeleteVisible(rstype);
-            boolean insertvisible = provider.isInsertVisible(rstype);
-            boolean updatevisible = provider.isUpdateVisible(rstype);
-            System.out.println("RowSetSuper() Delete are visible: " + deletevisible);
-            System.out.println("RowSetSuper() Insert are visible: " + insertvisible);
-            System.out.println("RowSetSuper() Update are visible: " + updatevisible);
-        }
-        catch (java.sql.SQLException e) {
-            throw new SQLException();
-        }
+        super(service, services, connection, ResultSetHelper.getResultSet(provider, result, catalog, table), statement, true, true);
     }
 
     protected CachedResultSet getResultSet()
@@ -137,6 +122,7 @@ public abstract class RowSetSuper
         throws SQLException
     {
         int row = getResultSet().getBookmark();
+        System.out.println("RowSetSuper.getBookmark() 1 bookmark: " + row);
         Object bookmark = (row != 0) ? row : Any.VOID;
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, bookmark.toString());
         return bookmark;
@@ -190,10 +176,13 @@ public abstract class RowSetSuper
     {
         try {
             int row = AnyConverter.toInt(bookmark);
+            System.out.println("RowSetSuper.moveToBookmark() 1 bookmark: " + row);
             boolean moved = getResultSet().moveToBookmark(row);
             if (!moved) {
+                System.out.println("RowSetSuper.moveToBookmark() 2");
                 afterLast();
             }
+            System.out.println("RowSetSuper.moveToBookmark() 3 moved: " + moved);
             return moved;
         }
         catch (java.sql.SQLException e) {

@@ -26,15 +26,16 @@
 package io.github.prrvchr.uno.sdbcx;
 
 
+import java.util.Map;
+
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
@@ -59,27 +60,37 @@ public abstract class ResultSetSuper
         super(service, services, connection, resultset, statement);
         m_IsBookmarkable = bookmark;
         m_CanUpdateInsertedRows = updatable;
-        registerProperties();
     }
 
-    private void registerProperties() {
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
-        registerProperty(PropertyIds.ISBOOKMARKABLE.name, PropertyIds.ISBOOKMARKABLE.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ISBOOKMARKABLE, Boolean.toString(m_IsBookmarkable));
-                    return m_IsBookmarkable;
-                }
-            }, null);
-        registerProperty(PropertyIds.CANUPDATEINSERTEDROWS.name, PropertyIds.CANUPDATEINSERTEDROWS.id, Type.BOOLEAN, readonly,
-            new PropertyGetter() {
-                @Override
-                public Object getValue() throws WrappedTargetException {
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS, Boolean.toString(m_CanUpdateInsertedRows));
-                    return m_CanUpdateInsertedRows;
-                }
-            }, null);
+
+        properties.put(PropertyIds.CANUPDATEINSERTEDROWS.getName(),
+                       new PropertyWrapper(Type.BOOLEAN, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   System.out.println("sdbcx.ResultSetSuper.CanUpdateInsertedRows() 1: " + m_CanUpdateInsertedRows);
+                                                   return m_CanUpdateInsertedRows;
+                                               }
+                                           },
+                                           null));
+
+        properties.put(PropertyIds.ISBOOKMARKABLE.getName(),
+                       new PropertyWrapper(Type.BOOLEAN, readonly,
+                                           new PropertyGetter() {
+                                               @Override
+                                               public Object getValue() throws WrappedTargetException
+                                               {
+                                                   System.out.println("sdbcx.ResultSetSuper.IsBookmarkable() 1: " + m_IsBookmarkable);
+                                                   return m_IsBookmarkable;
+                                               }
+                                           },
+                                           null));
+
+        super.registerProperties(properties);
     }
 
     @Override
