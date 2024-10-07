@@ -27,82 +27,39 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
-
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 from .optionshandler import OptionsListener
 
-from ..logger import LogManager
+from ..jdbc import JdbcManager
 
 from ..configuration import g_defaultlog
 
-import os
-import sys
 import traceback
 
 
 class OptionsManager():
     def __init__(self, ctx, window, url=None):
-        self._ctx = ctx
-        self._disposed = False
-        self._disabled = False
         self._model = OptionsModel(ctx, url)
         window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(window, OptionsManager._restart)
-        self._view.initView(*self._model.getViewData())
-        self._logmanager = LogManager(ctx, window.getPeer(), 'requirements.txt', g_defaultlog)
-
-    _restart = False
+        self._view = OptionsView(window)
+        self._jdbcmanager = JdbcManager(ctx, window, g_defaultlog)
+        version = self._model.getDriverVersion(self._service())
+        self._view.setDriverVersion(version)
 
     def dispose(self):
-        self._logmanager.dispose()
-        self._disposed = True
-
-    # TODO: One shot disabler handler
-    def isHandlerEnabled(self):
-        if self._disabled:
-            self._disabled = False
-            return False
-        return True
+        self._jdbcmanager.dispose()
 
 # OptionsManager setter methods
-    def updateView(self, versions):
-        with self._lock:
-            self.updateVersion(versions)
-
-    def updateVersion(self, versions):
-        with self._lock:
-            if not self._disposed:
-                protocol = self._view.getSelectedProtocol()
-                if protocol in versions:
-                    self._view.setVersion(versions[protocol])
-
     def saveSetting(self):
-        if self._logmanager.saveSetting() or self._model.saveSetting():
-            OptionsManager._restart = True
-            self._view.setRestart(True)
+        self._jdbcmanager.saveSetting() 
 
     def loadSetting(self):
-        self._logmanager.loadSetting()
-        self._view.initView(*self._model.loadSetting())
+        self._jdbcmanager.loadSetting()
+        version = self._model.getDriverVersion(self._service())
+        self._view.setDriverVersion(version)
 
-    def setDriverService(self, driver):
-        self._view.setConnectionLevel(*self._model.setDriverService(driver))
-
-    def setConnectionService(self, level):
-        self._model.setConnectionService(level)
-
-    def setSystemTable(self, state):
-        self._model.setSystemTable(state)
-
-    def setBookmark(self, state):
-        self._model.setBookmark(state)
-        self._view.enableSQLMode(state)
-
-    def setSQLMode(self, state):
-        self._model.setSQLMode(state)
+# OptionsManager private methods
+    def _service(self):
+        return self._jdbcmanager.getDriverService()
 

@@ -44,6 +44,5 @@ class OptionsListener(unohelper.Base,
         try:
             self._manager.dispose()
         except Exception as e:
-            msg = "OptionsHandler.disposing() Error: %s" % traceback.format_exc()
-            print(msg)
+            print("ERROR: %s - %s" % (e, traceback.format_exc()))
 

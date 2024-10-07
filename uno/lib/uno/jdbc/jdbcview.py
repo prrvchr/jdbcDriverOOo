@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-
 from ..unotool import getContainerWindow
 
 from ..configuration import g_identifier
