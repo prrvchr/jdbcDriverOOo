@@ -98,7 +98,7 @@ class LogModel():
         return self._config.saveSetting()
 
 # Public setter method
-    def addModifyListener(self, listener):
+    def addPoolListener(self, listener):
         self._listener = listener
         self._pool.addModifyListener(listener)
 
@@ -122,10 +122,10 @@ class LogModel():
         config.LogLevel = setting.LogLevel
         config.DefaultHandler = setting.DefaultHandler
 
-    def addModifyListener(self, listener):
+    def addLoggerListener(self, listener):
         self._logger.addModifyListener(listener)
 
-    def removeModifyListener(self, listener):
+    def removeLoggerListener(self, listener):
         self._logger.removeModifyListener(listener)
 
     def logInfos(self, level, clazz, method, requirements):

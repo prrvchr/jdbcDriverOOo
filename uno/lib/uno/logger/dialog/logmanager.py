@@ -55,7 +55,7 @@ class LogManager():
         self._update = False
         self._view.initView(self._model.getLoggerNames())
         self._update = True
-        self._model.addModifyListener(PoolListener(self))
+        self._model.addPoolListener(PoolListener(self))
 
 # LogManager setter methods
     def dispose(self):
@@ -107,10 +107,10 @@ class LogManager():
         data = self._model.getLoggerData()
         self._dialog = LogDialog(self._ctx, handler, parent, *data)
         listener = LoggerListener(self)
-        self._model.addModifyListener(listener)
+        self._model.addLoggerListener(listener)
         self._dialog.execute()
         self._dialog.dispose()
-        self._model.removeModifyListener(listener)
+        self._model.removeLoggerListener(listener)
         self._dialog = None
 
     # LogManager setter methods called by DialogHandler
