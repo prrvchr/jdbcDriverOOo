@@ -27,83 +27,67 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ..unotool import getContainerWindow
+from .optionmodel import OptionModel
+from .optionview import OptionWindow
+from .optionhandler import WindowHandler
 
-from ..configuration import g_identifier
+from ..logger import LogManager
 
 import traceback
 
 
-class JdbcWindow():
-    def __init__(self, ctx, window, handler, restart):
-        self._window = getContainerWindow(ctx, window.getPeer(), handler, g_identifier, 'UnoDriverDialog')
-        self._window.setVisible(True)
-        self.setRestart(restart)
+class OptionManager():
+    def __init__(self, ctx, window, offset, logger, *loggers):
+        self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
+        self._model = OptionModel(ctx, logger)
+        self._view = OptionWindow(ctx, window, WindowHandler(self), OptionManager._restart, offset)
+        self._initView()
 
-# JdbcWindow getter methods
-    def getApiLevel(self):
-        for level in range(3):
-            if self._getApiLevel(level).State == 1:
-                return level
+    _restart = False
 
-    def getOptions(self):
-        system = self._getSytemTable().State
-        bookmark = self._getBookmark().State
-        mode = self._getSQLMode().State
-        return system, bookmark, mode
-
-# JdbcWindow setter methods
     def dispose(self):
-        self._window.dispose()
+        self._logmanager.dispose()
+        self._view.dispose()
 
-    def setDriverLevel(self, level):
-        self._getDriverService(level).State = 1
+# OptionManager getter methods
+    def getDriverService(self):
+        return self._model.getDriverService()
 
-    def setApiLevel(self, level, enabled, bookmark, mode):
-        self._getApiLevel(level).State = 1
-        self._getApiLevel(0).Model.Enabled = enabled
-        self.enableOptions(level, bookmark, mode)
+# OptionManager setter methods
+    def saveSetting(self):
+        saved = self._logmanager.saveSetting()
+        saved |= self._model.saveSetting(*self._view.getOptions())
+        if saved:
+            OptionManager._restart = True
+            self._view.setRestart(True)
+        return saved
 
-    def setSystemTable(self, driver, state):
-        self._getSytemTable().Model.Enabled = bool(driver)
-        if driver:
-            self._getSytemTable().State = int(state)
-        else:
-            self._getSytemTable().State = 0
+    def loadSetting(self):
+        self._logmanager.loadSetting()
+        self._initView()
 
-    def setRestart(self, enabled):
-        self._getRestart().setVisible(enabled)
+    def setDriverService(self, driver):
+        level = self._view.getApiLevel()
+        level, enabled, system, bookmark, mode = self._model.setDriverService(driver, level)
+        self._view.setApiLevel(level, enabled, bookmark, mode)
+        self._view.setSystemTable(driver, system)
 
-    def enableOptions(self, level, bookmark, mode):
-        self._getBookmark().Model.Enabled = bool(level)
-        if level:
-            self._getBookmark().State = int(bookmark)
-            self.enableSQLMode(bookmark, mode)
-        else:
-            self._getBookmark().State = 0
-            self._getSQLMode().Model.Enabled = False
-            self._getSQLMode().State = 0
+    def setApiLevel(self, level):
+        self._view.enableOptions(*self._model.setApiLevel(level))
 
-    def enableSQLMode(self, state, mode):
-        self._getSQLMode().Model.Enabled = bool(state)
-        self._getSQLMode().State = int(mode) if state else 0
+    def setSystemTable(self, state):
+        self._model.setSystemTable(state)
 
-# JdbcWindow private control methods
-    def _getDriverService(self, index):
-        return self._window.getControl('OptionButton%s' % (index + 1))
+    def setBookmark(self, state):
+        self._view.enableSQLMode(*self._model.setBookmark(state))
 
-    def _getApiLevel(self, index):
-        return self._window.getControl('OptionButton%s' % (index + 3))
+    def setSQLMode(self, state):
+        self._model.setSQLMode(state)
 
-    def _getSytemTable(self):
-        return self._window.getControl('CheckBox1')
-
-    def _getBookmark(self):
-        return self._window.getControl('CheckBox2')
-
-    def _getSQLMode(self):
-        return self._window.getControl('CheckBox3')
-
-    def _getRestart(self):
-        return self._window.getControl('Label3')
+# OptionManager private methods
+    def _initView(self):
+        driver, level, enabled, system, bookmark, mode = self._model.getViewData()
+        self._view.setDriverLevel(driver)
+        self._view.setApiLevel(level, enabled, bookmark, mode)
+        self._view.setSystemTable(driver, system)
 

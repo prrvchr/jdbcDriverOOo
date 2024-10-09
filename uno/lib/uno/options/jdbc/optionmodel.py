@@ -39,7 +39,7 @@ from ..configuration import g_identifier
 import traceback
 
 
-class JdbcModel():
+class OptionModel():
     def __init__(self, ctx, logger):
         self._keys = ('DriverService', 'ApiLevel', 'ShowSystemTable', 'UseBookmark', 'SQLMode')
         self._keysmap = {'DriverService': ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
@@ -53,7 +53,7 @@ class JdbcModel():
         self._logger = getLogger(ctx, logger, g_basename)
         self._logger.logprb(INFO, 'JdbcDialog', '__init__()', 101)
 
-# JdbcModel getter methods
+# OptionModel getter methods
     def getDriverService(self):
         return self._config.getByName('DriverService')
 
@@ -66,7 +66,7 @@ class JdbcModel():
         mode = self._settings.get('SQLMode')
         return driver, level, self._isApiLevelEnabled(driver), system, bookmark, mode
 
-# JdbcModel setter methods
+# OptionModel setter methods
     def setDriverService(self, driver, level):
         self._settings['DriverService'] = self._keysmap.get('DriverService')[driver]
         if driver and not level:
@@ -105,7 +105,7 @@ class JdbcModel():
             self._config.commitChanges()
         return self._service != self.getDriverService()
 
-# JdbcModel private methods
+# OptionModel private methods
     def _getSettings(self):
         settings = {}
         for key in self._keys:

@@ -27,4 +27,4 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .jdbcmanager import JdbcManager
+from .optionmanager import OptionManager

@@ -27,67 +27,39 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .jdbcmodel import JdbcModel
-from .jdbcview import JdbcWindow
-from .jdbchandler import WindowHandler
+from .optionsmodel import OptionsModel
+from .optionsview import OptionsView
+from .optionshandler import OptionsListener
 
-from ..logger import LogManager
+from ..option import OptionManager
+
+from ..configuration import g_defaultlog
 
 import traceback
 
 
-class JdbcManager():
-    def __init__(self, ctx, window, logger, *loggers):
-        self._logmanager = LogManager(ctx, window, 'requirements.txt', logger, *loggers)
-        self._model = JdbcModel(ctx, logger)
-        self._view = JdbcWindow(ctx, window, WindowHandler(self), JdbcManager._restart)
-        self._initView()
-
-    _restart = False
+class OptionsManager():
+    def __init__(self, ctx, window, url=None):
+        self._model = OptionsModel(ctx, url)
+        window.addEventListener(OptionsListener(self))
+        self._view = OptionsView(window)
+        self._manager = OptionManager(ctx, window, 20, g_defaultlog)
+        version = self._model.getDriverVersion(self._service())
+        self._view.setDriverVersion(version)
 
     def dispose(self):
-        self._logmanager.dispose()
-        self._view.dispose()
+        self._manager.dispose()
 
-# JdbcManager getter methods
-    def getDriverService(self):
-        return self._model.getDriverService()
-
-# JdbcManager setter methods
+# OptionsManager setter methods
     def saveSetting(self):
-        saved = self._logmanager.saveSetting()
-        saved |= self._model.saveSetting(*self._view.getOptions())
-        if saved:
-            JdbcManager._restart = True
-            self._view.setRestart(True)
-        return saved
+        self._manager.saveSetting() 
 
     def loadSetting(self):
-        self._logmanager.loadSetting()
-        self._initView()
+        self._manager.loadSetting()
+        version = self._model.getDriverVersion(self._service())
+        self._view.setDriverVersion(version)
 
-    def setDriverService(self, driver):
-        level = self._view.getApiLevel()
-        level, enabled, system, bookmark, mode = self._model.setDriverService(driver, level)
-        self._view.setApiLevel(level, enabled, bookmark, mode)
-        self._view.setSystemTable(driver, system)
-
-    def setApiLevel(self, level):
-        self._view.enableOptions(*self._model.setApiLevel(level))
-
-    def setSystemTable(self, state):
-        self._model.setSystemTable(state)
-
-    def setBookmark(self, state):
-        self._view.enableSQLMode(*self._model.setBookmark(state))
-
-    def setSQLMode(self, state):
-        self._model.setSQLMode(state)
-
-# JdbcManager private methods
-    def _initView(self):
-        driver, level, enabled, system, bookmark, mode = self._model.getViewData()
-        self._view.setDriverLevel(driver)
-        self._view.setApiLevel(level, enabled, bookmark, mode)
-        self._view.setSystemTable(driver, system)
+# OptionsManager private methods
+    def _service(self):
+        return self._manager.getDriverService()
 
