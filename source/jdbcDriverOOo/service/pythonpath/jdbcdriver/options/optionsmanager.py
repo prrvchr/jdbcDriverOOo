@@ -40,7 +40,7 @@ from .optionshandler import OptionsListener
 from .optionshandler import TabListener
 from .optionshandler import TabHandler
 
-from ..jdbc import JdbcManager
+from ..option import OptionManager
 
 from ..unotool import getFilePicker
 from ..unotool import getSimpleFile
@@ -62,13 +62,13 @@ class OptionsManager():
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, TabHandler(self), self._listener, OptionsManager._restart, *self._model.getTabTitles())
-        self._jdbcmanager = JdbcManager(ctx, self._view.getTab1(), 'Driver')
+        self._manager = OptionManager(ctx, self._view.getTab1(), 0, 'Driver')
         self._initView()
 
     _restart = False
 
     def dispose(self):
-        self._jdbcmanager.dispose()
+        self._manager.dispose()
         self._view.dispose()
         self._disposed = True
 
@@ -82,7 +82,7 @@ class OptionsManager():
 # OptionsManager setter methods
     def activateTab2(self):
         self._view.removeTabListener(self._listener)
-        self._model.setDriverVersions(self._jdbcmanager.getDriverService(), self.updateView)
+        self._model.setDriverVersions(self._manager.getDriverService(), self.updateView)
 
     def updateView(self, versions):
         with self._lock:
@@ -96,13 +96,13 @@ class OptionsManager():
                     self._view.setVersion(versions[protocol])
 
     def saveSetting(self):
-        saved = self._jdbcmanager.saveSetting()
+        saved = self._manager.saveSetting()
         if self._model.saveSetting() or saved:
             OptionsManager._restart = True
             self._view.setRestart(True)
 
     def loadSetting(self):
-        self._jdbcmanager.loadSetting()
+        self._manager.loadSetting()
         # XXX: We need to exit from Add new Driver mode if needed...
         self._view.exitAdd()
         self._initView()

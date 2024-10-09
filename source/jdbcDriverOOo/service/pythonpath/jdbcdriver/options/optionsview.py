@@ -42,7 +42,7 @@ class OptionsView():
         self._window = window
         rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
         self._tab1, tab2 = self._getTabPages(window, rectangle, title1, title2)
-        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, 'JdbcDriverDialog')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, 'Option2Dialog')
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
         self.setRestart(restart)
