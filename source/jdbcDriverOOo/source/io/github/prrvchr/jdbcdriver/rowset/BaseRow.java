@@ -27,6 +27,8 @@ package io.github.prrvchr.jdbcdriver.rowset;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class BaseRow
@@ -34,7 +36,7 @@ public abstract class BaseRow
 
     protected Object[] m_OldValues;
     protected int m_Count;
-    protected String m_Query;
+    protected List<String> m_Queries = new ArrayList<>();
 
 
     public BaseRow(int count)
@@ -72,15 +74,18 @@ public abstract class BaseRow
         m_OldValues[index - 1] = value;
     }
 
-    public String getQuery()
+    public String[] getQueries()
     {
-        return m_Query;
+        String[] queries = m_Queries.toArray(new String[0]);
+        m_Queries = new ArrayList<>();
+        return queries;
     }
 
-    public String buildQuery(String query, Object... objects)
+    public String getQuery(String sql, Object... arguments)
     {
-        m_Query = String.format(query, objects);
-        return m_Query;
+        String query = String.format(sql, arguments);
+        m_Queries.add(query);
+        return query;
     }
 
     public abstract boolean isColumnNull(int index);

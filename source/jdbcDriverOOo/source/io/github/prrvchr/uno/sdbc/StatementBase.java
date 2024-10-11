@@ -80,7 +80,6 @@ public abstract class StatementBase
                                               @Override
                                               public Object getValue() throws WrappedTargetException
                                               {
-                                                  System.out.println("sdbc.StatementBase._getEscapeProcessing(): " + m_EscapeProcessing);
                                                   return _getEscapeProcessing();
                                               }
                                           },
@@ -90,7 +89,6 @@ public abstract class StatementBase
                                                                                         IllegalArgumentException,
                                                                                         WrappedTargetException
                                               {
-                                                  System.out.println("sdbc.StatementBase._setEscapeProcessing(): " + (boolean) value);
                                                   _setEscapeProcessing((boolean) value);
                                               }
                                           }));

@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.jdbcdriver.rowset;
 
-import java.sql.SQLException;
 import java.util.BitSet;
 
 
@@ -52,18 +51,6 @@ public class InsertRow
             }
         }
     }
-
-    public InsertRow(java.sql.ResultSet result, int count)
-        throws SQLException
-    {
-        super(count);
-        m_Inserted = new BitSet(count);
-        for (int i = 0; i < count; i++) {
-            m_OldValues[i] = RowHelper.getResultSetValue(result, i + 1);
-            m_Inserted.set(i);
-        }
-    }
-
 
     public InsertRow clown()
     {

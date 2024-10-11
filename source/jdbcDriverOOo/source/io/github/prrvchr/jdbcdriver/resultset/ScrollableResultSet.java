@@ -45,8 +45,11 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Vector;
 
+import com.sun.star.logging.LogLevel;
+
 import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.jdbcdriver.Resources;
 import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.InsertRow;
 import io.github.prrvchr.jdbcdriver.rowset.Row;
@@ -79,6 +82,7 @@ public class ScrollableResultSet
     public void moveToCurrentRow()
         throws SQLException
     {
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_MOVE_TO_CURRENT_ROW);
         setInsertMode(false);
     }
 
@@ -86,6 +90,7 @@ public class ScrollableResultSet
     public void moveToInsertRow()
         throws SQLException
     {
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_MOVE_TO_INSERT_ROW);
         setInsertMode(true);
     }
 
@@ -107,17 +112,18 @@ public class ScrollableResultSet
         }
         // XXX: The result set cannot be updated, the insert
         // XXX: will be done by a SQL command from the cached insert row.
-        int cursor = getRowCount() + 1;
-        int position = getMaxPosition() + 1;
         InsertRow insert = m_InsertRow.clown();
         getRowSetWriter().insertRow(insert);
+        for (String query : insert.getQueries()) {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_INSERT_ROW, query);
+        }
         getRowData().add(new Row(insert));
         // XXX: cursor and absolute position must be set on the inserted row
-        m_Cursor = cursor;
-        m_Position = position;
+        m_Cursor = getRowCount();
+        m_Position = getMaxPosition();
         setInsertMode(false);
         // XXX: We must be able to respond positively to the insert
-        m_InsertedRow = cursor;
+        m_InsertedRow = m_Cursor;
     }
 
     @Override
@@ -150,8 +156,9 @@ public class ScrollableResultSet
         // XXX: The result set cannot be updated, the update
         // XXX: will be done by a SQL command from the cached current row.
         Row row = (Row) getCurrentRow();
-        if (row.isUpdated()) {
-            getRowSetWriter().updateRow(row);
+        getRowSetWriter().updateRow(row);
+        for (String query : row.getQueries()) {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_UPDATE_ROW, query);
         }
     }
 
@@ -167,6 +174,9 @@ public class ScrollableResultSet
         int position = m_Cursor;
         Row row = (Row) getCurrentRow();
         getRowSetWriter().deleteRow(row);
+        for (String query : row.getQueries()) {
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_DELETE_ROW, query);
+        }
         m_DeletedRows.add(position);
     }
 

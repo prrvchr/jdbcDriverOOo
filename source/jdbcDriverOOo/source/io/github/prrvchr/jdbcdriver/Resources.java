@@ -199,12 +199,14 @@ public class Resources {
     public static final int STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW                            = (STR_LOG_MESSAGE_BASE +  445);
 
     // com.sun.star.sdbc.XResultSetUpdate:
-    public static final int STR_LOG_CACHED_RESULTSET_INSERT_ROW                             = (STR_LOG_MESSAGE_BASE +  450);
-    public static final int STR_LOG_CACHED_RESULTSET_UPDATE_ROW                             = (STR_LOG_MESSAGE_BASE +  451);
-    public static final int STR_LOG_CACHED_RESULTSET_DELETE_ROW                             = (STR_LOG_MESSAGE_BASE +  452);
-    public static final int STR_LOG_CACHED_RESULTSET_CANCEL_ROW_UPDATES                     = (STR_LOG_MESSAGE_BASE +  453);
-    public static final int STR_LOG_CACHED_RESULTSET_MOVE_TO_CURRENT_ROW                    = (STR_LOG_MESSAGE_BASE +  454);
-    public static final int STR_LOG_CACHED_RESULTSET_MOVE_TO_INSERT_ROW                     = (STR_LOG_MESSAGE_BASE +  455);
+    public static final int STR_LOG_CACHED_RESULTSET_SQL_MODE_USED                          = (STR_LOG_MESSAGE_BASE +  450);
+    public static final int STR_LOG_CACHED_RESULTSET_VISIBILITY                             = (STR_LOG_MESSAGE_BASE +  451);
+    public static final int STR_LOG_CACHED_RESULTSET_INSERT_ROW                             = (STR_LOG_MESSAGE_BASE +  452);
+    public static final int STR_LOG_CACHED_RESULTSET_UPDATE_ROW                             = (STR_LOG_MESSAGE_BASE +  453);
+    public static final int STR_LOG_CACHED_RESULTSET_DELETE_ROW                             = (STR_LOG_MESSAGE_BASE +  454);
+    public static final int STR_LOG_CACHED_RESULTSET_CANCEL_ROW_UPDATES                     = (STR_LOG_MESSAGE_BASE +  455);
+    public static final int STR_LOG_CACHED_RESULTSET_MOVE_TO_CURRENT_ROW                    = (STR_LOG_MESSAGE_BASE +  456);
+    public static final int STR_LOG_CACHED_RESULTSET_MOVE_TO_INSERT_ROW                     = (STR_LOG_MESSAGE_BASE +  457);
 
     // io.github.prrvchr.uno.sdbcx.TableContainerBase:
     public static final int STR_LOG_CREATE_TABLES                                           = (STR_LOG_MESSAGE_BASE +  500);

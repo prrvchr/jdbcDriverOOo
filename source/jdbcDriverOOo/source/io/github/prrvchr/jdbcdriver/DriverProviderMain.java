@@ -796,7 +796,6 @@ public abstract class DriverProviderMain
         throws SQLException
     {
         try {
-            System.out.println("DriverProvider.setConnection() 1");
             m_infos = infos;
             // XXX: SQLCommandSuffix is needed for building query from sql command.
             m_SQLCommandSuffix = getDriverStringProperty(config1, "SQLCommandSuffix", m_SQLCommandSuffix);
@@ -869,9 +868,7 @@ public abstract class DriverProviderMain
             m_enhanced = enhanced;
 
             String url = getConnectionUrl(location, level);
-            System.out.println("DriverProvider.setConnection() 2");
             java.sql.Connection connection = DriverManager.getConnection(url, getJdbcConnectionProperties(infos));
-            System.out.println("DriverProvider.setConnection() 3");
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
             m_CatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
@@ -894,7 +891,6 @@ public abstract class DriverProviderMain
             // XXX: We do not keep the connection but the statement
             // XXX: which allows us to find the connection if necessary.
             m_statement = connection.createStatement();
-            System.out.println("DriverProvider.setConnection() 4");
         }
         catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_NO_SYSTEM_CONNECTION;
@@ -922,7 +918,6 @@ public abstract class DriverProviderMain
         }
         else {
             visible = getConnection().getMetaData().ownInsertsAreVisible(rstype);
-            System.out.println("DriverProvider.isInsertVisible() 1: " + visible);
         }
         return visible;
     }
@@ -965,23 +960,18 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         boolean visible = false;
-        System.out.println("DriverProviderMain.isDeleteVisible() 1 rstype: " + rstype);
         if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_DeleteVisibleInsensitive != null) {
-            System.out.println("DriverProviderMain.isDeleteVisible() 2 visible: " + m_DeleteVisibleInsensitive);
             visible = m_DeleteVisibleInsensitive;
         }
         else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_DeleteVisibleSensitive != null) {
             visible = m_DeleteVisibleSensitive;
         }
         else {
-            System.out.println("DriverProviderMain.isDeleteVisible() 3");
             visible = getConnection().getMetaData().ownDeletesAreVisible(rstype);
             if (visible) {
-                System.out.println("DriverProviderMain.isDeleteVisible() 4");
                 visible = !getConnection().getMetaData().deletesAreDetected(rstype);
             }
         }
-        System.out.println("DriverProviderMain.isDeleteVisible() 5 visible: " + visible);
         return visible;
     }
 

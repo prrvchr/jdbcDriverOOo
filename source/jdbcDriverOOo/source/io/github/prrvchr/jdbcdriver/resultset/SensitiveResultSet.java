@@ -106,9 +106,11 @@ public class SensitiveResultSet
         m_SQLDelete = SQLMode || provider.useSQLDelete();
         m_SQLInsert = SQLMode || provider.useSQLInsert();
         m_SQLUpdate = SQLMode || provider.useSQLUpdate();
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_SQL_MODE_USED, m_SQLDelete, m_SQLInsert, m_SQLUpdate);
         m_IsDeleteVisible = !m_SQLDelete && provider.isDeleteVisible(result);
         m_IsInsertVisible = !m_SQLInsert && provider.isInsertVisible(result);
         m_IsUpdateVisible = !m_SQLUpdate && provider.isUpdateVisible(result);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_VISIBILITY, m_IsDeleteVisible, m_IsInsertVisible, m_IsUpdateVisible);
         System.out.println("SensitiveResultSet() 1");
         System.out.println("SensitiveResultSet() Use SQL Delete: " + m_SQLDelete);
         System.out.println("SensitiveResultSet() Use SQL Insert: " + m_SQLInsert);
@@ -123,14 +125,12 @@ public class SensitiveResultSet
     public void moveToCurrentRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.moveToCurrentRow() 1");
         if (m_OnInsert) {
             if (m_SQLInsert) {
                 m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_MOVE_TO_CURRENT_ROW);
             }
             // XXX: We move to current row only if we don't use SQL mode for insert
             else {
-                System.out.println("SensitiveResultSet.moveToCurrentRow() 2");
                 m_Result.moveToCurrentRow();
                 m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
             }
@@ -144,23 +144,19 @@ public class SensitiveResultSet
     public void moveToInsertRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.moveToInsertRow() 1");
         if (!m_OnInsert) {
             // XXX: We create an cached insert row only if insert is not visible
             // XXX: and the inserted row must be put in cache.
             if (!m_IsInsertVisible) {
-                System.out.println("SensitiveResultSet.moveToInsertRow() 2");
                 m_InsertRow = new InsertRow(m_ColumnCount);
                 m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_MOVE_TO_INSERT_ROW);
             }
             // XXX: We move to insert row only if we don't use SQL mode for insert
             if (!m_SQLInsert) {
-                System.out.println("SensitiveResultSet.moveToInsertRow() 3");
                 m_Result.moveToInsertRow();
                 m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW);
             }
             m_OnInsert = true;
-            System.out.println("SensitiveResultSet.moveToInsertRow() 4");
         }
     }
 
@@ -168,7 +164,6 @@ public class SensitiveResultSet
     public void cancelRowUpdates()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.cancelRowUpdates() 1");
         // XXX: It seems that LibreOffice uses cancelRowUpdates() to exit the insert row
         // XXX: after a call to moveToInsertRow() while JDBC forbids this.
         // XXX: See: libreoffice/dbaccess/source/core/api/RowSetCache.cxx
@@ -190,46 +185,40 @@ public class SensitiveResultSet
     public void insertRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.insertRow() 1 Cursor: " + m_Cursor + " - InsertVisible: " + m_IsInsertVisible);
         if (!m_OnInsert) {
             throw new SQLException("ERROR: insertRow() cannot be called when moveToInsertRow has not been called !");
         }
         BaseRow row = m_InsertRow != null ? m_InsertRow.clown() : null;
         if (m_SQLInsert) {
-            System.out.println("SensitiveResultSet.insertRow() 2");
             getRowSetWriter().insertRow(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_INSERT_ROW, row.getQuery());
+            for (String query : row.getQueries()) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_INSERT_ROW, query);
+            }
         }
         else {
-            System.out.println("SensitiveResultSet.insertRow() 3");
             // XXX: Base does not allow auto-increment columns to be entered,
             // XXX: some drivers force us to update these columns to null
             RowHelper.setDefaultColumnValues(m_Result, m_InsertedColumns);
             m_InsertedColumns.clear();
             m_Result.insertRow();
-            System.out.println("SensitiveResultSet.insertRow() 4");
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
         }
         moveToCurrentRow();
         // XXX: Positioned insert also must be put in the cache if inserted row are not visible
         if (row != null) {
-            System.out.println("SensitiveResultSet.insertRow() 5");
             int index = getRowCount() + 1;
             m_InsertedData.add(new Row(row));
             m_InsertedRows.add(index);
-            System.out.println("SensitiveResultSet.insertRow() 6 at Cursor: " + index);
         }
         // XXX: Since we are maintaining the row count of the ResultSet, we need to increment it.
         else {
             m_RowCount ++;
-            System.out.println("SensitiveResultSet.insertRow() 7 RowCount: " + m_RowCount);
         }
         // XXX: cursor and position must be set on the inserted row
         m_Cursor = getRowCount();
         m_Position = getMaxPosition();
         // XXX: We must be able to respond positively to the insert
         m_Inserted = m_Cursor;
-        System.out.println("SensitiveResultSet.insertRow() 8 Cursor: " + m_Cursor);
     }
 
     @Override
@@ -238,7 +227,6 @@ public class SensitiveResultSet
     {
         boolean deleted = isDeleted(m_Deleted);
         m_Deleted = -1;
-        System.out.println("SensitiveResultSet.rowDeleted() 1 : " + deleted);
         return deleted;
     }
 
@@ -246,12 +234,10 @@ public class SensitiveResultSet
     public boolean rowInserted()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.rowInserted() 1");
         // XXX: We can assume the insertion is valid without any
         // XXX: movement in the ResultSet since the insertion.
         boolean inserted = m_Inserted == m_Cursor;
         m_Inserted = -1;
-        System.out.println("SensitiveResultSet.rowInserted() 2 : " + inserted);
         return inserted;
     }
 
@@ -259,21 +245,19 @@ public class SensitiveResultSet
     public void updateRow()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.updateRow() 1");
         // XXX: In addition to SQL updates we must be able to update inserted
         // XXX: row when insert are not visible (ie: inserted row are in cache)
         if (isInsertedRow() || m_SQLUpdate) {
-            System.out.println("SensitiveResultSet.updateRow() 2");
             Row row = getCachedRow();
             getRowSetWriter().updateRow(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_UPDATE_ROW, row.getQuery());
+            for (String query : row.getQueries()) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_UPDATE_ROW, query);
+            }
         }
         else {
-            System.out.println("SensitiveResultSet.updateRow() 3");
             m_Result.updateRow();
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
         }
-        System.out.println("SensitiveResultSet.updateRow() 4");
     }
 
     @Override
@@ -282,7 +266,6 @@ public class SensitiveResultSet
     {
         System.out.println("SensitiveResultSet.rowUpdated() 1 **************************************************");
         boolean updated = m_Result.rowUpdated();
-        System.out.println("SensitiveResultSet.rowUpdated() 2 : " + updated);
         return updated;
     }
 
@@ -291,22 +274,21 @@ public class SensitiveResultSet
         throws SQLException
     {
         m_Deleted = m_Cursor;
-        System.out.println("SensitiveResultSet.deleteRow() 1 Position: " + m_Deleted);
         // XXX: Are we trying to delete a row that has been inserted or updated and which will be in cache?
         boolean cached = isCachedRow();
         // XXX: In addition to SQL deletes we must be able to delete inserted or updated row
         // XXX: when insert or update are not visible (ie: inserted or updated row are in cache)
         if (m_SQLDelete || cached) {
-            System.out.println("SensitiveResultSet.deleteRow() 2");
             Row row = cached ? getCachedRow() : getResultRow();
             getRowSetWriter().deleteRow(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_DELETE_ROW, row.getQuery());
+            for (String query : row.getQueries()) {
+                m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_DELETE_ROW, query);
+            }
         }
         else {
             m_Result.deleteRow();
             // XXX: The row preceding the deleted row becomes the current row
             previous();
-            System.out.println("SensitiveResultSet.deleteRow() 3 getRow: " + m_Result.getRow());
             m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
         }
         if (cached) {
@@ -314,7 +296,6 @@ public class SensitiveResultSet
         }
         // XXX: Managing bookmark requires us to manage a cursor taking into account the deleted lines.
         m_DeletedRows.add(m_Deleted);
-        System.out.println("SensitiveResultSet.deleteRow() 4");
     }
 
 
@@ -356,12 +337,8 @@ public class SensitiveResultSet
     public boolean last()
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.last() 1");
         boolean last = super.last();
-        System.out.println("SensitiveResultSet.last() 2 : " + last + " - IsInCache: " + isInCache());
-        System.out.println("SensitiveResultSet.last() 3 isUpdated: " + isUpdated() + " - isInserted: " + isInserted() + " - isDeleted: " + isDeleted() + " - isOnInsertRow: " + isOnInsertRow());
         if (last && !isInCache()) {
-            System.out.println("SensitiveResultSet.last() 4 Cursor: " + m_Cursor + " - Position: " + m_Position);
             last = moveResultSet();
         }
         return last;
@@ -398,12 +375,10 @@ public class SensitiveResultSet
             m_WasNull = row.isColumnNull(index);
             if (!m_WasNull) {
                 value = (String) row.getColumnObject(index);
-                System.out.println("SensitiveResultSet.getString() 1 : " + value);
             }
         }
         else {
             value = m_Result.getString(index);
-            System.out.println("SensitiveResultSet.getString() 2 : " + value + " - Row: " + m_Result.getRow());
             m_WasNull = m_Result.wasNull();
         }
         return value;
@@ -1163,16 +1138,12 @@ public class SensitiveResultSet
     {
         // XXX: Base using updateDouble() for most numeric SQL types,
         // XXX: it is necessary to convert to the native column type
-        System.out.println("SensitiveResultSet.updateDouble() 1 Value: " + value);
         if (updateCache()) {
-            System.out.println("SensitiveResultSet.updateDouble() 2");
             setColumnDouble(index, value);
         }
         if (updateResultSet()) {
-            System.out.println("SensitiveResultSet.updateDouble() 3");
             super.updateDouble(index, value);
         }
-        System.out.println("SensitiveResultSet.updateDouble() 4");
     }
 
     @Override
@@ -1191,16 +1162,12 @@ public class SensitiveResultSet
     public void updateString(int index, String value)
         throws SQLException
     {
-        System.out.println("SensitiveResultSet.updateString() 1 Value: " + value);
         if (updateCache()) {
-            System.out.println("SensitiveResultSet.updateString() 2");
             setColumnObject(index, value);
         }
         if (updateResultSet()) {
-            System.out.println("SensitiveResultSet.updateString() 3");
             super.updateString(index, value);
         }
-        System.out.println("SensitiveResultSet.updateString() 4");
     }
 
     @Override
@@ -1602,19 +1569,11 @@ public class SensitiveResultSet
         throws SQLException
     {
         boolean moved = false;
-        try {
-            if (isAfterLast() || isBeforeFirst()) {
-                return false;
-            }
-            // XXX: For loading the first row Base use absolute(1) will the current row is beforeFirst.
-            boolean cached = isCachedRow();
-            System.out.println("SensitiveResultSet.moveResultSet() 1 Cursor: " + m_Cursor + " - Cached: " + cached);
-            moved = cached ? true : moveResultSet();
-            System.out.println("SensitiveResultSet.moveResultSet() 2 Cursor: " + m_Cursor);
+        if (isAfterLast() || isBeforeFirst()) {
+            return false;
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        // XXX: For loading the first row Base use absolute(1) will the current row is beforeFirst.
+        moved = isCachedRow() ? true : moveResultSet();
         return moved;
     }
 

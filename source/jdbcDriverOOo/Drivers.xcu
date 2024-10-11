@@ -335,7 +335,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/hsqldb-2.7.4-releasecandidate2.jar</value>
+                        <value>%origin%/driver/hsqldb-2.7.4-releasecandidate3.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">
