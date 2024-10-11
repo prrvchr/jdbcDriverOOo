@@ -66,7 +66,8 @@ public abstract class RowSetSuper
                        String table)
         throws SQLException
     {
-        super(service, services, connection, ResultSetHelper.getResultSet(provider, result, catalog, table), statement, true, true);
+        super(service, services, connection, result, statement, true, true);
+        m_Result = ResultSetHelper.getResultSet(provider, result, catalog, table, m_logger);
     }
 
     protected CachedResultSet getResultSet()
@@ -113,7 +114,9 @@ public abstract class RowSetSuper
                 compare = CompareBookmark.EQUAL;
             }
         }
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(row1), Integer.toString(row2), Integer.toString(compare));
+        if (compare != CompareBookmark.EQUAL) {
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(row1), Integer.toString(row2), Integer.toString(compare));
+        }
         return compare;
     }
 
@@ -276,7 +279,7 @@ public abstract class RowSetSuper
     @Override
     public void moveToInsertRow() throws SQLException
     {
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW);
         try {
             m_Result.moveToInsertRow();
         }

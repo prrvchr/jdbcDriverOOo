@@ -626,7 +626,7 @@ public abstract class ResultSetBase
     {
         if (!isOnInsertRow()) {
             throw new SQLException("ERROR: insertRow cannot be called when moveToInsertRow has not been called !", this,
-                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
+                                   StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
         }
         insertNewRow();
     }
@@ -651,7 +651,7 @@ public abstract class ResultSetBase
     {
         if (isOnInsertRow()) {
             throw new SQLException("ERROR: updateRow cannot be called when moveToInsertRow has been called!", this,
-                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
+                                   StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
         }
         updateCurrentRow();
     }
@@ -674,7 +674,7 @@ public abstract class ResultSetBase
     {
         if (isOnInsertRow()) {
             throw new SQLException("ERROR: deleteRow cannot be called when moveToInsertRow has been called!", this,
-                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
+                                   StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
         }
         deleteCurrentRow();
     }
@@ -739,7 +739,7 @@ public abstract class ResultSetBase
     protected void moveToInsertRowInternal()
         throws java.sql.SQLException
     {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERTROW);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW);
         m_Result.moveToInsertRow();
         m_Inserted.clear();
         m_OnInsert = true;
@@ -750,7 +750,7 @@ public abstract class ResultSetBase
         throws SQLException
     {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENTROW);
+            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
             moveToCurrentRowInternal();
         }
         catch (java.sql.SQLException e) {

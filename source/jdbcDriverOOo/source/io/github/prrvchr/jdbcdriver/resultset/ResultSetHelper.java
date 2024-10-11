@@ -27,6 +27,7 @@ package io.github.prrvchr.jdbcdriver.resultset;
 
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
 import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
@@ -58,7 +59,8 @@ public class ResultSetHelper
     public static CachedResultSet getResultSet(DriverProvider provider,
                                                java.sql.ResultSet result,
                                                RowCatalog catalog,
-                                               String table)
+                                               String table,
+                                               ConnectionLog logger)
         throws SQLException
     {
         try {
@@ -70,11 +72,11 @@ public class ResultSetHelper
             int fetchsize = result.getFetchSize();
             System.out.println("ResultSetHelper.getCachedResultSet() Updatable: " + updatable + " - IsForwardOnly: " + forwardonly + " - IsSensitive: " + sensitive + " - FetchSize: " + fetchsize);
             if (rstype == java.sql.ResultSet.TYPE_FORWARD_ONLY) {
-                resultset = new ScrollableResultSet(provider, result, catalog, table);
+                resultset = new ScrollableResultSet(provider, result, catalog, table, logger);
                 System.out.println("ResultSetHelper.getCachedResultSet() ResultSet: ScrollableResultSet");
             }
             else {
-                resultset = new SensitiveResultSet(provider, result, catalog, table);
+                resultset = new SensitiveResultSet(provider, result, catalog, table, logger);
                 System.out.println("ResultSetHelper.getCachedResultSet() ResultSet: SensitiveResultSet");
             }
             return resultset;

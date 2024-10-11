@@ -87,17 +87,14 @@ public abstract class DriverProviderMain
 
     // XXX: Default setting for ResultSet
     private boolean m_UseSQLDelete = false;
-    private boolean m_UseSQLInsert = true;
+    private boolean m_UseSQLInsert = false;
     private boolean m_UseSQLUpdate = false;
     private Boolean m_InsertVisibleInsensitive;
     private Boolean m_InsertVisibleSensitive;
-    private Boolean m_InsertVisibleForwardonly;
     private Boolean m_DeleteVisibleInsensitive;
     private Boolean m_DeleteVisibleSensitive;
-    private Boolean m_DeleteVisibleForwardonly;
     private Boolean m_UpdateVisibleInsensitive;
     private Boolean m_UpdateVisibleSensitive;
-    private Boolean m_UpdateVisibleForwardonly;
 
     private boolean m_CatalogsInTableDefinitions;
     private boolean m_SchemasInTableDefinitions;
@@ -806,13 +803,10 @@ public abstract class DriverProviderMain
 
             m_InsertVisibleInsensitive = getDriverBooleanProperty(config1, "InsertVisibleInsensitive", null);
             m_InsertVisibleSensitive = getDriverBooleanProperty(config1, "InsertVisibleSensitive", null);
-            m_InsertVisibleForwardonly = getDriverBooleanProperty(config1, "InsertVisibleForwardonly", null);
             m_DeleteVisibleInsensitive = getDriverBooleanProperty(config1, "DeleteVisibleInsensitive", null);
             m_DeleteVisibleSensitive = getDriverBooleanProperty(config1, "DeleteVisibleSensitive", null);
-            m_DeleteVisibleForwardonly = getDriverBooleanProperty(config1, "DeleteVisibleForwardonly", null);
             m_UpdateVisibleInsensitive = getDriverBooleanProperty(config1, "UpdateVisibleInsensitive", null);
             m_UpdateVisibleSensitive = getDriverBooleanProperty(config1, "UpdateVisibleSensitive", null);
-            m_UpdateVisibleForwardonly = getDriverBooleanProperty(config1, "UpdateVisibleForwardonly", null);
 
             m_UseSQLDelete = getDriverBooleanProperty(config1, "UseSQLDelete", m_UseSQLDelete);
             m_UseSQLInsert = getDriverBooleanProperty(config1, "UseSQLInsert", m_UseSQLInsert);
@@ -920,10 +914,7 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         boolean visible = false;
-        if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_InsertVisibleForwardonly != null) {
-            visible = m_InsertVisibleForwardonly;
-        }
-        else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_InsertVisibleInsensitive != null) {
+        if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_InsertVisibleInsensitive != null) {
             visible = m_InsertVisibleInsensitive;
         }
         else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_InsertVisibleSensitive != null) {
@@ -931,6 +922,7 @@ public abstract class DriverProviderMain
         }
         else {
             visible = getConnection().getMetaData().ownInsertsAreVisible(rstype);
+            System.out.println("DriverProvider.isInsertVisible() 1: " + visible);
         }
         return visible;
     }
@@ -946,10 +938,7 @@ public abstract class DriverProviderMain
         throws java.sql.SQLException
     {
         boolean visible = false;
-        if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_UpdateVisibleForwardonly != null) {
-            visible = m_UpdateVisibleForwardonly;
-        }
-        else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_UpdateVisibleInsensitive != null) {
+        if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_UpdateVisibleInsensitive != null) {
             visible = m_UpdateVisibleInsensitive;
         }
         else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && m_UpdateVisibleSensitive != null) {
@@ -968,15 +957,16 @@ public abstract class DriverProviderMain
         return isResultSetUpdatable(result) && isDeleteVisible(result.getType());
     }
 
+    // FIXME: We only consider 2 cases here:
+    // FIXME: - Deletions are visible for ResultSet that actually delete rows.
+    // FIXME: - Deletions are not visible for ResultSet that do not actually delete rows
+    // FIXME:   (ie: replaced with an empty or invalid row or deletion is not visible)
     private boolean isDeleteVisible(int rstype)
         throws java.sql.SQLException
     {
         boolean visible = false;
         System.out.println("DriverProviderMain.isDeleteVisible() 1 rstype: " + rstype);
-        if (rstype == ResultSet.TYPE_FORWARD_ONLY && m_DeleteVisibleForwardonly != null) {
-            visible = m_DeleteVisibleForwardonly;
-        }
-        else if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_DeleteVisibleInsensitive != null) {
+        if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && m_DeleteVisibleInsensitive != null) {
             System.out.println("DriverProviderMain.isDeleteVisible() 2 visible: " + m_DeleteVisibleInsensitive);
             visible = m_DeleteVisibleInsensitive;
         }
@@ -986,8 +976,12 @@ public abstract class DriverProviderMain
         else {
             System.out.println("DriverProviderMain.isDeleteVisible() 3");
             visible = getConnection().getMetaData().ownDeletesAreVisible(rstype);
+            if (visible) {
+                System.out.println("DriverProviderMain.isDeleteVisible() 4");
+                visible = !getConnection().getMetaData().deletesAreDetected(rstype);
+            }
         }
-        System.out.println("DriverProviderMain.isDeleteVisible() 4 visible: " + visible);
+        System.out.println("DriverProviderMain.isDeleteVisible() 5 visible: " + visible);
         return visible;
     }
 

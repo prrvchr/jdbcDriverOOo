@@ -392,16 +392,6 @@
                         <value>false</value>
                     </prop>
                 </node>
-                <node oor:name="DeleteVisibleInsensitive" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
-                <node oor:name="UseSQLInsert" oor:op="replace">
-                    <prop oor:name="Value" oor:type="xs:boolean">
-                        <value>false</value>
-                    </prop>
-                </node>
                 <node oor:name="DropTableCommand" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>DROP TABLE {0} CASCADE</value>
@@ -579,6 +569,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="UseSQLDelete" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -867,6 +862,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>true</value>
@@ -1007,6 +1007,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -1150,6 +1155,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="SupportsAlterPrimaryKey" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>
@@ -1263,6 +1273,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="LoggerLevels" oor:op="replace">
                     <prop oor:name="Value" oor:type="oor:string-list">
                         <value oor:separator="|">50000|40000|40000|30000|30000|20000|20000|0</value>
@@ -1406,6 +1421,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="SQLCommandSuffix" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
                         <value>;</value>
@@ -1589,6 +1609,11 @@
             </node>
 
             <node oor:name="MetaData">
+                <node oor:name="UseSQLInsert" oor:op="replace">
+                    <prop oor:name="Value" oor:type="xs:boolean">
+                        <value>true</value>
+                    </prop>
+                </node>
                 <node oor:name="SupportTransaction" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:boolean">
                         <value>false</value>

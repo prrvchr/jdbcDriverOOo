@@ -34,6 +34,7 @@ public abstract class BaseRow
 
     protected Object[] m_OldValues;
     protected int m_Count;
+    protected String m_Query;
 
 
     public BaseRow(int count)
@@ -69,6 +70,17 @@ public abstract class BaseRow
         throws SQLException
     {
         m_OldValues[index - 1] = value;
+    }
+
+    public String getQuery()
+    {
+        return m_Query;
+    }
+
+    public String buildQuery(String query, Object... objects)
+    {
+        m_Query = String.format(query, objects);
+        return m_Query;
     }
 
     public abstract boolean isColumnNull(int index);

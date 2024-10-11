@@ -45,6 +45,7 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Vector;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.InsertRow;
@@ -66,10 +67,11 @@ public class ScrollableResultSet
     public ScrollableResultSet(DriverProvider provider,
                                ResultSet result,
                                RowCatalog catalog,
-                               String table)
+                               String table,
+                               ConnectionLog logger)
         throws SQLException
     {
-        super(provider, result, catalog, table);
+        super(provider, result, catalog, table, logger);
         loadNextRow();
     }
 
@@ -659,6 +661,7 @@ public class ScrollableResultSet
     public void updateNull(int index)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, null);
     }
 
@@ -666,6 +669,7 @@ public class ScrollableResultSet
     public void updateBoolean(int index, boolean value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -673,6 +677,7 @@ public class ScrollableResultSet
     public void updateByte(int index, byte value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -680,6 +685,7 @@ public class ScrollableResultSet
     public void updateShort(int index, short value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -687,6 +693,7 @@ public class ScrollableResultSet
     public void updateInt(int index, int value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -694,6 +701,7 @@ public class ScrollableResultSet
     public void updateLong(int index, long value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -701,6 +709,7 @@ public class ScrollableResultSet
     public void updateFloat(int index, float value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -708,6 +717,7 @@ public class ScrollableResultSet
     public void updateDouble(int index, double value)
         throws SQLException
     {
+        checkIndex(index);
         // XXX: Base using updateDouble() for most numeric SQL types,
         // XXX: it is necessary to convert to the native column type
         setColumnDouble(index, value);
@@ -717,6 +727,7 @@ public class ScrollableResultSet
     public void updateBigDecimal(int index, BigDecimal value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -724,6 +735,7 @@ public class ScrollableResultSet
     public void updateString(int index, String value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -731,6 +743,7 @@ public class ScrollableResultSet
     public void updateBytes(int index, byte[] value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -738,6 +751,7 @@ public class ScrollableResultSet
     public void updateDate(int index, Date value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -745,6 +759,7 @@ public class ScrollableResultSet
     public void updateTime(int index, Time value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -752,6 +767,7 @@ public class ScrollableResultSet
     public void updateTimestamp(int index, Timestamp value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -759,6 +775,7 @@ public class ScrollableResultSet
     public void updateAsciiStream(int index, InputStream value, int length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -766,6 +783,7 @@ public class ScrollableResultSet
     public void updateBinaryStream(int index, InputStream value, int length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -773,6 +791,7 @@ public class ScrollableResultSet
     public void updateCharacterStream(int index, Reader value, int length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -780,6 +799,7 @@ public class ScrollableResultSet
     public void updateObject(int index, Object value, int length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -787,6 +807,7 @@ public class ScrollableResultSet
     public void updateObject(int index, Object value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -794,6 +815,7 @@ public class ScrollableResultSet
     public void updateRef(int index, Ref value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -801,6 +823,7 @@ public class ScrollableResultSet
     public void updateBlob(int index, Blob value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -808,6 +831,7 @@ public class ScrollableResultSet
     public void updateClob(int index, Clob value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -815,6 +839,7 @@ public class ScrollableResultSet
     public void updateArray(int index, Array value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -822,6 +847,7 @@ public class ScrollableResultSet
     public void updateNCharacterStream(int index, Reader value, long length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -829,6 +855,7 @@ public class ScrollableResultSet
     public void updateAsciiStream(int index, InputStream value, long length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -836,6 +863,7 @@ public class ScrollableResultSet
     public void updateBinaryStream(int index, InputStream value, long length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -843,6 +871,7 @@ public class ScrollableResultSet
     public void updateCharacterStream(int index, Reader value, long length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -850,6 +879,7 @@ public class ScrollableResultSet
     public void updateBlob(int index, InputStream value, long length)
         throws SQLException 
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -857,38 +887,39 @@ public class ScrollableResultSet
     public void updateClob(int index, Reader value, long length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
-
     }
 
     @Override
     public void updateNClob(int index, Reader value, long length)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
-
     }
 
     @Override
     public void updateNCharacterStream(int index, Reader value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
-
     }
 
     @Override
     public void updateAsciiStream(int index, InputStream value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
-
     }
 
     @Override
     public void updateBinaryStream(int index, InputStream value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -896,14 +927,15 @@ public class ScrollableResultSet
     public void updateCharacterStream(int index, Reader value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
-
 
     @Override
     public void updateBlob(int index, InputStream value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -911,6 +943,7 @@ public class ScrollableResultSet
     public void updateClob(int index, Reader value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -918,6 +951,7 @@ public class ScrollableResultSet
     public void updateNClob(int index, Reader value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -925,6 +959,7 @@ public class ScrollableResultSet
     public void updateSQLXML(int index, SQLXML value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -932,6 +967,7 @@ public class ScrollableResultSet
     public void updateNString(int index, String value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -939,6 +975,7 @@ public class ScrollableResultSet
     public void updateNClob(int index, NClob value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
@@ -946,17 +983,12 @@ public class ScrollableResultSet
     public void updateRowId(int index, RowId value)
         throws SQLException
     {
+        checkIndex(index);
         setColumnObject(index, value);
     }
 
 
     // XXX: Protected overloaded methods
-    @Override
-    protected boolean isOnInsertRow()
-    {
-        return m_InsertRow != null;
-    }
-
     @Override
     protected void setInsertMode(boolean mode)
     {

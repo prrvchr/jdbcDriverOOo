@@ -68,6 +68,6 @@
         <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.7"/>
       </dlg:menupopup>
     </dlg:menulist>
-    <dlg:text dlg:style-id="0" dlg:id="Label10" dlg:tab-index="27" dlg:left="10" dlg:top="140" dlg:width="240" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label10.HelpText" dlg:value="&amp;Option2Dialog.Label10.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label10" dlg:tab-index="27" dlg:left="10" dlg:top="145" dlg:width="240" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label10.HelpText" dlg:value="&amp;Option2Dialog.Label10.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

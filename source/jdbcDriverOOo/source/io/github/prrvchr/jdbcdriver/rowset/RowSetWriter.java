@@ -67,7 +67,7 @@ public class RowSetWriter
         for (RowTable table: m_Catalog.getTables()) {
             List<RowColumn> columns = getModifiedColumns(table, row);
             if (!columns.isEmpty()) {
-                try (PreparedStatement statement = getInsertStatement(table, columns)) {
+                try (PreparedStatement statement = getInsertStatement(row, table, columns)) {
                     setStatementParameter(statement, columns, row);
                     status = statement.executeUpdate();
                     if (status == 1) {
@@ -88,7 +88,7 @@ public class RowSetWriter
             List<RowColumn> columns = getModifiedColumns(table, row);
             if (!columns.isEmpty()) {
                 checkForUpdate(table, row, columns);
-                try (PreparedStatement statement = getUpdateStatement(table, columns)) {
+                try (PreparedStatement statement = getUpdateStatement(row, table, columns)) {
                     int index = setStatementParameter(statement, columns, row);
                     RowHelper.setWhereParameter(statement, m_Catalog, table, row, index);
                     status = statement.executeUpdate();
@@ -106,7 +106,7 @@ public class RowSetWriter
         for (RowTable table: m_Catalog.getTables()) {
             status = 0;
             checkForDelete(table, row);
-            try (PreparedStatement statement = getDeleteStatement(table)) {
+            try (PreparedStatement statement = getDeleteStatement(row, table)) {
                 RowHelper.setWhereParameter(statement, m_Catalog, table, row);
                 status = statement.executeUpdate();
             }
@@ -168,12 +168,13 @@ public class RowSetWriter
         return count;
     }
 
-    private PreparedStatement getInsertStatement(RowTable table,
+    private PreparedStatement getInsertStatement(BaseRow row,
+                                                 RowTable table,
                                                  List<RowColumn> columns)
         throws SQLException
     {
         PreparedStatement statement = null;
-        String query = String.format(m_InsertCmd, table.getComposedName(true), getInsertColumns(table, columns), getInsertParameter(table, columns));
+        String query = row.buildQuery(m_InsertCmd, table.getComposedName(true), getInsertColumns(table, columns), getInsertParameter(table, columns));
         System.out.println("RowSetWriter.getInsertStatement() Query: " + query);
         if (m_Provider.isAutoRetrievingEnabled()) {
             statement = m_Provider.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -184,19 +185,21 @@ public class RowSetWriter
         return statement;
     }
 
-    private PreparedStatement getUpdateStatement(RowTable table,
+    private PreparedStatement getUpdateStatement(Row row,
+                                                 RowTable table,
                                                  List<RowColumn> columns)
         throws SQLException
     {
-        String query = String.format(m_UpdateCmd, table.getComposedName(true), getUpdatedColumns(table, columns), table.getWhereCmd());
+        String query = row.buildQuery(m_UpdateCmd, table.getComposedName(true), getUpdatedColumns(table, columns), table.getWhereCmd());
         System.out.println("RowSetWriter.getUpdateStatement() Query: " + query);
         return m_Provider.getConnection().prepareStatement(query);
     }
 
-    private PreparedStatement getDeleteStatement(RowTable table)
+    private PreparedStatement getDeleteStatement(Row row,
+                                                 RowTable table)
         throws SQLException
     {
-        String query = String.format(m_DeleteCmd, table.getComposedName(true), table.getWhereCmd());
+        String query = row.buildQuery(m_DeleteCmd, table.getComposedName(true), table.getWhereCmd());
         System.out.println("RowSetWriter.getDeleteStatement() Query: " + query);
         return m_Provider.getConnection().prepareStatement(query);
     }

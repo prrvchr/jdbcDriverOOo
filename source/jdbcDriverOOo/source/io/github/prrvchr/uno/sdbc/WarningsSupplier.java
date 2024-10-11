@@ -100,23 +100,23 @@ public final class WarningsSupplier
                 throw UnoHelper.getSQLException(e, component);
             }
         }
-        return _getWarnings(warning, component);
+        return _getWarning(warning, component);
     }
 
-    private static Object _getWarnings(java.sql.SQLWarning warning, XInterface component)
+    private static Object _getWarning(java.sql.SQLWarning warning, XInterface component)
     {
         if (warning != null)
-            return _getWarning(warning, component);
+            return _getWarnings(warning, component);
         return Any.VOID;
     }
 
-    private static SQLWarning _getWarning(java.sql.SQLWarning w, XInterface component)
+    private static SQLWarning _getWarnings(java.sql.SQLWarning w, XInterface component)
     {
         SQLWarning warning = new SQLWarning(w.getMessage());
         warning.Context = component;
         warning.SQLState = w.getSQLState();
         warning.ErrorCode = w.getErrorCode();
-        warning.NextException = _getWarnings(w.getNextWarning(), component);
+        warning.NextException = _getWarning(w.getNextWarning(), component);
         return warning;
     }
 

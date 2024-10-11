@@ -181,22 +181,30 @@ public class Resources {
     public static final int STR_LOG_RESULTSET_GET_PARAMETER                                 = (STR_LOG_MESSAGE_BASE +  423);
     public static final int STR_LOG_RESULTSET_UPDATE_PARAMETER                              = (STR_LOG_MESSAGE_BASE +  424);
 
-    // com.sun.star.sdbc.XResultSetUpdate:
-    public static final int STR_LOG_RESULTSET_INSERT_ROW                                    = (STR_LOG_MESSAGE_BASE +  430);
-    public static final int STR_LOG_RESULTSET_UPDATE_ROW                                    = (STR_LOG_MESSAGE_BASE +  431);
-    public static final int STR_LOG_RESULTSET_DELETE_ROW                                    = (STR_LOG_MESSAGE_BASE +  432);
-    public static final int STR_LOG_RESULTSET_CANCEL_ROW_UPDATES                            = (STR_LOG_MESSAGE_BASE +  433);
-    public static final int STR_LOG_RESULTSET_MOVE_TO_CURRENTROW                            = (STR_LOG_MESSAGE_BASE +  434);
-    public static final int STR_LOG_RESULTSET_MOVE_TO_INSERTROW                             = (STR_LOG_MESSAGE_BASE +  435);
-
     // com.sun.star.sdbcx.XRowLocate:
-    public static final int STR_LOG_RESULTSET_ISBOOKMARKABLE                                = (STR_LOG_MESSAGE_BASE +  450);
-    public static final int STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS                         = (STR_LOG_MESSAGE_BASE +  451);
-    public static final int STR_LOG_RESULTSET_COMPARE_BOOKMARKS                             = (STR_LOG_MESSAGE_BASE +  452);
-    public static final int STR_LOG_RESULTSET_GET_BOOKMARK                                  = (STR_LOG_MESSAGE_BASE +  453);
-    public static final int STR_LOG_RESULTSET_MOVE_TO_BOOKMARK                              = (STR_LOG_MESSAGE_BASE +  454);
-    public static final int STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK                     = (STR_LOG_MESSAGE_BASE +  455);
-    public static final int STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT                    = (STR_LOG_MESSAGE_BASE +  456);
+    public static final int STR_LOG_RESULTSET_ISBOOKMARKABLE                                = (STR_LOG_MESSAGE_BASE +  430);
+    public static final int STR_LOG_RESULTSET_CANUPDATEINSERTEDROWS                         = (STR_LOG_MESSAGE_BASE +  431);
+    public static final int STR_LOG_RESULTSET_COMPARE_BOOKMARKS                             = (STR_LOG_MESSAGE_BASE +  432);
+    public static final int STR_LOG_RESULTSET_GET_BOOKMARK                                  = (STR_LOG_MESSAGE_BASE +  433);
+    public static final int STR_LOG_RESULTSET_MOVE_TO_BOOKMARK                              = (STR_LOG_MESSAGE_BASE +  434);
+    public static final int STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK                     = (STR_LOG_MESSAGE_BASE +  435);
+    public static final int STR_LOG_RESULTSET_MOVE_TO_BOOKMARK_ON_INSERT                    = (STR_LOG_MESSAGE_BASE +  436);
+
+    // com.sun.star.sdbc.XResultSetUpdate:
+    public static final int STR_LOG_RESULTSET_INSERT_ROW                                    = (STR_LOG_MESSAGE_BASE +  440);
+    public static final int STR_LOG_RESULTSET_UPDATE_ROW                                    = (STR_LOG_MESSAGE_BASE +  441);
+    public static final int STR_LOG_RESULTSET_DELETE_ROW                                    = (STR_LOG_MESSAGE_BASE +  442);
+    public static final int STR_LOG_RESULTSET_CANCEL_ROW_UPDATES                            = (STR_LOG_MESSAGE_BASE +  443);
+    public static final int STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW                           = (STR_LOG_MESSAGE_BASE +  444);
+    public static final int STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW                            = (STR_LOG_MESSAGE_BASE +  445);
+
+    // com.sun.star.sdbc.XResultSetUpdate:
+    public static final int STR_LOG_CACHED_RESULTSET_INSERT_ROW                             = (STR_LOG_MESSAGE_BASE +  450);
+    public static final int STR_LOG_CACHED_RESULTSET_UPDATE_ROW                             = (STR_LOG_MESSAGE_BASE +  451);
+    public static final int STR_LOG_CACHED_RESULTSET_DELETE_ROW                             = (STR_LOG_MESSAGE_BASE +  452);
+    public static final int STR_LOG_CACHED_RESULTSET_CANCEL_ROW_UPDATES                     = (STR_LOG_MESSAGE_BASE +  453);
+    public static final int STR_LOG_CACHED_RESULTSET_MOVE_TO_CURRENT_ROW                    = (STR_LOG_MESSAGE_BASE +  454);
+    public static final int STR_LOG_CACHED_RESULTSET_MOVE_TO_INSERT_ROW                     = (STR_LOG_MESSAGE_BASE +  455);
 
     // io.github.prrvchr.uno.sdbcx.TableContainerBase:
     public static final int STR_LOG_CREATE_TABLES                                           = (STR_LOG_MESSAGE_BASE +  500);

@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import io.github.prrvchr.jdbcdriver.ConnectionLog;
 import io.github.prrvchr.jdbcdriver.DriverProvider;
 import io.github.prrvchr.jdbcdriver.rowset.BaseRow;
 import io.github.prrvchr.jdbcdriver.rowset.InsertRow;
@@ -75,8 +76,6 @@ public abstract class CachedResultSet
     // XXX: If we want to be able to manage bookmarks then we need to keep a cache of all deleted rows.
     protected List<Integer> m_DeletedRows = new ArrayList<>();
     protected int m_DeletedInsert = 0;
-    // XXX: The field that temporarily holds the last position of the cursor before it moved to the insert row
-    protected int m_CurrentRow = 0;
 
     // XXX: If ResultSet is not updatable then we need to emulate the insert row.
     protected InsertRow m_InsertRow = null;
@@ -88,13 +87,15 @@ public abstract class CachedResultSet
 
     // XXX: Is the last ResultSet value null
     protected boolean m_WasNull = false;
+    protected final ConnectionLog m_logger;
 
 
     // The constructor method:
     public CachedResultSet(DriverProvider provider,
                            java.sql.ResultSet result,
                            RowCatalog catalog,
-                           String table)
+                           String table,
+                           ConnectionLog logger)
         throws SQLException
     {
         super(result);
@@ -104,8 +105,8 @@ public abstract class CachedResultSet
         m_FetchSize = result.getFetchSize();
         m_ColumnCount = result.getMetaData().getColumnCount();
         m_InsertedColumns = new BitSet(m_ColumnCount);
+        m_logger = logger;
     }
-
 
     @Override
     public abstract void moveToCurrentRow() throws SQLException;
@@ -324,6 +325,7 @@ public abstract class CachedResultSet
         boolean moved = false;
         System.out.println("CachedResultSet.moveToBookmark() 1 Cursor: " + m_Cursor + " - row: " + row);
         if (checkAbsolute(row)) {
+            System.out.println("CachedResultSet.moveToBookmark() 2");
             // XXX: Now move towards the absolute row that we're looking for
             while (m_Cursor != row) {
                 if (m_Cursor < row) {
@@ -337,7 +339,7 @@ public abstract class CachedResultSet
             }
             moved = moveResultSet(m_Cursor, row);
         }
-        System.out.println("CachedResultSet.moveToBookmark() 2 Cursor: " + m_Cursor + " - moved: " + moved);
+        System.out.println("CachedResultSet.moveToBookmark() 3 Cursor: " + m_Cursor + " - moved: " + moved);
         return moved;
     }
 
@@ -812,6 +814,7 @@ public abstract class CachedResultSet
 
     protected int getMaxPosition()
     {
+        // FIXME: m_Position skips any row in the ResultSet that was deleted
         return getRowCount() - m_DeletedRows.size();
     }
 
