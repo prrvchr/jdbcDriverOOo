@@ -199,7 +199,7 @@ public class Resources {
     public static final int STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW                            = (STR_LOG_MESSAGE_BASE +  445);
 
     // com.sun.star.sdbc.XResultSetUpdate:
-    public static final int STR_LOG_CACHED_RESULTSET_SQL_MODE_USED                          = (STR_LOG_MESSAGE_BASE +  450);
+    public static final int STR_LOG_CACHED_RESULTSET_POSITIONED_UPDATE                          = (STR_LOG_MESSAGE_BASE +  450);
     public static final int STR_LOG_CACHED_RESULTSET_VISIBILITY                             = (STR_LOG_MESSAGE_BASE +  451);
     public static final int STR_LOG_CACHED_RESULTSET_INSERT_ROW                             = (STR_LOG_MESSAGE_BASE +  452);
     public static final int STR_LOG_CACHED_RESULTSET_UPDATE_ROW                             = (STR_LOG_MESSAGE_BASE +  453);

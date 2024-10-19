@@ -106,11 +106,11 @@ public class SensitiveResultSet
         m_SQLDelete = SQLMode || provider.useSQLDelete();
         m_SQLInsert = SQLMode || provider.useSQLInsert();
         m_SQLUpdate = SQLMode || provider.useSQLUpdate();
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_SQL_MODE_USED, m_SQLDelete, m_SQLInsert, m_SQLUpdate);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_POSITIONED_UPDATE, !m_SQLDelete, !m_SQLInsert, !m_SQLUpdate);
         m_IsDeleteVisible = !m_SQLDelete && provider.isDeleteVisible(result);
         m_IsInsertVisible = !m_SQLInsert && provider.isInsertVisible(result);
         m_IsUpdateVisible = !m_SQLUpdate && provider.isUpdateVisible(result);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_VISIBILITY, m_IsDeleteVisible, m_IsInsertVisible, m_IsUpdateVisible);
+        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CACHED_RESULTSET_VISIBILITY, !m_IsDeleteVisible, !m_IsInsertVisible, !m_IsUpdateVisible);
         System.out.println("SensitiveResultSet() 1");
         System.out.println("SensitiveResultSet() Use SQL Delete: " + m_SQLDelete);
         System.out.println("SensitiveResultSet() Use SQL Insert: " + m_SQLInsert);

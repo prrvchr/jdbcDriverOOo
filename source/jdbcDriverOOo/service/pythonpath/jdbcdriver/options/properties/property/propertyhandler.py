@@ -30,47 +30,12 @@
 import unohelper
 
 from com.sun.star.awt import XContainerWindowEventHandler
-from com.sun.star.awt.tab import XTabPageContainerListener
-
-from com.sun.star.awt.Key import DELETE
-from com.sun.star.awt.Key import RETURN
-
-from com.sun.star.lang import XEventListener
 
 import traceback
 
 
-class OptionsListener(unohelper.Base,
-                      XEventListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-# com.sun.star.lang.XEventListener
-    def disposing(self, source):
-        try:
-            self._manager.dispose()
-        except Exception as e:
-            msg = "OptionsHandler.disposing() Error: %s" % traceback.format_exc()
-            print(msg)
-
-
-class TabListener(unohelper.Base,
-                  XTabPageContainerListener):
-    def __init__(self, manager):
-        self._manager = manager
-
-# com.sun.star.awt.tab.XTabPageContainerListener
-    def tabPageActivated(self, event):
-        if event.TabPageID == 2:
-            self._manager.activateTab2()
-
-# com.sun.star.lang.XEventListener
-    def disposing(self, source):
-        pass
-
-
-class TabHandler(unohelper.Base,
-                 XContainerWindowEventHandler):
+class WindowHandler(unohelper.Base,
+                    XContainerWindowEventHandler):
     def __init__(self, manager):
         self._manager = manager
 
@@ -78,32 +43,32 @@ class TabHandler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            if method == 'SetDriver':
-                self._manager.setDriver(event.Source.getSelectedItem())
+            if method == 'SetType':
+                self._manager.setType(event.Source.getSelectedItemPos())
                 handled = True
-            elif method == 'EditDriver':
-                self._manager.editDriver()
+            elif method == 'SetStringValue':
+                self._manager.setValue(event.Source.Text)
                 handled = True
-            elif method == 'AddDriver':
-                self._manager.addDriver()
+            elif method == 'SetBooleanValue':
+                self._manager.setValue(bool(event.Source.State))
                 handled = True
-            elif method == 'RemoveDriver':
-                self._manager.removeDriver()
+            elif method == 'EditValue':
+                self._manager.editValue()
+                handled = True
+            elif method == 'AddValue':
+                self._manager.addValue()
+                handled = True
+            elif method == 'RemoveValue':
+                self._manager.removeValue()
+                handled = True
+            elif method == 'SetValue':
+                self._manager.setListValue(event.Source.getText())
                 handled = True
             elif method == 'Confirm':
-                self._manager.confirmDriver()
+                self._manager.confirm()
                 handled = True
             elif method == 'Cancel':
-                self._manager.cancelDriver()
-                handled = True
-            elif method == 'UpdateDriverName':
-                self._manager.updateDriverName(event.Source.Text)
-                handled = True
-            elif method == 'UpdateArchive':
-                self._manager.updateArchive()
-                handled = True
-            elif method == 'SetGroup':
-                self._manager.setGroup(event.Source.getSelectedItem())
+                self._manager.cancel()
                 handled = True
             return handled
         except Exception as e:
@@ -111,13 +76,13 @@ class TabHandler(unohelper.Base,
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('SetDriver',
-                'EditDriver'
-                'AddDriver',
-                'RemoveDriver',
+        return ('SetType',
+                'SetBooleanValue',
+                'SetStringValue',
+                'EditValue',
+                'AddValue',
+                'RemoveValue',
+                'SetValue',
                 'Confirm',
-                'Cancel',
-                'UpdateDriverName',
-                'UpdateArchive',
-                'SetGroup')
+                'Cancel')
 

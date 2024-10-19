@@ -60,7 +60,7 @@ public class ConnectionLog
     {
         uniqueIds = new AtomicInteger[LoggerObjectType.values().length];
         for (int i = 0; i < uniqueIds.length; i++) {
-            uniqueIds[i] = new AtomicInteger(0);
+            uniqueIds[i] = new AtomicInteger(1);
         }
     }
 
@@ -70,7 +70,7 @@ public class ConnectionLog
                          LoggerObjectType type)
     {
         super(logger);
-        m_id = String.format("%s #%s", type.name, uniqueIds[type.ordinal()].getAndIncrement());
+        m_id = String.format("<%s #%s>", type.name, uniqueIds[type.ordinal()].getAndIncrement());
     }
 
     public String getObjectId() {

@@ -27,8 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-
 from ..unotool import getContainerWindow
 
 from ..configuration import g_identifier
@@ -40,41 +38,35 @@ class OptionsView():
     def __init__(self, ctx, window, handler, listener, restart, title1, title2):
         self._tab = 'Tab1'
         self._window = window
-        rectangle = uno.createUnoStruct('com.sun.star.awt.Rectangle', 0, 0, 260, 225)
-        self._tab1, tab2 = self._getTabPages(window, rectangle, title1, title2)
+        self._tab1, tab2 = self._getTabPages(window, title1, title2)
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, 'Option2Dialog')
+        self._tab2.Model.Step = 2
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
-        self.setRestart(restart)
+        print("OptionsView.__init__() restart: %s" % restart)
+        self.setStep(1, restart)
 
 # OptionsView getter methods
     def getTab1(self):
         return self._tab1
 
-    def getSelectedProtocol(self):
-        return self._getProtocols().getSelectedItem()
+    def getTab2(self):
+        return self._tab2
 
-    def getArchive(self):
-        return self._getArchive().Text.strip()
+    def getDriver(self):
+        return self._getDrivers().getSelectedItem()
 
-    def getNewSubProtocol(self):
-        return self._getNewSubProtocol().Text.strip().lower()
+    def getDriverIndex(self):
+        return self._getDrivers().getSelectedItemPos()
 
-    def getNewName(self):
-        return self._getNewName().Text.strip()
+    def getDriverName(self):
+        return self._getDriverName().Text
 
-    def getNewClass(self):
-        return self._getNewClass().Text.strip()
+    def getGroup(self):
+        return self._getGroups().getSelectedItem()
 
-    def getNewArchive(self):
-        return self._getNewArchive().Text.strip()
-
-    def getLogger(self):
-        level = -1
-        control = self._getLevels()
-        if control.Model.Enabled:
-            level = control.getSelectedItemPos()
-        return level
+    def getGroupIndex(self):
+        return self._getGroups().getSelectedItemPos()
 
 # OptionsView setter methods
     def dispose(self):
@@ -83,125 +75,65 @@ class OptionsView():
     def removeTabListener(self, listener):
         self._getTab().removeTabPageContainerListener(listener)
 
-    def setProtocols(self, protocols, protocol):
-        control = self._getProtocols()
-        # XXX: Need to clear ListBox so that the Handle fires for the same selection
-        control.Model.StringItemList = ()
-        control.Model.StringItemList = protocols
-        self._enableProtocols(control, True, protocol)
-
-    def setSubProtocol(self, protocol):
-        self._getSubProtocol().Text = protocol
-
-    def setName(self, name):
-        self._getName().Text = name
-
-    def setClass(self, name):
-        self._getClass().Text = name
-
-    def setArchive(self, name):
-        self._getArchive().Text = name
-
     def setVersion(self, version):
         self._getVersion().Text = version
 
-    def setLogger(self, level=None):
-        control = self._getLevels()
-        enabled = level is not None
-        selected = enabled and level != -1
-        self._setLogger(enabled, selected)
-        self._enableLoggerLevel(control, selected)
-        position = control.getSelectedItemPos()
-        if selected:
-            control.selectItemPos(level, True)
-        elif position != -1:
-            control.selectItemPos(position, False)
+    def setStep(self, step, restart):
+        self._tab2.Model.Step = step
+        # XXX: If we change the step then we have to restore
+        # XXX: the visibility of the controls because it was lost
+        self.setRestart(restart)
 
-    def enableLogger(self, enabled, state):
-        control = self._getLevels()
-        self._enableLoggerLevel(control, state)
-        if not state:
-            position = control.getSelectedItemPos()
-            if position != -1:
-                control.selectItemPos(position, False)
+    def enableConfirm(self, enable):
+        self._getConfirm().Model.Enabled = enable
 
-    def enableButton(self, enabled):
-        self._getRemove().Model.Enabled = enabled
-        self._getUpdate().Model.Enabled = enabled
+    def enableDriverName(self, enable):
+        self._getDriverName().Model.Enabled = enable
 
-    def enableAdd(self):
-        self._setStep(2)
-        # XXX: If we modify the Dialog.Model.Step, we need
-        # XXX: to restore the visibility of the control
-        self._getNew().Model.Enabled = False
-        self._getRemove().Model.Enabled = False
-        self._getUpdate().Model.Enabled = True
-        self.setLogger()
-        self._getNewSubProtocol().setFocus()
+    def setDrivers(self, drivers):
+        control = self._getDrivers()
+        item = control.getSelectedItem()
+        # XXX: Need to clear ListBox so that the Handle fires for the same selection
+        control.Model.StringItemList = ()
+        if drivers:
+            control.Model.StringItemList = drivers
+            if item and item in drivers:
+                control.selectItemPos(drivers.index(item), True)
 
-    def disableAdd(self, enabled):
-        self._setStep(1)
-        # XXX: If we modify the Dialog.Model.Step, we need
-        # XXX: to restore the visibility of the control
-        self._getNew().Model.Enabled = True
-        self._getRemove().Model.Enabled = enabled
-        self._getUpdate().Model.Enabled = enabled
+    def setDriver(self, protocol, name, groups, version, updatable):
+        self._getSubProtocol().Text = protocol
+        self._getDriverName().Text = name
+        control = self._getGroups()
+        # XXX: Need to clear ListBox so that the Handle fires for the same selection
+        control.Model.StringItemList = ()
+        if groups:
+            control.Model.StringItemList = groups
+        self.setVersion(version)
+        self.enableDriver(updatable)
 
-    def exitAdd(self):
-        self._setStep(1)
-        # XXX: If we modify the Dialog.Model.Step, we need
-        # XXX: to restore the visibility of the control
-        self._getNew().Model.Enabled = True
+    def setDriverName(self, name):
+        self._getDriverName().Text = name
 
-    def clearAdd(self):
-        self.exitAdd()
-        self._getNewSubProtocol().Text = ''
-        self._getNewName().Text = ''
-        self._getNewClass().Text = ''
-        self._getNewArchive().Text = ''
+    def selectDriver(self, index):
+        self._getDrivers().selectItemPos(index, True)
 
-    def enableProtocols(self, enabled):
-        control = self._getProtocols()
-        self._enableProtocols(control, enabled)
+    def selectGroup(self, index):
+        self._getGroups().selectItemPos(index, True)
 
-    def enableSave(self, enabled):
-        self._getSave().Model.Enabled = enabled
+    def selectProperty(self, index):
+        self._getProperties().selectItemPos(index, True)
 
-    def setNewArchive(self, archive):
-        self._getNewArchive().Text = archive
+    def enableDriver(self, enabled):
+        self._getEditDriver().Model.Enabled = enabled
+        self._getRemoveDriver().Model.Enabled = enabled
+        self._getUpdateDriver().Model.Enabled = enabled
 
     def setRestart(self, enabled):
         self._getRestart().setVisible(enabled)
 
 # OptionsView private methods
-    def _setLogger(self, enabled, selected):
-        control = self._getLogger()
-        control.Model.Enabled = enabled
-        control.State = int(selected)
-
-    def _enableLoggerLevel(self, control, enabled):
-        self._getLevelLabel().Model.Enabled = enabled
-        control.Model.Enabled = enabled
-
-    def _enableProtocols(self, control, enabled, protocol=None):
-        # XXX: We assume that the root protocol cannot be deleted
-        if enabled:
-            if protocol is not None:
-                control.selectItem(protocol, True)
-            else:
-                control.selectItemPos(0, True)
-            control.Model.Enabled = enabled
-        else:
-            control.Model.Enabled = enabled
-            position = control.getSelectedItemPos()
-            if position != -1:
-                control.selectItemPos(position, False)
-
-    def _setStep(self, step):
-        self._tab2.Model.Step = step
-
-    def _getTabPages(self, window, rectangle, title1, title2, i=1):
-        model = self._getTabModel(window, rectangle)
+    def _getTabPages(self, window, title1, title2, i=1):
+        model = self._getTabModel(window)
         window.Model.insertByName(self._tab, model)
         tab = self._getTab()
         tab1 = self._getTabPage(model, tab, title1)
@@ -209,13 +141,13 @@ class OptionsView():
         tab.ActiveTabPageID = i
         return tab1, tab2
 
-    def _getTabModel(self, window, rectangle):
+    def _getTabModel(self, window):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
         model = window.Model.createInstance(service)
-        model.PositionX = rectangle.X
-        model.PositionY = rectangle.Y
-        model.Width = rectangle.Width
-        model.Height = rectangle.Height
+        model.PositionX = window.Model.PositionX
+        model.PositionY = window.Model.PositionY
+        model.Width = window.Model.Width
+        model.Height = window.Model.Height
         return model
 
     def _getTabPage(self, model, tab, title):
@@ -229,57 +161,36 @@ class OptionsView():
     def _getTab(self):
         return self._window.getControl(self._tab)
 
-    def _getRestart(self):
-        return self._tab2.getControl('Label10')
-
-    def _getProtocols(self):
+    def _getDrivers(self):
         return self._tab2.getControl('ListBox1')
 
-    def _getLevels(self):
-        return self._tab2.getControl('ListBox2')
+    def _getEditDriver(self):
+        return self._tab2.getControl('CommandButton1')
 
-    def _getVersion(self):
-        return self._tab2.getControl('Label4')
+    def _getAddDriver(self):
+        return self._tab2.getControl('CommandButton2')
 
-    def _getLogger(self):
-        return self._tab2.getControl('CheckBox1')
+    def _getRemoveDriver(self):
+        return self._tab2.getControl('CommandButton3')
 
-    def _getLevelLabel(self):
-        return self._tab2.getControl('Label9')
+    def _getConfirm(self):
+        return self._tab2.getControl('CommandButton4')
+
+    def _getUpdateDriver(self):
+        return self._tab2.getControl('CommandButton6')
 
     def _getSubProtocol(self):
         return self._tab2.getControl('TextField1')
 
-    def _getName(self):
-        return self._tab2.getControl('TextField3')
-
-    def _getClass(self):
-        return self._tab2.getControl('TextField5')
-
-    def _getArchive(self):
-        return self._tab2.getControl('TextField7')
-
-    def _getNewSubProtocol(self):
+    def _getDriverName(self):
         return self._tab2.getControl('TextField2')
 
-    def _getNewName(self):
-        return self._tab2.getControl('TextField4')
+    def _getGroups(self):
+        return self._tab2.getControl('ListBox2')
 
-    def _getNewClass(self):
-        return self._tab2.getControl('TextField6')
+    def _getVersion(self):
+        return self._tab2.getControl('Label6')
 
-    def _getNewArchive(self):
-        return self._tab2.getControl('TextField8')
-
-    def _getNew(self):
-        return self._tab2.getControl('CommandButton1')
-
-    def _getRemove(self):
-        return self._tab2.getControl('CommandButton2')
-
-    def _getSave(self):
-        return self._tab2.getControl('CommandButton3')
-
-    def _getUpdate(self):
-        return self._tab2.getControl('CommandButton5')
+    def _getRestart(self):
+        return self._tab2.getControl('Label8')
 

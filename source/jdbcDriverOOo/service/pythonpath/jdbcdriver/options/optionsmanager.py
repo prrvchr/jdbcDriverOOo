@@ -42,6 +42,12 @@ from .optionshandler import TabHandler
 
 from ..option import OptionManager
 
+from .properties import PropertiesManager
+from .properties import WindowHandler
+
+from .dialog import DriverView
+from .dialog import DialogHandler
+
 from ..unotool import getFilePicker
 from ..unotool import getSimpleFile
 from ..unotool import getUrl
@@ -57,18 +63,23 @@ class OptionsManager():
         self._ctx = ctx
         self._lock = Condition()
         self._disposed = False
-        self._disabled = False
+        self._dialog = None
         self._listener = TabListener(self)
         self._model = OptionsModel(ctx, self._lock)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(ctx, window, TabHandler(self), self._listener, OptionsManager._restart, *self._model.getTabTitles())
-        self._manager = OptionManager(ctx, self._view.getTab1(), 0, 'Driver')
-        self._initView()
+        self._tab1 = OptionManager(ctx, self._view.getTab1(), 0, 'Driver')
+        self._properties = PropertiesManager(ctx, self._view.getTab2(), self)
+        self._view.setDrivers(self._model.getDrivers())
+        print("OptionsManager.__init__()")
+        self._disabled = False
+        self._view.selectDriver(0)
 
     _restart = False
 
     def dispose(self):
-        self._manager.dispose()
+        self._tab1.dispose()
+        self._properties.dispose()
         self._view.dispose()
         self._disposed = True
 
@@ -82,7 +93,19 @@ class OptionsManager():
 # OptionsManager setter methods
     def activateTab2(self):
         self._view.removeTabListener(self._listener)
-        self._model.setDriverVersions(self._manager.getDriverService(), self.updateView)
+        self._model.setDriverVersions(self._tab1.getDriverService(), self.updateView)
+
+    def saveSetting(self):
+        saved = self._tab1.saveSetting()
+        if self._model.saveSetting() or saved:
+            print("OptionsManager.saveSetting() ***************************")
+            OptionsManager._restart = True
+            self._view.setRestart(True)
+
+    def loadSetting(self):
+        self._tab1.loadSetting()
+        self._model.loadSetting()
+        self._view.setDrivers(self._model.getDrivers())
 
     def updateView(self, versions):
         with self._lock:
@@ -91,131 +114,163 @@ class OptionsManager():
     def updateVersion(self, versions):
         with self._lock:
             if not self._disposed:
-                protocol = self._view.getSelectedProtocol()
-                if protocol in versions:
-                    self._view.setVersion(versions[protocol])
+                driver = self._view.getDriver()
+                if driver in versions:
+                    self._view.setVersion(versions[driver])
 
-    def saveSetting(self):
-        saved = self._manager.saveSetting()
-        if self._model.saveSetting() or saved:
-            OptionsManager._restart = True
-            self._view.setRestart(True)
 
-    def loadSetting(self):
-        self._manager.loadSetting()
-        # XXX: We need to exit from Add new Driver mode if needed...
-        self._view.exitAdd()
-        self._initView()
+    # Option2Dialog.xdl handler entries
+    def setDriver(self, driver):
+        print("OptionsManager.setDriver() Driver: %s - disabled: %s" % (driver, self._disabled))
+        if self._disabled:
+            self._disabled = False
+            return
+        group = self._view.getGroup()
+        protocol, name, groups, version, updatable = self._model.getDriver(driver)
+        self._view.setDriver(protocol, name, groups, version, updatable)
+        index = groups.index(group) if group in groups else 0
+        self._disabled = False
+        self._view.selectGroup(index)
 
-    def setDriverService(self, driver):
-        level = self._view.getApiLevel()
-        self._view.setApiLevel(*self._model.setDriverService(driver, level))
+    def editDriver(self):
+        self._view.enableDriverName(True)
+        self._view.enableConfirm(False)
+        self._view.setStep(2, OptionsManager._restart)
 
-    def setApiLevel(self, level):
-        self._view.enableOptions(*self._model.setApiLevel(level))
-
-    def setSystemTable(self, state):
-        self._model.setSystemTable(state)
-
-    def setBookmark(self, state):
-        self._model.setBookmark(state)
-        self._view.enableSQLMode(state)
-
-    def setSQLMode(self, state):
-        self._model.setSQLMode(state)
-
-    def updateArchive(self):
-        archive = self._updateArchive()
-        if archive is not None:
-            protocol = self._view.getSelectedProtocol()
-            self._model.updateArchive(protocol, archive)
-            self._initView(protocol)
-
-    def searchArchive(self):
-        archive = self._updateArchive()
-        if archive is not None:
-            self._view.setNewArchive(archive)
-
-    def newDriver(self):
-        # XXX: New button deselect any item in the driver's ListBox, as a result 
-        # XXX: setDriver() will be called by the handler with an empty selection
-        self._view.enableProtocols(False)
-
-    def setDriver(self, protocol):
-        # XXX: If selection is empty we are in Add driver mode
-        if protocol:
-            self._setDriver(protocol)
-        else:
-            self._addDriver()
+    def addDriver(self):
+        print("OptionsManager.addDriver() 1")
+        self._model.clearJarPath()
+        self._dialog = DriverView(self._ctx, self._view.getTab2(), DialogHandler(self), 'DriverDialog')
+        print("OptionsManager.addDriver() 2")
+        if self._dialog.execute() == OK:
+            subprotocol = self._dialog.getProtocol()
+            name = self._dialog.getDriver()
+            javaclass = self._dialog.getJavaClass()
+            driver = self._model.addDriver(subprotocol, name, javaclass)
+            drivers = self._model.getDrivers()
+            self._view.setDrivers(drivers)
+            self._view.selectDriver(drivers.index(driver))
+            print("OptionsManager.addDriver() 3")
+        self._dialog.dispose()
+        self._dialog = None
+        print("OptionsManager.addDriver() 4")
 
     def removeDriver(self):
-        protocol = self._view.getSelectedProtocol()
-        if self._model.removeProtocol(protocol):
-            self._initView()
+        self._model.removeDriver(self._view.getDriver())
+        self._view.setDrivers(self._model.getDrivers())
+        self._view.selectDriver(0)
 
-    def saveDriver(self):
-        subprotocol = self._view.getNewSubProtocol()
-        name = self._view.getNewName()
-        clazz = self._view.getNewClass()
-        archive = self._view.getNewArchive()
-        logger = self._view.getLogger()
-        protocol = self._model.saveDriver(subprotocol, name, clazz, archive, logger)
-        self._view.clearAdd()
-        self._initView(protocol)
+    def confirmDriver(self):
+        driver = self._view.getDriver()
+        name = self._view.getDriverName()
+        self._model.updateDriverName(driver, name)
+        self._view.enableDriverName(False)
+        self._view.setStep(1, OptionsManager._restart)
 
     def cancelDriver(self):
-        self._view.enableProtocols(True)
-        protocol = self._view.getSelectedProtocol()
-        root = self._model.isNotRoot(protocol)
-        self._view.disableAdd(root)
+        driver = self._view.getDriver()
+        self._view.setDriverName(self._model.getDriverName(driver))
+        self._view.enableDriverName(False)
+        self._view.setStep(1, OptionsManager._restart)
 
-    def checkDriver(self):
-        protocol = self._view.getNewSubProtocol()
-        name = self._view.getNewName()
-        clazz = self._view.getNewClass()
-        archive = self._view.getNewArchive()
-        enabled = self._model.isDriverValide(protocol, name, clazz, archive)
-        self._view.enableSave(enabled)
+    def updateDriverName(self, name):
+        self._view.enableConfirm(self._model.isDriverNameValid(name))
 
-    def setLogger(self, level):
-        protocol = self._view.getSelectedProtocol()
-        self._model.setLogger(protocol, level)
+    def updateArchive(self):
+        archives = self._getArchives()
+        if archives:
+            driver = self._view.getDriver()
+            self._model.updateArchive(driver, archives)
 
-    def toggleLogger(self, enabled, state):
-         self._view.enableLogger(enabled, state)
-         if enabled and not state:
-             self.setLogger(-1)
+    def setGroup(self, group):
+        print("OptionsManager.setGroup() Group: %s - disabled: %s" % (group, self._disabled))
+        if self._disabled:
+            self._disabled = False
+            return
+        driver = self._view.getDriver()
+        property = self._properties.getPropertiesItem()
+        self._properties.setProperties(*self._model.getProperties(driver, group, property))
+
+    # PropertiesWindow.xdl handler entries
+    def setProperty(self, property):
+        print("OptionsManager.setProperty() Property: %s - disabled: %s" % (property, self._disabled))
+        if self._disabled:
+            self._disabled = False
+            return
+        driver = self._view.getDriver()
+        group = self._view.getGroup()
+        self._properties.setProperty(*self._model.getProperty(driver, group, property))
+
+    def editProperty(self):
+        self._model.setNew(False)
+        self._properties.editProperty()
+
+    def addProperty(self):
+        self._model.setNew(True)
+        self._properties.addProperty()
+
+    def removeProperty(self):
+        driver = self._view.getDriver()
+        group = self._view.getGroup()
+        property = self._properties.getPropertiesItem()
+        self._model.removeProperty(driver, group, property)
+
+    def setPropertyName(self, name):
+        driver = self._view.getDriver()
+        group = self._view.getGroup()
+        self._properties.enableConfirm(self._model.isPropertyNameValid(driver, group, name))
+
+    def confirmProperty(self):
+        driver = self._view.getDriver()
+        group = self._view.getGroup()
+        new = self._properties.getPropertyName()
+        if self._model.isNew():
+            properties = self._model.addProperty(driver, group, new)
+            index = len(properties) - 1
+        else:
+            old = self._properties.getPropertiesItem()
+            properties = self._model.editProperty(driver, group, new, old)
+            index = properties.index(new)
+        self._properties.setProperties(properties, index, True)
+        self._properties.exitEdit()
+
+    def cancelProperty(self):
+        self._properties.exitEdit()
+
+    # DriverDialog.xdl handler entries
+    def setSubProtocol(self, subprotocol):
+        name = self._dialog.getDriver()
+        javaclass = self._dialog.getJavaClass()
+        self._dialog.enableConfirm(self._model.isDriverValid(subprotocol, name, javaclass))
+
+    def setDriverName(self, name):
+        subprotocol = self._dialog.getProtocol()
+        javaclass = self._dialog.getJavaClass()
+        self._dialog.enableConfirm(self._model.isDriverValid(subprotocol, name, javaclass))
+
+    def setJavaClass(self, javaclass):
+        subprotocol = self._dialog.getProtocol()
+        name = self._dialog.getDriver()
+        self._dialog.enableConfirm(self._model.isDriverValid(subprotocol, name, javaclass))
+
+    def setArchive(self):
+        archives = self._getArchives()
+        if archives:
+            subprotocol = self._dialog.getProtocol()
+            name = self._dialog.getDriver()
+            javaclass = self._dialog.getJavaClass()
+            self._model.setArchive(subprotocol, archives)
+            self._dialog.enableConfirm(self._model.isDriverValid(subprotocol, name, javaclass))
 
 # OptionsManager private methods
-    def _disableHandler(self):
-        self._disabled = True
-
-    def _initView(self, driver=None):
-        self._disableHandler()
-        self._view.setProtocols(self._model.getProtocols(), driver)
-
-    def _updateArchive(self):
+    def _getArchives(self):
+        archives = ()
         fp = getFilePicker(self._ctx)
         fp.setDisplayDirectory(self._model.getPath())
+        fp.setMultiSelectionMode(True)
         fp.appendFilter(g_jar, g_jar)
         fp.setCurrentFilter(g_jar)
         if fp.execute() == OK:
-            url = getUrl(self._ctx, fp.getFiles()[0])
-            getSimpleFile(self._ctx).copy(url.Main, self._model.getTarget(url))
-            self._model.setPath(url)
-            return url.Name
-        return None
-
-    def _setDriver(self, protocol):
-        self._view.setVersion(self._model.getDriverVersion(protocol))
-        self._view.setSubProtocol(self._model.getSubProtocol(protocol))
-        self._view.setName(self._model.getDriverName(protocol))
-        self._view.setClass(self._model.getDriverClass(protocol))
-        self._view.setArchive(self._model.getDriverArchive(protocol))
-        self._view.setLogger(self._model.getLogger(protocol))
-        self._view.enableButton(self._model.isNotRoot(protocol))
-
-    def _addDriver(self):
-        self._view.enableAdd()
-        self.checkDriver()
+            archives = fp.getSelectedFiles()
+        return archives
 

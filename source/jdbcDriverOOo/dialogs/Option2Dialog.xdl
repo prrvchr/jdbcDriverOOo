@@ -6,68 +6,43 @@
   </dlg:styles>
   <dlg:bulletinboard>
     <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine1" dlg:tab-index="0" dlg:left="6" dlg:top="3" dlg:width="244" dlg:height="14" dlg:help-text="&amp;Option2Dialog.FixedLine1.HelpText" dlg:value="&amp;Option2Dialog.FixedLine1.Label"/>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="75" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label1.HelpText" dlg:value="&amp;Option2Dialog.Label1.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="10" dlg:top="40" dlg:width="75" dlg:height="75" dlg:help-text="&amp;Option2Dialog.ListBox1.HelpText" dlg:value="&amp;Option2Dialog.ListBox1.Text">
+    <dlg:text dlg:id="Label1" dlg:tab-index="1" dlg:left="10" dlg:top="20" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label1.HelpText" dlg:value="&amp;Option2Dialog.Label1.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox1" dlg:tab-index="2" dlg:left="55" dlg:top="20" dlg:width="107" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox1.HelpText" dlg:value="&amp;Option2Dialog.ListBox1.Text" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetDriver" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:disabled="false" dlg:left="10" dlg:top="120" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton1.HelpText" dlg:value="&amp;Option2Dialog.CommandButton1.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:New" script:language="UNO"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="3" dlg:page="1" dlg:disabled="true" dlg:left="172" dlg:top="18" dlg:width="38" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton1.HelpText" dlg:value="&amp;Option2Dialog.CommandButton1.Label" dlg:valign="center">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:EditDriver" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:disabled="false" dlg:left="50" dlg:top="120" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton2.HelpText" dlg:value="&amp;Option2Dialog.CommandButton2.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Remove" script:language="UNO"/>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="4" dlg:page="1" dlg:left="212" dlg:top="18" dlg:width="18" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton2.HelpText" dlg:value="&amp;Option2Dialog.CommandButton2.Label" dlg:valign="center">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddDriver" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:page="1" dlg:id="Label2" dlg:tab-index="5" dlg:left="100" dlg:top="20" dlg:width="60" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label2.HelpText" dlg:value="&amp;Option2Dialog.Label2.Label" dlg:valign="center"/>
-    <dlg:text dlg:style-id="0" dlg:page="2" dlg:id="Label3" dlg:tab-index="6" dlg:left="100" dlg:top="20" dlg:width="60" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label3.HelpText" dlg:value="&amp;Option2Dialog.Label3.Label" dlg:valign="center"/>
-    <dlg:text dlg:page="1" dlg:id="Label4" dlg:tab-index="7" dlg:left="160" dlg:top="20" dlg:width="90" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label4.HelpText" dlg:value="&amp;Option2Dialog.Label4.Label" dlg:valign="center" dlg:align="right"/>
-    <dlg:button dlg:page="2" dlg:id="CommandButton3" dlg:tab-index="8" dlg:disabled="true" dlg:left="175" dlg:top="20" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton3.HelpText" dlg:value="&amp;Option2Dialog.CommandButton3.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Save" script:language="UNO"/>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="5" dlg:page="1" dlg:disabled="true" dlg:left="232" dlg:top="18" dlg:width="18" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton3.HelpText" dlg:value="&amp;Option2Dialog.CommandButton3.Label" dlg:valign="center">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveDriver" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:page="2" dlg:id="CommandButton4" dlg:tab-index="9" dlg:left="215" dlg:top="20" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton4.HelpText" dlg:value="&amp;Option2Dialog.CommandButton4.Label">
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="6" dlg:page="2" dlg:disabled="true" dlg:left="172" dlg:top="18" dlg:width="38" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton4.HelpText" dlg:value="&amp;Option2Dialog.CommandButton4.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Confirm" script:language="UNO"/>
+    </dlg:button>
+    <dlg:button dlg:id="CommandButton5" dlg:tab-index="7" dlg:page="2" dlg:left="212" dlg:top="18" dlg:width="38" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton5.HelpText" dlg:value="&amp;Option2Dialog.CommandButton5.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Cancel" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:id="Label5" dlg:tab-index="10" dlg:left="100" dlg:top="40" dlg:width="50" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label5.HelpText" dlg:value="&amp;Option2Dialog.Label5.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:page="1" dlg:id="TextField1" dlg:disabled="true" dlg:tab-index="11" dlg:left="155" dlg:top="40" dlg:width="95" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField1.HelpText" dlg:value="&amp;Option2Dialog.TextField1.Text"/>
-    <dlg:textfield dlg:page="2" dlg:id="TextField2" dlg:tab-index="12" dlg:left="155" dlg:top="40" dlg:width="95" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField2.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:Check" script:language="UNO"/>
+    <dlg:text dlg:id="Label2" dlg:tab-index="8" dlg:left="10" dlg:top="40" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label2.HelpText" dlg:value="&amp;Option2Dialog.Label2.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField1" dlg:disabled="true" dlg:tab-index="9" dlg:left="55" dlg:top="40" dlg:width="50" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField1.HelpText" dlg:value="&amp;Option2Dialog.TextField1.Text"/>
+    <dlg:text dlg:id="Label3" dlg:tab-index="10" dlg:left="143" dlg:top="40" dlg:width="25" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label3.HelpText" dlg:value="&amp;Option2Dialog.Label3.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField2" dlg:tab-index="11" dlg:disabled="true" dlg:left="172" dlg:top="40" dlg:width="78" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField2.HelpText" dlg:value="&amp;Option2Dialog.TextField2.Text">
+      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:UpdateDriverName" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label6" dlg:tab-index="13" dlg:left="100" dlg:top="60" dlg:width="50" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label6.HelpText" dlg:value="&amp;Option2Dialog.Label6.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:page="1" dlg:id="TextField3" dlg:disabled="true" dlg:tab-index="14" dlg:left="155" dlg:top="60" dlg:width="95" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField3.HelpText" dlg:value="&amp;Option2Dialog.TextField3.Text"/>
-    <dlg:textfield dlg:page="2" dlg:id="TextField4" dlg:tab-index="15" dlg:left="155" dlg:top="60" dlg:width="95" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField4.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:Check" script:language="UNO"/>
-    </dlg:textfield>
-    <dlg:text dlg:id="Label7" dlg:tab-index="16" dlg:left="100" dlg:top="80" dlg:width="50" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label7.HelpText" dlg:value="&amp;Option2Dialog.Label7.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:page="1" dlg:id="TextField5" dlg:disabled="true" dlg:tab-index="17" dlg:left="155" dlg:top="80" dlg:width="95" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField5.HelpText" dlg:value="&amp;Option2Dialog.TextField5.Text"/>
-    <dlg:textfield dlg:page="2" dlg:id="TextField6" dlg:tab-index="18" dlg:left="155" dlg:top="80" dlg:width="95" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField6.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:Check" script:language="UNO"/>
-    </dlg:textfield>
-    <dlg:text dlg:id="Label8" dlg:tab-index="19" dlg:left="100" dlg:top="100" dlg:width="50" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label8.HelpText" dlg:value="&amp;Option2Dialog.Label8.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:page="1" dlg:id="TextField7" dlg:disabled="true" dlg:tab-index="20" dlg:left="155" dlg:top="100" dlg:width="55" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField7.HelpText" dlg:value="&amp;Option2Dialog.TextField7.Text"/>
-    <dlg:textfield dlg:page="2" dlg:id="TextField8" dlg:disabled="true" dlg:tab-index="21" dlg:left="155" dlg:top="100" dlg:width="55" dlg:height="15" dlg:help-text="&amp;Option2Dialog.TextField8.HelpText">
-      <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:Check" script:language="UNO"/>
-    </dlg:textfield>
-    <dlg:button dlg:page="1" dlg:id="CommandButton5" dlg:tab-index="22" dlg:disabled="false" dlg:left="215" dlg:top="100" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton5.HelpText" dlg:value="&amp;Option2Dialog.CommandButton5.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Update" script:language="UNO"/>
+    <dlg:text dlg:id="Label4" dlg:tab-index="12" dlg:left="10" dlg:top="60" dlg:width="75" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label4.HelpText" dlg:value="&amp;Option2Dialog.Label4.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton6" dlg:tab-index="13" dlg:disabled="true" dlg:left="110" dlg:top="58" dlg:width="140" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton6.HelpText" dlg:value="&amp;Option2Dialog.CommandButton6.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:UpdateArchive" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:page="2" dlg:id="CommandButton6" dlg:tab-index="23" dlg:disabled="false" dlg:left="215" dlg:top="100" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CommandButton6.HelpText" dlg:value="&amp;Option2Dialog.CommandButton6.Label">
-      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Search" script:language="UNO"/>
-    </dlg:button>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="24" dlg:left="100" dlg:top="120" dlg:width="70" dlg:height="15" dlg:help-text="&amp;Option2Dialog.CheckBox1.HelpText" dlg:value="&amp;Option2Dialog.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ToggleLogger" script:language="UNO"/>
-    </dlg:checkbox>
-    <dlg:text dlg:id="Label9" dlg:tab-index="25" dlg:left="180" dlg:top="120" dlg:width="20" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label9.HelpText" dlg:value="&amp;Option2Dialog.Label9.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="26" dlg:left="205" dlg:top="120" dlg:width="45" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox2.HelpText" dlg:spin="true">
-      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetLogger" script:language="UNO"/>
-      <dlg:menupopup>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.0"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.1"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.2"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.3"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.4"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.5"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.6"/>
-        <dlg:menuitem dlg:value="&amp;Option2Dialog.ListBox2.StringItemList.7"/>
-      </dlg:menupopup>
+    <dlg:text dlg:id="Label5" dlg:tab-index="14" dlg:left="10" dlg:top="80" dlg:width="75" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label5.HelpText" dlg:value="&amp;Option2Dialog.Label5.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label6" dlg:tab-index="15" dlg:left="110" dlg:top="80" dlg:width="140" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label6.HelpText" dlg:value="&amp;Option2Dialog.Label6.Label" dlg:valign="center" dlg:align="right"/>
+
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="16" dlg:left="6" dlg:top="102" dlg:width="244" dlg:height="14" dlg:help-text="&amp;Option2Dialog.FixedLine2.HelpText" dlg:value="&amp;Option2Dialog.FixedLine2.Label"/>
+    <dlg:text dlg:id="Label7" dlg:tab-index="17" dlg:left="10" dlg:top="120" dlg:width="35" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label7.HelpText" dlg:value="&amp;Option2Dialog.Label7.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="18" dlg:left="55" dlg:top="120" dlg:width="107" dlg:height="15" dlg:help-text="&amp;Option2Dialog.ListBox2.HelpText" dlg:value="&amp;Option2Dialog.ListBox2.Text" dlg:spin="true">
+      <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGroup" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:style-id="0" dlg:id="Label10" dlg:tab-index="27" dlg:left="10" dlg:top="145" dlg:width="240" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label10.HelpText" dlg:value="&amp;Option2Dialog.Label10.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label8" dlg:tab-index="19" dlg:left="10" dlg:top="205" dlg:width="240" dlg:height="15" dlg:help-text="&amp;Option2Dialog.Label8.HelpText" dlg:value="&amp;Option2Dialog.Label8.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>
