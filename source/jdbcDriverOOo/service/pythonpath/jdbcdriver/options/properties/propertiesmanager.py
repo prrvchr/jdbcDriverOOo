@@ -39,31 +39,43 @@ import traceback
 class PropertiesManager():
     def __init__(self, ctx, window, manager):
         self._view = PropertiesView(ctx, window, WindowHandler(manager))
-        self._property = PropertyManager(ctx, self._view.getWindow())
-
-        print("PropertiesManager.__init__()")
+        self._property = PropertyManager(ctx, self._view.getWindow(), manager)
 
 # PropertiesManager getter methods
     def getPropertiesItem(self):
         return self._view.getPropertiesItem()
 
-    def getPropertiesIndex(self):
-        return self._view.getPropertiesIndex()
-
     def getPropertyName(self):
         return self._view.getPropertyName()
 
+    def getPropertyValue(self):
+        return self._property.getPropertyValue()
+
+    def getValuesIndex(self):
+        return self._property.getValuesIndex()
+
+    def getTypesIndex(self):
+        return self._property.getTypesIndex()
+
+    def getCheckBoxValue(self):
+        return self._property.getCheckBoxValue()
+
+    def getListBoxValue(self):
+        return self._property.getListBoxValue()
+
+    def getTextFieldValue(self):
+        return self._property.getTextFieldValue()
+
 # PropertiesManager setter methods
     def dispose(self):
+        self._property.dispose()
         self._view.dispose()
 
-    def setProperties(self, properties, index, updatable=True):
+    def setProperties(self, properties, updatable=True):
         self._view.setProperties(properties, updatable)
-        if index < len(properties):
-            self._view.setProperty(index)
 
-    def setProperty(self, value, updatable=True):
-        self._property.setProperty(value, updatable)
+    def selectProperty(self, index):
+        self._view.selectProperty(index)
 
     def editProperty(self):
         self._view.setPropertyName(self._view.getPropertiesItem())
@@ -74,10 +86,48 @@ class PropertiesManager():
         self._view.clearPropertyName()
         self._view.enableConfirm(False)
         self._view.setStep(2)
-        self._property.setProperty(None)
 
     def enableConfirm(self, enable):
         self._view.enableConfirm(enable)
 
-    def exitEdit(self):
+    def exitEditProperty(self):
         self._view.setStep(1)
+
+    def setPropertyFocus(self):
+        self._view.setDefaultFocus()
+
+    def setValueFocus(self):
+        self._property.setDefaultFocus()
+
+    # PropertyManager entries
+    def selectType(self, index):
+        self._property.selectType(index)
+
+    def enableTypes(self, enabled):
+        self._property.enableTypes(enabled)
+
+    def selectPropertyValue(self, index):
+        self._property.selectPropertyValue(index)
+
+    def setCheckBoxValue(self, value, updatable):
+        self._property.setCheckBoxValue(value, updatable)
+
+    def setListBoxValue(self, value, updatable):
+        self._property.setListBoxValue(value, updatable)
+
+    def setTextFieldValue(self, value, updatable):
+        self._property.setTextFieldValue(value, updatable)
+
+    # PropertyWindow.xdl handler entries
+    def setType(self, index):
+        self._property.setType(index)
+
+    def editValue(self):
+        self._property.editValue()
+
+    def addValue(self):
+        self._property.addValue()
+
+    def cancelValue(self):
+        self._property.cancelValue()
+

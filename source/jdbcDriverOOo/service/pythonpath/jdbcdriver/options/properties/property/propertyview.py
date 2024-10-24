@@ -41,10 +41,22 @@ class PropertyView():
 
 # PropertyView getter methods
     def getValuesIndex(self):
-        return self._getValues().getSelectedItemPos()
+        return self._getListBox().getSelectedItemPos()
 
     def getValuesItem(self):
-        return self._getValues().getSelectedItem()
+        return self._getListBox().getSelectedItem()
+
+    def getTypesIndex(self):
+        return self._getTypes().getSelectedItemPos()
+
+    def getCheckBoxValue(self):
+        return bool(self._getCheckBox().State)
+
+    def getListBoxValue(self):
+        return self._getListBox().Model.StringItemList
+
+    def getTextFieldValue(self):
+        return self._getTextField().Text
 
     def getValue(self):
         return self._getValue().Text
@@ -53,35 +65,39 @@ class PropertyView():
     def dispose(self):
         self._window.dispose()
 
-    def setProperty(self, value, index, updatable):
-        self._getTypes().selectItemPos(index, True)
-        #self.setType(index)
-        if type(value) == bool:
-            control = self._getBooleanValue()
-            control.State = int(value)
-        elif type(value) == tuple:
-            control = self._getValues()
-            self._setValues(control, value, 0)
-        else:
-            control = self._getStringValue()
-            control.Text = value
+    def setCheckBoxValue(self, value, updatable):
+        control = self._getCheckBox()
+        control.State = int(value)
         control.Model.Enabled = updatable
-        self.enableTypes(False)
+
+    def setListBoxValue(self, value, updatable):
+        control = self._getListBox()
+        control.Model.StringItemList = value
+        control.Model.Enabled = updatable
+        enabled = len(value) > 0
+        self._enableButton(updatable, enabled)
+
+    def setTextFieldValue(self, value, updatable):
+        control = self._getTextField()
+        control.Text = value
+        control.Model.HelpText = value
+        control.Model.Enabled = updatable
 
     def setType(self, index):
-        print("PropertyView.setType() type: %s" % index)
         self.setStep(index + 1)
 
     def selectType(self, index):
-        print("PropertyView.selectType() type: %s" % index)
         self._getTypes().selectItemPos(index, True)
 
-    def setStep(self, step):
-        print("PropertyView.setStep() step: %s" % step)
-        self._window.Model.Step = step
+    def selectPropertyValue(self, index):
+        if index != -1:
+            self._getListBox().selectItemPos(index, True)
 
-    def setValues(self, values, index):
-        self._setValues(self._getValues(), values, index)
+    def setDefaultFocus(self):
+        self._getEditValue().setFocus()
+
+    def setStep(self, step):
+        self._window.Model.Step = step
 
     def enableTypes(self, enable):
         self._getTypes().Model.Enabled = enable
@@ -93,22 +109,22 @@ class PropertyView():
         self._getValue().Text = value
 
 # PropertyView private methods
-    def _setValues(self, control, values, index):
-        control.Model.StringItemList = values
-        if values:
-            control.selectItemPos(index, True)
+    def _enableButton(self, updatable, enabled):
+        self._getEditValue().Model.Enabled = updatable and enabled
+        self._getAddValue().Model.Enabled = updatable
+        self._getRemoveValue().Model.Enabled = updatable and enabled
 
 # PropertyView private control methods
     def _getTypes(self):
         return self._window.getControl('ListBox1')
 
-    def _getBooleanValue(self):
+    def _getCheckBox(self):
         return self._window.getControl('CheckBox1')
 
-    def _getStringValue(self):
+    def _getTextField(self):
         return self._window.getControl('TextField1')
 
-    def _getValues(self):
+    def _getListBox(self):
         return self._window.getControl('ListBox2')
 
     def _getValue(self):
@@ -122,10 +138,4 @@ class PropertyView():
 
     def _getRemoveValue(self):
         return self._window.getControl('CommandButton3')
-
-    def _getConfirm(self):
-        return self._window.getControl('CommandButton4')
-
-    def _getCancel(self):
-        return self._window.getControl('CommandButton5')
 

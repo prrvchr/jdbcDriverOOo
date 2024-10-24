@@ -40,20 +40,17 @@ class PropertiesView():
         self._window.setVisible(True)
         self.setStep(1)
 
-# PropertyView getter methods
+# PropertiesView getter methods
     def getWindow(self):
         return self._window
 
     def getPropertiesItem(self):
         return self._getProperties().getSelectedItem()
 
-    def getPropertiesIndex(self):
-        return self._getProperties().getSelectedItemPos()
-
     def getPropertyName(self):
         return self._getPropertyName().Text
 
-# PropertyView setter methods
+# PropertiesView setter methods
     def dispose(self):
         self._window.dispose()
 
@@ -70,7 +67,7 @@ class PropertiesView():
             self._getRemoveProperty().Model.Enabled = False
         self._getAddProperty().Model.Enabled = updatable
 
-    def setProperty(self, index):
+    def selectProperty(self, index):
         self._getProperties().selectItemPos(index, True)
 
     def enableEdit(self, enable):
@@ -79,8 +76,10 @@ class PropertiesView():
     def enableConfirm(self, enable):
         self._getConfirm().Model.Enabled = enable
 
+    def setDefaultFocus(self):
+        self._getEditProperty().setFocus()
+
     def setStep(self, step):
-        print("PropertiesView.setStep() step: %s" % step)
         self._window.Model.Step = step
 
     def clearPropertyName(self):
@@ -107,7 +106,4 @@ class PropertiesView():
 
     def _getConfirm(self):
         return self._window.getControl('CommandButton4')
-
-    def _getCancel(self):
-        return self._window.getControl('CommandButton5')
 

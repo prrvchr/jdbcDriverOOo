@@ -1,27 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                    ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║                                                                                    ║
+║   Permission is hereby granted, free of charge, to any person obtaining            ║
+║   a copy of this software and associated documentation files (the "Software"),     ║
+║   to deal in the Software without restriction, including without limitation        ║
+║   the rights to use, copy, modify, merge, publish, distribute, sublicense,         ║
+║   and/or sell copies of the Software, and to permit persons to whom the Software   ║
+║   is furnished to do so, subject to the following conditions:                      ║
+║                                                                                    ║
+║   The above copyright notice and this permission notice shall be included in       ║
+║   all copies or substantial portions of the Software.                              ║
+║                                                                                    ║
+║   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,                  ║
+║   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES                  ║
+║   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.        ║
+║   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY             ║
+║   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,             ║
+║   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE       ║
+║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
+║                                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+-->
 <!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
-<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="DriverDialog" dlg:left="1" dlg:top="11" dlg:width="180" dlg:height="115" dlg:help-text="&amp;DriverDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;DriverDialog.Title">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="DriverDialog" dlg:left="1" dlg:top="11" dlg:width="180" dlg:height="119" dlg:help-text="&amp;DriverDialog.HelpText" dlg:closeable="true" dlg:moveable="true" dlg:title="&amp;DriverDialog.Title">
   <dlg:styles>
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="55" dlg:height="15" dlg:help-text="&amp;DriverDialog.Label1.HelpText" dlg:value="&amp;DriverDialog.Label1.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="1" dlg:left="75" dlg:top="10" dlg:width="100" dlg:height="15" dlg:help-text="&amp;DriverDialog.TextField1.HelpText" dlg:value="&amp;DriverDialog.TextField1.Text">
+    <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="55" dlg:height="18" dlg:help-text="&amp;DriverDialog.Label1.HelpText" dlg:value="&amp;DriverDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="1" dlg:left="75" dlg:top="10" dlg:width="100" dlg:height="18" dlg:help-text="&amp;DriverDialog.TextField1.HelpText" dlg:value="&amp;DriverDialog.TextField1.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:SetSubProtocol" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="30" dlg:width="55" dlg:height="15" dlg:help-text="&amp;DriverDialog.Label2.HelpText" dlg:value="&amp;DriverDialog.Label2.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField2" dlg:tab-index="3" dlg:left="75" dlg:top="30" dlg:width="100" dlg:height="15" dlg:help-text="&amp;DriverDialog.TextField2.HelpText" dlg:value="&amp;DriverDialog.TextField2.Text">
+    <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="31" dlg:width="55" dlg:height="18" dlg:help-text="&amp;DriverDialog.Label2.HelpText" dlg:value="&amp;DriverDialog.Label2.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField2" dlg:tab-index="3" dlg:left="75" dlg:top="31" dlg:width="100" dlg:height="18" dlg:help-text="&amp;DriverDialog.TextField2.HelpText" dlg:value="&amp;DriverDialog.TextField2.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:SetDriverName" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label3" dlg:tab-index="4" dlg:left="10" dlg:top="50" dlg:width="55" dlg:height="15" dlg:help-text="&amp;DriverDialog.Label3.HelpText" dlg:value="&amp;DriverDialog.Label3.Label" dlg:valign="center"/>
-    <dlg:textfield dlg:id="TextField3" dlg:tab-index="5" dlg:left="75" dlg:top="50" dlg:width="100" dlg:height="15" dlg:help-text="&amp;DriverDialog.TextField3.HelpText" dlg:value="&amp;DriverDialog.TextField3.Text">
+    <dlg:text dlg:id="Label3" dlg:tab-index="4" dlg:left="10" dlg:top="52" dlg:width="55" dlg:height="18" dlg:help-text="&amp;DriverDialog.Label3.HelpText" dlg:value="&amp;DriverDialog.Label3.Label" dlg:valign="center"/>
+    <dlg:textfield dlg:id="TextField3" dlg:tab-index="5" dlg:left="75" dlg:top="52" dlg:width="100" dlg:height="18" dlg:help-text="&amp;DriverDialog.TextField3.HelpText" dlg:value="&amp;DriverDialog.TextField3.Text">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:SetJavaClass" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:text dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="70" dlg:width="55" dlg:height="15" dlg:help-text="&amp;DriverDialog.Label4.HelpText" dlg:value="&amp;DriverDialog.Label4.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:left="75" dlg:top="68" dlg:width="100" dlg:height="18" dlg:help-text="&amp;DriverDialog.CommandButton1.HelpText" dlg:value="&amp;DriverDialog.CommandButton1.Label">
+    <dlg:text dlg:id="Label4" dlg:tab-index="6" dlg:left="10" dlg:top="73" dlg:width="55" dlg:height="18" dlg:help-text="&amp;DriverDialog.Label4.HelpText" dlg:value="&amp;DriverDialog.Label4.Label" dlg:valign="center"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:left="75" dlg:top="73" dlg:width="100" dlg:height="18" dlg:help-text="&amp;DriverDialog.CommandButton1.HelpText" dlg:value="&amp;DriverDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:SetArchive" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:left="97" dlg:top="93" dlg:width="38" dlg:height="18" dlg:help-text="&amp;DriverDialog.CommandButton2.HelpText" dlg:value="&amp;DriverDialog.CommandButton2.Label" dlg:button-type="cancel"/>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="9" dlg:disabled="true" dlg:left="137" dlg:top="93" dlg:width="38" dlg:height="18" dlg:help-text="&amp;DriverDialog.CommandButton3.HelpText" dlg:value="&amp;DriverDialog.CommandButton3.Label" dlg:button-type="ok"/>
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:left="97" dlg:top="96" dlg:width="38" dlg:height="18" dlg:help-text="&amp;DriverDialog.CommandButton2.HelpText" dlg:value="&amp;DriverDialog.CommandButton2.Label" dlg:button-type="cancel"/>
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="9" dlg:disabled="true" dlg:left="137" dlg:top="96" dlg:width="38" dlg:height="18" dlg:help-text="&amp;DriverDialog.CommandButton3.HelpText" dlg:value="&amp;DriverDialog.CommandButton3.Label" dlg:button-type="ok"/>
   </dlg:bulletinboard>
 </dlg:window>

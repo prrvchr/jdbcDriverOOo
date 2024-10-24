@@ -58,36 +58,38 @@ class OptionsModel():
     def __init__(self, ctx, lock):
         self._ctx = ctx
         self._lock = lock
-        self._new = False
+        self._propertymode = 0
+        self._value = None
+        self._valuemode = 0
         self._protocol = 'xdbc:'
         self._root = self._protocol + '*'
-        self._version = 'Version: %s'
-        self._default = 'Version: N/A'
+        self._path = None
+        self._tmp = '/tmp'
+        self._origin = '%origin%'
+        self._jarpath = None
+        self._versions = {}
         self._groups = 'Groups'
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
-        self._path = None
-        self._tmp = '/tmp'
-        self._jarpath = None
         self._classpath = 'JavaDriverClassPath'
-        self._versions = {}
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
         # FIXME: The supported types must follow the display order of the Property Type ListBox
         self._types = (bool, str, tuple)
-        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
-        self._resources = {'TabTitle1' : 'OptionsDialog.Tab1.Title',
-                           'TabTitle2' : 'OptionsDialog.Tab2.Title'}
+        self._default = str
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'Option2Dialog')
+        self._resources = {'TabTitle1' : 'Option2Dialog.Tab1.Title',
+                           'TabTitle2' : 'Option2Dialog.Tab2.Title',
+                           'Version1'  : 'Option2Dialog.Label6.Label.0',
+                           'Version2'  : 'Option2Dialog.Label6.Label.1'}
         self._logger = getLogger(ctx, 'Driver', g_basename)
         self._logger.logprb(INFO, 'OptionsDialog', '__init__()', 101)
         self._drivers = self._getDriverConfigurations()
-        self._item = ''
 
     _path = None
 
 # OptionsModel getter methods
     def saveSetting(self):
-        print("OptionsModel.saveSetting() 1")
         self._saveConfiguration()
         return self._saveArchives()
 
@@ -101,7 +103,7 @@ class OptionsModel():
         subprotocol = self._getSubProtocol(name)
         driver = self._drivers.get(name)
         groups = tuple(driver.get(self._groups).keys())
-        version = self._versions.get(name, self._default)
+        version = self.getDriverVersion(name)
         updatable = self._isDriverUpdatable(name)
         return subprotocol, driver.get(self._name), groups, version, updatable
 
@@ -111,25 +113,36 @@ class OptionsModel():
     def getGroups(self, name):
         return tuple(self._drivers.get(name).get(self._groups).keys())
 
-    def getProperties(self, driver, group, property):
+    def getProperties(self, driver, group):
         properties = self._getPropertyNames(driver, group)
-        index = properties.index(property) if property in properties else 0
         updatable = self._isDriverUpdatable(driver)
-        return properties, index, updatable
+        return properties, updatable
 
     def getProperty(self, driver, group, property):
         value = self._drivers.get(driver).get(self._groups).get(group).get(property)
         updatable = self._isDriverUpdatable(driver) and self._isPropertyUpdatable(property)
-        return value, updatable
+        return value, updatable, *self._getTypeIndex(value)
 
-    def getPath(self):
-        # XXX: We want to keep the last accessed path for the LibreOffice session
+    def getDisplayDirectory(self):
+        # XXX: We want to keep the last accessed FilePicker path for the LibreOffice session
         if OptionsModel._path is None:
             OptionsModel._path = getPathSettings(self._ctx).Work
         return OptionsModel._path
 
-    def isNew(self):
-        return self._new
+    def getType(self, index):
+        return self._types[index]
+
+    def isNewProperty(self):
+        return self._propertymode == 2
+
+    def isEditValue(self):
+        return self._valuemode != 0
+
+    def isNewValue(self):
+        return self._valuemode == 2
+
+    def getDefaultValue(self):
+        return self._types.index(self._default), ''
 
     def isDriverValid(self, subprotocol, name, javaclass):
         return self._jarpath is not None and \
@@ -153,25 +166,58 @@ class OptionsModel():
         properties = (k for k, v in group.items() if v is not None)
         return len(property) > 0 and property not in properties
 
-    def editProperty(self, driver, group, new, old):
+    def editProperty(self, driver, group, new, old, value):
         properties = self._drivers.get(driver).get(self._groups).get(group)
-        properties[new] = properties[old]
+        properties[new] = value
         properties[old] = None
         return tuple((k for k, v in properties.items() if v is not None))
 
-    def addProperty(self, driver, group, property, default):
+    def addProperty(self, driver, group, property, value):
         properties = self._drivers.get(driver).get(self._groups).get(group)
-        properties[property] = default
+        properties[property] = value
         return tuple((k for k, v in properties.items() if v is not None))
 
-    def isPropertyItemModified(self, item):
-        return self._item != item
-
     def getDriverVersion(self, protocol):
-        version = self._default
-        if protocol in self._versions:
-            version = self._versions[protocol]
-        return version
+        with self._lock:
+            if protocol in self._versions:
+                version = self._versions[protocol]
+            else:
+                version = self._getDefaultVersion()
+            return version
+
+    def getDefaultPropertyValue(self, index):
+        cls = self._types[index]
+        if cls == bool:
+            value = False
+        elif cls == tuple:
+            value = ()
+        else:
+            value = ''
+        return value
+
+    def addPropertyValue(self, driver, group, property, value):
+        values = list(self._drivers.get(driver).get(self._groups).get(group).get(property))
+        values.append(value)
+        newvalues = tuple(values)
+        self._drivers.get(driver).get(self._groups).get(group)[property] = newvalues
+        return newvalues
+
+    def removePropertyValue(self, driver, group, property, index):
+        values = list(self._drivers.get(driver).get(self._groups).get(group).get(property))
+        values.pop(index)
+        newvalues = tuple(values)
+        self._drivers.get(driver).get(self._groups).get(group)[property] = newvalues
+        return newvalues
+
+    def editPropertyValue(self, driver, group, property, value, index):
+        values = list(self._drivers.get(driver).get(self._groups).get(group).get(property))
+        values[index] = value
+        newvalues = tuple(values)
+        self._drivers.get(driver).get(self._groups).get(group)[property] = newvalues
+        return newvalues
+
+    def getAddPropertyValue(self):
+        return self._value if self.isNewProperty() else None
 
 # OptionsModel setter methods
     def loadSetting(self):
@@ -187,8 +233,20 @@ class OptionsModel():
     def updateDriverName(self, driver, name):
         self._drivers.get(driver)[self._name] = name
 
-    def setNew(self, new):
-        self._new = new
+    def setPropertyMode(self, mode):
+        self._propertymode = mode
+
+    def setAddPropertyValue(self, value):
+        self._value = value
+
+    def setValueMode(self, mode):
+        self._valuemode = mode
+
+    def setPropertyValue(self, driver, group, property, value):
+        if self._propertymode:
+            print("OptionsModel.setPropertyValue() *********************************")
+            return
+        self._drivers.get(driver).get(self._groups).get(group)[property] = value
 
     def clearJarPath(self):
         self._jarpath = None
@@ -200,18 +258,18 @@ class OptionsModel():
         protocol = self._getProtocol(subprotocol)
         self._jarpath = self._updateArchive(protocol, archives)
 
+    def setDisplayDirectory(self, path):
+        OptionsModel._path = path
+
     def updateArchive(self, driver, archives):
         # XXX: Jar files have been copied, we need to save the configuration
         properties = self._drivers.get(driver).get(self._groups).get('Properties')
-        properties[self._classpath] = self._updateArchive(driver, archives)
-
-    def setPropertyItem(self, item):
-        self._item = item
+        path = self._updateArchive(driver, archives)
+        print("OptionsModel.updateArchive() path: %s - Properties: %s" % (path, properties))
+        properties[self._classpath] = path
 
     def setDriverVersions(self, *args):
-        with self._lock:
-            self._versions = {}
-            Thread(target=self._setDriverVersions, args=args).start()
+        Thread(target=self._setDriverVersions, args=args).start()
 
 # OptionsModel private getter methods
     def _isProtocolValid(self, subprotocol):
@@ -224,6 +282,14 @@ class OptionsModel():
                '.' in javaclass and \
                not javaclass.endswith('.') and \
                not javaclass.startswith('.')
+
+    def _getTypeIndex(self, value):
+        enabled = value is None
+        if enabled:
+            index = self._types.index(self._default)
+        else:
+            index = self._types.index(type(value))
+        return index, enabled
 
     def _getPropertyNames(self, driver, group):
         groups = self._drivers.get(driver).get(self._groups)
@@ -239,7 +305,6 @@ class OptionsModel():
         sf = getSimpleFile(self._ctx)
         source = self._path + self._tmp
         target = '%s/%s/' % (self._path, g_folder)
-        #sf.copy(source, target)
         reboot = self._copyArchive(sf, source, target)
         self._deleteFolderContent(sf, source)
         self._path = None
@@ -252,22 +317,6 @@ class OptionsModel():
             sf.copy(path, target + url.Name)
             count += 1
         return count > 0
-
-    def _saveConfiguration(self):
-        config = self._config.getByName('Installed')
-        for protocol, driver in self._drivers.items():
-            if protocol == self._root:
-                continue
-            if driver is None:
-                if config.hasByName(protocol):
-                    config.removeByName(protocol)
-            else:
-                if not config.hasByName(protocol):
-                    config.insertByName(protocol, config.createInstance())
-                    self._saveProperty(config.getByName(protocol), 'ParentURLPattern', self._root)
-                self._saveDriver(config.getByName(protocol), driver)
-        if self._config.hasPendingChanges():
-            self._config.commitChanges()
 
     def _getUnoType(self, value):
         if isinstance(value, tuple):
@@ -282,7 +331,8 @@ class OptionsModel():
         return driver != self._root
 
     def _isPropertyUpdatable(self, property):
-        return property != self._classpath
+        #return property != self._classpath
+        return True
 
     def _getConfiguration(self):
         path = 'org.openoffice.Office.DataAccess.Drivers'
@@ -291,8 +341,6 @@ class OptionsModel():
     def _getDriverConfigurations(self):
         drivers = {}
         config = self._config.getByName('Installed')
-        #mri = createService(self._ctx, 'mytools.Mri')
-        #mri.inspect(config)
         for name in config.getElementNames():
             driver = config.getByName(name)
             if self._isRootDriver(driver, name):
@@ -326,9 +374,10 @@ class OptionsModel():
 
     def _updateArchive(self, driver, archives):
         sf = getSimpleFile(self._ctx)
+        path = self._getExtensionPath(sf)
         multi = len(archives) > 1
         subprotocol = self._getSubProtocol(driver)
-        tmp = self._getTmpPath(sf, subprotocol, multi)
+        tmp = self._getTmpPath(path, multi, subprotocol)
         if multi:
             # XXX: If we have multiple archives, all the contents of the folder will be
             # XXX: added to the Java ClassLoader so we need to clean that folder first.
@@ -336,22 +385,22 @@ class OptionsModel():
         for archive in archives:
             url = getUrl(self._ctx, archive)
             target = '%s/%s' % (tmp, url.Name)
-            print("OptionsModel._updateArchive() source: %s - target: %s" % (url.Main, target))
             sf.copy(url.Main, target)
-        # XXX: We want to be able to preserve the last path used by the FilePicker
-        OptionsModel._path = url.Protocol + url.Path
-        return self._getTargetPath(subprotocol, multi, url)
+        return self._getTargetPath(path, multi, subprotocol, url)
 
-    def _getTmpPath(self, sf, subprotocol, multi):
+    def _getExtensionPath(self, sf):
         if self._path is None:
             self._path = getResourceLocation(self._ctx, g_identifier)
             self._deleteFolderContent(sf, self._path + self._tmp)
-        path = self._path + self._tmp
-        return '%s/%s' % (path, subprotocol) if multi else path
+        return self._path
 
-    def _getTargetPath(self, subprotocol, multi, url):
-        path = '%s/%s/' % (self._path, g_folder)
-        return path + subprotocol if multi else path + url.Name
+    def _getTmpPath(self, path, multi, subprotocol):
+        tmp = path + self._tmp
+        return '%s/%s' % (tmp, subprotocol) if multi else tmp
+
+    def _getTargetPath(self, path, multi, subprotocol, url):
+        target = '%s/%s/' % (path, g_folder)
+        return target + subprotocol if multi else target + url.Name
 
     def _getProtocol(self, subprotocol):
         return '%s:*' % self._protocol + subprotocol
@@ -362,11 +411,48 @@ class OptionsModel():
     def _getPropertyValue(self, driver, group, property):
         return self._drivers.get(driver).getByName(group).getByName(property).Value
 
+    def _getDriverVersion(self, driver, subprotocol, default):
+        try:
+            url = self._protocol + subprotocol
+            connection = driver.connect(url, ())
+            version = self._getVersion(connection.getMetaData().getDriverVersion())
+            connection.close()
+            return version
+        except UnoException as e:
+            self._logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 111, e.Message)
+        except Exception as e:
+            self._logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 112, e, traceback.format_exc())
+        return default
+
     def _getTabTitle(self, tab):
         resource = self._resources.get('TabTitle%s' % tab)
         return self._resolver.resolveString(resource)
 
+    def _getDefaultVersion(self):
+        resource = self._resources.get('Version1')
+        return self._resolver.resolveString(resource)
+
+    def _getVersion(self, version):
+        resource = self._resources.get('Version2')
+        return self._resolver.resolveString(resource) % version
+
 # OptionsModel private setter methods
+    def _saveConfiguration(self):
+        config = self._config.getByName('Installed')
+        for protocol, driver in self._drivers.items():
+            if protocol == self._root:
+                continue
+            if driver is None:
+                if config.hasByName(protocol):
+                    config.removeByName(protocol)
+            else:
+                if not config.hasByName(protocol):
+                    config.insertByName(protocol, config.createInstance())
+                    self._saveProperty(config.getByName(protocol), 'ParentURLPattern', self._root)
+                self._saveDriver(config.getByName(protocol), driver)
+        if self._config.hasPendingChanges():
+            self._config.commitChanges()
+
     def _saveDriver(self, config, driver):
         self._saveProperty(config, self._name, driver.get(self._name))
         groups = driver.get(self._groups)
@@ -378,7 +464,6 @@ class OptionsModel():
                 self._saveProperties(config.getByName(property), properties)
 
     def _saveProperties(self, config, properties):
-        print("OptionsModel._saveProperties() 1")
         for name, value in properties.items():
             if value is None:
                 if config.hasByName(name):
@@ -394,7 +479,6 @@ class OptionsModel():
                     uno.invoke(property, 'replaceByName', arguments)
 
     def _saveProperty(self, config, name, value):
-        print("OptionsModel._saveProperty() 1 Name: %s" % name)
         if not config.hasByName(name):
             config.insertByName(name, config.createInstance())
         if config.getByName(name) != value:
@@ -407,6 +491,7 @@ class OptionsModel():
 
     def _setDriverVersions(self, name, update):
         versions = {}
+        default = self._getDefaultVersion()
         config = self._config.getByName('Installed')
         property = 'Properties/InMemoryDataBase/Value'
         service = createService(self._ctx, name)
@@ -415,23 +500,10 @@ class OptionsModel():
             if driver.hasByHierarchicalName(property):
                 url = driver.getByHierarchicalName(property)
                 if len(url) > 0:
-                    version = self._getDriverVersion(service, url)
-                    versions[protocol] = version
+                    versions[protocol] = self._getDriverVersion(service, url, default)
+                    continue
+            versions[protocol] = default
         with self._lock:
             self._versions = versions
         update(versions)
-
-    def _getDriverVersion(self, driver, subprotocol):
-        version = self._default
-        try:
-            url = self._protocol + subprotocol
-            connection = driver.connect(url, ())
-            if connection is not None:
-                version = self._version % connection.getMetaData().getDriverVersion()
-                connection.close()
-        except UnoException as e:
-            self._logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 111, e.Message)
-        except Exception as e:
-            self._logger.logprb(SEVERE, 'OptionsDialog', '_getDriverVersion()', 112, e, traceback.format_exc())
-        return version
 

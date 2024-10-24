@@ -40,8 +40,8 @@ from com.sun.star.lang import XEventListener
 import traceback
 
 
-class OptionsListener(unohelper.Base,
-                      XEventListener):
+class EventListener(unohelper.Base,
+                    XEventListener):
     def __init__(self, manager):
         self._manager = manager
 

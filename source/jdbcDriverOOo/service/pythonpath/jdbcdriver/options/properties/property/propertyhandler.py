@@ -47,10 +47,10 @@ class WindowHandler(unohelper.Base,
                 self._manager.setType(event.Source.getSelectedItemPos())
                 handled = True
             elif method == 'SetStringValue':
-                self._manager.setValue(event.Source.Text)
+                self._manager.setPropertyValue(event.Source.Text)
                 handled = True
             elif method == 'SetBooleanValue':
-                self._manager.setValue(bool(event.Source.State))
+                self._manager.setPropertyValue(bool(event.Source.State))
                 handled = True
             elif method == 'EditValue':
                 self._manager.editValue()
@@ -61,14 +61,11 @@ class WindowHandler(unohelper.Base,
             elif method == 'RemoveValue':
                 self._manager.removeValue()
                 handled = True
-            elif method == 'SetValue':
-                self._manager.setListValue(event.Source.getText())
-                handled = True
             elif method == 'Confirm':
-                self._manager.confirm()
+                self._manager.confirmValue()
                 handled = True
             elif method == 'Cancel':
-                self._manager.cancel()
+                self._manager.cancelValue()
                 handled = True
             return handled
         except Exception as e:
@@ -82,7 +79,6 @@ class WindowHandler(unohelper.Base,
                 'EditValue',
                 'AddValue',
                 'RemoveValue',
-                'SetValue',
                 'Confirm',
                 'Cancel')
 
