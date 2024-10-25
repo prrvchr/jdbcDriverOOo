@@ -155,6 +155,7 @@ class OptionsManager():
     def cancelDriver(self):
         driver = self._view.getDriver()
         self._view.setDriverName(self._model.getDriverName(driver))
+        self._model.cancelDriver()
         # XXX: The Cancel button cannot have focus and not be displayed
         self._view.setDefaultFocus()
         self._switchDriverEditMode(False)
@@ -167,6 +168,12 @@ class OptionsManager():
         if archives:
             driver = self._view.getDriver()
             self._model.updateArchive(driver, archives)
+
+    def viewArchive(self):
+        fp = getFilePicker(self._ctx)
+        fp.setDisplayDirectory(self._model.getArchivePath())
+        fp.execute()
+        fp.dispose()
 
     def setGroup(self, group):
         # FIXME: If we changed the group selection then the handler

@@ -57,16 +57,19 @@
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:UpdateDriverName" script:language="UNO"/>
     </dlg:textfield>
     <dlg:text dlg:id="Label4" dlg:tab-index="12" dlg:left="10" dlg:top="62" dlg:width="40" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label4.HelpText" dlg:value="&amp;Option2Dialog.Label4.Label" dlg:valign="center"/>
-    <dlg:button dlg:id="CommandButton6" dlg:tab-index="13" dlg:disabled="true" dlg:left="55" dlg:top="62" dlg:width="73" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton6.HelpText" dlg:value="&amp;Option2Dialog.CommandButton6.Label">
+    <dlg:button dlg:id="CommandButton6" dlg:tab-index="13" dlg:disabled="true" dlg:left="55" dlg:top="62" dlg:width="38" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton6.HelpText" dlg:value="&amp;Option2Dialog.CommandButton6.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:UpdateArchive" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:id="Label5" dlg:tab-index="14" dlg:left="143" dlg:top="62" dlg:width="25" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label5.HelpText" dlg:value="&amp;Option2Dialog.Label5.Label" dlg:valign="center"/>
-    <dlg:text dlg:id="Label6" dlg:tab-index="15" dlg:left="172" dlg:top="62" dlg:width="78" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label6.HelpText" dlg:value="&amp;Option2Dialog.Label6.Label.0" dlg:valign="center" dlg:align="right"/>
-    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="16" dlg:left="6" dlg:top="85" dlg:width="244" dlg:height="14" dlg:help-text="&amp;Option2Dialog.FixedLine2.HelpText" dlg:value="&amp;Option2Dialog.FixedLine2.Label"/>
-    <dlg:text dlg:id="Label7" dlg:tab-index="17" dlg:left="10" dlg:top="102" dlg:width="40" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label7.HelpText" dlg:value="&amp;Option2Dialog.Label7.Label" dlg:valign="center"/>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="18" dlg:left="55" dlg:top="102" dlg:width="112" dlg:height="18" dlg:help-text="&amp;Option2Dialog.ListBox2.HelpText" dlg:value="&amp;Option2Dialog.ListBox2.Text" dlg:spin="true">
+    <dlg:button dlg:id="CommandButton7" dlg:tab-index="14" dlg:left="95" dlg:top="62" dlg:width="38" dlg:height="18" dlg:help-text="&amp;Option2Dialog.CommandButton7.HelpText" dlg:value="&amp;Option2Dialog.CommandButton7.Label">
+      <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:ViewArchive" script:language="UNO"/>
+    </dlg:button>
+    <dlg:text dlg:id="Label5" dlg:tab-index="15" dlg:left="143" dlg:top="62" dlg:width="25" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label5.HelpText" dlg:value="&amp;Option2Dialog.Label5.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label6" dlg:tab-index="16" dlg:left="172" dlg:top="62" dlg:width="78" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label6.HelpText" dlg:value="&amp;Option2Dialog.Label6.Label.0" dlg:valign="center" dlg:align="right"/>
+    <dlg:fixedline dlg:style-id="0" dlg:id="FixedLine2" dlg:tab-index="17" dlg:left="6" dlg:top="85" dlg:width="244" dlg:height="14" dlg:help-text="&amp;Option2Dialog.FixedLine2.HelpText" dlg:value="&amp;Option2Dialog.FixedLine2.Label"/>
+    <dlg:text dlg:id="Label7" dlg:tab-index="18" dlg:left="10" dlg:top="102" dlg:width="40" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label7.HelpText" dlg:value="&amp;Option2Dialog.Label7.Label" dlg:valign="center"/>
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="19" dlg:left="55" dlg:top="102" dlg:width="112" dlg:height="18" dlg:help-text="&amp;Option2Dialog.ListBox2.HelpText" dlg:value="&amp;Option2Dialog.ListBox2.Text" dlg:spin="true">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:SetGroup" script:language="UNO"/>
     </dlg:menulist>
-    <dlg:text dlg:style-id="0" dlg:id="Label8" dlg:tab-index="19" dlg:left="10" dlg:top="190" dlg:width="240" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label8.HelpText" dlg:value="&amp;Option2Dialog.Label8.Label" dlg:align="center" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label8" dlg:tab-index="20" dlg:left="10" dlg:top="190" dlg:width="240" dlg:height="18" dlg:help-text="&amp;Option2Dialog.Label8.HelpText" dlg:value="&amp;Option2Dialog.Label8.Label" dlg:align="center" dlg:valign="center"/>
   </dlg:bulletinboard>
 </dlg:window>

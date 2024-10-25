@@ -1380,7 +1380,7 @@
                 </node>
                 <node oor:name="JavaDriverClassPath" oor:op="replace">
                     <prop oor:name="Value" oor:type="xs:string">
-                        <value>%origin%/driver/jaybird-5.0.6.java11-20240917.105835-4.jar</value>
+                        <value>%origin%/driver/jaybird-5.0.6.java11.jar</value>
                     </prop>
                 </node>
                 <node oor:name="JavaDriverClass" oor:op="replace">

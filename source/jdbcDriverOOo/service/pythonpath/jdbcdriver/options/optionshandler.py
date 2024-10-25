@@ -102,6 +102,9 @@ class TabHandler(unohelper.Base,
             elif method == 'UpdateArchive':
                 self._manager.updateArchive()
                 handled = True
+            elif method == 'ViewArchive':
+                self._manager.viewArchive()
+                handled = True
             elif method == 'SetGroup':
                 self._manager.setGroup(event.Source.getSelectedItem())
                 handled = True
@@ -119,5 +122,6 @@ class TabHandler(unohelper.Base,
                 'Cancel',
                 'UpdateDriverName',
                 'UpdateArchive',
+                'ViewArchive',
                 'SetGroup')
 

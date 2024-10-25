@@ -58,19 +58,20 @@ class OptionsModel():
     def __init__(self, ctx, lock):
         self._ctx = ctx
         self._lock = lock
-        self._propertymode = 0
+        self._pmode = 0
+        self._vmode = 0
         self._value = None
-        self._valuemode = 0
         self._protocol = 'xdbc:'
         self._root = self._protocol + '*'
-        self._path = None
+        self._url = None
         self._tmp = '/tmp'
-        self._jarpath = None
+        self._path = None
         self._versions = {}
         self._groups = 'Groups'
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
         self._classpath = 'JavaDriverClassPath'
+        self._package = 'vnd.sun.star.expand:$UNO_USER_PACKAGES_CACHE/uno_packages'
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
         # FIXME: The supported types must follow the display order of the Property Type ListBox
@@ -85,7 +86,7 @@ class OptionsModel():
         self._logger.logprb(INFO, 'OptionsDialog', '__init__()', 101)
         self._drivers = self._getDriverConfigurations()
 
-    _path = None
+    _folder = None
 
 # OptionsModel getter methods
     def saveSetting(self):
@@ -94,6 +95,9 @@ class OptionsModel():
 
     def getTabTitles(self):
         return self._getTabTitle(1), self._getTabTitle(2)
+
+    def getArchivePath(self):
+        return '%s/%s' % (self._getUrl().Main, g_folder)
 
     def getDrivers(self):
         return tuple((k for k, v in self._drivers.items() if v is not None))
@@ -116,29 +120,29 @@ class OptionsModel():
 
     def getProperty(self, driver, group, property):
         value = self._getGroup(driver, group).get(property)
-        updatable = self._isDriverUpdatable(driver) and self._isPropertyUpdatable(property)
+        updatable = self._isDriverUpdatable(driver)
         return value, updatable, *self._getTypeIndex(value)
 
     def getDisplayDirectory(self):
         # XXX: We want to keep the last accessed FilePicker path for the LibreOffice session
-        if OptionsModel._path is None:
-            OptionsModel._path = getPathSettings(self._ctx).Work
-        return OptionsModel._path
+        if OptionsModel._folder is None:
+            OptionsModel._folder = getPathSettings(self._ctx).Work
+        return OptionsModel._folder
 
     def getType(self, index):
         return self._types[index]
 
     def isNewProperty(self):
-        return self._propertymode == 2
+        return self._pmode == 2
 
     def isEditValue(self):
-        return self._valuemode != 0
+        return self._vmode != 0
 
     def isNewValue(self):
-        return self._valuemode == 2
+        return self._vmode == 2
 
     def isDriverValid(self, subprotocol, name, javaclass):
-        return self._jarpath is not None and \
+        return self._path is not None and \
                self._isProtocolValid(subprotocol) and \
                self.isDriverNameValid(name) and \
                self._isJavaClassValid(javaclass)
@@ -148,10 +152,11 @@ class OptionsModel():
         return len(name) > 0 and name not in names
 
     def addDriver(self, subprotocol, name, javaclass):
-        properties = {self._classpath: self._jarpath, self._class: javaclass}
+        properties = {self._classpath: self._path, self._class: javaclass}
         groups = {'MetaData': {}, 'Properties': properties}
         driver = self._getProtocol(subprotocol)
         self._drivers[driver] = {self._name: name, self._groups: groups}
+        self._path = None
         return driver
 
     def isPropertyNameValid(self, driver, group, property):
@@ -209,12 +214,15 @@ class OptionsModel():
 
 # OptionsModel setter methods
     def loadSetting(self):
-        if self._path is not None:
+        if self._url is not None:
             sf = getSimpleFile(self._ctx)
-            self._deleteFolderContent(sf, self._path + self._tmp)
-            self._path = None
+            self._deleteFolderContent(sf, self._url.Main + self._tmp)
+            self._url = None
         self._drivers = self._getDriverConfigurations()
  
+    def cancelDriver(self):
+        self._path = None
+
     def removeProperty(self, driver, group, property):
         self._getGroup(driver, group)[property] = None
 
@@ -222,38 +230,43 @@ class OptionsModel():
         self._drivers.get(driver)[self._name] = name
 
     def setPropertyMode(self, mode):
-        self._propertymode = mode
+        self._pmode = mode
 
     def setAddPropertyValue(self, value):
         self._value = value
 
     def setValueMode(self, mode):
-        self._valuemode = mode
+        self._vmode = mode
 
     def setPropertyValue(self, driver, group, property, value):
-        print("OptionsModel.setPropertyValue() property Mode: %s" % self._propertymode)
-        # FIXME: We don't save anything if we are in property edit mode
-        if self._propertymode:
-            return
-        self._getGroup(driver, group)[property] = value
+        print("OptionsModel.setPropertyValue() property Mode: %s - value: %s" % (self._pmode, value))
+        # FIXME: We don't save anything if we are adding a new property
+        if not self.isNewProperty():
+            self._getGroup(driver, group)[property] = value
 
     def clearJarPath(self):
-        self._jarpath = None
+        self._path = None
 
     def removeDriver(self, driver):
         self._drivers[driver] = None
 
     def setArchive(self, subprotocol, archives):
         protocol = self._getProtocol(subprotocol)
-        self._jarpath = self._updateArchive(protocol, archives)
+        self._path = self._updateArchive(protocol, archives)
 
-    def setDisplayDirectory(self, path):
-        OptionsModel._path = path
+    def setDisplayDirectory(self, folder):
+        OptionsModel._folder = folder
 
     def updateArchive(self, driver, archives):
-        # XXX: Jar files have been copied, we need to save the configuration
-        properties = self._drivers.get(driver).get(self._groups).get('Properties')
         path = self._updateArchive(driver, archives)
+        # XXX: Jar files have been copied, we need to save the configuration
+        group = 'Properties'
+        properties = self._getGroup(driver, group)
+        # FIXME: As we are doing lazy loading on properties if the
+        # FIXME: properties have not been displayed yet they are null.
+        if properties is None:
+            properties = self._getProperties(driver, group)
+            self._drivers.get(driver).get(self._groups)[group] = properties
         properties[self._classpath] = path
 
     def setDriverVersions(self, *args):
@@ -308,14 +321,14 @@ class OptionsModel():
         return tuple((k for k, v in properties.items() if v is not None))
 
     def _saveArchives(self):
-        if self._path is None:
+        if self._url is None:
             return False
         sf = getSimpleFile(self._ctx)
-        source = self._path + self._tmp
-        target = '%s/%s/' % (self._path, g_folder)
+        source = self._url.Main + self._tmp
+        target = '%s/%s/' % (self._url.Main, g_folder)
         reboot = self._copyArchive(sf, source, target)
         self._deleteFolderContent(sf, source)
-        self._path = None
+        self._url = None
         return reboot
 
     def _copyArchive(self, sf, source, target):
@@ -338,9 +351,6 @@ class OptionsModel():
     def _isDriverUpdatable(self, driver):
         return driver != self._root
 
-    def _isPropertyUpdatable(self, property):
-        return property != self._classpath
-
     def _getDriverConfigurations(self):
         drivers = {}
         config = self._config.getByName('Installed')
@@ -355,7 +365,8 @@ class OptionsModel():
         return name == self._root or self._isChildDriver(driver)
 
     def _isChildDriver(self, driver):
-        return driver.hasByName('ParentURLPattern') and driver.getByName('ParentURLPattern') == self._root
+        property = 'ParentURLPattern'
+        return driver.hasByName(property) and driver.getByName(property) == self._root
 
     def _getProperties(self, driver, group):
         properties = {}
@@ -368,33 +379,38 @@ class OptionsModel():
 
     def _updateArchive(self, driver, archives):
         sf = getSimpleFile(self._ctx)
-        path = self._getExtensionPath(sf)
+        url = self._getExtensionUrl(sf)
         multi = len(archives) > 1
         subprotocol = self._getSubProtocol(driver)
-        tmp = self._getTmpPath(path, multi, subprotocol)
+        tmp = self._getTmpPath(url.Main, multi, subprotocol)
         if multi:
             # XXX: If we have multiple archives, all the contents of the folder will be
             # XXX: added to the Java ClassLoader so we need to clean that folder first.
             self._deleteFolderContent(sf, tmp)
         for archive in archives:
-            url = getUrl(self._ctx, archive)
-            target = '%s/%s' % (tmp, url.Name)
-            sf.copy(url.Main, target)
-        return self._getTargetPath(path, multi, subprotocol, url)
+            source = getUrl(self._ctx, archive)
+            target = '%s/%s' % (tmp, source.Name)
+            sf.copy(source.Main, target)
+        return self._getJavaClassPath(url, multi, subprotocol, source.Name)
 
-    def _getExtensionPath(self, sf):
-        if self._path is None:
-            self._path = getResourceLocation(self._ctx, g_identifier)
-            self._deleteFolderContent(sf, self._path + self._tmp)
-        return self._path
+    def _getUrl(self):
+        if self._url is None:
+            self._url = getUrl(self._ctx, getResourceLocation(self._ctx, g_identifier))
+        return self._url
+
+    def _getExtensionUrl(self, sf):
+        url = self._getUrl()
+        self._deleteFolderContent(sf, url.Main + self._tmp)
+        return url
 
     def _getTmpPath(self, path, multi, subprotocol):
         tmp = path + self._tmp
         return '%s/%s' % (tmp, subprotocol) if multi else tmp
 
-    def _getTargetPath(self, path, multi, subprotocol, url):
-        target = '%s/%s/' % (path, g_folder)
-        return target + subprotocol if multi else target + url.Name
+    def _getJavaClassPath(self, url, multi, subprotocol, name):
+        folder = url.Main.split('/')[-2]
+        path = '%s/%s/%s/%s/' % (self._package, folder, url.Name, g_folder)
+        return path + subprotocol if multi else path + name
 
     def _getProtocol(self, subprotocol):
         return '%s:*' % self._protocol + subprotocol
