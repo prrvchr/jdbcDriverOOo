@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.4.4][5]
+# version [1.4.6][5]
 
 ## Introduction:
 
@@ -75,7 +75,7 @@ Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fourn
 
 **Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
 Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
-**Outils -> Options -> Pilotes Base -> Pilote JDBC -> Voir journal -> Info système**  
+**Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options du pilote UNO -> Voir journal -> Info système**  
 Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
 `pip install --upgrade <package-name>`
 
@@ -151,7 +151,7 @@ Si vous souhaitez mettre à jour une base de données HsqlDB intégrée (un seul
 Il est possible de mettre à jour le pilote JDBC (hsqldb.jar, h2.jar, derbytools.jar) vers une version plus récente.  
 Si vous utilisez HsqlDB comme base de données, procédez comme suit:
 1. Faite une copie (sauvegarde) du dossier contenant votre base de données.
-2. Lancer LibreOffice / OpenOffice et changez la version du pilote JDBC par le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**, par une version plus récente.
+2. Lancer LibreOffice / OpenOffice et changez la version du pilote JDBC par le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options des pilotes JDBC**, par une version plus récente.
 3. Redémarrer LibreOffice / OpenOffice aprés le changement du pilote (hsqldb.jar, h2.jar, derbytools.jar).
 4. Dans Base, aprés avoir ouvert votre base de données, allez au menu: **Outils -> SQL** et tapez la commande SQL: `SHUTDOWN COMPACT` ou `SHUTDOWN SCRIPT`.
 
@@ -315,7 +315,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 
 - Prise en charge dans Base des **clés primaires auto incrémentées** pour HsqlDB, H2 et Derby.
 
-- Ecriture de [com.sun.star.sdbcx.Driver][63]. Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> Pilotes Base -> Pilote JDBC**.
+- Ecriture de [com.sun.star.sdbcx.Driver][63]. Ce pilote de haut niveau doit permettre la **gestion des utilisateurs, des rôles et des privilèges dans Base**. Son utilisation peut être désactivée via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java**.
 
 - Implémentation d'un fournisseur de services Java [UnoLogger.jar][64] pour l'API [SLF4J][65] afin de pouvoir rediriger la journalisation des pilotes des bases de données sous-jacentes vers l'API UNO [com.sun.star.logging.*][66].
 
@@ -564,7 +564,17 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 - Correction pour permettre à l'extension eMailerOOo de fonctionner correctement dans la version 1.2.5.
 
-### Que reste-t-il à faire pour la version 1.4.5:
+### Ce qui a été fait pour la version 1.4.6:
+
+- Modification de l'implémentation de l'interface [UNO XPropertySet][127]. Cette nouvelle implémentation assure l'unicité des [Handle][128] pour chaque propriété. Elle est basée sur trois fichiers:
+  - [PropertySet.java][129]
+  - [PropertySetAdapter.java][130]
+  - [PropertyWrapper.java][131]
+- Correction de problèmes dans l'implémentation des signets (bookmark). Ces modifications ont été testées plus particulièrement avec les pilotes HsqlDB 2.7.4 et Jaybird 5.0.6.
+- Nouvelle implémentation des options de l'extension et plus particulièrement de l'onglet **Options du pilote JDBC** qui permet désormais la configuration complète d'un pilote JDBC pour pouvoir fonctionner avec Base. L’opération de mise à jour de l’archive du pilote JDBC a été simplifiée. Elle prend en charge la mise à jour des pilotes qui nécessitent plusieurs archives jar pour fonctionner (ie: Derby, Jaybird 6.x).
+- De nombreuses autres améliorations.
+
+### Que reste-t-il à faire pour la version 1.4.6:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -574,7 +584,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-144>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-146>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -601,7 +611,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.5#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
 [41]: <img/jdbcDriverOOo-1_fr.png>
 [42]: <img/jdbcDriverOOo-2_fr.png>
 [43]: <img/jdbcDriverOOo-3_fr.png>
@@ -688,3 +698,8 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [124]: <https://pypi.org/project/packaging/>
 [125]: <https://pypi.org/project/setuptools/>
 [126]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>
+[127]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/XPropertySet.html>
+[128]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/Property.html#Handle>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySet.java>
+[130]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySetAdapter.java>
+[131]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertyWrapper.java>

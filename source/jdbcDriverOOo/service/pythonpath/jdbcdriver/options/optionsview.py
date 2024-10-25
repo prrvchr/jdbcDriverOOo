@@ -35,11 +35,11 @@ import traceback
 
 
 class OptionsView():
-    def __init__(self, ctx, window, handler, listener, title1, title2):
+    def __init__(self, ctx, window, handler, listener, xdl, title1, title2):
         self._tab = 'Tab1'
         self._window = window
         self._tab1, tab2 = self._getTabPages(window, title1, title2)
-        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, 'Option2Dialog')
+        self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, xdl)
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
 

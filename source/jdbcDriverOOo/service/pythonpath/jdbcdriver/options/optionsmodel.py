@@ -55,7 +55,7 @@ import traceback
 
 
 class OptionsModel():
-    def __init__(self, ctx, lock):
+    def __init__(self, ctx, lock, xdl):
         self._ctx = ctx
         self._lock = lock
         self._pmode = 0
@@ -63,9 +63,10 @@ class OptionsModel():
         self._value = None
         self._protocol = 'xdbc:'
         self._root = self._protocol + '*'
-        self._url = None
         self._tmp = '/tmp'
+        self._url = None
         self._path = None
+        self._folder = None
         self._versions = {}
         self._groups = 'Groups'
         self._name = 'DriverTypeDisplayName'
@@ -77,7 +78,7 @@ class OptionsModel():
         # FIXME: The supported types must follow the display order of the Property Type ListBox
         self._types = (bool, str, tuple)
         self._default = str
-        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'Option2Dialog')
+        self._resolver = getStringResource(ctx, g_identifier, 'dialogs', xdl)
         self._resources = {'TabTitle1' : 'Option2Dialog.Tab1.Title',
                            'TabTitle2' : 'Option2Dialog.Tab2.Title',
                            'Version1'  : 'Option2Dialog.Label6.Label.0',
@@ -86,7 +87,7 @@ class OptionsModel():
         self._logger.logprb(INFO, 'OptionsDialog', '__init__()', 101)
         self._drivers = self._getDriverConfigurations()
 
-    _folder = None
+    _directory = None
 
 # OptionsModel getter methods
     def saveSetting(self):
@@ -125,9 +126,9 @@ class OptionsModel():
 
     def getDisplayDirectory(self):
         # XXX: We want to keep the last accessed FilePicker path for the LibreOffice session
-        if OptionsModel._folder is None:
-            OptionsModel._folder = getPathSettings(self._ctx).Work
-        return OptionsModel._folder
+        if OptionsModel._directory is None:
+            OptionsModel._directory = getPathSettings(self._ctx).Work
+        return OptionsModel._directory
 
     def getType(self, index):
         return self._types[index]
@@ -214,10 +215,10 @@ class OptionsModel():
 
 # OptionsModel setter methods
     def loadSetting(self):
-        if self._url is not None:
+        if self._folder is not None:
             sf = getSimpleFile(self._ctx)
             self._deleteFolderContent(sf, self._url.Main + self._tmp)
-            self._url = None
+            self._folder = None
         self._drivers = self._getDriverConfigurations()
  
     def cancelDriver(self):
@@ -239,7 +240,6 @@ class OptionsModel():
         self._vmode = mode
 
     def setPropertyValue(self, driver, group, property, value):
-        print("OptionsModel.setPropertyValue() property Mode: %s - value: %s" % (self._pmode, value))
         # FIXME: We don't save anything if we are adding a new property
         if not self.isNewProperty():
             self._getGroup(driver, group)[property] = value
@@ -255,7 +255,7 @@ class OptionsModel():
         self._path = self._updateArchive(protocol, archives)
 
     def setDisplayDirectory(self, folder):
-        OptionsModel._folder = folder
+        OptionsModel._directory = folder
 
     def updateArchive(self, driver, archives):
         path = self._updateArchive(driver, archives)
@@ -321,7 +321,7 @@ class OptionsModel():
         return tuple((k for k, v in properties.items() if v is not None))
 
     def _saveArchives(self):
-        if self._url is None:
+        if self._folder is None:
             return False
         sf = getSimpleFile(self._ctx)
         source = self._url.Main + self._tmp
@@ -400,7 +400,9 @@ class OptionsModel():
 
     def _getExtensionUrl(self, sf):
         url = self._getUrl()
-        self._deleteFolderContent(sf, url.Main + self._tmp)
+        if self._folder is None:
+            self._deleteFolderContent(sf, url.Main + self._tmp)
+            self._folder = url.Main.split('/')[-2]
         return url
 
     def _getTmpPath(self, path, multi, subprotocol):
@@ -408,8 +410,7 @@ class OptionsModel():
         return '%s/%s' % (tmp, subprotocol) if multi else tmp
 
     def _getJavaClassPath(self, url, multi, subprotocol, name):
-        folder = url.Main.split('/')[-2]
-        path = '%s/%s/%s/%s/' % (self._package, folder, url.Name, g_folder)
+        path = '%s/%s/%s/%s/' % (self._package, self._folder, url.Name, g_folder)
         return path + subprotocol if multi else path + name
 
     def _getProtocol(self, subprotocol):

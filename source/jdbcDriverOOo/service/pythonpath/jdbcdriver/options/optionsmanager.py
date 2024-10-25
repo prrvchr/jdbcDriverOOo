@@ -60,14 +60,15 @@ import traceback
 
 class OptionsManager():
     def __init__(self, ctx, window):
+        xdl = 'Option2Dialog'
         self._ctx = ctx
         self._lock = RLock()
         self._disposed = False
         self._dialog = None
         self._listener = TabListener(self)
-        self._model = OptionsModel(ctx, self._lock)
+        self._model = OptionsModel(ctx, self._lock, xdl)
         window.addEventListener(EventListener(self))
-        self._view = OptionsView(ctx, window, TabHandler(self), self._listener, *self._model.getTabTitles())
+        self._view = OptionsView(ctx, window, TabHandler(self), self._listener, xdl, *self._model.getTabTitles())
         self._tab1 = OptionManager(ctx, self._view.getTab1(), 0, 'Driver')
         self._properties = PropertiesManager(ctx, self._view.getTab2(), self)
         self._view.setDrivers(self._model.getDrivers())

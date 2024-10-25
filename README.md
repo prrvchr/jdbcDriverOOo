@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.5][5]
+# version [1.4.6][5]
 
 ## Introduction:
 
@@ -75,7 +75,7 @@ If you still want to use the Embedded HsqlDB functionality provided by LibreOffi
 
 **On Linux and macOS the Python packages** used by the extension, if already installed, may come from the system and therefore **may not be up to date**.  
 To ensure that your Python packages are up to date it is recommended to use the **System Info** option in the extension Options accessible by:  
-**Tools -> Options -> Base drivers -> JDBC driver -> View log -> System Info**  
+**Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info**  
 If outdated packages appear, you can update them with the command:  
 `pip install --upgrade <package-name>`
 
@@ -151,7 +151,7 @@ If you want to update an embedded HsqlDB database (single odb file), please refe
 It is possible to update the JDBC driver (hsqldb.jar, h2.jar, derbytools.jar) to a newer version.  
 If you use HsqlDB as database, follow these steps:
 1. Make a copy (backup) of the folder containing your database.
-2. Start LibreOffice / OpenOffice and change the version of the HsqlDB driver via menu: **Tools -> Options -> Base drivers -> JDBC Driver**, by a more recent version.
+2. Start LibreOffice / OpenOffice and change the version of the HsqlDB driver via menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC Driver -> JDBC drivers settings**, by a more recent version.
 3. Restart LibreOffice / OpenOffice after changing the driver (hsqldb.jar).
 4. In Base, after opening your database, go to menu: **Tools -> SQL** and type the SQL command: `SHUTDOWN COMPACT` or `SHUTDOWN SCRIPT`.
 
@@ -564,7 +564,17 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 - Fix to allow the eMailerOOo extension to work properly in version 1.2.5.
 
-### What remains to be done for version 1.4.5:
+### What has been done for version 1.4.6:
+
+- Modification of the implementation of the interface [UNO XPropertySet][127]. This new implementation ensures the uniqueness of [Handle][128] for each property. It is based on three files:
+  - [PropertySet.java][129]
+  - [PropertySetAdapter.java][130]
+  - [PropertyWrapper.java][131]
+- Fixed issues in bookmark implementation. These modifications have been tested more particularly with the HsqlDB 2.7.4 and Jaybird 5.0.6 drivers.
+- New implementation of the extension options and more specifically the **JDBC Driver Options** tab which now allows the full configuration of a JDBC driver to be able to work with Base. The JDBC driver archive update operation has been simplified. It supports updating drivers that require multiple jar archives to work (ie: Derby, Jaybird 6.x).
+- Many other improvements.
+
+### What remains to be done for version 1.4.6:
 
 - Add new languages for internationalization...
 
@@ -574,7 +584,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-144>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-146>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -601,7 +611,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.5#right>
+[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
 [41]: <img/jdbcDriverOOo-1.png>
 [42]: <img/jdbcDriverOOo-2.png>
 [43]: <img/jdbcDriverOOo-3.png>
@@ -688,3 +698,8 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [124]: <https://pypi.org/project/packaging/>
 [125]: <https://pypi.org/project/setuptools/>
 [126]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>
+[127]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/XPropertySet.html>
+[128]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/Property.html#Handle>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySet.java>
+[130]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySetAdapter.java>
+[131]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertyWrapper.java>
