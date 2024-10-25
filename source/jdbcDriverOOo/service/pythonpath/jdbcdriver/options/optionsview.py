@@ -40,7 +40,6 @@ class OptionsView():
         self._window = window
         self._tab1, tab2 = self._getTabPages(window, title1, title2)
         self._tab2 = getContainerWindow(ctx, tab2.getPeer(), handler, g_identifier, 'Option2Dialog')
-        self._tab2.Model.Step = 2
         self._tab2.setVisible(True)
         self._getTab().addTabPageContainerListener(listener)
 
@@ -81,8 +80,8 @@ class OptionsView():
 
     def setStep(self, step, restart):
         self._tab2.Model.Step = step
-        # XXX: If we change the step then we have to restore
-        # XXX: the visibility of the controls because it was lost
+        # XXX: If we change the step, we have to restore the visibility of the controls
+        # XXX: because it was lost (ie: after setting the new step everything is visible).
         self.setRestart(restart)
 
     def enableConfirm(self, enable):
@@ -130,7 +129,6 @@ class OptionsView():
         self._getUpdateDriver().Model.Enabled = enabled
 
     def setRestart(self, enabled):
-        print("OptionsView.setRestart() enabled: %s" % enabled)
         self._getRestart().setVisible(enabled)
 
 # OptionsView private methods

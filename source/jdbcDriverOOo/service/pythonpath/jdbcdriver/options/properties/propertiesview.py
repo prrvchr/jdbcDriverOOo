@@ -60,18 +60,15 @@ class PropertiesView():
         control.Model.StringItemList = ()
         if values:
             control.Model.StringItemList = values
-            self.enableEdit(updatable)
+            self._enableEdit(updatable)
             self._getRemoveProperty().Model.Enabled = updatable
         else:
-            self.enableEdit(False)
+            self._enableEdit(False)
             self._getRemoveProperty().Model.Enabled = False
         self._getAddProperty().Model.Enabled = updatable
 
     def selectProperty(self, index):
         self._getProperties().selectItemPos(index, True)
-
-    def enableEdit(self, enable):
-        self._getEditProperty().Model.Enabled = enable
 
     def enableConfirm(self, enable):
         self._getConfirm().Model.Enabled = enable
@@ -87,6 +84,10 @@ class PropertiesView():
 
     def setPropertyName(self, value):
         self._getPropertyName().Text = value
+
+# PropertiesView private setter methods
+    def _enableEdit(self, enable):
+        self._getEditProperty().Model.Enabled = enable
 
 # PropertiesView private control methods
     def _getProperties(self):

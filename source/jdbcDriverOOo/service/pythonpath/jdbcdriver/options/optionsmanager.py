@@ -71,8 +71,8 @@ class OptionsManager():
         self._tab1 = OptionManager(ctx, self._view.getTab1(), 0, 'Driver')
         self._properties = PropertiesManager(ctx, self._view.getTab2(), self)
         self._view.setDrivers(self._model.getDrivers())
-        self._view.setStep(1, OptionsManager._restart)
-        print("OptionsManager.__init__()")
+        # FIXME: If we changed the driver selection then the
+        # FIXME: handler will fire twice, we disable the first one
         self._disabled = True
         self._view.selectDriver(0)
 
@@ -110,7 +110,8 @@ class OptionsManager():
 
     # Option2Dialog.xdl handler entries
     def setDriver(self, driver):
-        print("OptionsManager.setDriver() Driver: %s - disabled: %s" % (driver, self._disabled))
+        # FIXME: If we changed the driver selection then the handler
+        # FIXME: will fire twice, the first one is ignored
         if self._disabled:
             self._disabled = False
             return
@@ -168,7 +169,8 @@ class OptionsManager():
             self._model.updateArchive(driver, archives)
 
     def setGroup(self, group):
-        print("OptionsManager.setGroup() Group: %s - disabled: %s" % (group, self._disabled))
+        # FIXME: If we changed the group selection then the handler
+        # FIXME: will fire twice, the first one is ignored
         if self._disabled:
             self._disabled = False
             return
@@ -184,13 +186,16 @@ class OptionsManager():
 
     # PropertiesWindow.xdl handler entries
     def setProperty(self, property):
-        print("OptionsManager.setProperty() Property: %s - disabled: %s" % (property, self._disabled))
+        # FIXME: If we changed the property selection then the handler
+        # FIXME: will fire twice, the first one is ignored
         if self._disabled:
             self._disabled = False
             return
-        self._properties.cancelValue()
         driver = self._view.getDriver()
         group = self._view.getGroup()
+        # FIXME: If we are in edit value mode, we must exit it
+        if self._model.isEditValue():
+            self._properties.cancelValue()
         value, updatable, index, enable = self._model.getProperty(driver, group, property)
         # FIXME: The handler should only be disabled if the type is actually changed.
         self._disabled = index != self._properties.getTypesIndex()
@@ -252,19 +257,18 @@ class OptionsManager():
             # FIXME: we must also cancel the editing of any values.
             if self._model.isEditValue():
                 self._properties.cancelValue()
-            print("OptionsManager.cancelProperty() value: %s" % (value,))
             self._setPropertyValue(value)
 
     # PropertyWindow.xdl handler entries
     def setType(self, index):
-        print("OptionsManager.setType() Type: %s - disabled: %s" % (index, self._disabled))
+        # FIXME: If we changed the type selection then the handler
+        # FIXME: will fire twice, the first one is ignored
         if self._disabled:
             self._disabled = False
             return
         self._properties.setType(index)
 
     def setPropertyValue(self, value):
-        print("OptionsManager.setPropertyValue() Value: %s" % (value, ))
         driver = self._view.getDriver()
         group = self._view.getGroup()
         property = self._properties.getPropertiesItem()
