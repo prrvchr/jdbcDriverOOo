@@ -18,6 +18,8 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Fluid-Attacks scan
+        id: scan
+        continue-on-error: true
         uses: docker://ghcr.io/fluidattacks/makes/amd64
         with:
           args: m gitlab:fluidattacks/universe@trunk /skims scan ./_fascan.yml
@@ -26,5 +28,9 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -am "Fluid-Attacks Results.csv commit" || exit 0
-          git push
+          git commit -am "Fluid-Attacks-Results.csv commit" || exit 0
+          git push origin HEAD:master
+
+      - name: Check on failures
+        if: steps.scan.outcome != 'success'
+        run: exit 1
