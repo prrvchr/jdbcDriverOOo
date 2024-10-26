@@ -51,6 +51,9 @@ class PropertyManager():
     def getCheckBoxValue(self):
         return self._view.getCheckBoxValue()
 
+    def getNumFieldValue(self):
+        return self._view.getNumFieldValue()
+
     def getListBoxValue(self):
         return self._view.getListBoxValue()
 
@@ -67,11 +70,17 @@ class PropertyManager():
     def enableTypes(self, enabled):
         self._view.enableTypes(enabled)
 
+    def initAddValues(self):
+        self._view.initAddValues()
+
     def selectPropertyValue(self, index):
         self._view.selectPropertyValue(index)
 
     def setCheckBoxValue(self, value, updatable):
         self._view.setCheckBoxValue(value, updatable)
+
+    def setNumFieldValue(self, value, updatable):
+        self._view.setNumFieldValue(value, updatable)
 
     def setListBoxValue(self, value, updatable):
         self._view.setListBoxValue(value, updatable)
@@ -88,11 +97,11 @@ class PropertyManager():
 
     def editValue(self):
         self._view.setValue(self._view.getValuesItem())
-        self._view.setStep(4)
+        self._view.setStep(5)
 
     def addValue(self):
         self._view.clearValue()
-        self._view.setStep(4)
+        self._view.setStep(5)
 
     def cancelValue(self):
-        self._view.setStep(3)
+        self._view.setStep(4)

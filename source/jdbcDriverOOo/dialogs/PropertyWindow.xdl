@@ -37,30 +37,34 @@
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.0"/>
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.1"/>
         <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.2"/>
+        <dlg:menuitem dlg:value="&amp;PropertyWindow.ListBox1.StringItemList.3"/>
       </dlg:menupopup>
     </dlg:menulist>
     <dlg:text dlg:id="Label2" dlg:tab-index="2" dlg:left="10" dlg:top="165" dlg:width="40" dlg:height="18" dlg:help-text="&amp;PropertyWindow.Label2.HelpText" dlg:value="&amp;PropertyWindow.Label2.Label" dlg:valign="center"/>
-    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="3" dlg:page="1" dlg:left="157" dlg:top="165" dlg:width="10" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CheckBox1.HelpText" dlg:value="&amp;PropertyWindow.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
+    <dlg:checkbox dlg:id="CheckBox1" dlg:tab-index="3" dlg:page="1" dlg:left="159" dlg:top="165" dlg:width="8" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CheckBox1.HelpText" dlg:value="&amp;PropertyWindow.CheckBox1.Label" dlg:valign="center" dlg:checked="false">
       <script:event script:event-name="on-blur" script:macro-name="vnd.sun.star.UNO:SetBooleanValue" script:language="UNO"/>
     </dlg:checkbox>
-    <dlg:textfield dlg:id="TextField1" dlg:tab-index="4" dlg:page="2" dlg:left="55" dlg:top="165" dlg:width="112" dlg:height="18" dlg:help-text="&amp;PropertyWindow.TextField1.HelpText" dlg:value="&amp;PropertyWindow.TextField1.Text">
+    <dlg:numericfield dlg:id="NumericField1" dlg:tab-index="4" dlg:page="2" dlg:left="101" dlg:top="165" dlg:width="66" dlg:height="18" dlg:help-text="&amp;PropertyWindow.NumericField1.HelpText" dlg:strict-format="true" dlg:decimal-accuracy="0" dlg:spin="true">
+      <script:event script:event-name="on-blur" script:macro-name="vnd.sun.star.UNO:SetIntValue" script:language="UNO"/>
+    </dlg:numericfield>
+    <dlg:textfield dlg:id="TextField1" dlg:tab-index="5" dlg:page="3" dlg:left="55" dlg:top="165" dlg:width="112" dlg:height="18" dlg:help-text="&amp;PropertyWindow.TextField1.HelpText" dlg:value="&amp;PropertyWindow.TextField1.Text">
       <script:event script:event-name="on-blur" script:macro-name="vnd.sun.star.UNO:SetStringValue" script:language="UNO"/>
     </dlg:textfield>
-    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="5" dlg:page="3" dlg:left="55" dlg:top="165" dlg:width="112" dlg:height="18" dlg:help-text="&amp;PropertyWindow.ListBox2.HelpText" dlg:value="&amp;PropertyWindow.ListBox2.Text" dlg:spin="true"/>
-    <dlg:button dlg:id="CommandButton1" dlg:tab-index="6" dlg:page="3" dlg:disabled="true" dlg:left="172" dlg:top="165" dlg:width="38" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton1.HelpText" dlg:value="&amp;PropertyWindow.CommandButton1.Label">
+    <dlg:menulist dlg:id="ListBox2" dlg:tab-index="6" dlg:page="4" dlg:left="55" dlg:top="165" dlg:width="112" dlg:height="18" dlg:help-text="&amp;PropertyWindow.ListBox2.HelpText" dlg:value="&amp;PropertyWindow.ListBox2.Text" dlg:spin="true"/>
+    <dlg:button dlg:id="CommandButton1" dlg:tab-index="7" dlg:page="4" dlg:disabled="true" dlg:left="172" dlg:top="165" dlg:width="38" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton1.HelpText" dlg:value="&amp;PropertyWindow.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:EditValue" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton2" dlg:tab-index="7" dlg:page="3" dlg:disabled="true" dlg:left="212" dlg:top="165" dlg:width="18" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton2.HelpText" dlg:value="&amp;PropertyWindow.CommandButton2.Label">
+    <dlg:button dlg:id="CommandButton2" dlg:tab-index="8" dlg:page="4" dlg:disabled="true" dlg:left="212" dlg:top="165" dlg:width="18" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton2.HelpText" dlg:value="&amp;PropertyWindow.CommandButton2.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:AddValue" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton3" dlg:tab-index="8" dlg:page="3" dlg:disabled="true" dlg:left="232" dlg:top="165" dlg:width="18" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton3.HelpText" dlg:value="&amp;PropertyWindow.CommandButton3.Label">
+    <dlg:button dlg:id="CommandButton3" dlg:tab-index="9" dlg:page="4" dlg:disabled="true" dlg:left="232" dlg:top="165" dlg:width="18" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton3.HelpText" dlg:value="&amp;PropertyWindow.CommandButton3.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveValue" script:language="UNO"/>
     </dlg:button>
-    <dlg:textfield dlg:id="TextField2" dlg:tab-index="9" dlg:page="4" dlg:left="55" dlg:top="165" dlg:width="112" dlg:height="18" dlg:help-text="&amp;PropertyWindow.TextField2.HelpText" dlg:value="&amp;PropertyWindow.TextField2.Text"/>
-    <dlg:button dlg:id="CommandButton4" dlg:tab-index="10" dlg:page="4" dlg:left="172" dlg:top="165" dlg:width="38" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton4.HelpText" dlg:value="&amp;PropertyWindow.CommandButton4.Label">
+    <dlg:textfield dlg:id="TextField2" dlg:tab-index="10" dlg:page="5" dlg:left="55" dlg:top="165" dlg:width="112" dlg:height="18" dlg:help-text="&amp;PropertyWindow.TextField2.HelpText" dlg:value="&amp;PropertyWindow.TextField2.Text"/>
+    <dlg:button dlg:id="CommandButton4" dlg:tab-index="11" dlg:page="5" dlg:left="172" dlg:top="165" dlg:width="38" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton4.HelpText" dlg:value="&amp;PropertyWindow.CommandButton4.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Confirm" script:language="UNO"/>
     </dlg:button>
-    <dlg:button dlg:id="CommandButton5" dlg:tab-index="11" dlg:page="4" dlg:left="212" dlg:top="165" dlg:width="38" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton5.HelpText" dlg:value="&amp;PropertyWindow.CommandButton5.Label">
+    <dlg:button dlg:id="CommandButton5" dlg:tab-index="12" dlg:page="5" dlg:left="212" dlg:top="165" dlg:width="38" dlg:height="18" dlg:help-text="&amp;PropertyWindow.CommandButton5.HelpText" dlg:value="&amp;PropertyWindow.CommandButton5.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:Cancel" script:language="UNO"/>
     </dlg:button>
   </dlg:bulletinboard>

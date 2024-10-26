@@ -52,6 +52,9 @@ class PropertyView():
     def getCheckBoxValue(self):
         return bool(self._getCheckBox().State)
 
+    def getNumFieldValue(self):
+        return int(self._getNumField().Value)
+
     def getListBoxValue(self):
         return self._getListBox().Model.StringItemList
 
@@ -68,6 +71,15 @@ class PropertyView():
     def setCheckBoxValue(self, value, updatable):
         control = self._getCheckBox()
         control.State = int(value)
+        control.Model.Enabled = updatable
+
+    def setNumFieldValue(self, value, updatable):
+        control = self._getNumField()
+        # FIXME: numericfield does not display anything if the value of the control
+        # FIXME: does not change, in this case it is necessary to change the value.
+        if value == int(control.Value):
+            control.Value += 1
+        control.Value = value
         control.Model.Enabled = updatable
 
     def setListBoxValue(self, value, updatable):
@@ -102,6 +114,14 @@ class PropertyView():
     def enableTypes(self, enable):
         self._getTypes().Model.Enabled = enable
 
+    def initAddValues(self):
+        self._getCheckBox().Model.Enabled = True
+        self._getNumField().Model.Enabled = True
+        self._getTextField().Model.Enabled = True
+        self._getEditValue().Model.Enabled = False
+        self._getAddValue().Model.Enabled = True
+        self._getRemoveValue().Model.Enabled = False
+
     def clearValue(self):
         self.setValue('')
 
@@ -120,6 +140,9 @@ class PropertyView():
 
     def _getCheckBox(self):
         return self._window.getControl('CheckBox1')
+
+    def _getNumField(self):
+        return self._window.getControl('NumericField1')
 
     def _getTextField(self):
         return self._window.getControl('TextField1')

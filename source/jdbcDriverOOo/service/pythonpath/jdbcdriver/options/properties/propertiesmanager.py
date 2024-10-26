@@ -60,6 +60,9 @@ class PropertiesManager():
     def getCheckBoxValue(self):
         return self._property.getCheckBoxValue()
 
+    def getNumFieldValue(self):
+        return self._property.getNumFieldValue()
+
     def getListBoxValue(self):
         return self._property.getListBoxValue()
 
@@ -86,6 +89,8 @@ class PropertiesManager():
         self._view.clearPropertyName()
         self._view.enableConfirm(False)
         self._view.setStep(2)
+        self._property.initAddValues()
+        self._property.enableTypes(True)
 
     def enableConfirm(self, enable):
         self._view.enableConfirm(enable)
@@ -111,6 +116,9 @@ class PropertiesManager():
 
     def setCheckBoxValue(self, value, updatable):
         self._property.setCheckBoxValue(value, updatable)
+
+    def setNumFieldValue(self, value, updatable):
+        self._property.setNumFieldValue(value, updatable)
 
     def setListBoxValue(self, value, updatable):
         self._property.setListBoxValue(value, updatable)

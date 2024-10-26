@@ -219,7 +219,6 @@ class OptionsManager():
         self._model.setAddPropertyValue(self._getPropertyValue())
         self._model.setPropertyMode(2)
         self._properties.addProperty()
-        self._properties.enableTypes(True)
         value = self._model.getDefaultPropertyValue(self._properties.getTypesIndex())
         self._setPropertyValue(value)
 
@@ -227,7 +226,11 @@ class OptionsManager():
         driver = self._view.getDriver()
         group = self._view.getGroup()
         property = self._properties.getPropertiesItem()
-        self._model.removeProperty(driver, group, property)
+        properties = self._model.removeProperty(driver, group, property)
+        self._properties.setProperties(properties, True)
+        if properties:
+            self._disabled = True
+            self._properties.selectProperty(0)
 
     def setPropertyName(self, name):
         driver = self._view.getDriver()
@@ -363,6 +366,8 @@ class OptionsManager():
         cls = self._model.getType(self._properties.getTypesIndex())
         if cls == bool:
             value = self._properties.getCheckBoxValue()
+        elif cls == int:
+            value = self._properties.getNumFieldValue()
         elif cls == tuple:
             value = self._properties.getListBoxValue()
         else:
@@ -390,9 +395,12 @@ class OptionsManager():
         self._view.setStep(step, OptionsManager._restart)
 
     def _setPropertyValue(self, value, updatable=True):
-        if type(value) == bool:
+        cls = type(value)
+        if cls == bool:
             self._properties.setCheckBoxValue(value, updatable)
-        elif type(value) == tuple:
+        elif cls == int:
+            self._properties.setNumFieldValue(value, updatable)
+        elif cls == tuple:
             index = self._properties.getValuesIndex()
             self._properties.setListBoxValue(value, updatable)
             if value:

@@ -52,6 +52,9 @@ class WindowHandler(unohelper.Base,
             elif method == 'SetBooleanValue':
                 self._manager.setPropertyValue(bool(event.Source.State))
                 handled = True
+            elif method == 'SetIntValue':
+                self._manager.setPropertyValue(int(event.Source.Value))
+                handled = True
             elif method == 'EditValue':
                 self._manager.editValue()
                 handled = True
@@ -75,6 +78,7 @@ class WindowHandler(unohelper.Base,
     def getSupportedMethodNames(self):
         return ('SetType',
                 'SetBooleanValue',
+                'SetIntValue',
                 'SetStringValue',
                 'EditValue',
                 'AddValue',

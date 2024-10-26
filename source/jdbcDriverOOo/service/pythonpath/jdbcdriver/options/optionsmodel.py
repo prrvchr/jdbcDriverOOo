@@ -76,7 +76,9 @@ class OptionsModel():
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
         # FIXME: The supported types must follow the display order of the Property Type ListBox
-        self._types = (bool, str, tuple)
+        self._types = (bool, int, str, tuple)
+        self._unotypes = ('boolean', 'long', 'string', '[]string')
+        self._defaults = (False, 0, '', ())
         self._default = str
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', xdl)
         self._resources = {'TabTitle1' : 'Option2Dialog.Tab1.Title',
@@ -176,15 +178,13 @@ class OptionsModel():
         properties[property] = value
         return tuple((k for k, v in properties.items() if v is not None))
 
+    def removeProperty(self, driver, group, property):
+        properties = self._getGroup(driver, group)
+        properties[property] = None
+        return tuple((k for k, v in properties.items() if v is not None))
+
     def getDefaultPropertyValue(self, index):
-        cls = self._types[index]
-        if cls == bool:
-            value = False
-        elif cls == tuple:
-            value = ()
-        else:
-            value = ''
-        return value
+        return self._defaults[index]
 
     def addPropertyValue(self, driver, group, property, value):
         properties = self._getGroup(driver, group)
@@ -223,9 +223,6 @@ class OptionsModel():
  
     def cancelDriver(self):
         self._path = None
-
-    def removeProperty(self, driver, group, property):
-        self._getGroup(driver, group)[property] = None
 
     def updateDriverName(self, driver, name):
         self._drivers.get(driver)[self._name] = name
@@ -305,11 +302,13 @@ class OptionsModel():
                not javaclass.startswith('.')
 
     def _getTypeIndex(self, value):
-        enabled = value is None
-        if enabled:
-            index = self._types.index(self._default)
+        cls = type(value)
+        if value is not None and cls in self._types:
+            enabled = False
+            index = self._types.index(cls)
         else:
-            index = self._types.index(type(value))
+            enabled = True
+            index = self._types.index(self._default)
         return index, enabled
 
     def _getPropertyNames(self, driver, group):
@@ -340,13 +339,12 @@ class OptionsModel():
         return count > 0
 
     def _getUnoType(self, value):
-        if isinstance(value, tuple):
-            unotype = '[]string'
-        elif isinstance(value, bool):
-            unotype = 'boolean'
+        cls = type(value)
+        if cls in self._types:
+            index = self._types.index(cls)
         else:
-            unotype = 'string'
-        return unotype
+            index = self._types.index(self._default)
+        return self._unotypes[index]
 
     def _isDriverUpdatable(self, driver):
         return driver != self._root

@@ -566,12 +566,12 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 ### What has been done for version 1.4.6:
 
-- Modification of the implementation of the interface [UNO XPropertySet][127]. This new implementation ensures the uniqueness of [Handle][128] for each property. It is based on three files:
+- Modification of the implementation of the interface UNO [XPropertySet][127]. This new implementation ensures the uniqueness of [Handle][128] for each property. Since this implementation is shared with the vCardOOo extension, **it makes all existing versions of vCardOOo obsolete**. It is based on three files:
   - [PropertySet.java][129]
   - [PropertySetAdapter.java][130]
   - [PropertyWrapper.java][131]
 - Fixed issues in bookmark implementation. These modifications have been tested more particularly with the HsqlDB 2.7.4 and Jaybird 5.0.6 drivers.
-- New implementation of the extension options and more specifically the **JDBC Driver Options** tab which now allows the full configuration of a JDBC driver to be able to work with Base. The JDBC driver archive update operation has been simplified. It supports updating drivers that require multiple jar archives to work (ie: Derby, Jaybird 6.x).
+- New implementation of the extension options and more specifically the **JDBC Driver Options** tab which should eventually allow the configuration from scratch of a JDBC driver to be able to work with LibreOffice Base. The JDBC driver archive update operation has been simplified. It supports updating drivers that require multiple jar archives to work (ie: Derby, Jaybird 6.x). This new window, which seems quite simple, actually requires quite complicated management, so please do not hesitate to report any malfunctions.
 - Many other improvements.
 
 ### What remains to be done for version 1.4.6:
@@ -700,6 +700,6 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [126]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>
 [127]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/XPropertySet.html>
 [128]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/Property.html#Handle>
-[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySet.java>
-[130]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySetAdapter.java>
-[131]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertyWrapper.java>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertySet.java>
+[130]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertySetAdapter.java>
+[131]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertyWrapper.java>

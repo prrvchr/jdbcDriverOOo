@@ -566,12 +566,12 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 ### Ce qui a été fait pour la version 1.4.6:
 
-- Modification de l'implémentation de l'interface [UNO XPropertySet][127]. Cette nouvelle implémentation assure l'unicité des [Handle][128] pour chaque propriété. Elle est basée sur trois fichiers:
+- Modification de l'implémentation de l'interface UNO [XPropertySet][127]. Cette nouvelle implémentation assure l'unicité des [Handle][128] pour chaque propriété. Cette implémentation étant partagée avec l'extension vCardOOo, **elle rend toutes les versions existantes de vCardOOo obsolètes**. Elle est basée sur trois fichiers:
   - [PropertySet.java][129]
   - [PropertySetAdapter.java][130]
   - [PropertyWrapper.java][131]
 - Correction de problèmes dans l'implémentation des signets (bookmark). Ces modifications ont été testées plus particulièrement avec les pilotes HsqlDB 2.7.4 et Jaybird 5.0.6.
-- Nouvelle implémentation des options de l'extension et plus particulièrement de l'onglet **Options du pilote JDBC** qui permet désormais la configuration complète d'un pilote JDBC pour pouvoir fonctionner avec Base. L’opération de mise à jour de l’archive du pilote JDBC a été simplifiée. Elle prend en charge la mise à jour des pilotes qui nécessitent plusieurs archives jar pour fonctionner (ie: Derby, Jaybird 6.x).
+- Nouvelle implémentation des options de l'extension et plus particulièrement de l'onglet **Options du pilote JDBC** ce qui devrait permettre à terme la configuration à partir de zéro d'un pilote JDBC pour pouvoir fonctionner avec LibreOffice Base. L’opération de mise à jour de l’archive du pilote JDBC a été simplifiée. Elle prend en charge la mise à jour des pilotes qui nécessitent plusieurs archives jar pour fonctionner (ie: Derby, Jaybird 6.x). Cette nouvelle fenêtre qui semble assez simple, nécessite en réalité une gestion assez compliquée, n'hésitez donc pas à me signaler d'éventuels dysfonctionnements.
 - De nombreuses autres améliorations.
 
 ### Que reste-t-il à faire pour la version 1.4.6:
@@ -700,6 +700,6 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [126]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>
 [127]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/XPropertySet.html>
 [128]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/Property.html#Handle>
-[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySet.java>
-[130]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertySetAdapter.java>
-[131]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/helper/PropertyWrapper.java>
+[129]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertySet.java>
+[130]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertySetAdapter.java>
+[131]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertyWrapper.java>
