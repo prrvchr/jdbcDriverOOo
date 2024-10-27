@@ -1,15 +1,10 @@
 # .github/workflows/fascan.yml
 name: Fluid Attacks Scan
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 jobs:
   machineStandalone:
     name: machineStandalone job
     runs-on: ubuntu-latest
-
-    permissions:
-      # Give the default GITHUB_TOKEN write permission to commit and push the
-      # added or changed files to the repository.
-      contents: write
 
     steps:
       - name: Checkout repository
@@ -20,9 +15,9 @@ jobs:
       - name: Fluid-Attacks scan
         id: scan
         continue-on-error: true
-        uses: docker://ghcr.io/fluidattacks/makes/amd64
+        uses: docker://docker.io/fluidattacks/cli:latest
         with:
-          args: m gitlab:fluidattacks/universe@trunk /skims scan ./_fascan.yml
+          args: skims scan ./_fascan.yml
 
       - name: Commit and push changes
         run: |
@@ -31,6 +26,6 @@ jobs:
           git commit -am "Fluid-Attacks-Results.csv commit" || exit 0
           git push origin HEAD:master
 
-      - name: Check on failures
+      - name: Check for failures
         if: steps.scan.outcome != 'success'
         run: exit 1
