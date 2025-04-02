@@ -31,13 +31,11 @@ import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
 public final class SQLiteDatabaseMetaData
-    extends DatabaseMetaDataBase
-{
+    extends DatabaseMetaDataBase {
 
     // The constructor method:
     public SQLiteDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         super(connection);
     }
 

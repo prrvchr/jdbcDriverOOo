@@ -34,1759 +34,1537 @@ import com.sun.star.sdbc.XDatabaseMetaData2;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.PrivilegesHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBException;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.helper.DBException;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.helper.PrivilegesHelper;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class DatabaseMetaDataBase
     extends WeakBase
-    implements XDatabaseMetaData2
-{
-    protected final ConnectionBase m_Connection;
-    protected final java.sql.DatabaseMetaData m_Metadata;
-    protected final ConnectionLog m_logger;
+    implements XDatabaseMetaData2 {
+    protected final ConnectionBase mConnection;
+    protected final java.sql.DatabaseMetaData mMetadata;
+    protected final ConnectionLog mLogger;
 
     // The constructor method:
     public DatabaseMetaDataBase(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         this(connection, connection.getProvider().getConnection().getMetaData());
     }
 
     public DatabaseMetaDataBase(final ConnectionBase connection,
-                                final java.sql.DatabaseMetaData metadata)
-    {
-        m_Connection = connection;
-        m_Metadata = metadata;
-        m_logger = new ConnectionLog(connection.getLogger(), LoggerObjectType.METADATA);
+                                final java.sql.DatabaseMetaData metadata) {
+        mConnection = connection;
+        mMetadata = metadata;
+        mLogger = new ConnectionLog(connection.getLogger(), LoggerObjectType.METADATA);
     }
 
-    public ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
 
     // com.sun.star.sdbc.XDatabaseMetaData2
     @Override
-    public PropertyValue[] getConnectionInfo()
-    {
-        return m_Connection.getInfo();
+    public PropertyValue[] getConnectionInfo() {
+        return mConnection.getInfo();
     }
     
     @Override
-    public String getURL() throws SQLException
-    {
-        return m_Connection.getUrl();
+    public String getURL() throws SQLException {
+        return mConnection.getUrl();
     }
     
     @Override
-    public boolean allProceduresAreCallable() throws SQLException
-    {
+    public boolean allProceduresAreCallable() throws SQLException {
         try {
-            return m_Metadata.allProceduresAreCallable();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.allProceduresAreCallable();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean allTablesAreSelectable() throws SQLException
-    {
+    public boolean allTablesAreSelectable() throws SQLException {
         try {
-            return m_Metadata.allTablesAreSelectable();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.allTablesAreSelectable();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean dataDefinitionCausesTransactionCommit() throws SQLException
-    {
+    public boolean dataDefinitionCausesTransactionCommit() throws SQLException {
         try {
-            return m_Metadata.dataDefinitionCausesTransactionCommit();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.dataDefinitionCausesTransactionCommit();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean dataDefinitionIgnoredInTransactions() throws SQLException
-    {
+    public boolean dataDefinitionIgnoredInTransactions() throws SQLException {
         try {
-            return m_Metadata.dataDefinitionIgnoredInTransactions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.dataDefinitionIgnoredInTransactions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean deletesAreDetected(int type) throws SQLException
-    {
+    public boolean deletesAreDetected(int type) throws SQLException {
         try {
-            return m_Metadata.deletesAreDetected(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.deletesAreDetected(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean doesMaxRowSizeIncludeBlobs() throws SQLException
-    {
+    public boolean doesMaxRowSizeIncludeBlobs() throws SQLException {
         try {
-            return m_Metadata.doesMaxRowSizeIncludeBlobs();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.doesMaxRowSizeIncludeBlobs();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getBestRowIdentifier(Object catalog, String schema, String table, int scope, boolean nullable)
-            throws SQLException
-    {
+            throws SQLException {
         try {
-            return _getResultSet(m_Metadata.getBestRowIdentifier(_getPattern(catalog), _getPattern(schema), table, scope, nullable), "getBestRowIdentifier");
-        }
-        catch (java.sql.SQLException e) {
+            return _getResultSet(mMetadata.getBestRowIdentifier(_getPattern(catalog),
+                                 _getPattern(schema), table, scope, nullable), "getBestRowIdentifier");
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getCatalogSeparator() throws SQLException
-    {
+    public String getCatalogSeparator() throws SQLException {
         try {
-            String value = m_Metadata.getCatalogSeparator();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getCatalogSeparator();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getCatalogTerm() throws SQLException
-    {
+    public String getCatalogTerm() throws SQLException {
         try {
-            String value = m_Metadata.getCatalogTerm();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getCatalogTerm();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getCatalogs() throws SQLException
-    {
+    public XResultSet getCatalogs() throws SQLException {
         try {
-            return _getResultSet(m_Metadata.getCatalogs(), "getCatalogs");
-        }
-        catch (java.sql.SQLException e) {
+            return _getResultSet(mMetadata.getCatalogs(), "getCatalogs");
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getColumnPrivileges(Object catalog, String schema, String table, String column) throws SQLException
-    {
+    public XResultSet getColumnPrivileges(Object catalog,
+                                          String schema,
+                                          String table,
+                                          String column) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getColumnPrivileges(_getPattern(catalog), _getPattern(schema), table, column);
+            java.sql.ResultSet resultset = mMetadata.getColumnPrivileges(_getPattern(catalog),
+                                                                         _getPattern(schema), table, column);
             return _getResultSet(resultset, "getColumnPrivileges");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getColumns(Object catalog, String schema, String table, String column) throws SQLException
-    {
+    public XResultSet getColumns(Object catalog, String schema, String table, String column) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getColumns(_getPattern(catalog), _getPattern(schema), table, column);
+            java.sql.ResultSet resultset = mMetadata.getColumns(_getPattern(catalog),
+                                                                _getPattern(schema), table, column);
             return _getResultSet(resultset, "getColumns");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XConnection getConnection() throws SQLException
-    {
-        return m_Connection;
+    public XConnection getConnection() throws SQLException {
+        return mConnection;
     }
 
     @Override
-    public XResultSet getCrossReference(Object catalog1, String schema1, String table1, Object catalog2, String schema2, String table2)
-            throws SQLException
-    {
+    public XResultSet getCrossReference(Object catalog1,
+                                        String schema1,
+                                        String table1,
+                                        Object catalog2,
+                                        String schema2,
+                                        String table2)
+            throws SQLException {
         try {
             schema1 = _getPattern(schema1);
             schema2 = _getPattern(schema2);
-            java.sql.ResultSet resultset = m_Metadata.getCrossReference(_getPattern(catalog1), schema1, table1, _getPattern(catalog2), schema2, table2);
+            java.sql.ResultSet resultset = mMetadata.getCrossReference(_getPattern(catalog1),
+                                                                       schema1, table1,
+                                                                       _getPattern(catalog2),
+                                                                       schema2, table2);
             return _getResultSet(resultset, "getCrossReference");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getDatabaseProductName() throws SQLException
-    {
+    public String getDatabaseProductName() throws SQLException {
         try {
-            String value = m_Metadata.getDatabaseProductName();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getDatabaseProductName();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getDatabaseProductVersion() throws SQLException
-    {
+    public String getDatabaseProductVersion() throws SQLException {
         try {
-            String value = m_Metadata.getDatabaseProductVersion();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getDatabaseProductVersion();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getDefaultTransactionIsolation() throws SQLException
-    {
+    public int getDefaultTransactionIsolation() throws SQLException {
         try {
-            return m_Metadata.getDefaultTransactionIsolation();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getDefaultTransactionIsolation();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getDriverMajorVersion()
-    {
-        return m_Metadata.getDriverMajorVersion();
+    public int getDriverMajorVersion() {
+        return mMetadata.getDriverMajorVersion();
     }
 
     @Override
-    public int getDriverMinorVersion()
-    {
-        return m_Metadata.getDriverMinorVersion();
+    public int getDriverMinorVersion() {
+        return mMetadata.getDriverMinorVersion();
     }
 
     @Override
-    public String getDriverName() throws SQLException
-    {
+    public String getDriverName() throws SQLException {
         try {
-            String value = m_Metadata.getDriverName();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getDriverName();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getDriverVersion() throws SQLException
-    {
+    public String getDriverVersion() throws SQLException {
         try {
-            String value = m_Metadata.getDriverVersion();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_DRIVER_VERSION, value);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getDriverVersion();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_DRIVER_VERSION, value);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getExportedKeys(Object catalog, String schema, String table) throws SQLException
-    {
+    public XResultSet getExportedKeys(Object catalog, String schema, String table) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getExportedKeys(_getPattern(catalog), _getPattern(schema), table);
+            java.sql.ResultSet resultset = mMetadata.getExportedKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset, "getExportedKeys");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getExtraNameCharacters() throws SQLException
-    {
+    public String getExtraNameCharacters() throws SQLException {
         try {
-            String value = m_Metadata.getExtraNameCharacters();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_EXTRA_NAME_CHARACTERS, value);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getExtraNameCharacters();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_EXTRA_NAME_CHARACTERS, value);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getIdentifierQuoteString() throws SQLException
-    {
+    public String getIdentifierQuoteString() throws SQLException {
         try {
-            String value = m_Metadata.getIdentifierQuoteString();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_IDENTIFIER_QUOTE, value);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getIdentifierQuoteString();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_IDENTIFIER_QUOTE, value);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
     
     @Override
-    public XResultSet getImportedKeys(Object catalog, String schema, String table) throws SQLException
-    {
+    public XResultSet getImportedKeys(Object catalog, String schema, String table) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getImportedKeys(_getPattern(catalog), _getPattern(schema), table);
+            java.sql.ResultSet resultset = mMetadata.getImportedKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset, "getImportedKeys");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getIndexInfo(Object catalog, String schema, String table, boolean arg3, boolean arg4)
-        throws SQLException
-    {
-        try 
-        {
-            java.sql.ResultSet resultset = m_Metadata.getIndexInfo(_getPattern(catalog), _getPattern(schema), table, arg3, arg4);
+        throws SQLException {
+        try {
+            java.sql.ResultSet resultset = mMetadata.getIndexInfo(_getPattern(catalog),
+                                                                  _getPattern(schema), table, arg3, arg4);
             return _getResultSet(resultset, "getIndexInfo");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxBinaryLiteralLength() throws SQLException
-    {
+    public int getMaxBinaryLiteralLength() throws SQLException {
         try {
-            return m_Metadata.getMaxBinaryLiteralLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxBinaryLiteralLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxCatalogNameLength() throws SQLException
-    {
+    public int getMaxCatalogNameLength() throws SQLException {
         try {
-            return m_Metadata.getMaxCatalogNameLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxCatalogNameLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxCharLiteralLength() throws SQLException
-    {
+    public int getMaxCharLiteralLength() throws SQLException {
         try {
-            return m_Metadata.getMaxCharLiteralLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxCharLiteralLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxColumnNameLength() throws SQLException
-    {
+    public int getMaxColumnNameLength() throws SQLException {
         try {
-            int value = m_Metadata.getMaxColumnNameLength();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_COLUMN_NAME_LENGTH, value);
+            int value = mMetadata.getMaxColumnNameLength();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_COLUMN_NAME_LENGTH, value);
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxColumnsInGroupBy() throws SQLException
-    {
+    public int getMaxColumnsInGroupBy() throws SQLException {
         try {
-            return m_Metadata.getMaxColumnsInGroupBy();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxColumnsInGroupBy();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxColumnsInIndex() throws SQLException
-    {
+    public int getMaxColumnsInIndex() throws SQLException {
         try {
-            return m_Metadata.getMaxColumnsInIndex();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxColumnsInIndex();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxColumnsInOrderBy() throws SQLException
-    {
+    public int getMaxColumnsInOrderBy() throws SQLException {
         try {
-            return m_Metadata.getMaxColumnsInOrderBy();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxColumnsInOrderBy();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxColumnsInSelect() throws SQLException
-    {
+    public int getMaxColumnsInSelect() throws SQLException {
         try {
-            return m_Metadata.getMaxColumnsInSelect();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxColumnsInSelect();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxColumnsInTable() throws SQLException
-    {
+    public int getMaxColumnsInTable() throws SQLException {
         try {
-            return m_Metadata.getMaxColumnsInTable();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxColumnsInTable();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxConnections() throws SQLException
-    {
+    public int getMaxConnections() throws SQLException {
         try {
-            return m_Metadata.getMaxConnections();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxConnections();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxCursorNameLength() throws SQLException
-    {
+    public int getMaxCursorNameLength() throws SQLException {
         try {
-            return m_Metadata.getMaxCursorNameLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxCursorNameLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxIndexLength() throws SQLException
-    {
+    public int getMaxIndexLength() throws SQLException {
         try {
-            return m_Metadata.getMaxIndexLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxIndexLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxProcedureNameLength() throws SQLException
-    {
+    public int getMaxProcedureNameLength() throws SQLException {
         try {
-            return m_Metadata.getMaxProcedureNameLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxProcedureNameLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxRowSize() throws SQLException
-    {
+    public int getMaxRowSize() throws SQLException {
         try {
-            return m_Metadata.getMaxRowSize();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxRowSize();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxSchemaNameLength() throws SQLException
-    {
+    public int getMaxSchemaNameLength() throws SQLException {
         try {
-            return m_Metadata.getMaxSchemaNameLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxSchemaNameLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxStatementLength() throws SQLException
-    {
+    public int getMaxStatementLength() throws SQLException {
         try {
-            return m_Metadata.getMaxStatementLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxStatementLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxStatements() throws SQLException
-    {
+    public int getMaxStatements() throws SQLException {
         try {
-            return m_Metadata.getMaxStatements();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxStatements();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxTableNameLength() throws SQLException
-    {
+    public int getMaxTableNameLength() throws SQLException {
         try {
-            int value = m_Metadata.getMaxTableNameLength();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_TABLE_NAME_LENGTH, value);
+            int value = mMetadata.getMaxTableNameLength();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_MAX_TABLE_NAME_LENGTH, value);
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxTablesInSelect() throws SQLException
-    {
+    public int getMaxTablesInSelect() throws SQLException {
         try {
-            return m_Metadata.getMaxTablesInSelect();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxTablesInSelect();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int getMaxUserNameLength() throws SQLException
-    {
+    public int getMaxUserNameLength() throws SQLException {
         try {
-            return m_Metadata.getMaxUserNameLength();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getMaxUserNameLength();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getNumericFunctions() throws SQLException
-    {
+    public String getNumericFunctions() throws SQLException {
         try {
-            String value = m_Metadata.getNumericFunctions();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getNumericFunctions();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getPrimaryKeys(Object catalog, String schema, String table) throws SQLException
-    {
+    public XResultSet getPrimaryKeys(Object catalog, String schema, String table) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getPrimaryKeys(_getPattern(catalog), _getPattern(schema), table);
+            java.sql.ResultSet resultset = mMetadata.getPrimaryKeys(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset, "getPrimaryKeys");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getProcedureColumns(Object catalog, String schema, String table, String column) throws SQLException
-    {
+    public XResultSet getProcedureColumns(Object catalog,
+                                          String schema,
+                                          String table,
+                                          String column) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getProcedureColumns(_getPattern(catalog), _getPattern(schema), table, column);
+            java.sql.ResultSet resultset = mMetadata.getProcedureColumns(_getPattern(catalog),
+                                                                         _getPattern(schema), table, column);
             return _getResultSet(resultset, "getProcedureColumns");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getProcedureTerm() throws SQLException
-    {
+    public String getProcedureTerm() throws SQLException {
         try {
-            String value = m_Metadata.getProcedureTerm();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getProcedureTerm();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getProcedures(Object catalog, String schema, String table) throws SQLException
-    {
+    public XResultSet getProcedures(Object catalog, String schema, String table) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getProcedures(_getPattern(catalog), _getPattern(schema), table);
+            java.sql.ResultSet resultset = mMetadata.getProcedures(_getPattern(catalog), _getPattern(schema), table);
             return _getResultSet(resultset, "getProcedures");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getSQLKeywords() throws SQLException
-    {
+    public String getSQLKeywords() throws SQLException {
         try {
-            String value = m_Metadata.getSQLKeywords();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getSQLKeywords();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getSchemaTerm() throws SQLException
-    {
+    public String getSchemaTerm() throws SQLException {
         try {
-            String value = m_Metadata.getSchemaTerm();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getSchemaTerm();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getSchemas() throws SQLException
-    {
+    public XResultSet getSchemas() throws SQLException {
         try {
-            java.sql.ResultSet result = m_Metadata.getSchemas();
+            java.sql.ResultSet result = mMetadata.getSchemas();
             return _getResultSet(result, "getSchemas");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getSearchStringEscape() throws SQLException
-    {
+    public String getSearchStringEscape() throws SQLException {
         try {
-            String value = m_Metadata.getSearchStringEscape();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getSearchStringEscape();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getStringFunctions() throws SQLException
-    {
+    public String getStringFunctions() throws SQLException {
         try {
-            String value = m_Metadata.getStringFunctions();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getStringFunctions();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getSystemFunctions() throws SQLException
-    {
+    public String getSystemFunctions() throws SQLException {
         try {
-            String value = m_Metadata.getSystemFunctions();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getSystemFunctions();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getTablePrivileges(Object catalog, String schema, String table)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            java.sql.ResultSet result = PrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
-                                                                                       m_Metadata,
-                                                                                       _getPattern(catalog),
-                                                                                       _getPattern(schema),
-                                                                                       table);
+            XResultSet resultset = null;
+            java.sql.ResultSet result = PrivilegesHelper.getTablePrivilegesResultSet(mConnection.getProvider(),
+                                                                                     mMetadata,
+                                                                                     _getPattern(catalog),
+                                                                                     _getPattern(schema),
+                                                                                     table);
             DBTools.printResultSet(result);
-            result = PrivilegesHelper.getTablePrivilegesResultSet(m_Connection.getProvider(),
-                                                                    m_Metadata,
-                                                                    _getPattern(catalog),
-                                                                    _getPattern(schema),
-                                                                    table);
-            return result != null ? _getResultSet(result, "getTablePrivileges") : null;
-        }
-        catch (java.sql.SQLException e) {
+            result = PrivilegesHelper.getTablePrivilegesResultSet(mConnection.getProvider(),
+                                                                  mMetadata,
+                                                                  _getPattern(catalog),
+                                                                  _getPattern(schema),
+                                                                  table);
+            if (result != null) {
+                resultset = _getResultSet(result, "getTablePrivileges");
+            }
+            return resultset;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getTableTypes()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Connection.getProvider().getTableTypesResultSet(m_Metadata);
+            java.sql.ResultSet resultset = mConnection.getProvider().getTableTypesResultSet(mMetadata);
             return _getResultSet(resultset, "getTableTypes");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getTables(Object catalog, String schema, String table, String[] types)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getTables(_getPattern(catalog), _getPattern(schema), table, _getPattern(types));
+            java.sql.ResultSet resultset = mMetadata.getTables(_getPattern(catalog), _getPattern(schema),
+                                                               table, _getPattern(types));
             return _getResultSet(resultset, "getTables");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getTimeDateFunctions() throws SQLException
-    {
+    public String getTimeDateFunctions() throws SQLException {
         try {
-            String value = m_Metadata.getTimeDateFunctions();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getTimeDateFunctions();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getTypeInfo() throws SQLException
-    {
+    public XResultSet getTypeInfo() throws SQLException {
         try {
-            DBTools.printResultSet(m_Connection.getProvider().getTypeInfoResultSet(m_Metadata));
-            java.sql.ResultSet resultset = m_Connection.getProvider().getTypeInfoResultSet(m_Metadata);
+            DBTools.printResultSet(mConnection.getProvider().getTypeInfoResultSet(mMetadata));
+            java.sql.ResultSet resultset = mConnection.getProvider().getTypeInfoResultSet(mMetadata);
             return _getResultSet(resultset, "getTypeInfo");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getUDTs(Object catalog, String schema, String type, int[] types) throws SQLException
-    {
+    public XResultSet getUDTs(Object catalog, String schema, String type, int[] types) throws SQLException {
         try {
-            java.sql.ResultSet resultset = m_Metadata.getUDTs(_getPattern(catalog), _getPattern(schema), type, types);
+            java.sql.ResultSet resultset = mMetadata.getUDTs(_getPattern(catalog), _getPattern(schema), type, types);
             return _getResultSet(resultset, "getUDTs");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public String getUserName() throws SQLException
-    {
+    public String getUserName() throws SQLException {
         try {
-            String value = m_Metadata.getUserName();
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getUserName();
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet getVersionColumns(Object catalog, String schema, String table) throws SQLException
-    {
-        try 
-        {
-            java.sql.ResultSet resultset = m_Metadata.getVersionColumns(_getPattern(catalog), _getPattern(schema), table);
+    public XResultSet getVersionColumns(Object catalog, String schema, String table) throws SQLException {
+        try {
+            java.sql.ResultSet resultset = mMetadata.getVersionColumns(_getPattern(catalog),
+                                                                       _getPattern(schema), table);
             return _getResultSet(resultset, "getVersionColumns");
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean insertsAreDetected(int type) throws SQLException
-    {
+    public boolean insertsAreDetected(int type) throws SQLException {
         try {
-            return m_Metadata.insertsAreDetected(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.insertsAreDetected(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean isCatalogAtStart() throws SQLException
-    {
+    public boolean isCatalogAtStart() throws SQLException {
         try {
-            return m_Metadata.isCatalogAtStart();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isCatalogAtStart();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean isReadOnly() throws SQLException
-    {
+    public boolean isReadOnly() throws SQLException {
         try {
-            return m_Metadata.isReadOnly();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isReadOnly();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean nullPlusNonNullIsNull() throws SQLException
-    {
+    public boolean nullPlusNonNullIsNull() throws SQLException {
         try {
-            return m_Metadata.nullPlusNonNullIsNull();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.nullPlusNonNullIsNull();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean nullsAreSortedAtEnd() throws SQLException
-    {
+    public boolean nullsAreSortedAtEnd() throws SQLException {
         try {
-            return m_Metadata.nullsAreSortedAtEnd();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.nullsAreSortedAtEnd();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean nullsAreSortedAtStart() throws SQLException
-    {
+    public boolean nullsAreSortedAtStart() throws SQLException {
         try {
-            return m_Metadata.nullsAreSortedAtStart();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.nullsAreSortedAtStart();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean nullsAreSortedHigh() throws SQLException
-    {
+    public boolean nullsAreSortedHigh() throws SQLException {
         try {
-            return m_Metadata.nullsAreSortedHigh();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.nullsAreSortedHigh();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean nullsAreSortedLow() throws SQLException
-    {
+    public boolean nullsAreSortedLow() throws SQLException {
         try {
-            return m_Metadata.nullsAreSortedLow();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.nullsAreSortedLow();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean othersDeletesAreVisible(int type) throws SQLException
-    {
+    public boolean othersDeletesAreVisible(int type) throws SQLException {
         try {
-            return m_Metadata.othersDeletesAreVisible(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.othersDeletesAreVisible(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean othersInsertsAreVisible(int type) throws SQLException
-    {
+    public boolean othersInsertsAreVisible(int type) throws SQLException {
         try {
-            return m_Metadata.othersInsertsAreVisible(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.othersInsertsAreVisible(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean othersUpdatesAreVisible(int type) throws SQLException
-    {
+    public boolean othersUpdatesAreVisible(int type) throws SQLException {
         try {
-            return m_Metadata.othersUpdatesAreVisible(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.othersUpdatesAreVisible(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean ownDeletesAreVisible(int type) throws SQLException
-    {
+    public boolean ownDeletesAreVisible(int type) throws SQLException {
         try {
-            return m_Metadata.ownDeletesAreVisible(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.ownDeletesAreVisible(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean ownInsertsAreVisible(int type) throws SQLException
-    {
+    public boolean ownInsertsAreVisible(int type) throws SQLException {
         try {
-            return m_Metadata.ownInsertsAreVisible(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.ownInsertsAreVisible(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean ownUpdatesAreVisible(int type) throws SQLException
-    {
+    public boolean ownUpdatesAreVisible(int type) throws SQLException {
         try {
-            return m_Metadata.ownUpdatesAreVisible(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.ownUpdatesAreVisible(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean storesLowerCaseIdentifiers() throws SQLException
-    {
+    public boolean storesLowerCaseIdentifiers() throws SQLException {
         try {
-            return m_Metadata.storesLowerCaseIdentifiers();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.storesLowerCaseIdentifiers();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean storesLowerCaseQuotedIdentifiers() throws SQLException
-    {
+    public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
         try {
-            return m_Metadata.storesLowerCaseQuotedIdentifiers();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.storesLowerCaseQuotedIdentifiers();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean storesMixedCaseIdentifiers() throws SQLException
-    {
+    public boolean storesMixedCaseIdentifiers() throws SQLException {
         try {
-            return m_Metadata.storesMixedCaseIdentifiers();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.storesMixedCaseIdentifiers();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean storesMixedCaseQuotedIdentifiers() throws SQLException
-    {
+    public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         try {
-            return m_Metadata.storesMixedCaseQuotedIdentifiers();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.storesMixedCaseQuotedIdentifiers();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean storesUpperCaseIdentifiers() throws SQLException
-    {
+    public boolean storesUpperCaseIdentifiers() throws SQLException {
         try {
-            return m_Metadata.storesUpperCaseIdentifiers();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.storesUpperCaseIdentifiers();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean storesUpperCaseQuotedIdentifiers() throws SQLException
-    {
+    public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
         try {
-            return m_Metadata.storesUpperCaseQuotedIdentifiers();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.storesUpperCaseQuotedIdentifiers();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsANSI92EntryLevelSQL() throws SQLException
-    {
+    public boolean supportsANSI92EntryLevelSQL() throws SQLException {
         try {
-            return m_Metadata.supportsANSI92EntryLevelSQL();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsANSI92EntryLevelSQL();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsANSI92FullSQL() throws SQLException
-    {
+    public boolean supportsANSI92FullSQL() throws SQLException {
         try {
-            return m_Metadata.supportsANSI92FullSQL();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsANSI92FullSQL();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsANSI92IntermediateSQL() throws SQLException
-    {
+    public boolean supportsANSI92IntermediateSQL() throws SQLException {
         try {
-            return m_Metadata.supportsANSI92IntermediateSQL();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsANSI92IntermediateSQL();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsAlterTableWithAddColumn() throws SQLException
-    {
+    public boolean supportsAlterTableWithAddColumn() throws SQLException {
         try {
-            boolean value = m_Metadata.supportsAlterTableWithAddColumn();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_ALTER_TABLE_WITH_ADD_COLUMN, value);
+            boolean value = mMetadata.supportsAlterTableWithAddColumn();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_ALTER_TABLE_WITH_ADD_COLUMN,
+                           value);
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsAlterTableWithDropColumn() throws SQLException
-    {
+    public boolean supportsAlterTableWithDropColumn() throws SQLException {
         try {
-            boolean value = m_Metadata.supportsAlterTableWithDropColumn();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_ALTER_TABLE_WITH_DROP_COLUMN, value);
+            boolean value = mMetadata.supportsAlterTableWithDropColumn();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_ALTER_TABLE_WITH_DROP_COLUMN,
+                           value);
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsBatchUpdates() throws SQLException
-    {
+    public boolean supportsBatchUpdates() throws SQLException {
         try {
-            return m_Metadata.supportsBatchUpdates();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsBatchUpdates();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCatalogsInDataManipulation() throws SQLException
-    {
+    public boolean supportsCatalogsInDataManipulation() throws SQLException {
         try {
-            return m_Metadata.supportsCatalogsInDataManipulation();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCatalogsInDataManipulation();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCatalogsInIndexDefinitions() throws SQLException
-    {
+    public boolean supportsCatalogsInIndexDefinitions() throws SQLException {
         try {
-            return m_Metadata.supportsCatalogsInIndexDefinitions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCatalogsInIndexDefinitions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException
-    {
+    public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException {
         try {
-            return m_Metadata.supportsCatalogsInPrivilegeDefinitions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCatalogsInPrivilegeDefinitions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCatalogsInProcedureCalls() throws SQLException
-    {
+    public boolean supportsCatalogsInProcedureCalls() throws SQLException {
         try {
-            return m_Metadata.supportsCatalogsInProcedureCalls();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCatalogsInProcedureCalls();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCatalogsInTableDefinitions() throws SQLException
-    {
+    public boolean supportsCatalogsInTableDefinitions() throws SQLException {
         try {
-            return m_Metadata.supportsCatalogsInTableDefinitions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCatalogsInTableDefinitions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsColumnAliasing() throws SQLException
-    {
+    public boolean supportsColumnAliasing() throws SQLException {
         try {
-            return m_Metadata.supportsColumnAliasing();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsColumnAliasing();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsConvert(int arg0, int arg1) throws SQLException
-    {
+    public boolean supportsConvert(int arg0, int arg1) throws SQLException {
         try {
-            return m_Metadata.supportsConvert();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsConvert();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCoreSQLGrammar() throws SQLException
-    {
+    public boolean supportsCoreSQLGrammar() throws SQLException {
         try {
-            return m_Metadata.supportsCoreSQLGrammar();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCoreSQLGrammar();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsCorrelatedSubqueries() throws SQLException
-    {
+    public boolean supportsCorrelatedSubqueries() throws SQLException {
         try {
-            return m_Metadata.supportsCorrelatedSubqueries();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsCorrelatedSubqueries();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsDataDefinitionAndDataManipulationTransactions() throws SQLException
-    {
+    public boolean supportsDataDefinitionAndDataManipulationTransactions() throws SQLException {
         try {
-            return m_Metadata.supportsDataDefinitionAndDataManipulationTransactions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsDataDefinitionAndDataManipulationTransactions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsDataManipulationTransactionsOnly() throws SQLException
-    {
+    public boolean supportsDataManipulationTransactionsOnly() throws SQLException {
         try {
-            return m_Metadata.supportsDataManipulationTransactionsOnly();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsDataManipulationTransactionsOnly();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsDifferentTableCorrelationNames() throws SQLException
-    {
+    public boolean supportsDifferentTableCorrelationNames() throws SQLException {
         try {
-            return m_Metadata.supportsDifferentTableCorrelationNames();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsDifferentTableCorrelationNames();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsExpressionsInOrderBy() throws SQLException
-    {
+    public boolean supportsExpressionsInOrderBy() throws SQLException {
         try {
-            return m_Metadata.supportsExpressionsInOrderBy();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsExpressionsInOrderBy();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsExtendedSQLGrammar() throws SQLException
-    {
+    public boolean supportsExtendedSQLGrammar() throws SQLException {
         try {
-            return m_Metadata.supportsExtendedSQLGrammar();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsExtendedSQLGrammar();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsFullOuterJoins() throws SQLException
-    {
+    public boolean supportsFullOuterJoins() throws SQLException {
         try {
-            return m_Metadata.supportsFullOuterJoins();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsFullOuterJoins();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsGroupBy() throws SQLException
-    {
+    public boolean supportsGroupBy() throws SQLException {
         try {
-            return m_Metadata.supportsGroupBy();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsGroupBy();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsGroupByBeyondSelect() throws SQLException
-    {
+    public boolean supportsGroupByBeyondSelect() throws SQLException {
         try {
-            return m_Metadata.supportsGroupByBeyondSelect();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsGroupByBeyondSelect();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsGroupByUnrelated() throws SQLException
-    {
+    public boolean supportsGroupByUnrelated() throws SQLException {
         try {
-            return m_Metadata.supportsGroupByUnrelated();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsGroupByUnrelated();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsIntegrityEnhancementFacility() throws SQLException
-    {
+    public boolean supportsIntegrityEnhancementFacility() throws SQLException {
         try {
-            return m_Metadata.supportsIntegrityEnhancementFacility();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsIntegrityEnhancementFacility();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsLikeEscapeClause() throws SQLException
-    {
+    public boolean supportsLikeEscapeClause() throws SQLException {
         try {
-            return m_Metadata.supportsLikeEscapeClause();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsLikeEscapeClause();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsLimitedOuterJoins() throws SQLException
-    {
+    public boolean supportsLimitedOuterJoins() throws SQLException {
         try {
-            return m_Metadata.supportsLimitedOuterJoins();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsLimitedOuterJoins();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsMinimumSQLGrammar() throws SQLException
-    {
+    public boolean supportsMinimumSQLGrammar() throws SQLException {
+        boolean support = false;
         try {
-            return m_Metadata.supportsMinimumSQLGrammar();
-        }
-        catch (java.sql.SQLException e) {
+            support = mMetadata.supportsMinimumSQLGrammar();
+        } catch (java.sql.SQLException e) {
             // FIXME: SDBC bug. Must be able to throw exception.
             // FIXME: throw UnoHelper.getSQLException(e, this);
-            return false;
         }
+        return support;
     }
 
     @Override
-    public boolean supportsMixedCaseIdentifiers() throws SQLException
-    {
+    public boolean supportsMixedCaseIdentifiers() throws SQLException {
         try {
-            boolean value = m_Metadata.supportsMixedCaseIdentifiers();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_ID, value);
+            boolean value = mMetadata.supportsMixedCaseIdentifiers();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_ID, value);
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException
-    {
+    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
         try {
-            boolean value = m_Metadata.supportsMixedCaseQuotedIdentifiers();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_QUOTED_ID, value);
+            boolean value = mMetadata.supportsMixedCaseQuotedIdentifiers();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_SUPPORT_MIXED_CASE_QUOTED_ID, value);
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsMultipleResultSets() throws SQLException
-    {
+    public boolean supportsMultipleResultSets() throws SQLException {
         try {
-            return m_Metadata.supportsMultipleResultSets();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsMultipleResultSets();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsMultipleTransactions() throws SQLException
-    {
+    public boolean supportsMultipleTransactions() throws SQLException {
         try {
-            return m_Metadata.supportsMultipleTransactions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsMultipleTransactions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsNonNullableColumns() throws SQLException
-    {
+    public boolean supportsNonNullableColumns() throws SQLException {
         try {
-            return m_Metadata.supportsNonNullableColumns();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsNonNullableColumns();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsOpenCursorsAcrossCommit() throws SQLException
-    {
+    public boolean supportsOpenCursorsAcrossCommit() throws SQLException {
         try {
-            return m_Metadata.supportsOpenCursorsAcrossCommit();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsOpenCursorsAcrossCommit();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsOpenCursorsAcrossRollback() throws SQLException
-    {
+    public boolean supportsOpenCursorsAcrossRollback() throws SQLException {
         try {
-            return m_Metadata.supportsOpenCursorsAcrossRollback();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsOpenCursorsAcrossRollback();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsOpenStatementsAcrossCommit() throws SQLException
-    {
+    public boolean supportsOpenStatementsAcrossCommit() throws SQLException {
         try {
-            return m_Metadata.supportsOpenStatementsAcrossCommit();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsOpenStatementsAcrossCommit();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsOpenStatementsAcrossRollback() throws SQLException
-    {
+    public boolean supportsOpenStatementsAcrossRollback() throws SQLException {
         try {
-            return m_Metadata.supportsOpenStatementsAcrossRollback();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsOpenStatementsAcrossRollback();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsOrderByUnrelated() throws SQLException
-    {
+    public boolean supportsOrderByUnrelated() throws SQLException {
         try {
-            return m_Metadata.supportsOrderByUnrelated();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsOrderByUnrelated();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsOuterJoins() throws SQLException
-    {
+    public boolean supportsOuterJoins() throws SQLException {
         try {
-            return m_Metadata.supportsOuterJoins();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsOuterJoins();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsPositionedDelete() throws SQLException
-    {
+    public boolean supportsPositionedDelete() throws SQLException {
         try {
-            return m_Metadata.supportsPositionedDelete();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsPositionedDelete();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsPositionedUpdate() throws SQLException
-    {
+    public boolean supportsPositionedUpdate() throws SQLException {
         try {
-            return m_Metadata.supportsPositionedUpdate();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsPositionedUpdate();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException
-    {
+    public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException {
         try {
-            return m_Metadata.supportsResultSetConcurrency (type, concurrency);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsResultSetConcurrency (type, concurrency);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsResultSetType(int arg0) throws SQLException
-    {
+    public boolean supportsResultSetType(int arg0) throws SQLException {
         try {
-            return m_Metadata.supportsResultSetType(arg0);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsResultSetType(arg0);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSchemasInDataManipulation() throws SQLException
-    {
+    public boolean supportsSchemasInDataManipulation() throws SQLException {
         try {
-            return m_Metadata.supportsSchemasInDataManipulation();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSchemasInDataManipulation();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSchemasInIndexDefinitions() throws SQLException
-    {
+    public boolean supportsSchemasInIndexDefinitions() throws SQLException {
         try {
-            return m_Metadata.supportsSchemasInIndexDefinitions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSchemasInIndexDefinitions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException
-    {
+    public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException {
         try {
-            return m_Metadata.supportsSchemasInPrivilegeDefinitions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSchemasInPrivilegeDefinitions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSchemasInProcedureCalls() throws SQLException
-    {
+    public boolean supportsSchemasInProcedureCalls() throws SQLException {
         try {
-            return m_Metadata.supportsSchemasInProcedureCalls();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSchemasInProcedureCalls();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSchemasInTableDefinitions() throws SQLException
-    {
+    public boolean supportsSchemasInTableDefinitions() throws SQLException {
         try {
-            return m_Metadata.supportsSchemasInTableDefinitions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSchemasInTableDefinitions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSelectForUpdate() throws SQLException
-    {
+    public boolean supportsSelectForUpdate() throws SQLException {
         try {
-            return m_Metadata.supportsSelectForUpdate();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSelectForUpdate();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsStoredProcedures() throws SQLException
-    {
+    public boolean supportsStoredProcedures() throws SQLException {
         try {
-            return m_Metadata.supportsStoredProcedures();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsStoredProcedures();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSubqueriesInComparisons() throws SQLException
-    {
+    public boolean supportsSubqueriesInComparisons() throws SQLException {
         try {
-            return m_Metadata.supportsSubqueriesInComparisons();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSubqueriesInComparisons();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSubqueriesInExists() throws SQLException
-    {
+    public boolean supportsSubqueriesInExists() throws SQLException {
         try {
-            return m_Metadata.supportsSubqueriesInExists();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSubqueriesInExists();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSubqueriesInIns() throws SQLException
-    {
+    public boolean supportsSubqueriesInIns() throws SQLException {
         try {
-            return m_Metadata.supportsSubqueriesInIns();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSubqueriesInIns();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsSubqueriesInQuantifieds() throws SQLException
-    {
+    public boolean supportsSubqueriesInQuantifieds() throws SQLException {
         try {
-            return m_Metadata.supportsSubqueriesInQuantifieds();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsSubqueriesInQuantifieds();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsTableCorrelationNames() throws SQLException
-    {
+    public boolean supportsTableCorrelationNames() throws SQLException {
         try {
-            return m_Metadata.supportsTableCorrelationNames();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsTableCorrelationNames();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsTransactionIsolationLevel(int arg0) throws SQLException
-    {
+    public boolean supportsTransactionIsolationLevel(int arg0) throws SQLException {
         try {
-            return m_Metadata.supportsTransactionIsolationLevel(arg0);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsTransactionIsolationLevel(arg0);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsTransactions() throws SQLException
-    {
+    public boolean supportsTransactions() throws SQLException {
         try {
-            return m_Metadata.supportsTransactions();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsTransactions();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsTypeConversion() throws SQLException
-    {
+    public boolean supportsTypeConversion() throws SQLException {
         try {
-            return m_Metadata.supportsConvert();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsConvert();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsUnion() throws SQLException
-    {
+    public boolean supportsUnion() throws SQLException {
         try {
-            return m_Metadata.supportsUnion();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsUnion();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean supportsUnionAll() throws SQLException
-    {
+    public boolean supportsUnionAll() throws SQLException {
         try {
-            return m_Metadata.supportsUnionAll();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.supportsUnionAll();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean updatesAreDetected(int type) throws SQLException
-    {
+    public boolean updatesAreDetected(int type) throws SQLException {
         try {
-            return m_Metadata.updatesAreDetected(type);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.updatesAreDetected(type);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean usesLocalFilePerTable() throws SQLException
-    {
+    public boolean usesLocalFilePerTable() throws SQLException {
         try {
-            return m_Metadata.usesLocalFilePerTable();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.usesLocalFilePerTable();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public boolean usesLocalFiles() throws SQLException
-    {
+    public boolean usesLocalFiles() throws SQLException {
         try {
-            return m_Metadata.usesLocalFiles();
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.usesLocalFiles();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     protected XResultSet _getResultSet(java.sql.ResultSet result,
                                        String method)
-        throws SQLException
-    {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET, method);
+        throws SQLException {
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET, method);
         if (result == null) {
             System.out.println("sdbc.DatabaseMetaData._getResultSet() ERROR method: " + method);
-            String message = m_logger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR, method);
-            m_logger.logp(LogLevel.SEVERE, message);
+            String message = mLogger.getStringResource(Resources.STR_LOG_DATABASE_METADATA_CREATE_RESULTSET_ERROR,
+                                                       method);
+            mLogger.logp(LogLevel.SEVERE, message);
             throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
         }
-        ResultSet resultset = new ResultSet(m_Connection, result);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID, method, resultset.getLogger().getObjectId());
+        ResultSet resultset = new ResultSet(mConnection, result);
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID,
+                       method, resultset.getLogger().getObjectId());
         return resultset;
     }
 
-    protected static String _getPattern(Object object)
-    {
+    protected static String _getPattern(Object object) {
         String value = null;
         if (AnyConverter.isString(object)) {
             value = AnyConverter.toString(object);
@@ -1794,16 +1572,15 @@ public abstract class DatabaseMetaDataBase
         return value;
     }
 
-    protected static String _getPattern(String value)
-    {
+    protected static String _getPattern(String value) {
+        String pattern = value;
         if (value.equals("%")) {
-            return null;
+            pattern = null;
         }
-        return value;
+        return pattern;
     }
 
-    protected static String[] _getPattern(String[] values)
-    {
+    protected static String[] _getPattern(String[] values) {
         String[] types = values;
         for (String value : values) {
             if (value.equals("%")) {

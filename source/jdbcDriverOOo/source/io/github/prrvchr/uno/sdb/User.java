@@ -31,46 +31,43 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
-import io.github.prrvchr.jdbcdriver.helper.RoleHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.helper.RoleHelper;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class User
     extends Role
-    implements XUser
-{
+    implements XUser {
 
-    private static final String m_service = User.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.User"};
+    private static final String SERVICE = User.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.User"};
 
 
     // The constructor method:
     public User(Connection connection,
                 boolean sensitive,
-                String name)
-    {
-        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.USER, false);
+                String name) {
+        super(SERVICE, SERVICES, connection, sensitive, name, LoggerObjectType.USER, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     // com.sun.star.sdbcx.XUser:
     @Override
     public void changePassword(String old, String password)
-        throws SQLException
-    {
+        throws SQLException {
         String query = null;
-        try (java.sql.Statement statement = m_connection.getProvider().getConnection().createStatement()){
+        try (java.sql.Statement statement = mConnection.getProvider().getConnection().createStatement()) {
             int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY;
-            query = RoleHelper.getChangeUserPasswordQuery(m_connection.getProvider(), getName(), password, isCaseSensitive());
+            query = RoleHelper.getChangeUserPasswordCommand(mConnection.getProvider(), getName(),
+                                                            password, isCaseSensitive());
             getLogger().logprb(LogLevel.INFO, resource, getName());
             statement.execute(query);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, getName());
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);

@@ -28,39 +28,33 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public final class KeyDescriptor
     extends Descriptor
-    implements XColumnsSupplier
-{
+    implements XColumnsSupplier {
 
-    private static final String m_service = KeyDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyDescriptor"};
+    private static final String SERVICE = KeyDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyDescriptor"};
 
-    private KeyColumnDescriptorContainer m_columns = null;
+    private KeyColumnDescriptorContainer mColumns = null;
 
-    private int m_Type;
-    private String m_ReferencedTable = "";
-    private int m_UpdateRule;
-    private int m_DeleteRule;
+    private int mType;
+    private String mReferencedTable = "";
+    private int mUpdateRule;
+    private int mDeleteRule;
 
 
     // The constructor method:
-    public KeyDescriptor(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive);
-        m_columns = new KeyColumnDescriptorContainer(this, isCaseSensitive());
+    public KeyDescriptor(boolean sensitive) {
+        super(SERVICE, SERVICES, sensitive);
+        mColumns = new KeyColumnDescriptorContainer(this, isCaseSensitive());
         registerProperties();
         System.out.println("sdbcx.descriptors.KeyDescriptor()");
     }
@@ -69,80 +63,40 @@ public final class KeyDescriptor
         Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
 
         properties.put(PropertyIds.DELETERULE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_DeleteRule;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_DeleteRule = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mDeleteRule;
+                },
+                value -> {
+                    mDeleteRule = (int) value;
+                }));
 
         properties.put(PropertyIds.REFERENCEDTABLE.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_ReferencedTable;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_ReferencedTable = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mReferencedTable;
+                },
+                value -> {
+                    mReferencedTable = (String) value;
+                }));
 
         properties.put(PropertyIds.TYPE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Type;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Type = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mType;
+                },
+                value -> {
+                    mType = (int) value;
+                }));
 
         properties.put(PropertyIds.UPDATERULE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_UpdateRule;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_UpdateRule = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mUpdateRule;
+                },
+                value -> {
+                    mUpdateRule = (int) value;
+                }));
 
         super.registerProperties(properties);
     }
@@ -150,10 +104,9 @@ public final class KeyDescriptor
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
-    public XNameAccess getColumns()
-    {
+    public XNameAccess getColumns() {
         System.out.println("sdbcx.descriptors.KeyDescriptor.getColumns()");
-        return m_columns;
+        return mColumns;
     }
 
 

@@ -27,18 +27,16 @@ package io.github.prrvchr.uno.sdbcx;
 
 
 public abstract class ColumnDescriptorContainerSuper<T extends ColumnDescriptorSuper>
-    extends DescriptorContainer<T>
-{
+    extends DescriptorContainer<T> {
 
-    protected TableDescriptorSuper m_table;
+    protected TableDescriptorSuper mTable;
 
     // The constructor method:
     public ColumnDescriptorContainerSuper(TableDescriptorSuper tableDescriptorSuper,
-                                          boolean sensitive)
-    {
+                                          boolean sensitive) {
         super(tableDescriptorSuper, sensitive);
-        m_table = tableDescriptorSuper;
-        System.out.println("sdbcx.ColumnDescriptorContainerSuper() ***************************************************");
+        mTable = tableDescriptorSuper;
+        System.out.println("sdbcx.ColumnDescriptorContainerSuper() ************************************");
     }
 
 }

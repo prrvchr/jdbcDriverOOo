@@ -28,29 +28,23 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public final class KeyColumnDescriptor
-    extends Descriptor
-{
+    extends Descriptor {
 
-    private static final String m_service = KeyColumnDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumnDescriptor"};
-    private String m_RelatedColumn = "";
+    private static final String SERVICE = KeyColumnDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumnDescriptor"};
+    private String mRelatedColumn = "";
 
 
     // The constructor method:
-    public KeyColumnDescriptor(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive);
+    public KeyColumnDescriptor(boolean sensitive) {
+        super(SERVICE, SERVICES, sensitive);
         registerProperties();
         System.out.println("sdbcx.descriptors.KeyColumnDescriptor()");
     }
@@ -59,23 +53,13 @@ public final class KeyColumnDescriptor
         Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
 
         properties.put(PropertyIds.RELATEDCOLUMN.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_RelatedColumn;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_RelatedColumn = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mRelatedColumn;
+                },
+                value -> {
+                    mRelatedColumn = (String) value;
+                }));
 
         super.registerProperties(properties);
     }

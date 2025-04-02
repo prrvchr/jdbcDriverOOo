@@ -34,286 +34,263 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class ResultSetMetaData
     extends WeakBase
-    implements XResultSetMetaData
-{
+    implements XResultSetMetaData {
 
-    private final java.sql.ResultSetMetaData m_Metadata;
-    private final ConnectionBase m_Connection;
-    private int m_count;
+    private final java.sql.ResultSetMetaData mMetadata;
+    private final ConnectionBase mConnection;
+    private int mCount;
 
     // The constructor method:
     public ResultSetMetaData(ConnectionBase connection,
-                             java.sql.ResultSetMetaData metadata)
-    {
-        m_Connection = connection;
-        m_Metadata = metadata;
-        m_count = -1;
+                             java.sql.ResultSetMetaData metadata) {
+        mConnection = connection;
+        mMetadata = metadata;
+        mCount = -1;
     }
 
 
     // com.sun.star.sdbc.XResultSetMetaData:
     @Override
     public int getColumnCount()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            if (m_count == -1) {
-                m_count = m_Metadata.getColumnCount();
+            if (mCount == -1) {
+                mCount = mMetadata.getColumnCount();
             }
-            return m_count;
-        }
-        catch (java.sql.SQLException e) {
+            return mCount;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getCatalogName(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getCatalogName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getCatalogName(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int getColumnDisplaySize(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.getColumnDisplaySize(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getColumnDisplaySize(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getColumnLabel(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getColumnLabel(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getColumnLabel(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getColumnName(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getColumnName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getColumnName(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getColumnServiceName(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getColumnClassName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getColumnClassName(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int getColumnType(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Connection.getProvider().getDataType(m_Metadata.getColumnType(index));
-        }
-        catch (java.sql.SQLException e) {
+            return mConnection.getProvider().getDataType(mMetadata.getColumnType(index));
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getColumnTypeName(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getColumnTypeName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getColumnTypeName(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getSchemaName(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getSchemaName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getSchemaName(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getTableName(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Metadata.getTableName(index);
-            return value != null ? value : "";
-        }
-        catch (java.sql.SQLException e) {
+            String value = mMetadata.getTableName(index);
+            if (value == null) {
+                value = "";
+            }
+            return value;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isCaseSensitive(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isCaseSensitive(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isCaseSensitive(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isCurrency(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             boolean currency = false;
-            if (!m_Connection.getProvider().isIgnoreCurrencyEnabled()) {
-                currency = m_Metadata.isCurrency(index);
+            if (!mConnection.getProvider().isIgnoreCurrencyEnabled()) {
+                currency = mMetadata.isCurrency(index);
             }
             return currency;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isAutoIncrement(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isAutoIncrement(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isAutoIncrement(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isSigned(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isSigned(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isSigned(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int getPrecision(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.getPrecision(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getPrecision(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int getScale(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.getScale(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.getScale(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int isNullable(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isNullable(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isNullable(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isSearchable(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isSearchable(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isSearchable(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isReadOnly(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isReadOnly(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isReadOnly(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isDefinitelyWritable(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return  m_Metadata.isDefinitelyWritable(index);
-        }
-        catch (java.sql.SQLException e) {
+            return  mMetadata.isDefinitelyWritable(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isWritable(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Metadata.isWritable(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mMetadata.isWritable(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }

@@ -43,7 +43,7 @@ class OptionsManager():
         self._model = OptionsModel(ctx, url)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(window)
-        self._manager = OptionManager(ctx, window, 20, g_defaultlog)
+        self._manager = OptionManager(ctx, window, 21, g_defaultlog)
         version = self._model.getDriverVersion(self._service())
         self._view.setDriverVersion(version)
 

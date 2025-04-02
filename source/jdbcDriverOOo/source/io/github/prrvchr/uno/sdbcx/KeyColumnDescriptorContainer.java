@@ -30,13 +30,11 @@ import com.sun.star.sdbc.SQLException;
 
 
 public final class KeyColumnDescriptorContainer
-    extends DescriptorContainer<KeyColumnDescriptor>
-{
+    extends DescriptorContainer<KeyColumnDescriptor> {
 
     // The constructor method:
     public KeyColumnDescriptorContainer(Object lock,
-                                        boolean sensitive)
-    {
+                                        boolean sensitive) {
         super(lock, sensitive);
         System.out.println("sdbcx.descriptors.KeyColumnDescriptorContainer()");
     }
@@ -48,8 +46,7 @@ public final class KeyColumnDescriptorContainer
 
     @Override
     protected KeyColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         return (KeyColumnDescriptor) cloneDescriptor(descriptor);
     }
 

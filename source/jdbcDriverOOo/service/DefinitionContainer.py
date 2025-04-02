@@ -42,7 +42,8 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.DefinitionContainer' % g_identifier
+g_ImplementationName1 = 'io.github.prrvchr.jdbcDriverOOo.DefinitionContainer'
+g_ServiceNames1 = ('com.sun.star.sdb.DefinitionContainer', )
 
 
 class DefinitionContainer(unohelper.Base,
@@ -74,11 +75,11 @@ class DefinitionContainer(unohelper.Base,
 
 # XServiceInfo
     def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
+        return g_ImplementationHelper.supportsService(g_ServiceName1, service)
     def getImplementationName(self):
-        return g_ImplementationName
+        return g_ServiceName1
     def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
+        return g_ImplementationHelper.getSupportedServiceNames(g_ServiceName1)
 
 # XInitialization
     def initialize(self, arguments):
@@ -95,6 +96,6 @@ class DefinitionContainer(unohelper.Base,
                 mri.inspect(datasource)
 
 
-g_ImplementationHelper.addImplementation(DefinitionContainer,
-                                         g_ImplementationName,
-                                        ('com.sun.star.sdb.DefinitionContainer', ))
+g_ImplementationHelper.addImplementation(DefinitionContainer,             # UNO object class
+                                         g_ImplementationName1,           # Implementation name
+                                         g_ServiceNames1)                 # List of implemented services

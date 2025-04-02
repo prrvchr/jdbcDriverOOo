@@ -33,35 +33,32 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class Index
     extends Descriptor
     implements XColumnsSupplier,
-               XDataDescriptorFactory
-{
+               XDataDescriptorFactory {
 
-    private static final String m_service = Index.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Index"};
+    private static final String SERVICE = Index.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Index"};
     
-    protected IndexColumnContainer m_columns = null;
-    protected final TableSuper m_table;
+    protected IndexColumnContainer mColumns = null;
+    protected final TableSuper mTable;
     
-    protected String m_Catalog;
-    protected boolean m_IsUnique;
-    protected boolean m_IsPrimaryKeyIndex;
-    protected boolean m_IsClustered;
+    protected String mCatalog;
+    protected boolean mIsUnique;
+    protected boolean mIsPrimaryKeyIndex;
+    protected boolean mIsClustered;
 
     // The constructor method:
     public Index(TableSuper table,
@@ -72,16 +69,15 @@ public final class Index
                  boolean primarykey,
                  boolean clustered,
                  List<String> columns)
-        throws ElementExistException
-    {
-        super(m_service, m_services, sensitive, name);
+        throws ElementExistException {
+        super(SERVICE, SERVICES, sensitive, name);
         System.out.println("sdbcx.Index() 1");
-        m_table = table;
-        m_Catalog = catalog;
-        m_IsUnique = unique;
-        m_IsPrimaryKeyIndex = primarykey;
-        m_IsClustered = clustered;
-        m_columns = new IndexColumnContainer(this, columns);
+        mTable = table;
+        mCatalog = catalog;
+        mIsUnique = unique;
+        mIsPrimaryKeyIndex = primarykey;
+        mIsClustered = clustered;
+        mColumns = new IndexColumnContainer(this, columns);
         registerProperties();
     }
 
@@ -90,73 +86,54 @@ public final class Index
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.CATALOG.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Catalog;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mCatalog;
+                },
+                null));
 
         properties.put(PropertyIds.ISCLUSTERED.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsClustered;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsClustered;
+                },
+                null));
 
         properties.put(PropertyIds.ISPRIMARYKEYINDEX.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsPrimaryKeyIndex;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsPrimaryKeyIndex;
+                },
+                null));
 
         properties.put(PropertyIds.ISUNIQUE.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsUnique;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsUnique;
+                },
+                null));
 
         super.registerProperties(properties);
     }
 
     protected IndexColumnContainer getColumnsInternal() {
-        return m_columns;
+        return mColumns;
     }
 
-    public TableSuper getTable()
-    {
-        return m_table;
+    public TableSuper getTable() {
+        return mTable;
     }
 
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor()
-    {
+    public XPropertySet createDataDescriptor() {
         System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
         IndexDescriptor descriptor = new IndexDescriptor(isCaseSensitive());
         UnoHelper.copyProperties(this, descriptor);
         try {
             DBTools.cloneDescriptorColumns(this, descriptor);
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
         }
         return descriptor;
     }
@@ -164,9 +141,8 @@ public final class Index
 
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
-    public XNameAccess getColumns()
-    {
-        return m_columns;
+    public XNameAccess getColumns() {
+        return mColumns;
     }
 
 }

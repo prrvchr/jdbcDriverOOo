@@ -496,20 +496,54 @@ class OptionsModel():
         sf.createFolder(folder)
 
     def _setDriverVersions(self, name, update):
-        versions = {}
-        default = self._getDefaultVersion()
-        config = self._config.getByName('Installed')
-        property = 'Properties/InMemoryDataBase/Value'
-        service = createService(self._ctx, name)
-        for protocol in config.getElementNames():
-            driver = config.getByName(protocol)
-            if driver.hasByHierarchicalName(property):
-                url = driver.getByHierarchicalName(property)
-                if len(url) > 0:
-                    versions[protocol] = self._getConnectionVersion(service, url, default)
-                    continue
-            versions[protocol] = default
-        with self._lock:
-            self._versions = versions
-        update(versions)
-
+        try:
+            print("OptionsModel._setDriverVersions() 1")
+            services = self._ctx.ServiceManager.createContentEnumeration('com.sun.star.sdbc.Driver')
+            i = 1
+            while services.hasMoreElements():
+                service = services.nextElement()
+                if service is not None:
+                    print("OptionsModel._setDriverVersions() 2 Service: %s - %s" % (i, service.getImplementationName()))
+                else:
+                    print("OptionsModel._setDriverVersions() 2 Service ERROR")
+                i += 1
+            manager = createService(self._ctx, 'com.sun.star.sdbc.DriverManager')
+            drivers = manager.createEnumeration()
+            i = 1
+            while drivers.hasMoreElements():
+                driver = drivers.nextElement()
+                if driver is not None:
+                    print("OptionsModel._setDriverVersions() 3 driver: %s - %s" % (i, driver.getImplementationName()))
+                else:
+                    print("OptionsModel._setDriverVersions() 3 driver ERROR")
+                i += 1
+            versions = {}
+            default = self._getDefaultVersion()
+            config = self._config.getByName('Installed')
+            propname = 'Properties/InMemoryDataBase/Value'
+            #name = 'io.github.prrvchr.jdbcDriverOOo.Driver'
+            pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
+            service = createService(self._ctx, name)
+            print("OptionsModel._setDriverVersions() 4 service name: %s" % name)
+            for protocol in config.getElementNames():
+                driver = config.getByName(protocol)
+                if driver.hasByHierarchicalName(propname):
+                    url = driver.getByHierarchicalName(propname)
+                    if len(url) > 0:
+                        print("OptionsModel._setDriverVersions() 5 URL: %s" % self._protocol + url)
+                        connection = pool.getConnection(self._protocol + url)
+                        if connection is None:
+                            print("OptionsModel._setDriverVersions() 6 ConnectionPool failed on URL: %s" % self._protocol + url)
+                            versions[protocol] = self._getConnectionVersion(service, url, default)
+                        else:
+                            versions[protocol] = self._getVersion(connection.getMetaData().getDriverVersion())
+                            connection.close()
+                        continue
+                versions[protocol] = default
+            with self._lock:
+                self._versions = versions
+            update(versions)
+            print("OptionsModel._setDriverVersions() 7")
+        except Exception:
+            msg = "OptionsModel._setDriverVersions() Error: %s" % traceback.format_exc()
+            print(msg)

@@ -31,46 +31,43 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class CallableStatement
-    extends CallableStatementBase
-{
+    extends CallableStatementBase {
 
-    private static final String m_service = CallableStatement.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement"};
+    private static final String SERVICE = CallableStatement.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.CallableStatement"};
 
     // The constructor method:
     public CallableStatement(Connection connection,
-                             String sql)
-    {
-        super(m_service, m_services, connection, sql);
+                             String sql) {
+        super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbc.CallableStatement() 1");
     }
 
     @Override
     public XResultSet getResultSet()
-        throws SQLException
-    {
+        throws SQLException {
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             ResultSet resultset =  new ResultSet(getConnectionInternal(), getJdbcResultSet(), this);
             String services = String.join(", ", resultset.getSupportedServiceNames());
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                               services, resultset.getLogger().getObjectId());
             return resultset;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     protected Connection getConnectionInternal() {
-        return (Connection) m_Connection;
+        return (Connection) mConnection;
     }
 
 

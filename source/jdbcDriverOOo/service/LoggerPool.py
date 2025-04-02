@@ -40,7 +40,8 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.LoggerPool' % g_identifier
+g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.LoggerPool'
+g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.LoggerPool', 'com.sun.star.logging.LoggerPool2')
 
 
 class LoggerPool(LoggerPoolBase,
@@ -57,7 +58,7 @@ class LoggerPool(LoggerPoolBase,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(LoggerPool,                                                      # UNO object class
-                                         g_ImplementationName,                                            # Implementation name
-                                         (g_ImplementationName, 'com.sun.star.logging.LoggerPool2'))      # List of implemented services
+g_ImplementationHelper.addImplementation(LoggerPool,                      # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services
 

@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.logging.LogLevel;
@@ -43,21 +42,19 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.helper.DefaultQuery;
-import io.github.prrvchr.jdbcdriver.helper.GeneratedKeys;
-import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.helper.DefaultQuery;
+import io.github.prrvchr.driver.helper.GeneratedKeys;
+import io.github.prrvchr.driver.helper.SqlCommand;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public abstract class StatementMain
@@ -67,456 +64,341 @@ public abstract class StatementMain
                XCancellable,
                XCloseable,
                XGeneratedResultSet,
-               XMultipleResults
-{
+               XMultipleResults {
 
-    private final String m_service;
-    private final String[] m_services;
-    protected ConnectionBase m_Connection;
-    private final ConnectionLog m_logger;
-    protected java.sql.Statement m_Statement = null;
-    protected RowCatalog m_Catalog = null;
-    protected boolean m_parsed = false;
-    protected SqlCommand m_Sql = null;
+    protected ConnectionBase mConnection;
+    protected java.sql.Statement mStatement = null;
+    protected RowCatalog mCatalog = null;
+    protected boolean mParsed = false;
+    protected SqlCommand mSql = null;
+    // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
+    protected int mResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
+    // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
+    protected int mResultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
 
-    private String m_CursorName = "";
-    private int m_FetchDirection = java.sql.ResultSet.FETCH_FORWARD;
-    private int m_FetchSize = 0;
-    private int m_MaxFieldSize = 0;
-    private int m_MaxRows = 0;
-    private int m_QueryTimeout = 0;
-    // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-    protected int m_ResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
-    // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-    protected int m_ResultSetType = java.sql.ResultSet.TYPE_FORWARD_ONLY;
+    private final String mService;
+    private final String[] mServices;
+    private final ConnectionLog mLogger;
+
+    private String mCursorName = "";
+    private int mFetchDirection = java.sql.ResultSet.FETCH_FORWARD;
+    private int mFetchSize = 0;
+    private int mMaxFieldSize = 0;
+    private int mMaxRows = 0;
+    private int mQueryTimeout = 0;
 
 
     // The constructor method:
     public StatementMain(String service,
                          String[] services,
-                         ConnectionBase connection)
-    {
-        m_service = service;
-        m_services = services;
-        m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.STATEMENT);
+                         ConnectionBase connection) {
+        mService = service;
+        mServices = services;
+        mConnection = connection;
+        mLogger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.STATEMENT);
     }
 
     protected abstract ConnectionBase getConnectionInternal();
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
 
     public java.sql.Statement getGeneratedStatement()
-        throws java.sql.SQLException
-    {
-        return m_Connection.getProvider().getStatement();
+        throws java.sql.SQLException {
+        return mConnection.getProvider().getStatement();
     }
 
     @Override
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
 
         properties.put(PropertyIds.CURSORNAME.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getCursorName();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setCursorName((String) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return _getCursorName();
+                },
+                value -> {
+                    _setCursorName((String) value);
+                }));
 
         properties.put(PropertyIds.FETCHDIRECTION.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getFetchDirection();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setFetchDirection((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getFetchDirection();
+                },
+                value -> {
+                    _setFetchDirection((int) value);
+                }));
 
         properties.put(PropertyIds.FETCHSIZE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getFetchSize();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setFetchSize((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getFetchSize();
+                },
+                value -> {
+                    _setFetchSize((int) value);
+                }));
 
         properties.put(PropertyIds.MAXFIELDSIZE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getMaxFieldSize();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setMaxFieldSize((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getMaxFieldSize();
+                },
+                value -> {
+                    _setMaxFieldSize((int) value);
+                }));
 
         properties.put(PropertyIds.MAXROWS.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getMaxRows();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setMaxRows((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getMaxRows();
+                },
+                value -> {
+                    _setMaxRows((int) value);
+                }));
 
         properties.put(PropertyIds.QUERYTIMEOUT.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getQueryTimeout();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setQueryTimeout((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getQueryTimeout();
+                },
+                value -> {
+                    _setQueryTimeout((int) value);
+                }));
 
         properties.put(PropertyIds.RESULTSETCONCURRENCY.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getResultSetConcurrency();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setResultSetConcurrency((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getResultSetConcurrency();
+                },
+                value -> {
+                    _setResultSetConcurrency((int) value);
+                }));
 
         properties.put(PropertyIds.RESULTSETTYPE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getResultSetType();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setResultSetType((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getResultSetType();
+                },
+                value -> {
+                    _setResultSetType((int) value);
+                }));
 
         super.registerProperties(properties);
     }
 
-    abstract protected java.sql.Statement getJdbcStatement() throws java.sql.SQLException;
-    abstract protected java.sql.ResultSet getJdbcResultSet() throws java.sql.SQLException;
+    protected abstract java.sql.Statement getJdbcStatement() throws java.sql.SQLException;
+    protected abstract java.sql.ResultSet getJdbcResultSet() throws java.sql.SQLException;
 
     protected java.sql.Statement setStatement(java.sql.Statement statement)
-        throws java.sql.SQLException
-    {
-        if (!m_CursorName.isBlank()) {
-            statement.setCursorName(m_CursorName);
+        throws java.sql.SQLException {
+        if (!mCursorName.isBlank()) {
+            statement.setCursorName(mCursorName);
         }
-        statement.setFetchDirection(m_FetchDirection);
-        statement.setFetchSize(m_FetchSize);
-        statement.setMaxFieldSize(m_MaxFieldSize);
-        statement.setMaxRows(m_MaxRows);
-        statement.setQueryTimeout(m_QueryTimeout);
+        statement.setFetchDirection(mFetchDirection);
+        statement.setFetchSize(mFetchSize);
+        statement.setMaxFieldSize(mMaxFieldSize);
+        statement.setMaxRows(mMaxRows);
+        statement.setQueryTimeout(mQueryTimeout);
         return statement;
     }
 
     private synchronized void _setCursorName(String cursor)
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         System.out.println("StatementMain._setCursorName() Value: " + cursor);
-        m_CursorName = cursor;
-        if (m_Statement != null) {
+        mCursorName = cursor;
+        if (mStatement != null) {
             try {
-                m_Statement.setCursorName(cursor);
-            }
-            catch (java.sql.SQLException e) {
+                mStatement.setCursorName(cursor);
+            } catch (java.sql.SQLException e) {
                 throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
 
-    private String _getCursorName()
-    {
-        return m_CursorName;
+    private String _getCursorName() {
+        return mCursorName;
     }
 
     private synchronized void _setFetchDirection(int value)
-        throws WrappedTargetException
-    {
-        m_FetchDirection = value;
-        if (m_Statement != null) {
+        throws WrappedTargetException {
+        mFetchDirection = value;
+        if (mStatement != null) {
             try {
-                m_Statement.setFetchDirection(value);
-            }
-            catch (java.sql.SQLException e) {
+                mStatement.setFetchDirection(value);
+            } catch (java.sql.SQLException e) {
                 throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
-    private int _getFetchDirection()
-    {
-        return m_FetchDirection;
+    private int _getFetchDirection() {
+        return mFetchDirection;
     }
 
     private synchronized void _setFetchSize(int value)
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         System.out.println("StatementMain._setFetchSize() FetchSize: " + value);
-        m_FetchSize = value;
-        if (m_Statement != null) {
+        mFetchSize = value;
+        if (mStatement != null) {
             try {
-                m_Statement.setFetchSize(value);
-            }
-            catch (java.sql.SQLException e) {
+                mStatement.setFetchSize(value);
+            } catch (java.sql.SQLException e) {
                 throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
-    private int _getFetchSize()
-    {
-        System.out.println("StatementMain._getFetchSize() FetchSize: " + m_FetchSize);
-        return m_FetchSize;
+    private int _getFetchSize() {
+        System.out.println("StatementMain._getFetchSize() FetchSize: " + mFetchSize);
+        return mFetchSize;
     }
 
     private synchronized void _setMaxFieldSize(int value)
-        throws WrappedTargetException
-    {
-        m_MaxFieldSize = value;
-        if (m_Statement != null) {
+        throws WrappedTargetException {
+        mMaxFieldSize = value;
+        if (mStatement != null) {
             try {
-                m_Statement.setMaxFieldSize(value);
-            }
-            catch (java.sql.SQLException e) {
+                mStatement.setMaxFieldSize(value);
+            } catch (java.sql.SQLException e) {
                 throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
-    private int _getMaxFieldSize()
-    {
-        return m_MaxFieldSize;
+    private int _getMaxFieldSize() {
+        return mMaxFieldSize;
     }
 
     private synchronized void _setMaxRows(int value)
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         System.out.println("StatementMain._setMaxRows() Value: " + value);
-        m_MaxRows = value;
-        if (m_Statement != null) {
+        mMaxRows = value;
+        if (mStatement != null) {
             try {
-                m_Statement.setMaxRows(value);
-            }
-            catch (java.sql.SQLException e) {
+                mStatement.setMaxRows(value);
+            } catch (java.sql.SQLException e) {
                 throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
-    private int _getMaxRows()
-    {
-        return m_MaxRows;
+    private int _getMaxRows() {
+        return mMaxRows;
     }
 
     private synchronized void _setQueryTimeout(int value)
-        throws WrappedTargetException
-    {
-        m_QueryTimeout = value;
-        if (m_Statement != null) {
+        throws WrappedTargetException {
+        mQueryTimeout = value;
+        if (mStatement != null) {
             try {
-                m_Statement.setQueryTimeout(value);
-            }
-            catch (java.sql.SQLException e) {
+                mStatement.setQueryTimeout(value);
+            } catch (java.sql.SQLException e) {
                 throw new WrappedTargetException("SQL error", this, UnoHelper.getSQLException(e, this));
             }
         }
     }
-    private int _getQueryTimeout()
-    {
-        return m_QueryTimeout;
+    private int _getQueryTimeout() {
+        return mQueryTimeout;
     }
 
-    private synchronized void _setResultSetConcurrency(int value)
-    {
+    private synchronized void _setResultSetConcurrency(int value) {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        m_ResultSetConcurrency = value;
-        if (m_Statement != null) {
-            m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY_ERROR, value);
-        }
-        else {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
+        mResultSetConcurrency = value;
+        if (mStatement != null) {
+            mLogger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY_ERROR, value);
+        } else {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_CONCURRENCY, value);
         }
     }
-    private int _getResultSetConcurrency()
-    {
-        int value = m_ResultSetConcurrency;
-        if (m_Statement != null) {
+    private int _getResultSetConcurrency() {
+        int value = mResultSetConcurrency;
+        if (mStatement != null) {
             try {
-                value = m_Statement.getResultSetConcurrency();
-            }
-            catch (java.sql.SQLException e) {
+                value = mStatement.getResultSetConcurrency();
+            } catch (java.sql.SQLException e) {
                 UnoHelper.getSQLException(e, this);
             }
         }
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_CONCURRENCY, value);
         return value;
     }
 
-    private synchronized void _setResultSetType(int value)
-    {
+    private synchronized void _setResultSetType(int value) {
         // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
-        m_ResultSetType = value;
-        if (m_Statement != null) {
-            m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE_ERROR, value);
-        }
-        else {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
+        mResultSetType = value;
+        if (mStatement != null) {
+            mLogger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE_ERROR, value);
+        } else {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_RESULTSET_TYPE, value);
         }
     }
-    private int _getResultSetType()
-    {
-        int value = m_ResultSetType;
-        if (m_Statement != null) {
+    private int _getResultSetType() {
+        int value = mResultSetType;
+        if (mStatement != null) {
             try {
-                value = m_Statement.getResultSetType();
-            }
-            catch (java.sql.SQLException e) {
+                value = mStatement.getResultSetType();
+            } catch (java.sql.SQLException e) {
                 UnoHelper.getSQLException(e, this);
             }
         }
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_RESULTSET_TYPE, value);
         return value;
     }
 
 
     // com.sun.star.lang.XServiceInfo:
     @Override
-    public String getImplementationName()
-    {
-        return ServiceInfo.getImplementationName(m_service);
+    public String getImplementationName() {
+        return ServiceInfo.getImplementationName(mService);
     }
 
     @Override
-    public String[] getSupportedServiceNames()
-    {
-        return ServiceInfo.getSupportedServiceNames(m_services);
+    public String[] getSupportedServiceNames() {
+        return ServiceInfo.getSupportedServiceNames(mServices);
     }
 
     @Override
-    public boolean supportsService(String service)
-    {
-        return ServiceInfo.supportsService(m_services, service);
+    public boolean supportsService(String service) {
+        return ServiceInfo.supportsService(mServices, service);
     }
 
 
     // com.sun.star.sdbc.XWarningsSupplier:
     @Override
-    public synchronized void clearWarnings() throws SQLException
-    {
+    public synchronized void clearWarnings() throws SQLException {
         // XXX: clearWargnings() should not prevent the Statement from lazy loading
-        if (m_Connection.getProvider().supportWarningsSupplier())
-            WarningsSupplier.clearWarnings(m_Statement, this);
+        if (mConnection.getProvider().supportWarningsSupplier()) {
+            WarningsSupplier.clearWarnings(mStatement, this);
+        }
     }
 
     @Override
-    public synchronized Object getWarnings() throws SQLException
-    {
+    public synchronized Object getWarnings() throws SQLException {
         // XXX: getWarnings() should not prevent the Statement from lazy loading
-        if (m_Connection.getProvider().supportWarningsSupplier())
-            return WarningsSupplier.getWarnings(m_Statement, this);
-         return Any.VOID;
+        Object warning = Any.VOID;
+        if (mConnection.getProvider().supportWarningsSupplier()) {
+            warning =  WarningsSupplier.getWarnings(mStatement, this);
+        }
+        return warning;
     }
 
 
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing()
-    {
-        if (m_Statement != null) {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
+    protected synchronized void postDisposing() {
+        if (mStatement != null) {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
             super.postDisposing();
             try {
-                m_Statement.close();
+                mStatement.close();
+            } catch (java.sql.SQLException e) {
+                mLogger.logp(LogLevel.WARNING, e);
             }
-            catch (java.sql.SQLException e) {
-                m_logger.logp(LogLevel.WARNING, e);
-            }
-            m_Statement = null;
+            mStatement = null;
         }
     }
 
 
     // com.sun.star.sdbc.XCloseable
     @Override
-    public synchronized void close() throws SQLException
-    {
+    public synchronized void close() throws SQLException {
         checkDisposed();
         dispose();
     }
@@ -524,13 +406,11 @@ public abstract class StatementMain
 
     // com.sun.star.util.XCancellable:
     @Override
-    public void cancel()
-    {
-        if (m_Sql != null) {
+    public void cancel() {
+        if (mSql != null) {
             try {
                 getJdbcStatement().cancel();
-            }
-            catch (java.sql.SQLException e) {
+            } catch (java.sql.SQLException e) {
                 System.out.println("StatementMain.cancel() ERROR");
             }
         }
@@ -539,25 +419,23 @@ public abstract class StatementMain
 
     // com.sun.star.sdbc.XGeneratedResultSet:
     @Override
-    public synchronized XResultSet getGeneratedValues() throws SQLException
-    {
+    public synchronized XResultSet getGeneratedValues() throws SQLException {
         checkDisposed();
         checkSqlCommand();
         ResultSet resultset = null;
         try {
             int resource;
             java.sql.ResultSet result = null;
-            DriverProvider provider = m_Connection.getProvider();
+            DriverProvider provider = mConnection.getProvider();
             String command = provider.getAutoRetrievingStatement();
             if (provider.isAutoRetrievingEnabled() && command != null) {
                 if (command.isBlank()) {
                     result = getJdbcStatement().getGeneratedKeys();
-                }
-                else {
+                } else {
                     RowCatalog catalog = getStatementCatalog();
                     if (catalog != null) {
                         resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
-                        m_logger.logprb(LogLevel.FINE, resource, catalog.getMainTable().getName(), m_Sql);
+                        mLogger.logprb(LogLevel.FINE, resource, catalog.getMainTable().getName(), mSql);
                         result = GeneratedKeys.getGeneratedResult(provider, getJdbcStatement(), catalog, command);
                     }
                 }
@@ -565,38 +443,37 @@ public abstract class StatementMain
             if (result == null) {
                 resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
                 String query = provider.getSQLQuery(DefaultQuery.STR_QUERY_EMPTY_RESULTSET);
-                m_logger.logprb(LogLevel.FINE, resource, query);
+                mLogger.logprb(LogLevel.FINE, resource, query);
                 result = provider.getStatement().executeQuery(query);
             }
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             resultset = new ResultSet(getConnectionInternal(), result);
             String services = String.join(", ", resultset.getSupportedServiceNames());
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services,
+                           resultset.getLogger().getObjectId());
             int count = result.getMetaData().getColumnCount();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT, count, getColumnNames(result, count));
-        }
-        catch (java.sql.SQLException e) {
-            m_logger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT,
+                           count, getColumnNames(result, count));
+        } catch (java.sql.SQLException e) {
+            mLogger.logprb(LogLevel.SEVERE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_ERROR, e.getMessage());
             throw UnoHelper.getSQLException(e, this);
         }
         return resultset;
     }
 
     private RowCatalog getStatementCatalog()
-        throws java.sql.SQLException
-    {
-        if (m_Catalog == null) {
-            if (m_Sql.hasTable() && m_Sql.isInsertCommand()) {
-                m_Catalog = new RowCatalog(m_Connection.getProvider(), m_Sql.getTable());
+        throws java.sql.SQLException {
+        if (mCatalog == null) {
+            if (mSql.hasTable() && mSql.isInsertCommand()) {
+                mCatalog = new RowCatalog(mConnection.getProvider(), mSql.getTable());
             }
         }
-        return m_Catalog;
+        return mCatalog;
     }
 
     private String getColumnNames(java.sql.ResultSet result,
                                    int count)
-        throws java.sql.SQLException 
-    {
+        throws java.sql.SQLException  {
         List<String> names = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
             names.add(result.getMetaData().getColumnName(i));
@@ -607,13 +484,11 @@ public abstract class StatementMain
 
     // com.sun.star.sdbc.XMultipleResults:
     @Override
-    public boolean getMoreResults() throws SQLException
-    {
+    public boolean getMoreResults() throws SQLException {
         checkSqlCommand();
         try {
             return getJdbcStatement().getMoreResults();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -622,23 +497,19 @@ public abstract class StatementMain
     public abstract XResultSet getResultSet() throws SQLException;
 
     @Override
-    public int getUpdateCount() throws SQLException
-    {
+    public int getUpdateCount() throws SQLException {
         checkSqlCommand();
         try {
             return getJdbcStatement().getUpdateCount();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
-    public void checkSqlCommand() throws SQLException
-    {
-        if (m_Sql == null) {
+    public void checkSqlCommand() throws SQLException {
+        if (mSql == null) {
             throw UnoHelper.getUnoSQLException("ERROR: checkSqlCommand not set");
         }
     }
-
 
 }

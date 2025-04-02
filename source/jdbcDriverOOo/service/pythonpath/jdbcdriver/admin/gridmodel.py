@@ -39,7 +39,8 @@ import traceback
 
 class GridModel(GridModelBase):
     def __init__(self, ctx, user, groups, grantees, tables, flags, isuser, url):
-        GridModelBase.__init__(self, ctx)
+        GridModelBase.__init__(self)
+        self._ctx = ctx
         self._user = user
         self._grantee = None
         self._groups = groups
@@ -53,6 +54,13 @@ class GridModel(GridModelBase):
         self._column = len(flags) + 1
         self._url = url
         self._images = self._getImages()
+
+    @property
+    def RowCount(self):
+        return self._row
+    @property
+    def ColumnCount(self):
+        return self._column
 
 # com.sun.star.util.XCloneable
     def createClone(self):
@@ -76,21 +84,17 @@ class GridModel(GridModelBase):
         return tuple(values)
 
 # GridModel getter methods
-    def setGrantee(self, grantee):
-        self._grantee = None if grantee is None else self._grantees.getByName(grantee)
-        self.refresh()
-
     def getGrantee(self):
         return self._grantee
 
     def getGrantees(self):
         return self._grantees
 
-    def isGroup(self):
-        return not self._isuser
-
     def getGranteePrivileges(self, table):
         return self._getTablePrivileges(table)
+
+    def isGroup(self):
+        return not self._isuser
 
 # GridModel setter methods
     def refresh(self, identifier=None):
@@ -98,9 +102,11 @@ class GridModel(GridModelBase):
             self._rows = {}
         else:
             del self._rows[identifier]
-        #first = 0 if row is None else row
-        #last = self._row -1 if row is None else row
-        #self._changeData(first, last)
+        self.dataChanged(-1, -1)
+
+    def setGrantee(self, grantee):
+        self._grantee = None if grantee is None else self._grantees.getByName(grantee)
+        self.refresh()
 
 # GridModel private getter methods
     def _getImages(self):

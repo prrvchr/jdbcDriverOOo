@@ -37,8 +37,7 @@ module io { module github { module prrvchr { module css {  module util {
 
     @since OOo 3.3
  */
-struct Duration
-{
+struct Duration {
     /** explicit sign bit.
      */
     boolean Negative;

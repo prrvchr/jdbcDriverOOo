@@ -32,25 +32,23 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.TableContainerSuper;
 
 
 public final class TableContainer
-    extends TableContainerSuper<Table>
-{
-    private static final String m_service = TableContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    extends TableContainerSuper<Table> {
+    private static final String SERVICE = TableContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public TableContainer(Connection connection,
                           boolean sensitive,
                           List<String> names)
-        throws ElementExistException
-    {
-        super(m_service, m_services, connection, sensitive, names);
+        throws ElementExistException {
+        super(SERVICE, SERVICES, connection, sensitive, names);
     }
 
     // XXX: To keep access to logger in protected mode we need this access
@@ -60,8 +58,7 @@ public final class TableContainer
     }
 
     @Override
-    protected XPropertySet createDescriptor()
-    {
+    protected XPropertySet createDescriptor() {
         System.out.println("sdb.TableContainer._createDescriptor()");
         return new TableDescriptor(isCaseSensitive());
     }
@@ -69,30 +66,27 @@ public final class TableContainer
     @Override
     protected Table getTable(NamedComponents component,
                               String type,
-                              String remarks)
-    {
+                              String remarks) {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);
-        Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalogName(), component.getSchemaName(), component.getTableName(), type, remarks);
+        Table table = new Table(getConnection(), isCaseSensitive(), component.getCatalogName(),
+                                component.getSchemaName(), component.getTableName(), type, remarks);
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLE_ID, table.getLogger().getObjectId());
         return table;
     }
 
-    protected Connection getConnection()
-    {
-        return (Connection) m_Connection;
+    protected Connection getConnection() {
+        return (Connection) mConnection;
     }
 
     @Override
     protected Table getElement(String name)
-        throws SQLException
-    {
+        throws SQLException {
         return (Table) super.getElement(name);
     }
 
     @Override
     protected Table getElement(int index)
-        throws SQLException
-    {
+        throws SQLException {
         return (Table) super.getElement(index);
     }
 

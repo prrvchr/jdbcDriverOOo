@@ -28,7 +28,8 @@
 """
 
 from .configuration import g_identifier
-
+from .configuration import g_services
+from .configuration import g_service
 
 from .unotool import createService
 from .unotool import hasInterface

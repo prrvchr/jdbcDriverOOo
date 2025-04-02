@@ -36,28 +36,25 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class Array
     extends ComponentBase
-    implements XArray
-{
+    implements XArray {
 
-    private final ConnectionBase m_Connection;
-    private final java.sql.Array m_Array;
+    private final ConnectionBase mConnection;
+    private final java.sql.Array mArray;
 
     // The constructor method:
     public Array(ConnectionBase connection,
-                 java.sql.Array array)
-    {
-        m_Connection = connection;
-        m_Array = array;
+                 java.sql.Array array) {
+        mConnection = connection;
+        mArray = array;
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected void postDisposing() {
         try {
-            m_Array.free();
-        }
-        catch (java.sql.SQLException e) {
-            m_Connection.getLogger().log(LogLevel.WARNING, e);
+            mArray.free();
+        } catch (java.sql.SQLException e) {
+            mConnection.getLogger().log(LogLevel.WARNING, e);
         }
     }
     
@@ -65,74 +62,70 @@ public final class Array
     // com.sun.star.sdbc.XArray
     @Override
     public Object[] getArray(XNameAccess map)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return (Object[]) m_Array.getArray();
-        }
-        catch (java.sql.SQLException e) {
+            return (Object[]) mArray.getArray();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public Object[] getArrayAtIndex(int index, int count, XNameAccess map)
-    throws SQLException
-    {
+        throws SQLException {
         try {
-            return (Object[]) m_Array.getArray(index, count);
-        }
-        catch (java.sql.SQLException e) {
+            return (Object[]) mArray.getArray(index, count);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int getBaseType()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Connection.getProvider().getDataType(m_Array.getBaseType());
-        }
-        catch (java.sql.SQLException e) {
+            return mConnection.getProvider().getDataType(mArray.getBaseType());
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public String getBaseTypeName()
-    throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Array.getBaseTypeName();
-        }
-        catch (java.sql.SQLException e) {
+            return mArray.getBaseTypeName();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getResultSet(XNameAccess map)
-    throws SQLException
-    {
+        throws SQLException {
         try {
-            java.sql.ResultSet result = m_Array.getResultSet();
-            return result != null ? new ResultSet(m_Connection, result) : null;
-        }
-        catch (java.sql.SQLException e) {
+            XResultSet resultset = null;
+            java.sql.ResultSet result = mArray.getResultSet();
+            if (result != null) {
+                resultset = new ResultSet(mConnection, result);
+            }
+            return resultset;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public XResultSet getResultSetAtIndex(int index, int count, XNameAccess map)
-    throws SQLException
-    {
+        throws SQLException {
         try {
-            java.sql.ResultSet result = m_Array.getResultSet(index, count);
-            return result != null ? new ResultSet(m_Connection, result) : null;
-        }
-        catch (java.sql.SQLException e) {
+            XResultSet resultset = null;
+            java.sql.ResultSet result = mArray.getResultSet(index, count);
+            if (result != null) {
+                resultset = new ResultSet(mConnection, result);
+            }
+            return resultset;
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }

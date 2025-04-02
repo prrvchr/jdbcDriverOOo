@@ -1,0 +1,4 @@
+#UNO project configuration file
+#Sun Jan 26 04:53:52 CET 2025
+project.build=build
+project.idl=/idl

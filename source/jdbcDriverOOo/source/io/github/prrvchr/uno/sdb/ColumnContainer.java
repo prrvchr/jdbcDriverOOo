@@ -30,30 +30,27 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
-
-import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 
 
 public final class ColumnContainer
-    extends ColumnContainerBase<Column>
-{
-    private static final String m_service = ColumnContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    extends ColumnContainerBase<Column> {
+    private static final String SERVICE = ColumnContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
     // The constructor method:
-    public ColumnContainer(Table table,
-                           boolean sensitive,
-                           List<ColumnDescription> descriptions)
-        throws ElementExistException
-    {
-        super(m_service, m_services, table, sensitive, descriptions);
+    protected ColumnContainer(Table table,
+                              boolean sensitive,
+                              List<ColumnDescription> descriptions)
+        throws ElementExistException {
+        super(SERVICE, SERVICES, table, sensitive, descriptions);
     }
 
     @Override
     protected XPropertySet createDescriptor() {
-        Table table = (Table) m_table;
+        Table table = (Table) mTable;
         return new ColumnDescriptor(table.getCatalogName(), table.getSchemaName(), table.getName(), isCaseSensitive());
     }
 
@@ -68,9 +65,10 @@ public final class ColumnContainer
                                int type,
                                boolean autoincrement,
                                boolean rowversion,
-                               boolean currency)
-    {
-        return new Column((Table) m_table, isCaseSensitive(), name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+                               boolean currency) {
+        return new Column((Table) mTable, isCaseSensitive(), name, typename,
+                           defaultvalue, description, nullable, precision, scale,
+                           type, autoincrement, rowversion, currency);
     }
 
 }

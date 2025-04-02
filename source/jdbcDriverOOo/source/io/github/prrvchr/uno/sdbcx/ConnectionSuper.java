@@ -38,91 +38,82 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.provider.ComposeRule;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
 public abstract class ConnectionSuper
     extends ConnectionBase
     implements XTablesSupplier,
-               XViewsSupplier
-{
+               XViewsSupplier {
 
-    protected TableContainerSuper<?> m_Tables = null;
-    private ViewContainer m_Views = null;
-
-    protected DriverProvider getProvider()
-    {
-        return super.getProvider();
-    }
-    protected ConnectionLog getLogger()
-    {
-        return super.getLogger();
-    }
+    protected TableContainerSuper<?> mTables = null;
+    private ViewContainer mViews = null;
 
     // The constructor method:
-    public ConnectionSuper(XComponentContext ctx,
-                           String service,
-                           String[] services,
-                           DriverProvider provider,
-                           String url,
-                           PropertyValue[] info)
-    {
+    protected ConnectionSuper(XComponentContext ctx,
+                              String service,
+                              String[] services,
+                              DriverProvider provider,
+                              String url,
+                              PropertyValue[] info) {
         super(ctx, service, services, provider, url, info);
+    }
+
+    protected DriverProvider getProvider() {
+        return super.getProvider();
+    }
+    protected ConnectionLog getLogger() {
+        return super.getLogger();
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        if (m_Tables != null) {
-            m_Tables.dispose();
+        if (mTables != null) {
+            mTables.dispose();
         }
-        if (m_Views != null) {
-            m_Views.dispose();
+        if (mViews != null) {
+            mViews.dispose();
         }
         super.postDisposing();
     }
 
     // com.sun.star.sdbcx.XTablesSupplier:
     @Override
-    public synchronized XNameAccess getTables()
-    {
+    public synchronized XNameAccess getTables() {
         return getTablesInternal();
     }
 
     // com.sun.star.sdbcx.XViewsSupplier:
     @Override
-    public synchronized XNameAccess getViews()
-    {
+    public synchronized XNameAccess getViews() {
         return getViewsInternal();
     }
 
     // Protected methods
-    protected synchronized TableContainerSuper<?> getTablesInternal()
-    {
+    protected synchronized TableContainerSuper<?> getTablesInternal() {
         checkDisposed();
-        if (m_Tables == null) {
+        if (mTables == null) {
             refreshTables();
         }
-        return m_Tables;
+        return mTables;
     }
 
-    protected synchronized ViewContainer getViewsInternal()
-    {
+    protected synchronized ViewContainer getViewsInternal() {
         checkDisposed();
-        if (m_Views == null) {
+        if (mViews == null) {
             refreshViews();
         }
-        return m_Views;
+        return mViews;
     }
 
-    protected synchronized void refresh()
-    {
+    protected synchronized void refresh() {
         checkDisposed();
         refreshTables();
         refreshViews();
@@ -131,30 +122,27 @@ public abstract class ConnectionSuper
     protected abstract TableContainerSuper<?> getTableContainer(List<String> names) throws ElementExistException;
     protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
 
-    private void refreshTables()
-    {
+    private void refreshTables() {
         try {
             // FIXME: It is preferable to display all the entities of the underlying database.
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
             List<String> names = new ArrayList<>();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes()))
-            {
+            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes())) {
                 while (result.next()) {
                     String name = buildName(result);
                     names.add(name);
                 }
             }
-            if (m_Tables == null) {
+            if (mTables == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
-                m_Tables = getTableContainer(names);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID, m_Tables.getLogger().getObjectId());
+                mTables = getTableContainer(names);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID,
+                                   mTables.getLogger().getObjectId());
+            } else {
+                mTables.refill(names);
             }
-            else {
-                m_Tables.refill(names);
-            }
-        }
-        catch (ElementExistException | java.sql.SQLException | SQLException e) {
+        } catch (ElementExistException | java.sql.SQLException | SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
@@ -163,34 +151,29 @@ public abstract class ConnectionSuper
         try {
             List<String> names = new ArrayList<>();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes()))
-            {
+            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes())) {
                 while (result.next()) {
                     String name = buildName(result);
                     names.add(name);
                 }
             }
-            if (m_Views == null) {
+            if (mViews == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEWS);
-                m_Views = getViewContainer(names);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEWS_ID, m_Views.getLogger().getObjectId());
+                mViews = getViewContainer(names);
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_VIEWS_ID, mViews.getLogger().getObjectId());
+            } else {
+                mViews.refill(names);
             }
-            else {
-                m_Views.refill(names);
-            }
-        }
-        catch (ElementExistException | SQLException | java.sql.SQLException e) {
+        } catch (ElementExistException | SQLException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
 
     private String buildName(java.sql.ResultSet result)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }

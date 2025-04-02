@@ -27,8 +27,7 @@ module io { module github { module prrvchr { module css { module util {
 
     The time zone is unknown.
  */
-published struct Date
-{
+published struct Date {
     /** contains the day of month (1-31 or 0 for a void date).
      */
     unsigned short Day;

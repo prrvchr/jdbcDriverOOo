@@ -30,41 +30,37 @@ import java.util.Map;
 
 import com.sun.star.awt.FontDescriptor;
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbcx.TableDescriptorSuper;
 
 
 public final class TableDescriptor
-    extends TableDescriptorSuper
-{
-    private static final String m_service = TableDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdb.TableDescriptor",
-                                                "com.sun.star.sdb.DataSettings",
-                                                "com.sun.star.sdbcx.TableDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
+    extends TableDescriptorSuper {
+    private static final String SERVICE = TableDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdb.TableDescriptor",
+                                              "com.sun.star.sdb.DataSettings",
+                                              "com.sun.star.sdbcx.TableDescriptor",
+                                              "com.sun.star.sdbcx.Descriptor"};
 
-    protected boolean m_ApplyFilter = false;
-    protected String m_Filter = "";
-    protected FontDescriptor m_FontDescriptor = null;
-    protected String m_GroupBy = "";
-    protected String m_HavingClause = "";
-    protected String m_Order = "";
-    private int m_Privileges = 0;
-    protected int m_RowHeight = 15;
-    protected int m_TextColor = 0;
+    protected boolean mApplyFilter = false;
+    protected String mFilter = "";
+    protected FontDescriptor mFontDescriptor = null;
+    protected String mGroupBy = "";
+    protected String mHavingClause = "";
+    protected String mOrder = "";
+    // CHECKSTYLE:OFF: MagicNumber - Specific for database
+    protected int mRowHeight = 15;
+    // CHECKSTYLE:ON: MagicNumber - Specific for database
+    protected int mTextColor = 0;
+    private int mPrivileges = 0;
 
     // The constructor method:
-    public TableDescriptor(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive);
-        m_columns = new ColumnDescriptorContainer(this, sensitive);
+    public TableDescriptor(boolean sensitive) {
+        super(SERVICE, SERVICES, sensitive);
+        mColumns = new ColumnDescriptorContainer(this, sensitive);
         registerProperties();
         System.out.println("sdb.TableDescriptor()");
     }
@@ -75,177 +71,92 @@ public final class TableDescriptor
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.APPLYFILTER.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_ApplyFilter;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_ApplyFilter = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mApplyFilter;
+                },
+                value -> {
+                    mApplyFilter = (boolean) value;
+                }));
 
         properties.put(PropertyIds.FILTER.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Filter;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Filter = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mFilter;
+                },
+                value -> {
+                    mFilter = (String) value;
+                }));
 
         properties.put(PropertyIds.FONTDESCRIPTOR.getName(),
-                       new PropertyWrapper(new Type(FontDescriptor.class),
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_FontDescriptor;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_FontDescriptor = (FontDescriptor) value;
-                                               }
-                                           }));
+            new PropertyWrapper(new Type(FontDescriptor.class),
+                () -> {
+                    return mFontDescriptor;
+                },
+                value -> {
+                    mFontDescriptor = (FontDescriptor) value;
+                }));
 
         properties.put(PropertyIds.GROUPBY.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_GroupBy;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_GroupBy = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mGroupBy;
+                },
+                value -> {
+                    mGroupBy = (String) value;
+                }));
 
         properties.put(PropertyIds.HAVINGCLAUSE.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_HavingClause;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_HavingClause = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mHavingClause;
+                },
+                value -> {
+                    mHavingClause = (String) value;
+                }));
+
+        registerProperties(properties, bound, readonly);
+    }
+
+    private void registerProperties(Map<String, PropertyWrapper> properties, short bound, short readonly) {
+
 
         properties.put(PropertyIds.ORDER.getName(),
-                       new PropertyWrapper(Type.STRING, bound,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Order;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Order = (String) value;
-                                               }
-                                           }));
-
+            new PropertyWrapper(Type.STRING, bound,
+                () -> {
+                    return mOrder;
+                },
+                value -> {
+                    mOrder = (String) value;
+                }));
 
         properties.put(PropertyIds.PRIVILEGES.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   System.out.println("sdb.Table.getPrivileges() 1 Privileges: " + m_Privileges);
-                                                   return m_Privileges;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Privileges = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    System.out.println("sdb.Table.getPrivileges() 1 Privileges: " + mPrivileges);
+                    return mPrivileges;
+                },
+                value -> {
+                    mPrivileges = (int) value;
+                }));
 
         properties.put(PropertyIds.ROWHEIGHT.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_RowHeight;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_RowHeight = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mRowHeight;
+                },
+                value -> {
+                    mRowHeight = (int) value;
+                }));
 
         properties.put(PropertyIds.TEXTCOLOR.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_TextColor;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_TextColor = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mTextColor;
+                },
+                value -> {
+                    mTextColor = (int) value;
+                }));
 
         super.registerProperties(properties);
     }

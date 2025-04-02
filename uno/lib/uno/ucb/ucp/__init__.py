@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -30,7 +30,6 @@
 from .configuration import g_ucbseparator
 from .configuration import g_ucbprefix
 from .configuration import g_ucbsuffix
-
 from .configuration import g_ucboffice
 from .configuration import g_ucbfolder
 from .configuration import g_ucbfile

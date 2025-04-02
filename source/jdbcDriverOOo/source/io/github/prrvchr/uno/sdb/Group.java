@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,27 +35,25 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.XUsersSupplier;
 
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Group
     extends Role
-    implements XUsersSupplier
-{
+    implements XUsersSupplier {
 
-    private static final String m_service = Group.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Group"};
-    private Users m_users;
+    private static final String SERVICE = Group.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Group"};
+    private Users mUsers;
 
     // The constructor method:
     public Group(Connection connection,
                  boolean sensitive,
-                 String name)
-    {
-        super(m_service, m_services, connection, sensitive, name, LoggerObjectType.GROUP, true);
+                 String name) {
+        super(SERVICE, SERVICES, connection, sensitive, name, LoggerObjectType.GROUP, true);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
@@ -62,54 +61,52 @@ public final class Group
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public XNameAccess getUsers() {
+        XNameAccess users = null;
         try {
-            if (m_users == null) {
+            if (mUsers == null) {
                 refreshUsers();
             }
-            return m_users;
-        }
-        catch (java.lang.Exception e) {
+            users = mUsers;
+        } catch (java.lang.Exception e) {
             System.out.println("sdbcx.Group.getUsers() ERROR: " + UnoHelper.getStackTrace(e));
         }
-        return null;
+        return users;
     }
 
-    protected void refreshUsers()
-    {
+    protected void refreshUsers() {
         List<String> users = new ArrayList<>();
-        String query = m_connection.getProvider().getGroupUsersQuery();
+        List<Object> values = new ArrayList<>();
+        String query = mConnection.getProvider().getDCLQuery().getGroupUsersQuery(getName(), values);
         if (query != null) {
-            try (java.sql.PreparedStatement statement = m_connection.getProvider().getConnection().prepareStatement(query))
-            {
-                statement.setString(1, getName());
-                try (java.sql.ResultSet result = statement.executeQuery())
-                {
-                    while(result.next()) {
+            try (PreparedStatement statement = mConnection.getProvider().getConnection().prepareStatement(query)) {
+                for (int i = 0; i < values.size(); i++) {
+                    statement.setObject(i + 1, values.get(i));
+                }
+                try (java.sql.ResultSet result = statement.executeQuery()) {
+                    while (result.next()) {
                         String user = result.getString(1);
                         if (!result.wasNull()) {
                             users.add(user);
                         }
                     }
                 }
-                if (m_users == null) {
-                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
-                    m_users = new Users(m_connection, isCaseSensitive(), getName(), users);
-                    m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID, m_users.getLogger().getObjectId());
+                if (mUsers == null) {
+                    mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
+                    mUsers = new Users(mConnection, isCaseSensitive(), getName(), users);
+                    mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID,
+                                   mUsers.getLogger().getObjectId());
+                } else {
+                    mUsers.refill(users);
                 }
-                else {
-                    m_users.refill(users);
-                }
-            }
-            catch (ElementExistException | java.sql.SQLException e) {
-                UnoHelper.getSQLException(e, m_connection);
+            } catch (ElementExistException | java.sql.SQLException e) {
+                UnoHelper.getSQLException(e, mConnection);
             }
 
         }
     }
 
-    protected Users getUsersInternal()
-    {
-        return m_users;
+    protected Users getUsersInternal() {
+        return mUsers;
     }
 
 }

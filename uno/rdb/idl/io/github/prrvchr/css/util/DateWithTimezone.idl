@@ -19,8 +19,7 @@ module io { module github { module prrvchr { module css { module util {
 
     @since LibreOffice 4.1
  */
-struct DateWithTimezone
-{
+struct DateWithTimezone {
     /** the date.
         @note XMLSchema-2 defines this as a 24 hour interval.
               The TimeZone shifts the interval along the UTC time line.

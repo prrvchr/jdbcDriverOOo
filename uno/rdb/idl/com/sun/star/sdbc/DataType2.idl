@@ -15,8 +15,7 @@ module com { module sun { module star { module sdbc {
         XDatabaseMetaData::getTypeInfo().
         </p>
  */
-published constants DataType2
-{
+published constants DataType2 {
     const long BIT                        =   -7;
 
     const long TINYINT                    =   -6;

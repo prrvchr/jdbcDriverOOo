@@ -29,16 +29,11 @@ import java.sql.Types;
 import java.util.Map;
 
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
-public final class SQLiteDriverProvider
-    extends DriverProviderMain
-    implements DriverProvider
-{
+public final class SQLiteDriverProvider {
 
     protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(Types.LONGNVARCHAR, Types.LONGVARCHAR),
                                                                             Map.entry(Types.NCHAR, Types.CHAR),
@@ -52,12 +47,9 @@ public final class SQLiteDriverProvider
                                                                             Map.entry(Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR));
 
     // The constructor method:
-    public SQLiteDriverProvider()
-    {
-        super("sqlite");
+    public SQLiteDriverProvider() {
     }
 
-    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
@@ -65,10 +57,8 @@ public final class SQLiteDriverProvider
         return type;
     }
 
-    @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         return new SQLiteDatabaseMetaData(connection);
     }
 

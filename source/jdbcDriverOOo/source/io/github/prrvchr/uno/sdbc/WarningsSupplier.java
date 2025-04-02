@@ -40,33 +40,26 @@ import com.sun.star.uno.XInterface;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
-public final class WarningsSupplier
-{
+public final class WarningsSupplier {
 
     public static void clearWarnings(final Wrapper wrapper,
                                      final XInterface component)
-        throws SQLException
-    {
+        throws SQLException {
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
                 if (wrapper.isWrapperFor(ResultSet.class)) {
                     wrapper.unwrap(ResultSet.class).clearWarnings();
-                }
-                else if (wrapper.isWrapperFor(CallableStatement.class)) {
+                } else if (wrapper.isWrapperFor(CallableStatement.class)) {
                     wrapper.unwrap(CallableStatement.class).clearWarnings();
-                }
-                else if (wrapper.isWrapperFor(PreparedStatement.class)) {
+                } else if (wrapper.isWrapperFor(PreparedStatement.class)) {
                     wrapper.unwrap(PreparedStatement.class).clearWarnings();
-                }
-                else if (wrapper.isWrapperFor(Statement.class)) {
+                } else if (wrapper.isWrapperFor(Statement.class)) {
                     wrapper.unwrap(Statement.class).clearWarnings();
-                }
-                else if (wrapper.isWrapperFor(Connection.class)) {
+                } else if (wrapper.isWrapperFor(Connection.class)) {
                     wrapper.unwrap(Connection.class).clearWarnings();
                 }
-            }
-            catch (java.sql.SQLException e) {
+            } catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, component);
             }
         }
@@ -74,44 +67,38 @@ public final class WarningsSupplier
 
     public static Object getWarnings(final Wrapper wrapper,
                                      final XInterface component)
-        throws SQLException
-    {
+        throws SQLException {
         java.sql.SQLWarning warning = null;
         // FIXME: Statement performs lazy loading and the wrapper can be null!!!
         if (wrapper != null) {
             try {
                 if (wrapper.isWrapperFor(ResultSet.class)) {
                     warning = wrapper.unwrap(ResultSet.class).getWarnings();
-                }
-                else if (wrapper.isWrapperFor(CallableStatement.class)) {
+                } else if (wrapper.isWrapperFor(CallableStatement.class)) {
                     warning = wrapper.unwrap(CallableStatement.class).getWarnings();
-                }
-                else if (wrapper.isWrapperFor(PreparedStatement.class)) {
+                } else if (wrapper.isWrapperFor(PreparedStatement.class)) {
                     warning = wrapper.unwrap(PreparedStatement.class).getWarnings();
-                }
-                else if (wrapper.isWrapperFor(Statement.class)) {
+                } else if (wrapper.isWrapperFor(Statement.class)) {
                     warning = wrapper.unwrap(Statement.class).getWarnings();
-                }
-                else if (wrapper.isWrapperFor(Connection.class)) {
+                } else if (wrapper.isWrapperFor(Connection.class)) {
                     warning = wrapper.unwrap(Connection.class).getWarnings();
                 }
-            }
-            catch (java.sql.SQLException e) {
+            } catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e, component);
             }
         }
         return _getWarning(warning, component);
     }
 
-    private static Object _getWarning(java.sql.SQLWarning warning, XInterface component)
-    {
-        if (warning != null)
-            return _getWarnings(warning, component);
-        return Any.VOID;
+    private static Object _getWarning(java.sql.SQLWarning w, XInterface component) {
+        Object warning = Any.VOID;
+        if (w != null) {
+            warning = _getWarnings(w, component);
+        }
+        return warning;
     }
 
-    private static SQLWarning _getWarnings(java.sql.SQLWarning w, XInterface component)
-    {
+    private static SQLWarning _getWarnings(java.sql.SQLWarning w, XInterface component) {
         SQLWarning warning = new SQLWarning(w.getMessage());
         warning.Context = component;
         warning.SQLState = w.getSQLState();

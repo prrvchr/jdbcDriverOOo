@@ -31,10 +31,14 @@
 g_extension = 'jdbcDriverOOo'
 g_identifier = 'io.github.prrvchr.%s' % g_extension
 g_service = '%s.Driver' % g_identifier
-g_version = '1.4.6'
+g_version = '1.4.7'
 
 # jdbcDriverOOo resource strings files and folder
 g_resource = 'resource'
 g_basename = 'Driver'
 g_defaultlog = 'jdbcDriverLogger'
 g_errorlog = 'jdbcDriverError'
+
+g_services = {'com.sun.star.sdb': 'io.github.prrvchr.jdbcdriver.sdb.Driver',
+              'com.sun.star.sdbc': 'io.github.prrvchr.jdbcdriver.sdbc.Driver',
+              'com.sun.star.sdbcx': 'io.github.prrvchr.jdbcdriver.sdbcx.Driver'}

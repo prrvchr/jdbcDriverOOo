@@ -39,24 +39,31 @@ from jdbcdriver import createService
 from jdbcdriver import getConfiguration
 
 from jdbcdriver import g_identifier
+from jdbcdriver import g_services
+from jdbcdriver import g_service
 
 from threading import Lock
 import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = '%s.Driver' % g_identifier
-
+g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.Driver'
+g_ServiceNames =("io.github.prrvchr.jdbcDriverOOo.Driver", 'com.sun.star.sdbc.Driver')
 
 class Driver(unohelper.Base,
              XServiceInfo):
     def __new__(cls, ctx, *args, **kwargs):
+        print('Driver.__new__() 1')
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    service = getConfiguration(ctx, g_identifier).getByName('DriverService')
-                    cls._instance = createService(ctx, service)
+                    apilevel = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
+                    print('Driver.__new__() 2 service: %s' % g_services[apilevel])
+                    cls._instance = createService(ctx, g_services[apilevel])
         return cls._instance
+
+    def __init__(self, ctx, *args, **kwargs):
+        print('Driver.__init__() 1')
 
     _instance = None
     _lock = Lock()
@@ -70,7 +77,7 @@ class Driver(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(Driver,                                                  # UNO object class
-                                         g_ImplementationName,                                    # Implementation name
-                                         (g_ImplementationName, 'com.sun.star.sdbc.Driver'))      # List of implemented services
+g_ImplementationHelper.addImplementation(Driver,                          # UNO object class
+                                         g_ImplementationName,            # Implementation name
+                                         g_ServiceNames)                  # List of implemented services
 

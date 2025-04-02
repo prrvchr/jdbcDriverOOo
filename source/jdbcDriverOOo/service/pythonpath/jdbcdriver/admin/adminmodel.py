@@ -89,7 +89,7 @@ class AdminModel(unohelper.Base):
         return self._grid.getSelectedIdentifier('0')
 
     def getGrantees(self):
-        return self._grid.Model.getGrantees().getElementNames()
+        return self._grid.getGrantees().getElementNames()
 
     def getDropGroupInfo(self):
         return self._getDropGroupMessage(), self._getDropGroupTitle()
@@ -110,16 +110,16 @@ class AdminModel(unohelper.Base):
         return pwd == confirmation
 
     def supportsCreateRole(self):
-        return self._grid.Model.getGrantees().createDataDescriptor() is not None
+        return self._grid.getGrantees().createDataDescriptor() is not None
 
     def createUser(self, user, password):
-        roles = self._grid.Model.getGrantees()
+        roles = self._grid.getGrantees()
         descriptor = roles.createDataDescriptor()
         descriptor.setPropertyValue('Password', password)
         return self._createRole(roles, descriptor, user)
 
     def createGroup(self, group):
-        roles = self._grid.Model.getGrantees()
+        roles = self._grid.getGrantees()
         descriptor = roles.createDataDescriptor()
         return self._createRole(roles, descriptor, group)
 
@@ -130,25 +130,25 @@ class AdminModel(unohelper.Base):
 
     # XXX: Show group's user members.
     def getUsers(self):
-        users = self._grid.Model.getGrantee().getUsers()
+        users = self._grid.getGrantee().getUsers()
         members = users.getElementNames()
         availables = self._getFilteredMembers(self._users, members)
         return users, self._getUsersTitle(), availables
 
     # XXX: Show user's group members.
     def getGroups(self):
-        groups = self._grid.Model.getGrantee().getGroups()
+        groups = self._grid.getGrantee().getGroups()
         members = groups.getElementNames()
         availables = self._getFilteredMembers(self._members, members)
         return groups, self._getGroupsTitle(), availables
 
     # XXX: Show group's role members.
     def getRoles(self):
-        groups = self._grid.Model.getGrantee().getGroups()
+        groups = self._grid.getGrantee().getGroups()
         members = groups.getElementNames()
         # XXX: We must avoid recursive assignments and therefore filter the current Grantee
         # XXX: as well as the groups having the current Grantee in assigned roles
-        availables = self._getFilteredMembers(self._grid.Model.getGrantees(), members, True)
+        availables = self._getFilteredMembers(self._grid.getGrantees(), members, True)
         return groups, self._getRolesTitle(), availables
 
     def isMemberModified(self, grantees, isgroup):
@@ -178,18 +178,18 @@ class AdminModel(unohelper.Base):
             self._grid.refresh()
 
     def dropGrantee(self):
-        self._grid.Model.getGrantees().dropByName(self._grantee)
+        self._grid.getGrantees().dropByName(self._grantee)
         return self.getGrantees()
 
     def setUserPassword(self, pwd):
-        self._grid.Model.getGrantee().changePassword(pwd, pwd)
+        self._grid.getGrantee().changePassword(pwd, pwd)
 
     def setGrantee(self, grantee):
         self._grantee = grantee
         self._grid.setGridVisible(False)
-        self._grid.Model.setGrantee(grantee)
+        self._grid.setGrantee(grantee)
         self._grid.setGridVisible(True)
-        isgroup = self._grid.Model.isGroup()
+        isgroup = self._grid.isGroup()
         user = self.supportsCreateRole()
         role = self._supportRole(isgroup)
         return user, role, self._isRemovable(grantee, isgroup)
@@ -199,16 +199,16 @@ class AdminModel(unohelper.Base):
 
     def hasGrantablePrivileges(self):
         table = self._grid.getSelectedIdentifier('0')
-        privilege, grantable, inherited = self._grid.Model.getGranteePrivileges(table)
+        privilege, grantable, inherited = self._grid.getGranteePrivileges(table)
         return grantable != 0
 
     def getPrivileges(self):
         table = self._grid.getSelectedIdentifier('0')
-        privilege, grantable, inherited = self._grid.Model.getGranteePrivileges(table)
+        privilege, grantable, inherited = self._grid.getGranteePrivileges(table)
         return table, privilege, grantable, inherited
 
     def setPrivileges(self, table, grant, revoke):
-        grantee = self._grid.Model.getGrantee()
+        grantee = self._grid.getGrantee()
         if grant != 0:
             grantee.grantPrivileges(table, TABLE, grant)
         if revoke != 0:
@@ -240,7 +240,7 @@ class AdminModel(unohelper.Base):
             # XXX: Some underlying drivers do not support Role of Role (Granting a role to a role),
             # XXX: to report this, although supporting the interface, the value returned is null.
             # XXX: We must be able to recognize such drivers...
-            grantee = self._grid.Model.getGrantee()
+            grantee = self._grid.getGrantee()
             inferface = 'com.sun.star.sdbcx.XGroupsSupplier'
             support = hasInterface(grantee, inferface) and grantee.getGroups() is not None
         else:
@@ -251,7 +251,7 @@ class AdminModel(unohelper.Base):
         return support
 
     def _getMembers(self, isgroup):
-        grantee = self._grid.Model.getGrantee()
+        grantee = self._grid.getGrantee()
         return grantee.getGroups().getElementNames() if isgroup else grantee.getUsers().getElementNames()
 
     def _getFilteredMembers(self, grantees, filters, recursive=False):

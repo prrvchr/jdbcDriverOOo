@@ -34,8 +34,7 @@
 
 module com { module sun { module star { module logging {
 
-interface XLoggerPool2 : com::sun::star::logging::XLoggerPool
-{
+interface XLoggerPool2 : com::sun::star::logging::XLoggerPool {
 
     /** get a localized logger from the pool.
 

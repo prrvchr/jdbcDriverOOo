@@ -34,77 +34,47 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.RoleHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.helper.RoleHelper;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbcx.Container;
 
 
 public class UserContainer
-    extends Container<User>
-{
-    private static final String m_service = UserContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    extends Container<User> {
+    private static final String SERVICE = UserContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
-    protected final Connection m_connection;
-    private final ConnectionLog m_logger; 
-
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
-    }
-
-    @Override
-    public void dispose()
-    {
-        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_DISPOSING);
-        super.dispose();
-    }
-
-    @Override
-    protected User getElement(int index)
-        throws SQLException
-    {
-        return super.getElement(index);
-    }
-    @Override
-    protected User getElement(String name)
-        throws SQLException
-    {
-        return super.getElement(name);
-    }
-
+    protected final Connection mConnection;
+    private final ConnectionLog mLogger; 
 
     // The constructor method:
-    public UserContainer(Connection connection,
-                         boolean sensitive,
-                         List<String> names)
-        throws ElementExistException
-    {
+    protected UserContainer(Connection connection,
+                            boolean sensitive,
+                            List<String> names)
+        throws ElementExistException {
         this(connection, sensitive, names, LoggerObjectType.USERCONTAINER);
     }
 
-    public UserContainer(Connection connection,
-                         boolean sensitive,
-                         List<String> names,
-                         LoggerObjectType type)
-        throws ElementExistException
-    {
-        super(m_service, m_services, connection, sensitive, names);
-        m_connection = connection;
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
+    protected UserContainer(Connection connection,
+                            boolean sensitive,
+                            List<String> names,
+                            LoggerObjectType type)
+        throws ElementExistException {
+        super(SERVICE, SERVICES, connection, sensitive, names);
+        mConnection = connection;
+        mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
     @Override
     protected User appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         String name = getElementName(descriptor);
-        if (!m_connection.getProvider().supportCreateUser()) {
+        if (!mConnection.getProvider().getDCLQuery().supportsCreateUser()) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_FEATURE_NOT_IMPLEMENTED;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
@@ -116,18 +86,37 @@ public class UserContainer
         return user;
     }
 
+    protected ConnectionLog getLogger() {
+        return mLogger;
+    }
+
+    @Override
+    public void dispose() {
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_DISPOSING);
+        super.dispose();
+    }
+
+    @Override
+    protected User getElement(int index)
+        throws SQLException {
+        return super.getElement(index);
+    }
+    @Override
+    protected User getElement(String name)
+        throws SQLException {
+        return super.getElement(name);
+    }
+
     protected boolean _createUser(XPropertySet descriptor,
                                   String name)
-        throws SQLException
-    {
+        throws SQLException {
         String query = null;
         try {
-            query = RoleHelper.getCreateUserQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = RoleHelper.getCreateUserCommand(mConnection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
-            return DBTools.executeSQLQuery(m_connection.getProvider(), query);
-        }
-        catch (java.sql.SQLException e) {
+            return DBTools.executeSQLQuery(mConnection.getProvider(), query);
+        } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
@@ -137,11 +126,10 @@ public class UserContainer
 
     @Override
     protected User createElement(String name)
-        throws SQLException
-    {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
-        User user = new User(m_connection, isCaseSensitive(), name);
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, user.getLogger().getObjectId());
+        throws SQLException {
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
+        User user = new User(mConnection, isCaseSensitive(), name);
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, user.getLogger().getObjectId());
         return user;
     }
 
@@ -149,19 +137,17 @@ public class UserContainer
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException
-    {
+        throws SQLException {
         String query = null;
         try {
-            query = RoleHelper.getDropUserQuery(m_connection.getProvider(), name, isCaseSensitive());
+            query = RoleHelper.getDropUserCommand(mConnection.getProvider(), name, isCaseSensitive());
             System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
-            if (DBTools.executeSQLQuery(m_connection.getProvider(), query)) {
+            if (DBTools.executeSQLQuery(mConnection.getProvider(), query)) {
                 // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
-                m_connection.getGroupsInternal().removeRole(name);
+                mConnection.getGroupsInternal().removeRole(name);
             }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
@@ -170,30 +156,26 @@ public class UserContainer
     }
 
     @Override
-    protected void refreshInternal()
-    {
-        m_connection.refresh();
+    protected void refreshInternal() {
+        mConnection.refresh();
     }
 
     @Override
-    protected void refill(List<String> names)
-    {
+    protected void refill(List<String> names) {
         super.refill(names);
     }
 
     @Override
-    protected XPropertySet createDescriptor()
-    {
+    protected XPropertySet createDescriptor() {
         XPropertySet descriptor = null;
-        if (m_connection.getProvider().supportCreateUser()) {
+        if (mConnection.getProvider().getDCLQuery().supportsCreateUser()) {
             descriptor =  new UserDescriptor(isCaseSensitive());
         }
         return descriptor;
     }
 
     protected void removeRole(String name)
-        throws SQLException
-    {
+        throws SQLException {
         Iterator<User> users = getActiveElements();
         while (users.hasNext()) {
             Groups groups = users.next().getGroupsInternal();
@@ -203,6 +185,5 @@ public class UserContainer
             }
         }
     }
-
 
 }

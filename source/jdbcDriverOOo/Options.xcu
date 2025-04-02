@@ -31,9 +31,6 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="io.github.prrvchr"
   oor:name="jdbcDriverOOo">
-    <prop oor:name="DriverService" oor:op="fuse">
-        <value>io.github.prrvchr.jdbcdriver.sdbcx.Driver</value>
-    </prop>
     <prop oor:name="ApiLevel" oor:op="fuse">
         <value>com.sun.star.sdb</value>
     </prop>

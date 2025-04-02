@@ -32,56 +32,59 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 
 
 public final class IndexColumnContainer
-    extends Container<IndexColumn>
-{
-    private static final String m_service = IndexColumnContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumns",
-                                                "com.sun.star.sdbcx.Container"};
+    extends Container<IndexColumn> {
+    private static final String SERVICE = IndexColumnContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexColumns",
+                                              "com.sun.star.sdbcx.Container"};
 
-    private final Index m_index;
+    private final Index mIndex;
 
     // The constructor method:
     // XXX: - io.github.prrvchr.uno.sdbcx.IndexDescriptor()
     public IndexColumnContainer(Index index,
                                 List<String> columns)
-        throws ElementExistException
-    {
-        super(m_service, m_services, index.getTable(), true, columns);
-        m_index = index;
+        throws ElementExistException {
+        super(SERVICE, SERVICES, index.getTable(), true, columns);
+        mIndex = index;
         System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
     }
 
     @Override
-    protected XPropertySet createDescriptor()
-    {
+    protected XPropertySet createDescriptor() {
         return new IndexColumnDescriptor(isCaseSensitive());
     }
     
     @Override
     protected IndexColumn createElement(String name)
-        throws SQLException
-    {
+        throws SQLException {
         IndexColumn index = null;
         boolean isascending = true;
-        NamedComponents table = m_index.getTable().getNamedComponents();
+        NamedComponents table = mIndex.getTable().getNamedComponents();
         try {
             java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(), table.getTable(), false, false))
-            {
+            try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(),
+                                                                   table.getSchema(),
+                                                                   table.getTable(),
+                                                                   false, false)) {
                 while (result.next()) {
+                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
                     if (name.equals(result.getString(9))) {
                         isascending = !"D".equals(result.getString(10));
+                        // CHECKSTYLE:ON: MagicNumber - Specific for database
                     }
                 }
             }
-            try (java.sql.ResultSet result = metadata.getColumns(table.getCatalog(), table.getSchema(), table.getTable(), name))
-            {
+            try (java.sql.ResultSet result = metadata.getColumns(table.getCatalog(),
+                                                                 table.getSchema(),
+                                                                 table.getTable(),
+                                                                 name)) {
                 while (result.next()) {
+                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
                     if (name.equals(result.getString(4))) {
                         int datatype = getConnection().getProvider().getDataType(result.getInt(5));
                         String typename = result.getString(6);
@@ -90,15 +93,18 @@ public final class IndexColumnContainer
                         scale = result.wasNull() ? 0 : scale;
                         int nullable = result.getInt(11);
                         String defaultvalue = result.getString(13);
-                        defaultvalue = result.wasNull() ? "" : defaultvalue;
-                        index = new IndexColumn(m_index.getTable(), isCaseSensitive(), name, typename, defaultvalue,
-                                                "", nullable, precision, scale, datatype, false, false, false, isascending);
+                        // CHECKSTYLE:ON: MagicNumber - Specific for database
+                        if (result.wasNull()) {
+                            defaultvalue = "";
+                        }
+                        index = new IndexColumn(mIndex.getTable(), isCaseSensitive(), name, typename,
+                                                defaultvalue, "", nullable, precision, scale, datatype,
+                                                false, false, false, isascending);
                         break;
                     }
                 }
             }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return index;
@@ -112,8 +118,7 @@ public final class IndexColumnContainer
 
     @Override
     protected IndexColumn appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         System.out.println("sdbcx.IndexColumnContainer.appendElement() *********************************");
         throw new SQLException("Unsupported");
     }
@@ -121,20 +126,17 @@ public final class IndexColumnContainer
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException
-    {
+        throws SQLException {
         System.out.println("sdbcx.IndexColumnContainer.removeDataBaseElement() *********************************");
         throw new SQLException("Unsupported");
     }
 
-    protected ConnectionSuper getConnection()
-    {
-        return m_index.getTable().getConnection();
+    protected ConnectionSuper getConnection() {
+        return mIndex.getTable().getConnection();
     }
 
     protected void renameIndexColumn(String oldname, String newname)
-        throws SQLException
-    {
+        throws SQLException {
         if (hasByName(oldname)) {
             replaceElement(oldname, newname);
         }

@@ -49,17 +49,49 @@ class GridManager(GridManagerBase):
         self._properties, self._headers = self._getGridInfos(columns)
         identifiers = self._initColumnModel(datasource)
         self._view.initColumns(self._url, self._headers, identifiers)
-        #self._model.sortByColumn(*self._getSavedOrders(datasource))
+        index, ascending = self._getSavedOrders(datasource)
+        if index != -1:
+            self.Model.sortByColumn(index, ascending)
         self._view.showGridColumnHeader(True)
         self._view.addSelectionListener(listener)
 
-# GridManager private getter methods
+# GridManager getter methods
+    def getGrantee(self):
+        return self._model.getGrantee()
+
+    def getGrantees(self):
+        return self._model.getGrantees()
+
+    def getGranteePrivileges(self, table):
+        return self._model.getGranteePrivileges(table)
+
+    def isGroup(self):
+        return self._model.isGroup()
+
+# GridManager setter methods
     def refresh(self, identifier=None):
         # FIXME: Since using the 'com.sun.star.awt.grid.SortableGridDataModel' service,
         # FIXME: the only way to refresh the grid display is to toggle its visibility
-        self._view.setGridVisible(False)
+        notified = self._model.hasGridDataListener()
+        if not notified:
+            self.setGridVisible(False)
         self._model.refresh(identifier)
-        self._view.setGridVisible(True)
+        if not notified:
+            self.setGridVisible(True)
+
+    def setGrantee(self, grantee):
+        self._model.setGrantee(grantee)
+
+# GridManagerBase overloaded setter methods
+    def _setDefaultWidths(self):
+        count = self.Column.getColumnCount() + 1
+        width = self._view.getGrid().Model.Width // count
+        index = 0
+        for column in self.Column.getColumns():
+            column.ColumnWidth = width if index != 0 else 2 * width
+            column.MinWidth = column.ColumnWidth
+            column.Flexibility = 0
+            index += 1
 
 # GridManager private getter methods
     def _getGridInfos(self, columns):
@@ -75,14 +107,4 @@ class GridManager(GridManagerBase):
             headers[identifier] = column
             index += 1
         return properties, headers
-
-    def setDefaultWidths(self):
-        count = self._column.getColumnCount()
-        width = (self._view.getGrid().Model.Width) // (count + 1)
-        index = 0
-        for column in self._column.getColumns():
-            column.ColumnWidth = width if index != 0 else 2 * width
-            column.MinWidth = column.ColumnWidth
-            column.Flexibility = 0
-            index += 1
 

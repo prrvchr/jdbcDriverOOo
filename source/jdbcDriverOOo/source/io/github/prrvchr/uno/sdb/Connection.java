@@ -30,84 +30,67 @@ import java.util.List;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.XChild;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.NoSupportException;
-import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdb.XCommandPreparation;
-import com.sun.star.sdb.XQueriesSupplier;
-import com.sun.star.sdb.XSQLQueryComposer;
-import com.sun.star.sdb.XSQLQueryComposerFactory;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
-import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
-import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
 
 public final class Connection
     extends ConnectionSuper
-    implements XChild,
-               XCommandPreparation,
-               XQueriesSupplier,
-               XSQLQueryComposerFactory,
-               XMultiServiceFactory,
-               XUsersSupplier,
-               XGroupsSupplier
-{
+    implements XUsersSupplier,
+               XGroupsSupplier {
 
-    private static final String m_service = Connection.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdb.Connection",
-                                                "com.sun.star.sdbc.Connection",
-                                                "com.sun.star.sdbcx.DatabaseDefinition"};
-    private UserContainer m_Users = null;
-    private GroupContainer m_Groups = null;
-
-    protected DriverProvider getProvider()
-    {
-        return super.getProvider();
-    }
-    protected ConnectionLog getLogger()
-    {
-        return super.getLogger();
-    }
+    private static final String SERVICE = Connection.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdb.Connection",
+                                              "com.sun.star.sdbc.Connection",
+                                              "com.sun.star.sdbcx.DatabaseDefinition"};
+    private UserContainer mUsers = null;
+    private GroupContainer mGroups = null;
 
     // The constructor method:
-    public Connection(XComponentContext ctx,
-                      DriverProvider provider,
-                      String url,
-                      PropertyValue[] info)
-    {
-        super(ctx, m_service, m_services, provider, url, info);
+    protected Connection(XComponentContext ctx,
+                         DriverProvider provider,
+                         String url,
+                         PropertyValue[] info) {
+        super(ctx, SERVICE, SERVICES, provider, url, info);
         System.out.println("sdb.Connection() *************************");
+    }
+
+    protected DriverProvider getProvider() {
+        return super.getProvider();
+    }
+
+    protected ConnectionLog getLogger() {
+        return super.getLogger();
     }
 
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        if (m_Users != null) {
-            m_Users.dispose();
+        if (mUsers != null) {
+            mUsers.dispose();
         }
-        if (m_Groups != null) {
-            m_Groups.dispose();
+        if (mGroups != null) {
+            mGroups.dispose();
         }
         super.postDisposing();
     }
- 
+
+    /*
     // com.sun.star.container.XChild:
     @Override
-    public XInterface getParent()
-    {
+    public XInterface getParent() {
         XInterface parent = null;
         System.out.println("sdb.Connection.getParent() 1 *************************");
         if (getProvider().hasDocument()) {
@@ -119,8 +102,7 @@ public final class Connection
 
 
     @Override
-    public void setParent(Object arg0) throws NoSupportException
-    {
+    public void setParent(Object arg0) throws NoSupportException {
         System.out.println("sdb.Connection.setParent() *************************");
     }
 
@@ -128,8 +110,7 @@ public final class Connection
     // com.sun.star.sdb.XCommandPreparation:
     @Override
     public XPreparedStatement prepareCommand(String command, int type)
-    throws SQLException
-    {
+        throws SQLException {
         System.out.println("sdb.Connection.prepareCommand() *************************");
         return null;
     }
@@ -138,8 +119,7 @@ public final class Connection
     // import com.sun.star.lang.XMultiServiceFactory:
     @Override
     public Object createInstance(String service)
-    throws Exception
-    {
+        throws Exception {
         System.out.println("sdb.Connection.createInstance() *************************");
         return null;
     }
@@ -153,8 +133,7 @@ public final class Connection
 
 
     @Override
-    public String[] getAvailableServiceNames()
-    {
+    public String[] getAvailableServiceNames() {
         System.out.println("sdb.Connection.getAvailableServiceNames() *************************");
         String[] services = {"com.sun.star.sdb.SQLQueryComposer"};
         return services;
@@ -163,175 +142,156 @@ public final class Connection
 
     // com.sun.star.sdb.XQueriesSupplier:
     @Override
-    public XNameAccess getQueries()
-    {
+    public XNameAccess getQueries() {
         System.out.println("sdb.Connection.getQueries() *************************");
         return null;
     }
 
 
 
-    /*public XSingleSelectQueryComposer createSingleSelectQueryComposer()
-        throws Exception
-    {
-        final XMultiServiceFactory connectionFactory = UnoRuntime.queryInterface( XMultiServiceFactory.class, m_connection );
-        return UnoRuntime.queryInterface(
-            XSingleSelectQueryComposer.class, connectionFactory.createInstance( "com.sun.star.sdb.SingleSelectQueryComposer" ) );
-    }*/
+    public XSingleSelectQueryComposer createSingleSelectQueryComposer()
+        throws Exception {
+        final XMultiServiceFactory connectionFactory = UnoRuntime.queryInterface(XMultiServiceFactory.class,
+                                                                                 m_connection );
+        String service = "com.sun.star.sdb.SingleSelectQueryComposer";
+        return UnoRuntime.queryInterface(XSingleSelectQueryComposer.class, connectionFactory.createInstance(service));
+    }
 
 
     // com.sun.star.sdb.XSQLQueryComposerFactory:
     @Override
-    public XSQLQueryComposer createQueryComposer()
-    {
+    public XSQLQueryComposer createQueryComposer() {
         System.out.println("sdb.Connection.createQueryComposer() *************************");
         return null;
-    }
+    }*/
 
 
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
-    public synchronized XNameAccess getUsers()
-    {
+    public synchronized XNameAccess getUsers() {
         return getUsersInternal();
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
-    public XNameAccess getGroups()
-    {
+    public XNameAccess getGroups() {
         return getGroupsInternal();
     }
 
 
-    protected synchronized GroupContainer getGroupsInternal()
-    {
+    protected synchronized GroupContainer getGroupsInternal() {
         checkDisposed();
-        if (m_Groups == null) {
+        if (mGroups == null) {
             refreshGroups();
         }
-        return m_Groups;
+        return mGroups;
     }
 
-    protected synchronized UserContainer getUsersInternal()
-    {
+    protected synchronized UserContainer getUsersInternal() {
         checkDisposed();
-        if (m_Users == null) {
+        if (mUsers == null) {
             refreshUsers();
         }
-        return m_Users;
+        return mUsers;
     }
 
-    protected XStatement _getStatement()
-    {
+    protected XStatement _getStatement() {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         getStatements().put(statement, statement);
         String services = String.join(", ", statement.getSupportedServiceNames());
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, services, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID,
+                           services, statement.getLogger().getObjectId());
         return statement;
     }
 
     @Override
     protected XPreparedStatement _getPreparedStatement(String sql)
-        throws SQLException
-    {
+        throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
         String services = String.join(", ", statement.getSupportedServiceNames());
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, services, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID,
+                           services, statement.getLogger().getObjectId());
         return statement;
     }
 
     @Override
     protected XPreparedStatement _getCallableStatement(String sql)
-        throws SQLException
-    {
+        throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);
         String services = String.join(", ", statement.getSupportedServiceNames());
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, services, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID,
+                           services, statement.getLogger().getObjectId());
         return statement;
     }
 
-    public synchronized void refresh()
-    {
+    public synchronized void refresh() {
         super.refresh();
         refreshUsers();
         refreshGroups();
     }
 
-
-    public void refreshUsers()
-    {
-        String query = getProvider().getUsersQuery();
-        if (query == null) {
-            return;
-        }
-        List<String> names = new ArrayList<>();
-        try (java.sql.Statement statement = getProvider().getConnection().createStatement())
-        {
-            try (java.sql.ResultSet result = statement.executeQuery(query))
-            {
-                while (result.next()) {
-                    String name = result.getString(1);
-                    if (!result.wasNull() && !name.isBlank()) {
-                        names.add(name);
+    public void refreshUsers() {
+        String query = getProvider().getDCLQuery().getUsersQuery();
+        if (query != null) {
+            List<String> names = new ArrayList<>();
+            try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
+                try (java.sql.ResultSet result = statement.executeQuery(query)) {
+                    while (result.next()) {
+                        String name = result.getString(1);
+                        if (!result.wasNull() && !name.isBlank()) {
+                            names.add(name);
+                        }
                     }
                 }
+                if (mUsers == null) {
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
+                    mUsers = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID,
+                                       mUsers.getLogger().getObjectId());
+                } else {
+                    mUsers.refill(names);
+                }
+            } catch (ElementExistException | java.sql.SQLException e) {
+                throw new com.sun.star.uno.RuntimeException("Error", e);
             }
-            if (m_Users == null) {
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
-                m_Users = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID, m_Users.getLogger().getObjectId());
-            }
-            else {
-                m_Users.refill(names);
-            }
-        }
-        catch (ElementExistException | java.sql.SQLException e) {
-            throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
 
-    public void refreshGroups()
-    {
-        String query = getProvider().getGroupsQuery();
-        if (query == null) {
-            return;
-        }
-        List<String> names = new ArrayList<>();
-        try (java.sql.Statement statement = getProvider().getConnection().createStatement())
-        {
-            try (java.sql.ResultSet result = statement.executeQuery(query))
-            {
-                while (result.next()) {
-                    String name = result.getString(1);
-                    if (!result.wasNull() && !name.isBlank()) {
-                        names.add(name);
+    public void refreshGroups() {
+        String query = getProvider().getDCLQuery().getGroupsQuery();
+        if (query != null) {
+            List<String> names = new ArrayList<>();
+            try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
+                try (java.sql.ResultSet result = statement.executeQuery(query)) {
+                    while (result.next()) {
+                        String name = result.getString(1);
+                        if (!result.wasNull() && !name.isBlank()) {
+                            names.add(name);
+                        }
                     }
                 }
+                if (mGroups == null) {
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
+                    mGroups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID,
+                                       mGroups.getLogger().getObjectId());
+                }  else {
+                    mGroups.refill(names);
+                }
+            } catch (ElementExistException | java.sql.SQLException e) {
+                throw new com.sun.star.uno.RuntimeException("Error", e);
             }
-            if (m_Groups == null) {
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
-                m_Groups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID, m_Groups.getLogger().getObjectId());
-            }
-            else {
-                m_Groups.refill(names);
-            }
-        }
-        catch (ElementExistException | java.sql.SQLException e) {
-            throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
 
     @Override
     protected TableContainer getTableContainer(List<String> names)
-        throws ElementExistException
-    {
+        throws ElementExistException {
         TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
         System.out.println("sdb.Connection.getTableContainer() *************************");
         return tables;
@@ -339,8 +299,7 @@ public final class Connection
 
     @Override
     protected ViewContainer getViewContainer(List<String> names)
-        throws ElementExistException
-    {
+        throws ElementExistException {
         ViewContainer views = new ViewContainer(this, getProvider().isCaseSensitive(null), names);
         System.out.println("sdb.Connection.getViewContainer() *************************");
         return views;

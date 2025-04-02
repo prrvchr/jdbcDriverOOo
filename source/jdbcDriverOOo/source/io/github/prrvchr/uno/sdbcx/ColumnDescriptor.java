@@ -30,18 +30,16 @@ import java.util.HashMap;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 public final class ColumnDescriptor
-    extends ColumnDescriptorSuper
-{
-    private static final String m_service = ColumnDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.ColumnDescriptor"};
+    extends ColumnDescriptorSuper {
+    private static final String SERVICE = ColumnDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.ColumnDescriptor"};
 
     // The constructor method:
     public ColumnDescriptor(String catalog,
                             String schema,
                             String table,
-                            boolean sensitive)
-    {
-        super(m_service, m_services, catalog, schema, table, sensitive);
+                            boolean sensitive) {
+        super(SERVICE, SERVICES, catalog, schema, table, sensitive);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.descriptors.ColumnDescriptor()");
     }

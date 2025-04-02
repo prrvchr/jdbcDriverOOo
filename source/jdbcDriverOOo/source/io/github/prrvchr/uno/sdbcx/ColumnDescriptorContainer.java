@@ -30,29 +30,26 @@ import com.sun.star.sdbc.SQLException;
 
 
 public final class ColumnDescriptorContainer
-    extends ColumnDescriptorContainerSuper<ColumnDescriptor>
-{
+    extends ColumnDescriptorContainerSuper<ColumnDescriptor> {
 
     // The constructor method:
     public ColumnDescriptorContainer(TableDescriptorSuper table,
-                                     boolean sensitive)
-    {
+                                     boolean sensitive) {
         super(table, sensitive);
         System.out.println("sdbcx.ColumnDescriptorContainer() ***************************************************");
     }
 
     @Override
     protected ColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
-
 
     @Override
     protected XPropertySet createDescriptor() {
         System.out.println("sdbcx.ColumnDescriptorContainer._createDescriptor()");
-        return new ColumnDescriptor(m_table.getCatalogName(), m_table.getSchemaName(), m_table.getName(), isCaseSensitive());
+        return new ColumnDescriptor(mTable.getCatalogName(), mTable.getSchemaName(),
+                                    mTable.getName(), isCaseSensitive());
     }
 
 

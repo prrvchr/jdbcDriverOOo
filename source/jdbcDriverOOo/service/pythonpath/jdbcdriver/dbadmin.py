@@ -42,6 +42,7 @@ from .user import UserManager
 from .group import GroupManager
 
 from .unotool import createMessageBox
+from .unotool import createService
 from .unotool import getInteractionHandler
 from .unotool import getStringResource
 from .unotool import hasInterface
@@ -71,17 +72,19 @@ class AdminDispatch(unohelper.Base,
         result = None
         parent = self._frame.getContainerWindow()
         close, connection = self._getConnection()
-        if url.Path == 'users':
+        if connection is None:
+            self._showDialog(parent, 'MessageBox.Connection')
+        elif url.Path == 'users':
             if not self._supportUsers(connection):
-                self._showDialog(parent)
+                self._showDialog(parent, 'MessageBox.Admin')
             else:
                 state, result = self._showUsers(connection, parent, connection.getGroups())
         elif url.Path == 'groups':
             if not self._supportUsers(connection) or not self._supportGroups(connection):
-                self._showDialog(parent)
+                self._showDialog(parent, 'MessageBox.Admin')
             else:
                 state, result = self._showGroups(connection, parent, connection.getGroups())
-        if close:
+        if close and connection is not None:
             connection.close()
         return state, result
 
@@ -105,11 +108,6 @@ class AdminDispatch(unohelper.Base,
     def _supportGroups(self, connection):
         interface = 'com.sun.star.sdbcx.XGroupsSupplier'
         return hasInterface(connection, interface) and connection.getGroups() is not None
-
-    def _showDialog(self, parent):
-        dialog = createMessageBox(parent, *self._getDialogData())
-        dialog.execute()
-        dialog.dispose()
 
     def _showUsers(self, connection, parent, groups):
         state = FAILURE
@@ -149,11 +147,33 @@ class AdminDispatch(unohelper.Base,
             else:
                 connection = datasource.getIsolatedConnection(datasource.User, datasource.Password)
             close = True
+        if not self._supportUsers(connection) or not self._supportGroups(connection):
+            url = connection.getMetaData().getURL()
+            infos = connection.getMetaData().getConnectionInfo()
+            if close:
+                connection.close()
+            connection = self._getDriverConnection(url, infos)
+            close = True
         return close, connection
 
-    def _getDialogData(self):
+    # Find the XUsersSupplier or XGroupsSupplier interface at the driver manager
+    def _getDriverConnection(self, url, infos):
+        connection = None
+        pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
+        if pool is not None:
+            driver = pool.getDriverByURL(url)
+            if driver is not None:
+                connection = driver.getDataDefinitionByURL(url, infos)
+        return connection
+
+    def _showDialog(self, parent, template):
+        dialog = createMessageBox(parent, *self._getDialogData(template))
+        dialog.execute()
+        dialog.dispose()
+
+    def _getDialogData(self, template):
         resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
-        message = resolver.resolveString('MessageBox.Admin.Message')
-        title = resolver.resolveString('MessageBox.Admin.Title')
+        message = resolver.resolveString(template + '.Message')
+        title = resolver.resolveString(template + '.Title')
         return message, title, 'error', 1
 

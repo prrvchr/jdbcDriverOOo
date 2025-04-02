@@ -33,32 +33,27 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class Key
     extends Descriptor
     implements XColumnsSupplier,
-               XDataDescriptorFactory
-{
+               XDataDescriptorFactory {
 
-    private static final String m_service = Key.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Key"};
-    
-    protected KeyColumnContainer m_columns = null;
-    private final TableSuper m_table;
-    
-    protected int m_DeleteRule;
-    protected String m_ReferencedTable;
-    public int m_Type;
-    protected int m_UpdateRule;
+    private static final String SERVICE = Key.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Key"};
+    public int mType;
+    protected int mDeleteRule;
+    protected String mReferencedTable;
+    protected KeyColumnContainer mColumns = null;
+    protected int mUpdateRule;
+    private final TableSuper mTable;
 
     // The constructor method:
     public Key(TableSuper table,
@@ -69,16 +64,15 @@ public final class Key
                int update,
                int delete,
                List<String> columns)
-        throws ElementExistException
-    {
-        super(m_service, m_services, sensitive, name);
+        throws ElementExistException {
+        super(SERVICE, SERVICES, sensitive, name);
         System.out.println("sdbcx.Key() 1");
-        m_table = table;
-        m_Type = type;
-        m_ReferencedTable = reference;
-        m_UpdateRule = update;
-        m_DeleteRule = delete;
-        m_columns = new KeyColumnContainer(this, columns);
+        mTable = table;
+        mType = type;
+        mReferencedTable = reference;
+        mUpdateRule = update;
+        mDeleteRule = delete;
+        mColumns = new KeyColumnContainer(this, columns);
         registerProperties();
     }
 
@@ -87,67 +81,49 @@ public final class Key
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.DELETERULE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_DeleteRule;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mDeleteRule;
+                },
+                null));
 
         properties.put(PropertyIds.REFERENCEDTABLE.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_ReferencedTable;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mReferencedTable;
+                },
+                null));
 
         properties.put(PropertyIds.TYPE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Type;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mType;
+                },
+                null));
 
         properties.put(PropertyIds.UPDATERULE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_UpdateRule;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mUpdateRule;
+                },
+                null));
 
         super.registerProperties(properties);
     }
 
     protected KeyColumnContainer getColumnsInternal() {
-        return m_columns;
+        return mColumns;
     }
 
 
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
-    public XNameAccess getColumns()
-    {
+    public XNameAccess getColumns() {
         return getColumnsInternal();
     }
 
 
-/*    protected void _addColumn(KeyColumn column)
-    {
+/*    protected void _addColumn(KeyColumn column) {
         int index = 0;
         for (KeyColumn element : m_columns.m_Elements) {
             if (column.m_position < element.m_position) {
@@ -167,20 +143,17 @@ public final class Key
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor()
-    {
+    public XPropertySet createDataDescriptor() {
         return new KeyDescriptor(isCaseSensitive());
     }
 
-    public TableSuper getTable()
-    {
-        return m_table;
+    public TableSuper getTable() {
+        return mTable;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return String.format("%s: Name: %s, Type: %s, ReferencedTable: %s, UpdateRule: %s, DeleteRule: %s ",
-                             this.getClass().getName(), getName(), m_Type, m_ReferencedTable, m_UpdateRule, m_DeleteRule);
+                             this.getClass().getName(), getName(), mType, mReferencedTable, mUpdateRule, mDeleteRule);
     }
 }

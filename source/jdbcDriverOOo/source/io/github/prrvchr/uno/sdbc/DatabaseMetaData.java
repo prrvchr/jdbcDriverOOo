@@ -27,15 +27,12 @@ package io.github.prrvchr.uno.sdbc;
 
 
 public final class DatabaseMetaData
-    extends DatabaseMetaDataBase
-{
+    extends DatabaseMetaDataBase {
 
     // The constructor method:
     public DatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         super(connection);
     }
-
 
 }

@@ -10,8 +10,7 @@ module com { module sun { module star { module sdbc {
 /** extends the XConnection interface to allow retrieval of additional
     information.
  */
-interface XConnection2 : com::sun::star::sdbc::XConnection
-{
+interface XConnection2 : com::sun::star::sdbc::XConnection {
     /** Sets the given schema name to access.
         @param schema
             the name of a schema in which to work.

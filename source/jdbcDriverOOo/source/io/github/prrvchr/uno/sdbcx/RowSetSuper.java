@@ -38,13 +38,13 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.helper.DBException;
-import io.github.prrvchr.jdbcdriver.resultset.CachedResultSet;
-import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.driver.helper.DBException;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.driver.resultset.CachedResultSet;
+import io.github.prrvchr.driver.resultset.ResultSetHelper;
+import io.github.prrvchr.driver.rowset.RowCatalog;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
@@ -52,41 +52,36 @@ public abstract class RowSetSuper
     extends ResultSetSuper
     implements XRowLocate,
                XDeleteRows,
-               XCancellable
-{
+               XCancellable {
 
     // The constructor method:
-    public RowSetSuper(String service,
-                       String[] services,
-                       DriverProvider provider,
-                       ConnectionSuper connection,
-                       java.sql.ResultSet result,
-                       StatementMain statement,
-                       RowCatalog catalog,
-                       String table)
-        throws SQLException
-    {
+    protected RowSetSuper(String service,
+                          String[] services,
+                          DriverProvider provider,
+                          ConnectionSuper connection,
+                          java.sql.ResultSet result,
+                          StatementMain statement,
+                          RowCatalog catalog,
+                          String table)
+        throws SQLException {
         super(service, services, connection, result, statement, true, true);
-        m_Result = ResultSetHelper.getResultSet(provider, result, catalog, table, m_logger);
+        mResult = ResultSetHelper.getResultSet(provider, result, catalog, table, mLogger);
     }
 
-    protected CachedResultSet getResultSet()
-    {
-        return (CachedResultSet) m_Result;
+    protected CachedResultSet getResultSet() {
+        return (CachedResultSet) mResult;
     }
 
     @Override
     protected int _getResultSetConcurrency()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         // XXX: We want to emulate an updateable ResultSet
         return java.sql.ResultSet.CONCUR_UPDATABLE;
     }
 
     @Override
     protected int _getResultSetType()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         // XXX: We want to emulate an scollable ResultSet
         return java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
     }
@@ -94,59 +89,57 @@ public abstract class RowSetSuper
     // com.sun.star.sdbcx.XRowLocate:
     @Override
     public int compareBookmarks(Object bookmark1, Object bookmark2)
-        throws SQLException
-    {
+        throws SQLException {
         int compare = CompareBookmark.NOT_COMPARABLE;
         int row1 = 0, row2 = 0;
         try {
             row1 = AnyConverter.toInt(bookmark1);
             row2 = AnyConverter.toInt(bookmark2);
-        }
-        catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) { }
         if (row1 != 0 && row2 != 0) {
             if (row1 < row2) {
                 compare = CompareBookmark.LESS;
-            }
-            else if (row1 > row2) {
+            } else if (row1 > row2) {
                 compare = CompareBookmark.GREATER;
-            }
-            else {
+            }  else {
                 compare = CompareBookmark.EQUAL;
             }
         }
         if (compare != CompareBookmark.EQUAL) {
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS, Integer.toString(row1), Integer.toString(row2), Integer.toString(compare));
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_COMPARE_BOOKMARKS,
+                               Integer.toString(row1), Integer.toString(row2), Integer.toString(compare));
         }
         return compare;
     }
 
     @Override
     public Object getBookmark()
-        throws SQLException
-    {
+        throws SQLException {
         int row = getResultSet().getBookmark();
         System.out.println("RowSetSuper.getBookmark() 1 bookmark: " + row);
-        Object bookmark = (row != 0) ? row : Any.VOID;
+        Object bookmark;
+        if (row != 0) {
+            bookmark = row;
+        } else {
+            bookmark = Any.VOID;
+        }
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_BOOKMARK, bookmark.toString());
         return bookmark;
     }
 
     @Override
     public boolean hasOrderedBookmarks()
-        throws SQLException
-    {
+        throws SQLException {
         return true;
     }
 
     @Override
     public int hashBookmark(Object bookmark)
-        throws SQLException
-    {
+        throws SQLException {
         int row;
         try {
             row = AnyConverter.toInt(bookmark);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new SQLException("Bad bookmark", this, StandardSQLState.SQL_INVALID_BOOKMARK_VALUE.text(), 0, null);
         }
         return row;
@@ -154,29 +147,27 @@ public abstract class RowSetSuper
 
     @Override
     public boolean moveRelativeToBookmark(Object bookmark, int count)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             boolean moved = false;
             int row = AnyConverter.toInt(bookmark);
             if (getResultSet().moveToBookmark(row)) {
                 moved = relative(count);
             }
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK, Integer.toString(count), Integer.toString(row), Boolean.toString(moved));
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_RELATIVE_TO_BOOKMARK,
+                               Integer.toString(count), Integer.toString(row), Boolean.toString(moved));
             if (!moved) {
                 afterLast();
             }
             return moved;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public boolean moveToBookmark(Object bookmark)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             int row = AnyConverter.toInt(bookmark);
             System.out.println("RowSetSuper.moveToBookmark() 1 bookmark: " + row);
@@ -187,8 +178,7 @@ public abstract class RowSetSuper
             }
             System.out.println("RowSetSuper.moveToBookmark() 3 moved: " + moved);
             return moved;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -196,71 +186,59 @@ public abstract class RowSetSuper
     // com.sun.star.sdbcx.XDeleteRows:
     @Override
     public int[] deleteRows(Object[] bookmarks)
-        throws SQLException
-    {
+        throws SQLException {
         List<Integer> rows = new ArrayList<Integer>();
         for (Object bookmark : bookmarks) {
             int row = AnyConverter.toInt(bookmark);
             if (absolute(row)) {
                 deleteRow();
                 rows.add(0, 1);
-            }
-            else {
+            } else {
                 rows.add(0, 0);
             }
         }
         return rows.stream().mapToInt(Integer::intValue).toArray();
     }
 
-
     // com.sun.star.util.XCancellable:
     @Override
-    public void cancel()
-    {
-        // TODO: implement me
+    public void cancel() {
+        // XXX: implement me
     }
-
 
     // com.sun.star.sdbc.XResultSetUpdate:
     // XXX: If we want to be able to use a CachedRowset instead
     // XXX: of a ResultSet we must overwrite these methods...
     @Override
-    public void insertRow() throws SQLException
-    {
+    public void insertRow() throws SQLException {
         try {
-            m_Result.insertRow();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.insertRow();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
-    public void updateRow() throws SQLException
-    {
+    public void updateRow() throws SQLException {
         try {
-            m_Result.updateRow();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateRow();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
-    public void deleteRow() throws SQLException
-    {
+    public void deleteRow() throws SQLException {
         try {
-            m_Result.deleteRow();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.deleteRow();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx  Line 111: xUp->cancelRowUpdates()
     @Override
-    public void cancelRowUpdates() throws SQLException
-    {
+    public void cancelRowUpdates() throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
         // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
         // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
@@ -268,46 +246,39 @@ public abstract class RowSetSuper
         // FIXME: or if this method is called when the cursor is on the insert row
         // FIXME: see: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
         try {
-            m_Result.cancelRowUpdates();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.cancelRowUpdates();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx  Line 110: xUp->moveToInsertRow()
     @Override
-    public void moveToInsertRow() throws SQLException
-    {
+    public void moveToInsertRow() throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW);
         try {
-            m_Result.moveToInsertRow();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.moveToInsertRow();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public void moveToCurrentRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.moveToCurrentRow();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.moveToCurrentRow();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
-    public boolean rowDeleted() throws SQLException
-    {
+    public boolean rowDeleted() throws SQLException {
         boolean deleted = false;
         try {
-            deleted = m_Result.rowDeleted();
-        }
-        catch (java.sql.SQLException e) {
+            deleted = mResult.rowDeleted();
+        } catch (java.sql.SQLException e) {
             throw new SQLException();
         }
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
@@ -315,13 +286,11 @@ public abstract class RowSetSuper
     }
 
     @Override
-    public boolean rowInserted() throws SQLException
-    {
+    public boolean rowInserted() throws SQLException {
         boolean inserted = false;
         try {
-            inserted = m_Result.rowInserted();
-        }
-        catch (java.sql.SQLException e) {
+            inserted = mResult.rowInserted();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));

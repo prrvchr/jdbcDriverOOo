@@ -29,23 +29,20 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public abstract class ResultSetSuper
-    extends ResultSetBase
-{
-    private boolean m_IsBookmarkable = false;
-    private boolean m_CanUpdateInsertedRows = false;
+    extends ResultSetBase {
+    private boolean mIsBookmarkable = false;
+    private boolean mCanUpdateInsertedRows = false;
     
     // The constructor method:
     public ResultSetSuper(String service,
@@ -55,11 +52,10 @@ public abstract class ResultSetSuper
                           StatementMain statement,
                           boolean bookmark,
                           boolean updatable)
-    throws SQLException
-    {
+        throws SQLException {
         super(service, services, connection, resultset, statement);
-        m_IsBookmarkable = bookmark;
-        m_CanUpdateInsertedRows = updatable;
+        mIsBookmarkable = bookmark;
+        mCanUpdateInsertedRows = updatable;
     }
 
     @Override
@@ -67,42 +63,32 @@ public abstract class ResultSetSuper
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.CANUPDATEINSERTEDROWS.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   System.out.println("sdbcx.ResultSetSuper.CanUpdateInsertedRows() 1: " + m_CanUpdateInsertedRows);
-                                                   return m_CanUpdateInsertedRows;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    System.out.println("sdbcx.ResultSetSuper.CanUpdateInsertedRows() 1: " + mCanUpdateInsertedRows);
+                    return mCanUpdateInsertedRows;
+                },
+                null));
 
         properties.put(PropertyIds.ISBOOKMARKABLE.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   System.out.println("sdbcx.ResultSetSuper.IsBookmarkable() 1: " + m_IsBookmarkable);
-                                                   return m_IsBookmarkable;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    System.out.println("sdbcx.ResultSetSuper.IsBookmarkable() 1: " + mIsBookmarkable);
+                    return mIsBookmarkable;
+                },
+                null));
 
         super.registerProperties(properties);
     }
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         return super.getJdbcResultSet();
     }
 
     @Override
-    protected ConnectionLog getLogger()
-    {
+    protected ConnectionLog getLogger() {
         return super.getLogger();
     }
 }

@@ -19,8 +19,7 @@ module io { module github { module prrvchr { module css {  module util {
 
     @since LibreOffice 4.1
  */
-struct TimeWithTimezone
-{
+struct TimeWithTimezone {
     /** the time (in TimeZone)
     */
     Time TimeInTZ;

@@ -25,8 +25,7 @@ module io { module github { module prrvchr { module css { module util {
 
 /** represents a combined date+time value.
  */
-published struct DateTime
-{
+published struct DateTime {
     /** contains the nanoseconds (0 - 999 999 999).
      */
     unsigned long NanoSeconds;

@@ -33,8 +33,7 @@
 
 module com { module sun { module star { module logging {
 
-interface XLogger2 : com::sun::star::logging::XLogger
-{
+interface XLogger2 : com::sun::star::logging::XLogger {
 
     /** logs a given resource string
     
