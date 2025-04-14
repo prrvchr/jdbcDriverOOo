@@ -28,37 +28,30 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public final class IndexDescriptor
     extends Descriptor
-    implements XColumnsSupplier
-{
+    implements XColumnsSupplier {
 
-    private static final String m_service = IndexDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.IndexDescriptor"};
+    private static final String SERVICE = IndexDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexDescriptor"};
 
-    private IndexColumnDescriptorContainer m_columns;
+    private IndexColumnDescriptorContainer mColumns;
 
-    private String m_Catalog = "";
-    private boolean m_IsUnique;
-    private boolean m_IsClustered;
-
+    private String mCatalog = "";
+    private boolean mIsUnique;
+    private boolean mIsClustered;
 
     // The constructor method:
-    public IndexDescriptor(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive);
-        m_columns = new IndexColumnDescriptorContainer(this, isCaseSensitive());
+    public IndexDescriptor(boolean sensitive) {
+        super(SERVICE, SERVICES, sensitive);
+        mColumns = new IndexColumnDescriptorContainer(this, isCaseSensitive());
         registerProperties();
         System.out.println("sdbcx.descriptors.IndexDescriptor()");
     }
@@ -67,73 +60,40 @@ public final class IndexDescriptor
         Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
 
         properties.put(PropertyIds.CATALOG.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Catalog;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Catalog = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mCatalog;
+                },
+                value -> {
+                    mCatalog = (String) value;
+                }));
 
         properties.put(PropertyIds.ISCLUSTERED.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsClustered;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_IsClustered = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mIsClustered;
+                },
+                value -> {
+                    mIsClustered = (boolean) value;
+                }));
 
         properties.put(PropertyIds.ISUNIQUE.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsUnique;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_IsUnique = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mIsUnique;
+                },
+                value -> {
+                    mIsUnique = (boolean) value;
+                }));
 
         super.registerProperties(properties);
     }
 
-
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
-    public IndexColumnDescriptorContainer getColumns()
-    {
+    public IndexColumnDescriptorContainer getColumns() {
         System.out.println("sdbcx.descriptors.IndexDescriptor.getColumns()");
-        return m_columns;
+        return mColumns;
     }
-
 
 }

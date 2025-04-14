@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -82,8 +82,7 @@ def getDataBaseConnection(ctx, url, user, pwd, new, infos=None):
         infos = getDriverInfos(ctx, url, g_drvinfos)
     return getDataSourceConnection(ctx, url, user, pwd, new, infos)
 
-def createDataBase(ctx, logger, connection, odb, version):
-    logger.logprb(INFO, 'DataBase', '_createDataBase()', 411, version)
+def createDataBase(ctx, connection, odb):
     # XXX Creation order are very important here...
     tables = connection.getTables()
     statement = connection.createStatement()
@@ -102,7 +101,6 @@ def createDataBase(ctx, logger, connection, odb, version):
     executeQueries(ctx, statement, _getProcedures(), 'create%s', g_queries)
     statement.close()
     connection.getParent().DatabaseDocument.storeAsURL(odb, ())
-    logger.logprb(INFO, 'DataBase', '_createDataBase()', 412)
 
 def _createTables(connection, statement, tables):
     infos = getConnectionInfos(connection, 'AutoIncrementCreation', 'RowVersionCreation')
@@ -148,7 +146,9 @@ def _getForeignKeys():
             (f'{g_catalog}.{g_schema}.Privileges', 'Column', f'{g_catalog}.{g_schema}.Columns', 'Column', KeyRule.CASCADE, KeyRule.CASCADE))
 
 def _getFunctions():
-    for name in ('GetIsFolder', 'GetContentType', 'GetUniqueName'):
+    for name in ('GetIsFolder',
+                 'GetContentType',
+                 'GetUniqueName'):
         yield name
 
 def _getItemCommands(ctx, items, command, format, *option):
@@ -160,12 +160,22 @@ def _getItemOptions(items, *options):
         yield catalog, schema, name, *options
 
 def _getViews(catalog=g_catalog, schema=g_schema):
-    for name in ('Child', 'Twin', 'Duplicate', 'Path', 'Children'):
+    for name in ('Child',
+                 'Twin',
+                 'Duplicate',
+                 'Path',
+                 'Children'):
         yield catalog, schema, name
 
 def _getProcedures():
-    for name in ('GetItem', 'GetNewTitle', 'UpdatePushItems', 'GetPushItems', 'GetPushProperties',
-                 'GetItemParentIds', 'InsertUser', 'InsertSharedFolder', 'MergeItem', 'MergeParent',
-                 'InsertItem', 'PullChanges', 'UpdateNewItemId'):
+    for name in ('GetItem',
+                 'UpdatePushItems',
+                 'GetPushItems',
+                 'GetPushProperties',
+                 'GetItemParentIds',
+                 'InsertUser',
+                 'MergeItem',
+                 'InsertItem',
+                 'UpdateNewItemId'):
         yield name
 

@@ -30,22 +30,19 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class KeyColumn
-    extends ColumnBase
-{
-    private static final String m_service = KeyColumn.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumn"};
+    extends ColumnBase {
+    private static final String SERVICE = KeyColumn.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumn"};
 
-    protected String m_RelatedColumn;
+    protected String mRelatedColumn;
 
     // The constructor method:
     public KeyColumn(TableSuper table,
@@ -61,11 +58,10 @@ public final class KeyColumn
                      final boolean autoincrement,
                      final boolean rowversion,
                      final boolean currency,
-                     final String referenced)
-    {
-        super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description,
+                     final String referenced) {
+        super(SERVICE, SERVICES, table, sensitive, name, typename, defaultvalue, description,
               nullable, precision, scale, type, autoincrement, rowversion, currency);
-        m_RelatedColumn = referenced;
+        mRelatedColumn = referenced;
         System.out.println("KeyColumn() RelatedColumn: " + referenced);
         registerProperties();
     }
@@ -76,15 +72,11 @@ public final class KeyColumn
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.RELATEDCOLUMN.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_RelatedColumn;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mRelatedColumn;
+                },
+                null));
 
         super.registerProperties(properties);
     }
@@ -100,20 +92,18 @@ public final class KeyColumn
     }
 
     // XXX: Called from KeyColumnContainer.rename(String oldname, String newname)
-    protected void setName(String newname)
-    {
+    protected void setName(String newname) {
         System.out.println("sdbcx.KeyColumn.rename() *************************************");
         // We need to rename the RelatedColumn too 
         setName(newname);
-        m_RelatedColumn = newname;
+        mRelatedColumn = newname;
     }
 
     // XXX: Called from KeyContainer.renameForeignKeyColumn(String oldname, String newname)
-    protected void setRelatedColumn(String oldcolumn, String newcolumn)
-    {
+    protected void setRelatedColumn(String oldcolumn, String newcolumn) {
         System.out.println("sdbcx.KeyColumn.setRelatedColumn() *************************************");
-        if (m_RelatedColumn.equals(oldcolumn)) {
-            m_RelatedColumn = newcolumn;
+        if (mRelatedColumn.equals(oldcolumn)) {
+            mRelatedColumn = newcolumn;
         }
     }
 

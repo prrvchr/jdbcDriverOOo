@@ -31,52 +31,48 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.ParameterHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.driver.provider.ComposeRule;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.driver.query.DDLParameter;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public abstract class TableMain
     extends Descriptor
-    implements XRename
-{
+    implements XRename {
 
-    protected final ConnectionSuper m_connection;
-    private final ConnectionLog m_logger; 
-    protected String m_CatalogName = "";
-    protected String m_SchemaName = "";
+    protected final ConnectionSuper mConnection;
+    protected String mCatalogName = "";
+    protected String mSchemaName = "";
+    private final ConnectionLog mLogger; 
 
     // The constructor method:
-    public TableMain(String service,
-                     String[] services,
-                     ConnectionSuper connection,
-                     String catalog,
-                     String schema,
-                     boolean sensitive,
-                     String name,
-                     LoggerObjectType logtype)
-    {
+    protected TableMain(String service,
+                        String[] services,
+                        ConnectionSuper connection,
+                        String catalog,
+                        String schema,
+                        boolean sensitive,
+                        String name,
+                        LoggerObjectType logtype) {
         super(service, services, sensitive, name);
-        m_connection = connection;
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
-        m_CatalogName = catalog;
-        m_SchemaName = schema;
+        mConnection = connection;
+        mLogger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
+        mCatalogName = catalog;
+        mSchemaName = schema;
     }
 
     @Override
@@ -84,56 +80,43 @@ public abstract class TableMain
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.CATALOGNAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_CatalogName;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mCatalogName;
+                },
+                null));
 
         properties.put(PropertyIds.SCHEMANAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_SchemaName;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mSchemaName;
+                },
+                null));
 
         super.registerProperties(properties);
     }
 
-    protected String getCatalogName()
-    {
-        return m_CatalogName;
+    protected String getCatalogName() {
+        return mCatalogName;
     }
-    protected String getSchemaName()
-    {
-        return m_SchemaName;
+    protected String getSchemaName() {
+        return mSchemaName;
     }
-    protected String getName()
-    {
+    protected String getName() {
         return super.getName();
     }
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
 
-    protected ConnectionSuper getConnection()
-    {
-        return m_connection;
+    protected ConnectionSuper getConnection() {
+        return mConnection;
     }
 
     // com.sun.star.sdbcx.XRename
-    // TODO: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
-    // TODO: connectivity/source/drivers/postgresql/pq_xtable.cxx#L136
+    // XXX: see: https://github.com/LibreOffice/core/blob/6361a9398584defe9ab8db1e3383e02912e3f24c/
+    // XXX: connectivity/source/drivers/postgresql/pq_xtable.cxx#L136
     @Override
     public abstract void rename(String name) throws SQLException, ElementExistException;
 
@@ -143,9 +126,9 @@ public abstract class TableMain
                              String newname,
                              boolean isview,
                              ComposeRule rule)
-        throws SQLException
-    {
-        boolean moved = !m_CatalogName.equals(component.getCatalogName()) || !m_SchemaName.equals(component.getSchemaName());
+        throws SQLException {
+        boolean moved = !mCatalogName.equals(component.getCatalogName()) ||
+                        !mSchemaName.equals(component.getSchemaName());
         boolean renamed = !getName().equals(component.getTableName());
 
         if (!moved && !renamed) {
@@ -156,76 +139,70 @@ public abstract class TableMain
         // FIXME: Any driver capable of changing catalog or schema must have at least 2 commands...
         // FIXME: If the driver can do this in a single command (like MariaDB) then it is necessary
         // FIXME: to warn by leaving an empty field after the first two that the SQL query requests
-        if (moved && !m_connection.getProvider().canRenameAndMove()) {
+        if (moved && !mConnection.getProvider().getDDLQuery().canRenameAndMove()) {
             int resource = getRenameTableUnsupportedResource(isview);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FUNCTION_NOT_SUPPORTED.text(), 0, Any.VOID);
         }
 
+        return renameTableOrView(component, oldname, newname, isview, rule, moved, renamed);
+    }
+
+    private boolean renameTableOrView(NamedComponents component,
+                                      String oldname,
+                                      String newname,
+                                      boolean isview,
+                                      ComposeRule rule,
+                                      boolean moved,
+                                      boolean renamed)
+        throws SQLException {
+
         String fname = newname;
-        boolean reversed = false;
-        boolean fullchange = false;
-        boolean multiquery = m_connection.getProvider().hasMultiRenameQueries();
         boolean changed = true;
-        boolean skipped = true;
+        boolean reversed = false;
+        boolean multiquery = mConnection.getProvider().getDDLQuery().hasMultiRenameQueries();
+        boolean fullchange = multiquery && moved && renamed;
         List<String> queries = new ArrayList<String>();
 
         try {
-            // FIXME: We have 2 commands for moving and renaming and we need to find the right order to execute queries
-            // FIXME: ie: change first the catalog / schema and after the table name or the reverse if possible...
-            if (multiquery && moved && renamed) {
+            // FIXME: We have 2 commands for moving and renaming and we need to find the right order
+            // FIXME: to execute queries. Change first the catalog / schema (ie: moved) and after
+            // FIXME: the table name (ie: renamed) or the reverse if possible...
+            if (fullchange) {
                 // FIXME: try to move first
-                fullchange = true;
-                String name = DBTools.buildName(m_connection.getProvider(), component.getCatalogName(), component.getSchemaName(), getName(), rule, false);
-                reversed = m_connection.getTablesInternal().hasByName(name);
+                String name = DBTools.buildName(mConnection.getProvider(), component.getCatalogName(),
+                                                component.getSchemaName(), getName(), rule, false);
+                reversed = mConnection.getTablesInternal().hasByName(name);
                 if (reversed) {
                     // FIXME: try to rename first
-                    fname = DBTools.buildName(m_connection.getProvider(), m_CatalogName, m_SchemaName, component.getTableName(), rule, false);
+                    fname = DBTools.buildName(mConnection.getProvider(), mCatalogName,
+                                              mSchemaName, component.getTableName(), rule, false);
                 }
             }
 
             // FIXME: If the move action is not atomic (performed by 2 commands) then it may not be possible
             // FIXME: since adjacent actions may encounter a conflict of already existing names.
-            if (m_connection.getTablesInternal().hasByName(fname)) {
+            if (mConnection.getTablesInternal().hasByName(fname)) {
                 int resource = getRenameTableDuplicateResource(isview);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname, newname);
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
-            Object[] parameters = ParameterHelper.getRenameTableArguments(m_connection.getProvider(), component,
-                                                                            getNamedComponents(), oldname, reversed, rule, isCaseSensitive());
-            queries = m_connection.getProvider().getRenameTableQueries(reversed, parameters);
-            int resource = getRenameTableResource(isview, false);
-            if (fullchange) {
-                if (!queries.isEmpty()) {
-                    String query = String.join("> <", queries);
-                    getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    changed &= DBTools.executeSQLQueries(m_connection.getProvider(), queries);
-                    skipped &= false;
-                }
-            }
-            else {
-                if (!multiquery || moved) {
-                    String query = queries.get(0);
-                    getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    changed &= DBTools.executeSQLQuery(m_connection.getProvider(), query);
-                    skipped &= false;
-                }
-                if (multiquery && renamed) {
-                    String query = queries.get(1);
-                    getLogger().logprb(LogLevel.INFO, resource, newname, query);
-                    changed &= DBTools.executeSQLQuery(m_connection.getProvider(), query);
-                    skipped &= false;
-                }
-            }
-        }
-        catch (java.sql.SQLException e) {
+            Map<String, Object> arguments = DDLParameter.getRenameTable(mConnection.getProvider(),
+                                                                                 component,
+                                                                                 getNamedComponents(),
+                                                                                 oldname, reversed,
+                                                                                 rule, isCaseSensitive());
+            queries = mConnection.getProvider().getDDLQuery().getRenameTableCommands(arguments, reversed);
+            changed = renameTableOrView(queries, newname, isview, moved, renamed, multiquery, fullchange);
+
+        } catch (java.sql.SQLException e) {
             int resource = getRenameTableResource(isview, true);
             String query = String.join("> <", queries);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, newname, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
-        if (!changed || skipped) {
+        if (!changed) {
             int resource = getRenameTableCanceledResource(isview);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_OPERATION_CANCELED.text(), 0, Any.VOID);
@@ -233,45 +210,100 @@ public abstract class TableMain
         return moved || renamed;
     }
 
-    protected int getRenameTableResource(boolean isview, boolean error)
-    {
-        if (isview) {
-            return error ?
-                    Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR :
-                    Resources.STR_LOG_VIEW_RENAME_QUERY;
+    private boolean renameTableOrView(List<String> queries,
+                                      String newname,
+                                      boolean isview,
+                                      boolean moved,
+                                      boolean renamed,
+                                      boolean multiquery,
+                                      boolean fullchange)
+        throws java.sql.SQLException {
+        boolean changed = true;
+        boolean skipped = true;
+        int resource = getRenameTableResource(isview, false);
+        if (fullchange) {
+            if (!queries.isEmpty()) {
+                String query = String.join("> <", queries);
+                getLogger().logprb(LogLevel.INFO, resource, newname, query);
+                changed &= DBTools.executeSQLQueries(mConnection.getProvider(), queries);
+                skipped = false;
+            }
+        } else {
+            if (!multiquery || moved) {
+                String query = queries.get(0);
+                getLogger().logprb(LogLevel.INFO, resource, newname, query);
+                changed &= DBTools.executeSQLQuery(mConnection.getProvider(), query);
+                skipped = false;
+            }
+            if (multiquery && renamed) {
+                String query = queries.get(1);
+                getLogger().logprb(LogLevel.INFO, resource, newname, query);
+                changed &= DBTools.executeSQLQuery(mConnection.getProvider(), query);
+                skipped = false;
+            }
         }
-        return error ?
-                Resources.STR_LOG_TABLE_RENAME_QUERY_ERROR :
-                Resources.STR_LOG_TABLE_RENAME_QUERY;
-    }
-    protected int getRenameTableCanceledResource(boolean isview)
-    {
-        return isview ?
-                Resources.STR_LOG_VIEW_RENAME_OPERATION_CANCELLED_ERROR :
-                Resources.STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR;
-    }
-    protected int getRenameTableUnsupportedResource(boolean isview)
-    {
-        return isview ?
-                Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR :
-                Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR;
-    }
-    protected int getRenameTableNotImplementedResource(boolean isview)
-    {
-        return isview ?
-                Resources.STR_LOG_VIEW_RENAME_FEATURE_NOT_IMPLEMENTED :
-                Resources.STR_LOG_TABLE_RENAME_FEATURE_NOT_IMPLEMENTED;
-    }
-    protected int getRenameTableDuplicateResource(boolean isview)
-    {
-        return isview ?
-                Resources.STR_LOG_VIEW_RENAME_DUPLICATE_VIEW_NAME_ERROR :
-                Resources.STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR;
+        return changed && !skipped;
     }
 
-    protected NamedComponents getNamedComponents()
-    {
-        return new NamedComponents(m_CatalogName, m_SchemaName, getName());
+    protected int getRenameTableResource(boolean isview, boolean error) {
+        int resource;
+        if (isview) {
+            if (error) {
+                resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
+            } else {
+                resource = Resources.STR_LOG_VIEW_RENAME_QUERY;
+            }
+        } else {
+            if (error) {
+                resource = Resources.STR_LOG_TABLE_RENAME_QUERY_ERROR;
+            } else {
+                resource = Resources.STR_LOG_TABLE_RENAME_QUERY;
+            }
+        }
+        return resource;
+    }
+    protected int getRenameTableCanceledResource(boolean isview) {
+        int resource;
+        if (isview) {
+            resource = Resources.STR_LOG_VIEW_RENAME_OPERATION_CANCELLED_ERROR;
+        } else {
+            resource = Resources.STR_LOG_TABLE_RENAME_OPERATION_CANCELLED_ERROR;
+        }
+        return resource;
+    }
+
+    protected int getRenameTableUnsupportedResource(boolean isview) {
+        int resource;
+        if (isview) {
+            resource = Resources.STR_LOG_VIEW_RENAME_UNSUPPORTED_FUNCTION_ERROR;
+        } else {
+            resource = Resources.STR_LOG_TABLE_RENAME_UNSUPPORTED_FUNCTION_ERROR;
+        }
+        return resource;
+    }
+
+    protected int getRenameTableNotImplementedResource(boolean isview) {
+        int resource;
+        if (isview) {
+            resource = Resources.STR_LOG_VIEW_RENAME_FEATURE_NOT_IMPLEMENTED;
+        } else {
+            resource = Resources.STR_LOG_TABLE_RENAME_FEATURE_NOT_IMPLEMENTED;
+        }
+        return resource;
+    }
+
+    protected int getRenameTableDuplicateResource(boolean isview) {
+        int resource;
+        if (isview) {
+            resource = Resources.STR_LOG_VIEW_RENAME_DUPLICATE_VIEW_NAME_ERROR;
+        } else {
+            resource = Resources.STR_LOG_TABLE_RENAME_DUPLICATE_TABLE_NAME_ERROR;
+        }
+        return resource;
+    }
+
+    protected NamedComponents getNamedComponents() {
+        return new NamedComponents(mCatalogName, mSchemaName, getName());
     }
 
 }

@@ -34,33 +34,30 @@ import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class ResultSet
-    extends ResultSetSuper
-{
-    private static final String m_service = ResultSet.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet",
-                                                "com.sun.star.sdbcx.ResultSet"};
+    extends ResultSetSuper {
+    private static final String SERVICE = ResultSet.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.ResultSet",
+                                              "com.sun.star.sdbcx.ResultSet"};
 
     // The constructor method:
     public ResultSet(ConnectionSuper connection,
                      java.sql.ResultSet resultset)
-        throws SQLException
-    {
+        throws SQLException {
         this(connection, resultset, null);
     }
 
     public ResultSet(ConnectionSuper connection,
                      java.sql.ResultSet resultset,
                      StatementMain statement)
-        throws SQLException
-    {
-        super(m_service, m_services, connection, resultset, statement, false, false);
+        throws SQLException {
+        super(SERVICE, SERVICES, connection, resultset, statement, false, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.ResultSet() 1");
     }
 
     @Override
     protected Connection getConnection() {
-        return (Connection) m_Connection;
+        return (Connection) mConnection;
     }
 
 }

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -78,10 +78,8 @@ from .object import Object
 
 from ..unotool import createService
 from ..unotool import getDefaultPropertyValueSet
-from ..unotool import getPropertyValue
 from ..unotool import getPropertyValueSet
 from ..unotool import getResourceLocation
-from ..unotool import getSimpleFile
 from ..unotool import getUrlPresentation
 
 from ..dbqueries import getSqlQuery
@@ -102,7 +100,6 @@ g_basename = 'dbtool'
 
 import time
 from datetime import datetime
-import traceback
 
 
 def getConnectionUrl(ctx, path):
@@ -157,11 +154,11 @@ def getConnectionInfo(user, password, path):
 def getDataSourceLocation(location, dbname, shutdown):
     url = '%s%s/%s%s' % (g_protocol, location, dbname, g_options)
     if shutdown:
-        url += g_shutdown
+        url += ';shutdown=true'
     return url
 
-def getDataSourceCall(ctx, connection, name, format=None):
-    query = getSqlQuery(ctx, name, format)
+def getDataSourceCall(ctx, connection, name, template=None):
+    query = getSqlQuery(ctx, name, template)
     call = connection.prepareCall(query)
     return call
 
@@ -172,14 +169,14 @@ def checkDataBase(ctx, connection):
         logger = getLogger(ctx, g_errorlog, g_basename)
         state = logger.resolveString(101)
         msg = logger.resolveString(102, g_jar, g_version, version)
-        logger.logp(SEVERE, g_basename, 'checkDataBase()', msg)
+        logger.logp(SEVERE, g_basename, 'checkDataBase', msg)
         error = getSqlException(state, 1112, msg)
     return version, error
 
-def executeQueries(ctx, statement, queries, name='%s', format=None):
+def executeQueries(ctx, statement, queries, name='%s', template=None):
     for item in queries:
         query = name % item
-        statement.executeQuery(getSqlQuery(ctx, query, format))
+        statement.executeQuery(getSqlQuery(ctx, query, template))
 
 def getDataSourceClassPath(ctx, identifier):
     path = getResourceLocation(ctx, identifier, g_folder)
@@ -448,7 +445,7 @@ def executeSqlQueries(statement, queries):
         statement.executeQuery(query)
 
 def getWarning(state, code, message, context=None, exception=None):
-    return getSQLWarning(state, code, message, context, exception)
+    return getSqlWarning(state, code, message, context, exception)
 
 def getSqlWarning(state, code, message, context=None, exception=None):
     warning = SQLWarning()
@@ -485,14 +482,14 @@ def currentUnoDateTime(utc=True):
 def getDateTimeInTZToString(dtz, decimal=6):
     dt = dtz.DateTimeInTZ
     fraction = dt.NanoSeconds // (10 ** (9 - decimal))
-    format = '%04d-%02d-%02dT%02d:%02d:%02d.%'
-    format += '0%sdZ' % decimal
-    format += '%s'
-    return format % (dt.Year, dt.Month, dt.Day, dt.Hours, dt.Minutes, dt.Seconds, fraction, dtz.Timezone)
+    template = '%04d-%02d-%02dT%02d:%02d:%02d.%'
+    template += '0%sdZ' % decimal
+    template += '%s'
+    return template % (dt.Year, dt.Month, dt.Day, dt.Hours, dt.Minutes, dt.Seconds, fraction, dtz.Timezone)
 
 def getDateTimeToString(dt, decimal=6):
-    format = '%04d-%02d-%02dT%02d:%02d:%02d.000Z'
-    return format % (dt.Year, dt.Month, dt.Day, dt.Hours, dt.Minutes, dt.Seconds)
+    template = '%04d-%02d-%02dT%02d:%02d:%02d.000Z'
+    return template % (dt.Year, dt.Month, dt.Day, dt.Hours, dt.Minutes, dt.Seconds)
 
 def toUnoDateTime(dtz):
     dt = dtz.DateTimeInTZ
@@ -511,8 +508,8 @@ def toUnoDateTime(dtz):
         udt.IsUTC = dt.IsUTC
     return udt
 
-def getDateTimeFromString(dtstr, format, utc=False):
-    now = datetime.strptime(dtstr, format)
+def getDateTimeFromString(dtstr, template, utc=False):
+    now = datetime.strptime(dtstr, template)
     return _getUnoDateTime(now, utc)
 
 def _getUnoDateTime(now, utc):
@@ -710,7 +707,6 @@ def getDataBaseIndexes(statement, query):
     result.close()
 
 def getDataBaseForeignKeys(statement, query):
-    i = 1
     result = statement.executeQuery(query)
     while result.next():
         names = []
@@ -765,14 +761,14 @@ def _addColum(columns, name, relatedcolumn):
     columns.appendByDescriptor(column)
 
 def createRoleAndPrivileges(tables, groups, privileges):
-    for catalog, schema, name, type, role, privilege in privileges:
+    for catalog, schema, name, typ, role, privilege in privileges:
         fullname = catalog + '.' + schema + '.' + name
         if not tables.hasByName(fullname):
             continue
         if not groups.hasByName(role):
             _addRole(groups, role)
         group = groups.getByName(role)
-        group.grantPrivileges(fullname, type, privilege)
+        group.grantPrivileges(fullname, typ, privilege)
 
 def getTablePrivileges(statement, query):
     result = statement.executeQuery(query)

@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -106,7 +106,7 @@ class Content(unohelper.Base,
         self._ctx = ctx
         self._user = user
         self._authority = authority
-        self.MetaData = data
+        self._metadata = data
         self._new = new
         self._url = None
         self._listeners = []
@@ -117,55 +117,57 @@ class Content(unohelper.Base,
         self._commandInfo = self._getCommandInfo()
         self._propertySetInfo = self._getPropertySetInfo()
         self._services = ('com.sun.star.ucb.Content', )
-        self._logger.logprb(INFO, 'Content', '__init__()', 601)
+        self._logger.logprb(INFO, 'Content', '__init__', 601)
 
     @property
     def IsFolder(self):
-        return self.MetaData.get('IsFolder')
+        return self._metadata.get('IsFolder')
     @property
     def IsDocument(self):
-        return self.MetaData.get('IsDocument')
+        return self._metadata.get('IsDocument')
     @property
     def IsRoot(self):
-        return self.MetaData.get('IsRoot')
+        return self._metadata.get('IsRoot')
     @property
     def IsRenamed(self):
-        return self.MetaData.get('Name') != self.Title
+        return self._metadata.get('Name') != self.Title
     @property
     def CanRename(self):
-        return self.MetaData.get('CanRename') and not self.IsRenamed
+        return self._metadata.get('CanRename') and not self.IsRenamed
     @property
     def CanAddChild(self):
-        return self.MetaData.get('CanAddChild')
+        return self._metadata.get('CanAddChild')
     @property
     def Id(self):
-        return self.MetaData.get('Id')
+        return self._metadata.get('Id')
     @property
     def ParentId(self):
-        return self.MetaData.get('ParentId')
+        return self._metadata.get('ParentId')
     @property
     def Path(self):
-        return self.MetaData.get('Path')
+        return self._metadata.get('Path')
     @property
     def Size(self):
-        return self.MetaData.get('Size')
+        return self._metadata.get('Size')
     @property
     def Link(self):
-        return self.MetaData.get('Link')
+        return self._metadata.get('Link')
     @property
     def Name(self):
-        return self.MetaData.get('Name')
+        return self._metadata.get('Name')
     @property
     def Title(self):
-        return self.MetaData.get('Title')
+        return self._metadata.get('Title')
     @property
     def MediaType(self):
-        return self.MetaData.get('MediaType', 'application/octet-stream')
+        return self._metadata.get('MediaType', 'application/octet-stream')
     @property
     def ConnectionMode(self):
-        return self.MetaData.get('ConnectionMode')
-    def setConnectionMode(self, mode):
-        self.MetaData['ConnectionMode'] = mode
+        return self._metadata.get('ConnectionMode')
+    @ConnectionMode.setter
+    def ConnectionMode(self, mode):
+        self._metadata['ConnectionMode'] = mode
+        self._user.updateConnectionMode(self.Id, mode)
 
     @property
     def User(self):
@@ -196,7 +198,7 @@ class Content(unohelper.Base,
             if not self.IsRoot:
                 content = self._user.getContentByParent(self._authority, self.ParentId, self.Path)
         except Exception as e:
-            self._logger.logprb(SEVERE, 'Content', 'getParent()', 651, e, traceback.format_exc())
+            self._logger.logprb(SEVERE, 'Content', 'getParent', 661, e, traceback.format_exc())
         return content
 
     def setParent(self, parent):
@@ -221,20 +223,20 @@ class Content(unohelper.Base,
     def queryCreatableContentsInfo(self):
         return self._getCreatableContentsInfo()
     def createNewContent(self, info):
-        self._logger.logprb(INFO, 'Content', 'createNewContent()', 661, self._identifier)
+        self._logger.logprb(INFO, 'Content', 'createNewContent', 671, self._identifier)
         return self._user.createNewContent(self._authority, self.Id, self.Path, self.Title, info.Type)
 
     # XContent
     def getIdentifier(self):
         try:
             identifier = self._identifier
-            self._logger.logprb(INFO, 'Content', 'getIdentifier()', 641, identifier)
+            self._logger.logprb(INFO, 'Content', 'getIdentifier', 651, identifier)
             return Identifier(identifier)
         except Exception as e:
-            self._logger.logprb(SEVERE, 'Content', 'getIdentifier()', 642, e, traceback.format_exc())
+            self._logger.logprb(SEVERE, 'Content', 'getIdentifier', 652, e, traceback.format_exc())
 
     def getContentType(self):
-        return self.MetaData.get('ContentType')
+        return self._metadata.get('ContentType')
 
     def addContentEventListener(self, listener):
         self._contentListeners.append(listener)
@@ -248,7 +250,7 @@ class Content(unohelper.Base,
         return 1
 
     def execute(self, command, cmdid, environment):
-        self._logger.logprb(INFO, 'Content', 'execute()', 631, command.Name, self._identifier)
+        self._logger.logprb(INFO, 'Content', 'execute', 621, command.Name, self._identifier)
         if command.Name == 'getCommandInfo':
             return CommandInfo(self._getCommandInfo())
 
@@ -263,7 +265,7 @@ class Content(unohelper.Base,
             return self._setPropertiesValues(environment, command.Argument)
 
         elif command.Name == 'delete':
-            self.MetaData['Trashed'] = True
+            self._metadata['Trashed'] = True
             self._user.updateContent(self.Id, 'Trashed', True)
 
         elif command.Name == 'open':
@@ -275,10 +277,10 @@ class Content(unohelper.Base,
                 sf = self._user.Provider.getSimpleFile()
                 url, size = self._getDocumentContent(sf)
                 if not size:
-                    msg = self._logger.resolveString(632, self._identifier)
+                    msg = self._logger.resolveString(622, self._identifier)
                     raise CommandAbortedException(msg, self)
                 input = command.Argument.Sink
-                isreadonly = self.MetaData.get('IsReadOnly')
+                isreadonly = self._metadata.get('IsReadOnly')
                 sink = hasInterface(input, 'com.sun.star.io.XActiveDataSink')
                 stream = hasInterface(input, 'com.sun.star.io.XActiveDataStreamer')
                 if not isreadonly and stream:
@@ -307,16 +309,16 @@ class Content(unohelper.Base,
                     # For document type resources, the media type is always unknown...
                     mediatype = mimetype if mimetype else getMimeType(self._ctx, stream)
                     stream.closeInput()
-                    self.MetaData['MediaType'] = mediatype
+                    self._metadata['MediaType'] = mediatype
 
-            if self._user.insertNewContent(self._authority, self.MetaData):
+            if self._user.insertNewContent(self._authority, self._metadata):
                 # Need to consum the new Identifier if needed...
                 self._user.deleteNewIdentifier(self.Id)
 
         elif command.Name == 'transfer':
             # see github/libreoffice/ucb/source/core/ucbcmds.cxx
             if not self.IsFolder:
-                msg = self._logger.resolveString(633, self._identifier)
+                msg = self._logger.resolveString(623, self._identifier)
                 UnsupportedCommandException(msg, self)
             newtitle = command.Argument.NewTitle
             source = command.Argument.SourceURL
@@ -338,7 +340,7 @@ class Content(unohelper.Base,
                 # - createNewContent: for creating an empty new Content
                 # - Insert at new Content for committing change
                 # To execute these commands, we must throw an exception
-                msg = self._logger.resolveString(634, source, self._identifier)
+                msg = self._logger.resolveString(624, source, self._identifier)
                 raise InteractiveBadTransferURLException(msg, self)
             sf = self._user.Provider.getSimpleFile()
             if not sf.exists(source):
@@ -349,7 +351,7 @@ class Content(unohelper.Base,
             inputstream.closeInput()
             # We need to update the Size
             size = sf.getSize(target)
-            self._logger.logprb(INFO, 'Content', 'execute()', 635, self._identifier, size)
+            self._logger.logprb(INFO, 'Content', 'execute', 625, self._identifier, size)
             self._user.updateContent(itemid, 'Size', size)
             if move:
                 # TODO: must delete object
@@ -384,7 +386,7 @@ class Content(unohelper.Base,
                 print(msg)
                 level = SEVERE
             if msg:
-                self._logger.logp(level, 'Content', '_getPropertiesValues()', msg)
+                self._logger.logp(level, 'Content', '_getPropertiesValues', msg)
             values.append(getNamedValue(property.Name, value))
         return tuple(values)
 
@@ -397,8 +399,8 @@ class Content(unohelper.Base,
             value = ''
         elif name == 'CreatableContentsInfo':
             value = self._getCreatableContentsInfo()
-        elif name in self.MetaData:
-            value = self.MetaData.get(name)
+        elif name in self._metadata:
+            value = self._metadata.get(name)
             msg = "Name: %s - Value: %s" % (name, value)
         else:
             msg = "ERROR: Requested property: %s is not available" % name
@@ -418,7 +420,7 @@ class Content(unohelper.Base,
                 error = UnknownPropertyException(msg, self)
                 result = uno.Any('com.sun.star.beans.UnknownPropertyException', error)
             if msg:
-                self._logger.logp(level, 'Content', '_setPropertiesValues()', msg)
+                self._logger.logp(level, 'Content', '_setPropertiesValues', msg)
             results.append(result)
         return tuple(results)
 
@@ -444,8 +446,8 @@ class Content(unohelper.Base,
             msg = ""
             level = INFO
             result = None
-        elif name in self.MetaData:
-            self.MetaData[name] = value
+        elif name in self._metadata:
+            self._metadata[name] = value
             msg = "Content: %s set property: %s value: %s" % (self._identifier, name, value)
             level = INFO
             result = None
@@ -463,7 +465,7 @@ class Content(unohelper.Base,
             level = SEVERE
             error = IllegalAccessException(msg, self)
             result = uno.Any('com.sun.star.lang.IllegalAccessException', error)
-        elif self.Title != self.MetaData.get('Name'):
+        elif self.Title != self._metadata.get('Name'):
             msg = "ERROR: Requested property: Title can't be changed"
             level = SEVERE
             error = IllegalAccessException(msg, self)
@@ -474,8 +476,8 @@ class Content(unohelper.Base,
             error = IllegalAccessException(msg, self)
             result = uno.Any('com.sun.star.lang.IllegalAccessException', error)
         else:
-            self.MetaData['Name'] = newtitle
-            self.MetaData['Title'] = newtitle
+            self._metadata['Name'] = newtitle
+            self._metadata['Title'] = newtitle
             # If the identifier is new then the content is not yet in the database.
             # It will be inserted by the insert command of the XCommandProcessor2.execute()
             # But we must make this content accessible by an appropriate entry in the user paths cache
@@ -487,32 +489,26 @@ class Content(unohelper.Base,
         return result, level, msg
 
     def _getFolderContent(self, properties):
-        select, updated = self._updateFolderContent(properties)
-        if updated:
-            loaded = self._user.updateConnectionMode(self.Id, OFFLINE)
-            self.setConnectionMode(loaded)
-        return select
-
-    def _updateFolderContent(self, properties):
-        updated = False
-        if ONLINE == self.ConnectionMode == self._user.SessionMode:
-            self._logger.logprb(INFO, 'Content', '_updateFolderContent()', 621, self._identifier)
-            updated = self._user.Provider.updateFolderContent(self)
-        select = self._user.getChildren(self._authority, self.Path, self.Title, properties)
-        return select, updated
+        if self._user.SessionMode == ONLINE and self.ConnectionMode != 2:
+            count = self._user.Provider.updateFolderContent(self._user, self._metadata)
+            self._upgradeConnectionmode()
+            self._logger.logprb(INFO, 'Content', '_getFolderContent', 631, self._identifier, count)
+        return self._user.getChildren(self._authority, self.Path, self.Title, properties)
 
     def _getDocumentContent(self, sf):
         size = 0
         url = self._user.Provider.getTargetUrl(self.Id)
-        if self.ConnectionMode == OFFLINE and sf.exists(url):
-            return url, sf.getSize(url)
-        if self._user.Provider.getDocumentContent(self, url):
-            loaded = self._user.updateConnectionMode(self.Id, OFFLINE)
-            self.setConnectionMode(loaded)
-        else:
-            pass
-            # TODO: raise correct exception
-        return url, sf.getSize(url)
+        if (self.ConnectionMode == 2 or self._user.SessionMode == OFFLINE) and sf.exists(url):
+            size = sf.getSize(url)
+        elif self._user.Provider.downloadFile(self._user, self._metadata, url):
+            size = sf.getSize(url)
+            self._upgradeConnectionmode()
+            self._logger.logprb(INFO, 'Content', '_getDocumentContent', 641, self._identifier, size)
+        return url, size
+
+    def _upgradeConnectionmode(self):
+        if abs(self.ConnectionMode) == 1:
+            self.ConnectionMode = 2 * self.ConnectionMode
 
     def _getCommandInfo(self):
         commands = {}

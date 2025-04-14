@@ -30,20 +30,17 @@ import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
 public final class HsqlDBDatabaseMetaData
-    extends DatabaseMetaDataBase
-{
+    extends DatabaseMetaDataBase {
 
     // The constructor method:
     public HsqlDBDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         super(connection);
     }
 
     /* //@Override
     public boolean supportsCatalogsInDataManipulation()
-        throws SQLException
-    {
+        throws SQLException {
         // FIXME: With HsqlDB, if we want to be able to display the different
         // FIXME: schemas correctly in Base, we need to disable the catalog in Data Manipulation.
         // FIXME: This setting allows to no longer use ;default_schema=true in the connection URL

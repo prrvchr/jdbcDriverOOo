@@ -47,9 +47,9 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -59,8 +59,7 @@ public abstract class PreparedStatementMain
     implements XParameters,
                XPreparedBatchExecution,
                XPreparedStatement,
-               XResultSetMetaDataSupplier
-{
+               XResultSetMetaDataSupplier {
 
     // The constructor method:
     // XXX: Constructor called from methods:
@@ -70,15 +69,13 @@ public abstract class PreparedStatementMain
     // XXX: - io.github.prrvchr.uno.sdbc.CallableStatementBase()
     public PreparedStatementMain(String service,
                                  String[] services,
-                                 ConnectionBase connection)
-    {
+                                 ConnectionBase connection) {
         super(service, services, connection);
     }
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         java.sql.PreparedStatement statement = getJdbcStatement();
         return statement.executeQuery();
     }
@@ -87,265 +84,221 @@ public abstract class PreparedStatementMain
 
     // com.sun.star.sdbc.XParameters:
     @Override
-    public void clearParameters() throws SQLException
-    {
+    public void clearParameters() throws SQLException {
         try {
             getJdbcStatement().clearParameters();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setArray(int index, XArray value) throws SQLException
-    {
+    public void setArray(int index, XArray value) throws SQLException {
         try {
-            java.sql.Array array = getJdbcStatement().getConnection().createArrayOf(value.getBaseTypeName(), value.getArray(null));
+            java.sql.Array array = getJdbcStatement().getConnection().createArrayOf(value.getBaseTypeName(),
+                                                                                    value.getArray(null));
             getJdbcStatement().setArray(index, array);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setBinaryStream(int index, XInputStream value, int lenght) throws SQLException
-    {
+    public void setBinaryStream(int index, XInputStream value, int lenght) throws SQLException {
         try {
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             getJdbcStatement().setBinaryStream(index, input, lenght);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setBlob(int index, XBlob value) throws SQLException
-    {
+    public void setBlob(int index, XBlob value) throws SQLException {
         try {
             java.sql.Blob blob = getJdbcStatement().getConnection().createBlob();
             blob.setBytes(1, value.getBytes(1, (int) value.length()));
             getJdbcStatement().setBlob(index, blob);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setBoolean(int index, boolean value) throws SQLException
-    {
+    public void setBoolean(int index, boolean value) throws SQLException {
         try {
             getJdbcStatement().setBoolean(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setByte(int index, byte value) throws SQLException
-    {
+    public void setByte(int index, byte value) throws SQLException {
         try {
             getJdbcStatement().setByte(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setBytes(int index, byte[] value) throws SQLException
-    {
+    public void setBytes(int index, byte[] value) throws SQLException {
         try {
             getJdbcStatement().setBytes(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setCharacterStream(int index, XInputStream value, int lenght) throws SQLException
-    {
+    public void setCharacterStream(int index, XInputStream value, int lenght) throws SQLException {
         try {
-            getJdbcStatement().setCharacterStream(index, new java.io.InputStreamReader(new XInputStreamToInputStreamAdapter(value)), lenght);
-        }
-        catch (java.sql.SQLException e) {
+            getJdbcStatement().setCharacterStream(index,
+                                new java.io.InputStreamReader(new XInputStreamToInputStreamAdapter(value)), lenght);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setClob(int index, XClob value) throws SQLException
-    {
+    public void setClob(int index, XClob value) throws SQLException {
         try {
             java.sql.Clob clob = getJdbcStatement().getConnection().createClob();
             clob.setString(1, value.toString());
             getJdbcStatement().setClob(index, clob);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setDate(int index, Date value) throws SQLException
-    {
+    public void setDate(int index, Date value) throws SQLException {
         try {
             java.sql.Date date = java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value));
             getJdbcStatement().setDate(index, date);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setDouble(int index, double value) throws SQLException
-    {
+    public void setDouble(int index, double value) throws SQLException {
         try {
             getJdbcStatement().setDouble(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setFloat(int index, float value) throws SQLException
-    {
+    public void setFloat(int index, float value) throws SQLException {
         try {
             getJdbcStatement().setFloat(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setInt(int index, int value) throws SQLException
-    {
+    public void setInt(int index, int value) throws SQLException {
         try {
             getJdbcStatement().setInt(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setLong(int index, long value) throws SQLException
-    {
+    public void setLong(int index, long value) throws SQLException {
         try {
             getJdbcStatement().setLong(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setNull(int index, int type) throws SQLException
-    {
+    public void setNull(int index, int type) throws SQLException {
         try {
             getJdbcStatement().setNull(index, type);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void setObject(int index, Object value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             if (!DBTools.setObject(getJdbcStatement(), index, value)) {
-                String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_PARA_TYPE,
-                                                                                         "$position$",
-                                                                                         Integer.toString(index));
+                String error = SharedResources.getInstance().getResourceWithSubstitution(
+                        Resources.STR_UNKNOWN_PARA_TYPE, "$position$", Integer.toString(index));
                 throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
 
     }
 
     @Override
-    public void setObjectNull(int index, int type, String name) throws SQLException
-    {
+    public void setObjectNull(int index, int type, String name) throws SQLException {
         try {
             getJdbcStatement().setObject(index, null);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setObjectWithInfo(int index, Object value, int type, int scale) throws SQLException
-    {
+    public void setObjectWithInfo(int index, Object value, int type, int scale) throws SQLException {
         try {
             getJdbcStatement().setObject(index, value, type, scale);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setRef(int index, XRef value) throws SQLException
-    {
-        // TODO: Implement me!!!
+    public void setRef(int index, XRef value) throws SQLException {
+        // XXX: Implement me!!!
     }
 
     @Override
-    public void setShort(int index, short value) throws SQLException
-    {
+    public void setShort(int index, short value) throws SQLException {
         try {
             getJdbcStatement().setShort(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setString(int index, String value) throws SQLException
-    {
+    public void setString(int index, String value) throws SQLException {
         try {
             getJdbcStatement().setString(index, value);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setTime(int index, Time value) throws SQLException
-    {
+    public void setTime(int index, Time value) throws SQLException {
         try {
             java.sql.Time time = java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value));
             getJdbcStatement().setTime(index, time);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void setTimestamp(int index, DateTime value) throws SQLException
-    {
+    public void setTimestamp(int index, DateTime value) throws SQLException {
         try {
             java.sql.Timestamp timestamp = java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value));
             getJdbcStatement().setTimestamp(index, timestamp);
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -353,34 +306,28 @@ public abstract class PreparedStatementMain
 
     // com.sun.star.sdbc.XPreparedBatchExecution:
     @Override
-    public void addBatch() throws SQLException
-    {
+    public void addBatch() throws SQLException {
         try {
             getJdbcStatement().addBatch();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public void clearBatch() throws SQLException
-    {
+    public void clearBatch() throws SQLException {
         try {
             getJdbcStatement().clearBatch();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public int[] executeBatch() throws SQLException
-    {
+    public int[] executeBatch() throws SQLException {
         try {
             return getJdbcStatement().executeBatch();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -388,51 +335,47 @@ public abstract class PreparedStatementMain
 
     // com.sun.star.sdbc.XPreparedStatement:
     @Override
-    public boolean execute() throws SQLException
-    {
+    public boolean execute() throws SQLException {
         try {
             return getJdbcStatement().execute();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XResultSet executeQuery() throws SQLException
-    {
+    public XResultSet executeQuery() throws SQLException {
         return getResultSet();
     }
 
     @Override
-    public int executeUpdate() throws SQLException
-    {
+    public int executeUpdate() throws SQLException {
         try {
             return getJdbcStatement().executeUpdate();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
-    public XConnection getConnection() throws SQLException
-    {
-        return m_Connection;
+    public XConnection getConnection() throws SQLException {
+        return mConnection;
     }
 
 
     // com.sun.star.sdbc.XResultSetMetaDataSupplier:
     @Override
-    public XResultSetMetaData getMetaData() throws SQLException
-    {
+    public XResultSetMetaData getMetaData() throws SQLException {
+        XResultSetMetaData metadata = null;
         try {
-            java.sql.ResultSetMetaData metadata = getJdbcStatement().getMetaData();
-            return metadata != null ? new ResultSetMetaData(m_Connection, metadata) : null;
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.ResultSetMetaData md = getJdbcStatement().getMetaData();
+            if (md != null) {
+                metadata = new ResultSetMetaData(mConnection, md);
+            }
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return metadata;
     }
 
 

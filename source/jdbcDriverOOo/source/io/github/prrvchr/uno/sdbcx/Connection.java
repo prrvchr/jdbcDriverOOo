@@ -35,82 +35,78 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.Resources;
 
 
 public final class Connection
-    extends ConnectionSuper
-{
+    extends ConnectionSuper {
 
-    private static final String m_service = Connection.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.Connection"};
-
-    protected DriverProvider getProvider()
-    {
-        return super.getProvider();
-    }
-    protected ConnectionLog getLogger()
-    {
-        return super.getLogger();
-    }
+    private static final String SERVICE = Connection.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.Connection",
+                                              "com.sun.star.sdbcx.DatabaseDefinition"};
 
     // The constructor method:
-    public Connection(XComponentContext ctx,
-                      DriverProvider provider,
-                      String url,
-                      PropertyValue[] info)
-    {
-        super(ctx, m_service, m_services, provider, url, info);
+    protected Connection(XComponentContext ctx,
+                         DriverProvider provider,
+                         String url,
+                         PropertyValue[] info) {
+        super(ctx, SERVICE, SERVICES, provider, url, info);
         System.out.println("sdbcx.Connection() *************************");
     }
 
-    protected XStatement _getStatement()
-    {
+    protected DriverProvider getProvider() {
+        return super.getProvider();
+    }
+
+    protected ConnectionLog getLogger() {
+        return super.getLogger();
+    }
+
+    protected XStatement _getStatement() {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         getStatements().put(statement, statement);
         String services = String.join(", ", statement.getSupportedServiceNames());
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID, services, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_STATEMENT_ID,
+                           services, statement.getLogger().getObjectId());
         return statement;
     }
 
     @Override
     protected XPreparedStatement _getPreparedStatement(String sql)
-        throws SQLException
-    {
+        throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
         String services = String.join(", ", statement.getSupportedServiceNames());
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID, services, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_STATEMENT_ID,
+                           services, statement.getLogger().getObjectId());
         return statement;
     }
 
     @Override
     protected XPreparedStatement _getCallableStatement(String sql)
-        throws SQLException
-    {
+        throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);
         String services = String.join(", ", statement.getSupportedServiceNames());
-        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID, services, statement.getLogger().getObjectId());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARED_CALL_ID,
+                           services, statement.getLogger().getObjectId());
         return statement;
     }
 
     @Override
     protected TableContainer getTableContainer(List<String> names)
-        throws ElementExistException
-    {
+        throws ElementExistException {
         return new TableContainer(this, getProvider().isCaseSensitive(null), names);
     }
 
     @Override
     protected ViewContainer getViewContainer(List<String> names)
-        throws ElementExistException
-    {
+        throws ElementExistException {
         return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
     }
 

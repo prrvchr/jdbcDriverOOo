@@ -29,35 +29,33 @@ import java.util.HashMap;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class RowSet
-    extends RowSetSuper
-{
-    private static final String m_service = ResultSet.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet",
-                                                "com.sun.star.sdbcx.ResultSet"};
+    extends RowSetSuper {
+    private static final String SERVICE = ResultSet.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.ResultSet",
+                                              "com.sun.star.sdbcx.ResultSet"};
 
     // The constructor method:
-    public RowSet(DriverProvider provider,
-                  Connection connection,
-                  java.sql.ResultSet result,
-                  StatementMain statement,
-                  RowCatalog catalog,
-                  String table)
-        throws SQLException
-    {
-        super(m_service, m_services, provider, connection, result, statement, catalog, table);
+    protected RowSet(DriverProvider provider,
+                     Connection connection,
+                     java.sql.ResultSet result,
+                     StatementMain statement,
+                     RowCatalog catalog,
+                     String table)
+        throws SQLException {
+        super(SERVICE, SERVICES, provider, connection, result, statement, catalog, table);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.RowSet() 1");
     }
 
     protected Connection getConnection() {
-        return (Connection) m_Connection;
+        return (Connection) mConnection;
     }
 
 }

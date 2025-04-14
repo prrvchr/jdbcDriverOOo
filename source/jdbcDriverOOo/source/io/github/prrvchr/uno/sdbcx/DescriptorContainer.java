@@ -28,28 +28,25 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public abstract class DescriptorContainer<T extends Descriptor>
-    extends Container<T>
-{
-    private static final String m_service = DescriptorContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    extends Container<T> {
+    private static final String SERVICE = DescriptorContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public DescriptorContainer(Object lock,
-                               boolean sensitive)
-    {
-        super(m_service, m_services, lock, sensitive);
+                               boolean sensitive) {
+        super(SERVICE, SERVICES, lock, sensitive);
     }
 
     @Override
     protected T createElement(String name)
-        throws SQLException
-    {
+        throws SQLException {
         // This should never be called. DescriptorContainer always starts off empty,
         // and only grows as a result of appending.
         String error = SharedResources.getInstance().getResource(Resources.STR_ERRORMSG_SEQUENCE);
@@ -59,13 +56,11 @@ public abstract class DescriptorContainer<T extends Descriptor>
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException
-    {
+        throws SQLException {
     }
     
     @Override
-    protected void refreshInternal()
-    {
+    protected void refreshInternal() {
     }
 
 }

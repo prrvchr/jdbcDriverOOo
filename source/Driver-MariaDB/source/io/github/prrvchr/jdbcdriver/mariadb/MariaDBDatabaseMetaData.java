@@ -32,16 +32,14 @@ import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
 public final class MariaDBDatabaseMetaData
-    extends DatabaseMetaDataBase
-{
+    extends DatabaseMetaDataBase {
 
     @SuppressWarnings("unused")
     private final Map<String, String> m_tableType = Map.ofEntries(Map.entry("BASE TABLE", "TABLE"));
 
     // The constructor method:
     public MariaDBDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         super(connection);
     }
 

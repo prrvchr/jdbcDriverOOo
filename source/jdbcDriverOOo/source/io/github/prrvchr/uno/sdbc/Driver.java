@@ -26,74 +26,35 @@
 package io.github.prrvchr.uno.sdbc;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.lang.XSingleComponentFactory;
-import com.sun.star.lib.uno.helper.Factory;
-import com.sun.star.registry.XRegistryKey;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.jdbcdriver.ApiLevel;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
+import io.github.prrvchr.driver.provider.ApiLevel;
+import io.github.prrvchr.driver.provider.DriverProvider;
 
 
 public final class Driver
-    extends DriverBase
-{
-    private static final String m_service = Driver.class.getName();
-    private static final String[] m_registry = {"io.github.prrvchr.jdbcdriver.sdbc.Driver"};
-    private static final String[] m_services = {"io.github.prrvchr.jdbcdriver.sdbc.Driver",
-                                                "com.sun.star.sdbc.Driver"};
+    extends DriverBase {
+
+    private static final String m_implementationName = "io.github.prrvchr.jdbcdriver.sdbc.Driver";
+    private static final String[] m_services = {"com.sun.star.sdbc.Driver"};
+    @SuppressWarnings("unused")
+    private static final String[] m_serviceNames = {m_implementationName};
 
     // The constructor method:
     public Driver(XComponentContext ctx)
-        throws Exception
-    {
-        super(ctx, m_service, m_services, false);
+        throws Exception {
+        super(ctx, "io.github.prrvchr.jdbcDriverOOo.Driver", m_services, false);
         System.out.println("sdbc.Driver() 1");
     }
 
+    @Override
     protected ConnectionBase getConnection(XComponentContext ctx,
-                                            DriverProvider provider,
-                                            String url,
-                                            PropertyValue[] info,
-                                            ApiLevel level)
-    {
-        ConnectionBase connection = null;
-        switch(level) {
-        case COM_SUN_STAR_SDB:
-            if (provider.supportService(level)) {
-                connection = new io.github.prrvchr.uno.sdb.Connection(ctx, provider, url, info);
-                break;
-            }
-            level = ApiLevel.COM_SUN_STAR_SDBCX;
-        case COM_SUN_STAR_SDBCX:
-            if (provider.supportService(level)) {
-                connection = new io.github.prrvchr.uno.sdbcx.Connection(ctx, provider, url, info);
-                break;
-            }
-        case COM_SUN_STAR_SDBC:
-            connection = new Connection(ctx, provider, url, info);
-            break;
-        }
-        return connection;
+                                           DriverProvider provider,
+                                           String url,
+                                           PropertyValue[] info,
+                                           ApiLevel level) {
+        return getDefaultConnection(ctx, provider, url, info);
     }
-
-
-    // UNO Service Registration:
-    public static XSingleComponentFactory __getComponentFactory(String name)
-    {
-        XSingleComponentFactory factory = null;
-        if (name.equals(m_service))
-        {
-            factory = Factory.createComponentFactory(Driver.class, m_registry);
-        }
-        return factory;
-    }
-
-    public static boolean __writeRegistryServiceInfo(XRegistryKey key)
-    {
-        return Factory.writeRegistryServiceInfo(m_service, m_registry, key);
-    }
-
 
 }

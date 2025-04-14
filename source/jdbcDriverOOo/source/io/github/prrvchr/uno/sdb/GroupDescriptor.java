@@ -32,16 +32,14 @@ import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
 public final class GroupDescriptor
-    extends Descriptor
-{
+    extends Descriptor {
 
-    private static final String m_service = GroupDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.GroupDescriptor"};
+    private static final String SERVICE = GroupDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.GroupDescriptor"};
 
     // The constructor method:
-    public GroupDescriptor(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive);
+    public GroupDescriptor(boolean sensitive) {
+        super(SERVICE, SERVICES, sensitive);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 

@@ -33,21 +33,18 @@ import io.github.prrvchr.uno.sdbcx.TableDescriptorSuper;
 
 
 public final class ColumnDescriptorContainer
-    extends ColumnDescriptorContainerSuper<ColumnDescriptor>
-{
+    extends ColumnDescriptorContainerSuper<ColumnDescriptor> {
 
     // The constructor method:
     public ColumnDescriptorContainer(TableDescriptorSuper table,
-                                     boolean sensitive)
-    {
+                                     boolean sensitive) {
         super(table, sensitive);
         System.out.println("sdb.ColumnDescriptorContainer() ***************************************************");
     }
 
     @Override
     protected ColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
 
@@ -55,11 +52,12 @@ public final class ColumnDescriptorContainer
     @Override
     protected XPropertySet createDescriptor() {
         System.out.println("sdb.ColumnDescriptorContainer._createDescriptor()");
-        return new ColumnDescriptor(getTable().getCatalogName(), getTable().getSchemaName(), getTable().getName(), isCaseSensitive());
+        return new ColumnDescriptor(getTable().getCatalogName(), getTable().getSchemaName(),
+                                    getTable().getName(), isCaseSensitive());
     }
 
     private TableDescriptor getTable() {
-        return (TableDescriptor) m_table;
+        return (TableDescriptor) mTable;
     }
     
 }

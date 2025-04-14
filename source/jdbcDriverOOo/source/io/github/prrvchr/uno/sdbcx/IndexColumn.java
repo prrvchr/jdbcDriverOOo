@@ -30,22 +30,19 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public final class IndexColumn
-    extends ColumnBase
-{
-    private static final String m_service = IndexColumn.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.IndexColumn"};
+    extends ColumnBase {
+    private static final String SERVICE = IndexColumn.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexColumn"};
 
-    private boolean m_IsAscending = false;
+    private boolean mIsAscending = false;
 
 
     // The constructor method:
@@ -63,8 +60,9 @@ public final class IndexColumn
                        final boolean rowversion,
                        final boolean currency,
                        final boolean ascending) {
-        super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
-        m_IsAscending = ascending;
+        super(SERVICE, SERVICES, table, sensitive, name, typename, defaultvalue,
+              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        mIsAscending = ascending;
         registerProperties();
     }
 
@@ -74,15 +72,11 @@ public final class IndexColumn
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.ISASCENDING.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsAscending;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsAscending;
+                },
+                null));
 
         super.registerProperties(properties);
     }
@@ -97,6 +91,5 @@ public final class IndexColumn
         }
         return descriptor;
     }
-
 
 }

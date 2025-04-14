@@ -28,16 +28,12 @@ package io.github.prrvchr.jdbcdriver.mariadb;
 import java.sql.Types;
 import java.util.Map;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
-public final class MariaDBDriverProvider
-    extends DriverProviderMain
-    implements DriverProvider
-{
+public final class MariaDBDriverProvider {
+    private boolean m_showsystem=false;
 
     protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(Types.LONGNVARCHAR, Types.LONGVARCHAR),
                                                                             Map.entry(Types.NCHAR, Types.CHAR),
@@ -51,12 +47,9 @@ public final class MariaDBDriverProvider
                                                                             Map.entry(Types.TIMESTAMP_WITH_TIMEZONE, Types.VARCHAR));
 
     // The constructor method:
-    public MariaDBDriverProvider()
-    {
-        super("mariadb");
+    public MariaDBDriverProvider() {
     }
 
-    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
@@ -64,9 +57,7 @@ public final class MariaDBDriverProvider
         return type;
     }
 
-    @Override
-    public String[] getViewTypes()
-    {
+    public String[] getViewTypes() {
         System.out.println("mariadb.MariaDBDriverProvider.getViewTypes() 1");
         if (m_showsystem) {
             return new String[]{"VIEW", "SYSTEM VIEW"};
@@ -76,10 +67,8 @@ public final class MariaDBDriverProvider
         }
     }
 
-    @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         return new MariaDBDatabaseMetaData(connection);
     }
 

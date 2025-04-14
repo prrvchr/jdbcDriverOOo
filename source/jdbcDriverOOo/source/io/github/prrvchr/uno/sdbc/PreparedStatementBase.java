@@ -27,11 +27,10 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.sql.PreparedStatement;
 
-import io.github.prrvchr.jdbcdriver.helper.SqlCommand;
+import io.github.prrvchr.driver.helper.SqlCommand;
 
 public abstract class PreparedStatementBase
-    extends PreparedStatementMain
-{
+    extends PreparedStatementMain {
 
     // The constructor method:
     // XXX: Constructor called from methods:
@@ -40,38 +39,35 @@ public abstract class PreparedStatementBase
     public PreparedStatementBase(String service,
                                  String[] services,
                                  ConnectionBase connection,
-                                 String sql)
-    {
+                                 String sql) {
         super(service, services, connection);
-        m_Sql = new SqlCommand(sql);
+        mSql = new SqlCommand(sql);
     }
 
     @Override
     protected PreparedStatement getJdbcStatement()
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         checkDisposed();
-        if (m_Statement == null) {
+        if (mStatement == null) {
             PreparedStatement statement;
-            String sql = m_Sql.getCommand();
-            if (m_Sql.isInsertCommand()) {
-                int option = m_Connection.getProvider().getGeneratedKeysOption();
-                statement = m_Connection.getProvider().getConnection().prepareStatement(sql, option);
-            }
-            else if (m_ResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY || m_ResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
+            String sql = mSql.getCommand();
+            if (mSql.isInsertCommand()) {
+                int option = mConnection.getProvider().getGeneratedKeysOption();
+                statement = mConnection.getProvider().getConnection().prepareStatement(sql, option);
+            } else if (mResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||
+                       mResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
                 int holdability = java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT;
                 //int holdability = java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT;
-                statement = m_Connection.getProvider().getConnection().prepareStatement(sql,
-                                                                                        m_ResultSetType,
-                                                                                        m_ResultSetConcurrency,
+                statement = mConnection.getProvider().getConnection().prepareStatement(sql,
+                                                                                        mResultSetType,
+                                                                                        mResultSetConcurrency,
                                                                                         holdability);
+            } else {
+                statement = mConnection.getProvider().getConnection().prepareStatement(sql);
             }
-            else {
-                statement = m_Connection.getProvider().getConnection().prepareStatement(sql);
-            }
-            m_Statement = setStatement(statement);
+            mStatement = setStatement(statement);
         }
-        return (PreparedStatement) m_Statement;
+        return (PreparedStatement) mStatement;
     }
 
 }

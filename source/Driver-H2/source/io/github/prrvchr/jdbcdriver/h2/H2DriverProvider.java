@@ -28,18 +28,13 @@ package io.github.prrvchr.jdbcdriver.h2;
 import java.sql.Types;
 import java.util.Map;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.DriverProviderMain;
 import io.github.prrvchr.uno.sdb.Group;
 import io.github.prrvchr.uno.sdb.User;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
 
-public final class H2DriverProvider
-    extends DriverProviderMain
-    implements DriverProvider
-{
+public final class H2DriverProvider {
 
     protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(Types.LONGNVARCHAR, Types.LONGVARCHAR),
                                                                             Map.entry(Types.NCHAR, Types.CHAR),
@@ -55,22 +50,17 @@ public final class H2DriverProvider
     private static final String m_logger = ";TRACE_LEVEL_FILE=4";
 
     // The constructor method:
-    public H2DriverProvider()
-    {
-        super("h2");
+    public H2DriverProvider() {
         System.out.println("h2.H2DriverProvider() 1");
     }
 
-    @Override
-    public String[] getTableTypes()
-    {
+    public String[] getTableTypes() {
         System.out.println("h2.H2DriverProvider.getTableTypes() 1");
         //return new String[]{"BASE TABLE", "VIEW"};
         return null;
     }
 
 
-    @Override
     public int getDataType(int type) {
         if (m_datatype.containsKey(type)) {
             return m_datatype.get(type);
@@ -79,9 +69,7 @@ public final class H2DriverProvider
     }
 
 
-    @Override
-    public boolean isCaseSensitive(String clazz)
-    {
+    public boolean isCaseSensitive(String clazz) {
         if (clazz == User.class.getName() || clazz == Group.class.getName()) {
             //return false;
             return true;
@@ -89,10 +77,8 @@ public final class H2DriverProvider
         return true;
     }
 
-    @Override
     public String getConnectionUrl(final String location,
-                                   final String level)
-    {
+                                   final String level) {
         String url = location;
         if (!level.equals("-1")) {
             url += m_logger;
@@ -100,10 +86,8 @@ public final class H2DriverProvider
         return url;
     }
 
-    @Override
     public final DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         return new H2DatabaseMetaData(connection);
     }
 

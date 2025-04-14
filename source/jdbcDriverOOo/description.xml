@@ -24,12 +24,16 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 -->
-<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="1.4.6"/>
+<description xmlns="http://openoffice.org/extensions/description/2006"
+             xmlns:d="http://openoffice.org/extensions/description/2006"
+             xmlns:l="http://libreoffice.org/extensions/description/2011"
+             xmlns:xlink="http://www.w3.org/1999/xlink">
+  <version value="1.4.7"/>
   <identifier value="io.github.prrvchr.jdbcDriverOOo"/>
   <platform value="all"/>
   <dependencies>
-    <OpenOffice.org-minimal-version d:name="4.1" value="4.1"/>
+    <OpenOffice.org-minimal-version value="LibreOffice 7.0" d:name="LibreOffice 7.0"/>
+    <l:LibreOffice-minimal-version value="7.0" d:name="LibreOffice 7.0"/>
   </dependencies>
   <update-information>
     <src xlink:href="https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.update.xml"/>
@@ -57,7 +61,7 @@
     <high-contrast xlink:href="img/jdbcDriverOOo.svg"/>
   </icon>
   <extension-description>
-    <src lang="en-US" xlink:href="description/desc_en.txt"/>
-    <src lang="fr-FR" xlink:href="description/desc_fr.txt"/>
+    <src lang="en-US" xlink:href="description/description_en.txt"/>
+    <src lang="fr-FR" xlink:href="description/description_fr.txt"/>
   </extension-description>
 </description>

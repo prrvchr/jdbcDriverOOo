@@ -29,46 +29,40 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptorSuper;
 
 
 public final class ColumnDescriptor
-    extends ColumnDescriptorSuper
-{
-    private static final String m_service = ColumnDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.ColumnDescriptor"};
+    extends ColumnDescriptorSuper {
+    private static final String SERVICE = ColumnDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.ColumnDescriptor"};
 
     @SuppressWarnings("unused")
-    private int m_Align = 0;
+    private int mAlign = 0;
     @SuppressWarnings("unused")
-    private String m_ControlDefault = null;
+    private String mControlDefault = null;
     @SuppressWarnings("unused")
-    private XPropertySet m_ControlModel = null;
+    private XPropertySet mControlModel = null;
     @SuppressWarnings("unused")
-    private Integer m_FormatKey;
+    private Integer mFormatKey;
     @SuppressWarnings("unused")
-    private String m_HelpText = null;
-    private boolean m_Hidden = false;
-    private Integer m_Position;
+    private String mHelpText = null;
+    private boolean mHidden = false;
+    private Integer mPosition;
     @SuppressWarnings("unused")
-    private Integer m_Width;
+    private Integer mWidth;
 
     // The constructor method:
     public ColumnDescriptor(String catalog,
                             String schema,
                             String table,
-                            boolean sensitive)
-    {
-        super(m_service, m_services, catalog, schema, table, sensitive);
+                            boolean sensitive) {
+        super(SERVICE, SERVICES, catalog, schema, table, sensitive);
         registerProperties();
         System.out.println("sdb.ColumnDescriptor()");
     }
@@ -78,156 +72,76 @@ public final class ColumnDescriptor
         short maybevoid = PropertyAttribute.MAYBEVOID;
 
         /*properties.put(PropertyIds.ALIGN.getName(),
-                       new PropertyWrapper(Type.LONG, maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Align;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Align = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG, maybevoid,
+               () -> {
+                    return m_Align;
+               },
+               value -> {
+                    m_Align = (int) value;
+               }));
 
         properties.put(PropertyIds.CONTROLDEFAULT.getName(),
-                       new PropertyWrapper(Type.STRING, maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_ControlDefault;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_ControlDefault = (String) value;
-                                               }
-                                           }));
+           new PropertyWrapper(Type.STRING, maybevoid,
+               () -> {
+                    return m_ControlDefault;
+               },
+               value -> {
+                    m_ControlDefault = (String) value;
+               }));
 
         properties.put(PropertyIds.CONTROLMODEL.getName(),
-                       new PropertyWrapper(new Type(XPropertySet.class), maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_ControlModel;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_ControlModel = (XPropertySet) value;
-                                               }
-                                           }));
+           new PropertyWrapper(new Type(XPropertySet.class), maybevoid,
+               () -> {
+                    return m_ControlModel;
+               },
+               value -> {
+                    m_ControlModel = (XPropertySet) value;
+               }));
 
         properties.put(PropertyIds.FORMATKEY.getName(),
-                       new PropertyWrapper(Type.LONG, maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_FormatKey;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_FormatKey = (Integer) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG, maybevoid,
+               () -> {
+                    return m_FormatKey;
+               },
+               value -> {
+                    m_FormatKey = (Integer) value;
+               }));
 
         properties.put(PropertyIds.HELPTEXT.getName(),
-                       new PropertyWrapper(Type.STRING, maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_HelpText;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_HelpText = (String) value;
-                                               }
-                                           }));*/
+           new PropertyWrapper(Type.STRING, maybevoid,
+               () -> {
+                    return m_HelpText;
+               },
+               value -> {
+                    m_HelpText = (String) value;
+               }));*/
 
         properties.put(PropertyIds.HIDDEN.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Hidden;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Hidden = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mHidden;
+                },
+                value -> {
+                    mHidden = (boolean) value;
+                }));
 
         properties.put(PropertyIds.POSITION.getName(),
-                       new PropertyWrapper(Type.LONG, maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Position;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Position = (Integer) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG, maybevoid,
+                () -> {
+                    return mPosition;
+                },
+                value -> {
+                    mPosition = (Integer) value;
+                }));
 
         /*properties.put(PropertyIds.WIDTH.getName(),
-                       new PropertyWrapper(Type.LONG, maybevoid,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Width;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Width = (Integer) value;
-                                               }
-                                           }));*/
+            new PropertyWrapper(Type.LONG, maybevoid,
+                () -> {
+                    return m_Width;
+                },
+                value -> {
+                    m_Width = (Integer) value;
+                }));*/
 
         super.registerProperties(properties);
     }

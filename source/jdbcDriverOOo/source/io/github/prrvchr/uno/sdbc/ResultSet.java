@@ -29,50 +29,46 @@ import java.util.HashMap;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
+import io.github.prrvchr.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public final class ResultSet
-    extends ResultSetBase
-{
-    private static final String m_service = ResultSet.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.ResultSet"};
+    extends ResultSetBase {
+    private static final String SERVICE = ResultSet.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.ResultSet"};
 
 
     // The constructor method:
     public ResultSet(Connection connection,
                      java.sql.ResultSet resultset)
-        throws SQLException
-    {
+        throws SQLException {
         this(connection, resultset, null);
     }
 
     public ResultSet(Connection connection,
                      java.sql.ResultSet resultset,
                      StatementMain statement)
-        throws SQLException
-    {
-        super(m_service, m_services, connection, resultset, statement);
+        throws SQLException {
+        super(SERVICE, SERVICES, connection, resultset, statement);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset)
-        throws SQLException
-    {
-        super(m_service, m_services, connection, resultset, null);
+        throws SQLException {
+        super(SERVICE, SERVICES, connection, resultset, null);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     @Override
     protected Connection getConnection() {
-        return (Connection) m_Connection;
+        return (Connection) mConnection;
     }
 
     @Override
     protected ConnectionLog getLogger() {
-        return m_logger;
+        return mLogger;
     }
 
 }

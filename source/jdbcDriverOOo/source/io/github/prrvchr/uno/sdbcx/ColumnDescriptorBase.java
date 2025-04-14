@@ -27,36 +27,30 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public abstract class ColumnDescriptorBase
-    extends Descriptor
-{
+    extends Descriptor {
 
-    protected String m_DefaultValue = "";
-    protected String m_Description = "";
-    protected boolean m_IsAutoIncrement;
-    protected boolean m_IsCurrency;
-    protected int m_IsNullable;
-    protected boolean m_IsRowVersion;
-    protected int m_Precision;
-    protected int m_Scale;
-    protected int m_Type;
-    protected String m_TypeName = "";
+    protected String mDefaultValue = "";
+    protected String mDescription = "";
+    protected boolean mIsAutoIncrement;
+    protected boolean mIsCurrency;
+    protected int mIsNullable;
+    protected boolean mIsRowVersion;
+    protected int mPrecision;
+    protected int mScale;
+    protected int mType;
+    protected String mTypeName = "";
 
     // The constructor method:
     public ColumnDescriptorBase(String service,
                                 String[] services,
-                                boolean sensitive)
-    {
+                                boolean sensitive) {
         super(service, services, sensitive);
         System.out.println("sdbcx.ColumnDescriptorBase()");
     }
@@ -65,194 +59,100 @@ public abstract class ColumnDescriptorBase
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
 
         properties.put(PropertyIds.DEFAULTVALUE.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_DefaultValue;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_DefaultValue = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mDefaultValue;
+                },
+                value -> {
+                    mDefaultValue = (String) value;
+                }));
 
         properties.put(PropertyIds.DESCRIPTION.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Description;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Description = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mDescription;
+                },
+                value -> {
+                    mDescription = (String) value;
+                }));
 
         properties.put(PropertyIds.ISAUTOINCREMENT.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsAutoIncrement;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_IsAutoIncrement = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mIsAutoIncrement;
+                },
+                value -> {
+                    mIsAutoIncrement = (boolean) value;
+                }));
 
         properties.put(PropertyIds.ISCURRENCY.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsCurrency;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_IsCurrency = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mIsCurrency;
+                },
+                value -> {
+                    mIsCurrency = (boolean) value;
+                }));
 
         properties.put(PropertyIds.ISNULLABLE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsNullable;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_IsNullable = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mIsNullable;
+                },
+                value -> {
+                    mIsNullable = (int) value;
+                }));
+
+        registerProperties2(properties);
+    }
+
+    private void registerProperties2(Map<String, PropertyWrapper> properties) {
+
 
         properties.put(PropertyIds.ISROWVERSION.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsRowVersion;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_IsRowVersion = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mIsRowVersion;
+                },
+                value -> {
+                    mIsRowVersion = (boolean) value;
+                }));
 
         properties.put(PropertyIds.PRECISION.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Precision;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Precision = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mPrecision;
+                },
+                value -> {
+                    mPrecision = (int) value;
+                }));
 
         properties.put(PropertyIds.SCALE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Scale;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Scale = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mScale;
+                },
+                value -> {
+                    mScale = (int) value;
+                }));
 
         properties.put(PropertyIds.TYPE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Type;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Type = (int) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return mType;
+                },
+                value -> {
+                    mType = (int) value;
+                }));
 
         properties.put(PropertyIds.TYPENAME.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_TypeName;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_TypeName = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mTypeName;
+                },
+                value -> {
+                    mTypeName = (String) value;
+                }));
 
         super.registerProperties(properties);
     }

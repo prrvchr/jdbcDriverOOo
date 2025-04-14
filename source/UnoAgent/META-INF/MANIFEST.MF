@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Agent-Class: io.github.prrvchr.uno.agent.UnoAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+Premain-Class: io.github.prrvchr.uno.agent.UnoAgent

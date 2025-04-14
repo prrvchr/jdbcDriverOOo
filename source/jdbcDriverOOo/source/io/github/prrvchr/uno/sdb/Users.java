@@ -31,38 +31,35 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 
 public final class Users
-    extends RoleContainer<User>
-{
-    private static final String m_service = Users.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Users",
-                                                "com.sun.star.sdbcx.Container"};
+    extends RoleContainer<User> {
+    private static final String SERVICE = Users.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Users",
+                                              "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public Users(Connection connection,
                  boolean sensitive,
                  String role,
                  List<String> names)
-        throws ElementExistException
-    {
+        throws ElementExistException {
         // XXX: isrole must be true because this Class Users can only be held by a Group
-        super(m_service, m_services, connection, connection.getProvider(), role, connection.getUsersInternal(), sensitive, names, true, "USER", LoggerObjectType.USERS);
+        super(SERVICE, SERVICES, connection, connection.getProvider(),
+              role, connection.getUsersInternal(), sensitive, names, true, "USER", LoggerObjectType.USERS);
     }
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
-    protected DriverProvider getProvider()
-    {
-        return m_provider;
+    protected DriverProvider getProvider() {
+        return mProvider;
     }
 
     @Override
@@ -71,21 +68,18 @@ public final class Users
     }
 
     @Override
-    public void dispose()
-    {
+    public void dispose() {
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERROLES_DISPOSING);
         super.dispose();
     }
 
     @Override
-    protected void refill(List<String> roles)
-    {
+    protected void refill(List<String> roles) {
         super.refill(roles);
     }
 
     @Override
-    protected void removeElement(String name)
-    {
+    protected void removeElement(String name) {
         super.removeElement(name);
     }
 

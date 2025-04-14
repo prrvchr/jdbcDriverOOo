@@ -33,10 +33,9 @@ import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class Column
-    extends ColumnSuper
-{
-    private static final String m_service = Column.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Column"};
+    extends ColumnSuper {
+    private static final String SERVICE = Column.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Column"};
 
     // The constructor method:
     public Column(final Table table,
@@ -51,17 +50,17 @@ public final class Column
                   final int type,
                   final boolean autoincrement,
                   final boolean rowversion,
-                  final boolean currency)
-    {
-        super(m_service, m_services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+                  final boolean currency) {
+        super(SERVICE, SERVICES, table, sensitive, name, typename, defaultvalue,
+              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     // XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor()
-    {
-        ColumnDescriptor descriptor = new ColumnDescriptor(m_table.m_CatalogName, m_table.m_SchemaName, m_table.getName(), isCaseSensitive());
+    public XPropertySet createDataDescriptor() {
+        ColumnDescriptor descriptor = new ColumnDescriptor(mTable.mCatalogName, mTable.mSchemaName,
+                                                           mTable.getName(), isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

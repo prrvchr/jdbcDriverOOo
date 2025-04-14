@@ -31,18 +31,17 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
-import io.github.prrvchr.jdbcdriver.Resources;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
 
 public final class Groups
-    extends RoleContainer<Group>
-{
-    private static final String m_service = Groups.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Groups",
-                                                "com.sun.star.sdbcx.Container"};
+    extends RoleContainer<Group> {
+    private static final String SERVICE = Groups.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Groups",
+                                              "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public Groups(Connection connection,
@@ -50,18 +49,26 @@ public final class Groups
                   String role,
                   List<String> names,
                   boolean isrole)
-        throws ElementExistException
-    {
-        super(m_service, m_services, connection, connection.getProvider(), role, connection.getGroupsInternal(), sensitive, names, isrole, isrole ? "" : null, LoggerObjectType.GROUPS);
+        throws ElementExistException {
+        super(SERVICE, SERVICES, connection, connection.getProvider(),
+              role, connection.getGroupsInternal(), sensitive, names, isrole,
+              getRoleName(isrole), LoggerObjectType.GROUPS);
     }
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    private static final String getRoleName(boolean isrole) {
+        String name = null;
+        if (isrole) {
+            name = "";
+        }
+        return name;
     }
-    protected DriverProvider getProvider()
-    {
-        return m_provider;
+
+    protected ConnectionLog getLogger() {
+        return mLogger;
+    }
+
+    protected DriverProvider getProvider() {
+        return mProvider;
     }
 
     @Override
@@ -70,21 +77,18 @@ public final class Groups
     }
 
     @Override
-    public void dispose()
-    {
+    public void dispose() {
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPROLES_DISPOSING);
         super.dispose();
     }
 
     @Override
-    protected void refill(List<String> roles)
-    {
+    protected void refill(List<String> roles) {
         super.refill(roles);
     }
 
     @Override
-    protected void removeElement(String name)
-    {
+    protected void removeElement(String name) {
         super.removeElement(name);
     }
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components xmlns="http://openoffice.org/2010/uno-components">
+  <component loader="com.sun.star.loader.Java2" uri="jdbcDriverOOo.jar">
+    <implementation name="io.github.prrvchr.uno.sdbcx.Driver">
+      <service name="io.github.prrvchr.jdbcdriver.sdbcx.Driver"/>
+    </implementation>
+    <implementation name="io.github.prrvchr.uno.sdbc.Driver">
+      <service name="io.github.prrvchr.jdbcdriver.sdbc.Driver"/>
+    </implementation>
+    <implementation name="io.github.prrvchr.uno.sdb.Driver">
+      <service name="io.github.prrvchr.jdbcdriver.sdb.Driver"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/Driver.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.Driver">
+      <service name="io.github.prrvchr.jdbcDriverOOo.Driver"/>
+      <service name="com.sun.star.sdbc.Driver"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/LoggerPool.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.LoggerPool">
+      <service name="io.github.prrvchr.jdbcDriverOOo.LoggerPool"/>
+      <service name="com.sun.star.logging.LoggerPool2"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/OptionsHandler.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.OptionsHandler">
+      <service name="io.github.prrvchr.jdbcDriverOOo.OptionsHandler"/>
+    </implementation>
+  </component>
+  <component loader="com.sun.star.loader.Python" uri="service/AdminDispatcher.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.AdminDispatcher">
+      <service name="io.github.prrvchr.jdbcDriverOOo.AdminDispatcher"/>
+    </implementation>
+  </component>
+</components>

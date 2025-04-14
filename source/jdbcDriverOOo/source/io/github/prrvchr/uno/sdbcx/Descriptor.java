@@ -28,42 +28,36 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public abstract class Descriptor
     extends PropertySet
-    implements XServiceInfo
-{
+    implements XServiceInfo {
 
-    protected final String m_service;
-    private final String[] m_services;
-    private String m_Name;
-    private final boolean m_sensitive;
-    private final boolean m_readonly;
+    protected final String mService;
+    private final String[] mServices;
+    private String mName;
+    private final boolean mSensitive;
+    private final boolean mReadonly;
 
     // The constructor method:
     public Descriptor(String service,
                       String[] services,
-                      boolean sensitive)
-    {
+                      boolean sensitive) {
         this(service, services, sensitive, "", false);
     }
     public Descriptor(String service,
                       String[] services,
                       boolean sensitive,
-                      String name)
-    {
+                      String name) {
         this(service, services, sensitive, name, true);
     }
 
@@ -71,75 +65,67 @@ public abstract class Descriptor
                        String[] services,
                        boolean sensitive,
                        String name,
-                       boolean readonly)
-    {
-        m_service = service;
-        m_services = services;
-        m_sensitive = sensitive;
-        m_Name = name;
-        m_readonly = readonly;
+                       boolean readonly) {
+        mService = service;
+        mServices = services;
+        mSensitive = sensitive;
+        mName = name;
+        mReadonly = readonly;
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties)
-    {
-        short readonly = m_readonly ? PropertyAttribute.READONLY : 0;
-        PropertySetter setter = m_readonly ? null : new PropertySetter() {
-                                                        @Override
-                                                        public void setValue(Object value) throws PropertyVetoException,
-                                                                                                  IllegalArgumentException,
-                                                                                                  WrappedTargetException
-                                                        {
-                                                            m_Name = (String) value;
-                                                        }
-                                                    };
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+        short attribute;
+        if (mReadonly) {
+            attribute = PropertyAttribute.READONLY;
+        } else {
+            attribute = 0;
+        }
+        PropertySetter setter = null;
+        if (!mReadonly) {
+            setter = value -> {
+                mName = (String) value;
+            };
+        }
 
         properties.put(PropertyIds.NAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Name;
-                                               }
-                                           },
-                                           setter));
+            new PropertyWrapper(Type.STRING, attribute,
+                () -> {
+                    return mName;
+                },
+                setter));
 
         super.registerProperties(properties);
     }
 
-
     // com.sun.star.lang.XServiceInfo:
     @Override
-    public String getImplementationName()
-    {
-        return ServiceInfo.getImplementationName(m_service);
+    public String getImplementationName() {
+        return ServiceInfo.getImplementationName(mService);
     }
 
     @Override
-    public String[] getSupportedServiceNames()
-    {
-        return ServiceInfo.getSupportedServiceNames(m_services);
+    public String[] getSupportedServiceNames() {
+        return ServiceInfo.getSupportedServiceNames(mServices);
     }
 
     @Override
-    public boolean supportsService(String service)
-    {
-        return ServiceInfo.supportsService(m_services, service);
+    public boolean supportsService(String service) {
+        return ServiceInfo.supportsService(mServices, service);
     }
 
 
     // Method for internal use (no UNO method)
     protected String getName() {
-        return m_Name;
+        return mName;
     }
     
     protected void setName(String name) {
-        m_Name = name;
+        mName = name;
     }
     
     protected boolean isCaseSensitive() {
-        return m_sensitive;
+        return mSensitive;
     }
 
 

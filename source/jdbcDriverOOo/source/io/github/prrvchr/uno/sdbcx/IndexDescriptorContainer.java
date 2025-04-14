@@ -28,17 +28,15 @@ package io.github.prrvchr.uno.sdbcx;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
+import io.github.prrvchr.driver.helper.DBTools;
 
 
 public final class IndexDescriptorContainer
-    extends DescriptorContainer<IndexDescriptor>
-{
+    extends DescriptorContainer<IndexDescriptor> {
 
     // The constructor method:
     public IndexDescriptorContainer(Object lock,
-                                    boolean sensitive)
-    {
+                                    boolean sensitive) {
         super(lock, sensitive);
         System.out.println("sdbcx.descriptors.IndexDescriptorContainer()");
     }
@@ -50,8 +48,7 @@ public final class IndexDescriptorContainer
 
     @Override
     protected IndexDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
         return (IndexDescriptor) newDescriptor;

@@ -1,7 +1,6 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-
 ║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
@@ -32,67 +31,67 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.resultset.ResultSetHelper;
+import io.github.prrvchr.driver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class CallableStatement
-    extends CallableStatementSuper
-{
-    private static final String m_service = CallableStatement.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbc.CallableStatement",
-                                                "com.sun.star.sdbcx.CallableStatement"};
+    extends CallableStatementSuper {
+    private static final String SERVICE = CallableStatement.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.CallableStatement",
+                                              "com.sun.star.sdbcx.CallableStatement"};
 
     // The constructor method:
     public CallableStatement(Connection connection,
-                             String sql)
-    {
-        super(m_service, m_services, connection, sql);
+                             String sql) {
+        super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.CallableStatement() 1");
     }
 
     @Override
     public XResultSet getResultSet()
-        throws SQLException
-    {
+        throws SQLException {
+        XResultSet resultset = null;
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             Connection connection = getConnectionInternal();
             java.sql.ResultSet result = getJdbcResultSet();
-            if (m_UseBookmarks) {
+            if (mUseBookmarks) {
                 RowCatalog catalog = null;
-                if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
-                    RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql.getTable());
-                    String services = String.join(", ", resultset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
-                    return resultset;
+                if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, mSql)) {
+                    RowSet rowset = new RowSet(connection.getProvider(), connection, result,
+                                               this, catalog, mSql.getTable());
+                    String services = String.join(", ", rowset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                       services, rowset.getLogger().getObjectId());
+                    resultset = rowset;
+                } else {
+                    ResultSet rowset =  new ResultSet(connection, result, this);
+                    String services = String.join(", ", rowset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                       services, rowset.getLogger().getObjectId());
+                    resultset = rowset;
                 }
-                else {
-                    ResultSet resultset =  new ResultSet(connection, result, this);
-                    String services = String.join(", ", resultset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
-                    return resultset;
-                }
+            } else {
+                ResultSet rowset =  new ResultSet(connection, result, this);
+                String services = String.join(", ", rowset.getSupportedServiceNames());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                   services, rowset.getLogger().getObjectId());
+                resultset = rowset;
             }
-            else {
-                ResultSet resultset =  new ResultSet(connection, result, this);
-                String services = String.join(", ", resultset.getSupportedServiceNames());
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
-                return resultset;
-            }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return resultset;
     }
 
     @Override
     protected Connection getConnectionInternal() {
-        return (Connection) m_Connection;
+        return (Connection) mConnection;
     }
 
 

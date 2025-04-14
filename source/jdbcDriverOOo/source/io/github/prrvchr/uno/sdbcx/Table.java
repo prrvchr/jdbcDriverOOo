@@ -31,17 +31,16 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
-import io.github.prrvchr.jdbcdriver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class Table
-    extends TableSuper
-{
+    extends TableSuper {
 
-    private static final String m_service = Table.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Table"};
+    private static final String SERVICE = Table.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Table"};
 
     // The constructor method:
     public Table(Connection connection,
@@ -50,21 +49,18 @@ public final class Table
                  String schema,
                  String name,
                  String type,
-                 String remarks)
-    {
-        super(m_service, m_services, connection, sensitive, catalog, schema, name, type, remarks);
+                 String remarks) {
+        super(SERVICE, SERVICES, connection, sensitive, catalog, schema, name, type, remarks);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
-    protected Connection getConnection()
-    {
-        return (Connection) m_connection;
+    protected Connection getConnection() {
+        return (Connection) mConnection;
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public XPropertySet createDataDescriptor()
-    {
+    public XPropertySet createDataDescriptor() {
         TableDescriptor descriptor = new TableDescriptor(true);
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
@@ -73,8 +69,7 @@ public final class Table
     }
 
     protected ColumnContainer getColumnContainer(List<ColumnDescription> descriptions)
-            throws ElementExistException
-    {
+            throws ElementExistException {
         return new ColumnContainer(this, isCaseSensitive(), descriptions);
     }
 

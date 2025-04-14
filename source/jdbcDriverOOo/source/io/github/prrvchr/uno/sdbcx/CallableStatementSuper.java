@@ -27,23 +27,18 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 import io.github.prrvchr.uno.sdbc.CallableStatementBase;
 
 
 public abstract class CallableStatementSuper
-    extends CallableStatementBase
-{
+    extends CallableStatementBase {
 
-    protected boolean m_UseBookmarks  = false;
+    protected boolean mUseBookmarks  = false;
 
 
     // The constructor method:
@@ -53,8 +48,7 @@ public abstract class CallableStatementSuper
     public CallableStatementSuper(String service,
                                   String[] services,
                                   ConnectionSuper connection,
-                                  String sql)
-    {
+                                  String sql) {
         super(service, services, connection, sql);
     }
 
@@ -62,38 +56,25 @@ public abstract class CallableStatementSuper
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
 
         properties.put(PropertyIds.USEBOOKMARKS.getName(),
-                       new PropertyWrapper(Type.BOOLEAN,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   System.out.println("sdbc.CallableStatementSuper._getUseBookmarks():" + m_UseBookmarks);
-                                                   return m_UseBookmarks;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   System.out.println("sdbc.CallableStatementSuper._setUseBookmarks():" + (boolean) value);
-                                                   m_UseBookmarks = (boolean) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    return mUseBookmarks;
+                },
+                value -> {
+                    System.out.println("sdbc.CallableStatementSuper._setUseBookmarks():" + (boolean) value);
+                    mUseBookmarks = (boolean) value;
+                }));
 
         super.registerProperties(properties);
     }
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         return super.getJdbcResultSet();
     }
 
-    protected ConnectionLog getLogger()
-    {
+    protected ConnectionLog getLogger() {
         return super.getLogger();
     }
 

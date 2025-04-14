@@ -32,48 +32,43 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.ComposeRule;
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.provider.ComposeRule;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 
 
 public abstract class TableContainerMain<T extends TableMain>
-    extends Container<T>
-{
-    protected final ConnectionSuper m_Connection;
-    private final ConnectionLog m_logger;
+    extends Container<T> {
+    protected final ConnectionSuper mConnection;
+    private final ConnectionLog mLogger;
 
     // The constructor method:
-    public TableContainerMain(String service,
-                              String[] services,
-                              ConnectionSuper connection,
-                              boolean sensitive,
-                              List<String> names,
-                              LoggerObjectType logtype)
-        throws ElementExistException
-    {
+    protected TableContainerMain(String service,
+                                 String[] services,
+                                 ConnectionSuper connection,
+                                 boolean sensitive,
+                                 List<String> names,
+                                 LoggerObjectType logtype)
+        throws ElementExistException {
         super(service, services, connection, sensitive, names);
-        m_Connection = connection;
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
+        mConnection = connection;
+        mLogger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
     }
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
 
-    protected ConnectionSuper getConnection()
-    {
-        return m_Connection;
+    protected ConnectionSuper getConnection() {
+        return mConnection;
     }
 
     // FIXME: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
     // FIXME: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
     protected void rename(String oldname, String newname)
-        throws SQLException
-    {
+        throws SQLException {
         if (hasByName(oldname)) {
             replaceElement(oldname, newname, false);
         }
@@ -81,31 +76,29 @@ public abstract class TableContainerMain<T extends TableMain>
 
     @Override
     protected String getElementName(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return DBTools.composeTableName(m_Connection.getProvider(), descriptor, ComposeRule.InTableDefinitions, false);
-        }
-        catch (java.sql.SQLException e) {
+            return DBTools.composeTableName(mConnection.getProvider(), descriptor,
+                                            ComposeRule.InTableDefinitions, false);
+        } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
     }
 
     @Override
     protected T appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         T element = null;
         String name = getElementName(descriptor);
         if (createDataBaseElement(descriptor, name)) {
-           element = createElement(name);
+            element = createElement(name);
         }
         return element;
     }
 
     @Override
     protected void refreshInternal() {
-        m_Connection.refresh();
+        mConnection.refresh();
     }
 
     abstract boolean createDataBaseElement(XPropertySet descriptor, String name) throws SQLException;

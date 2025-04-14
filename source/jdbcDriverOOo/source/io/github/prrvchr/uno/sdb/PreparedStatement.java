@@ -33,10 +33,10 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.resultset.ResultSetHelper;
-import io.github.prrvchr.jdbcdriver.rowset.RowCatalog;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.resultset.ResultSetHelper;
+import io.github.prrvchr.driver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.PreparedStatementSuper;
@@ -44,32 +44,28 @@ import io.github.prrvchr.uno.sdbcx.PreparedStatementSuper;
 
 public final class PreparedStatement
     extends PreparedStatementSuper
-    implements XColumnsSupplier
-{
+    implements XColumnsSupplier {
 
-    private static final String m_service = PreparedStatement.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdb.PreparedStatement",
-                                                "com.sun.star.sdbc.PreparedStatement",
-                                                "com.sun.star.sdbcx.PreparedStatement"};
+    private static final String SERVICE = PreparedStatement.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdb.PreparedStatement",
+                                              "com.sun.star.sdbc.PreparedStatement",
+                                              "com.sun.star.sdbcx.PreparedStatement"};
 
     // The constructor method:
     public PreparedStatement(Connection connection,
-                             String sql)
-    {
-        super(m_service, m_services, connection, sql);
+                             String sql) {
+        super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.PreparedStatement() 1: '" + sql + "'");
     }
 
-    protected ConnectionLog getLogger()
-    {
+    protected ConnectionLog getLogger() {
         return super.getLogger();
     }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
-    public XNameAccess getColumns()
-    {
+    public XNameAccess getColumns() {
         System.out.println("sdb.PreparedStatement.getColumns() ************************************");
         /*try {
             System.out.println("sdb.PreparedStatement.getColumns() ************************************");
@@ -85,42 +81,44 @@ public final class PreparedStatement
 
     @Override
     public XResultSet getResultSet()
-        throws SQLException
-    {
+        throws SQLException {
+        XResultSet resultset = null;
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             Connection connection = getConnectionInternal();
             java.sql.ResultSet result = getJdbcResultSet();
-            if (m_UseBookmarks) {
+            if (mUseBookmarks) {
                 RowCatalog catalog = null;
-                if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, m_Sql)) {
-                    RowSet resultset = new RowSet(connection.getProvider(), connection, result, this, catalog, m_Sql.getTable());
-                    String services = String.join(", ", resultset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
-                    return resultset;
+                if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, mSql)) {
+                    RowSet rowset = new RowSet(connection.getProvider(), connection, result,
+                                               this, catalog, mSql.getTable());
+                    String services = String.join(", ", rowset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                       services, rowset.getLogger().getObjectId());
+                    resultset = rowset;
+                } else {
+                    ResultSet rowset =  new ResultSet(connection, result, this);
+                    String services = String.join(", ", rowset.getSupportedServiceNames());
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                       services, rowset.getLogger().getObjectId());
+                    resultset = rowset;
                 }
-                else {
-                    ResultSet resultset =  new ResultSet(connection, result, this);
-                    String services = String.join(", ", resultset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
-                    return resultset;
-                }
+            } else {
+                ResultSet rowset =  new ResultSet(connection, result, this);
+                String services = String.join(", ", rowset.getSupportedServiceNames());
+                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                                   services, rowset.getLogger().getObjectId());
+                resultset = rowset;
             }
-            else {
-                ResultSet resultset =  new ResultSet(connection, result, this);
-                String services = String.join(", ", resultset.getSupportedServiceNames());
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services, resultset.getLogger().getObjectId());
-                return resultset;
-            }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return resultset;
     }
 
     @Override
     protected Connection getConnectionInternal() {
-        return (Connection) m_Connection;
+        return (Connection) mConnection;
     }
 
 

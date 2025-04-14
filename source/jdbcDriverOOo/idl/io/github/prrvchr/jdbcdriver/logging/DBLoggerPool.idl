@@ -7,6 +7,7 @@ module io { module github { module prrvchr { module jdbcdriver { module logging 
 
     service DBLoggerPool : io::github::prrvchr::jdbcdriver::logging::XDBLoggerPool {
 
+
     };
 
 }; }; }; }; };

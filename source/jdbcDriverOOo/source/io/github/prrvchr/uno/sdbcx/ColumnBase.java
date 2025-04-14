@@ -29,32 +29,28 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public abstract class ColumnBase
     extends Descriptor
-    implements XDataDescriptorFactory
-{
+    implements XDataDescriptorFactory {
 
-    protected String m_DefaultValue = "";
-    protected String m_Description = "";
-    protected boolean m_IsAutoIncrement;
-    private boolean m_IsCurrency;
-    protected int m_IsNullable;
-    private boolean m_IsRowVersion;
-    private int m_Precision;
-    private int m_Scale;
-    protected int m_Type;
-    protected String m_TypeName = "";
-
-    protected final TableSuper m_table;
+    protected String mDefaultValue = "";
+    protected String mDescription = "";
+    protected boolean mIsAutoIncrement;
+    protected int mIsNullable;
+    protected int mType;
+    protected String mTypeName = "";
+    protected final TableSuper mTable;
+    private boolean mIsCurrency;
+    private boolean mIsRowVersion;
+    private int mPrecision;
+    private int mScale;
 
     // The constructor method:
     public ColumnBase(String service,
@@ -71,20 +67,19 @@ public abstract class ColumnBase
                       final int type,
                       final boolean autoincrement,
                       final boolean rowversion,
-                      final boolean currency)
-    {
+                      final boolean currency) {
         super(service, services, sensitive, name);
-        m_table = table;
-        m_TypeName = typename;
-        m_Description = description;
-        m_DefaultValue = defaultvalue;
-        m_IsNullable = nullable;
-        m_Precision = precision;
-        m_Scale = scale;
-        m_Type = type;
-        m_IsAutoIncrement = autoincrement;
-        m_IsRowVersion = rowversion;
-        m_IsCurrency = currency;
+        mTable = table;
+        mTypeName = typename;
+        mDescription = description;
+        mDefaultValue = defaultvalue;
+        mIsNullable = nullable;
+        mPrecision = precision;
+        mScale = scale;
+        mType = type;
+        mIsAutoIncrement = autoincrement;
+        mIsRowVersion = rowversion;
+        mIsCurrency = currency;
     }
 
     @Override
@@ -92,114 +87,74 @@ public abstract class ColumnBase
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.DEFAULTVALUE.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_DefaultValue;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mDefaultValue;
+                },
+                null));
 
         properties.put(PropertyIds.DESCRIPTION.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Description;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mDescription;
+                },
+                null));
 
         properties.put(PropertyIds.ISAUTOINCREMENT.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsAutoIncrement;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsAutoIncrement;
+                },
+                null));
 
         properties.put(PropertyIds.ISCURRENCY.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsCurrency;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsCurrency;
+                },
+                null));
 
         properties.put(PropertyIds.ISNULLABLE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsNullable;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mIsNullable;
+                },
+                null));
 
         properties.put(PropertyIds.ISROWVERSION.getName(),
-                       new PropertyWrapper(Type.BOOLEAN, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_IsRowVersion;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    return mIsRowVersion;
+                },
+                null));
 
         properties.put(PropertyIds.PRECISION.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Precision;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mPrecision;
+                },
+                null));
 
         properties.put(PropertyIds.SCALE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Scale;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mScale;
+                },
+                null));
 
         properties.put(PropertyIds.TYPE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Type;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return mType;
+                },
+                null));
 
         properties.put(PropertyIds.TYPENAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_TypeName;
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mTypeName;
+                },
+                null));
 
         super.registerProperties(properties);
     }
@@ -212,8 +167,7 @@ public abstract class ColumnBase
 
     // com.sun.star.lang.XComponent
     @Override
-    protected void postDisposing()
-    {
+    protected void postDisposing() {
         super.postDisposing();
     }
 

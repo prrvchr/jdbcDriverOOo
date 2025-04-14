@@ -28,19 +28,16 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
 
 
 public abstract class ColumnSuper
     extends ColumnBase
-    implements XDataDescriptorFactory
-{
+    implements XDataDescriptorFactory {
 
     // The constructor method:
     public ColumnSuper(String service,
@@ -57,9 +54,9 @@ public abstract class ColumnSuper
                        final int type,
                        final boolean autoincrement,
                        final boolean rowversion,
-                       final boolean currency)
-    {
-        super(service, services, table, sensitive, name, typename, defaultvalue, description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+                       final boolean currency) {
+        super(service, services, table, sensitive, name, typename, defaultvalue,
+                description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
     @Override
@@ -69,49 +66,32 @@ public abstract class ColumnSuper
         // FIXME: Although these properties are not in the UNO API, they are claimed by
         // FIXME: LibreOffice/Base and necessary to obtain tables whose contents can be edited in Base
         properties.put(PropertyIds.CATALOGNAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_table.getCatalogName();
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mTable.getCatalogName();
+                },
+                null));
 
         properties.put(PropertyIds.SCHEMANAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_table.getSchemaName();
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mTable.getSchemaName();
+                },
+                null));
 
         properties.put(PropertyIds.TABLENAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_table.getName();
-                                               }
-                                           },
-                                           null));
-
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mTable.getName();
+                },
+                null));
 
         properties.put(PropertyIds.AUTOINCREMENTCREATION.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_table.getConnection().getProvider().getAutoIncrementCreation();
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return mTable.getConnection().getProvider().getAutoIncrementCreation();
+                },
+                null));
 
         super.registerProperties(properties);
     }

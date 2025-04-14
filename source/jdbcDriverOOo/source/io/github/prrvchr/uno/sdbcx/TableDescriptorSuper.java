@@ -27,120 +27,74 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.jdbcdriver.PropertyIds;
+import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 
 public abstract class TableDescriptorSuper
     extends Descriptor
     implements XColumnsSupplier,
-               XKeysSupplier
-{
+               XKeysSupplier {
 
-    protected ColumnDescriptorContainerSuper<?> m_columns;
-    private KeyDescriptorContainer m_keys;
-    private String m_CatalogName = "";
-    private String m_SchemaName = "";
-    private String m_Description = "";
-    private String m_Type = "TABLE";
+    protected ColumnDescriptorContainerSuper<?> mColumns;
+    private KeyDescriptorContainer mKeys;
+    private String mCatalogName = "";
+    private String mSchemaName = "";
+    private String mDescription = "";
+    private String mType = "TABLE";
 
     // The constructor method:
     public TableDescriptorSuper(String service,
                                 String[] services,
-                                boolean sensitive)
-    {
+                                boolean sensitive) {
         super(service, services, sensitive);
-        m_keys = new KeyDescriptorContainer(this, sensitive);
+        mKeys = new KeyDescriptorContainer(this, sensitive);
         System.out.println("sdbcx.TableDescriptorSuper()");
     }
 
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
 
         properties.put(PropertyIds.CATALOGNAME.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_CatalogName;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_CatalogName = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mCatalogName;
+                },
+                value -> {
+                    mCatalogName = (String) value;
+                }));
 
         properties.put(PropertyIds.SCHEMANAME.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_SchemaName;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_SchemaName = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mSchemaName;
+                },
+                value -> {
+                    mSchemaName = (String) value;
+                }));
 
         properties.put(PropertyIds.DESCRIPTION.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Description;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Description = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mDescription;
+                },
+                value -> {
+                    mDescription = (String) value;
+                }));
 
         properties.put(PropertyIds.TYPE.getName(),
-                       new PropertyWrapper(Type.STRING,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return m_Type;
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   m_Type = (String) value;
-                                               }
-                                           }));
+            new PropertyWrapper(Type.STRING,
+                () -> {
+                    return mType;
+                },
+                value -> {
+                    mType = (String) value;
+                }));
 
         super.registerProperties(properties);
     }
@@ -148,10 +102,9 @@ public abstract class TableDescriptorSuper
 
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
-    public XNameAccess getColumns()
-    {
+    public XNameAccess getColumns() {
         System.out.println("sdbcx.descriptors.TableDescriptorBase.getColumns()");
-        return m_columns;
+        return mColumns;
     }
 
 
@@ -159,18 +112,16 @@ public abstract class TableDescriptorSuper
     @Override
     public XIndexAccess getKeys() {
         System.out.println("sdbcx.descriptors.TableDescriptorBase.getKeys()");
-        return m_keys;
+        return mKeys;
     }
 
 
     // 
-    public String getCatalogName()
-    {
-        return m_CatalogName;
+    public String getCatalogName() {
+        return mCatalogName;
     }
-    public String getSchemaName()
-    {
-        return m_SchemaName;
+    public String getSchemaName() {
+        return mSchemaName;
     }
 
 

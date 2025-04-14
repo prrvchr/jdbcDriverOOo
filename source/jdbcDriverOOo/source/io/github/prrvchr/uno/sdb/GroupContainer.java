@@ -33,54 +33,49 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.RoleHelper;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.helper.RoleHelper;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbcx.Container;
 
 
 public class GroupContainer
-    extends Container<Group>
-{
-    private static final String m_service = GroupContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.Container"};
+    extends Container<Group> {
+    private static final String SERVICE = GroupContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
-    protected final Connection m_connection;
-    private final ConnectionLog m_logger; 
+    protected final Connection mConnection;
+    private final ConnectionLog mLogger; 
 
     // The constructor method:
     public GroupContainer(Connection connection,
                           boolean sensitive,
                           List<String> names)
-        throws ElementExistException
-    {
+        throws ElementExistException {
         this(connection, sensitive, names, LoggerObjectType.GROUPCONTAINER);
     }
 
-    public GroupContainer(Connection connection,
-                          boolean sensitive,
-                          List<String> names,
-                          LoggerObjectType type)
-        throws ElementExistException
-    {
-        super(m_service, m_services, connection, sensitive, names);
-        m_connection = connection;
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), type);
+    protected GroupContainer(Connection connection,
+                             boolean sensitive,
+                             List<String> names,
+                             LoggerObjectType type)
+        throws ElementExistException {
+        super(SERVICE, SERVICES, connection, sensitive, names);
+        mConnection = connection;
+        mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
 
     @Override
-    public void dispose()
-    {
+    public void dispose() {
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_DISPOSING);
         super.dispose();
     }
@@ -88,8 +83,7 @@ public class GroupContainer
 
     @Override
     protected Group appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         Group group = null;
         String name = getElementName(descriptor);
         if (_createGroup(descriptor, name)) {
@@ -100,16 +94,14 @@ public class GroupContainer
 
     protected boolean _createGroup(XPropertySet descriptor,
                                    String name)
-        throws SQLException
-    {
+        throws SQLException {
         String query = null;
         try {
-            query = RoleHelper.getCreateGroupQuery(m_connection.getProvider(), descriptor, name, isCaseSensitive());
+            query = RoleHelper.getCreateGroupCommand(mConnection.getProvider(), descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
-            return DBTools.executeSQLQuery(m_connection.getProvider(), query);
-        }
-        catch (java.sql.SQLException e) {
+            return DBTools.executeSQLQuery(mConnection.getProvider(), query);
+        } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
@@ -119,10 +111,9 @@ public class GroupContainer
 
     @Override
     protected Group createElement(String name)
-        throws SQLException
-    {
+        throws SQLException {
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATE_GROUP);
-        Group goup = new Group(m_connection, isCaseSensitive(), name);
+        Group goup = new Group(mConnection, isCaseSensitive(), name);
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATED_GROUP_ID, goup.getLogger().getObjectId());
         return goup;
     }
@@ -130,20 +121,18 @@ public class GroupContainer
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException
-    {
+        throws SQLException {
         String query = null;
-        DriverProvider provider = m_connection.getProvider();
+        DriverProvider provider = mConnection.getProvider();
         try {
-            query = RoleHelper.getDropGroupQuery(provider, name, isCaseSensitive());
+            query = RoleHelper.getDropGroupCommand(provider, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
             if (DBTools.executeSQLQuery(provider, query)) {
                 // XXX: A role has just been deleted, it should also be deleted from any member user...
-                m_connection.getUsersInternal().removeRole(name);
+                mConnection.getUsersInternal().removeRole(name);
             }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
@@ -153,26 +142,22 @@ public class GroupContainer
     }
 
     @Override
-    protected void refreshInternal()
-    {
-        m_connection.refresh();
+    protected void refreshInternal() {
+        mConnection.refresh();
     }
 
     @Override
-    protected void refill(List<String> names)
-    {
+    protected void refill(List<String> names) {
         super.refill(names);
     }
 
     @Override
-    protected XPropertySet createDescriptor()
-    {
+    protected XPropertySet createDescriptor() {
         return new GroupDescriptor(isCaseSensitive());
     }
 
     protected void removeRole(String name)
-        throws SQLException
-    {
+        throws SQLException {
         Iterator<Group> groups = getActiveElements();
         while (groups.hasNext()) {
             Users users = groups.next().getUsersInternal();

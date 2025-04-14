@@ -30,13 +30,11 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbc.SQLException;
 
 public final class IndexColumnDescriptorContainer
-    extends DescriptorContainer<IndexColumnDescriptor>
-{
+    extends DescriptorContainer<IndexColumnDescriptor> {
 
     // The constructor method:
     public IndexColumnDescriptorContainer(Object lock,
-                                          boolean sensitive)
-    {
+                                          boolean sensitive) {
         super(lock, sensitive);
         System.out.println("sdbcx.descriptors.IndexColumnDescriptorContainer()");
     }
@@ -48,8 +46,7 @@ public final class IndexColumnDescriptorContainer
 
     @Override
     protected IndexColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         return (IndexColumnDescriptor) cloneDescriptor(descriptor);
     }
 

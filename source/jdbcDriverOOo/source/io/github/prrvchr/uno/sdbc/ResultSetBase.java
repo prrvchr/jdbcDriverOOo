@@ -32,7 +32,6 @@ import java.util.BitSet;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lang.WrappedTargetException;
@@ -60,21 +59,19 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.jdbcdriver.ConnectionLog;
-import io.github.prrvchr.jdbcdriver.helper.DBException;
-import io.github.prrvchr.jdbcdriver.helper.DBTools;
-import io.github.prrvchr.jdbcdriver.rowset.RowHelper;
-import io.github.prrvchr.jdbcdriver.PropertyIds;
-import io.github.prrvchr.jdbcdriver.Resources;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
-import io.github.prrvchr.jdbcdriver.LoggerObjectType;
+import io.github.prrvchr.driver.helper.DBException;
+import io.github.prrvchr.driver.helper.DBTools;
+import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.LoggerObjectType;
+import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.driver.rowset.RowHelper;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertyGetter;
-import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
 
 public abstract class ResultSetBase
     extends PropertySet
@@ -86,22 +83,21 @@ public abstract class ResultSetBase
                XRow,
                XWarningsSupplier,
                XResultSetUpdate,
-               XRowUpdate
-{
+               XRowUpdate {
 
-    private final String m_service;
-    private final String[] m_services;
-    protected ConnectionBase m_Connection;
-    protected java.sql.ResultSet m_Result;
-    protected StatementMain m_Statement;
+    protected ConnectionBase mConnection;
+    protected java.sql.ResultSet mResult;
+    protected StatementMain mStatement;
     // XXX: We need to keep the index references of the columns already assigned for
     // insertion
-    protected BitSet m_Inserted;
+    protected BitSet mInserted;
     // XXX: We need to know when we are on the insert row
-    protected boolean m_OnInsert = false;
+    protected boolean mOnInsert = false;
     // XXX: Is the last value read null
-    protected boolean m_WasNull = false;
-    protected final ConnectionLog m_logger;
+    protected boolean mWasNull = false;
+    protected final ConnectionLog mLogger;
+    private final String mService;
+    private final String[] mServices;
 
     // The constructor method:
 
@@ -109,8 +105,7 @@ public abstract class ResultSetBase
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet result)
-        throws SQLException
-    {
+        throws SQLException {
         this(service, services, connection, result, null);
     }
 
@@ -119,38 +114,34 @@ public abstract class ResultSetBase
                          ConnectionBase connection,
                          java.sql.ResultSet resultset,
                          StatementMain statement)
-        throws SQLException
-    {
-        m_service = service;
-        m_services = services;
-        m_Connection = connection;
-        m_Result = resultset;
-        m_Statement = statement;
-        m_Inserted = new BitSet(getResultColumnCount(resultset, statement));
-        m_logger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.RESULTSET);
+        throws SQLException {
+        mService = service;
+        mServices = services;
+        mConnection = connection;
+        mResult = resultset;
+        mStatement = statement;
+        mInserted = new BitSet(getResultColumnCount(resultset, statement));
+        mLogger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.RESULTSET);
     }
 
-    static private int getResultColumnCount(java.sql.ResultSet resultset,
+    private static int getResultColumnCount(java.sql.ResultSet resultset,
                                             StatementMain statement)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             return resultset.getMetaData().getColumnCount();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, statement);
         }
     }
 
     protected StatementMain getJdbcStatement() {
-        return m_Statement;
+        return mStatement;
     }
 
     protected abstract ConnectionBase getConnection();
 
-    protected ConnectionLog getLogger()
-    {
-        return m_logger;
+    protected ConnectionLog getLogger() {
+        return mLogger;
     }
 
     @Override
@@ -158,167 +149,121 @@ public abstract class ResultSetBase
         short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.CURSORNAME.getName(),
-                       new PropertyWrapper(Type.STRING, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getCursorName();
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.STRING, readonly,
+                () -> {
+                    return _getCursorName();
+                },
+                null));
 
         properties.put(PropertyIds.FETCHDIRECTION.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getFetchDirection();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setFetchDirection((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getFetchDirection();
+                },
+                value -> {
+                    _setFetchDirection((int) value);
+                }));
 
         properties.put(PropertyIds.FETCHSIZE.getName(),
-                       new PropertyWrapper(Type.LONG,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getFetchSize();
-                                               }
-                                           },
-                                           new PropertySetter() {
-                                               @Override
-                                               public void setValue(Object value) throws PropertyVetoException,
-                                                                                         IllegalArgumentException,
-                                                                                         WrappedTargetException
-                                               {
-                                                   _setFetchSize((int) value);
-                                               }
-                                           }));
+            new PropertyWrapper(Type.LONG,
+                () -> {
+                    return _getFetchSize();
+                },
+                value -> {
+                    _setFetchSize((int) value);
+                }));
 
         properties.put(PropertyIds.RESULTSETCONCURRENCY.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getResultSetConcurrency();
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return _getResultSetConcurrency();
+                },
+                null));
 
         properties.put(PropertyIds.RESULTSETTYPE.getName(),
-                       new PropertyWrapper(Type.LONG, readonly,
-                                           new PropertyGetter() {
-                                               @Override
-                                               public Object getValue() throws WrappedTargetException
-                                               {
-                                                   return _getResultSetType();
-                                               }
-                                           },
-                                           null));
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return _getResultSetType();
+                },
+                null));
 
         super.registerProperties(properties);
     }
 
     private String _getCursorName()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            String cursor = m_Result.getCursorName();
+            String cursor = mResult.getCursorName();
             if (cursor == null) {
                 cursor = "";
             }
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CURSORNAME, cursor);
             return cursor;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
 
     private int _getFetchDirection()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            int direction = m_Result.getFetchDirection();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
+            int direction = mResult.getFetchDirection();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_DIRECTION, Integer.toString(direction));
             return direction;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
 
     private synchronized void _setFetchDirection(int direction)
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
-            m_Result.setFetchDirection(direction);
-        }
-        catch (java.sql.SQLException e) {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
+            mResult.setFetchDirection(direction);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
 
     protected int _getFetchSize()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            int size = m_Result.getFetchSize();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
+            int size = mResult.getFetchSize();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_FETCH_SIZE, Integer.toString(size));
             return size;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
 
     protected synchronized void _setFetchSize(int size)
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
-            m_Result.setFetchSize(size);
-        }
-        catch (java.sql.SQLException e) {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
+            mResult.setFetchSize(size);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
 
     protected int _getResultSetConcurrency()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            int concurrency = m_Result.getConcurrency();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
+            int concurrency = mResult.getConcurrency();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
             return concurrency;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
 
     protected int _getResultSetType()
-        throws WrappedTargetException
-    {
+        throws WrappedTargetException {
         try {
-            int type = m_Result.getType();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
+            int type = mResult.getType();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
             return type;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
         }
     }
@@ -326,35 +271,31 @@ public abstract class ResultSetBase
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        if (m_Result != null) {
+        if (mResult != null) {
             super.postDisposing();
             try {
-                m_Result.close();
+                mResult.close();
+            } catch (java.sql.SQLException e) {
+                mLogger.logp(LogLevel.WARNING, e);
             }
-            catch (java.sql.SQLException e) {
-                m_logger.logp(LogLevel.WARNING, e);
-            }
-            m_Result = null;
+            mResult = null;
         }
     }
 
     // com.sun.star.sdbc.XCloseable
     @Override
     public void close()
-        throws SQLException
-    {
+        throws SQLException {
         dispose();
     }
 
     // com.sun.star.sdbc.XColumnLocate:
     @Override
     public int findColumn(String name)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.findColumn(name);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.findColumn(name);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -362,225 +303,190 @@ public abstract class ResultSetBase
     // com.sun.star.sdbc.XResultSet:
     @Override
     public boolean absolute(int row)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            boolean moved = m_Result.absolute(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row), Boolean.toString(moved));
+            boolean moved = mResult.absolute(row);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row),
+                           Boolean.toString(moved));
             return moved;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void afterLast()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.afterLast();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.afterLast();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void beforeFirst()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.beforeFirst();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.beforeFirst();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean first()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.first();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.first();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public int getRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getRow();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getRow();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public com.sun.star.uno.XInterface getStatement()
-        throws SQLException
-    {
-        return m_Statement;
+        throws SQLException {
+        return mStatement;
     }
 
     @Override
     public boolean isAfterLast()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.isAfterLast();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.isAfterLast();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isBeforeFirst()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.isBeforeFirst();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.isBeforeFirst();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isFirst()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.isFirst();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.isFirst();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean isLast()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.isLast();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.isLast();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean last()
-        throws SQLException
-    {
-        System.out.println("ResultSetBase.last() 1");
+        throws SQLException {
         try {
-            return m_Result.last();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.last();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean next()
-        throws SQLException
-    {
-        System.out.println("ResultSetBase.next() 1");
+        throws SQLException {
         try {
-            boolean next = m_Result.next();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
+            boolean next = mResult.next();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
             return next;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean previous()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.previous();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.previous();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void refreshRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.refreshRow();
-        }
-        catch (java.sql.SQLException e) {
+            mResult.refreshRow();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean relative(int row)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            boolean moved = m_Result.relative(row);
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE, Integer.toString(row), Boolean.toString(moved));
+            boolean moved = mResult.relative(row);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_RELATIVE,
+                           Integer.toString(row), Boolean.toString(moved));
             return moved;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean rowDeleted()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            boolean deleted = m_Result.rowDeleted();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
+            boolean deleted = mResult.rowDeleted();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_DELETED, Boolean.toString(deleted));
             return deleted;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean rowInserted()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            boolean inserted = m_Result.rowInserted();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
+            boolean inserted = mResult.rowInserted();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_INSERTED, Boolean.toString(inserted));
             return inserted;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public boolean rowUpdated()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            boolean updated = m_Result.rowUpdated();
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
+            boolean updated = mResult.rowUpdated();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ROW_UPDATED, Boolean.toString(updated));
             return updated;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -588,42 +494,42 @@ public abstract class ResultSetBase
     // com.sun.star.lang.XServiceInfo:
     @Override
     public String getImplementationName() {
-        return ServiceInfo.getImplementationName(m_service);
+        return ServiceInfo.getImplementationName(mService);
     }
 
     @Override
     public String[] getSupportedServiceNames() {
-        return ServiceInfo.getSupportedServiceNames(m_services);
+        return ServiceInfo.getSupportedServiceNames(mServices);
     }
 
     @Override
     public boolean supportsService(String service) {
-        return ServiceInfo.supportsService(m_services, service);
+        return ServiceInfo.supportsService(mServices, service);
     }
 
     // com.sun.star.sdbc.XWarningsSupplier:
     @Override
     public void clearWarnings()
-        throws SQLException
-    {
-        if (m_Connection.getProvider().supportWarningsSupplier())
-            WarningsSupplier.clearWarnings(m_Result, this);
+        throws SQLException {
+        if (mConnection.getProvider().supportWarningsSupplier()) {
+            WarningsSupplier.clearWarnings(mResult, this);
+        }
     }
 
     @Override
     public Object getWarnings()
-        throws SQLException
-    {
-        if (m_Connection.getProvider().supportWarningsSupplier())
-            return WarningsSupplier.getWarnings(m_Result, this);
-        return Any.VOID;
+        throws SQLException {
+        Object warning = Any.VOID;
+        if (mConnection.getProvider().supportWarningsSupplier()) {
+            warning = WarningsSupplier.getWarnings(mResult, this);
+        }
+        return warning;
     }
 
     // com.sun.star.sdbc.XResultSetUpdate:
     @Override
     public void insertRow()
-        throws SQLException
-    {
+        throws SQLException {
         if (!isOnInsertRow()) {
             throw new SQLException("ERROR: insertRow cannot be called when moveToInsertRow has not been called !", this,
                                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
@@ -632,23 +538,20 @@ public abstract class ResultSetBase
     }
 
     protected void insertNewRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
-            RowHelper.setDefaultColumnValues(m_Result, m_Inserted);
-            m_Result.insertRow();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
+            RowHelper.setDefaultColumnValues(mResult, mInserted);
+            mResult.insertRow();
             moveToCurrentRow();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateRow()
-        throws SQLException
-    {
+        throws SQLException {
         if (isOnInsertRow()) {
             throw new SQLException("ERROR: updateRow cannot be called when moveToInsertRow has been called!", this,
                                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
@@ -657,21 +560,18 @@ public abstract class ResultSetBase
     }
 
     protected void updateCurrentRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
-            m_Result.updateRow();
-        }
-        catch (java.sql.SQLException e) {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_UPDATE_ROW);
+            mResult.updateRow();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void deleteRow()
-        throws SQLException
-    {
+        throws SQLException {
         if (isOnInsertRow()) {
             throw new SQLException("ERROR: deleteRow cannot be called when moveToInsertRow has been called!", this,
                                    StandardSQLState.SQL_GENERAL_ERROR.text(), 0, null);
@@ -680,13 +580,11 @@ public abstract class ResultSetBase
     }
 
     protected void deleteCurrentRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
-            m_Result.deleteRow();
-        }
-        catch (java.sql.SQLException e) {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_DELETE_ROW);
+            mResult.deleteRow();
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
@@ -695,20 +593,17 @@ public abstract class ResultSetBase
     // xUp->cancelRowUpdates()
     @Override
     public void cancelRowUpdates()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
             cancelRowUpdatesInternal();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_INVALID_CURSOR_STATE.text(), 0, e);
         }
     }
 
     protected void cancelRowUpdatesInternal()
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         // FIXME: *** LibreOffice Base call this method just after calling moveToInsertRow() ***
         // FIXME: Java documentation say: Throws: SQLException - if a database access error occurs;
         // FIXME: this method is called on a closed result set; the result set concurrency is CONCUR_READ_ONLY
@@ -716,9 +611,8 @@ public abstract class ResultSetBase
         // FIXME: see: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
         if (isOnInsertRow()) {
             moveToCurrentRowInternal();
-        }
-        else {
-            m_Result.cancelRowUpdates();
+        } else {
+            mResult.cancelRowUpdates();
         }
     }
 
@@ -726,287 +620,279 @@ public abstract class ResultSetBase
     // xUp->moveToInsertRow()
     @Override
     public void moveToInsertRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
             moveToInsertRowInternal();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     protected void moveToInsertRowInternal()
-        throws java.sql.SQLException
-    {
-        m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW);
-        m_Result.moveToInsertRow();
-        m_Inserted.clear();
-        m_OnInsert = true;
+        throws java.sql.SQLException {
+        mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_INSERT_ROW);
+        mResult.moveToInsertRow();
+        mInserted.clear();
+        mOnInsert = true;
     }
 
     @Override
     public void moveToCurrentRow()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_MOVE_TO_CURRENT_ROW);
             moveToCurrentRowInternal();
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     protected void moveToCurrentRowInternal()
-        throws java.sql.SQLException
-    {
-        m_Result.moveToCurrentRow();
-        m_OnInsert = false;
+        throws java.sql.SQLException {
+        mResult.moveToCurrentRow();
+        mOnInsert = false;
     }
 
     // com.sun.star.sdbc.XRow:
     @Override
     public XArray getArray(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        XArray array = null;
         try {
-            java.sql.Array value = m_Result.getArray(index);
-            return (value != null) ? new Array(m_Connection, value) : null;
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Array value = mResult.getArray(index);
+            if (value != null) {
+                array = new Array(mConnection, value);
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return array;
     }
 
     @Override
     public XInputStream getBinaryStream(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        XInputStream input = null;
         XBlob blob = getBlob(index);
-        return blob != null ? blob.getBinaryStream() : null;
+        if (blob != null) {
+            input = blob.getBinaryStream();
+        }
+        return input;
     }
 
     @Override
     public XBlob getBlob(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        XBlob blob = null;
         try {
-            java.sql.Blob value = m_Result.getBlob(index);
-            return (value != null) ? new Blob(m_Connection, value) : null;
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Blob value = mResult.getBlob(index);
+            if (value != null) {
+                blob = new Blob(mConnection, value);
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return blob;
     }
 
     @Override
     public boolean getBoolean(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getBoolean(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getBoolean(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public byte getByte(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getByte(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getByte(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public byte[] getBytes(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getBytes(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getBytes(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public XInputStream getCharacterStream(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        XInputStream input = null;
         XClob clob = getClob(index);
-        return (clob != null) ? clob.getCharacterStream() : null;
+        if (clob != null) {
+            input = clob.getCharacterStream();
+        }
+        return input;
     }
 
     @Override
     public XClob getClob(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        XClob clob = null;
         try {
-            java.sql.Clob value = m_Result.getClob(index);
-            return value != null ? new Clob(m_Connection, value) : null;
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Clob value = mResult.getClob(index);
+            if (value != null) {
+                clob = new Clob(mConnection, value);
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return clob;
     }
 
     @Override
     public Date getDate(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        Date date = null;
         try {
-            java.sql.Date value = m_Result.getDate(index);
-            return value != null ? UnoHelper.getUnoDate(value.toLocalDate()) : new Date();
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Date value = mResult.getDate(index);
+            if (value != null) {
+                date = UnoHelper.getUnoDate(value.toLocalDate());
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return date;
     }
 
     @Override
     public double getDouble(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getDouble(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getDouble(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public float getFloat(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getFloat(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getFloat(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public int getInt(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getInt(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getInt(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public long getLong(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getLong(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getLong(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public Object getObject(int index, XNameAccess map)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return DBTools.getObject(m_Result.getObject(index), map);
-        }
-        catch (java.sql.SQLException e) {
+            return DBTools.getObject(mResult.getObject(index), map);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public XRef getRef(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        XRef ref = null;
         try {
-            java.sql.Ref value = m_Result.getRef(index);
-            return value != null ? new Ref(value) : null;
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Ref value = mResult.getRef(index);
+            if (value != null) {
+                ref = new Ref(value);
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return ref;
     }
 
     @Override
     public short getShort(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.getShort(index);
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.getShort(index);
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public String getString(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            String value = m_Result.getString(index);
+            String value = mResult.getString(index);
             if (value == null) {
                 value = "";
             }
-            m_logger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString",
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_GET_PARAMETER, value, "getString",
                     Integer.toString(index));
             return value;
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
 
     @Override
     public Time getTime(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        Time time = null;
         try {
-            java.sql.Time value = m_Result.getTime(index);
-            return value != null ? UnoHelper.getUnoTime(value.toLocalTime()) : new Time();
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Time value = mResult.getTime(index);
+            if (value != null) {
+                time = UnoHelper.getUnoTime(value.toLocalTime());
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return time;
     }
 
     @Override
     public DateTime getTimestamp(int index)
-        throws SQLException
-    {
+        throws SQLException {
+        DateTime datetime = null;
         try {
-            java.sql.Timestamp value = m_Result.getTimestamp(index);
-            return value != null ? UnoHelper.getUnoDateTime(value.toLocalDateTime()) : new DateTime();
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.Timestamp value = mResult.getTimestamp(index);
+            if (value != null) {
+                datetime = UnoHelper.getUnoDateTime(value.toLocalDateTime());
+            }
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
+        return datetime;
     }
 
     @Override
     public boolean wasNull()
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            return m_Result.wasNull();
-        }
-        catch (java.sql.SQLException e) {
+            return mResult.wasNull();
+        } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
     }
@@ -1014,192 +900,161 @@ public abstract class ResultSetBase
     // com.sun.star.sdbc.XRowUpdate:
     @Override
     public void updateNull(int index)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateNull(index);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateNull(index);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateBoolean(int index, boolean value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateBoolean(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateBoolean(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateByte(int index, byte value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateByte(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateByte(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateShort(int index, short value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateShort(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateShort(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateInt(int index, int value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateInt(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateInt(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateLong(int index, long value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateLong(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateLong(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateFloat(int index, float value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateFloat(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateFloat(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateDouble(int index, double value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateDouble(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateDouble(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateString(int index, String value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateString(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateString(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateBytes(int index, byte[] value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateBytes(index, value);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateBytes(index, value);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateDate(int index, Date value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateDate(index, java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value)));
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateDate(index, java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value)));
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateTime(int index, Time value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateTime(index, java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value)));
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateTime(index, java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value)));
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateTimestamp(int index, DateTime value)
-        throws SQLException
-    {
+        throws SQLException {
         try {
-            m_Result.updateTimestamp(index, java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value)));
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateTimestamp(index, java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value)));
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateBinaryStream(int index, XInputStream value, int lenght)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             InputStream input = new XInputStreamToInputStreamAdapter(value);
-            m_Result.updateBinaryStream(index, input, lenght);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateBinaryStream(index, input, lenght);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateCharacterStream(int index, XInputStream value, int lenght)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             Reader reader = new java.io.InputStreamReader(input);
-            m_Result.updateCharacterStream(index, reader, lenght);
-        }
-        catch (java.sql.SQLException e) {
+            mResult.updateCharacterStream(index, reader, lenght);
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
     }
 
     @Override
     public void updateObject(int index, Object value)
-        throws SQLException
-    {
-        if (!DBTools.updateObject(m_Result, index, value)) {
+        throws SQLException {
+        if (!DBTools.updateObject(mResult, index, value)) {
             String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_COLUMN_TYPE,
                     this.getClass().getName(), "updateObject()", Integer.toString(index));
             throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -1208,17 +1063,15 @@ public abstract class ResultSetBase
 
     @Override
     public void updateNumericObject(int index, Object value, int scale)
-        throws SQLException
-    {
+        throws SQLException {
         try {
             BigDecimal bigDecimal;
             if (AnyConverter.isDouble(value)) {
                 bigDecimal = BigDecimal.valueOf(AnyConverter.toDouble(value));
-            }
-            else {
+            } else {
                 bigDecimal = new BigDecimal(AnyConverter.toString(value));
             }
-            m_Result.updateObject(index, bigDecimal, scale);
+            mResult.updateObject(index, bigDecimal, scale);
         } catch (IllegalArgumentException | java.sql.SQLException e) {
             updateObject(index, value);
         }
@@ -1227,24 +1080,25 @@ public abstract class ResultSetBase
     // com.sun.star.sdbc.XResultSetMetaDataSupplier:
     @Override
     public XResultSetMetaData getMetaData()
-        throws SQLException
-    {
+        throws SQLException {
+        XResultSetMetaData metadata = null;
         try {
-            java.sql.ResultSetMetaData metadata = m_Result.getMetaData();
-            return (metadata != null) ? new ResultSetMetaData(m_Connection, metadata) : null;
-        }
-        catch (java.sql.SQLException e) {
+            java.sql.ResultSetMetaData value = mResult.getMetaData();
+            if (value != null) {
+                metadata = new ResultSetMetaData(mConnection, value);
+            }
+        } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return metadata;
     }
 
     protected boolean isOnInsertRow() {
-        return m_OnInsert;
+        return mOnInsert;
     }
 
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException
-    {
+        throws java.sql.SQLException {
         return getJdbcStatement().getJdbcResultSet();
     }
 

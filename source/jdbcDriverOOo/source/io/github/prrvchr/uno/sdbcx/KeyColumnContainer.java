@@ -32,53 +32,56 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.jdbcdriver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.StandardSQLState;
+import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.driver.provider.StandardSQLState;
 
 
 public final class KeyColumnContainer
-    extends Container<KeyColumn>
-{
-    private static final String m_service = IndexContainer.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.KeyColumns",
-                                                "com.sun.star.sdbcx.Container"};
+    extends Container<KeyColumn> {
+    private static final String SERVICE = IndexContainer.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumns",
+                                              "com.sun.star.sdbcx.Container"};
 
-    protected final Key m_key;
+    protected final Key mKey;
 
     // The constructor method:
     public KeyColumnContainer(Key key,
                               List<String> columns)
-        throws ElementExistException
-    {
-        super(m_service, m_services, key.getTable(), true, columns);
-        m_key = key;
+        throws ElementExistException {
+        super(SERVICE, SERVICES, key.getTable(), true, columns);
+        mKey = key;
     }
 
 
     
     @Override
     protected KeyColumn createElement(String name)
-        throws SQLException
-    {
+        throws SQLException {
         KeyColumn column = null;
         try {
             DriverProvider provider = getConnection().getProvider();
-            NamedComponents table = m_key.getTable().getNamedComponents();
+            NamedComponents table = mKey.getTable().getNamedComponents();
             String refColumnName = "";
-            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable()))
-            {
+            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(table.getCatalog(),
+                                                                                                    table.getSchema(),
+                                                                                                    table.getTable())) {
                 while (result.next()) {
-                    if (name.equals(result.getString(8)) && m_key.getName().equals(result.getString(12))) {
+                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
+                    if (name.equals(result.getString(8)) && mKey.getName().equals(result.getString(12))) {
                         refColumnName = result.getString(4);
+                        // CHECKSTYLE:ON: MagicNumber - Specific for database
                         break;
                     }
                 }
             }
             // now describe the column name and set its related column
-            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(), table.getSchema(), table.getTable(), name))
-            {
+            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(),
+                                                                                               table.getSchema(),
+                                                                                               table.getTable(),
+                                                                                               name)) {
                 if (result.next()) {
+                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
                     if (result.getString(4).equals(name)) {
                         int dataType = provider.getDataType(result.getInt(5));
                         String typeName = result.getString(6);
@@ -88,16 +91,16 @@ public final class KeyColumnContainer
                         String columnDef = "";
                         try {
                             columnDef = result.getString(13);
-                        }
-                        catch (java.sql.SQLException e) {
+                            // CHECKSTYLE:ON: MagicNumber - Specific for database
+                        } catch (java.sql.SQLException e) {
                             // sometimes we get an error when asking for this param
                         }
-                        column = new KeyColumn(m_key.getTable(), isCaseSensitive(), name, typeName, "", columnDef, nul, size, dec, dataType, false, false, false, refColumnName);
+                        column = new KeyColumn(mKey.getTable(), isCaseSensitive(), name, typeName, "", columnDef,
+                                               nul, size, dec, dataType, false, false, false, refColumnName);
                     }
                 }
             }
-        }
-        catch (java.sql.SQLException e) {
+        } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return column;
@@ -105,8 +108,7 @@ public final class KeyColumnContainer
 
     @Override
     protected KeyColumn appendElement(XPropertySet descriptor)
-        throws SQLException
-    {
+        throws SQLException {
         System.out.println("sdbcx.KeyColumnContainer.appendElement() ******************************************");
         throw new SQLException("Cannot change a key's columns, please delete and re-create the key instead");
     }
@@ -114,27 +116,23 @@ public final class KeyColumnContainer
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException
-    {
-        System.out.println("sdbcx.KeyColumnContainer.removeDataBaseElement() ******************************************");
+        throws SQLException {
+        System.out.println("sdbcx.KeyColumnContainer.removeDataBaseElement() ***************");
         throw new SQLException("Cannot change a key's columns, please delete and re-create the key instead");
     }
 
     
     @Override
-    protected XPropertySet createDescriptor()
-    {
+    protected XPropertySet createDescriptor() {
         return new KeyColumnDescriptor(isCaseSensitive());
     }
 
     @Override
-    protected void refreshInternal()
-    {
+    protected void refreshInternal() {
     }
 
     protected void renameKeyColumn(String oldname, String newname)
-        throws SQLException
-    {
+        throws SQLException {
         System.out.println("KeyColumnContainer.renameKeyColumn() 1");
         if (hasByName(oldname)) {
             System.out.println("KeyColumnContainer.renameKeyColumn() 2");
@@ -144,9 +142,8 @@ public final class KeyColumnContainer
         System.out.println("KeyColumnContainer.renameKeyColumn() 4");
     }
 
-    public ConnectionSuper getConnection()
-    {
-        return m_key.getTable().getConnection();
+    public ConnectionSuper getConnection() {
+        return mKey.getTable().getConnection();
     }
 
 }

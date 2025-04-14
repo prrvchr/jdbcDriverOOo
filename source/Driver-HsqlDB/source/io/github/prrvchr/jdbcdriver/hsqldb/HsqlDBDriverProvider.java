@@ -31,16 +31,8 @@ import java.util.logging.Level;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.jdbcdriver.DriverProvider;
-import io.github.prrvchr.jdbcdriver.DriverProviderMain;
-//import io.github.prrvchr.uno.sdbc.ConnectionBase;
-//import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
-
-public final class HsqlDBDriverProvider
-    extends DriverProviderMain
-    implements DriverProvider
-{
+public final class HsqlDBDriverProvider {
 
     protected static final Map<Integer, Integer> m_datatype = Map.ofEntries(Map.entry(Types.LONGNVARCHAR, Types.LONGVARCHAR),
                                                                             Map.entry(Types.NCHAR, Types.CHAR),
@@ -70,9 +62,7 @@ public final class HsqlDBDriverProvider
                                                                 Map.entry("7", Level.ALL));
 
     // The constructor method:
-    public HsqlDBDriverProvider()
-    {
-        super("hsqldb");
+    public HsqlDBDriverProvider() {
         System.out.println("hsqldb.HsqlDBDriverProvider() 1");
     }
 
@@ -84,10 +74,8 @@ public final class HsqlDBDriverProvider
         return type;
     }*/
 
-    @Override
     public String getConnectionUrl(final String location,
-                                   final String level)
-    {
+                                   final String level) {
         System.out.println("hsqldb.HsqlDBDriverProvider.getConnectionUrl() 1 Level: " + level);
         String url = location;
         if (!level.equals("-1")) {
@@ -98,10 +86,8 @@ public final class HsqlDBDriverProvider
         return url;
     }
 
-    @Override
     public void setSystemProperties(String level)
-        throws SQLException
-    {
+        throws SQLException {
         System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 1 Level: " + level);
         if (!level.equals("-1")) {
             System.out.println("hsqldb.HsqlDBDriverProvider.setSystemProperties() 2");

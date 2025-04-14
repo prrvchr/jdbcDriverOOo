@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020 https://prrvchr.github.io                                     ║
+║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,9 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-import uno
-import unohelper
-
 from com.sun.star.beans.PropertyAttribute import BOUND
 
 from com.sun.star.logging.LogLevel import INFO
@@ -43,12 +40,13 @@ from com.sun.star.ucb.ContentInfoAttribute import KIND_FOLDER
 
 from com.sun.star.ucb import IllegalIdentifierException
 
-from ..oauth2 import getRequest
-from ..oauth2 import g_oauth2
+from ..oauth20 import getRequest
+from ..oauth20 import g_service
 
 from ..dbtool import currentDateTimeInTZ
 from ..dbtool import currentUnoDateTime
 
+from ..unotool import generateUuid
 from ..unotool import getProperty
 from ..unotool import getUriFactory
 
@@ -74,7 +72,7 @@ import traceback
 
 class User():
     def __init__(self, ctx, source, logger, database, provider, sync, name, password=''):
-        method = '__init__()'
+        mtd = '__init__'
         self._ctx = ctx
         self._name = name
         self._sync = sync
@@ -91,99 +89,100 @@ class User():
             if request is None:
                 # If we have a Null value here then it means that the user has abandoned
                 # the OAuth2 Wizard, there is nothing more to do except throw an exception
-                msg = self._getExceptionMessage(method, 501, name)
+                msg = self._getExceptionMessage(mtd, 501, name)
                 raise IllegalIdentifierException(msg, source)
         else:
             if not self.Provider.isOnLine():
-                msg = self._getExceptionMessage(method, 503, name)
+                msg = self._getExceptionMessage(mtd, 503, name)
                 raise IllegalIdentifierException(msg, source)
             request = getRequest(ctx, self.Provider.Scheme, name)
             if request is None:
                 # If we have a Null value here then it means that the user has abandoned
                 # the OAuth2 Wizard, there is nothing more to do except throw an exception
-                msg = self._getExceptionMessage(method, 501, g_oauth2)
+                msg = self._getExceptionMessage(mtd, 501, g_service)
                 raise IllegalIdentifierException(msg, source)
-            user, root = self.Provider.getUser(source, request, name)
-            metadata = database.insertUser(user, root)
+            user = self.Provider.getUser(source, request, name)
+            metadata = database.insertUser(user)
             if metadata is None:
-                msg = self._getExceptionMessage(method, 505, name)
+                msg = self._getExceptionMessage(mtd, 505, name)
                 raise IllegalIdentifierException(msg, source)
             if not database.createUser(name, password):
-                msg = self._getExceptionMessage(method, 507, name)
+                msg = self._getExceptionMessage(mtd, 507, name)
                 raise IllegalIdentifierException(msg, source)
-        self.Request = request
-        self.MetaData = metadata
-        self.DataBase = DataBase(ctx, logger, database.Url, name, password)
         self._paths = {}
         self._contents = {}
         self._lock = None
+        self._metadata = metadata
+        self.Request = request
+        self.DataBase = DataBase(ctx, logger, database.Url, name, password)
         if new:
             # Start Replicator for pushing changes…
             self._lock = Event()
             self._sync.set()
-        self._logger.logprb(INFO, 'User', method, 509)
+        self._logger.logprb(INFO, 'User', mtd, 509)
 
     @property
     def Name(self):
-        return self.MetaData.get('UserName')
+        return self._metadata.get('UserName')
     @property
     def Id(self):
-        return self.MetaData.get('UserId')
+        return self._metadata.get('UserId')
     @property
     def RootId(self):
-        return self.MetaData.get('RootId')
+        return self._metadata.get('RootId')
+    @property
+    def ShareId(self):
+        return self._metadata.get('ShareId')
     @property
     def Token(self):
-        return self.MetaData.get('Token')
-    @property
-    def SyncMode(self):
-        return self.MetaData.get('SyncMode')
-    @SyncMode.setter
-    def SyncMode(self, mode):
-        self.MetaData['SyncMode'] = mode
-        self.DataBase.updateUserSyncMode(self.Id, mode)
+        return self._metadata.get('Token')
+    @Token.setter
+    def Token(self, token):
+        self._metadata['Token'] = token
+        self.DataBase.updateToken(self.Id, token)
     @property
     def SessionMode(self):
         return self.Request.getSessionMode(self.Provider.Host)
     @property
     def DateCreated(self):
-        return self.MetaData.get('DateCreated')
+        return self._metadata.get('DateCreated')
     @property
     def DateModified(self):
-        return self.MetaData.get('DateModified')
+        return self._metadata.get('DateModified')
     @property
     def TimeStamp(self):
-        return self.MetaData.get('TimeStamp')
+        return self._metadata.get('TimeStamp')
     @TimeStamp.setter
     def TimeStamp(self, timestamp):
-        self.MetaData['TimeStamp'] = timestamp
+        self._metadata['TimeStamp'] = timestamp
+        self.DataBase.updateTimeStamp(self.Id, timestamp)
 
-    def setToken(self, token):
-        self.MetaData['Token'] = token
+    # method called from DataSource
+    def dispose(self):
+        self.DataBase.dispose()
 
     # method called from Replicator
     def releaseLock(self):
-        self.SyncMode = 1
         if self._lock is not None and not self._lock.is_set():
             self._lock.set()
 
     # method called from ContentResultSet.queryContent()
     def getContentByUrl(self, authority, url):
         uri = self._getUriFactory().parse(url)
-        return self.getContent(authority, uri)
+        return self.getContentByUri(authority, uri)
 
     # method called from Content.getParent()
     def getContentByParent(self, authority, itemid, path):
         isroot = itemid == self.RootId
-        return self._getContent(authority, self._getPath(path, isroot), isroot)
+        return self._getContent(authority, path.rstrip(g_ucbseparator), isroot)
 
     # method called from DataSource.queryContent()
-    def getContent(self, authority, uri):
-        isroot = uri.getPathSegmentCount() == 0
-        return self._getContent(authority, uri.getPath(), isroot)
+    def getContentByUri(self, authority, uri):
+        path = uri.getPath().rstrip(g_ucbseparator)
+        return self._getContent(authority, path, not path)
 
     def setLock(self):
-        if self._lock is not None and not self.SyncMode:
+        if self._lock is not None:
             self._lock.wait()
 
     # method called from Content._identifier
@@ -260,13 +259,6 @@ class User():
             scheme += self.Name
         return scheme
 
-    def _getPath(self, path, isroot):
-        # XXX: Only the root has a slash as its identifier,
-        # XXX: all others have an identifier that ends with its name
-        if not isroot:
-            path = path.rstrip(g_ucbseparator)
-        return path
-
     def _composePath(self, path, title):
         path += title
         # XXX: If the path doesn't end with a slash, we need to add one
@@ -320,7 +312,7 @@ class User():
         if self.Provider.GenerateIds:
             identifier = self.DataBase.getNewIdentifier(self.Id)
         else:
-            identifier = binascii.hexlify(uno.generateUuid().value).decode('utf-8')
+            identifier = generateUuid()
         return identifier
 
     def _getExceptionMessage(self, method, code, *args):

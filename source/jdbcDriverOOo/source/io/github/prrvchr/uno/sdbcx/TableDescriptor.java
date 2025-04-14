@@ -30,17 +30,15 @@ import java.util.HashMap;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 public final class TableDescriptor
-    extends TableDescriptorSuper
-{
-    private static final String m_service = TableDescriptor.class.getName();
-    private static final String[] m_services = {"com.sun.star.sdbcx.TableDescriptor",
-                                                "com.sun.star.sdbcx.Descriptor"};
+    extends TableDescriptorSuper {
+    private static final String SERVICE = TableDescriptor.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbcx.TableDescriptor",
+                                              "com.sun.star.sdbcx.Descriptor"};
 
     // The constructor method:
-    public TableDescriptor(boolean sensitive)
-    {
-        super(m_service, m_services, sensitive);
-        m_columns = new ColumnDescriptorContainer(this, sensitive);
+    public TableDescriptor(boolean sensitive) {
+        super(SERVICE, SERVICES, sensitive);
+        mColumns = new ColumnDescriptorContainer(this, sensitive);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.TableDescriptor()");
     }

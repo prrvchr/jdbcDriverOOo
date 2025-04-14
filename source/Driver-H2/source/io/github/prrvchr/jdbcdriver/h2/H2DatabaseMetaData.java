@@ -25,19 +25,12 @@
 */
 package io.github.prrvchr.jdbcdriver.h2;
 
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
-import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
-
-public final class H2DatabaseMetaData
-    extends DatabaseMetaDataBase
-{
+public final class H2DatabaseMetaData {
 
     // The constructor method:
-    public H2DatabaseMetaData(final ConnectionBase connection)
-        throws java.sql.SQLException
-    {
-        super(connection);
+    public H2DatabaseMetaData()
+        throws java.sql.SQLException {
     }
 
 }
