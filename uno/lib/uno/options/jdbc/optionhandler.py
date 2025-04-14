@@ -43,7 +43,13 @@ class WindowHandler(unohelper.Base,
     def callHandlerMethod(self, window, event, method):
         try:
             handled = False
-            if method == 'Level0':
+            if method == 'Base':
+                self._manager.setDriverService(0)
+                handled = True
+            elif method == 'Enhanced':
+                self._manager.setDriverService(1)
+                handled = True
+            elif method == 'Level0':
                 self._manager.setApiLevel(0)
                 handled = True
             elif method == 'Level1':
@@ -66,7 +72,9 @@ class WindowHandler(unohelper.Base,
             print("ERROR: %s - %s" % (e, traceback.format_exc()))
 
     def getSupportedMethodNames(self):
-        return ('Level0',
+        return ('Base',
+                'Enhanced',
+                'Level0',
                 'Level1',
                 'Level2',
                 'SystemTable',

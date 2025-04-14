@@ -66,6 +66,12 @@ class OptionManager():
         self._logmanager.loadSetting()
         self._initView()
 
+    def setDriverService(self, driver):
+        level = self._view.getApiLevel()
+        level, enabled, system, bookmark, mode = self._model.setDriverService(driver, level)
+        self._view.setApiLevel(level, enabled, bookmark, mode)
+        self._view.setSystemTable(driver, system)
+
     def setApiLevel(self, level):
         self._view.enableOptions(*self._model.setApiLevel(level))
 
@@ -80,6 +86,8 @@ class OptionManager():
 
 # OptionManager private methods
     def _initView(self):
-        level, system, bookmark, mode = self._model.getViewData()
-        self._view.setApiLevel(level, system, bookmark, mode)
+        driver, level, enabled, system, bookmark, mode = self._model.getViewData()
+        self._view.setDriverLevel(driver)
+        self._view.setApiLevel(level, enabled, bookmark, mode)
+        self._view.setSystemTable(driver, system)
 

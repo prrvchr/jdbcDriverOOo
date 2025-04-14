@@ -71,9 +71,9 @@ class GridManager():
         self._url = url
         self._headers = {}
         self._properties = {}
-        self._model = model
         grid = createService(ctx, 'com.sun.star.awt.grid.SortableGridDataModel')
         grid.initialize((model, ))
+        self._model = model
         self._view = GridView(ctx, window, WindowHandler(self), grid, selection)
 
     @property
@@ -98,6 +98,14 @@ class GridManager():
         for row in self._view.getSelectedRows():
             rows.append(self.getUnsortedIndex(row))
         return tuple(rows)
+
+    def getSelectedColumn(self, column):
+        value = None
+        if self._view.hasSelectedRows() and column in self._headers:
+            index = tuple(self._headers.keys()).index(column)
+            row = self.getUnsortedIndex(self._view.getSelectedRow())
+            value = self._model.getCellData(index, row)
+        return value
 
     def getSelectedIdentifier(self, identifier):
         value = None
@@ -169,6 +177,9 @@ class GridManager():
 
     def deselectAllRows(self):
         self._view.deselectAllRows()
+
+    def enableColumnSelection(self, enabled):
+        self._view.enableColumnSelection(enabled)
 
     def saveColumnSettings(self):
         self.saveColumnWidths()

@@ -90,6 +90,9 @@ class GridView(unohelper.Base):
         self._window.Model.Step = state + 1
         control.setVisible(True)
 
+    def enableColumnSelection(self, enabled):
+        self._getColumn().Model.Enabled = enabled
+
     def addSelectionListener(self, listener):
         self._getGrid().addSelectionListener(listener)
 

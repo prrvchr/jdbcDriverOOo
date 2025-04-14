@@ -40,8 +40,8 @@ from com.sun.star.ucb.ContentInfoAttribute import KIND_FOLDER
 
 from com.sun.star.ucb import IllegalIdentifierException
 
-from ..oauth2 import getRequest
-from ..oauth2 import g_oauth2
+from ..oauth20 import getRequest
+from ..oauth20 import g_service
 
 from ..dbtool import currentDateTimeInTZ
 from ..dbtool import currentUnoDateTime
@@ -99,7 +99,7 @@ class User():
             if request is None:
                 # If we have a Null value here then it means that the user has abandoned
                 # the OAuth2 Wizard, there is nothing more to do except throw an exception
-                msg = self._getExceptionMessage(mtd, 501, g_oauth2)
+                msg = self._getExceptionMessage(mtd, 501, g_service)
                 raise IllegalIdentifierException(msg, source)
             user = self.Provider.getUser(source, request, name)
             metadata = database.insertUser(user)
@@ -169,17 +169,17 @@ class User():
     # method called from ContentResultSet.queryContent()
     def getContentByUrl(self, authority, url):
         uri = self._getUriFactory().parse(url)
-        return self.getContent(authority, uri)
+        return self.getContentByUri(authority, uri)
 
     # method called from Content.getParent()
     def getContentByParent(self, authority, itemid, path):
         isroot = itemid == self.RootId
-        return self._getContent(authority, self._getPath(path, isroot), isroot)
+        return self._getContent(authority, path.rstrip(g_ucbseparator), isroot)
 
     # method called from DataSource.queryContent()
-    def getContent(self, authority, uri):
-        isroot = uri.getPathSegmentCount() == 0
-        return self._getContent(authority, uri.getPath(), isroot)
+    def getContentByUri(self, authority, uri):
+        path = uri.getPath().rstrip(g_ucbseparator)
+        return self._getContent(authority, path, not path)
 
     def setLock(self):
         if self._lock is not None:
@@ -258,13 +258,6 @@ class User():
         if authority:
             scheme += self.Name
         return scheme
-
-    def _getPath(self, path, isroot):
-        # XXX: Only the root has a slash as its identifier,
-        # XXX: all others have an identifier that ends with its name
-        if not isroot:
-            path = path.rstrip(g_ucbseparator)
-        return path
 
     def _composePath(self, path, title):
         path += title
