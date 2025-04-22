@@ -98,10 +98,13 @@ public final class IndexContainer
             String separator = metadata.getCatalogSeparator();
             String qualifier = "";
             String subname;
-            int len = name.indexOf(separator);
-            if (separator != null && !separator.isBlank() && len >= 0) {
-                qualifier = name.substring(0, len);
-                subname = name.substring(len + 1);
+            int position = -1;
+            if (separator != null && !separator.isBlank()) {
+                position = name.indexOf(separator);
+            }
+            if (position >= 0) {
+                qualifier = name.substring(0, position);
+                subname = name.substring(position + 1);
             } else {
                 subname = name;
             }
@@ -121,19 +124,23 @@ public final class IndexContainer
         boolean found = false;
         boolean unique = false;
         List<String> columns = new ArrayList<>();
+        final int NON_UNIQUE = 4;
+        final int INDEX_QUALIFIER = 5;
+        final int INDEX_NAME = 6;
+        final int TYPE = 7;
+        final int COLUMN_NAME = 9;
         NamedComponents table = mTable.getNamedComponents();
         try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(),
                                                                table.getSchema(),
                                                                table.getTable(),
                                                                false, false)) {
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                unique  = !result.getBoolean(4);
-                if ((qualifier.isEmpty() || qualifier.equals(result.getString(5))) && subname.equals(result.getString(6))) {
+                unique  = !result.getBoolean(NON_UNIQUE);
+                if ((qualifier.isEmpty() || qualifier.equals(result.getString(INDEX_QUALIFIER)))
+                                         && subname.equals(result.getString(INDEX_NAME))) {
                     found = true;
-                    type = result.getShort(7);
-                    String columnName = result.getString(9);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    type = result.getShort(TYPE);
+                    String columnName = result.getString(COLUMN_NAME);
                     if (!result.wasNull()) {
                         columns.add(columnName);
                     }
@@ -171,7 +178,7 @@ public final class IndexContainer
                 boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
                 XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
                 XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
-                List<String> indexes = new ArrayList<String>();
+                List<String> indexes = new ArrayList<>();
                 for (int i = 0; i < columns.getCount(); i++) {
                     XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
                     String column = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);

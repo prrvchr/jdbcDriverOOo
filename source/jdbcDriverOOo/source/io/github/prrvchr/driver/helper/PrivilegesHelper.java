@@ -57,6 +57,7 @@ import io.github.prrvchr.driver.metadata.TablePrivilegesResultSetBase;
 import io.github.prrvchr.driver.provider.ComposeRule;
 import io.github.prrvchr.driver.provider.DriverProvider;
 import io.github.prrvchr.driver.query.DCLParameter;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class PrivilegesHelper {
@@ -98,22 +99,17 @@ public class PrivilegesHelper {
                                                                  String table)
         throws java.sql.SQLException {
         java.sql.ResultSet result = null;
-        try {
-            if (provider.ignoreDriverPrivileges()) {
-                result = metadata.getTables(catalog, schema, table, null);
-                result = new TablePrivilegesResultSet(result, provider.getPrivileges(), metadata.getUserName());
-            } else {
-                result = metadata.getTablePrivileges(catalog, schema, table);
-                // XXX: We have to check the result columns for the tables privileges #106324#
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                if (result != null && result.getMetaData().getColumnCount() != 7) {
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
-                    // XXX: Here we know that the count of column doesn't match
-                    result = new TablePrivilegesResultSetBase(result);
-                }
+        final int COLUMNCOUNT = 7;
+        if (provider.ignoreDriverPrivileges()) {
+            result = metadata.getTables(catalog, schema, table, null);
+            result = new TablePrivilegesResultSet(result, provider.getPrivileges(), metadata.getUserName());
+        } else {
+            result = metadata.getTablePrivileges(catalog, schema, table);
+            // XXX: We have to check the result columns for the tables privileges #106324#
+            if (result != null && result.getMetaData().getColumnCount() != COLUMNCOUNT) {
+                // XXX: Here we know that the count of column doesn't match
+                result = new TablePrivilegesResultSetBase(result);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return result;
     }
@@ -154,12 +150,11 @@ public class PrivilegesHelper {
                                          NamedComponents table)
         throws java.sql.SQLException {
         int privileges = 0;
+        final int PRIVILEGE = 6;
         try (java.sql.ResultSet result = getTablePrivilegesResultSet(provider, metadata, table.getCatalog(),
-                                                                        table.getSchema(), table.getTable())) {
+                                                                     table.getSchema(), table.getTable())) {
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String privilege = result.getString(6);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String privilege = result.getString(PRIVILEGE);
                 if (!result.wasNull()) {
                     privilege = privilege.toUpperCase().strip();
                     if (provider.hasPrivilege(privilege)) {
@@ -192,14 +187,21 @@ public class PrivilegesHelper {
                                          NamedComponents table,
                                          ComposeRule rule)
         throws java.sql.SQLException, SQLException {
-        int privileges;
-        if (provider.getDCLQuery().supportsTablePrivileges()) {
-            Map<String, Object> arguments = DCLParameter.getPrivilegesArguments(provider, grantee, table, rule);
-            List<Object> values = new ArrayList<>();
-            String query = provider.getDCLQuery().getTablePrivilegesQuery(arguments, values);
-            privileges = getPrivileges(provider, values, query);
-        } else {
-            privileges = provider.getMockPrivileges();
+        int privileges = 0;
+        try {
+            System.out.println("PrivilegesHelper.getTablePrivileges() 1");
+            if (provider.getDCLQuery().supportsTablePrivileges()) {
+                Map<String, Object> arguments = DCLParameter.getPrivilegesArguments(provider, grantee, table, rule);
+                List<Object> values = new ArrayList<>();
+                String query = provider.getDCLQuery().getTablePrivilegesQuery(arguments, values);
+                privileges = getPrivileges(provider, query, values);
+                System.out.println("PrivilegesHelper.getTablePrivileges() 2 privileges: " + privileges);
+            } else {
+                privileges = provider.getMockPrivileges();
+                System.out.println("PrivilegesHelper.getTablePrivileges() 3 privileges: " + privileges);
+            }
+        } catch (Exception e) {
+            System.out.println("PrivilegesHelper.getPrivileges() ERROR: " + UnoHelper.getStackTrace(e));
         }
         return privileges;
     }
@@ -230,7 +232,7 @@ public class PrivilegesHelper {
             Map<String, Object> arguments = DCLParameter.getPrivilegesArguments(provider, grantee, table, rule);
             List<Object> values = new ArrayList<>();
             String query = provider.getDCLQuery().getGrantablePrivilegesQuery(arguments, values);
-            privileges = getPrivileges(provider, values, query);
+            privileges = getPrivileges(provider, query, values);
         } else {
             privileges = provider.getMockPrivileges();
         }
@@ -238,14 +240,13 @@ public class PrivilegesHelper {
     }
 
     private static int getPrivileges(DriverProvider provider,
-                                     List<Object> values,
-                                     String query)
+                                     String query,
+                                     List<Object> values)
         throws java.sql.SQLException, SQLException {
         int privileges = 0;
+        System.out.println("PrivilegesHelper.getPrivileges() 1 query: " + query);
         try (java.sql.PreparedStatement statement = provider.getConnection().prepareStatement(query)) {
-            for (int i = 0; i < values.size(); i++) {
-                statement.setObject(i + 1, values.get(i));
-            }
+            setPreparedStatementParameter(statement, values);
             try (java.sql.ResultSet result = statement.executeQuery()) {
                 java.sql.ResultSetMetaData metadata = result.getMetaData();
                 int count = metadata.getColumnCount();
@@ -253,6 +254,7 @@ public class PrivilegesHelper {
                     for (int i = 1; i <= count; i++) {
                         switch (metadata.getColumnType(i)) {
                             case java.sql.Types.INTEGER:
+                            case java.sql.Types.BIGINT:
                                 int value = result.getInt(i);
                                 if (!result.wasNull() && value != 0) {
                                     privileges |= value;
@@ -274,4 +276,12 @@ public class PrivilegesHelper {
         return privileges;
     }
 
+    private static void setPreparedStatementParameter(java.sql.PreparedStatement statement, List<Object> values)
+        throws java.sql.SQLException {
+        int i = 1;
+        for (Object value : values) {
+            statement.setObject(i, value);
+            i++;
+        }
+    }
 }

@@ -118,35 +118,30 @@ public class KeyHelper {
                                                                      ComposeRule rule)
         throws java.sql.SQLException {
         // XXX: Here we need to retrieve all tables having this table / column as foreign key.
+        final int PKCOLUMN_NAME = 4;
+        final int FKTABLE_CAT = 5;
+        final int FKTABLE_SCHEM = 6;
+        final int FKTABLE_NAME = 7;
+        final int FKCOLUMN_NAME = 8;
         Map<String, List<String>> tables = new TreeMap<String, List<String>>();
         try (java.sql.ResultSet result = provider.getConnection().getMetaData().getExportedKeys(table.getCatalog(),
                                                                                                 table.getSchema(),
                                                                                                 table.getTable())) {
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String value = result.getString(4);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String value = result.getString(PKCOLUMN_NAME);
                 if (!result.wasNull() && column.equals(value)) {
                     NamedComponents component = new NamedComponents();
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    value = result.getString(5);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    value = result.getString(FKTABLE_CAT);
                     if (!result.wasNull()) {
                         component.setCatalog(value);
                     }
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    value = result.getString(6);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    value = result.getString(FKTABLE_SCHEM);
                     if (!result.wasNull()) {
                         component.setSchema(value);
                     }
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    component.setTable(result.getString(7));
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    component.setTable(result.getString(FKTABLE_NAME));
                     String name = DBTools.buildName(provider, component, rule);
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    value = result.getString(8);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    value = result.getString(FKCOLUMN_NAME);
                     System.out.println("DBKeyHelper.getExportedTables() 1 Table " + name + " - Column: " + value);
                     if (!tables.containsKey(name)) {
                         tables.put(name, List.of(value));
@@ -163,32 +158,28 @@ public class KeyHelper {
                                                  NamedComponents table,
                                                  ComposeRule rule)
         throws java.sql.SQLException {
-     // XXX: Here we need to retrieve all tables having this table as foreign key.
+        // XXX: Here we need to retrieve all tables having this table as foreign key.
+        final int PKCOLUMN_NAME = 4;
+        final int FKTABLE_CAT = 5;
+        final int FKTABLE_SCHEM = 6;
+        final int FKTABLE_NAME = 7;
         List<String> tables = new ArrayList<>();
         try (java.sql.ResultSet result = provider.getConnection().getMetaData().getExportedKeys(table.getCatalog(),
                                                                                                 table.getSchema(),
                                                                                                 table.getTable())) {
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String value = result.getString(4);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String value = result.getString(PKCOLUMN_NAME);
                 if (!result.wasNull()) {
                     NamedComponents component = new NamedComponents();
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    value = result.getString(5);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    value = result.getString(FKTABLE_CAT);
                     if (!result.wasNull()) {
                         component.setCatalog(value);
                     }
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    value = result.getString(6);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    value = result.getString(FKTABLE_SCHEM);
                     if (!result.wasNull()) {
                         component.setSchema(value);
                     }
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    component.setTable(result.getString(7));
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    component.setTable(result.getString(FKTABLE_NAME));
                     String name = DBTools.buildName(provider, component, rule);
                     System.out.println("DBKeyHelper.getExportedTables() 1 Table " + name);
                     if (!tables.contains(name)) {
@@ -225,14 +216,13 @@ public class KeyHelper {
                                            NamedComponents table)
         throws java.sql.SQLException {
         int type = KeyType.PRIMARY;
+        final int PK_NAME = 6;
         try (java.sql.ResultSet result = provider.getConnection().getMetaData().getPrimaryKeys(table.getCatalog(),
                                                                                                table.getSchema(),
                                                                                                table.getTable())) {
             // XXX: There can only be one primary key per table.
             if (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String pk = result.getString(6);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String pk = result.getString(PK_NAME);
                 System.out.println("DBKeyHelper.refreshPrimaryKeys() KeyName: '" + pk + "'");
                 keys.add(getKeyName(pk, table.getTable(), type));
             }
@@ -247,10 +237,9 @@ public class KeyHelper {
                                                                                                 table.getSchema(),
                                                                                                 table.getTable())) {
             String previous = "";
+            final int FK_NAME = 12;
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String name = result.getString(12);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String name = result.getString(FK_NAME);
                 if (!result.wasNull() && !name.equals(previous)) {
                     keys.add(name);
                     previous = name;
@@ -267,6 +256,8 @@ public class KeyHelper {
         throws java.sql.SQLException,
                ElementExistException {
         Key key = null;
+        final int COLUMN_NAME = 4;
+        final int PK_NAME = 6;
         ArrayList<String> columns = new ArrayList<>();
         String name = null;
         boolean fetched = false;
@@ -276,15 +267,11 @@ public class KeyHelper {
                                                                  component.getSchema(),
                                                                  component.getTable())) {
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String column = result.getString(4);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String column = result.getString(COLUMN_NAME);
                 columns.add(column);
                 if (!fetched) {
                     fetched = true;
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    String pk = result.getString(6);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    String pk = result.getString(PK_NAME);
                     name = getKeyName(pk, component.getTable(), type);
                 }
             }
@@ -318,6 +305,13 @@ public class KeyHelper {
                                                                 ComposeRule rule)
         throws java.sql.SQLException {
         String oldname = "";
+        final int PKTABLE_CAT = 1;
+        final int PKTABLE_SCHEM = 2;
+        final int PKTABLE_NAME = 3;
+        final int FKCOLUMN_NAME = 8;
+        final int UPDATE_RULE = 10;
+        final int DELETE_RULE = 11;
+        final int FK_NAME = 12;
         ForeignKeyProperties properties = null;
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         try (java.sql.ResultSet result = metadata.getImportedKeys(component.getCatalog(),
@@ -325,21 +319,19 @@ public class KeyHelper {
                                                                   component.getTable())) {
             while (result.next()) {
                 NamedComponents fk = new NamedComponents();
-                String value = result.getString(1);
+                String value = result.getString(PKTABLE_CAT);
                 if (!result.wasNull()) {
                     fk.setCatalog(value);
                 }
-                value = result.getString(2);
+                value = result.getString(PKTABLE_SCHEM);
                 if (!result.wasNull()) {
                     fk.setSchema(value);
                 }
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                fk.setTable(result.getString(3));
-                String column = result.getString(8);
-                int update = result.getInt(10);
-                int delete = result.getInt(11);
-                String name = result.getString(12);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                fk.setTable(result.getString(PKTABLE_NAME));
+                String column = result.getString(FKCOLUMN_NAME);
+                int update = result.getInt(UPDATE_RULE);
+                int delete = result.getInt(DELETE_RULE);
+                String name = result.getString(FK_NAME);
 
                 if (isValidForeingKey(result, name)) {
                     if (!oldname.equals(name)) {

@@ -29,7 +29,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,6 +44,9 @@ public class SQLQuery extends SQLBase {
     private static final String SQL_COMMAND_SUFFIX = "SQLCommandSuffix";
     private static final String SUPPORTS_DCL_QUERY = "SupportsDCLQuery";
     private static final String IGNORE_DRIVER_PRIVILEGES = "IgnoreDriverPrivileges";
+
+    private static final String EMPTY_RESULTSET_QUERY = "SELECT 1 WHERE 0 = 1";
+    private static final String METADATA_RESULTSET_QUERY = "SELECT {0} FROM {1} WHERE 0 = 1";
 
     private final String mKeyPrefix = "${";
     private final String mKeySuffix = "}";
@@ -62,12 +64,12 @@ public class SQLQuery extends SQLBase {
 
     // The constructor method:
     public SQLQuery(XHierarchicalNameAccess config,
-                    java.sql.DatabaseMetaData metadata,
-                    String subprotocol) throws SQLException {
+                    String subprotocol,
+                    String quote) throws SQLException {
         System.out.println("SQLQuery() 1");
         mConfig = config;
         mSubProtocol = subprotocol;
-        mQuote = metadata.getIdentifierQuoteString();
+        mQuote = quote;
         mCommandSuffix = getDriverCommandSuffix();
         mBooleanProperties = new HashMap<>();
         mStringProperties = new HashMap<>();
@@ -91,6 +93,14 @@ public class SQLQuery extends SQLBase {
 
     public boolean ignoreDriverPrivileges() {
         return getIgnoreDriverPrivileges();
+    }
+
+    public String getEmptyResultSetQuery() {
+        return EMPTY_RESULTSET_QUERY;
+    }
+
+    public String getResultSetMetaDataQuery() {
+        return METADATA_RESULTSET_QUERY;
     }
 
     private String getDriverCommandSuffix() {
@@ -153,10 +163,6 @@ public class SQLQuery extends SQLBase {
 
     protected String getIdentifiersAsString(final List<String> identifiers)
         throws java.sql.SQLException {
-        ListIterator<String> it = identifiers.listIterator();
-        while (it.hasNext()) {
-            it.set(enquoteIdentifier(it.next()));
-        }
         return String.join(getSeparator(), identifiers);
     }
 

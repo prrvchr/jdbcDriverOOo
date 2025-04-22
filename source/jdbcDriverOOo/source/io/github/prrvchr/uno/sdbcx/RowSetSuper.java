@@ -212,6 +212,7 @@ public abstract class RowSetSuper
     @Override
     public void insertRow() throws SQLException {
         try {
+            System.out.println("RowSetSuper.insertRow() 1");
             mResult.insertRow();
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);

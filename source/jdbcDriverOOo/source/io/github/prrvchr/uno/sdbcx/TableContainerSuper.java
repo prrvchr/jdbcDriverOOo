@@ -82,7 +82,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
                                             String name)
         throws SQLException {
         boolean created = false;
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         try {
             String type = "TABLE";
             if (DBTools.hasDescriptorProperty(descriptor, PropertyIds.TYPE)) {
@@ -128,24 +128,20 @@ public abstract class TableContainerSuper<T extends TableSuper>
     public T createElement(String name)
         throws SQLException {
         T table = null;
+        final int TABLE_TYPE = 4; 
+        final int REMARKS = 5; 
         try {
             NamedComponents component = DBTools.qualifiedNameComponents(mConnection.getProvider(), name,
                                                                         ComposeRule.InDataManipulation);
-            try (java.sql.ResultSet result = _getcreateElementResultSet(component)) {
-                System.out.println("TableContainerSuper.createElement() 1");
+            try (java.sql.ResultSet result = getcreateElementResultSet(component)) {
                 if (result.next()) {
-                    System.out.println("TableContainerSuper.createElement() 2");
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    String type = result.getString(4);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    String type = result.getString(TABLE_TYPE);
                     if (result.wasNull()) {
                         type = "";
                     } else {
                         type = mConnection.getProvider().getTableType(type);
                     }
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    String remarks = result.getString(5);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    String remarks = result.getString(REMARKS);
                     if (result.wasNull()) {
                         remarks = "";
                     }
@@ -158,10 +154,8 @@ public abstract class TableContainerSuper<T extends TableSuper>
         return table;
     }
 
-    private java.sql.ResultSet _getcreateElementResultSet(NamedComponents table)
+    private java.sql.ResultSet getcreateElementResultSet(NamedComponents table)
             throws java.sql.SQLException {
-        String msg = "TableContainerSuper._getcreateElementResultSet() 1 ";
-        System.out.println(msg + table.getCatalog() + " - " + table.getSchema() + " - " + table.getTableName());
         java.sql.DatabaseMetaData metadata = mConnection.getProvider().getConnection().getMetaData();
         return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTable(), null);
     }

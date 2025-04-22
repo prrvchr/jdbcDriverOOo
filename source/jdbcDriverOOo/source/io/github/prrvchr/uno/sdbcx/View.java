@@ -101,7 +101,7 @@ public final class View
         throws SQLException {
         if (!mCommand.equals(command)) {
             String name = null;
-            List<String> queries = new ArrayList<String>();
+            List<String> queries = new ArrayList<>();
             try {
                 NamedComponents component = getNamedComponents();
                 ComposeRule rule = ComposeRule.InDataManipulation;

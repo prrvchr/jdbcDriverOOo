@@ -53,6 +53,7 @@ public final class Table
     private static final String[] SERVICES = {"com.sun.star.sdb.Table",
                                               "com.sun.star.sdb.DataSettings",
                                               "com.sun.star.sdbcx.Table"};
+    private static final int ROW_HEIGHT = 15;
 
     protected boolean mApplyFilter = false;
     protected String mFilter = "";
@@ -60,9 +61,7 @@ public final class Table
     protected String mGroupBy = "";
     protected String mHavingClause = "";
     protected String mOrder = "";
-    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-    protected int mRowHeight = 15;
-    // CHECKSTYLE:ON: MagicNumber - Specific for database
+    protected int mRowHeight = ROW_HEIGHT;
     protected int mTextColor = 0;
     private int mPrivileges = 0;
 

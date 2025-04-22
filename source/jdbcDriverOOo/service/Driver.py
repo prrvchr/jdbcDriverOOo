@@ -35,8 +35,11 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.lang import XServiceInfo
 
+from com.sun.star.uno import Exception as UNOException
+
 from jdbcdriver import createService
 from jdbcdriver import getConfiguration
+from jdbcdriver import getLogger
 
 from jdbcdriver import g_identifier
 from jdbcdriver import g_services
@@ -45,26 +48,38 @@ from jdbcdriver import g_service
 from threading import Lock
 import traceback
 
+g_basename = 'Driver'
+
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
 g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.Driver'
-g_ServiceNames =("io.github.prrvchr.jdbcDriverOOo.Driver", 'com.sun.star.sdbc.Driver')
+g_ServiceNames = ("io.github.prrvchr.jdbcDriverOOo.Driver", 'com.sun.star.sdbc.Driver')
+
+# XXX: This class is simply a bootstrap to enable the following:
+# XXX: - Provide a single entry for different services meeting the required API levels
+# XXX: - Log any errors that occur while loading the Java driver
 
 class Driver(unohelper.Base,
              XServiceInfo):
     def __new__(cls, ctx, *args, **kwargs):
-        print('Driver.__new__() 1')
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
                     apilevel = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
-                    print('Driver.__new__() 2 service: %s' % g_services[apilevel])
-                    cls._instance = createService(ctx, g_services[apilevel])
+                    try:
+                        cls._instance = createService(ctx, g_services[apilevel])
+                        arguments = (g_ImplementationName, apilevel)
+                        getLogger(ctx, 'Driver', g_basename).logprb(INFO, 'Driver', '__new__', 101, arguments)
+                    except UNOException as e:
+                        if cls._logger is None:
+                            cls._logger = getLogger(ctx, 'Driver', g_basename)
+                        arguments = (g_ImplementationName, apilevel, e.Message)
+                        cls._logger.logprb(SEVERE, 'Driver', '__new__', 102, arguments)
         return cls._instance
 
-    def __init__(self, ctx, *args, **kwargs):
-        print('Driver.__init__() 1')
-
+    # XXX: If the driver fails to load then we keep a reference
+    # XXX: to the logger so we can read the error message later
+    _logger = None
     _instance = None
     _lock = Lock()
 

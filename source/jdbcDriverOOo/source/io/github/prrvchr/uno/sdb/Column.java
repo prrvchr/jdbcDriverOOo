@@ -45,19 +45,18 @@ public final class Column
     private static final String[] SERVICES = {"com.sun.star.sdb.Column",
                                               "com.sun.star.sdbcx.Column",
                                               "com.sun.star.sdb.ColumnSettings"};
+    private static final int FORMAT_KEY = 256;
+    private static final int WIDTH = 100;
+
     private Integer mAlign = 0;
     private String mControlDefault = "";
     private XPropertySet mControlModel = null;
-    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-    private Integer mFormatKey = 256;
-    // CHECKSTYLE:ON: MagicNumber - Specific for database
+    private Integer mFormatKey = FORMAT_KEY;
     private String mHelpText = "";
     private boolean mHidden = false;
     private Integer mPosition;
     private Integer mRelativePosition;
-    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-    private Integer mWidth = 100;
-    // CHECKSTYLE:ON: MagicNumber - Specific for database
+    private Integer mWidth = WIDTH;
 
     // The constructor method:
     public Column(final Table table,
@@ -171,6 +170,8 @@ public final class Column
     
     @Override
     public XPropertySet createDataDescriptor() {
+        System.out.println("sdb.Column.createDataDescriptor() 1");
+
         Table table = (Table) mTable;
         ColumnDescriptor descriptor = new ColumnDescriptor(table.getCatalogName(),
                             table.getSchemaName(), table.getName(), isCaseSensitive());

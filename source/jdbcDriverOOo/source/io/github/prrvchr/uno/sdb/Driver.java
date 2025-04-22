@@ -29,7 +29,6 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.ApiLevel;
 import io.github.prrvchr.driver.provider.DriverProvider;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.DriverSuper;
@@ -38,15 +37,15 @@ import io.github.prrvchr.uno.sdbcx.DriverSuper;
 public final class Driver
      extends DriverSuper {
 
-    private static final String m_implementationName = "io.github.prrvchr.jdbcdriver.sdb.Driver";
-    private static final String[] m_services = {"com.sun.star.sdbc.Driver", "com.sun.star.sdbcx.Driver"};
-    @SuppressWarnings("unused")
-    private static final String[] m_serviceNames = {m_implementationName};
+    protected static final String[] m_serviceNames = {"io.github.prrvchr.jdbcdriver.sdb.Driver"};
+
+    private static final String mImplementationName = "io.github.prrvchr.jdbcDriverOOo.Driver";
+    private static final String[] mServiceNames = {"com.sun.star.sdbc.Driver", "com.sun.star.sdbcx.Driver"};
 
     // The constructor method:
     public Driver(XComponentContext ctx)
         throws Exception {
-        super(ctx, "io.github.prrvchr.jdbcDriverOOo.Driver", m_services);
+        super(ctx, mImplementationName, mServiceNames);
         System.out.println("sdb.Driver() 1");
     }
  
@@ -54,17 +53,8 @@ public final class Driver
     protected ConnectionBase getConnection(XComponentContext ctx,
                                            DriverProvider provider,
                                            String url,
-                                           PropertyValue[] info,
-                                           ApiLevel level) {
-        ConnectionBase connection = null;
-        if (level == ApiLevel.COM_SUN_STAR_SDB && provider.getAPILevels().contains(level)) {
-            System.out.println("sdb.Driver.getConnection() 1 level: " + level.name());
-            connection = new Connection(ctx, provider, url, info);
-        } else {
-            System.out.println("sdb.Driver.getConnection() 2 level: " + level.name());
-            connection = super.getConnection(ctx, provider, url, info, level);
-        }
-        return connection;
+                                           PropertyValue[] info) {
+        return new Connection(ctx, provider, url, info);
     }
 
 }

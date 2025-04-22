@@ -47,6 +47,7 @@
     </module>
     <module name="ConstantName">
       <property name="applyToPrivate" value="false"/>
+      <property name="applyToProtected" value="false"/>
     </module>
     <module name="PackageName"/>
     <module name="EmptyStatement"/>

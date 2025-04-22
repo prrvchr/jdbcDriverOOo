@@ -109,7 +109,7 @@ public abstract class Container<T extends Descriptor>
         mLock = lock;
         mSensitive = sensitive;
         mElements = new TreeMap<>(mCaseSensitiveComparator);
-        mNames = new ArrayList<String>();
+        mNames = new ArrayList<>();
     }
     public Container(String service,
                      String[] services,

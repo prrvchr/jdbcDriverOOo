@@ -162,7 +162,7 @@ public abstract class TableMain
         boolean reversed = false;
         boolean multiquery = mConnection.getProvider().getDDLQuery().hasMultiRenameQueries();
         boolean fullchange = multiquery && moved && renamed;
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
 
         try {
             // FIXME: We have 2 commands for moving and renaming and we need to find the right order

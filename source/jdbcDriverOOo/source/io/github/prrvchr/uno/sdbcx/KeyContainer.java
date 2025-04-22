@@ -232,17 +232,15 @@ public final class KeyContainer
         throws SQLException {
         try {
             // XXX: Find the name which the database gave the new key
-            // CHECKSTYLE:OFF: MagicNumber - Specific for database
-            int index = 6;
-            // CHECKSTYLE:ON: MagicNumber - Specific for database
+            final int PK_NAME = 6;
+            final int FK_NAME = 12;
+            int index = PK_NAME;
             int update = 0;
             int delete = 0;
             String referencedName = "";
             int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
             if (type == KeyType.FOREIGN) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                index = 12;
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                index = FK_NAME;
                 update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
                 delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.DELETERULE);
                 referencedName = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);

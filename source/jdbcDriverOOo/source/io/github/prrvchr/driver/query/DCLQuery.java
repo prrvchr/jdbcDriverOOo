@@ -63,10 +63,10 @@ public class DCLQuery extends DDLQuery {
 
     // The constructor method:
     public DCLQuery(XHierarchicalNameAccess config,
-                    java.sql.DatabaseMetaData metadata,
                     String subprotocol,
+                    String quote,
                     Object[] privileges) throws SQLException {
-        super(config, metadata, subprotocol);
+        super(config, subprotocol, quote);
         setPrivileges(privileges);
     }
 
@@ -145,7 +145,7 @@ public class DCLQuery extends DDLQuery {
     }
 
     public String getTablePrivilegesQuery(final Map<String, Object> parameters,
-                                          final List<Object> values) {
+                                          List<Object> values) {
         String command = getTablePrivilegesQuery();
         return format(command, parameters, values, "?");
     }
@@ -155,7 +155,7 @@ public class DCLQuery extends DDLQuery {
     }
 
     public String getGrantablePrivilegesQuery(final Map<String, Object> parameters,
-                                              final List<Object> values) {
+                                              List<Object> values) {
         String command = getGrantablePrivilegesQuery();
         return format(command, parameters, values, "?");
     }

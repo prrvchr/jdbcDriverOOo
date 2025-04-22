@@ -35,19 +35,16 @@ import java.util.Map;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbcx.KeyType;
 
-import io.github.prrvchr.driver.helper.DBTools;
-
 
 public class DDLQuery extends SQLQuery {
 
     private static final String SUPPORTS_RENAME_VIEW = "SupportsRenameView";
-    private static final String SUPPORTS_ALTER_COLUMN_PROPERTIES = "SupportsAlterColumnProperties";
-    private static final String SUPPORTS_ALTER_COLUMN_TYPE = "SupportsAlterColumnType";
     private static final String SUPPORTS_ALTER_PRIMARY_KEY = "SupportsAlterPrimaryKey";
     private static final String SUPPORTS_ALTER_FOREIGN_KEY = "SupportsAlterForeignKey";
     private static final String SUPPORTS_ALTER_IDENTITY = "SupportsAlterIdentity";
     private static final String SUPPORTS_TABLE_DESCRIPTION = "SupportsTableDescription";
     private static final String SUPPORTS_COLUMN_DESCRIPTION = "SupportsColumnDescription";
+    private static final String AUTOINCREMENT_IS_PRIMARY_KEY = "AutoIncrementIsPrimaryKey";
 
     // java.sql.Statement DDL commands
     private static final String CREATE_TABLE_COMMAND = "CreateTableCommand";
@@ -57,8 +54,8 @@ public class DDLQuery extends SQLQuery {
     private static final String ADD_COLUMN_COMMAND = "AddColumnCommand";
     private static final String DROP_COLUMN_COMMAND = "DropColumnCommand";
     private static final String ALTER_COLUMN_COMMAND = "AlterColumnCommand";
-    private static final String RENAME_COLUMN_COMMAND = "RenameColumnCommand";
-    private static final String COLUMN_SET_DATATYPE_COMMAND = "ColumnSetDataTypeCommand";
+    private static final String ALTER_COLUMN_NAME_COMMAND = "AlterColumnNameCommand";
+    private static final String ALTER_COLUMN_TYPE_COMMAND = "AlterColumnTypeCommand";
     private static final String COLUMN_SET_NOTNULL_COMMAND = "ColumnSetNotNullCommand";
     private static final String COLUMN_DROP_NOTNULL_COMMAND = "ColumnDropNotNullCommand";
     private static final String COLUMN_SET_DEFAULT_COMMAND = "ColumnSetDefaultCommand";
@@ -84,9 +81,9 @@ public class DDLQuery extends SQLQuery {
 
     // The constructor method:
     public DDLQuery(XHierarchicalNameAccess config,
-                    java.sql.DatabaseMetaData metadata,
-                    String subprotocol) throws SQLException {
-        super(config, metadata, subprotocol);
+                    String subprotocol,
+                    String quote) throws SQLException {
+        super(config, subprotocol, quote);
     }
 
     public boolean supportsSystemVersioning() {
@@ -98,12 +95,8 @@ public class DDLQuery extends SQLQuery {
         return getSupportsRenameView();
     }
 
-    public boolean supportsAlterColumnProperties() {
-        return getSupportsAlterColumnProperties();
-    }
-
-    public boolean supportsAlterColumnType() {
-        return getSupportsAlterColumnType();
+    public boolean isAutoIncrementIsPrimaryKey() {
+        return getAutoIncrementIsPrimaryKey();
     }
 
     public boolean supportsAlterPrimaryKey() {
@@ -220,7 +213,7 @@ public class DDLQuery extends SQLQuery {
     }
 
     public boolean hasAlterColumnCommand() {
-        return getAlterColumnCommand() != null;
+        return getAlterColumnCommand() != null && !getAlterColumnCommand().isBlank();
     }
 
     public String getAlterColumnCommand(final Map<String, Object> keys) {
@@ -228,17 +221,37 @@ public class DDLQuery extends SQLQuery {
         return format(command, keys);
     }
 
-    public boolean hasColumnSetDataTypeCommand() {
-        return getColumnSetDataTypeCommand() != null;
+    public boolean hasAlterColumnNameCommand() {
+        return getAlterColumnNameCommand() != null && !getAlterColumnNameCommand().isBlank();
     }
 
-    public String getColumnSetDataTypeCommand(final Map<String, Object> keys) {
-        String command = getColumnSetDataTypeCommand();
+    public boolean hasAlterColumnTypeCommand() {
+        return getAlterColumnTypeCommand() != null && !getAlterColumnTypeCommand().isBlank();
+    }
+
+    public boolean hasColumnSetDefaultCommand() {
+        return getColumnSetDefaultCommand() != null && !getColumnSetDefaultCommand().isBlank();
+    }
+
+    public boolean hasColumnDropDefaultCommand() {
+        return getColumnDropDefaultCommand() != null && !getColumnDropDefaultCommand().isBlank();
+    }
+
+    public boolean hasColumnSetNotNullCommand() {
+        return getColumnSetNotNullCommand() != null && !getColumnSetNotNullCommand().isBlank();
+    }
+
+    public boolean hasColumnDropNotNullCommand() {
+        return getColumnDropNotNullCommand() != null && !getColumnDropNotNullCommand().isBlank();
+    }
+
+    public String getAlterColumnTypeCommand(final Map<String, Object> keys) {
+        String command = getAlterColumnTypeCommand();
         return format(command, keys);
     }
 
-    public String getRenameColumnCommand(final Map<String, Object> keys) {
-        String command = getRenameColumnCommand();
+    public String getAlterColumnNameCommand(final Map<String, Object> keys) {
+        String command = getAlterColumnNameCommand();
         return format(command, keys);
     }
 
@@ -344,7 +357,7 @@ public class DDLQuery extends SQLQuery {
         } else {
             command = getCreateIndexCommand();
         }
-        return DBTools.formatSQLQuery(command, keys);
+        return format(command, keys);
     }
 
     public String getSystemVersioningColumnQuery(final List<String> columns)
@@ -412,12 +425,12 @@ public class DDLQuery extends SQLQuery {
         return getPropertyString(ALTER_COLUMN_COMMAND);
     }
 
-    private String getColumnSetDataTypeCommand() {
-        return getPropertyString(COLUMN_SET_DATATYPE_COMMAND);
+    private String getAlterColumnTypeCommand() {
+        return getPropertyString(ALTER_COLUMN_TYPE_COMMAND);
     }
 
-    private String getRenameColumnCommand() {
-        return getPropertyString(RENAME_COLUMN_COMMAND);
+    private String getAlterColumnNameCommand() {
+        return getPropertyString(ALTER_COLUMN_NAME_COMMAND);
     }
 
     private String getColumnSetNotNullCommand() {
@@ -492,12 +505,8 @@ public class DDLQuery extends SQLQuery {
         return getSystemVersioningCommands()[1];
     }
 
-    private boolean getSupportsAlterColumnProperties() {
-        return getPropertyBoolean(SUPPORTS_ALTER_COLUMN_PROPERTIES, true);
-    }
-
-    private boolean getSupportsAlterColumnType() {
-        return getPropertyBoolean(SUPPORTS_ALTER_COLUMN_TYPE, true);
+    private boolean getAutoIncrementIsPrimaryKey() {
+        return getPropertyBoolean(AUTOINCREMENT_IS_PRIMARY_KEY, true);
     }
 
     private boolean getSupportsAlterPrimaryKey() {

@@ -30,19 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.IllegalArgumentException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
-import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.driver.helper.ColumnHelper;
 import io.github.prrvchr.driver.helper.DBTools;
@@ -50,7 +45,6 @@ import io.github.prrvchr.driver.helper.TableHelper;
 import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.driver.provider.ComposeRule;
 import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.PropertyIds;
 import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.driver.query.DDLParameter;
@@ -102,15 +96,11 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         throws SQLException {
         boolean created = false;
         String table = null;
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         try {
-            XPropertySet oldcolumn = createDataDescriptor();
-            oldcolumn.setPropertyValue(PropertyIds.ISNULLABLE.getName(), ColumnValue.NULLABLE);
-
             DriverProvider provider = getConnection().getProvider();
             table = DBTools.composeTableName(provider, mTable, ComposeRule.InTableDefinitions, false);
-            TableHelper.getAlterColumnQueries(queries, provider, mTable, oldcolumn,
-                                              descriptor, false, isCaseSensitive());
+            TableHelper.getAddColumnQueries(queries, provider, mTable,  descriptor, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
@@ -121,12 +111,6 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             String query = String.join("> <", queries);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, table, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        } catch (IllegalArgumentException | UnknownPropertyException |
-                PropertyVetoException | WrappedTargetException e) {
-            int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
-            String query = String.join("> <", queries);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
         }
         return created;
     }
@@ -208,10 +192,10 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             String column = provider.enquoteIdentifier(name, isCaseSensitive());
             query = provider.getDDLQuery().getDropColumnCommand(DDLParameter.getDropColumn(table, column));
             table = DBTools.composeTableName(provider, mTable, rule, false);
-            mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, table, query);
+            mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table, query);
             DBTools.executeSQLQuery(provider, query);
         } catch (java.sql.SQLException e) {
-            int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
+            int resource = Resources.STR_LOG_COLUMN_REMOVE_QUERY_ERROR;
             String msg = mTable.getLogger().getStringResource(resource, name, query);
             mTable.getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);

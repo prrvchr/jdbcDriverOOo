@@ -53,12 +53,13 @@ public final class KeyColumnContainer
         mKey = key;
     }
 
-
-    
     @Override
     protected KeyColumn createElement(String name)
         throws SQLException {
         KeyColumn column = null;
+        final int PKCOLUMN_NAME = 4;
+        final int FKCOLUMN_NAME = 8;
+        final int FK_NAME = 12;
         try {
             DriverProvider provider = getConnection().getProvider();
             NamedComponents table = mKey.getTable().getNamedComponents();
@@ -67,41 +68,54 @@ public final class KeyColumnContainer
                                                                                                     table.getSchema(),
                                                                                                     table.getTable())) {
                 while (result.next()) {
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    if (name.equals(result.getString(8)) && mKey.getName().equals(result.getString(12))) {
-                        refColumnName = result.getString(4);
-                        // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    if (name.equals(result.getString(FKCOLUMN_NAME)) &&
+                        mKey.getName().equals(result.getString(FK_NAME))) {
+                        refColumnName = result.getString(PKCOLUMN_NAME);
                         break;
                     }
                 }
             }
-            // now describe the column name and set its related column
-            try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(),
-                                                                                               table.getSchema(),
-                                                                                               table.getTable(),
-                                                                                               name)) {
-                if (result.next()) {
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    if (result.getString(4).equals(name)) {
-                        int dataType = provider.getDataType(result.getInt(5));
-                        String typeName = result.getString(6);
-                        int size = result.getInt(7);
-                        int dec = result.getInt(9);
-                        int nul = result.getInt(11);
-                        String columnDef = "";
-                        try {
-                            columnDef = result.getString(13);
-                            // CHECKSTYLE:ON: MagicNumber - Specific for database
-                        } catch (java.sql.SQLException e) {
-                            // sometimes we get an error when asking for this param
-                        }
-                        column = new KeyColumn(mKey.getTable(), isCaseSensitive(), name, typeName, "", columnDef,
-                                               nul, size, dec, dataType, false, false, false, refColumnName);
-                    }
-                }
-            }
+            column = createKey(provider, table, name, refColumnName);
         } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
+        return column;
+    }
+
+    private KeyColumn createKey(DriverProvider provider,
+                                NamedComponents table,
+                                String name,
+                                String refColumnName) throws java.sql.SQLException {
+        KeyColumn column = null;
+        // now describe the column name and set its related column
+        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(),
+                                                                                           table.getSchema(),
+                                                                                           table.getTable(),
+                                                                                           name)) {
+            if (result.next()) {
+                final int COLUMN_NAME = 4;
+                final int DATA_TYPE = 5;
+                final int TYPE_NAME = 6;
+                final int COLUMN_SIZE = 7;
+                final int DECIMAL_DIGITS = 9;
+                final int NULLABLE = 11;
+                final int COLUMN_DEF = 13;
+                if (result.getString(COLUMN_NAME).equals(name)) {
+                    int dataType = provider.getDataType(result.getInt(DATA_TYPE));
+                    String typeName = result.getString(TYPE_NAME);
+                    int size = result.getInt(COLUMN_SIZE);
+                    int dec = result.getInt(DECIMAL_DIGITS);
+                    int nul = result.getInt(NULLABLE);
+                    String columnDef = "";
+                    try {
+                        columnDef = result.getString(COLUMN_DEF);
+                    } catch (java.sql.SQLException e) {
+                        // sometimes we get an error when asking for this param
+                    }
+                    column = new KeyColumn(mKey.getTable(), isCaseSensitive(), name, typeName, "", columnDef,
+                                           nul, size, dec, dataType, false, false, false, refColumnName);
+                }
+            }
         }
         return column;
     }

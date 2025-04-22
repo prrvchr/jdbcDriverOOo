@@ -112,10 +112,12 @@ public abstract class Role
     public int getPrivileges(String name, int type)
         throws SQLException {
         int privileges = 0;
+        System.out.println("sdb.Role.getPrivileges() 1 table: " + name);
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
                 XNameAccess tables = mConnection.getTables();
                 if (tables.hasByName(name)) {
+                    System.out.println("sdb.Role.getPrivileges() 2");
                     ComposeRule rule = ComposeRule.InDataManipulation;
                     NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
                     privileges = PrivilegesHelper.getTablePrivileges(mProvider, getName(), table, rule);

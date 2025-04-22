@@ -79,7 +79,7 @@ public class DDLParameter extends SQLBase {
     }
 
     public static Map<String, Object> getAddColumn(String table, String column) {
-        return Map.of("TableName", table, "ColumnDescriptions", column);
+        return Map.of("TableName", table, "ColumnProperties", column);
     }
 
     public static Map<String, Object> getDropColumn(String table, String column) {
@@ -95,7 +95,11 @@ public class DDLParameter extends SQLBase {
     public static Map<String, Object> getCreateConstraint(final String table,
                                                           final String name,
                                                           List<String> columns) {
-        return Map.of("TableName", table, "Name", name, "Columns", String.join(getSeparator(), columns));
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("TableName", table);
+        arguments.put("Name", name);
+        arguments.put("Columns", String.join(getSeparator(), columns));
+        return arguments;
     }
 
     public static Map<String, Object> getDropConstraint(String table, String name) {

@@ -198,43 +198,69 @@ public abstract class TableSuper
         throws SQLException {
         DriverProvider provider = getConnection().getProvider();
 
-        // XXX: Identity have been changed?
-        boolean auto = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
+        String oldname = oldcolumn.getName();
+        boolean autoincrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
+        int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, autoincrement);
+        System.out.println("TableSuper.alterColumn() flags " + flags);
+
+        // XXX: Identity or Type have been changed?
         // XXX: Identity switching is only allowed if the underlying driver supports it.
-        if (oldcolumn.mIsAutoIncrement != auto && !provider.getDDLQuery().supportsAlterIdentity()) {
-            int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldcolumn.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
-        }
-
-        // XXX: Type have been changed?
-        String type = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME);
         // XXX: Changing column type is only allowed if the underlying driver supports it.
-        if (!oldcolumn.mTypeName.equals(type) && !provider.getDDLQuery().supportsAlterColumnType()) {
-            int resource = Resources.STR_LOG_COLUMN_ALTER_UNSUPPORTED_FEATURE_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldcolumn.getName());
+        if (!supportColumnIdentityChange(provider, flags) ||
+            !supportColumnTypeChange(provider, flags)) {
+            int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
 
+        int result = alterColumn(provider, oldcolumn, newcolumn, oldname, autoincrement, flags);
+        if (result != flags) {
+            System.out.println("TableSuper.alterColumn() ERROR ******************************************");
+        }
+    }
+
+    private boolean supportColumnIdentityChange(DriverProvider provider, int flags) {
+        return TableHelper.hasColumnIdentityChanged(flags) &&
+               (provider.getDDLQuery().supportsAlterIdentity() ||
+               provider.getDDLQuery().hasAlterColumnCommand());
+    }
+
+    private boolean supportColumnTypeChange(DriverProvider provider, int flags) {
+        return TableHelper.hasColumnTypeChanged(flags) &&
+               (provider.getDDLQuery().hasAlterColumnTypeCommand() ||
+               provider.getDDLQuery().hasAlterColumnCommand());
+    }
+
+    private int alterColumn(DriverProvider provider,
+                            ColumnSuper oldcolumn,
+                            XPropertySet newcolumn,
+                            String oldname,
+                            boolean autoincrement,
+                            int flags)
+        throws SQLException {
+        int result = 0;
         String table = null;
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         NamedComponents component = getNamedComponents();
         ComposeRule rule = ComposeRule.InTableDefinitions;
-        String oldname = oldcolumn.getName();
         try {
             table = DBTools.buildName(provider, component, rule);
             boolean alterpk = isPrimaryKeyColumn(oldname);
             boolean alterfk = isForeignKeyColumn(oldname);
             boolean alteridx = isIndexColumn(oldname);
             boolean alterkey = alterpk || alterfk;
-            int result = TableHelper.getAlterColumnQueries(queries, provider, this, oldcolumn,
-                                                           newcolumn, alterkey, isCaseSensitive());
+            String tablename = DBTools.composeTableName(provider, component, rule, isCaseSensitive());
+            result = TableHelper.getAlterColumnQueries(queries, provider, tablename, oldname, oldcolumn,
+                                                       newcolumn, flags, alterkey, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
+                for (String q : queries) {
+                    System.out.println("TableSuper.alterColumn() Query: " + q);
+                }
                 if (DBTools.executeSQLQueries(provider, queries)) {
-                    setColumnProperties(provider, oldcolumn, newcolumn, component,
-                                        rule, table, oldname, alterpk, alterfk, alteridx, result);
+                    setColumnProperties(provider, oldcolumn, newcolumn, component, rule,
+                                        table, oldname, alterpk, alterfk, alteridx, result);
                 }
             }
         } catch (java.sql.SQLException e) {
@@ -243,6 +269,7 @@ public abstract class TableSuper
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
+        return result;
     }
 
     private void setColumnProperties(DriverProvider provider,
@@ -258,37 +285,32 @@ public abstract class TableSuper
                                      int result)
         throws SQLException, java.sql.SQLException {
         // Column have changed its description value
-        if ((result & TableHelper.COLUMN_DESCRIPTION) == TableHelper.COLUMN_DESCRIPTION) {
-            oldcolumn.mDescription = DBTools.getDescriptorStringValue(newcolumn,
-                                                                       PropertyIds.DESCRIPTION);
+        if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DESCRIPTION)) {
+            oldcolumn.mDescription = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION);
         }
         // Column have changed its not null constraint
-        if ((result & TableHelper.COLUMN_NULLABLE) == TableHelper.COLUMN_NULLABLE) {
-            oldcolumn.mIsNullable = DBTools.getDescriptorIntegerValue(newcolumn,
-                                                                       PropertyIds.ISNULLABLE);
+        if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NULLABLE)) {
+            oldcolumn.mIsNullable = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE);
         }
         // Column have changed its default value
-        if ((result & TableHelper.COLUMN_DEFAULT_VALUE) == TableHelper.COLUMN_DEFAULT_VALUE) {
-            oldcolumn.mDefaultValue = DBTools.getDescriptorStringValue(newcolumn,
-                                                                        PropertyIds.DEFAULTVALUE);
+        if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DEFAULT_VALUE)) {
+            oldcolumn.mDefaultValue = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE);
         }
         // Column have changed its type
-        if ((result & TableHelper.COLUMN_TYPE) == TableHelper.COLUMN_TYPE) {
-            oldcolumn.mType = DBTools.getDescriptorIntegerValue(newcolumn,
-                                                                 PropertyIds.TYPE);
-            oldcolumn.mTypeName = DBTools.getDescriptorStringValue(newcolumn,
-                                                                    PropertyIds.TYPENAME);
+        if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_TYPE)) {
+            oldcolumn.mType = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE);
+            oldcolumn.mTypeName = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME);
         }
         // Column have changed its identity (auto-increment)
-        if ((result & TableHelper.COLUMN_IDENTITY) == TableHelper.COLUMN_IDENTITY) {
-            oldcolumn.mIsAutoIncrement = DBTools.getDescriptorBooleanValue(newcolumn,
-                                                                            PropertyIds.ISAUTOINCREMENT);
+        if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_IDENTITY)) {
+            oldcolumn.mIsAutoIncrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
+            System.out.println("TableSuper.setColumnProperties() AutoIncrement: " + oldcolumn.mIsAutoIncrement);
         }
         // Column have changed its name
-        if ((result & TableHelper.COLUMN_NAME) == TableHelper.COLUMN_NAME) {
+        if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
             String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
-            renameColumnName(provider, component, rule, table, oldname, newname,
-                             alterpk, alterfk, alteridx);
+            renameColumnName(provider, component, rule, table, oldname,
+                             newname, alterpk, alterfk, alteridx);
         }
     }
 

@@ -36,12 +36,9 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.ApiLevel;
-import io.github.prrvchr.driver.provider.DriverProvider;
 import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DriverBase;
 
 
@@ -52,24 +49,8 @@ public abstract class DriverSuper
     // The constructor method:
     public DriverSuper(XComponentContext ctx, String service, String[] services)
         throws Exception {
-        super(ctx, service, services, true);
+        super(ctx, service, services);
         System.out.println("sdbcx.DriverSuper() 1");
-    }
-
-    @Override
-    protected ConnectionBase getConnection(XComponentContext ctx,
-                                           DriverProvider provider,
-                                           String url,
-                                           PropertyValue[] info,
-                                           ApiLevel level) {
-        System.out.println("sdbcx.DriverSuper.getConnection() 1 level: " + level.name());
-        ConnectionBase connection = null;
-        if (level == ApiLevel.COM_SUN_STAR_SDBCX && provider.getAPILevels().contains(level)) {
-            connection = new Connection(ctx, provider, url, info);
-        } else {
-            connection = getDefaultConnection(ctx, provider, url, info);
-        }
-        return connection;
     }
 
     // com.sun.star.lang.XDataDefinitionSupplier:

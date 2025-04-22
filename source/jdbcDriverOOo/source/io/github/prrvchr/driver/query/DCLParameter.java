@@ -44,14 +44,14 @@ public class DCLParameter extends SQLBase {
                                                              ComposeRule rule)
         throws java.sql.SQLException, SQLException {
         Map<String, Object> arguments = new HashMap<>();
-        // XXX: ${Grantee} unquoted grantee name
+        // XXX: ${Grantee} quoted / unquoted grantee name
         arguments.put("Grantee", grantee);
-        // XXX: ${Catalog} unquoted catalog name
+        // XXX: ${Catalog} quoted / unquoted catalog name
         arguments.put("Catalog", table.getCatalogName());
-        // XXX: ${Schema} unquoted schema name
+        // XXX: ${Schema} quoted / unquoted schema name
         arguments.put("Schema", table.getSchemaName());
-        // XXX: ${Table} unquoted table name
-        arguments.put("Table", table.getTableName());
+        // XXX: ${Table} quoted / unquoted table name
+        arguments.put("Table",  table.getTableName());
         return arguments;
     }
 

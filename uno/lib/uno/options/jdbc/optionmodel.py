@@ -35,53 +35,41 @@ from ..logger import getLogger
 g_basename = 'OptionsDialog'
 
 from ..configuration import g_identifier
+from ..configuration import g_services
 
 import traceback
 
 
 class OptionModel():
     def __init__(self, ctx, logger):
-        self._keys = ('DriverService', 'ApiLevel', 'ShowSystemTable', 'UseBookmark', 'SQLMode')
-        self._keysmap = {'DriverService': ('io.github.prrvchr.jdbcdriver.sdbc.Driver',
-                                           'io.github.prrvchr.jdbcdriver.sdbcx.Driver'),
-                         'ApiLevel':      ('com.sun.star.sdbc',
-                                           'com.sun.star.sdbcx',
-                                           'com.sun.star.sdb')}
+        self._keys = ('ApiLevel', 'ShowSystemTable', 'UseBookmark', 'SQLMode')
+        self._levels = ('com.sun.star.sdbc',
+                        'com.sun.star.sdbcx',
+                        'com.sun.star.sdb')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._service = self.getDriverService()
-        self._settings = None
+        self._settings = self._getSettings()
         self._logger = getLogger(ctx, logger, g_basename)
-        self._logger.logprb(INFO, 'JdbcDialog', '__init__()', 101)
+        self._logger.logprb(INFO, 'OptionModel', '__init__()', 101)
 
 # OptionModel getter methods
     def getDriverService(self):
-        return self._config.getByName('DriverService')
+        return g_services.get(self._config.getByName('ApiLevel'))
 
     def getViewData(self):
-        self._settings = self._getSettings()
-        driver = self._keysmap.get('DriverService').index(self._settings.get('DriverService'))
-        level = self._keysmap.get('ApiLevel').index(self._settings.get('ApiLevel'))
+        level = self._levels.index(self._settings.get('ApiLevel'))
         system = self._settings.get('ShowSystemTable')
         bookmark = self._settings.get('UseBookmark')
         mode = self._settings.get('SQLMode')
-        return driver, level, self._isApiLevelEnabled(driver), system, bookmark, mode
+        return level, system, bookmark, mode
 
 # OptionModel setter methods
-    def setDriverService(self, driver, level):
-        self._settings['DriverService'] = self._keysmap.get('DriverService')[driver]
-        if driver and not level:
-            level = 1
-            self.setApiLevel(level)
+    def setApiLevel(self, level):
+        self._settings['ApiLevel'] = self._levels[level]
         system = self._settings.get('ShowSystemTable')
         bookmark = self._settings.get('UseBookmark')
         mode = self._settings.get('SQLMode')
-        return level, self._isApiLevelEnabled(driver), system, bookmark, mode
-
-    def setApiLevel(self, level):
-        self._settings['ApiLevel'] = self._keysmap.get('ApiLevel')[level]
-        bookmark = self._settings.get('UseBookmark')
-        mode = self._settings.get('SQLMode')
-        return level, bookmark, mode
+        return level, system, bookmark, mode
 
     def setSystemTable(self, state):
         self._settings['ShowSystemTable'] = bool(state)
@@ -111,7 +99,4 @@ class OptionModel():
         for key in self._keys:
             settings[key] = self._config.getByName(key)
         return settings
-
-    def _isApiLevelEnabled(self, driver):
-        return driver == 0
 

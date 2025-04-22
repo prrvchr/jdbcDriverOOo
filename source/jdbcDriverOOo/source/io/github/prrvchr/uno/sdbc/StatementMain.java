@@ -42,7 +42,6 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.driver.helper.DefaultQuery;
 import io.github.prrvchr.driver.helper.GeneratedKeys;
 import io.github.prrvchr.driver.helper.SqlCommand;
 import io.github.prrvchr.driver.provider.ConnectionLog;
@@ -442,7 +441,7 @@ public abstract class StatementMain
             }
             if (result == null) {
                 resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_QUERY;
-                String query = provider.getSQLQuery(DefaultQuery.STR_QUERY_EMPTY_RESULTSET);
+                String query = provider.getSQLQuery().getEmptyResultSetQuery();
                 mLogger.logprb(LogLevel.FINE, resource, query);
                 result = provider.getStatement().executeQuery(query);
             }

@@ -65,11 +65,6 @@
             <value>true</value>
           </prop>
         </node>
-        <node oor:name="RowVersionCreation" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:string">
-            <value></value>
-          </prop>
-        </node>
         <node oor:name="AutoIncrementCreation" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value></value>
@@ -363,7 +358,7 @@
             <value>ALTER TABLE ${TableName} DROP COLUMN ${Column}</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${OldName} RENAME TO ${Column}</value>
           </prop>
@@ -546,6 +541,16 @@
 
       <!-- MetaData node is for the driver properties -->
       <node oor:name="MetaData">
+        <node oor:name="UseSQLInsert" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="UpdateVisibleInsensitive" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
         <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
@@ -553,10 +558,10 @@
         </node>
         <node oor:name="DropTableCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>DROP TABLE {0} CASCADE</value>
+            <value>DROP TABLE ${TableName} CASCADE</value>
           </prop>
         </node>
-        <node oor:name="ColumnSetDataTypeCommand" oor:op="replace">
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} SET DATA TYPE ${Type}</value>
           </prop>
@@ -588,7 +593,7 @@
         </node>
         <node oor:name="RevokeRoleCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>REVOKE {0} FROM {2} RESTRICT</value>
+            <value>REVOKE ${Grantor} FROM ${Grantee} RESTRICT</value>
           </prop>
         </node>
         <node oor:name="RevokePrivilegesCommand" oor:op="replace">
@@ -830,7 +835,7 @@
         </node>
         <node oor:name="JavaDriverClassPath" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>%origin%/driver/mariadb-java-client-3.4.0.jar</value>
+            <value>%origin%/driver/mariadb-java-client-3.5.3.jar</value>
           </prop>
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
@@ -878,7 +883,7 @@
         </node>
         <node oor:name="DropIndexCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>DROP INDEX {1} ON {0}</value>
+            <value>DROP INDEX ${Name} ON ${TableName}</value>
           </prop>
         </node>
         <node oor:name="IgnoreCurrency" oor:op="replace">
@@ -896,7 +901,7 @@
             <value oor:separator="|">RENAME TABLE ${Catalog.Schema.Table} TO ${NewCatalog.NewSchema.NewTable}|</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} RENAME COLUMN ${Column} TO ${NewName}</value>
           </prop>
@@ -913,7 +918,7 @@
         </node>
         <node oor:name="GetUsersQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT user FROM mysql.user WHERE is_role = 'N'</value>
+            <value>SELECT user FROM mysql.user WHERE host = '%' AND is_role = 'N'</value>
           </prop>
         </node>
         <node oor:name="GetGroupsQuery" oor:op="replace">
@@ -925,22 +930,22 @@
           <prop oor:name="Value" oor:type="xs:string">
           <!-- XXX: We use recursion to find privileges inherited from roles.
              XXX: We need to filter recursive entries (even role and user) -->
-            <value>SELECT r.role FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.role = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.user = ${User}</value>
+            <value>SELECT r.role FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.role = u.user AND u.is_role = 'Y' WHERE r.user = ${User}</value>
           </prop>
         </node>
         <node oor:name="GetGroupUsersQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'N' WHERE r.user != r.role AND r.role = ${Group}</value>
+            <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.host = '%' AND u.is_role = 'N' WHERE r.role = ${Group}</value>
           </prop>
         </node>
         <node oor:name="GetGroupRolesQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.role = ${Group}</value>
+            <value>SELECT r.role FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'Y' WHERE r.role = ${Group}</value>
           </prop>
         </node>
         <node oor:name="TablePrivilegesQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT CASE WHEN LOCATE('Select', Table_priv) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('Insert', Table_priv) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('Update', Table_priv) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('Delete', Table_priv) != 0 AND (LOCATE('Delete', Table_priv) != LOCATE('Delete versioning rows', Table_priv) OR LOCATE('Delete versioning rows', Table_priv) = 0) THEN 8 ELSE 0 END, CASE WHEN LOCATE('Delete versioning rows', Table_priv) = 0 THEN 0 ELSE 32 END, CASE WHEN LOCATE('Alter', Table_priv) = 0 THEN 0 ELSE 64 END, CASE WHEN LOCATE('Index', Table_priv) = 0 THEN 0 ELSE 128 END, CASE WHEN LOCATE('Drop', Table_priv) = 0 THEN 0 ELSE 256 END, CASE WHEN LOCATE('Trigger', Table_priv) = 0 THEN 0 ELSE 512 END FROM mysql.tables_priv WHERE User = ${Grantee} AND Db = ${Catalog} AND Table_name = ${Table}</value>
+            <value>SELECT CASE WHEN LOCATE('Select', Table_priv) THEN 1 ELSE 0 END, CASE WHEN LOCATE('Insert', Table_priv) THEN 2 ELSE 0 END, CASE WHEN LOCATE('Update', Table_priv) THEN 4 ELSE 0 END, CASE WHEN LOCATE('Delete', Table_priv) AND (LOCATE('Delete', Table_priv) != LOCATE('Delete versioning rows', Table_priv) OR NOT LOCATE('Delete versioning rows', Table_priv)) THEN 8 ELSE 0 END, CASE WHEN LOCATE('Delete versioning rows', Table_priv) THEN 32 ELSE 0 END, CASE WHEN LOCATE('Alter', Table_priv) THEN 64 ELSE 0 END, CASE WHEN LOCATE('Index', Table_priv) THEN 128 ELSE 0 END, CASE WHEN LOCATE('Drop', Table_priv) THEN 256 ELSE 0 END, CASE WHEN LOCATE('Trigger', Table_priv) THEN 512 ELSE 0 END FROM mysql.tables_priv WHERE User = ${Grantee} AND Db = ${Catalog} AND Table_name = ${Table}</value>
           </prop>
         </node>
       </node>
@@ -970,7 +975,7 @@
         </node>
         <node oor:name="JavaDriverClassPath" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>%origin%/driver/mysql-connector-j-8.4.0.jar</value>
+            <value>%origin%/driver/mysql-connector-j-9.3.0.jar</value>
           </prop>
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1018,7 +1023,7 @@
         </node>
         <node oor:name="DropIndexCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>DROP INDEX {1} ON {0}</value>
+            <value>DROP INDEX ${Name} ON ${TableName}</value>
           </prop>
         </node>
         <node oor:name="IgnoreCurrency" oor:op="replace">
@@ -1036,7 +1041,7 @@
             <value oor:separator="|">RENAME TABLE ${Catalog.Schema.Table} TO ${NewCatalog.NewSchema.NewTable}|</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} RENAME COLUMN ${Column} TO ${NewName}</value>
           </prop>
@@ -1053,34 +1058,34 @@
         </node>
         <node oor:name="GetUsersQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT user FROM mysql.user WHERE is_role = 'N'</value>
+            <value>SELECT User FROM mysql.user WHERE host = '%' AND LENGTH(authentication_string)</value>
           </prop>
         </node>
         <node oor:name="GetGroupsQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT user FROM mysql.user WHERE is_role = 'Y'</value>
+            <value>SELECT User FROM mysql.user WHERE host = '%' AND NOT LENGTH(authentication_string)</value>
           </prop>
         </node>
         <node oor:name="GetUserGroupsQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
           <!-- XXX: We use recursion to find privileges inherited from roles.
              XXX: We need to filter recursive entries (even role and user) -->
-            <value>SELECT r.role FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.role = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.user = ${User}</value>
+            <value>SELECT r.FROM_USER FROM mysql.role_edges r INNER JOIN mysql.user u ON r.FROM_USER = u.User AND u.host = '%' AND NOT LENGTH(u.authentication_string) WHERE r.TO_USER = ${User}</value>
           </prop>
         </node>
         <node oor:name="GetGroupUsersQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'N' WHERE r.user != r.role AND r.role = ${Group}</value>
+            <value>SELECT r.TO_USER FROM mysql.role_edges r INNER JOIN mysql.user u ON r.TO_USER = u.User AND u.host = '%' AND LENGTH(u.authentication_string) WHERE r.FROM_USER = ${Group}</value>
           </prop>
         </node>
         <node oor:name="GetGroupRolesQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT r.user FROM mysql.roles_mapping r INNER JOIN mysql.user u ON r.user = u.user AND u.is_role = 'Y' WHERE r.user != r.role AND r.role = ${Group}</value>
+            <value>SELECT r.FROM_USER FROM mysql.role_edges r INNER JOIN mysql.user u ON r.FROM_USER = u.User AND u.host = '%' AND NOT LENGTH(u.authentication_string) WHERE r.TO_USER = ${Group}</value>
           </prop>
         </node>
         <node oor:name="TablePrivilegesQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT CASE WHEN LOCATE('Select', Table_priv) = 0 THEN 0 ELSE 1 END, CASE WHEN LOCATE('Insert', Table_priv) = 0 THEN 0 ELSE 2 END, CASE WHEN LOCATE('Update', Table_priv) = 0 THEN 0 ELSE 4 END, CASE WHEN LOCATE('Delete', Table_priv) != 0 AND (LOCATE('Delete', Table_priv) != LOCATE('Delete versioning rows', Table_priv) OR LOCATE('Delete versioning rows', Table_priv) = 0) THEN 8 ELSE 0 END, CASE WHEN LOCATE('Delete versioning rows', Table_priv) = 0 THEN 0 ELSE 32 END, CASE WHEN LOCATE('Alter', Table_priv) = 0 THEN 0 ELSE 64 END, CASE WHEN LOCATE('Index', Table_priv) = 0 THEN 0 ELSE 128 END, CASE WHEN LOCATE('Drop', Table_priv) = 0 THEN 0 ELSE 256 END, CASE WHEN LOCATE('Trigger', Table_priv) = 0 THEN 0 ELSE 512 END FROM mysql.tables_priv WHERE User = ${Grantee} AND Db = ${Catalog} AND Table_name = ${Table}</value>
+            <value>SELECT CASE WHEN LOCATE('Select', Table_priv) THEN 1 ELSE 0 END, CASE WHEN LOCATE('Insert', Table_priv) THEN 2 ELSE 0 END, CASE WHEN LOCATE('Update', Table_priv) THEN 4 ELSE 0 END, CASE WHEN LOCATE('Delete', Table_priv) AND (LOCATE('Delete', Table_priv) != LOCATE('Delete versioning rows', Table_priv) OR NOT LOCATE('Delete versioning rows', Table_priv)) THEN 8 ELSE 0 END, CASE WHEN LOCATE('Delete versioning rows', Table_priv) THEN 32 ELSE 0 END, CASE WHEN LOCATE('Alter', Table_priv) THEN 64 ELSE 0 END, CASE WHEN LOCATE('Index', Table_priv) THEN 128 ELSE 0 END, CASE WHEN LOCATE('Drop', Table_priv) THEN 256 ELSE 0 END, CASE WHEN LOCATE('Trigger', Table_priv) THEN 512 ELSE 0 END FROM mysql.tables_priv WHERE User = ${Grantee} AND Db = ${Catalog} AND Table_name = ${Table}</value>
           </prop>
         </node>
       </node>
@@ -1110,7 +1115,7 @@
         </node>
         <node oor:name="JavaDriverClassPath" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>%origin%/driver/postgresql-42.7.1.jar</value>
+            <value>%origin%/driver/postgresql-42.7.5.jar</value>
           </prop>
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
@@ -1163,7 +1168,7 @@
         </node>
         <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+            <value>ALTER TABLE ${TableName} DROP CONSTRAINT ${Name}</value>
           </prop>
         </node>
         <node oor:name="AlterUserCommand" oor:op="replace">
@@ -1186,12 +1191,12 @@
             <value oor:separator="|">ALTER TABLE ${Catalog.Schema.Table} SET SCHEMA ${NewSchema}|ALTER TABLE ${Catalog.NewSchema.Table} RENAME TO ${NewTable}</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} RENAME COLUMN ${OldName} TO ${Column}</value>
           </prop>
         </node>
-        <node oor:name="AlterColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} TYPE ${Type}</value>
           </prop>
@@ -1309,16 +1314,6 @@
             <value>false</value>
           </prop>
         </node>
-        <node oor:name="SupportsAlterColumnType" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="SupportsAlterColumnProperties" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
         <node oor:name="SupportsDCLQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
@@ -1339,9 +1334,19 @@
             <value oor:separator="|">ALTER TABLE ${Catalog.Schema.Table} RENAME TO ${NewCatalog.NewSchema.NewTable}</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} RENAME COLUMN ${Column} TO ${NewName}</value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value></value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value></value>
           </prop>
         </node>
         <node oor:name="SupportedAPILevels" oor:op="replace">
@@ -1457,7 +1462,7 @@
             <value oor:separator="|">RENAME TABLE ${Catalog.Schema.Table} TO ${NewTable}</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>RENAME COLUMN ${TableName}.${Column} TO ${NewName}</value>
           </prop>
@@ -1602,17 +1607,17 @@
         </node>
         <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+            <value>ALTER TABLE ${TableName} DROP CONSTRAINT ${Name}</value>
           </prop>
         </node>
         <node oor:name="GrantRoleCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>GRANT ${Grantor} TO ${Role} ${Grantee}</value>
+            <value>GRANT ${Grantor} TO ${RoleType} ${Grantee}</value>
           </prop>
         </node>
         <node oor:name="RevokeRoleCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>REVOKE ${Grantor} FROM ${Role} ${Grantee}</value>
+            <value>REVOKE ${Grantor} FROM ${RoleType} ${Grantee}</value>
           </prop>
         </node>
         <node oor:name="GrantPrivilegesCommand" oor:op="replace">
@@ -1635,12 +1640,12 @@
             <value>SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ${View}</value>
           </prop>
         </node>
-        <node oor:name="AlterColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} TYPE ${Type}</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${OldName} TO ${Column}</value>
           </prop>
@@ -1790,17 +1795,17 @@
         </node>
         <node oor:name="DropPrimaryKeyCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE {0} DROP CONSTRAINT {1}</value>
+            <value>ALTER TABLE ${TableName} DROP CONSTRAINT ${Name}</value>
           </prop>
         </node>
         <node oor:name="GrantRoleCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>GRANT ${Grantor} TO ${Role} ${Grantee}</value>
+            <value>GRANT ${Grantor} TO ${RoleType} ${Grantee}</value>
           </prop>
         </node>
         <node oor:name="RevokeRoleCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>REVOKE ${Grantor} FROM ${Role} ${Grantee}</value>
+            <value>REVOKE ${Grantor} FROM ${RoleType} ${Grantee}</value>
           </prop>
         </node>
         <node oor:name="GrantPrivilegesCommand" oor:op="replace">
@@ -1823,12 +1828,12 @@
             <value>SELECT RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ${View}</value>
           </prop>
         </node>
-        <node oor:name="AlterColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${Column} TYPE ${Type}</value>
           </prop>
         </node>
-        <node oor:name="RenameColumnCommand" oor:op="replace">
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>ALTER TABLE ${TableName} ALTER COLUMN ${OldName} TO ${Column}</value>
           </prop>

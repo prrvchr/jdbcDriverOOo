@@ -44,13 +44,19 @@ public class RowColumn {
                      boolean ordinal)
         throws java.sql.SQLException {
         mTable = table;
-        // CHECKSTYLE:OFF: MagicNumber - Specific for database
-        mName = result.getString(4);
+        final int COLUMN_NAME = 4;
+        final int DATA_TYPE = 5;
+        final int ORDINAL_POSITION = 17;
+        final int IS_AUTOINCREMENT = 23;
+        mName = result.getString(COLUMN_NAME);
         mIdentifier = table.getCatalog().enquoteIdentifier(mName);
-        mType = result.getInt(5);
-        mIndex = ordinal ? result.getInt(17) : 0;
-        mAutoIncrement = sAUTOINCREMENT.equalsIgnoreCase(result.getString(23));
-        // CHECKSTYLE:ON: MagicNumber - Specific for database
+        mType = result.getInt(DATA_TYPE);
+        if (ordinal) {
+            mIndex = result.getInt(ORDINAL_POSITION);
+        } else {
+            mIndex = 0;
+        }
+        mAutoIncrement = sAUTOINCREMENT.equalsIgnoreCase(result.getString(IS_AUTOINCREMENT));
     }
 
     public RowTable getTable() {

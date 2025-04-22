@@ -64,6 +64,8 @@ public final class IndexColumnContainer
         throws SQLException {
         IndexColumn index = null;
         boolean isascending = true;
+        final int COLUMN_NAME = 9;
+        final int ASC_OR_DESC = 10;
         NamedComponents table = mIndex.getTable().getNamedComponents();
         try {
             java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
@@ -72,40 +74,54 @@ public final class IndexColumnContainer
                                                                    table.getTable(),
                                                                    false, false)) {
                 while (result.next()) {
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    if (name.equals(result.getString(9))) {
-                        isascending = !"D".equals(result.getString(10));
-                        // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    if (name.equals(result.getString(COLUMN_NAME))) {
+                        isascending = !"D".equals(result.getString(ASC_OR_DESC));
                     }
                 }
             }
-            try (java.sql.ResultSet result = metadata.getColumns(table.getCatalog(),
-                                                                 table.getSchema(),
-                                                                 table.getTable(),
-                                                                 name)) {
-                while (result.next()) {
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    if (name.equals(result.getString(4))) {
-                        int datatype = getConnection().getProvider().getDataType(result.getInt(5));
-                        String typename = result.getString(6);
-                        int precision = result.getInt(7);
-                        int scale = result.getInt(9);
-                        scale = result.wasNull() ? 0 : scale;
-                        int nullable = result.getInt(11);
-                        String defaultvalue = result.getString(13);
-                        // CHECKSTYLE:ON: MagicNumber - Specific for database
-                        if (result.wasNull()) {
-                            defaultvalue = "";
-                        }
-                        index = new IndexColumn(mIndex.getTable(), isCaseSensitive(), name, typename,
-                                                defaultvalue, "", nullable, precision, scale, datatype,
-                                                false, false, false, isascending);
-                        break;
-                    }
-                }
-            }
+            index = createIndex(metadata, table, name, isascending);
         } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
+        return index;
+    }
+
+    private IndexColumn createIndex(java.sql.DatabaseMetaData metadata,
+                                    NamedComponents table,
+                                    String name,
+                                    boolean isascending) throws java.sql.SQLException {
+        IndexColumn index = null;
+        final int COLUMN_NAME = 4;
+        final int DATA_TYPE = 5;
+        final int TYPE_NAME = 6;
+        final int COLUMN_SIZE = 7;
+        final int DECIMAL_DIGITS = 9;
+        final int NULLABLE = 11;
+        final int COLUMN_DEF = 13;
+        try (java.sql.ResultSet result = metadata.getColumns(table.getCatalog(),
+                                                             table.getSchema(),
+                                                             table.getTable(),
+                                                             name)) {
+            while (result.next()) {
+                if (name.equals(result.getString(COLUMN_NAME))) {
+                    int datatype = getConnection().getProvider().getDataType(result.getInt(DATA_TYPE));
+                    String typename = result.getString(TYPE_NAME);
+                    int precision = result.getInt(COLUMN_SIZE);
+                    int scale = result.getInt(DECIMAL_DIGITS);
+                    if (result.wasNull()) {
+                        scale = 0;
+                    }
+                    int nullable = result.getInt(NULLABLE);
+                    String defaultvalue = result.getString(COLUMN_DEF);
+                    if (result.wasNull()) {
+                        defaultvalue = "";
+                    }
+                    index = new IndexColumn(mIndex.getTable(), isCaseSensitive(), name, typename,
+                                            defaultvalue, "", nullable, precision, scale, datatype,
+                                            false, false, false, isascending);
+                    break;
+                }
+            }
         }
         return index;
     }

@@ -192,18 +192,18 @@ public class RowCatalog {
 
     private void setRowIdentifier(RowTable table)
         throws SQLException {
+        final int COLUMN_NAME = 4;
+        final int KEY_SEQ = 5;
         try (ResultSet result = getStatement().getConnection().getMetaData().getPrimaryKeys(table.getCatalogName(),
                                                                                             table.getSchemaName(),
                                                                                             table.getName())) {
             while (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String key = result.getString(4); 
+                String key = result.getString(COLUMN_NAME); 
                 if (!result.wasNull() && table.hasColumn(key)) {
-                    short index = result.getShort(5);
+                    short index = result.getShort(KEY_SEQ);
                     table.addRowIdentifier(key, index - 1);
                     table.setIdentifierAsPrimaryKey();
                 }
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
             }
         }
         if (!table.hasRowIdentifier()) {

@@ -39,17 +39,17 @@ public class TablePrivilegesRows {
 
     public TablePrivilegesRows(final String username)
         throws SQLException {
-        // CHECKSTYLE:OFF: MagicNumber - Specific for database
-        mColumns.put(4, null);
-        mColumns.put(5, username);
-        mColumns.put(7, "YES");
-        // CHECKSTYLE:ON: MagicNumber - Specific for database
+        final int GRANTOR = 4;
+        final int GRANTEE = 5;
+        final int IS_GRANTABLE = 7;
+        mColumns.put(GRANTOR, null);
+        mColumns.put(GRANTEE, username);
+        mColumns.put(IS_GRANTABLE, "YES");
     }
 
     public void setPrivilege(final String privilege) {
-        // CHECKSTYLE:OFF: MagicNumber - Specific for database
-        mColumns.put(6, privilege);
-        // CHECKSTYLE:ON: MagicNumber - Specific for database
+        final int PRIVILEGE = 6;
+        mColumns.put(PRIVILEGE, privilege);
     }
 
     public boolean wasNull(final boolean wasnull) {

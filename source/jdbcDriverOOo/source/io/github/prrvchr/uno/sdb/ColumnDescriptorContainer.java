@@ -39,7 +39,6 @@ public final class ColumnDescriptorContainer
     public ColumnDescriptorContainer(TableDescriptorSuper table,
                                      boolean sensitive) {
         super(table, sensitive);
-        System.out.println("sdb.ColumnDescriptorContainer() ***************************************************");
     }
 
     @Override
@@ -48,10 +47,8 @@ public final class ColumnDescriptorContainer
         return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
 
-
     @Override
     protected XPropertySet createDescriptor() {
-        System.out.println("sdb.ColumnDescriptorContainer._createDescriptor()");
         return new ColumnDescriptor(getTable().getCatalogName(), getTable().getSchemaName(),
                                     getTable().getName(), isCaseSensitive());
     }

@@ -35,6 +35,8 @@ from com.sun.star.lang import XServiceInfo
 
 from jdbcdriver import OptionsManager
 
+from jdbcdriver import getLogger
+
 from jdbcdriver import g_identifier
 
 import traceback

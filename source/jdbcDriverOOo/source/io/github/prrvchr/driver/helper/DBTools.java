@@ -1206,17 +1206,18 @@ public class DBTools {
         String catalog = "";
         String schema = "";
         String table = "";
-        catalog = result.getString(1);
+        final int TABLE_CAT = 1;
+        final int TABLE_SCHEM = 2;
+        final int TABLE_NAME = 3;
+        catalog = result.getString(TABLE_CAT);
         if (result.wasNull()) {
             catalog = "";
         }
-        schema = result.getString(2);
+        schema = result.getString(TABLE_SCHEM);
         if (result.wasNull()) {
             schema = "";
         }
-        // CHECKSTYLE:OFF: MagicNumber - Specific for database
-        table = result.getString(3);
-        // CHECKSTYLE:ON: MagicNumber - Specific for database
+        table = result.getString(TABLE_NAME);
         if (result.wasNull()) {
             table = "";
         }

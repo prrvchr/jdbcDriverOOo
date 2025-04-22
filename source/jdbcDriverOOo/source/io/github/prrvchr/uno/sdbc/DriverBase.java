@@ -67,18 +67,15 @@ public abstract class DriverBase
     private final String[] mServices;
     private XComponentContext mContext;
     private XHierarchicalNameAccess mConfig;
-    private final boolean mEnhanced;
 
     // The constructor method:
     public DriverBase(final XComponentContext context,
                       final String service, 
-                      final String[] services,
-                      boolean enhanced)
+                      final String[] services)
         throws SQLException {
         mContext = context;
         mService = service;
         mServices = services;
-        mEnhanced = enhanced;
         // XXX: We are loading the logger provider...
         DriverManagerHelper.setLoggerService(context, IDENTIFIER);
         mConfig = getDriverConfiguration(context, "org.openoffice.Office.DataAccess.Drivers");
@@ -87,14 +84,6 @@ public abstract class DriverBase
                                                "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, IDENTIFIER);
         System.out.println("sdbc.DriverBase.DriverBase() 1");
-    }
-
-    protected ConnectionBase getDefaultConnection(XComponentContext ctx,
-                                                  DriverProvider provider,
-                                                  String url,
-                                                  PropertyValue[] info) {
-        System.out.println("sdbc.DriverBase.getDefaultConnection() 1");
-        return new Connection(ctx, provider, url, info);
     }
 
     // com.sun.star.lang.XComponent:
@@ -134,11 +123,11 @@ public abstract class DriverBase
         if (acceptsURL(url)) {
             XHierarchicalNameAccess config = getDriverConfiguration(mContext, IDENTIFIER, this);
             ApiLevel level = getApiLevel(config, info);
-            DriverProvider provider = new DriverProvider(mContext, this, mLogger, mEnhanced,
+            DriverProvider provider = new DriverProvider(mContext, this, mLogger,
                                                          mConfig, config, url, info, level);
             UnoHelper.disposeComponent(config);
             System.out.println("sdbc.DriverBase.connect() 2 Service: " + level);
-            connection = getConnection(mContext, provider, url, info, level);
+            connection = getConnection(mContext, provider, url, info);
             String services = String.join(", ", connection.getSupportedServiceNames());
             mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
                            connection.getProvider().getLogger().getObjectId());
@@ -148,7 +137,9 @@ public abstract class DriverBase
 
     public boolean acceptsURL(String url)
         throws SQLException {
-        return url.startsWith(DriverPropertiesHelper.REGISTRED_PROTOCOL) && DriverPropertiesHelper.hasSubProtocol(url);
+        boolean accept = url.startsWith(DriverPropertiesHelper.REGISTRED_PROTOCOL) &&
+                         DriverPropertiesHelper.hasSubProtocol(url);
+        return accept;
     }
 
     public DriverPropertyInfo[] getPropertyInfo(String url, PropertyValue[] infos)
@@ -212,7 +203,7 @@ public abstract class DriverBase
                 }
             }
         } catch (NoSuchElementException e) {
-            e.printStackTrace();
+            throw DBException.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR);
         }
 /*
         String[] boolchoices = {"false", "true"};
@@ -256,6 +247,7 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("TablePrivilegesSettings",
             "Lists privileges supported by the underlying driver.", true, "", new String[0]));
 */
+        System.out.println("sdbc.DriverBase.getPropertyInfo() 2");
         return properties.toArray(new DriverPropertyInfo[0]);
     }
 
@@ -301,9 +293,8 @@ public abstract class DriverBase
     }
 
     protected abstract ConnectionBase getConnection(XComponentContext ctx,
-                                                     DriverProvider provider,
-                                                     String url,
-                                                     PropertyValue[] info,
-                                                     ApiLevel level);
+                                                    DriverProvider provider,
+                                                    String url,
+                                                    PropertyValue[] info);
 
 }

@@ -43,20 +43,18 @@ public class IndexHelper {
         try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(),
                                                                table.getTable(), false, false)) {
             String previous = "";
+            final int INDEX_QUALIFIER = 5;
+            final int INDEX_NAME = 6;
             while (result.next()) {
                 StringBuilder buffer = new StringBuilder();
                 if (qualified) {
-                    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                    String qualifier = result.getString(5);
-                    // CHECKSTYLE:ON: MagicNumber - Specific for database
+                    String qualifier = result.getString(INDEX_QUALIFIER);
                     if (!result.wasNull() && !qualifier.isEmpty()) {
                         buffer.append(qualifier);
                         buffer.append(separator);
                     }
                 }
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                buffer.append(result.getString(6));
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                buffer.append(result.getString(INDEX_NAME));
                 String name = buffer.toString();
                 // XXX: Don't insert the name if the last one we inserted was the same
                 if (!result.wasNull() && !name.isEmpty() && !previous.equals(name)) {
@@ -73,13 +71,12 @@ public class IndexHelper {
                                             String name)
         throws java.sql.SQLException {
         boolean primary = false;
+        final int PK_NAME = 6;
         try (java.sql.ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(),
                                                                  table.getTable())) {
             // XXX: There can be only one primary key
             if (result.next()) {
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                primary = name.equals(result.getString(6));
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                primary = name.equals(result.getString(PK_NAME));
             }
         }
         return primary;

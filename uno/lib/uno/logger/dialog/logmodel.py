@@ -129,10 +129,13 @@ class LogModel():
         self._logger.removeModifyListener(listener)
 
     def logInfos(self, level, clazz, method, requirements):
-        msg = self._resolver.resolveString(121).format(sys.version)
-        self._logger.logp(level, clazz, method, msg)
-        msg = self._resolver.resolveString(122).format(os.pathsep.join(sys.path))
-        self._logger.logp(level, clazz, method, msg)
+        self._logger.logprb(level, clazz, method, 121, (sys.version, ))
+        self._logger.logprb(level, clazz, method, 122, (sys.executable, ))
+        self._logger.logprb(level, clazz, method, 123, (os.pathsep.join(sys.path), ))
+
+        self._logger.logp(level, clazz, method, 124, (sys.prefix, ))
+        self._logger.logp(level, clazz, method, 125, (sys.base_prefix, ))
+        self._logger.logp(level, clazz, method, 126, (sys.base_exec_prefix, ))
         # If a requirements file exists at the extension root,
         # then we check if the requirements are met
         url = getResourceLocation(self._ctx, g_identifier, requirements)

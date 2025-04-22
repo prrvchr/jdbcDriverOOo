@@ -90,7 +90,7 @@ public class ConstraintHelper {
                                                         XPropertySet descriptor,
                                                         boolean sensitive)
         throws java.sql.SQLException, SQLException {
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
         XIndexAccess keys = keysSupplier.getKeys();
         if (keys != null) {
@@ -173,7 +173,7 @@ public class ConstraintHelper {
                                               PropertyIds name,
                                               boolean sensitive)
         throws java.sql.SQLException, SQLException {
-        List<String> columns = new ArrayList<String>();
+        List<String> columns = new ArrayList<>();
         try {
             for (int i = 0; i < indexes.getCount(); i++) {
                 XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, indexes.getByIndex(i));

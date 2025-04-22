@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
@@ -228,7 +229,7 @@ public class TableHelper {
                                                       boolean sensitive)
         throws SQLException, java.sql.SQLException {
         List<String> queries = new ArrayList<>();
-        List<String> parts = new ArrayList<String>();
+        List<String> parts = new ArrayList<>();
         List<String> versions = new ArrayList<>();
         boolean hasAutoIncrement = setCreateTableColumn(provider, columns, queries, parts, versions, table, sensitive);
         boolean versioning = !versions.isEmpty() && provider.getDDLQuery().supportsSystemVersioning();
@@ -237,7 +238,7 @@ public class TableHelper {
         }
         // XXX: If the underlying driver allows it, we create the primary key in a DDL command
         // XXX: separate from the one that creates the table. But there are specific cases!!!
-        boolean autopk = provider.isAutoIncrementIsPrimaryKey();
+        boolean autopk = provider.getDDLQuery().isAutoIncrementIsPrimaryKey();
         boolean alterpk = provider.getDDLQuery().supportsAlterPrimaryKey();
         // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         if (alterpk && !autopk || isCreationSupported(alterpk, autopk, !hasAutoIncrement)) {
@@ -330,7 +331,7 @@ public class TableHelper {
         return query;
     }
 
-    /** creates a SQL Column part statement.
+    /** Creates a SQL Add Column DDL query.
     *
     * @param queries
     *      The list of queries to fill.
@@ -338,12 +339,144 @@ public class TableHelper {
     *      The driver provider.
     * @param table
     *      The table of the column.
+    * @param descriptor
+    *      The descriptor of the new column.
+    * @param sensitive
+    *      Is identifier case sensitive.
+    * @throws java.sql.SQLException 
+    * @throws SQLException 
+    */
+    // XXX: This method is called from:
+    // XXX: - ColumnContainerBase.createColumn() for any new column.
+    public static void getAddColumnQueries(List<String> queries,
+                                           DriverProvider provider,
+                                           TableSuper table,
+                                           XPropertySet descriptor,
+                                           boolean sensitive)
+        throws java.sql.SQLException, SQLException {
+        // XXX: Create a new column
+        String name = DBTools.composeTableName(provider, table, ComposeRule.InTableDefinitions, sensitive);
+        ColumnProperties column = getStandardColumnProperties(provider, "", descriptor, sensitive);
+        Map<String, Object> arguments = DDLParameter.getAddColumn(name, column.toString());
+        String query = provider.getDDLQuery().getAddColumnCommand(arguments);
+        System.out.println("helper.TableHelper.getAddColumnQueries() 1 query: " + query);
+        queries.add(query);
+        if (provider.getDDLQuery().supportsColumnDescription()) {
+            String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
+            queries.add(getColumnDescriptionQuery(provider, name, column.mNewIdentifier, comment, sensitive));
+        }
+    }
+
+    /** Has the column identity changed.
+    *
+    * @param flags
+    *      The column change status.
+    * @param property
+    *      The property to check change.
+    * @return
+    *      The change status as boolean
+    */
+    public static boolean hasPropertyChanged(int flags, int property) {
+        return hasColumnProperty(flags, property);
+    }
+
+
+    /** Has the column identity changed.
+    *
+    * @param flags
+    *      The column change status.
+    * @return
+    *      The change status as boolean
+    */
+    public static boolean hasColumnIdentityChanged(int flags) {
+        return hasColumnProperty(flags, COLUMN_IDENTITY);
+    }
+
+    /** Has the column identity changed.
+    *
+    * @param flags
+    *      The column change status.
+    * @return
+    *      The change status as boolean
+    */
+    public static boolean hasColumnTypeChanged(int flags) {
+        return hasColumnProperty(flags, COLUMN_TYPE);
+    }
+
+    /** Get changes as byte.
+    *
+    * @param descriptor1
+    *      The old column descriptor.
+    * @param descriptor2
+    *      The new column descriptor.
+    * @param name
+    *      The old the column name.
+    * @param autoincrement
+    *      Is the new column autoincrement.
+    * @return
+    *      The binary status (ie: 1 -> renamed, 2 -> type changed ...) as int
+    */
+    public static int getAlterColumnChanges(XPropertySet descriptor1,
+                                            XPropertySet descriptor2,
+                                            String name,
+                                            boolean autoincrement) {
+        int changes = 0;
+        // XXX: Column name have been changed?
+        String name2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.NAME);
+        if (!name.equals(name2)) {
+            changes |= COLUMN_NAME;
+        }
+        // XXX: Identity have been changed?
+        boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyIds.ISAUTOINCREMENT);
+        if (auto1 != autoincrement) {
+            changes |= COLUMN_IDENTITY;
+        }
+        // XXX: Type have been changed?
+        String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
+        String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
+        if (!type2.equals(type1)) {
+            changes |= COLUMN_TYPE;
+        }
+        // XXX: Column default value have been changed?
+        String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
+        String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
+        if (!default2.equals(default1)) {
+            changes |= COLUMN_DEFAULT_VALUE;
+        }
+        // XXX: Column nullable constraint have been changed?
+        int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
+        int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
+        if (nullable2 != nullable1) {
+            changes |= COLUMN_NULLABLE;
+        }
+        // XXX: Column description have been changed?
+        String comment1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DESCRIPTION);
+        String comment2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
+        if (!comment2.equals(comment1)) {
+            changes |= COLUMN_DESCRIPTION;
+        }
+        return changes;
+    }
+
+
+    /** creates a SQL Column part statement.
+    *
+    * @param queries
+    *      The list of queries to fill.
+    * @param provider
+    *      The driver provider.
+    * @param tablename
+    *      The table of the column.
+    * @param oldname
+    *      The old column name.
     * @param descriptor1
     *      The descriptor of the old column.
     * @param descriptor2
     *      The descriptor of the new column.
+    * @param flags
+    *      The column changed properties flags.
     * @param alterkey
-    *      Is the modified column primary key.
+    *      Is the modified column primary or foreign key.
     * @param sensitive
     *      Is identifier case sensitive.
     * @return
@@ -351,213 +484,238 @@ public class TableHelper {
     * @throws java.sql.SQLException
     * @throws SQLException 
     */
-    // XXX: This method is called from 2 places:
-    // XXX: - ColumnContainerBase.createColumn() for any new column.
+    // XXX: This method is called from:
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static Integer getAlterColumnQueries(List<String> queries,
                                                 DriverProvider provider,
-                                                TableSuper table,
+                                                String tablename,
+                                                String oldname,
                                                 XPropertySet descriptor1,
                                                 XPropertySet descriptor2,
+                                                int flags,
                                                 boolean alterkey,
                                                 boolean sensitive)
         throws java.sql.SQLException, SQLException {
-    // XXX: see: libreoffice/connectivity/source/drivers/postgresql/
-    // XXX: file: pq_xcolumns.cxx method: void alterColumnByDescriptor()
-    // XXX: Added the possibility of changing column type if the contained data can be cast
-    // XXX: Added the possibility of renaming a primary key
-    // XXX: Added the possibility of adding or removing Identity (auto increment on column) {
+        // XXX: see: libreoffice/connectivity/source/drivers/postgresql/
+        // XXX: file: pq_xcolumns.cxx method: void alterColumnByDescriptor()
+        // XXX: Added the possibility of changing column type if the contained data can be cast
+        // XXX: Added the possibility of renaming a primary key
+        // XXX: Added the possibility of adding or removing Identity (auto increment on column) {
 
-        String query;
-        // XXX: Result is binary result (ie: 1 -> renamed, 2 -> type changed ...)
-        Integer result = 0;
-        String name = DBTools.composeTableName(provider, table, ComposeRule.InTableDefinitions, sensitive);
-        String name1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.NAME);
-
-        ColumnProperties column = getStandardColumnProperties(provider, name1, descriptor2, sensitive);
-        if (name1.isEmpty()) {
-            // XXX: Create a new column
-            query = provider.getDDLQuery().getAddColumnCommand(DDLParameter.getAddColumn(name, column.toString()));
-            queries.add(query);
-        } else {
-            setAlterColumnQueries(provider, queries, column,
-                                  descriptor1, descriptor2, alterkey, name, name1, result);
-        }
-
-        if (provider.getDDLQuery().supportsColumnDescription()) {
-            String comment1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DESCRIPTION);
-            String comment2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
-            if (!comment2.equals(comment1)) {
-                queries.add(getColumnDescriptionQuery(provider, name, column.mNewIdentifier, comment2, sensitive));
-                result |= COLUMN_DESCRIPTION;
-            }
-        }
-        for (String q: queries) {
-            System.out.println("DBTableHelper.getAlterColumnQueries() Query: " + q);
+        ColumnProperties column = getStandardColumnProperties(provider, oldname, descriptor2, sensitive);
+        int result = setAlterColumnQueries(provider, queries, column, descriptor1, descriptor2, flags,
+                                           alterkey, tablename, oldname);
+        // XXX: Column description have been changed?
+        if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && provider.getDDLQuery().supportsColumnDescription()) {
+            String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
+            queries.add(getColumnDescriptionQuery(provider, tablename, column.mNewIdentifier, comment, sensitive));
+            result |= COLUMN_DESCRIPTION;
         }
         return result;
     }
 
-    private static void setAlterColumnQueries(DriverProvider provider,
-                                              List<String> queries,
-                                              ColumnProperties column,
-                                              XPropertySet descriptor1,
-                                              XPropertySet descriptor2,
-                                              boolean alterkey,
-                                              String table,
-                                              String name,
-                                              Integer result)
+    private static boolean hasColumnProperty(int flags, int property) {
+        return (flags & property) == property;
+    }
+
+    private static int setAlterColumnQueries(DriverProvider provider,
+                                             List<String> queries,
+                                             ColumnProperties column,
+                                             XPropertySet descriptor1,
+                                             XPropertySet descriptor2,
+                                             int flags,
+                                             boolean alterkey,
+                                             String table,
+                                             String name)
         throws java.sql.SQLException {
+
         // XXX: Modify an existing column
+        int results = 0;
+        boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor2, PropertyIds.ISAUTOINCREMENT);
         Map<String, Object> arguments = column.toArguments(table);
-        if (!name.equals(column.mNewName)) {
-            setColumnName(provider, queries, arguments, result);
+
+        // XXX: Column name have changed
+        if (hasPropertyChanged(flags, COLUMN_NAME)) {
+            results |= setColumnName(provider, queries, arguments);
         }
 
-        // XXX: Identity have been changed?
-        boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyIds.ISAUTOINCREMENT);
-        boolean auto2 = DBTools.getDescriptorBooleanValue(descriptor2, PropertyIds.ISAUTOINCREMENT);
-        boolean autochanged = auto1 != auto2;
-
-        // XXX: Type have been changed?
-        String type1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.TYPENAME);
-        String type2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.TYPENAME);
-        boolean typechanged = !type2.equals(type1);
-
-        boolean alldone = false;
-        List<String> parts = new ArrayList<String>();
+        List<String> parts = new ArrayList<>();
         // XXX: We are forced to process these two changes together because some underlying drivers use the
         // XXX: same DDL command to change the type of a column or assign or remove an Identity constraint.
         // XXX: Identity have been changed
-        if (autochanged) {
-            alldone = setColumnIdentity(provider, queries, parts, arguments, auto2, result);
+        if (hasPropertyChanged(flags, COLUMN_IDENTITY)) {
+            results |= setColumnIdentity(provider, queries, parts, arguments, autoincrement);
         }
         // XXX: type have been changed 
-        if (typechanged) {
-            alldone = setColumnType(provider, parts, arguments, autochanged, auto2, alldone, result);
+        if (hasPropertyChanged(flags, COLUMN_TYPE)) {
+            results |= setColumnType(provider, parts, arguments, results, autoincrement);
         }
-        queries.addAll(parts);
+        
+        if (!isPropertiesSet(flags, results, COLUMN_IDENTITY, COLUMN_TYPE) &&
+            provider.getDDLQuery().hasAlterColumnCommand()) {
+            queries.add(provider.getDDLQuery().getAlterColumnCommand(arguments));
+            results = updateResults(flags, results, COLUMN_IDENTITY, COLUMN_TYPE);
+        } else if (!parts.isEmpty()) {
+            queries.addAll(parts);
+        }
 
         // XXX: Primary key & auto-increment column don't have to handle Default and Not Null property,
         // XXX: and some underlying driver doesn't support alteration of column.
-        if (!alldone && !alterkey && !auto2 && provider.getDDLQuery().supportsAlterColumnProperties()) {
-            String default1 = DBTools.getDescriptorStringValue(descriptor1, PropertyIds.DEFAULTVALUE);
-            String default2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DEFAULTVALUE);
-            boolean defaultchanged = !default2.equals(default1);
-            if (defaultchanged) {
-                setColumnDefaultValue(provider, queries, arguments, default2, result);
-            }
-
-            int nullable1 = DBTools.getDescriptorIntegerValue(descriptor1, PropertyIds.ISNULLABLE);
-            int nullable2 = DBTools.getDescriptorIntegerValue(descriptor2, PropertyIds.ISNULLABLE);
-            boolean nullablechanged = nullable2 != nullable1;
-            if (nullablechanged) {
-                setColumnNullable(provider, queries, arguments, nullable2, result);
-            }
+        if (!alterkey && !autoincrement && !isAllPropertiesSet(flags, results, COLUMN_DESCRIPTION)) {
+            results |= setColumnProperties(provider, descriptor2, queries, arguments, flags);
         }
+        return results;
     }
 
-    private static void setColumnName(DriverProvider provider,
+    private static boolean isPropertiesSet(int flags, int results, int... properties) {
+        boolean isset = true;
+        int i = 0;
+        while (i < properties.length && isset) {
+            int property = properties[i];
+            if (hasColumnProperty(flags, property) && !hasColumnProperty(results, property)) {
+                isset = false;
+            }
+            i++;
+        }
+        return isset;
+    }
+
+    private static boolean isAllPropertiesSet(int flags, int results, int... discarding) {
+        int discarted = IntStream.of(discarding).sum();
+        return (flags | discarted) == (results | discarted);
+    }
+
+    private static int updateResults(int flags, int results, int... properties) {
+        for (int property : properties) {
+            if (hasColumnProperty(flags, property)) {
+                results |= property;
+            }
+        }
+        return results;
+    }
+
+    private static int setColumnProperties(DriverProvider provider,
+                                           XPropertySet descriptor,
+                                           List<String> queries,
+                                           Map<String, Object> arguments,
+                                           int flags) {
+        int result = 0;
+        if (hasPropertyChanged(flags, COLUMN_DEFAULT_VALUE)) {
+            result |= setColumnDefaultValue(provider, descriptor, queries, arguments);
+        }
+
+        if (hasPropertyChanged(flags, COLUMN_NULLABLE)) {
+            result |= setColumnNullable(provider, descriptor, queries, arguments);
+        }
+        return result;
+    }
+
+    private static int setColumnName(DriverProvider provider,
                                       List<String> queries,
-                                      Map<String, Object> arguments,
-                                      Integer result) {
+                                      Map<String, Object> arguments) {
         // Rename a column
-        String query = provider.getDDLQuery().getRenameColumnCommand(arguments);
-        queries.add(query);
-        result |= COLUMN_NAME;
-    }
-
-    private static boolean setColumnIdentity(DriverProvider provider,
-                                             List<String> queries,
-                                             List<String> parts,
-                                             Map<String, Object> arguments,
-                                             boolean autoincrement,
-                                             Integer result) {
-
-        String query;
-        boolean alldone = false;
-        // XXX: An Identity column have been set
-        if (autoincrement) {
-            // XXX: Does the underlying driver have a specific command to set Identity?
-            if (provider.getDDLQuery().hasColumnAddIdentityCommand()) {
-                query =  provider.getDDLQuery().getColumnAddIdentityCommand(arguments);
-            } else {
-                query = provider.getDDLQuery().getAlterColumnCommand(arguments);
-                alldone = true;
-            }
-        // XXX: An Identity column have been drop
-        } else {
-            query =  provider.getDDLQuery().getColumnDropIdentityCommand(arguments);
+        int result = 0;
+        if (provider.getDDLQuery().hasAlterColumnNameCommand()) {
+            queries.add(provider.getDDLQuery().getAlterColumnNameCommand(arguments));
+            result = COLUMN_NAME;
         }
-        parts.add(query);
-        result |= COLUMN_IDENTITY;
-        return alldone;
+        return result;
     }
 
-    private static boolean setColumnType(DriverProvider provider,
+    private static int setColumnIdentity(DriverProvider provider,
+                                         List<String> queries,
                                          List<String> parts,
                                          Map<String, Object> arguments,
-                                         boolean autochanged,
-                                         boolean autoincrement,
-                                         boolean alldone,
-                                         Integer result) {
-        // XXX: Previous commands may have already changed the type?
-        if (!alldone) {
-            // XXX: Does the underlying driver have a specific command to change the type?
-            String query = null;
-            if (provider.getDDLQuery().hasColumnSetDataTypeCommand()) {
-                query = provider.getDDLQuery().getColumnSetDataTypeCommand(arguments);
-            } else if (provider.getDDLQuery().hasAlterColumnCommand()) {
-                query =  provider.getDDLQuery().getAlterColumnCommand(arguments);
-            }
-            if (query != null) {
-                // XXX: If an Identity have been added we must first change the type
-                int index = parts.size();
-                if (autochanged && autoincrement) {
-                    index = 0;
-                }
-                parts.add(index, query);
-            }
-            alldone = true;
+                                         boolean autoincrement) {
+
+        // XXX: An Identity column have been set
+        String query = null;
+        int result = 0;
+        if (!autoincrement) {
+            // XXX: An Identity column have been drop
+            query =  provider.getDDLQuery().getColumnDropIdentityCommand(arguments);
+        } else if (provider.getDDLQuery().hasColumnAddIdentityCommand()) {
+            // XXX: Does the underlying driver have a specific command to set Identity?
+            query =  provider.getDDLQuery().getColumnAddIdentityCommand(arguments);
         }
-        result |= COLUMN_TYPE;
-        return alldone;
+        if (query != null) {
+            parts.add(query);
+            result = COLUMN_IDENTITY;
+        }
+        return result;
     }
 
-    private static void setColumnDefaultValue(DriverProvider provider,
-                                              List<String> queries,
-                                              Map<String, Object> arguments,
-                                              String defaultvalue,
-                                              Integer result) {
-        String query;
-        if (defaultvalue.isBlank()) {
-            query = provider.getDDLQuery().getColumnDropDefaultCommand(arguments);
-        } else {
+    private static int setColumnType(DriverProvider provider,
+                                     List<String> parts,
+                                     Map<String, Object> arguments,
+                                     int results,
+                                     boolean autoincrement) {
+        // XXX: Does the underlying driver have a specific command to change the type?
+        int result = 0;
+        String query = null;
+        if (provider.getDDLQuery().hasAlterColumnTypeCommand()) {
+            query = provider.getDDLQuery().getAlterColumnTypeCommand(arguments);
+        } else if (provider.getDDLQuery().hasAlterColumnCommand()) {
+            query =  provider.getDDLQuery().getAlterColumnCommand(arguments);
+        }
+        if (query != null) {
+            // XXX: If an Identity have been added we must first change the type
+            int index = parts.size();
+            if (hasPropertyChanged(results, COLUMN_IDENTITY) && autoincrement) {
+                index = 0;
+            }
+            parts.add(index, query);
+            result = COLUMN_TYPE;
+        }
+        return result;
+    }
+
+    private static int setColumnDefaultValue(DriverProvider provider,
+                                             XPropertySet descriptor,
+                                             List<String> queries,
+                                             Map<String, Object> arguments) {
+        int result = 0;
+        String query = null;
+        String defaultValue = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DEFAULTVALUE);
+        if (defaultValue.isBlank()) {
+            if (provider.getDDLQuery().hasColumnDropDefaultCommand()) {
+                query = provider.getDDLQuery().getColumnDropDefaultCommand(arguments);
+            }
+        } else if (provider.getDDLQuery().hasColumnSetDefaultCommand()) {
             query = provider.getDDLQuery().getColumnSetDefaultCommand(arguments);
         }
-        queries.add(query);
-        result |= COLUMN_DEFAULT_VALUE;
+        if (query != null) {
+            queries.add(query);
+            result = COLUMN_DEFAULT_VALUE;
+        }
+        return result;
     }
 
-    private static void setColumnNullable(DriverProvider provider,
-                                          List<String> queries,
-                                          Map<String, Object> arguments,
-                                          int nullable,
-                                          Integer result) {
-        String query;
+    private static int setColumnNullable(DriverProvider provider,
+                                         XPropertySet descriptor,
+                                         List<String> queries,
+                                         Map<String, Object> arguments) {
+        String query = null;
+        int result = 0;
+        int nullable = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.ISNULLABLE);
         if (nullable == ColumnValue.NO_NULLS) {
-            query = provider.getDDLQuery().getColumnSetNotNullCommand(arguments);
-        } else {
+            if (provider.getDDLQuery().hasColumnSetNotNullCommand()) {
+                query = provider.getDDLQuery().getColumnSetNotNullCommand(arguments);
+            }
+        } else if (provider.getDDLQuery().hasColumnDropNotNullCommand()) {
             query = provider.getDDLQuery().getColumnDropNotNullCommand(arguments);
         }
-        queries.add(query);
-        result |= COLUMN_NULLABLE;
+        if (query != null) {
+            queries.add(query);
+            result = COLUMN_NULLABLE;
+        }
+        return result;
     }
 
     private static ColumnProperties getStandardColumnProperties(DriverProvider provider,
                                                                 XPropertySet descriptor,
                                                                 boolean sensitive)
-        throws java.sql.SQLException, SQLException, IllegalArgumentException {
+        throws java.sql.SQLException, SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
         ColumnProperties column = new ColumnProperties(provider, newname, sensitive);
         return getStandardColumnProperties(provider, column, descriptor);
@@ -567,13 +725,13 @@ public class TableHelper {
                                                                 String oldname,
                                                                 XPropertySet descriptor,
                                                                 boolean sensitive)
-        throws java.sql.SQLException, SQLException, IllegalArgumentException {
+        throws java.sql.SQLException, SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
         ColumnProperties column = new ColumnProperties(provider, oldname, newname, sensitive);
         return getStandardColumnProperties(provider, column, descriptor);
     }
 
-    /** creates the standard sql statement for the column part of statement.
+    /** creates the standard SQL statement for the column part of statement.
      * @param provider
      *      The driver provider.
      * @param column
@@ -584,13 +742,12 @@ public class TableHelper {
      *      The column properties.
      * @throws SQLException
      * @throws java.sql.SQLException 
-     * @throws IllegalArgumentException 
      */
 
     private static ColumnProperties getStandardColumnProperties(DriverProvider provider,
                                                                 ColumnProperties column,
                                                                 XPropertySet descriptor)
-        throws java.sql.SQLException, SQLException, IllegalArgumentException {
+        throws java.sql.SQLException, SQLException {
         boolean isAutoIncrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
         String typename = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPENAME);
         int datatype = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
@@ -640,13 +797,14 @@ public class TableHelper {
         throws java.sql.SQLException {
         boolean useliteral = false;
         String createparams = "";
+        final int TYPE_NAME = 1;
+        final int DATA_TYPE = 2;
+        final int CREATE_PARAMS = 6;
         try (java.sql.ResultSet result = provider.getTypeInfoResultSet()) {
             while (result.next()) {
-                String typename2cmp = result.getString(1);
-                int type2cmp = result.getShort(2);
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                createparams = result.getString(6);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String typename2cmp = result.getString(TYPE_NAME);
+                int type2cmp = result.getShort(DATA_TYPE);
+                createparams = result.getString(CREATE_PARAMS);
                 if (result.wasNull()) {
                     createparams = "";
                 }
@@ -757,7 +915,7 @@ public class TableHelper {
                                                            ComposeRule rule,
                                                            boolean sensitive)
         throws java.sql.SQLException, SQLException {
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         NamedComponents table = DBTools.getTableNamedComponents(provider, property);
 
         XKeysSupplier supplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);

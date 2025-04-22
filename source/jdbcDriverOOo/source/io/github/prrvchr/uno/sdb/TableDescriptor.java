@@ -44,6 +44,7 @@ public final class TableDescriptor
                                               "com.sun.star.sdb.DataSettings",
                                               "com.sun.star.sdbcx.TableDescriptor",
                                               "com.sun.star.sdbcx.Descriptor"};
+    private static final int ROW_HEIGHT = 15;
 
     protected boolean mApplyFilter = false;
     protected String mFilter = "";
@@ -51,9 +52,7 @@ public final class TableDescriptor
     protected String mGroupBy = "";
     protected String mHavingClause = "";
     protected String mOrder = "";
-    // CHECKSTYLE:OFF: MagicNumber - Specific for database
-    protected int mRowHeight = 15;
-    // CHECKSTYLE:ON: MagicNumber - Specific for database
+    protected int mRowHeight = ROW_HEIGHT;
     protected int mTextColor = 0;
     private int mPrivileges = 0;
 

@@ -88,28 +88,64 @@ public class ColumnHelper {
                                                                      NamedComponents table)
         throws java.sql.SQLException {
         List<ColumnDescription> columns = new ArrayList<>();
+        final int COLUMN_NAME = 4;
+        final int DATA_TYPE = 5;
+        final int TYPE_NAME = 6;
+        final int COLUMN_SIZE = 7;
+        final int DECIMAL_DIGITS = 9;
+        final int NULLABLE = 11;
+        final int REMARKS = 12;
+        final int COLUMN_DEF = 13;
+        final int ORDINAL_POSITION = 17;
+
         try (java.sql.ResultSet result = provider.getConnection().getMetaData().getColumns(table.getCatalog(),
                                                                     table.getSchema(), table.getTable(), "%")) {
             while (result.next()) {
                 ColumnDescription description = new ColumnDescription();
-                // CHECKSTYLE:OFF: MagicNumber - Specific for database
-                String svalue = result.getString(4);
-                description.mColumnName = result.wasNull() ? "" : svalue;
-                int ivalue = result.getInt(5);
-                description.mType = provider.getDataType(result.wasNull() ? 0 : ivalue);
-                svalue = result.getString(6);
-                description.mTypeName = result.wasNull() ? "" : svalue;
-                ivalue = result.getInt(7);
-                description.mColumnSize = result.wasNull() ? 0 : ivalue;
-                ivalue = result.getInt(9);
-                description.mDecimalDigits = result.wasNull() ? 0 : ivalue;
-                description.mNullable = result.getInt(11);
-                svalue = result.getString(12);
-                description.mRemarks = result.wasNull() ? "" : svalue;
-                svalue = result.getString(13);
-                description.mDefaultValue = result.wasNull() ? "" : svalue;
-                description.mOrdinalPosition = result.getInt(17);
-                // CHECKSTYLE:ON: MagicNumber - Specific for database
+                String svalue = result.getString(COLUMN_NAME);
+                if (result.wasNull()) {
+                    description.mColumnName = "";
+                } else {
+                    description.mColumnName = svalue;
+                }
+                int ivalue = result.getInt(DATA_TYPE);
+                if (result.wasNull()) {
+                    description.mType = provider.getDataType(0);
+                } else {
+                    description.mType = provider.getDataType(ivalue);
+                }
+                svalue = result.getString(TYPE_NAME);
+                if (result.wasNull()) {
+                    description.mTypeName = "";
+                } else {
+                    description.mTypeName = svalue;
+                }
+                ivalue = result.getInt(COLUMN_SIZE);
+                if (result.wasNull()) {
+                    description.mColumnSize = 0;
+                } else {
+                    description.mColumnSize = ivalue;
+                }
+                ivalue = result.getInt(DECIMAL_DIGITS);
+                if (result.wasNull()) {
+                    description.mDecimalDigits = 0;
+                } else {
+                    description.mDecimalDigits = ivalue;
+                }
+                description.mNullable = result.getInt(NULLABLE);
+                svalue = result.getString(REMARKS);
+                if (result.wasNull()) {
+                    description.mRemarks = "";
+                } else {
+                    description.mRemarks = svalue;
+                }
+                svalue = result.getString(COLUMN_DEF);
+                if (result.wasNull()) {
+                    description.mDefaultValue = "";
+                } else {
+                    description.mDefaultValue = svalue;
+                }
+                description.mOrdinalPosition = result.getInt(ORDINAL_POSITION);
                 columns.add(description);
             }
         }
@@ -121,7 +157,7 @@ public class ColumnHelper {
         if (descriptions.isEmpty()) {
             return;
         }
-        Set<Integer> ordinals = new TreeSet<>();
+        Set<Integer> ordinals = new TreeSet<Integer>();
         int max = Integer.MIN_VALUE;
         for (ColumnDescription description : descriptions) {
             ordinals.add(description.mOrdinalPosition);
@@ -161,7 +197,7 @@ public class ColumnHelper {
                                                                         String columnName)
         throws java.sql.SQLException {
         Map<String, ExtraColumnInfo> columns = new TreeMap<>();
-        String command = provider.getSQLQuery(DefaultQuery.STR_QUERY_METADATA_RESULTSET);
+        String command = provider.getSQLQuery().getResultSetMetaDataQuery();
         String sql = DBTools.formatSQLQuery(command, columnName, composedName);
         java.sql.Statement statement = provider.getStatement();
         statement.setEscapeProcessing(false);

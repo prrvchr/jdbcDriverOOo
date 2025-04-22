@@ -29,22 +29,21 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.ApiLevel;
 import io.github.prrvchr.driver.provider.DriverProvider;
 
 
 public final class Driver
     extends DriverBase {
 
-    private static final String m_implementationName = "io.github.prrvchr.jdbcdriver.sdbc.Driver";
-    private static final String[] m_services = {"com.sun.star.sdbc.Driver"};
-    @SuppressWarnings("unused")
-    private static final String[] m_serviceNames = {m_implementationName};
+    protected static final String[] m_serviceNames = {"io.github.prrvchr.jdbcdriver.sdbc.Driver"};
+
+    private static final String mImplementationName = "io.github.prrvchr.jdbcDriverOOo.Driver";
+    private static final String[] mServiceNames = {"com.sun.star.sdbc.Driver"};
 
     // The constructor method:
     public Driver(XComponentContext ctx)
         throws Exception {
-        super(ctx, "io.github.prrvchr.jdbcDriverOOo.Driver", m_services, false);
+        super(ctx, mImplementationName, mServiceNames);
         System.out.println("sdbc.Driver() 1");
     }
 
@@ -52,9 +51,8 @@ public final class Driver
     protected ConnectionBase getConnection(XComponentContext ctx,
                                            DriverProvider provider,
                                            String url,
-                                           PropertyValue[] info,
-                                           ApiLevel level) {
-        return getDefaultConnection(ctx, provider, url, info);
+                                           PropertyValue[] info) {
+        return new Connection(ctx, provider, url, info);
     }
 
 }

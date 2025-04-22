@@ -86,7 +86,7 @@ class OptionsModel():
                            'Version1'  : 'Option2Dialog.Label6.Label.0',
                            'Version2'  : 'Option2Dialog.Label6.Label.1'}
         self._logger = getLogger(ctx, 'Driver', g_basename)
-        self._logger.logprb(INFO, 'OptionsDialog', '__init__()', 101)
+        self._logger.logprb(INFO, 'OptionsModel', '__init__()', 101)
         self._drivers = self._getDriverConfigurations()
 
     _directory = None
@@ -545,5 +545,7 @@ class OptionsModel():
             update(versions)
             print("OptionsModel._setDriverVersions() 7")
         except Exception:
-            msg = "OptionsModel._setDriverVersions() Error: %s" % traceback.format_exc()
-            print(msg)
+            msg = "Error: %s" % traceback.format_exc()
+            self._logger.logp(SEVERE, 'OptionsModel', '_setDriverVersions()', msg)
+            print("OptionsModel._setDriverVersions() %s" % msg)
+

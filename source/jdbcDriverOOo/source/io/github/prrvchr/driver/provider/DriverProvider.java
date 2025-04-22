@@ -79,7 +79,6 @@ public class DriverProvider {
 
     private final boolean mWarnings = true;
     private String mSubProtocol;
-    private boolean mEnhanced;
     private boolean mShowsystem;
     private boolean mUsebookmark;
     private boolean mSqlmode;
@@ -111,8 +110,6 @@ public class DriverProvider {
     private boolean mCatalogsInPrivilegeDefinitions;
     private boolean mSchemasInPrivilegeDefinitions;
 
-    private boolean mSupportsColumnDescription = false;
-
     private boolean mSupportsTransactions = true;
     private boolean mIsCatalogAtStart = true;
     private String mSuffix = "";
@@ -120,16 +117,9 @@ public class DriverProvider {
     private String mIdentifierQuoteString = "";
     private String mAutoIncrementCreation = "";
     private boolean mAddIndexAppendix = false;
-    private boolean mAutoIncrementIsPrimaryKey = true;
-    private boolean mSupportsAlterColumnType = true;
-    private boolean mSupportsAlterColumnProperty = true;
-    private boolean mSupportsAlterPrimaryKey = true;
-    private boolean mSupportsAlterForeignKey = true;
     private boolean mIsAutoRetrievingEnabled = false;
     private String mAutoRetrievingStatement = "";
     private boolean mIgnoreCurrency = false;
-    private boolean mSupportsRenameView = true;
-    private boolean mSupportsAlterIdentity = false;
 
     private Object[] mTypeInfoSettings = null;
     private List<String> mPrivilegeNames = null;
@@ -144,7 +134,6 @@ public class DriverProvider {
     public DriverProvider(final XComponentContext context,
                           final XInterface source,
                           final ResourceBasedEventLogger logger,
-                          final boolean enhanced,
                           final XHierarchicalNameAccess driver,
                           final XHierarchicalNameAccess config,
                           final String url,
@@ -173,7 +162,6 @@ public class DriverProvider {
             mShowsystem = UnoHelper.getConfigurationOption(config, "ShowSystemTable", false);
             mUsebookmark = UnoHelper.getConfigurationOption(config, "UseBookmark", true);
             mSqlmode = UnoHelper.getConfigurationOption(config, "SQLMode", false);
-            mEnhanced = enhanced;
             System.out.println("jdbcdriver.DriverProvider() 3");
 
             setSystemProperties(logger, driver, infos);
@@ -190,13 +178,13 @@ public class DriverProvider {
 
             switch (level.service()) {
                 case "com.sun.star.sdb":
-                    mSQLConfig = new DCLQuery(driver, metadata, mSubProtocol, privileges);
+                    mSQLConfig = new DCLQuery(driver, mSubProtocol, mIdentifierQuoteString, privileges);
                     break;
                 case "com.sun.star.sdbcx":
-                    mSQLConfig = new DDLQuery(driver, metadata, mSubProtocol);
+                    mSQLConfig = new DDLQuery(driver, mSubProtocol, mIdentifierQuoteString);
                     break;
                 case "com.sun.star.sdbc":
-                    mSQLConfig = new SQLQuery(driver, metadata, mSubProtocol);
+                    mSQLConfig = new SQLQuery(driver, mSubProtocol, mIdentifierQuoteString);
                     break;
             }
             if (mIgnoreDriverPrivileges == null) {
@@ -233,21 +221,6 @@ public class DriverProvider {
             mUseSQLInsert = getDriverBooleanProperty(driver, "UseSQLInsert", mUseSQLInsert);
             mUseSQLUpdate = getDriverBooleanProperty(driver, "UseSQLUpdate", mUseSQLUpdate);
 
-            mAutoIncrementIsPrimaryKey = getDriverBooleanProperty(driver, "AutoIncrementIsPrimaryKey",
-                                                                  mAutoIncrementIsPrimaryKey);
-            mSupportsAlterIdentity = getDriverBooleanProperty(driver, "SupportsAlterIdentity", mSupportsAlterIdentity);
-            mSupportsRenameView = getDriverBooleanProperty(driver, "SupportsRenameView", mSupportsRenameView);
-            mSupportsColumnDescription = getDriverBooleanProperty(driver, "SupportsColumnDescription",
-                                                                  mSupportsColumnDescription);
-            mSupportsAlterPrimaryKey = getDriverBooleanProperty(driver, "SupportsAlterPrimaryKey",
-                                                                mSupportsAlterPrimaryKey);
-            mSupportsAlterForeignKey = getDriverBooleanProperty(driver, "SupportsAlterForeignKey",
-                                                                mSupportsAlterForeignKey);
-            mSupportsAlterColumnType = getDriverBooleanProperty(driver, "SupportsAlterColumnType",
-                                                                mSupportsAlterColumnType);
-            mSupportsAlterColumnProperty = getDriverBooleanProperty(driver, "SupportsAlterColumnProperty",
-                                                                    mSupportsAlterColumnProperty);
-
             mSupportedAPILevels = getSupportedAPILevels(driver, "SupportedApiLevels");
         } catch (Exception e) {
             System.out.println("jdbcdriver.DriverProvider() ERROR: " + e );
@@ -274,7 +247,11 @@ public class DriverProvider {
                                 getDriverBooleanProperty(driver, "SupportTransaction", true);
         mIsCatalogAtStart = metadata.isCatalogAtStart();
         mCatalogSeparator = metadata.getCatalogSeparator();
-        mIdentifierQuoteString = metadata.getIdentifierQuoteString();
+        mIdentifierQuoteString = DriverPropertiesHelper.getConfigStringProperty(driver, mSubProtocol,
+                                                                                "IdentifierQuoteString",
+                                                                                metadata.getIdentifierQuoteString());
+        System.out.println("DriverProvider() 1 IdentifierQuoteString: '" + mIdentifierQuoteString + "'");
+
         
     }
 
@@ -324,18 +301,23 @@ public class DriverProvider {
                                  final RowTable table,
                                  final BaseRow row)
         throws java.sql.SQLException {
+        System.out.println("DriverProvider.setGeneratedKeys() 1");
         String command = getAutoRetrievingStatement();
         if (!isAutoRetrievingEnabled() || command == null) {
+            System.out.println("DriverProvider.setGeneratedKeys() 2");
             return;
         }
         java.sql.ResultSet result = null;
         Map<String, RowColumn> columns = table.getColumnNames();
         if (command.isBlank()) {
+            System.out.println("DriverProvider.setGeneratedKeys() 3");
             result = statement.getGeneratedKeys();
         } else {
+            System.out.println("DriverProvider.setGeneratedKeys() 4");
             result = GeneratedKeys.getGeneratedResult(this, statement, table, columns, command);
         }
         if (result != null) {
+            System.out.println("DriverProvider.setGeneratedKeys() 5");
             ResultSetMetaData metadata = result.getMetaData();
             int count = metadata.getColumnCount();
             if (result.next()) {
@@ -346,12 +328,13 @@ public class DriverProvider {
                         // XXX: It is important to preserve the type of the original ResultSet columns
                         RowColumn column = columns.get(name);
                         Object value = RowHelper.getResultSetValue(result, i, column.getType());
-                        System.out.println("DriverProvider.setGeneratedKeys() 1 value: " + value);
+                        System.out.println("DriverProvider.setGeneratedKeys() 6 value: " + value);
                         row.setColumnObject(column.getIndex(), value);
                     }
                 }
             }
         }
+        System.out.println("DriverProvider.setGeneratedKeys() 7");
     }
 
     public boolean isResultSetUpdatable(final java.sql.ResultSet result)
@@ -368,8 +351,13 @@ public class DriverProvider {
                                     final boolean always)
         throws java.sql.SQLException {
         // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
-        if (always && !identifier.isBlank()) {
-            identifier = getStatement().enquoteIdentifier(identifier, always);
+        // XXX: mySQL don't support Statement.enquoteIdentifier()
+        // XXX: It seems that double quotes are used instead of backticks
+        //if (always && !identifier.isBlank()) {
+        //    identifier = getStatement().enquoteIdentifier(identifier, always);
+        //}
+        if (always) {
+            identifier = mIdentifierQuoteString + identifier + mIdentifierQuoteString;
         }
         return identifier;
     }
@@ -404,10 +392,6 @@ public class DriverProvider {
 
     public DCLQuery getDCLQuery() {
         return (DCLQuery) mSQLConfig;
-    }
-
-    public boolean isEnhanced() {
-        return mEnhanced;
     }
 
     public int getDataType(final int type) {
@@ -598,9 +582,7 @@ public class DriverProvider {
     public boolean isAutoRetrievingEnabled() {
         return mIsAutoRetrievingEnabled;
     }
-    public boolean isAutoIncrementIsPrimaryKey() {
-        return mAutoIncrementIsPrimaryKey;
-    }
+
     public String getAutoRetrievingStatement() {
         return mAutoRetrievingStatement;
     }
