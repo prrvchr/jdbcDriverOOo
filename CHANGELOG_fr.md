@@ -426,4 +426,4 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [96]: <https://bugs.documentfoundation.org/show_bug.cgi?id=165774>
 [97]: <https://gerrit.libreoffice.org/c/core/+/183280>
 [98]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/query>
-[99]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-cr%C3%A9er-l'extension>
+[99]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-cr%C3%A9er-lextension>

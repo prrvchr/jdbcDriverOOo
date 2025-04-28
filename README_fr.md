@@ -222,7 +222,7 @@ Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier
 
 ___
 
-## Comment créer l'extension :
+## Comment créer l'extension:
 
 Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][52]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
 Pour créer l'extension jdbcDriverOOo avec l'aide d'Apache Ant, vous devez:
