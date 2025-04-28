@@ -5,7 +5,7 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="45" dlg:height="12" dlg:help-text="&amp;NewGroupDialog.Label1.HelpText" dlg:value="&amp;NewGroupDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="45" dlg:height="15" dlg:help-text="&amp;NewGroupDialog.Label1.HelpText" dlg:value="&amp;NewGroupDialog.Label1.Label" dlg:valign="center"/>
     <dlg:textfield dlg:id="TextField1" dlg:tab-index="1" dlg:left="65" dlg:top="10" dlg:width="70" dlg:height="15" dlg:help-text="&amp;NewGroupDialog.TextField1.HelpText">
       <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:SetName" script:language="UNO"/>
     </dlg:textfield>

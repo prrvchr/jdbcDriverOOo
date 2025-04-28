@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
@@ -61,8 +62,9 @@ public abstract class ConnectionSuper
                               String[] services,
                               DriverProvider provider,
                               String url,
-                              PropertyValue[] info) {
-        super(ctx, service, services, provider, url, info);
+                              PropertyValue[] info,
+                              Set<String> properties) {
+        super(ctx, service, services, provider, url, info, properties);
     }
 
     protected DriverProvider getProvider() {

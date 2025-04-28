@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
@@ -52,7 +53,7 @@ public class SQLQuery extends SQLBase {
     private final String mKeySuffix = "}";
     private final String mKeyPattern = "[$][{](\\w+)}";
 
-    private final String mQuote;
+    private final String mIdentifierQuote;
     private final String mSubProtocol;
     private final String mCommandSuffix;
     private final XHierarchicalNameAccess mConfig;
@@ -63,14 +64,17 @@ public class SQLQuery extends SQLBase {
     private final Map<String, String[]> mStringsProperties;
 
     // The constructor method:
-    public SQLQuery(XHierarchicalNameAccess config,
-                    String subprotocol,
-                    String quote) throws SQLException {
+    public SQLQuery(final XHierarchicalNameAccess config,
+                    final PropertyValue[] infos,
+                    final boolean supportGetGeneratedKeys,
+                    final String subProtocol,
+                    final String identifierQuote) throws SQLException {
+        super(infos, supportGetGeneratedKeys);
         System.out.println("SQLQuery() 1");
         mConfig = config;
-        mSubProtocol = subprotocol;
-        mQuote = quote;
-        mCommandSuffix = getDriverCommandSuffix();
+        mSubProtocol = subProtocol;
+        mIdentifierQuote = identifierQuote;
+        mCommandSuffix = getDriverCommandSuffix(config, subProtocol);
         mBooleanProperties = new HashMap<>();
         mStringProperties = new HashMap<>();
         mStringsProperties = new HashMap<>();
@@ -103,12 +107,12 @@ public class SQLQuery extends SQLBase {
         return METADATA_RESULTSET_QUERY;
     }
 
-    private String getDriverCommandSuffix() {
+    private static String getDriverCommandSuffix(XHierarchicalNameAccess config, String subprotocol) {
         String suffix = "";
         try {
-            String path = DriverPropertiesHelper.getConfigMetaDataPath(mSubProtocol, SQL_COMMAND_SUFFIX);
-            if (mConfig.hasByHierarchicalName(path)) {
-                suffix = (String) mConfig.getByHierarchicalName(path);
+            String path = DriverPropertiesHelper.getConfigMetaDataPath(subprotocol, SQL_COMMAND_SUFFIX);
+            if (config.hasByHierarchicalName(path)) {
+                suffix = (String) config.getByHierarchicalName(path);
             }
         } catch (NoSuchElementException e) {
             e.printStackTrace();
@@ -167,7 +171,7 @@ public class SQLQuery extends SQLBase {
     }
 
     protected String enquoteIdentifier(String identifier) {
-        return mQuote + identifier + mQuote;
+        return mIdentifierQuote + identifier + mIdentifierQuote;
     }
 
     protected final String format(final String command,

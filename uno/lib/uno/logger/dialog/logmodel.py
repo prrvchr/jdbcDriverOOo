@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -63,14 +63,15 @@ import traceback
 class LogModel():
     def __init__(self, ctx, names):
         self._ctx = ctx
+        self._name = getLoggerName(names[0])
         self._names = names
         self._listener = None
-        self._setting = '/org.openoffice.Office.Logging/Settings'
         self._url = getResourceLocation(ctx, g_identifier, g_resource)
         self._resolver = getStringResourceWithLocation(ctx, self._url, 'Logger')
         self._config = LogConfig(ctx)
         self._pool = LoggerPool(ctx)
-        self._logger = self._pool.getLocalizedLogger(getLoggerName(names[0]), self._url, g_basename)
+        self._logger = self._pool.getLocalizedLogger(self._name, self._url, g_basename)
+        self._settings = {}
 
 # Public getter method
     def getLoggerNames(self):
@@ -95,6 +96,13 @@ class LogModel():
         return self._config.getLoggerData(self._logger.Name)
 
     def saveSetting(self):
+        for name in self._settings:
+            level, handler = self._settings[name]
+            config = self._config.getSetting(name)
+            if level != config.LogLevel:
+                config.LogLevel = level
+            if handler != config.DefaultHandler:
+                config.DefaultHandler = handler
         return self._config.saveSetting()
 
 # Public setter method
@@ -106,21 +114,13 @@ class LogModel():
         self._pool.removeModifyListener(self._listener)
 
     def enableLogger(self, enabled, level):
-        config = self._config.getSetting(self._logger.Name)
-        config.LogLevel = self._getLogLevels(level) if enabled else OFF
-
-    def toggleHandler(self, index):
-        config = self._config.getSetting(self._logger.Name)
-        config.DefaultHandler = self._getLogHandler(index)
+        self._settings[self._logger.Name][0] = self._getLogLevels(level) if enabled else OFF
 
     def setLevel(self, level):
-        config = self._config.getSetting(self._logger.Name)
-        config.LogLevel = self._getLogLevels(level)
+        self._settings[self._logger.Name][0] = self._getLogLevels(level)
 
-    def setLogSetting(self, setting):
-        config = self._config.getSetting(self._logger.Name)
-        config.LogLevel = setting.LogLevel
-        config.DefaultHandler = setting.DefaultHandler
+    def toggleHandler(self, index):
+        self._settings[self._logger.Name][1] = self._getLogHandler(index)
 
     def addLoggerListener(self, listener):
         self._logger.addModifyListener(listener)
@@ -129,13 +129,19 @@ class LogModel():
         self._logger.removeModifyListener(listener)
 
     def logInfos(self, level, clazz, method, requirements):
-        self._logger.logprb(level, clazz, method, 121, (sys.version, ))
-        self._logger.logprb(level, clazz, method, 122, (sys.executable, ))
-        self._logger.logprb(level, clazz, method, 123, (os.pathsep.join(sys.path), ))
+        msg = self._resolver.resolveString(121).format(sys.version)
+        self._logger.logp(level, clazz, method, msg)
+        msg = self._resolver.resolveString(122).format(sys.executable)
+        self._logger.logp(level, clazz, method, msg)
+        msg = self._resolver.resolveString(123).format(os.pathsep.join(sys.path))
+        self._logger.logp(level, clazz, method, msg)
 
-        self._logger.logp(level, clazz, method, 124, (sys.prefix, ))
-        self._logger.logp(level, clazz, method, 125, (sys.base_prefix, ))
-        self._logger.logp(level, clazz, method, 126, (sys.base_exec_prefix, ))
+        msg = self._resolver.resolveString(124).format(sys.prefix)
+        self._logger.logp(level, clazz, method, msg)
+        msg = self._resolver.resolveString(125).format(sys.base_prefix)
+        self._logger.logp(level, clazz, method, msg)
+        msg = self._resolver.resolveString(126).format(sys.base_exec_prefix)
+        self._logger.logp(level, clazz, method, msg)
         # If a requirements file exists at the extension root,
         # then we check if the requirements are met
         url = getResourceLocation(self._ctx, g_identifier, requirements)
@@ -144,10 +150,14 @@ class LogModel():
 
 # Private getter method
     def _getLoggerSetting(self, name):
-        config = self._config.getSetting(name)
-        level = config.LogLevel
-        enabled = level != OFF
-        return enabled, self._getLevelIndex(level), self._getHandlerIndex(config.DefaultHandler)
+        if name in self._settings:
+            level, handler = self._settings[name]
+        else:
+            config = self._config.getSetting(name)
+            level = config.LogLevel
+            handler = config.DefaultHandler
+            self._settings[name] = [level, handler]
+        return level != OFF, self._getLevelIndex(level), self._getHandlerIndex(handler)
 
     def _getLogLevels(self, level):
         return self._logLevels()[level]
@@ -179,6 +189,7 @@ class LogModel():
                 FINEST,
                 ALL)
 
+# Private setter method
     def _logRequirements(self, level, clazz, method, url):
         info = sys.version_info
         ver = '%s.%s.%s' % (info.major, info.minor, info.micro)

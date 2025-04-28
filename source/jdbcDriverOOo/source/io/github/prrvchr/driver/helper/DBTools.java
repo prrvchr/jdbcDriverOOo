@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -133,7 +133,11 @@ public class DBTools {
 
         // Java DataBaseMetadata specific getter
         public String getCatalog() {
-            return mCatalog;
+            String catalog = null;
+            if (mCatalog != null && !mCatalog.isBlank()) {
+                catalog = mCatalog;
+            }
+            return catalog;
         }
 
         // UNO getter (String can not be null)
@@ -151,7 +155,11 @@ public class DBTools {
 
         // Java DataBaseMetadata specific getter
         public String getSchema() {
-            return mSchema;
+            String schema = null;
+            if (mSchema != null && !mSchema.isBlank()) {
+                schema = mSchema;
+            }
+            return schema;
         }
 
         // UNO getter (String can not be null)

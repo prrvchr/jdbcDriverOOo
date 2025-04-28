@@ -2,7 +2,7 @@
 <!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -638,28 +638,6 @@
             <value>SELECT PRIVILEGE_TYPE FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES WHERE IS_GRANTABLE = 'YES' AND GRANTEE = ${Grantee} AND TABLE_CATALOG = ${Catalog} AND TABLE_SCHEMA = ${Schema} AND TABLE_NAME = ${Table}</value>
           </prop>
         </node>
-
-        <node oor:name="LogLevel" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:string">
-            <value>2</value>
-          </prop>
-        </node>
-        <node oor:name="LoggerLevels10" oor:op="replace">
-          <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">1|1|1|2|2|3|3|3</value>
-          </prop>
-        </node>
-        <node oor:name="UrlSuffix10" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:string">
-            <value>;hsqldb.extlog=${LogLevel};hsqldb.applog=${LogLevel};hsqldb.sqllog=${LogLevel}</value>
-          </prop>
-        </node>
-        <node oor:name="SystemProperties10" oor:op="replace">
-          <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">hsqldb.reconfig_logging=true</value>
-          </prop>
-        </node>
-
       </node>
     </node>
 
@@ -1208,7 +1186,7 @@
         </node>
         <node oor:name="ColumnAddIdentityCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>ALTER TABLE ${TableName} ALTER ${Column} SET NOT NULL, ALTER ${Column} ADD${Autoincrement}</value>
+            <value>ALTER TABLE ${TableName} ALTER ${Column} SET NOT NULL, ALTER ${Column} ADD ${Autoincrement}</value>
           </prop>
         </node>
         <node oor:name="GetUsersQuery" oor:op="replace">

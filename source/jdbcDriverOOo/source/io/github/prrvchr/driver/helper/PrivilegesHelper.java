@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -100,9 +100,10 @@ public class PrivilegesHelper {
         throws java.sql.SQLException {
         java.sql.ResultSet result = null;
         final int COLUMNCOUNT = 7;
-        if (provider.ignoreDriverPrivileges()) {
+        if (provider.getSQLQuery().ignoreDriverPrivileges()) {
             result = metadata.getTables(catalog, schema, table, null);
-            result = new TablePrivilegesResultSet(result, provider.getPrivileges(), metadata.getUserName());
+            result = new TablePrivilegesResultSet(result, provider.getDCLQuery().getPrivileges(),
+                                                  metadata.getUserName());
         } else {
             result = metadata.getTablePrivileges(catalog, schema, table);
             // XXX: We have to check the result columns for the tables privileges #106324#
@@ -157,8 +158,8 @@ public class PrivilegesHelper {
                 String privilege = result.getString(PRIVILEGE);
                 if (!result.wasNull()) {
                     privilege = privilege.toUpperCase().strip();
-                    if (provider.hasPrivilege(privilege)) {
-                        privileges |= provider.getPrivilege(privilege);
+                    if (provider.getDCLQuery().hasPrivilege(privilege)) {
+                        privileges |= provider.getDCLQuery().getPrivilege(privilege);
                     }
                 }
             }
@@ -197,7 +198,7 @@ public class PrivilegesHelper {
                 privileges = getPrivileges(provider, query, values);
                 System.out.println("PrivilegesHelper.getTablePrivileges() 2 privileges: " + privileges);
             } else {
-                privileges = provider.getMockPrivileges();
+                privileges = provider.getDCLQuery().getMockPrivileges();
                 System.out.println("PrivilegesHelper.getTablePrivileges() 3 privileges: " + privileges);
             }
         } catch (Exception e) {
@@ -234,7 +235,7 @@ public class PrivilegesHelper {
             String query = provider.getDCLQuery().getGrantablePrivilegesQuery(arguments, values);
             privileges = getPrivileges(provider, query, values);
         } else {
-            privileges = provider.getMockPrivileges();
+            privileges = provider.getDCLQuery().getMockPrivileges();
         }
         return privileges;
     }
@@ -264,8 +265,8 @@ public class PrivilegesHelper {
                                 String privilege = result.getString(i);
                                 if (!result.wasNull()) {
                                     privilege = privilege.toUpperCase().strip();
-                                    if (provider.hasPrivilege(privilege)) {
-                                        privileges |= provider.getPrivilege(privilege);
+                                    if (provider.getDCLQuery().hasPrivilege(privilege)) {
+                                        privileges |= provider.getDCLQuery().getPrivilege(privilege);
                                     }
                                 }
                         }

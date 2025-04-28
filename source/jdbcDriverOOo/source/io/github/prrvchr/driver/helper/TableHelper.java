@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -323,11 +323,12 @@ public class TableHelper {
                                                     String comment,
                                                     boolean sensitive)
         throws java.sql.SQLException {
+        System.out.println("DBTableHelper.getCreateTableQueries() 1 Column" + column );
         String name = DBTools.composeColumnName(provider, table, column, sensitive);
         comment = provider.enquoteLiteral(comment);
         Map<String, Object> arguments = DDLParameter.getColumnDescription(name, comment);
         String query = provider.getDDLQuery().getColumnDescriptionCommand(arguments);
-        System.out.println("DBTableHelper.getCreateTableQueries() Comment: " + comment + " - Query: " + query);
+        System.out.println("DBTableHelper.getCreateTableQueries() 2 Comment: " + comment + " - Query: " + query);
         return query;
     }
 
@@ -363,7 +364,7 @@ public class TableHelper {
         queries.add(query);
         if (provider.getDDLQuery().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
-            queries.add(getColumnDescriptionQuery(provider, name, column.mNewIdentifier, comment, sensitive));
+            queries.add(getColumnDescriptionQuery(provider, name, column.mNewName, comment, sensitive));
         }
     }
 
@@ -508,7 +509,7 @@ public class TableHelper {
         // XXX: Column description have been changed?
         if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && provider.getDDLQuery().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
-            queries.add(getColumnDescriptionQuery(provider, tablename, column.mNewIdentifier, comment, sensitive));
+            queries.add(getColumnDescriptionQuery(provider, tablename, column.mNewName, comment, sensitive));
             result |= COLUMN_DESCRIPTION;
         }
         return result;

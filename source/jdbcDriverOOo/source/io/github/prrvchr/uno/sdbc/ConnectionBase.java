@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbc;
 
 import java.util.Iterator;
+import java.util.Set;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
@@ -46,6 +47,7 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
 import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.driver.provider.DriverPropertiesHelper;
 import io.github.prrvchr.driver.provider.DriverProvider;
 import io.github.prrvchr.driver.provider.Resources;
 import io.github.prrvchr.driver.provider.StandardSQLState;
@@ -75,14 +77,16 @@ public abstract class ConnectionBase
                              String[] services,
                              DriverProvider provider,
                              String url,
-                             PropertyValue[] info) {
+                             PropertyValue[] info,
+                             Set<String> properties) {
         mContext = ctx;
         mService = service;
         mServices = services;
         mProvider = provider;
         mUrl = url;
         mInfo = info;
-        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GOT_JDBC_CONNECTION, getUrl());
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_ESTABLISHED,
+                           DriverPropertiesHelper.getJdbcUrl(url), String.join(", ", properties));
         System.out.println("ConnectionBase() 1");
     }
 
@@ -99,7 +103,7 @@ public abstract class ConnectionBase
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_SHUTDOWN_CONNECTION);
+        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_SHUTDOWN);
         try {
             for (Iterator<StatementMain> it = mStatements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
@@ -345,7 +349,7 @@ public abstract class ConnectionBase
     public XStatement createStatement()
         throws SQLException {
         checkDisposed();
-        return _getStatement();
+        return getStatement();
 
     }
 
@@ -353,7 +357,7 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareStatement(String sql)
         throws SQLException {
         checkDisposed();
-        return _getPreparedStatement(sql);
+        return getPreparedStatement(sql);
 
     }
 
@@ -361,25 +365,26 @@ public abstract class ConnectionBase
     public XPreparedStatement prepareCall(String sql)
         throws SQLException {
         checkDisposed();
-        return _getCallableStatement(sql);
+        return getCallableStatement(sql);
 
     }
 
-    public String getUrl() {
-        return UnoHelper.getDefaultPropertyValue(mInfo, "Url", mUrl);
-    }
-
-    public PropertyValue[] getInfo() {
-        return mInfo;
-    }
-
-    public XComponentContext getComponentContext() {
+    protected XComponentContext getComponentContext() {
         return mContext;
     }
 
-    protected abstract XStatement _getStatement();
-    protected abstract XPreparedStatement _getPreparedStatement(String sql) throws SQLException;
-    protected abstract XPreparedStatement _getCallableStatement(String sql) throws SQLException;
+    protected String getUrl() {
+        return mUrl;
+    }
+
+
+    protected PropertyValue[] getInfo() {
+        return mInfo;
+    }
+
+    protected abstract XStatement getStatement();
+    protected abstract XPreparedStatement getPreparedStatement(String sql) throws SQLException;
+    protected abstract XPreparedStatement getCallableStatement(String sql) throws SQLException;
 
     @SuppressWarnings("unused")
     private String _substituteVariables(String sql)

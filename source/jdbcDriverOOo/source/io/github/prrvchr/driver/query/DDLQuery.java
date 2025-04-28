@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbcx.KeyType;
 
@@ -80,10 +81,12 @@ public class DDLQuery extends SQLQuery {
     private static final String VIEW_DEFINITION_QUERY = "ViewDefinitionQuery";
 
     // The constructor method:
-    public DDLQuery(XHierarchicalNameAccess config,
-                    String subprotocol,
-                    String quote) throws SQLException {
-        super(config, subprotocol, quote);
+    public DDLQuery(final XHierarchicalNameAccess config,
+                    final PropertyValue[] infos,
+                    final boolean generatedKeys,
+                    final String subProtocol,
+                    final String identifierQuote) throws SQLException {
+        super(config, infos, generatedKeys, subProtocol, identifierQuote);
     }
 
     public boolean supportsSystemVersioning() {

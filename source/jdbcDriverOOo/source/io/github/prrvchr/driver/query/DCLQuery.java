@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.sdbcx.Privilege;
 
@@ -62,12 +63,24 @@ public class DCLQuery extends DDLQuery {
     private List<Integer> mPrivilegeValues = null;
 
     // The constructor method:
-    public DCLQuery(XHierarchicalNameAccess config,
-                    String subprotocol,
-                    String quote,
-                    Object[] privileges) throws SQLException {
-        super(config, subprotocol, quote);
-        setPrivileges(privileges);
+    public DCLQuery(final XHierarchicalNameAccess config,
+                    final PropertyValue[] infos,
+                    final boolean generatedKeys,
+                    final String subProtocol,
+                    final String identifierQuote) throws SQLException {
+        super(config, infos, generatedKeys, subProtocol, identifierQuote);
+        if (mTablePrivileges != null) {
+            mPrivilegeNames = new ArrayList<>();
+            mPrivilegeValues  = new ArrayList<>();
+            int count = DBTools.getEvenLength(mTablePrivileges.length);
+            for (int i = 0; i < count; i += 2) {
+                mPrivilegeNames.add((String) mTablePrivileges[i]);
+                mPrivilegeValues.add(Integer.parseInt((String) mTablePrivileges[i + 1]));
+            }
+        } else {
+            mPrivilegeNames = getDefaultPrivilegeNames();
+            mPrivilegeValues = getDefaultPrivilegeValues();
+        }
     }
 
     public boolean supportsCreateUser() {
@@ -186,6 +199,48 @@ public class DCLQuery extends DDLQuery {
         return format(command, keys, values, "?");
     }
 
+    public boolean hasPrivilege(final String privilege) {
+        return mPrivilegeNames.contains(privilege);
+    }
+
+    public String[] getPrivileges() {
+        return mPrivilegeNames.toArray(new String[0]);
+    }
+
+    public int getPrivileges(final List<String> privileges) {
+        int flags = 0;
+        for (String privilege : privileges) {
+            flags |= getPrivilege(privilege);
+        }
+        return flags;
+    }
+
+    public String[] getPrivileges(final int privilege) {
+        List<String> flags = new ArrayList<>();
+        for (int value: mPrivilegeValues) {
+            if ((privilege & value) == value) {
+                flags.add(mPrivilegeNames.get(mPrivilegeValues.indexOf(value)));
+            }
+        }
+        return flags.toArray(new String[0]);
+    }
+
+    public int getPrivilege(final String privilege) {
+        int flag = 0;
+        if (mPrivilegeNames.contains(privilege)) {
+            flag = mPrivilegeValues.get(mPrivilegeNames.indexOf(privilege));
+        }
+        return flag;
+    }
+
+    public int getMockPrivileges() {
+        int privileges = 0;
+        for (Integer value : mPrivilegeValues) {
+            privileges += value;
+        }
+        return privileges;
+    }
+
     private String getUserGroupsQuery(final String user, final List<Object> values) {
         String command = getUserGroupsQuery();
         Map<String, Object> keys = Map.of("User", user);
@@ -198,52 +253,28 @@ public class DCLQuery extends DDLQuery {
         return format(command, keys, values, "?");
     }
 
-    private void setPrivileges(final Object[] privileges) {
-        boolean parsed = false;
-        if (privileges != null) {
-            parsed = parsePrivileges(privileges);
-        }
-        if (!parsed) {
-            setDefaultPrivileges();
-        }
+    private List<String> getDefaultPrivilegeNames() {
+        return List.of("SELECT",
+                       "INSERT",
+                       "UPDATE",
+                       "DELETE",
+                       "READ",
+                       "CREATE",
+                       "ALTER",
+                       "REFERENCES",
+                       "DROP");
     }
 
-    private boolean parsePrivileges(final Object[] infos) {
-        boolean parsed = false;
-        try {
-            mPrivilegeNames = new ArrayList<>();
-            mPrivilegeValues  = new ArrayList<>();
-            int count = DBTools.getEvenLength(infos.length);
-            for (int i = 0; i < count; i += 2) {
-                mPrivilegeNames.add(infos[i].toString());
-                mPrivilegeValues.add(Integer.parseInt(infos[i + 1].toString()));
-            }
-            parsed = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return parsed;
-    }
-
-    private void setDefaultPrivileges() {
-        mPrivilegeNames = List.of("SELECT",
-                                  "INSERT",
-                                  "UPDATE",
-                                  "DELETE",
-                                  "READ",
-                                  "CREATE",
-                                  "ALTER",
-                                  "REFERENCES",
-                                  "DROP");
-        mPrivilegeValues = List.of(Privilege.SELECT,
-                                   Privilege.INSERT,
-                                   Privilege.UPDATE,
-                                   Privilege.DELETE,
-                                   Privilege.READ,
-                                   Privilege.CREATE,
-                                   Privilege.ALTER,
-                                   Privilege.REFERENCE,
-                                   Privilege.DROP);
+    private List<Integer> getDefaultPrivilegeValues() {
+        return List.of(Privilege.SELECT,
+                       Privilege.INSERT,
+                       Privilege.UPDATE,
+                       Privilege.DELETE,
+                       Privilege.READ,
+                       Privilege.CREATE,
+                       Privilege.ALTER,
+                       Privilege.REFERENCE,
+                       Privilege.DROP);
     }
 
     private String getCreateUserCommand() {

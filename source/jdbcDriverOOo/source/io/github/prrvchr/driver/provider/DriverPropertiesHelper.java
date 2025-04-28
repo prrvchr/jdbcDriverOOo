@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -41,6 +41,9 @@ public class DriverPropertiesHelper {
     public static final String CONNECT_PROTOCOL = "jdbc:";
     public static final String REGISTRED_PROTOCOL = "xdbc:";
 
+    public static final String getJdbcUrl(final String url) {
+        return url.replaceFirst(REGISTRED_PROTOCOL, CONNECT_PROTOCOL);
+    }
 
     public static final boolean hasSubProtocol(final String url) {
         String[] protocol = url.split(":");

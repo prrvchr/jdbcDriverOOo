@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -196,7 +196,7 @@ public final class ResultSetMetaData
         throws SQLException {
         try {
             boolean currency = false;
-            if (!mConnection.getProvider().isIgnoreCurrencyEnabled()) {
+            if (!mConnection.getProvider().getSQLQuery().isIgnoreCurrencyEnabled()) {
                 currency = mMetadata.isCurrency(index);
             }
             return currency;

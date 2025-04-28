@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -426,8 +426,8 @@ public abstract class StatementMain
             int resource;
             java.sql.ResultSet result = null;
             DriverProvider provider = mConnection.getProvider();
-            String command = provider.getAutoRetrievingStatement();
-            if (provider.isAutoRetrievingEnabled() && command != null) {
+            String command = provider.getSQLQuery().getAutoRetrievingStatement();
+            if (provider.getSQLQuery().isAutoRetrievingEnabled() && command != null) {
                 if (command.isBlank()) {
                     result = getJdbcStatement().getGeneratedKeys();
                 } else {

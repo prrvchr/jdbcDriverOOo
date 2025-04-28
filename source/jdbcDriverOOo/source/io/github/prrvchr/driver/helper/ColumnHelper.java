@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -210,7 +210,7 @@ public class ColumnHelper {
                 ExtraColumnInfo columnInfo = new ExtraColumnInfo();
                 columnInfo.mIsAutoIncrement = metadata.isAutoIncrement(i);
                 boolean iscurrency = metadata.isCurrency(i);
-                if (provider.isIgnoreCurrencyEnabled()) {
+                if (provider.getSQLQuery().isIgnoreCurrencyEnabled()) {
                     iscurrency = false;
                 }
                 columnInfo.mIsCurrency = iscurrency;

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -201,13 +201,12 @@ public abstract class TableSuper
         String oldname = oldcolumn.getName();
         boolean autoincrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
         int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, autoincrement);
-        System.out.println("TableSuper.alterColumn() flags " + flags);
 
         // XXX: Identity or Type have been changed?
         // XXX: Identity switching is only allowed if the underlying driver supports it.
         // XXX: Changing column type is only allowed if the underlying driver supports it.
-        if (!supportColumnIdentityChange(provider, flags) ||
-            !supportColumnTypeChange(provider, flags)) {
+        if (TableHelper.hasColumnIdentityChanged(flags) && !supportColumnIdentityChange(provider) ||
+            TableHelper.hasColumnTypeChanged(flags) && !supportColumnTypeChange(provider)) {
             int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
@@ -219,16 +218,14 @@ public abstract class TableSuper
         }
     }
 
-    private boolean supportColumnIdentityChange(DriverProvider provider, int flags) {
-        return TableHelper.hasColumnIdentityChanged(flags) &&
-               (provider.getDDLQuery().supportsAlterIdentity() ||
-               provider.getDDLQuery().hasAlterColumnCommand());
+    private boolean supportColumnIdentityChange(DriverProvider provider) {
+        return provider.getDDLQuery().supportsAlterIdentity() ||
+               provider.getDDLQuery().hasAlterColumnCommand();
     }
 
-    private boolean supportColumnTypeChange(DriverProvider provider, int flags) {
-        return TableHelper.hasColumnTypeChanged(flags) &&
-               (provider.getDDLQuery().hasAlterColumnTypeCommand() ||
-               provider.getDDLQuery().hasAlterColumnCommand());
+    private boolean supportColumnTypeChange(DriverProvider provider) {
+        return provider.getDDLQuery().hasAlterColumnTypeCommand() ||
+               provider.getDDLQuery().hasAlterColumnCommand();
     }
 
     private int alterColumn(DriverProvider provider,
@@ -519,6 +516,7 @@ public abstract class TableSuper
                 mKeys.refill(keys);
             }
         } catch (java.sql.SQLException | ElementExistException e) {
+            System.out.println("TableSuper.refreshKeys() ERROR: " + UnoHelper.getStackTrace(e));
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }

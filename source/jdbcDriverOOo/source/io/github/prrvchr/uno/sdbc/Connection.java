@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -26,6 +26,8 @@
 package io.github.prrvchr.uno.sdbc;
 
 
+import java.util.Set;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.XPreparedStatement;
@@ -47,8 +49,9 @@ public final class Connection
     protected Connection(XComponentContext ctx,
                          DriverProvider provider,
                          String url,
-                         PropertyValue[] info) {
-        super(ctx, SERVICE, SERVICES, provider, url, info);
+                         PropertyValue[] info,
+                         Set<String> properties) {
+        super(ctx, SERVICE, SERVICES, provider, url, info, properties);
         System.out.println("sdbc.Connection() *************************");
     }
 
@@ -59,7 +62,7 @@ public final class Connection
         return super.getLogger();
     }
 
-    protected XStatement _getStatement() {
+    protected XStatement getStatement() {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_STATEMENT);
         Statement statement = new Statement(this);
         getStatements().put(statement, statement);
@@ -69,7 +72,7 @@ public final class Connection
         return statement;
     }
 
-    protected XPreparedStatement _getPreparedStatement(String sql) {
+    protected XPreparedStatement getPreparedStatement(String sql) {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
@@ -79,7 +82,7 @@ public final class Connection
         return statement;
     }
 
-    protected XPreparedStatement _getCallableStatement(String sql) {
+    protected XPreparedStatement getCallableStatement(String sql) {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);

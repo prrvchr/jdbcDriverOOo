@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -38,23 +38,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.TreeMap;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdb.XOfficeDatabaseDocument;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.Privilege;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
 import io.github.prrvchr.driver.helper.DBException;
-import io.github.prrvchr.driver.helper.DBTools;
 import io.github.prrvchr.driver.helper.GeneratedKeys;
 import io.github.prrvchr.driver.metadata.TableTypesResultSet;
-import io.github.prrvchr.driver.metadata.TypeInfoResultSet;
-import io.github.prrvchr.driver.metadata.TypeInfoRows;
 import io.github.prrvchr.driver.query.DCLQuery;
 import io.github.prrvchr.driver.query.DDLQuery;
 import io.github.prrvchr.driver.query.SQLQuery;
@@ -64,7 +58,6 @@ import io.github.prrvchr.driver.rowset.RowHelper;
 import io.github.prrvchr.driver.rowset.RowTable;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
@@ -79,19 +72,14 @@ public class DriverProvider {
 
     private final boolean mWarnings = true;
     private String mSubProtocol;
-    private boolean mShowsystem;
-    private boolean mUsebookmark;
-    private boolean mSqlmode;
     private PropertyValue[] mInfos;
     private java.sql.Statement mStatement = null;
-    private XOfficeDatabaseDocument mDocument = null;
-
-    private Boolean mIgnoreDriverPrivileges = null;
 
     // XXX: Default setting for ResultSet
     private boolean mUseSQLDelete = false;
     private boolean mUseSQLInsert = false;
     private boolean mUseSQLUpdate = false;
+
     private Boolean mInsertVisibleInsensitive;
     private Boolean mInsertVisibleSensitive;
     private Boolean mDeleteVisibleInsensitive;
@@ -112,20 +100,10 @@ public class DriverProvider {
 
     private boolean mSupportsTransactions = true;
     private boolean mIsCatalogAtStart = true;
-    private String mSuffix = "";
+
     private String mCatalogSeparator = "";
     private String mIdentifierQuoteString = "";
-    private String mAutoIncrementCreation = "";
-    private boolean mAddIndexAppendix = false;
-    private boolean mIsAutoRetrievingEnabled = false;
-    private String mAutoRetrievingStatement = "";
-    private boolean mIgnoreCurrency = false;
 
-    private Object[] mTypeInfoSettings = null;
-    private List<String> mPrivilegeNames = null;
-    private List<Integer> mPrivilegeValues = null;
-    private TypeInfoRows mTypeInfoRows = null;
-    private Map<String, String> mTableTypes = null;
     private List<ApiLevel> mSupportedAPILevels = List.of(ApiLevel.COM_SUN_STAR_SDBC,
                                                          ApiLevel.COM_SUN_STAR_SDBCX,
                                                          ApiLevel.COM_SUN_STAR_SDB);
@@ -138,73 +116,59 @@ public class DriverProvider {
                           final XHierarchicalNameAccess config,
                           final String url,
                           final PropertyValue[] infos,
-                          ApiLevel level)
+                          final Properties properties,
+                          final ApiLevel level)
         throws SQLException {
         System.out.println("jdbcdriver.DriverProvider() 1");
-        String location = url.replaceFirst(DriverPropertiesHelper.REGISTRED_PROTOCOL,
-                                           DriverPropertiesHelper.CONNECT_PROTOCOL);
-        DriverManagerHelper.isBootloaderOk();
+        String location = DriverPropertiesHelper.getJdbcUrl(url);
         try {
-
+            mSubProtocol = DriverPropertiesHelper.getSubProtocol(url);
             if (!DriverManagerHelper.isDriverRegistered(location)) {
+                DriverManagerHelper.registerDriver(context, source, driver, logger, mSubProtocol, infos);
                 System.out.println("jdbcdriver.DriverProvider() 2");
-                DriverManagerHelper.registerDriver(context, source, driver, logger, url, infos);
             }
-            mSubProtocol = url.split(":")[1];
-            // XXX: SQLCommandSuffix is needed for building query from sql command.
-            mSuffix = DriverPropertiesHelper.getConfigStringProperty(driver, mSubProtocol, "SQLCommandSuffix", mSuffix);
+            // XXX: It is the provider who holds the connection log
             mLogger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
 
             mInfos = infos;
 
             setDriverProperties(driver);
 
-            mShowsystem = UnoHelper.getConfigurationOption(config, "ShowSystemTable", false);
-            mUsebookmark = UnoHelper.getConfigurationOption(config, "UseBookmark", true);
-            mSqlmode = UnoHelper.getConfigurationOption(config, "SQLMode", false);
             System.out.println("jdbcdriver.DriverProvider() 3");
 
             setSystemProperties(logger, driver, infos);
-            String newUrl = getConnectionUrl(logger, driver, infos, location);
-            System.out.println("jdbcdriver.DriverProvider() 4 new Url: " + newUrl);
 
-            java.sql.Connection connection = DriverManager.getConnection(newUrl, getJdbcConnectionProperties(infos));
-            System.out.println("jdbcdriver.DriverProvider() 5");
+            java.sql.Connection connection = DriverManager.getConnection(location, properties);
+            System.out.println("jdbcdriver.DriverProvider() 4");
 
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
-            setConnectionMetaData(driver, metadata);
-            Object[] privileges = setInfoProperties(infos, metadata);
-            setPrivileges(privileges);
+            boolean generatedKeys = metadata.supportsGetGeneratedKeys();
+            String identifierQuote = metadata.getIdentifierQuoteString();
+            setConnectionMetaData(driver, metadata, identifierQuote);
 
             switch (level.service()) {
                 case "com.sun.star.sdb":
-                    mSQLConfig = new DCLQuery(driver, mSubProtocol, mIdentifierQuoteString, privileges);
+                    mSQLConfig = new DCLQuery(driver, infos, generatedKeys, mSubProtocol, identifierQuote);
                     break;
                 case "com.sun.star.sdbcx":
-                    mSQLConfig = new DDLQuery(driver, mSubProtocol, mIdentifierQuoteString);
+                    mSQLConfig = new DDLQuery(driver, infos, generatedKeys, mSubProtocol, identifierQuote);
                     break;
                 case "com.sun.star.sdbc":
-                    mSQLConfig = new SQLQuery(driver, mSubProtocol, mIdentifierQuoteString);
+                    mSQLConfig = new SQLQuery(driver, infos, generatedKeys, mSubProtocol, identifierQuote);
                     break;
             }
-            if (mIgnoreDriverPrivileges == null) {
-                mIgnoreDriverPrivileges = SQLQuery.ignoreDriverPrivileges(driver, mSubProtocol);
-            }
+
             // XXX: We do not keep the connection but the statement
             // XXX: which allows us to find the connection if necessary.
             mStatement = connection.createStatement();
-            System.out.println("jdbcdriver.DriverProvider() 6 **********************************************");
-        } catch (java.sql.SQLException e) {
+            System.out.println("jdbcdriver.DriverProvider() 5 **********************************************");
+        } catch (Throwable e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             System.out.println("jdbcdriver.DriverProvider() ERROR: "  + sw.toString());
             int resource = Resources.STR_LOG_NO_SYSTEM_CONNECTION;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, location);
             throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
-        } catch (Exception e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            System.out.println("jdbcdriver.DriverProvider() ERROR: "  + sw.toString());
         }
     }
 
@@ -229,7 +193,8 @@ public class DriverProvider {
     }
 
     private void setConnectionMetaData(final XHierarchicalNameAccess driver,
-                                       final java.sql.DatabaseMetaData metadata)
+                                       final java.sql.DatabaseMetaData metadata,
+                                       final String identifierQuote)
             throws java.sql.SQLException {
         // XXX: We need to cache some metadata setting
         mCatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
@@ -242,17 +207,11 @@ public class DriverProvider {
         mSchemasInProcedureCalls = metadata.supportsSchemasInProcedureCalls();
         mCatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
         mSchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
-
         mSupportsTransactions = metadata.supportsTransactions() &&
                                 getDriverBooleanProperty(driver, "SupportTransaction", true);
         mIsCatalogAtStart = metadata.isCatalogAtStart();
         mCatalogSeparator = metadata.getCatalogSeparator();
-        mIdentifierQuoteString = DriverPropertiesHelper.getConfigStringProperty(driver, mSubProtocol,
-                                                                                "IdentifierQuoteString",
-                                                                                metadata.getIdentifierQuoteString());
-        System.out.println("DriverProvider() 1 IdentifierQuoteString: '" + mIdentifierQuoteString + "'");
-
-        
+        mIdentifierQuoteString = identifierQuote;
     }
 
     public ConnectionLog getLogger() {
@@ -276,13 +235,9 @@ public class DriverProvider {
         return true;
     }
 
-    public boolean useBookmark() {
-        return mUsebookmark;
-    }
-
     public boolean useSQLMode(final java.sql.ResultSet result)
         throws java.sql.SQLException {
-        return mSqlmode || !isResultSetUpdatable(result);
+        return mSQLConfig.isSQLMode() || !isResultSetUpdatable(result);
     }
 
     public boolean useSQLDelete() {
@@ -302,8 +257,8 @@ public class DriverProvider {
                                  final BaseRow row)
         throws java.sql.SQLException {
         System.out.println("DriverProvider.setGeneratedKeys() 1");
-        String command = getAutoRetrievingStatement();
-        if (!isAutoRetrievingEnabled() || command == null) {
+        String command = mSQLConfig.getAutoRetrievingStatement();
+        if (!mSQLConfig.isAutoRetrievingEnabled() || command == null) {
             System.out.println("DriverProvider.setGeneratedKeys() 2");
             return;
         }
@@ -362,24 +317,8 @@ public class DriverProvider {
         return identifier;
     }
 
-    public boolean hasDocument() {
-        return mDocument != null;
-    }
-
     public boolean supportService(final ApiLevel service) {
         return mSupportedAPILevels.contains(service);
-    }
-
-    public XOfficeDatabaseDocument getDocument() {
-        return mDocument;
-    }
-
-    public String getAutoIncrementCreation() {
-        return mAutoIncrementCreation;
-    }
-
-    public boolean isIgnoreCurrencyEnabled() {
-        return mIgnoreCurrency;
     }
 
     public SQLQuery getSQLQuery() {
@@ -400,9 +339,9 @@ public class DriverProvider {
 
     public String[] getTableTypes() {
         String[] tabletypes = null;
-        if (!mShowsystem) {
+        if (!mSQLConfig.showSystemTable()) {
             List<String> types = new ArrayList<>(List.of("TABLE", "VIEW"));
-            if (hasTableTypesSettings()) {
+            if (mSQLConfig.hasTableTypesSettings()) {
                 setTableTypes(types);
             }
             tabletypes = types.toArray(new String[0]);
@@ -413,8 +352,8 @@ public class DriverProvider {
     private void setTableTypes(List<String> types) {
         for (int i = 0; i < types.size(); i++) {
             String type = types.get(i);
-            if (mTableTypes.containsValue(type)) {
-                for (Entry<String, String> entry : mTableTypes.entrySet()) {
+            if (mSQLConfig.getTableTypesSettings().containsValue(type)) {
+                for (Entry<String, String> entry : mSQLConfig.getTableTypesSettings().entrySet()) {
                     if (entry.getValue().equals(type)) {
                         types.set(i, entry.getKey());
                         break;
@@ -430,52 +369,10 @@ public class DriverProvider {
 
     public String getTableType(final String type) {
         String tabletype = type;
-        if (hasTableTypesSettings() && mTableTypes.containsKey(type)) {
-            tabletype = mTableTypes.get(type);
+        if (mSQLConfig.hasTableTypesSettings() && mSQLConfig.getTableTypesSettings().containsKey(type)) {
+            tabletype = mSQLConfig.getTableTypesSettings().get(type);
         }
         return tabletype;
-    }
-
-    public String[] getPrivileges() {
-        return mPrivilegeNames.toArray(new String[0]);
-    }
-
-    public int getPrivileges(final List<String> privileges) {
-        int flags = 0;
-        for (String privilege : privileges) {
-            flags |= getPrivilege(privilege);
-        }
-        return flags;
-    }
-
-    public boolean hasPrivilege(final String privilege) {
-        return mPrivilegeNames.contains(privilege);
-    }
-
-    public int getPrivilege(final String privilege) {
-        int flag = 0;
-        if (mPrivilegeNames.contains(privilege)) {
-            flag = mPrivilegeValues.get(mPrivilegeNames.indexOf(privilege));
-        }
-        return flag;
-    }
-
-    public int getMockPrivileges() {
-        int privileges = 0;
-        for (Integer value : mPrivilegeValues) {
-            privileges += value;
-        }
-        return privileges;
-    }
-
-    public String[] getPrivileges(final int privilege) {
-        List<String> flags = new ArrayList<>();
-        for (int value: mPrivilegeValues) {
-            if ((privilege & value) == value) {
-                flags.add(mPrivilegeNames.get(mPrivilegeValues.indexOf(value)));
-            }
-        }
-        return flags.toArray(new String[0]);
     }
 
     public boolean acceptsURL(final String url) {
@@ -564,52 +461,25 @@ public class DriverProvider {
     public boolean supportsTransactions() {
         return mSupportsTransactions;
     }
+
     public boolean isCatalogAtStart() {
         return mIsCatalogAtStart;
     }
-    public boolean useBookmarks(final boolean use) {
-        System.out.println("DriverProvider.useBookmarks() 1 use: " + use + " - UseBookmark: " + mUsebookmark);
-        return use && mUsebookmark;
-    }
+
     public String getCatalogSeparator() {
         return mCatalogSeparator;
     }
+
     public String getIdentifierQuoteString() {
         return mIdentifierQuoteString;
     }
 
     // connection infos cache data
-    public boolean isAutoRetrievingEnabled() {
-        return mIsAutoRetrievingEnabled;
-    }
-
-    public String getAutoRetrievingStatement() {
-        return mAutoRetrievingStatement;
-    }
-
-    public boolean ignoreDriverPrivileges() {
-        boolean ignorePrivileges = true;
-        if (mIgnoreDriverPrivileges != null) {
-            ignorePrivileges = mIgnoreDriverPrivileges;
-        } else {
-            ignorePrivileges = mSQLConfig.ignoreDriverPrivileges();
-        }
-        return ignorePrivileges;
-    }
-
-    public boolean addIndexAppendix() {
-        return mAddIndexAppendix;
-    }
-
-    public boolean hasTableTypesSettings() {
-        return mTableTypes != null;
-    }
-
     public java.sql.ResultSet getTableTypesResultSet(final java.sql.DatabaseMetaData metadata)
         throws java.sql.SQLException {
         java.sql.ResultSet result = metadata.getTableTypes();
-        if (hasTableTypesSettings()) {
-            result = new TableTypesResultSet(result, mTableTypes);
+        if (mSQLConfig.hasTableTypesSettings()) {
+            result = new TableTypesResultSet(result, mSQLConfig.getTableTypesSettings());
         }
         return result;
     }
@@ -621,19 +491,12 @@ public class DriverProvider {
 
     public java.sql.ResultSet getTypeInfoResultSet(final java.sql.DatabaseMetaData metadata)
         throws java.sql.SQLException {
-        java.sql.ResultSet result = metadata.getTypeInfo();
-        if (mTypeInfoSettings != null) {
-            if (mTypeInfoRows == null) {
-                mTypeInfoRows = new TypeInfoRows(mTypeInfoSettings);
-            }
-            result = new TypeInfoResultSet(result, mTypeInfoRows);
-        }
-        return result;
+        return mSQLConfig.getTypeInfoResultSet(metadata);
     }
 
     public int getGeneratedKeysOption() {
         int keyOption;
-        if (isAutoRetrievingEnabled()) {
+        if (mSQLConfig.isAutoRetrievingEnabled()) {
             keyOption = java.sql.Statement.RETURN_GENERATED_KEYS;
         } else {
             keyOption = java.sql.Statement.NO_GENERATED_KEYS;
@@ -660,110 +523,6 @@ public class DriverProvider {
         }
     }
 
-    private String getConnectionUrl(final ResourceBasedEventLogger logger,
-                                    final XHierarchicalNameAccess driver,
-                                    final PropertyValue[] infos,
-                                    final String url) {
-        String newUrl = new String(url);
-        String suffix = getUrlSuffix(driver, infos);
-        if (suffix != null) {
-            newUrl += suffix;
-            logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECT_WITH_URL, newUrl);
-        }
-        return newUrl;
-    }
-
-    public Properties getJdbcConnectionProperties(final PropertyValue[] infos) {
-        Properties properties = new Properties();
-        for (PropertyValue info : infos) {
-            String property = info.Name;
-            if (isLibreOfficeProperty(property) || isInternalProperty(property)) {
-                continue;
-            }
-            System.out.println("DriverProvider.getJdbcConnectionProperties() ********************* Name: " + property);
-            properties.setProperty(property, String.format("%s", info.Value));
-            String msg = "DriverProvider.getJdbcConnectionProperties() ********************* Value: ";
-            System.out.println(msg + info.Value);
-        }
-        return properties;
-    }
-
-    private boolean isLibreOfficeProperty(final String property) {
-        // XXX: These are properties used internally by LibreOffice,
-        // XXX: and should not be passed to the JDBC driver
-        // XXX: (which probably does not know anything about them anyway).
-        // XXX: see: connectivity/source/drivers/jdbc/tools.cxx createStringPropertyArray()
-        boolean is = false;
-        switch (property) {
-            case "JavaDriverClass":
-            case "JavaDriverClassPath":
-            case "SystemProperties":
-            case "CharSet":
-            case "AppendTableAliasName":
-            case "AppendTableAliasInSelect":
-            case "DisplayVersionColumns":
-            case "GeneratedValues":
-            case "UseIndexDirectionKeyword":
-            case "UseKeywordAsBeforeAlias":
-            case "AddIndexAppendix":
-            case "FormsCheckRequiredFields":
-            case "GenerateASBeforeCorrelationName":
-            case "EscapeDateTime":
-            case "ParameterNameSubstitution":
-            case "IsPasswordRequired":
-            case "IsAutoRetrievingEnabled":
-            case "AutoRetrievingStatement":
-            case "UseCatalogInSelect":
-            case "UseSchemaInSelect":
-            case "AutoIncrementCreation":
-            case "Extension":
-            case "NoNameLengthLimit":
-            case "EnableSQL92Check":
-            case "EnableOuterJoinEscape":
-            case "BooleanComparisonMode":
-            case "IgnoreCurrency":
-            case "TypeInfoSettings":
-            case "IgnoreDriverPrivileges":
-            case "ImplicitCatalogRestriction":
-            case "ImplicitSchemaRestriction":
-            case "SupportsTableCreation":
-            case "UseJava":
-            case "Authentication":
-            case "PreferDosLikeLineEnds":
-            case "PrimaryKeySupport":
-            case "RespectDriverResultSetType":
-                is = true;
-                break;
-            default:
-                is = false;
-        }
-        return is;
-    }
-
-    private boolean isInternalProperty(final String property) {
-        // XXX: These are properties used internally by jdbcDriverOOo,
-        // XXX: and should not be passed to the JDBC driver
-        // XXX: (which probably does not know anything about them anyway).
-        boolean is = false;
-        switch (property) {
-            case "TablePrivilegesSettings":
-            case "RowVersionCreation":
-            case "LogLevel":
-            case "InMemoryDataBase":
-            case "Type":
-            case "Url":
-            case "ApiLevel":
-            case "ShowSystemTable":
-            case "UseBookmark":
-            case "SQLMode":
-                is = true;
-                break;
-            default:
-                is = false;
-        }
-        return is;
-    }
-
     private void setSystemProperties(final ResourceBasedEventLogger logger,
                                      final XHierarchicalNameAccess config,
                                      final PropertyValue[] infos)
@@ -786,16 +545,6 @@ public class DriverProvider {
         }
     }
 
-    private String getUrlSuffix(final XHierarchicalNameAccess config,
-                                final PropertyValue[] infos) {
-        String value = (String) DriverPropertiesHelper.getConfigMetaData(config, infos, mSubProtocol,
-                                                                         "UrlSuffix", null);
-        if (value != null) {
-            value = getFormatedPropertyValue(config, infos, value);
-        }
-        return value;
-    }
-
     private String getFormatedPropertyValue(final XHierarchicalNameAccess config,
                                           final PropertyValue[] infos,
                                           final String template) {
@@ -811,138 +560,6 @@ public class DriverProvider {
     public DatabaseMetaDataBase getDatabaseMetaData(final ConnectionBase connection)
         throws java.sql.SQLException {
         return new DatabaseMetaData(connection);
-    }
-
-    private Object[] setInfoProperties(final PropertyValue[] infos,
-                                       final java.sql.DatabaseMetaData metadata)
-        throws java.sql.SQLException {
-        Object[] privileges = null;
-        boolean autoretrieving = getAutoRetrieving(metadata, infos);
-        for (PropertyValue info : infos) {
-            switch (info.Name) {
-                case "Document":
-                    mDocument = (XOfficeDatabaseDocument) info.Value;
-                    break;
-                case "TypeInfoSettings":
-                    mTypeInfoSettings = (Object[]) info.Value;
-                    break;
-                case "TableTypesSettings":
-                    parseTableTypes((Object[]) info.Value);
-                    break;
-                case "TablePrivilegesSettings":
-                    privileges = (Object[]) info.Value;
-                    break;
-                case "AutoIncrementCreation":
-                    mAutoIncrementCreation = (String) info.Value;
-                    break;
-                case "IgnoreDriverPrivileges":
-                    mIgnoreDriverPrivileges = (Boolean) info.Value;
-                    break;
-                case "IgnoreCurrency":
-                    mIgnoreCurrency = (boolean) info.Value;
-                    break;
-                case "AddIndexAppendix":
-                    mAddIndexAppendix = (boolean) info.Value;
-                    break;
-                case "AutoRetrievingStatement":
-                    if (autoretrieving) {
-                        mAutoRetrievingStatement = (String) info.Value;
-                    }
-                    break;
-                case "IsAutoRetrievingEnabled":
-                    if (autoretrieving) {
-                        mIsAutoRetrievingEnabled = (boolean) info.Value;
-                    }
-                    break;
-                case "ShowSystemTable":
-                    mShowsystem = (boolean) info.Value;
-                    break;
-                case "UseBookmark":
-                    mUsebookmark = (boolean) info.Value;
-                    break;
-                case "SQLMode":
-                    mSqlmode = (boolean) info.Value;
-                    break;
-            }
-        }
-        return privileges;
-    }
-    private void setPrivileges(final Object[] privileges) {
-        boolean parsed = false;
-        if (privileges != null) {
-            parsed = parsePrivileges(privileges);
-        }
-        if (!parsed) {
-            setDefaultPrivileges();
-        }
-    }
-
-    private void parseTableTypes(final Object[] infos) {
-        Map<String, String> types = null;
-        try {
-            types = new TreeMap<>();
-            int count = DBTools.getEvenLength(infos.length);
-            for (int i = 0; i < count; i += 2) {
-                types.put (infos[i].toString(), infos[i + 1].toString());
-            }
-            mTableTypes = types;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean parsePrivileges(final Object[] infos) {
-        boolean parsed = false;
-        try {
-            mPrivilegeNames = new ArrayList<>();
-            mPrivilegeValues  = new ArrayList<>();
-            int count = DBTools.getEvenLength(infos.length);
-            for (int i = 0; i < count; i += 2) {
-                mPrivilegeNames.add(infos[i].toString());
-                mPrivilegeValues.add(Integer.parseInt(infos[i + 1].toString()));
-            }
-            parsed = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return parsed;
-    }
-
-    private void setDefaultPrivileges() {
-        mPrivilegeNames = List.of("SELECT",
-                                   "INSERT",
-                                   "UPDATE",
-                                   "DELETE",
-                                   "READ",
-                                   "CREATE",
-                                   "ALTER",
-                                   "REFERENCES",
-                                   "DROP");
-        mPrivilegeValues = List.of(Privilege.SELECT,
-                                    Privilege.INSERT,
-                                    Privilege.UPDATE,
-                                    Privilege.DELETE,
-                                    Privilege.READ,
-                                    Privilege.CREATE,
-                                    Privilege.ALTER,
-                                    Privilege.REFERENCE,
-                                    Privilege.DROP);
-    }
-
-    private boolean getAutoRetrieving(final java.sql.DatabaseMetaData metadata,
-                                      final PropertyValue[] infos)
-        throws java.sql.SQLException {
-        Boolean support = false;
-        support = (Boolean) DriverPropertiesHelper.getInfosProperty(infos, "IsAutoRetrievingEnabled", null);
-        // FIXME: If IsAutoRetrievingEnabled is not set, we retrieve the option from the underlying metadata driver.
-        // FIXME: This allows you to correct possible failures of certain drivers (ie: like for Derby)
-        System.out.println("DriverProvider.getAutoRetrieving() 1 support: " + support);
-        if (support == null) {
-            support = metadata.supportsGetGeneratedKeys();
-        }
-        System.out.println("DriverProvider.getAutoRetrieving() 2 support: " + metadata.supportsGetGeneratedKeys());
-        System.out.println("DriverProvider.getAutoRetrieving() 3 support: " + support);
-        return support;
     }
 
     public boolean supportsCatalogsInTableDefinitions() {
@@ -1005,13 +622,6 @@ public class DriverProvider {
         }
         System.out.println("DriverProvider.getSupportedAPILevels() Service: " + services.size());
         return services;
-    }
-
-    public String getSQLQuery(String command) {
-        if (!mSuffix.isBlank()) {
-            command += mSuffix;
-        }
-        return command;
     }
 
     private Boolean getDriverBooleanProperty(final XHierarchicalNameAccess driver,

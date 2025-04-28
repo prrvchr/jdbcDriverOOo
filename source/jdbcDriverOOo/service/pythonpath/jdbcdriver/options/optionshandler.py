@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -29,11 +29,7 @@
 
 import unohelper
 
-from com.sun.star.awt import XContainerWindowEventHandler
 from com.sun.star.awt.tab import XTabPageContainerListener
-
-from com.sun.star.awt.Key import DELETE
-from com.sun.star.awt.Key import RETURN
 
 from com.sun.star.lang import XEventListener
 
@@ -67,61 +63,4 @@ class TabListener(unohelper.Base,
 # com.sun.star.lang.XEventListener
     def disposing(self, source):
         pass
-
-
-class TabHandler(unohelper.Base,
-                 XContainerWindowEventHandler):
-    def __init__(self, manager):
-        self._manager = manager
-
-    # XContainerWindowEventHandler
-    def callHandlerMethod(self, window, event, method):
-        try:
-            handled = False
-            if method == 'SetDriver':
-                self._manager.setDriver(event.Source.getSelectedItem())
-                handled = True
-            elif method == 'EditDriver':
-                self._manager.editDriver()
-                handled = True
-            elif method == 'AddDriver':
-                self._manager.addDriver()
-                handled = True
-            elif method == 'RemoveDriver':
-                self._manager.removeDriver()
-                handled = True
-            elif method == 'Confirm':
-                self._manager.confirmDriver()
-                handled = True
-            elif method == 'Cancel':
-                self._manager.cancelDriver()
-                handled = True
-            elif method == 'UpdateDriverName':
-                self._manager.updateDriverName(event.Source.Text)
-                handled = True
-            elif method == 'UpdateArchive':
-                self._manager.updateArchive()
-                handled = True
-            elif method == 'ViewArchive':
-                self._manager.viewArchive()
-                handled = True
-            elif method == 'SetGroup':
-                self._manager.setGroup(event.Source.getSelectedItem())
-                handled = True
-            return handled
-        except Exception as e:
-            msg = "TabHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
-            print(msg)
-
-    def getSupportedMethodNames(self):
-        return ('SetDriver',
-                'EditDriver'
-                'AddDriver',
-                'RemoveDriver',
-                'Confirm',
-                'Cancel',
-                'UpdateDriverName',
-                'UpdateArchive',
-                'ViewArchive',
-                'SetGroup')
 

@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -84,8 +84,8 @@ public abstract class Role
     public int getGrantablePrivileges(String name, int type)
         throws SQLException {
         int privileges = 0;
-        if (mProvider.ignoreDriverPrivileges()) {
-            privileges = mProvider.getMockPrivileges();
+        if (mProvider.getSQLQuery().ignoreDriverPrivileges()) {
+            privileges = mProvider.getDCLQuery().getMockPrivileges();
         } else if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
                 XNameAccess tables = mConnection.getTables();
@@ -99,7 +99,7 @@ public abstract class Role
                         privileges = PrivilegesHelper.getGrantablePrivileges(mProvider, getName(), table, rule);
                     }
                 } else {
-                    privileges = mProvider.getMockPrivileges();
+                    privileges = mProvider.getDCLQuery().getMockPrivileges();
                 }
             } catch (java.sql.SQLException e) {
                 throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -122,7 +122,7 @@ public abstract class Role
                     NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
                     privileges = PrivilegesHelper.getTablePrivileges(mProvider, getName(), table, rule);
                 } else {
-                    privileges = mProvider.getMockPrivileges();
+                    privileges = mProvider.getDCLQuery().getMockPrivileges();
                 }
             } catch (java.sql.SQLException e) {
                 throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -138,7 +138,7 @@ public abstract class Role
         throws SQLException {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
-            String privileges = String.join(", ", mProvider.getPrivileges(privilege));
+            String privileges = String.join(", ", mProvider.getDCLQuery().getPrivileges(privilege));
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
                 NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
@@ -175,7 +175,7 @@ public abstract class Role
         throws SQLException {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
-            String privileges = String.join(", ", mProvider.getPrivileges(privilege));
+            String privileges = String.join(", ", mProvider.getDCLQuery().getPrivileges(privilege));
             try {
                 XNameAccess tables = mConnection.getTables();
                 if (tables.hasByName(name)) {

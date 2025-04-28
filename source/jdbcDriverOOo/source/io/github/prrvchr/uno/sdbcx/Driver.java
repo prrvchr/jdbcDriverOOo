@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -24,6 +24,8 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
 package io.github.prrvchr.uno.sdbcx;
+
+import java.util.Set;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.Exception;
@@ -52,8 +54,9 @@ public final class Driver
     protected ConnectionBase getConnection(XComponentContext ctx,
                                            DriverProvider provider,
                                            String url,
-                                           PropertyValue[] info) {
-        return new Connection(ctx, provider, url, info);
+                                           PropertyValue[] info,
+                                           Set<String> properties) {
+        return new Connection(ctx, provider, url, info, properties);
     }
 
 }

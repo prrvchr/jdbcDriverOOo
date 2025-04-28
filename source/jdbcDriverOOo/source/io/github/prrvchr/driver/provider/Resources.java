@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -109,8 +109,9 @@ public class Resources {
     public static final int STR_LOG_DRIVER_SETTING_SYSTEM_PROPERTIES_ERROR                  = LOGGER_BASE +   20;
     public static final int STR_LOG_NO_SYSTEM_CONNECTION                                    = LOGGER_BASE +   21;
     public static final int STR_LOG_CONFIGURATION_LOADING_ERROR                             = LOGGER_BASE +   22;
-    public static final int STR_LOG_GOT_JDBC_CONNECTION                                     = LOGGER_BASE +  100;
-    public static final int STR_LOG_SHUTDOWN_CONNECTION                                     = LOGGER_BASE +  101;
+
+    public static final int STR_LOG_CONNECTION_ESTABLISHED                                  = LOGGER_BASE +  100;
+    public static final int STR_LOG_CONNECTION_SHUTDOWN                                     = LOGGER_BASE +  101;
 
     // io.github.prrvchr.uno.sdbc.ConnectionMain:
     public static final int STR_LOG_CREATE_DATABASE_METADATA                                = LOGGER_BASE +  200;

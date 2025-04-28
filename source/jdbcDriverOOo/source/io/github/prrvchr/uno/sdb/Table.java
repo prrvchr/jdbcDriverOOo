@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -216,7 +216,7 @@ public final class Table
                 DriverProvider provider = getConnection().getProvider();
                 int privileges = PrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
                 if (privileges == 0) {
-                    privileges = provider.getMockPrivileges();
+                    privileges = provider.getDCLQuery().getMockPrivileges();
                 }
                 mPrivileges = privileges;
             }

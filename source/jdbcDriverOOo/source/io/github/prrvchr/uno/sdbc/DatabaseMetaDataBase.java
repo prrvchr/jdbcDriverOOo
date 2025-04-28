@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -35,7 +35,6 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
 import io.github.prrvchr.driver.helper.DBException;
-import io.github.prrvchr.driver.helper.DBTools;
 import io.github.prrvchr.driver.helper.PrivilegesHelper;
 import io.github.prrvchr.driver.provider.ConnectionLog;
 import io.github.prrvchr.driver.provider.LoggerObjectType;
@@ -691,12 +690,6 @@ public abstract class DatabaseMetaDataBase
                                                                                      _getPattern(catalog),
                                                                                      _getPattern(schema),
                                                                                      table);
-            DBTools.printResultSet(result);
-            result = PrivilegesHelper.getTablePrivilegesResultSet(mConnection.getProvider(),
-                                                                  mMetadata,
-                                                                  _getPattern(catalog),
-                                                                  _getPattern(schema),
-                                                                  table);
             if (result != null) {
                 resultset = _getResultSet(result, "getTablePrivileges");
             }
@@ -745,7 +738,7 @@ public abstract class DatabaseMetaDataBase
     @Override
     public XResultSet getTypeInfo() throws SQLException {
         try {
-            DBTools.printResultSet(mConnection.getProvider().getTypeInfoResultSet(mMetadata));
+            //DBTools.printResultSet(mConnection.getProvider().getTypeInfoResultSet(mMetadata));
             java.sql.ResultSet resultset = mConnection.getProvider().getTypeInfoResultSet(mMetadata);
             return _getResultSet(resultset, "getTypeInfo");
         } catch (java.sql.SQLException e) {

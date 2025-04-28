@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -223,7 +223,6 @@ public class KeyHelper {
             // XXX: There can only be one primary key per table.
             if (result.next()) {
                 String pk = result.getString(PK_NAME);
-                System.out.println("DBKeyHelper.refreshPrimaryKeys() KeyName: '" + pk + "'");
                 keys.add(getKeyName(pk, table.getTable(), type));
             }
         }
@@ -233,11 +232,11 @@ public class KeyHelper {
                                            DriverProvider provider,
                                            NamedComponents table)
         throws java.sql.SQLException {
+        String previous = "";
+        final int FK_NAME = 12;
         try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(table.getCatalog(),
                                                                                                 table.getSchema(),
                                                                                                 table.getTable())) {
-            String previous = "";
-            final int FK_NAME = 12;
             while (result.next()) {
                 String name = result.getString(FK_NAME);
                 if (!result.wasNull() && !name.equals(previous)) {

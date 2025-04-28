@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -89,7 +89,7 @@ public abstract class ColumnSuper
         properties.put(PropertyIds.AUTOINCREMENTCREATION.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mTable.getConnection().getProvider().getAutoIncrementCreation();
+                    return mTable.getConnection().getProvider().getSQLQuery().getAutoIncrementCreation();
                 },
                 null));
 

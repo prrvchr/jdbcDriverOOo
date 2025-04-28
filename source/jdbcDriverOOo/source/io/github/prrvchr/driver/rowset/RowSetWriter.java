@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -170,7 +170,7 @@ public class RowSetWriter {
     private PreparedStatement getInsertStatement(String query)
         throws SQLException {
         PreparedStatement statement = null;
-        if (mProvider.isAutoRetrievingEnabled()) {
+        if (mProvider.getSQLQuery().isAutoRetrievingEnabled()) {
             statement = mProvider.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         } else {
             statement = mProvider.getConnection().prepareStatement(query);

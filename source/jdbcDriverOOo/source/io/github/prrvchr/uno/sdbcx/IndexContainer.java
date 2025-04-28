@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -183,7 +183,7 @@ public final class IndexContainer
                     XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
                     String column = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
                     String index = provider.enquoteIdentifier(column, isCaseSensitive());
-                    if (!unique && provider.addIndexAppendix()) {
+                    if (!unique && provider.getSQLQuery().addIndexAppendix()) {
                         if (DBTools.getDescriptorBooleanValue(property, PropertyIds.ISASCENDING)) {
                             index += " ASC";
                         } else {

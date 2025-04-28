@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -27,10 +27,6 @@ package io.github.prrvchr.driver.provider;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.lang.module.Configuration;
-import java.lang.module.ModuleDescriptor;
-import java.lang.module.ModuleFinder;
-import java.lang.module.ModuleReference;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -39,16 +35,16 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
-import java.util.ServiceLoader.Provider;
-import java.util.stream.Collectors;
 
 //import com.sun.star.lib.unoloader.UnoClassLoader;
 import com.sun.star.beans.PropertyValue;
@@ -73,51 +69,47 @@ public class DriverManagerHelper {
 
     private static final String DRIVER_CLASS = "JavaDriverClass";
     private static final String DRIVER_CLASS_PATH = "JavaDriverClassPath";
+    private static final String PLUGIN_JAR_PATH = "/plugin/UnoLogger.jar";
     private static final String JAR = "jar";
     private static final String DOT = ".";
     private static final String EXPAND_PROTOCOL = "vnd.sun.star.expand:";
 
-    public static final void setLoggerService(XComponentContext context, String identifier) {
+    public static final void setJavaLoggerService(XComponentContext context, String identifier) {
         try {
-            System.out.println("DriverManagerHelper.setLoggerService() 1");
-            //String path = "VirtualMachine/LoadInstrumentationAgent/Value";
-            //XHierarchicalNameAccess config = UnoHelper.getConfiguration(context, "org.openoffice.Office.Java");
             if (UnoAgent.isSupported()) {
-                String jar = UnoHelper.getPackageLocation(context, identifier) + "/plugin/UnoLogger.jar";
-                System.out.println("DriverManagerHelper.setLoggerService() 2 jar: " + jar);
+                String jar = UnoHelper.getPackageLocation(context, identifier) + PLUGIN_JAR_PATH;
                 // XXX: In order to become the Java logging provider (ie: java.lang.System.Logger)
                 // XXX: it is necessary to add the facade archive to the system bootloader search path.
                 UnoAgent.addToClassPath(jar);
-                System.out.println("DriverManagerHelper.setLoggerService() 3");
                 // XXX: We need to provide the LoggerFinder implementation since
                 // XXX: the archive we added to the system bootloader is just a facade.
                 UnoLoggerFinder.setLoggerFinder(new DriverLoggerFinder(context));
-                System.out.println("DriverManagerHelper.setLoggerService() 4");
-                System.Logger log = System.getLogger("");
-    
-                log.log(System.Logger.Level.DEBUG, "A debug message");
-                log.log(System.Logger.Level.INFO, "Hello world!");
             }
-
-            System.out.println("DriverManagerHelper.setLoggerService() 5");
-            //}
-        } catch (Throwable e) {
-            // XXX Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println("DriverManagerHelper.setLoggerService() 6");
+        } catch (Throwable e) { }
     }
 
-    public static final void isBootloaderOk() {
-        ClassLoader cl = ClassLoader.getSystemClassLoader();
-        System.out.println("DriverManagerHelper.isBootloaderOk() cl Class: " + cl.getClass().getName());
+    public static final Properties getJdbcConnectionProperties(final PropertyValue[] infos) {
+        Properties properties = new Properties();
+        for (PropertyValue info : infos) {
+            String property = info.Name;
+            if (isLibreOfficeProperty(property) || isInternalProperty(property)) {
+                continue;
+            }
+            properties.setProperty(property, String.format("%s", info.Value));
+        }
+        return properties;
     }
 
     public static final boolean isDriverRegistered(final String url) {
         boolean registered = false;
         try {
-            DriverManager.getDriver(url);
-            registered = true;
+            Enumeration<Driver> drivers = DriverManager.getDrivers();
+            while (drivers.hasMoreElements() && !registered) {
+                Driver driver = drivers.nextElement();
+                if (driver.acceptsURL(url)) {
+                    registered = true;
+                }
+            }
         } catch (java.sql.SQLException e) { }
         return registered;
     }
@@ -126,15 +118,14 @@ public class DriverManagerHelper {
                                             final XInterface source,
                                             final XHierarchicalNameAccess config,
                                             final ResourceBasedEventLogger logger,
-                                            final String url,
+                                            final String subProtocol,
                                             final PropertyValue[] info)
         throws SQLException {
-        final String protocol = DriverPropertiesHelper.getSubProtocol(url);
         System.out.println("DriverManagerHelper.registerDriver() 1");
-        final String clazz = (String) DriverPropertiesHelper.getConfigProperties(config, info, protocol,
+        final String clazz = (String) DriverPropertiesHelper.getConfigProperties(config, info, subProtocol,
                                                                                  DRIVER_CLASS, null);
         System.out.println("DriverManagerHelper.registerDriver() 2 Class: " + clazz);
-        final File[] files = getDriverClassFiles(context, source, config, logger, protocol, info, clazz);
+        final File[] files = getDriverClassFiles(context, source, config, logger, subProtocol, info, clazz);
         System.out.println("DriverManagerHelper.registerDriver() 3 Files length: " + files.length);
         registerJdbcDriver(source, logger, files, clazz);
     }
@@ -233,7 +224,6 @@ public class DriverManagerHelper {
         return file;
     }
 
-    @SuppressWarnings("unused")
     private static final void registerJdbcDriver(final XInterface source,
                                                  final ResourceBasedEventLogger logger,
                                                  final File[] files,
@@ -346,46 +336,80 @@ public class DriverManagerHelper {
         return DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
     }
 
-    public static final void setModuleLayer(String url) {
-        System.out.println("DriverManagerHelper.setModuleLayer() 1 url: " + url);
-        Path pluginsDir = Paths.get(url + "/lib");
-
-        // Search for plugins in the plugins directory
-        ModuleFinder pluginsFinder = ModuleFinder.of(pluginsDir);
-
-        // Find all names of all found plugin modules
-        List<String> plugins = pluginsFinder
-                .findAll()
-                .stream()
-                .map(ModuleReference::descriptor)
-                .map(ModuleDescriptor::name)
-                .collect(Collectors.toList());
-        for (String plugin : plugins) {
-            System.out.println("DriverManagerHelper.setModuleLayer() 2 plugin: " + plugin);
+    private static final boolean isLibreOfficeProperty(final String property) {
+        // XXX: These are properties used internally by LibreOffice,
+        // XXX: and should not be passed to the JDBC driver
+        // XXX: (which probably does not know anything about them anyway).
+        // XXX: see: connectivity/source/drivers/jdbc/tools.cxx createStringPropertyArray()
+        boolean is = false;
+        switch (property) {
+            case "JavaDriverClass":
+            case "JavaDriverClassPath":
+            case "SystemProperties":
+            case "CharSet":
+            case "AppendTableAliasName":
+            case "AppendTableAliasInSelect":
+            case "DisplayVersionColumns":
+            case "GeneratedValues":
+            case "UseIndexDirectionKeyword":
+            case "UseKeywordAsBeforeAlias":
+            case "AddIndexAppendix":
+            case "FormsCheckRequiredFields":
+            case "GenerateASBeforeCorrelationName":
+            case "EscapeDateTime":
+            case "ParameterNameSubstitution":
+            case "IsPasswordRequired":
+            case "IsAutoRetrievingEnabled":
+            case "AutoRetrievingStatement":
+            case "UseCatalogInSelect":
+            case "UseSchemaInSelect":
+            case "AutoIncrementCreation":
+            case "Extension":
+            case "NoNameLengthLimit":
+            case "EnableSQL92Check":
+            case "EnableOuterJoinEscape":
+            case "BooleanComparisonMode":
+            case "IgnoreCurrency":
+            case "TypeInfoSettings":
+            case "IgnoreDriverPrivileges":
+            case "ImplicitCatalogRestriction":
+            case "ImplicitSchemaRestriction":
+            case "SupportsTableCreation":
+            case "UseJava":
+            case "Authentication":
+            case "PreferDosLikeLineEnds":
+            case "PrimaryKeySupport":
+            case "RespectDriverResultSetType":
+                is = true;
+                break;
+            default:
+                is = false;
         }
-
-        // Create configuration that will resolve plugin modules
-        // (verify that the graph of modules is correct)
-        Configuration pluginsConfiguration = ModuleLayer
-                .boot()
-                .configuration()
-                .resolve(pluginsFinder, ModuleFinder.of(), plugins);
-
-        // Create a module layer for plugins
-        ModuleLayer layer = ModuleLayer
-                .boot()
-                .defineModulesWithOneLoader(pluginsConfiguration, ClassLoader.getSystemClassLoader());
-
-         // Now you can use the new module layer to find service implementations in it
-        List<System.LoggerFinder> loggers = ServiceLoader
-                .load(layer, System.LoggerFinder.class)
-                .stream()
-                .map(Provider::get)
-                .collect(Collectors.toList());
-
-        for (System.LoggerFinder logger : loggers) {
-            System.out.println("DriverManagerHelper.setModuleLayer() 3 logger: " + logger.getClass().getPackageName());
-        }
-        // Do something with `services
+        return is;
     }
+
+    private static final boolean isInternalProperty(final String property) {
+        // XXX: These are properties used internally by jdbcDriverOOo,
+        // XXX: and should not be passed to the JDBC driver
+        // XXX: (which probably does not know anything about them anyway).
+        boolean is = false;
+        switch (property) {
+            case "TablePrivilegesSettings":
+            case "RowVersionCreation":
+            case "LogLevel":
+            case "InMemoryDataBase":
+            case "Type":
+            case "Url":
+            case "ApiLevel":
+            case "ShowSystemTable":
+            case "UseBookmark":
+            case "SQLMode":
+                is = true;
+                break;
+            default:
+                is = false;
+        }
+        return is;
+    }
+
 }

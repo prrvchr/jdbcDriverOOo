@@ -1,7 +1,7 @@
 /*
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -69,9 +69,9 @@ public abstract class PreparedStatementSuper
                 value -> {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS,
                                        value.toString());
-                    boolean usebookmark = getConnectionInternal().getProvider().useBookmarks((boolean) value);
-                    System.out.println("sdbc.PreparedStatementSuper.setUseBookmark(): " + usebookmark);
-                    mUseBookmarks = usebookmark;
+                    boolean use = getConnectionInternal().getProvider().getSQLQuery().useBookmarks((boolean) value);
+                    System.out.println("sdbc.PreparedStatementSuper.setUseBookmark(): " + use);
+                    mUseBookmarks = use;
                 }));
 
         super.registerProperties(properties);

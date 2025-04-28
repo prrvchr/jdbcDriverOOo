@@ -5,14 +5,14 @@
     <dlg:style dlg:style-id="0" dlg:font-weight="150"/>
   </dlg:styles>
   <dlg:bulletinboard>
-    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="100" dlg:height="12" dlg:help-text="&amp;UsersDialog.Label1.HelpText" dlg:value="&amp;UsersDialog.Label1.Label" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label1" dlg:tab-index="0" dlg:left="10" dlg:top="10" dlg:width="100" dlg:height="15" dlg:help-text="&amp;UsersDialog.Label1.HelpText" dlg:value="&amp;UsersDialog.Label1.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox1" dlg:tab-index="1" dlg:left="10" dlg:top="25" dlg:width="100" dlg:height="70" dlg:help-text="&amp;UsersDialog.ListBox1.HelpText">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ToogleRemove" script:language="UNO"/>
     </dlg:menulist>
     <dlg:button dlg:id="CommandButton1" dlg:disabled="true" dlg:tab-index="2" dlg:left="10" dlg:top="100" dlg:width="100" dlg:height="15" dlg:help-text="&amp;UsersDialog.CommandButton1.HelpText" dlg:value="&amp;UsersDialog.CommandButton1.Label">
       <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:RemoveMember" script:language="UNO"/>
     </dlg:button>
-    <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="3" dlg:left="120" dlg:top="10" dlg:width="100" dlg:height="12" dlg:help-text="&amp;UsersDialog.Label2.HelpText" dlg:value="&amp;UsersDialog.Label2.Label" dlg:valign="center"/>
+    <dlg:text dlg:style-id="0" dlg:id="Label2" dlg:tab-index="3" dlg:left="120" dlg:top="10" dlg:width="100" dlg:height="15" dlg:help-text="&amp;UsersDialog.Label2.HelpText" dlg:value="&amp;UsersDialog.Label2.Label" dlg:valign="center"/>
     <dlg:menulist dlg:id="ListBox2" dlg:tab-index="4" dlg:left="120" dlg:top="25" dlg:width="100" dlg:height="70" dlg:help-text="&amp;UsersDialog.ListBox2.HelpText">
       <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:ToogleAdd" script:language="UNO"/>
     </dlg:menulist>
