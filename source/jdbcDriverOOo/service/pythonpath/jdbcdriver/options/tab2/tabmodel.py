@@ -90,7 +90,7 @@ class TabModel():
 
     _directory = None
 
-# OptionsModel getter methods
+# TabModel getter methods
     def saveSetting(self):
         self._saveConfiguration()
         return self._saveArchives()
@@ -127,9 +127,9 @@ class TabModel():
 
     def getDisplayDirectory(self):
         # XXX: We want to keep the last accessed FilePicker path for the LibreOffice session
-        if OptionsModel._directory is None:
-            OptionsModel._directory = getPathSettings(self._ctx).Work
-        return OptionsModel._directory
+        if TabModel._directory is None:
+            TabModel._directory = getPathSettings(self._ctx).Work
+        return TabModel._directory
 
     def getType(self, index):
         return self._types[index]
@@ -212,7 +212,7 @@ class TabModel():
     def getAddPropertyValue(self):
         return self._value if self.isNewProperty() else None
 
-# OptionsModel setter methods
+# TabModel setter methods
     def loadSetting(self):
         if self._folder is not None:
             sf = getSimpleFile(self._ctx)
@@ -254,7 +254,7 @@ class TabModel():
         self._path = self._updateArchive(protocol, archives)
 
     def setDisplayDirectory(self, folder):
-        OptionsModel._directory = folder
+        TabModel._directory = folder
 
     def updateArchive(self, driver, archives):
         path = self._updateArchive(driver, archives)
@@ -271,7 +271,7 @@ class TabModel():
     def setDriverVersions(self, *args):
         Thread(target=self._setDriverVersions, args=args).start()
 
-# OptionsModel private getter methods
+# TabModel private getter methods
     def _getGroup(self, driver, group):
         return self._drivers.get(driver).get(self._groups).get(group)
 
@@ -440,7 +440,7 @@ class TabModel():
         resource = self._resources.get('Version2')
         return self._resolver.resolveString(resource) % version
 
-# OptionsModel private setter methods
+# TabModel private setter methods
     def _saveConfiguration(self):
         config = self._config.getByName('Installed')
         for protocol, driver in self._drivers.items():
@@ -495,15 +495,15 @@ class TabModel():
 
     def _setDriverVersions(self, update):
         try:
-            print("OptionsModel._setDriverVersions() 1")
+            print("TabModel._setDriverVersions() 1")
             services = self._ctx.ServiceManager.createContentEnumeration('com.sun.star.sdbc.Driver')
             i = 1
             while services.hasMoreElements():
                 service = services.nextElement()
                 if service is not None:
-                    print("OptionsModel._setDriverVersions() 2 Service: %s - %s" % (i, service.getImplementationName()))
+                    print("TabModel._setDriverVersions() 2 Service: %s - %s" % (i, service.getImplementationName()))
                 else:
-                    print("OptionsModel._setDriverVersions() 2 Service ERROR")
+                    print("TabModel._setDriverVersions() 2 Service ERROR")
                 i += 1
             manager = createService(self._ctx, 'com.sun.star.sdbc.DriverManager')
             drivers = manager.createEnumeration()
@@ -511,9 +511,9 @@ class TabModel():
             while drivers.hasMoreElements():
                 driver = drivers.nextElement()
                 if driver is not None:
-                    print("OptionsModel._setDriverVersions() 3 driver: %s - %s" % (i, driver.getImplementationName()))
+                    print("TabModel._setDriverVersions() 3 driver: %s - %s" % (i, driver.getImplementationName()))
                 else:
-                    print("OptionsModel._setDriverVersions() 3 driver ERROR")
+                    print("TabModel._setDriverVersions() 3 driver ERROR")
                 i += 1
             versions = {}
             default = self._getDefaultVersion()
@@ -522,16 +522,16 @@ class TabModel():
             name = 'io.github.prrvchr.jdbcDriverOOo.Driver'
             pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
             service = createService(self._ctx, name)
-            print("OptionsModel._setDriverVersions() 4 service name: %s" % name)
+            print("TabModel._setDriverVersions() 4 service name: %s" % name)
             for protocol in config.getElementNames():
                 driver = config.getByName(protocol)
                 if driver.hasByHierarchicalName(propname):
                     url = driver.getByHierarchicalName(propname)
                     if len(url) > 0:
-                        print("OptionsModel._setDriverVersions() 5 URL: %s" % self._protocol + url)
+                        print("TabModel._setDriverVersions() 5 URL: %s" % self._protocol + url)
                         connection = pool.getConnection(self._protocol + url)
                         if connection is None:
-                            print("OptionsModel._setDriverVersions() 6 ConnectionPool failed on URL: %s" % self._protocol + url)
+                            print("TabModel._setDriverVersions() 6 ConnectionPool failed on URL: %s" % self._protocol + url)
                             versions[protocol] = self._getConnectionVersion(service, url, default)
                         else:
                             versions[protocol] = self._getVersion(connection.getMetaData().getDriverVersion())
@@ -541,9 +541,9 @@ class TabModel():
             with self._lock:
                 self._versions = versions
             update(versions)
-            print("OptionsModel._setDriverVersions() 7")
+            print("TabModel._setDriverVersions() 7")
         except Exception:
             msg = "Error: %s" % traceback.format_exc()
-            self._logger.logp(SEVERE, 'OptionsModel', '_setDriverVersions()', msg)
-            print("OptionsModel._setDriverVersions() %s" % msg)
+            self._logger.logp(SEVERE, 'TabModel', '_setDriverVersions()', msg)
+            print("TabModel._setDriverVersions() %s" % msg)
 

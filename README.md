@@ -64,7 +64,7 @@ ___
 ## Requirement:
 
 jdbcDriverOOo is a JDBC driver written in Java.  
-Its use requires the [installation and configuration][33] in LibreOffice of a **JRE version 17 or later**.  
+Its use requires the [installation and configuration][33] in LibreOffice of a **Java JRE or JDK version 17 or later**.  
 I recommend [Adoptium][34] as your Java installation source.
 
 If you are using the HsqlDB driver with **LibreOffice on Linux**, then you are subject to [bug #139538][35]. To work around the problem, please **uninstall the packages** with commands:
@@ -94,6 +94,13 @@ Restart LibreOffice after installation.
 **Be careful, restarting LibreOffice may not be enough.**
 - **On Windows** to ensure that LibreOffice restarts correctly, use Windows Task Manager to verify that no LibreOffice services are visible after LibreOffice shuts down (and kill it if so).
 - **Under Linux or macOS** you can also ensure that LibreOffice restarts correctly, by launching it from a terminal with the command `soffice` and using the key combination `Ctrl + C` if after stopping LibreOffice, the terminal is not active (no command prompt).
+
+After restarting LibreOffice, you can ensure that the extension and its driver are correctly installed by checking that the `io.github.prrvchr.jdbcDriverOOo.Driver` driver is listed in the **Connection Pool**, accessible via the menu: **Tools -> Options... -> LibreOffice Base -> Connections**. It is not necessary to enable the connection pool.
+
+If the driver is not listed, the reason for the driver failure can be found in the extension's logging. This log is accessible via the menu: **Tools -> Options... -> LibreOffice Base -> Pure Java JDBC Driver -> Logging Options**.  
+The `Driver` logging must first be enabled, then LibreOffice restarted and the **Connection Pool** checked again to force the driver to load and obtain the error message in the log.
+
+Remember to first update the version of the Java JRE or JDK installed on your computer, this new version of jdbcDriverOOo requires **Java version 17 or later** instead of Java 11 previously.
 
 ___
 
@@ -193,25 +200,25 @@ ___
 
 ## Connection URL:
 
-Certain databases such as HsqlDB, H2, SQLite Derby or Jaybird allow the creation of the database during connection if this database does not yet exist.
+Certain databases such as HsqlDB, H2, SQLite Derby or Firebird via Jaybird allow the creation of the database during connection if this database does not yet exist.
 This feature makes it as easy to create databases as Writer documents. Generally it is enough to add the option expected by the driver to the connection URL.
 This connection URL may be different depending on the operating system of your computer (Windows, Linux or MacOS).  
 To create a database, in LibreOffice go to the menu: **File -> New -> Database -> Connect to an existing database**, then according to your choice:
-- **HsqlDB Driver**:
+- **HsqlDB pure Java**:
   - Linux: `file:///home/prrvchr/testdb/hsqldb/db;hsqldb.default_table_type=cached;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\hsqldb\db;hsqldb.default_table_type=cached;create=true`
-- **H2 Driver**:
+- **H2 pure Java**:
   - Linux: `file:///home/prrvchr/testdb/h2/db`
   - Windows: `C:\Utilisateurs\prrvc\testdb\h2\db`
-- **SQLite Driver**:
+- **SQLite pure Java**:
   - Linux: `file:///home/prrvchr/testdb/sqlite/test.db`
   - Windows: `C:/Utilisateurs/prrvc/testdb/sqlite/test.db`
-- **Derby Driver**:
+- **Derby pure Java**:
   - Linux: `/home/prrvchr/testdb/derby;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\derby;create=true`
-- **Jaybird Driver**:
-  - Linux: `embedded:/home/prrvchr/testdb/jaybird?createDatabaseIfNotExist=true`
-  - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\jaybird?createDatabaseIfNotExist=true`
+- **Firebird pure Java**:
+  - Linux: `embedded:/home/prrvchr/testdb/firebird?createDatabaseIfNotExist=true`
+  - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
 ___
 
@@ -231,14 +238,14 @@ I will try to solve it :smile:
 
 ___
 
-## Historical:
+## [Historical][52]:
 
 ### Introduction:
 
 This driver was written to work around certain problems inherent in the UNO implementation of the JDBC driver built into LibreOffice / OpenOffice, namely: 
 
 - The inability to provide the path to the Java driver archive (hsqldb.jar) when loading the JDBC driver.
-- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][52].
+- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][53].
 
 In order to take advantage of the latest features offered by databases and among others HsqlDB, it was necessary to write a new driver.
 
@@ -260,13 +267,13 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 
-### All changes are logged in the version [History][53]
+### All changes are logged in the [version History][52]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-147>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-150>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -290,7 +297,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [34]: <https://adoptium.net/temurin/releases/?version=17&package=jre>
 [35]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
 [36]: <https://prrvchr.github.io/HyperSQLOOo/>
-[37]: <https://prrvchr.github.io/jdbcDriverOOo/#what-has-been-done-for-version-110>
+[37]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
 [40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
@@ -305,5 +312,5 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [49]: <img/jdbcDriverOOo-8.png>
 [50]: <img/jdbcDriverOOo-9.png>
 [51]: <img/jdbcDriverOOo-10.png>
-[52]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[53]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>
+[52]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>
+[53]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>

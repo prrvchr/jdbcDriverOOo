@@ -32,8 +32,7 @@
         <value>io.github.prrvchr.jdbcDriverOOo.Driver</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java JDBC</value>
-        <value xml:lang="fr-FR">Pur Java JDBC</value>
+        <value xml:lang="en-US">JDBC pure Java</value>
       </prop>
 
 
@@ -475,8 +474,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java HsqlDB</value>
-        <value xml:lang="fr-FR">Pur Java HsqlDB</value>
+        <value xml:lang="en-US">HsqlDB pure Java</value>
       </prop>
 
       <!-- Properties node is for connection properties -->
@@ -648,8 +646,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java H2</value>
-        <value xml:lang="fr-FR">Pur Java H2</value>
+        <value xml:lang="en-US">H2 pure Java</value>
       </prop>
 
       <node oor:name="Properties">
@@ -796,8 +793,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java MariaDB</value>
-        <value xml:lang="fr-FR">Pur Java MariaDB</value>
+        <value xml:lang="en-US">MariaDB pure Java</value>
       </prop>
 
       <node oor:name="Properties">
@@ -936,8 +932,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java MySQL</value>
-        <value xml:lang="fr-FR">Pur Java MySQL</value>
+        <value xml:lang="en-US">MySQL pure Java</value>
       </prop>
 
       <node oor:name="Properties">
@@ -1076,8 +1071,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java PostgreSQL</value>
-        <value xml:lang="fr-FR">Pur Java PostgreSQL</value>
+        <value xml:lang="en-US">PostgreSQL pure Java</value>
       </prop>
 
       <node oor:name="Properties">
@@ -1229,8 +1223,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java SQLite</value>
-        <value xml:lang="fr-FR">Pur Java SQLite</value>
+        <value xml:lang="en-US">SQLite pure Java</value>
       </prop>
 
       <node oor:name="Properties">
@@ -1343,8 +1336,7 @@
       </prop>
 
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java Derby</value>
-        <value xml:lang="fr-FR">Pur Java Derby</value>
+        <value xml:lang="en-US">Derby pure Java</value>
       </prop>
       <node oor:name="Properties">
         <node oor:name="AddIndexAppendix" oor:op="replace">
@@ -1478,15 +1470,14 @@
       </node>
     </node>
 
-<!-- Jaybird Driver ******************************************************************************* -->
+<!-- Firebird/Jaybird Driver *********************************************************************** -->
 
     <node oor:name="xdbc:firebird:*" oor:op="replace">
       <prop oor:name="ParentURLPattern">
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java Jaybird</value>
-        <value xml:lang="fr-FR">Pur Java Jaybird</value>
+        <value xml:lang="en-US">Firebird pure Java</value>
       </prop>
 
       <node oor:name="Properties">
@@ -1668,8 +1659,7 @@
         <value>xdbc:*</value>
       </prop>
       <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
-        <value xml:lang="en-US">Pure Java Trino</value>
-        <value xml:lang="fr-FR">Pur Java Trino</value>
+        <value xml:lang="en-US">Trino pure Java</value>
       </prop>
 
       <node oor:name="Properties">

@@ -64,7 +64,7 @@ ___
 ## Prérequis:
 
 jdbcDriverOOo est un pilote JDBC écrit en Java.  
-Son utilisation nécessite [l'installation et la configuration][33] dans LibreOffice d'un **JRE version 17 ou ultérieure**.  
+Son utilisation nécessite [l'installation et la configuration][33] dans LibreOffice d'un **JRE ou JDK Java version 17 ou ultérieure**.  
 Je vous recommande [Adoptium][34] comme source d'installation de Java.
 
 Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement #139538][35]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
@@ -94,6 +94,13 @@ Redémarrez LibreOffice après l'installation.
 **Attention, redémarrer LibreOffice peut ne pas suffire.**
 - **Sous Windows** pour vous assurer que LibreOffice redémarre correctement, utilisez le Gestionnaire de tâche de Windows pour vérifier qu'aucun service LibreOffice n'est visible après l'arrêt de LibreOffice (et tuez-le si ç'est le cas).
 - **Sous Linux ou macOS** vous pouvez également vous assurer que LibreOffice redémarre correctement, en le lançant depuis un terminal avec la commande `soffice` et en utilisant la combinaison de touches `Ctrl + C` si après l'arrêt de LibreOffice, le terminal n'est pas actif (pas d'invité de commande).
+
+Après avoir redémarré LibreOffice, vous pouvez vous assurer que l'extension et son pilote sont correctement installés en vérifiant que le pilote `io.github.prrvchr.jdbcDriverOOo.Driver` est répertorié dans le **Pool de Connexions**, accessible via le menu: **Outils -> Options... -> LibreOffice Base -> Connexions**. Il n'est pas nécessaire d'activer le pool de connexions.
+
+Si le pilote n'est pas répertorié, la raison de l'échec du chargement du pilote peut être trouvée dans la journalisation de l'extension. Cette journalisation est accessible via le menu: **Outils -> Options... -> LibreOffice Base -> Pilote JDBC Pure Java -> Options de journalisation**.  
+La journalisation `Driver` doit d'abord être activée puis LibreOffice redémarré et le **Pool de Connexions** à nouveau consulté afin de forcer le chargement du pilote et d'obtenir le message d'erreur dans le journal.
+
+N'oubliez pas au préalable de mettre à jour la version du JRE ou JDK Java installée sur votre ordinateur, cette nouvelle version de jdbcDriverOOo nécessite **Java version 17 ou ultérieure** au lieu de Java 11 auparavant.
 
 ___
 
@@ -193,25 +200,25 @@ ___
 
 ## URL de connexion:
 
-Certaines bases de données comme HsqlDB, H2, SQLite, Derby ou Jaybird permettent la création de la base de données lors de la connexion si cette base de données n'existe pas encore.
+Certaines bases de données comme HsqlDB, H2, SQLite, Derby ou Firebird via Jaybird permettent la création de la base de données lors de la connexion si cette base de données n'existe pas encore.
 Cette fonctionnalité rend la création de bases de données aussi simple que celle de documents Writer. Généralement il suffit d'ajouter l'option attendue par le driver à l'URL de connexion.
 Cette URL de connexion peut être différente selon le système d'exploitation de votre ordinateur (Windows, Linux ou MacOS).  
 Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier -> Nouveau -> Base de données -> Connecter une base de données existante**, puis selon votre choix:
-- **Pilote HsqlDB**:
+- **HsqlDB pure Java**:
   - Linux: `file:///home/prrvchr/testdb/hsqldb/db;hsqldb.default_table_type=cached;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\hsqldb\db;hsqldb.default_table_type=cached;create=true`
-- **Pilote H2**:
+- **H2 pure Java**:
   - Linux: `file:///home/prrvchr/testdb/h2/db`
   - Windows: `C:\Utilisateurs\prrvc\testdb\h2\db`
-- **Pilote SQLite**:
+- **SQLite pure Java**:
   - Linux: `file:///home/prrvchr/testdb/sqlite/test.db`
   - Windows: `C:/Utilisateurs/prrvc/testdb/sqlite/test.db`
-- **Pilote Derby**:
+- **Derby pure Java**:
   - Linux: `/home/prrvchr/testdb/derby;create=true`
   - Windows: `C:\Utilisateurs\prrvc\testdb\derby;create=true`
-- **Pilote Jaybird**:
-  - Linux: `embedded:/home/prrvchr/testdb/jaybird?createDatabaseIfNotExist=true`
-  - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\jaybird?createDatabaseIfNotExist=true`
+- **Firebird pure Java**:
+  - Linux: `embedded:/home/prrvchr/testdb/firebird?createDatabaseIfNotExist=true`
+  - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
 ___
 
@@ -231,14 +238,14 @@ J'essaierai de le résoudre :smile:
 
 ___
 
-## Historique:
+## [Historique][52]:
 
 ### Introduction:
 
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][52].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][53].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -260,13 +267,13 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
 
-### Toutes les changements sont consignées dans l'[Historique des versions][53]
+### Toutes les changements sont consignées dans l'[Historique des versions][52]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-147>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-150>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -290,7 +297,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [34]: <https://adoptium.net/temurin/releases/?version=17&package=jre>
 [35]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
 [36]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
-[37]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
+[37]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [38]: <img/jdbcDriverOOo.svg#middle>
 [39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
 [40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
@@ -305,5 +312,5 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [49]: <img/jdbcDriverOOo-8_fr.png>
 [50]: <img/jdbcDriverOOo-9_fr.png>
 [51]: <img/jdbcDriverOOo-10_fr.png>
-[52]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[53]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
+[52]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
+[53]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>

@@ -349,7 +349,7 @@ class TabManager():
             self._model.setArchive(subprotocol, archives)
             self._dialog.enableConfirm(self._model.isDriverValid(subprotocol, name, javaclass))
 
-# OptionsManager private getter methods
+# TabManager private getter methods
     def _getPropertyValue(self):
         cls = self._model.getType(self._properties.getTypesIndex())
         if cls == bool:
@@ -376,7 +376,7 @@ class TabManager():
         fp.dispose()
         return archives
 
-# OptionsManager private setter methods
+# TabManager private setter methods
     def _switchDriverEditMode(self, enabled):
         self._view.enableDriverName(enabled)
         step = 2 if enabled else 1

@@ -40,7 +40,7 @@ class TabView():
         self._window.setVisible(True)
         self.setRestart(restart)
 
-# OptionsView getter methods
+# TabView getter methods
     def getWindow(self):
         return self._window
 
@@ -59,7 +59,7 @@ class TabView():
     def getGroupIndex(self):
         return self._getGroups().getSelectedItemPos()
 
-# OptionsView setter methods
+# TabView setter methods
     def dispose(self):
         self._window.dispose()
 
@@ -122,7 +122,7 @@ class TabView():
     def setRestart(self, enabled):
         self._getRestart().setVisible(enabled)
 
-# OptionsView private control methods
+# TabView private control methods
     def _getDrivers(self):
         return self._window.getControl('ListBox1')
 
