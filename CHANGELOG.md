@@ -320,6 +320,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Updated all embedded JDBC drivers, except SQLite and Trino, to their respective latest versions supporting Java 17.
 - Removed all idl files defining the following struct: Date, DateTime, DateTimeWithTimezone, DateWithTimezone, Duration, Time, and TimeWithTimezone. These files were required for compatibility with OpenOffice and are now replaced by the equivalent idl files from the LibreOffice API. **This change makes all versions of extensions using the previous version of jdbcDriverOOo incompatible**.
 - User, role, and privilege management has been tested with all drivers built into jdbcDriverOOo, excluding SQLite and Trino.
+- It is now possible to build the oxt file of the jdbcDriverOOo extension only with the help of Apache Ant and a copy of the GitHub repository. The [How to build the extension][99] section has been added to the documentation.
 
 ### What remains to be done for version 1.5.0:
 
@@ -396,28 +397,28 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [67]: <https://bugs.documentfoundation.org/show_bug.cgi?id=160516>
 [68]: <https://hsqldb.org/doc/guide/management-chapt.html#mtc_system_versioned_tables>
 [69]: <https://hsqldb.org/doc/guide/texttables-chapt.html#ttc_table_definition>
-[70]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L185>
-[71]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L395>
+[70]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbc/DriverBase.java#L160>
+[71]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/provider/DriverManagerHelper.java>
 [72]: <https://prrvchr.github.io/JaybirdOOo/>
-[73]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/resultset/ScrollableResultSet.java#L57>
-[74]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/resultset/SensitiveResultSet.java#L60>
-[75]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/rowset/RowSetWriter.java#L41>
+[73]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/resultset/ScrollableResultSet.java>
+[74]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/resultset/SensitiveResultSet.java>
+[75]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/rowset/RowSetWriter.java>
 [76]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8>
 [77]: <https://trino.io/>
 [78]: <https://github.com/trinodb/trino/issues/22306>
 [79]: <https://github.com/prrvchr/jdbcDriverOOo/issues/7>
 [80]: <https://github.com/trinodb/trino/issues/22408>
 [81]: <https://sourceforge.net/p/hsqldb/feature-requests/368/>
-[82]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/resultset/CachedResultSet.java#L55>
+[82]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/resultset/CachedResultSet.java>
 [83]: <https://github.com/prrvchr/jdbcDriverOOo/issues/8#issuecomment-2182445391>
 [84]: <https://pypi.org/project/packaging/>
 [85]: <https://pypi.org/project/setuptools/>
 [86]: <https://github.com/prrvchr/jdbcDriverOOo/pull/9>
 [87]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/XPropertySet.html>
 [88]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/beans/Property.html#Handle>
-[89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertySet.java>
-[90]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertySetAdapter.java>
-[91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/java/helper/PropertyWrapper.java>
+[89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/UnoHelper/source/io/github/prrvchr/uno/helper/PropertySet.java>
+[90]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/UnoHelper/source/io/github/prrvchr/uno/helper/PropertySetAdapter.java>
+[91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/UnoHelper/source/io/github/prrvchr/uno/helper/PropertyWrapper.java>
 [92]: <https://github.com/LibreOffice/loeclipse>
 [93]: <https://github.com/LibreOffice/loeclipse/pull/152>
 [94]: <https://github.com/LibreOffice/loeclipse/pull/157>
@@ -425,3 +426,4 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [96]: <https://bugs.documentfoundation.org/show_bug.cgi?id=165774>
 [97]: <https://gerrit.libreoffice.org/c/core/+/183280>
 [98]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/query>
+[99]: <https://prrvchr.github.io/jdbcDriverOOo/#how-to-build-the-extension>

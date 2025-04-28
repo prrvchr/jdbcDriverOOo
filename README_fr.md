@@ -222,6 +222,21 @@ Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier
 
 ___
 
+## Comment créer l'extension :
+
+Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][52]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
+Pour créer l'extension jdbcDriverOOo avec l'aide d'Apache Ant, vous devez:
+- Installer le [SDK Java][53] version 17 minimum.
+- Installer [Apache Ant][54] version 1.9.1 ou supérieure.
+- Installer [LibreOffice et son SDK][55] version 7.x ou supérieure.
+- Cloner le dépôt [jdbcDriverOOo][56] sur GitHub dans un dossier.
+- Depuis ce dossier, accédez au répertoire: `source/jdbcDriverOOo/`
+- Dans ce répertoire, modifiez le fichier `build.properties` afin que les propriétés `office.install.dir` et `sdk.dir` pointent vers les dossiers d'installation de LibreOffice et de son SDK, respectivement.
+- Lancez la création de l'archive avec la commande: `ant`
+- Vous trouverez l'archive générée dans le dossier: `dist/`
+
+___
+
 ## A été testé avec:
 
 * LibreOffice 24.2.1.2 (x86_64)- Windows 10
@@ -238,14 +253,14 @@ J'essaierai de le résoudre :smile:
 
 ___
 
-## [Historique][52]:
+## [Historique][57]:
 
 ### Introduction:
 
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][53].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][58].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -267,7 +282,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
 
-### Toutes les changements sont consignées dans l'[Historique des versions][52]
+### Toutes les changements sont consignées dans l'[Historique des versions][57]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -312,5 +327,10 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [49]: <img/jdbcDriverOOo-8_fr.png>
 [50]: <img/jdbcDriverOOo-9_fr.png>
 [51]: <img/jdbcDriverOOo-10_fr.png>
-[52]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
-[53]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[52]: <https://github.com/LibreOffice/loeclipse>
+[53]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[54]: <https://ant.apache.org/manual/install.html>
+[55]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[56]: <https://github.com/prrvchr/jdbcDriverOOo.git>
+[57]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
+[58]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>

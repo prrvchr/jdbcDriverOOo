@@ -138,7 +138,7 @@ public abstract class DriverBase
         // XXX: the wrong kind of driver to connect to the given URL
         if (acceptsURL(url)) {
             ApiLevel apiLevel = getApiLevel(info);
-            Properties properties = DriverManagerHelper.getJdbcConnectionProperties(info);
+            Properties properties = DriverPropertiesHelper.getJdbcConnectionProperties(info);
             DriverProvider provider = new DriverProvider(mContext, this, mLogger,
                                                          mDriver, mConfig, url, info, properties, apiLevel);
             System.out.println("sdbc.DriverBase.connect() 2 Service: " + apiLevel);

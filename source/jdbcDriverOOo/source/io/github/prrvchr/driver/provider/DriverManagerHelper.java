@@ -42,11 +42,9 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
-//import com.sun.star.lib.unoloader.UnoClassLoader;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.lib.util.StringHelper;
@@ -86,18 +84,6 @@ public class DriverManagerHelper {
                 UnoLoggerFinder.setLoggerFinder(new DriverLoggerFinder(context));
             }
         } catch (Throwable e) { }
-    }
-
-    public static final Properties getJdbcConnectionProperties(final PropertyValue[] infos) {
-        Properties properties = new Properties();
-        for (PropertyValue info : infos) {
-            String property = info.Name;
-            if (isLibreOfficeProperty(property) || isInternalProperty(property)) {
-                continue;
-            }
-            properties.setProperty(property, String.format("%s", info.Value));
-        }
-        return properties;
     }
 
     public static final boolean isDriverRegistered(final String url) {
@@ -334,82 +320,6 @@ public class DriverManagerHelper {
         final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, url,
                                                         clazz, DRIVER_CLASS_PATH);
         return DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
-    }
-
-    private static final boolean isLibreOfficeProperty(final String property) {
-        // XXX: These are properties used internally by LibreOffice,
-        // XXX: and should not be passed to the JDBC driver
-        // XXX: (which probably does not know anything about them anyway).
-        // XXX: see: connectivity/source/drivers/jdbc/tools.cxx createStringPropertyArray()
-        boolean is = false;
-        switch (property) {
-            case "JavaDriverClass":
-            case "JavaDriverClassPath":
-            case "SystemProperties":
-            case "CharSet":
-            case "AppendTableAliasName":
-            case "AppendTableAliasInSelect":
-            case "DisplayVersionColumns":
-            case "GeneratedValues":
-            case "UseIndexDirectionKeyword":
-            case "UseKeywordAsBeforeAlias":
-            case "AddIndexAppendix":
-            case "FormsCheckRequiredFields":
-            case "GenerateASBeforeCorrelationName":
-            case "EscapeDateTime":
-            case "ParameterNameSubstitution":
-            case "IsPasswordRequired":
-            case "IsAutoRetrievingEnabled":
-            case "AutoRetrievingStatement":
-            case "UseCatalogInSelect":
-            case "UseSchemaInSelect":
-            case "AutoIncrementCreation":
-            case "Extension":
-            case "NoNameLengthLimit":
-            case "EnableSQL92Check":
-            case "EnableOuterJoinEscape":
-            case "BooleanComparisonMode":
-            case "IgnoreCurrency":
-            case "TypeInfoSettings":
-            case "IgnoreDriverPrivileges":
-            case "ImplicitCatalogRestriction":
-            case "ImplicitSchemaRestriction":
-            case "SupportsTableCreation":
-            case "UseJava":
-            case "Authentication":
-            case "PreferDosLikeLineEnds":
-            case "PrimaryKeySupport":
-            case "RespectDriverResultSetType":
-                is = true;
-                break;
-            default:
-                is = false;
-        }
-        return is;
-    }
-
-    private static final boolean isInternalProperty(final String property) {
-        // XXX: These are properties used internally by jdbcDriverOOo,
-        // XXX: and should not be passed to the JDBC driver
-        // XXX: (which probably does not know anything about them anyway).
-        boolean is = false;
-        switch (property) {
-            case "TablePrivilegesSettings":
-            case "RowVersionCreation":
-            case "LogLevel":
-            case "InMemoryDataBase":
-            case "Type":
-            case "Url":
-            case "ApiLevel":
-            case "ShowSystemTable":
-            case "UseBookmark":
-            case "SQLMode":
-                is = true;
-                break;
-            default:
-                is = false;
-        }
-        return is;
     }
 
 }

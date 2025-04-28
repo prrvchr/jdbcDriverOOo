@@ -222,6 +222,21 @@ To create a database, in LibreOffice go to the menu: **File -> New -> Database -
 
 ___
 
+## How to build the extension:
+
+Normally, the extension is created with Eclipse for Java and [LOEclipse][52]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
+To create the jdbcDriverOOo extension with the help of Apache Ant, you need to:
+- Install the [Java SDK version 17][53] minimum.
+- Install [Apache Ant][54] version 1.9.1 or higher.
+- Install [LibreOffice and its SDK][55] version 7.x or higher.
+- Clone the [jdbcDriverOOo][56] repository on GitHub into a folder.
+- From this folder, move to the directory: `source/jdbcDriverOOo/`
+- In this directory, edit the file: `build.properties` so that the `office.install.dir` and `sdk.dir` properties point to the folders where LibreOffice and its SDK were installed, respectively.
+- Start the archive creation process using the command: `ant`
+- You will find the generated archive in the folder: `dist/`
+
+___
+
 ## Has been tested with:
 
 * LibreOffice 24.2.1.2 (x86_64)- Windows 10
@@ -238,14 +253,14 @@ I will try to solve it :smile:
 
 ___
 
-## [Historical][52]:
+## [Historical][57]:
 
 ### Introduction:
 
 This driver was written to work around certain problems inherent in the UNO implementation of the JDBC driver built into LibreOffice / OpenOffice, namely: 
 
 - The inability to provide the path to the Java driver archive (hsqldb.jar) when loading the JDBC driver.
-- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][53].
+- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][58].
 
 In order to take advantage of the latest features offered by databases and among others HsqlDB, it was necessary to write a new driver.
 
@@ -267,7 +282,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 
-### All changes are logged in the [version History][52]
+### All changes are logged in the [version History][57]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -312,5 +327,10 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [49]: <img/jdbcDriverOOo-8.png>
 [50]: <img/jdbcDriverOOo-9.png>
 [51]: <img/jdbcDriverOOo-10.png>
-[52]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>
-[53]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[52]: <https://github.com/LibreOffice/loeclipse>
+[53]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[54]: <https://ant.apache.org/manual/install.html>
+[55]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[56]: <https://github.com/prrvchr/jdbcDriverOOo.git>
+[57]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>
+[58]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
