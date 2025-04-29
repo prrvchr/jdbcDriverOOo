@@ -28,8 +28,9 @@
 """
 
 from .configuration import g_identifier
-from .configuration import g_services
 from .configuration import g_service
+
+from .jdbcdriver import g_services
 
 from .unotool import createService
 from .unotool import hasInterface
