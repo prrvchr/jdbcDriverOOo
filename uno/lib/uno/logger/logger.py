@@ -32,7 +32,6 @@ import unohelper
 
 from com.sun.star.logging import XLogger2
 
-from string import Formatter
 import traceback
 
 
@@ -83,7 +82,7 @@ class Logger(unohelper.Base,
         if self.hasEntryForId(resource):
             msg = self._resolver.resolveString(resource)
             if arguments:
-                msg = Formatter().vformat(msg, arguments, {})
+                msg = msg.format(*arguments)
         else:
             msg = resource
         return msg

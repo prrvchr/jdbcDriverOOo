@@ -32,8 +32,6 @@ import unohelper
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from com.sun.star.lang import XServiceInfo
-
 from com.sun.star.uno import Exception as UNOException
 
 from jdbcdriver import createService
@@ -58,22 +56,21 @@ g_ServiceNames = ("io.github.prrvchr.jdbcDriverOOo.Driver", 'com.sun.star.sdbc.D
 # XXX: - Provide a single entry for different services meeting the required API levels
 # XXX: - Log any errors that occur while loading the Java driver
 
-class Driver(unohelper.Base,
-             XServiceInfo):
+class Driver():
     def __new__(cls, ctx, *args, **kwargs):
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
+                    logger = getLogger(ctx, 'Driver', g_basename)
                     apilevel = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
                     try:
                         cls._instance = createService(ctx, g_services[apilevel])
-                        arguments = (g_ImplementationName, apilevel)
-                        getLogger(ctx, 'Driver', g_basename).logprb(INFO, 'Driver', '__new__', 101, arguments)
+                        cls._log(logger, INFO, 101, g_ImplementationName, apilevel)
                     except UNOException as e:
                         if cls._logger is None:
-                            cls._logger = getLogger(ctx, 'Driver', g_basename)
-                        arguments = (g_ImplementationName, apilevel, e.Message)
-                        cls._logger.logprb(SEVERE, 'Driver', '__new__', 102, arguments)
+                            cls._logger = logger
+                        cls._log(logger, SEVERE, 102, g_ImplementationName, apilevel, e.Message)
+                        raise e
         return cls._instance
 
     # XXX: If the driver fails to load then we keep a reference
@@ -82,14 +79,8 @@ class Driver(unohelper.Base,
     _instance = None
     _lock = Lock()
 
-    # XServiceInfo
-    def supportsService(self, service):
-        return g_ImplementationHelper.supportsService(g_ImplementationName, service)
-    def getImplementationName(self):
-        return g_ImplementationName
-    def getSupportedServiceNames(self):
-        return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
-
+    def _log(logger, level, resource, *args):
+        logger.logprb(level, 'Driver', '__new__', resource, *args)
 
 g_ImplementationHelper.addImplementation(Driver,                          # UNO object class
                                          g_ImplementationName,            # Implementation name
