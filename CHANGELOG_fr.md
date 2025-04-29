@@ -321,6 +321,7 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Suppression de tous les fichiers idl definissant les structures suivantes: Date, DateTime, DateTimeWithTimezone, DateWithTimezone, Duration, Time et TimeWithTimezone. Ces fichiers étaient nécessaires à la compatibilité avec OpenOffice et sont désormais remplacés par les fichiers idl équivalents de l'API LibreOffice. **Ce changement rend toutes les versions des extensions utilisant la version précédente de jdbcDriverOOo incompatibles**.
 - La gestion des utilisateurs, des rôles et des privilèges a été testée avec tous les pilotes intégrés à jdbcDriverOOo, à l'exception de SQLite et Trino.
 - Il est désormais possible de créer le fichier oxt de l'extension jdbcDriverOOo uniquement avec Apache Ant et une copie du dépôt GitHub. La section [Comment créer l'extension][99] a été ajoutée à la documentation.
+- Toute erreur survenant lors du chargement du pilote sera consignée dans le journal de l'extension si la journalisation a été préalablement activé. Cela facilite l'identification des problèmes d'installation sous Windows.
 
 ### Que reste-t-il à faire pour la version 1.5.0:
 

@@ -321,6 +321,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Removed all idl files defining the following struct: Date, DateTime, DateTimeWithTimezone, DateWithTimezone, Duration, Time, and TimeWithTimezone. These files were required for compatibility with OpenOffice and are now replaced by the equivalent idl files from the LibreOffice API. **This change makes all versions of extensions using the previous version of jdbcDriverOOo incompatible**.
 - User, role, and privilege management has been tested with all drivers built into jdbcDriverOOo, excluding SQLite and Trino.
 - It is now possible to build the oxt file of the jdbcDriverOOo extension only with the help of Apache Ant and a copy of the GitHub repository. The [How to build the extension][99] section has been added to the documentation.
+- Any errors occurring while loading the driver will be logged in the extension's log if logging has been previously enabled. This makes it easier to identify installation problems on Windows.
 
 ### What remains to be done for version 1.5.0:
 

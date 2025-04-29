@@ -52,7 +52,7 @@ class OptionModel():
         self._settings = self._getSettings()
         self._service = self.getDriverService()
         self._logger = getLogger(ctx, logger, g_basename)
-        self._logger.logprb(INFO, 'OptionModel', '__init__()', 101)
+        self._logger.logprb(INFO, 'OptionModel', '__init__', 101)
 
 # OptionModel getter methods
     def getDriverService(self):

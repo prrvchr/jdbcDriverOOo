@@ -49,6 +49,7 @@ g_basename = 'OptionsDialog'
 
 from ...configuration import g_identifier
 from ...configuration import g_extension
+from ...configuration import g_service
 
 from threading import Thread
 import traceback
@@ -419,18 +420,11 @@ class TabModel():
     def _getSubProtocol(self, driver):
         return driver.split(':')[1] if driver else ''
 
-    def _getConnectionVersion(self, driver, subprotocol, default):
-        try:
-            url = self._protocol + subprotocol
-            connection = driver.connect(url, ())
-            version = self._getVersion(connection.getMetaData().getDriverVersion())
-            connection.close()
-            return version
-        except UnoException as e:
-            self._logger.logprb(SEVERE, 'OptionsDialog', '_getConnectionVersion()', 111, e.Message)
-        except Exception as e:
-            self._logger.logprb(SEVERE, 'OptionsDialog', '_getConnectionVersion()', 112, e, traceback.format_exc())
-        return default
+    def _getConnectionVersion(self, driver, url, version):
+        connection = driver.connect(url, ())
+        version = self._getVersion(connection.getMetaData().getDriverVersion())
+        connection.close()
+        return version
 
     def _getDefaultVersion(self):
         resource = self._resources.get('Version1')
@@ -495,43 +489,20 @@ class TabModel():
 
     def _setDriverVersions(self, update):
         try:
-            print("TabModel._setDriverVersions() 1")
-            services = self._ctx.ServiceManager.createContentEnumeration('com.sun.star.sdbc.Driver')
-            i = 1
-            while services.hasMoreElements():
-                service = services.nextElement()
-                if service is not None:
-                    print("TabModel._setDriverVersions() 2 Service: %s - %s" % (i, service.getImplementationName()))
-                else:
-                    print("TabModel._setDriverVersions() 2 Service ERROR")
-                i += 1
-            manager = createService(self._ctx, 'com.sun.star.sdbc.DriverManager')
-            drivers = manager.createEnumeration()
-            i = 1
-            while drivers.hasMoreElements():
-                driver = drivers.nextElement()
-                if driver is not None:
-                    print("TabModel._setDriverVersions() 3 driver: %s - %s" % (i, driver.getImplementationName()))
-                else:
-                    print("TabModel._setDriverVersions() 3 driver ERROR")
-                i += 1
             versions = {}
             default = self._getDefaultVersion()
             config = self._config.getByName('Installed')
-            propname = 'Properties/InMemoryDataBase/Value'
-            name = 'io.github.prrvchr.jdbcDriverOOo.Driver'
+            name = 'Properties/InMemoryDataBase/Value'
             pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
-            service = createService(self._ctx, name)
-            print("TabModel._setDriverVersions() 4 service name: %s" % name)
+            service = createService(self._ctx, g_service)
             for protocol in config.getElementNames():
                 driver = config.getByName(protocol)
-                if driver.hasByHierarchicalName(propname):
-                    url = driver.getByHierarchicalName(propname)
-                    if len(url) > 0:
-                        print("TabModel._setDriverVersions() 5 URL: %s" % self._protocol + url)
-                        connection = pool.getConnection(self._protocol + url)
+                if driver.hasByHierarchicalName(name):
+                    url = driver.getByHierarchicalName(name)
+                    if url:
+                        url = self._protocol + url
+                        connection = pool.getConnection(url)
                         if connection is None:
-                            print("TabModel._setDriverVersions() 6 ConnectionPool failed on URL: %s" % self._protocol + url)
                             versions[protocol] = self._getConnectionVersion(service, url, default)
                         else:
                             versions[protocol] = self._getVersion(connection.getMetaData().getDriverVersion())
@@ -541,9 +512,6 @@ class TabModel():
             with self._lock:
                 self._versions = versions
             update(versions)
-            print("TabModel._setDriverVersions() 7")
-        except Exception:
-            msg = "Error: %s" % traceback.format_exc()
-            self._logger.logp(SEVERE, 'TabModel', '_setDriverVersions()', msg)
-            print("TabModel._setDriverVersions() %s" % msg)
+        except UnoException as e:
+            self._logger.logprb(SEVERE, 'TabModel', '_setDriverVersions', 111, g_service, e.Message)
 
