@@ -27,9 +27,10 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from .jdbcdriver import g_extension
+from .jdbcdriver import g_identifier
+
 # jdbcDriverOOo general configuration
-g_extension = 'jdbcDriverOOo'
-g_identifier = 'io.github.prrvchr.%s' % g_extension
 g_service = '%s.Driver' % g_identifier
 
 # jdbcDriverOOo special configuration

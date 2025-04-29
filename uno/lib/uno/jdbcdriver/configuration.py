@@ -28,6 +28,8 @@
 """
 
 # jdbcDriverOOo general configuration
+g_extension = 'jdbcDriverOOo'
+g_identifier = 'io.github.prrvchr.%s' % g_extension
 g_services = {'com.sun.star.sdb': 'io.github.prrvchr.jdbcdriver.sdb.Driver',
               'com.sun.star.sdbc': 'io.github.prrvchr.jdbcdriver.sdbc.Driver',
               'com.sun.star.sdbcx': 'io.github.prrvchr.jdbcdriver.sdbcx.Driver'}
