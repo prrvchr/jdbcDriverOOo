@@ -67,17 +67,16 @@ jdbcDriverOOo est un pilote JDBC écrit en Java.
 Son utilisation nécessite [l'installation et la configuration][33] dans LibreOffice d'un **JRE ou JDK Java version 17 ou ultérieure**.  
 Je vous recommande [Adoptium][34] comme source d'installation de Java.
 
-Si vous utilisez le pilote HsqlDB avec **LibreOffice sous Linux**, alors vous êtes sujet au [dysfonctionnement #139538][35]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
-- `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
-- `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
+Si vous utilisez **LibreOffice sous Linux** et que **LibreOffice a été installé avec le gestionnaire de paquets**, il se peut que:
+  - Vous soyez sujet au [dysfonctionnement #139538][35]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
+    - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
+    - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
 
-Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][36].  
+    Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][36].
 
-**Sous Linux et macOS les paquets Python** utilisés par l'extension, peuvent s'il sont déja installé provenir du système et donc, **peuvent ne pas être à jour**.  
-Afin de s'assurer que vos paquets Python sont à jour il est recommandé d'utiliser l'option **Info système** dans les Options de l'extension accessible par:  
-**Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options du pilote UNO -> Voir journal -> Info système**  
-Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
-`pip install --upgrade <package-name>`
+  - Vos packages Python sont fournis par le système et obsolètes. La journalisation de l'extension vous permettera de verifier si c'est le cas. Elle est accessible via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options du pilote UNO -> Voir journal -> Info système** et nécessite le redemarrage de LibreOffice aprés son activation.  
+  Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
+  `pip install --upgrade <package-name>`
 
 Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][37].
 
