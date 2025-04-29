@@ -83,7 +83,7 @@ class Logger(unohelper.Base,
         if self.hasEntryForId(resource):
             msg = self._resolver.resolveString(resource)
             if arguments:
-                msg = Formatter().vformat(msg, *arguments, {})
+                msg = Formatter().vformat(msg, arguments, {})
         else:
             msg = resource
         return msg

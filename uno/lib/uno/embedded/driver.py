@@ -43,6 +43,7 @@ from .unotool import checkVersion
 from .unotool import createService
 from .unotool import getConfiguration
 from .unotool import getExtensionVersion
+from .unotool import getLibreOfficeInfo
 from .unotool import getPropertyValueSet
 from .unotool import getResourceLocation
 
@@ -70,11 +71,11 @@ class Driver(unohelper.Base,
              XServiceInfo,
              XDriver):
 
-    def __init__(self, ctx, lock, service, name):
+    def __init__(self, ctx, lock, service, implementation):
         self._ctx = ctx
         self._lock = lock
         self._service = service
-        self._name = name
+        self._implementation = implementation
         self._logger = getLogger(ctx, g_defaultlog, g_basename)
         # FIXME: Driver is lazy loaded in connect() driver method to be able to throw
         # FIXME: an exception if jdbcDriverOOo extension is not installed.
@@ -138,7 +139,7 @@ class Driver(unohelper.Base,
     def supportsService(self, service):
         return service in self._services
     def getImplementationName(self):
-        return self._name
+        return self._implementation
     def getSupportedServiceNames(self):
         return self._services
 
@@ -162,9 +163,7 @@ class Driver(unohelper.Base,
             raise self._getException(1001, None, 122, 125, version, g_jdbcext, '\n', g_jdbcver)
 
     def _checkLibreOffice(self):
-        configuration = getConfiguration(self._ctx, '/org.openoffice.Setup/Product')
-        name = configuration.getByName('ooName')
-        version = configuration.getByName('ooSetupVersion')
+        name, version = getLibreOfficeInfo(self._ctx)
         if not checkVersion(version, g_lover):
             self._logException(124, name, version, ' ', name, g_lover)
             raise self._getException(1001, None, 122, 124, name, version, '\n', name, g_lover)
