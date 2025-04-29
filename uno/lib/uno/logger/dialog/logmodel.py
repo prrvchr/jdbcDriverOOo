@@ -45,6 +45,7 @@ from ..logconfig import LogConfig
 
 from ..loghelper import getLoggerName
 
+from ...unotool import getPathSubstitution
 from ...unotool import getResourceLocation
 from ...unotool import getSimpleFile
 from ...unotool import getStringResourceWithLocation
@@ -131,16 +132,14 @@ class LogModel():
     def logInfos(self, level, clazz, method, requirements):
         msg = self._resolver.resolveString(121).format(sys.version)
         self._logger.logp(level, clazz, method, msg)
-        msg = self._resolver.resolveString(122).format(sys.executable)
+        url = getPathSubstitution(self._ctx, '$(inst)')
+        path = uno.fileUrlToSystemPath(url).strip('.')
+        if os.__file__.startswith(path):
+            msg = self._resolver.resolveString(122).format(path)
+        else:
+            msg = self._resolver.resolveString(123).format(sys.executable)
         self._logger.logp(level, clazz, method, msg)
-        msg = self._resolver.resolveString(123).format(os.pathsep.join(sys.path))
-        self._logger.logp(level, clazz, method, msg)
-
-        msg = self._resolver.resolveString(124).format(sys.prefix)
-        self._logger.logp(level, clazz, method, msg)
-        msg = self._resolver.resolveString(125).format(sys.base_prefix)
-        self._logger.logp(level, clazz, method, msg)
-        msg = self._resolver.resolveString(126).format(sys.base_exec_prefix)
+        msg = self._resolver.resolveString(124).format(os.pathsep.join(sys.path))
         self._logger.logp(level, clazz, method, msg)
         # If a requirements file exists at the extension root,
         # then we check if the requirements are met

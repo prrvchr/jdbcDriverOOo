@@ -153,6 +153,10 @@ def getFileSequence(ctx, url, default=None):
         sequence = getStreamSequence(fs.openFileRead(path))
     return len(sequence), sequence
 
+def getPathSubstitution(ctx, path):
+     pathsubstitution = createService(ctx, 'com.sun.star.util.PathSubstitution')
+     return pathsubstitution.substituteVariables(path, True)
+
 def getStreamSequence(stream, chunk=64*1024):
     close = False
     sequence = uno.ByteSequence(b'')

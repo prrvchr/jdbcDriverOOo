@@ -50,7 +50,7 @@ g_basename = 'Driver'
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
 g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.Driver'
-g_ServiceNames = ("io.github.prrvchr.jdbcDriverOOo.Driver", 'com.sun.star.sdbc.Driver')
+g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.Driver', 'com.sun.star.sdbc.Driver')
 
 # XXX: This class is simply a bootstrap to enable the following:
 # XXX: - Provide a single entry for different services meeting the required API levels

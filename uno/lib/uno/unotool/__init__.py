@@ -59,6 +59,7 @@ from .unotool import getNamedValue
 from .unotool import getNamedValueSet
 from .unotool import getParentWindow
 from .unotool import getPathSettings
+from .unotool import getPathSubstitution
 from .unotool import getProperty
 from .unotool import getPropertyValue
 from .unotool import getPropertyValueSet
