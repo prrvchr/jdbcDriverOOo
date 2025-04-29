@@ -32,8 +32,14 @@ from . import sdbcx
 
 from .options import OptionsManager
 
+from .helper import checkConfiguration
+
 from .unotool import getConfiguration
+
+from .logger import getLogger
 
 from .jdbcdriver import g_services
 
+from .configuration import g_basename
+from .configuration import g_defaultlog
 from .configuration import g_identifier

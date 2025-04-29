@@ -27,17 +27,41 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
-from ..driver import Driver as DriverBase
+from com.sun.star.sdbc import SQLException
+
+from .unotool import checkVersion
+from .unotool import getExtensionVersion
+from .unotool import getLibreOfficeInfo
+
+from .jdbcdriver import g_extension as g_jdbcext
+from .jdbcdriver import g_identifier as g_jdbcid
+from .jdbcdriver import g_version as g_jdbcver
+
+from .configuration import g_dbname
+from .configuration import g_extension
+from .configuration import g_lover
 
 import traceback
 
 
-class Driver(DriverBase):
+def checkConfiguration(ctx, logger):
+    name, version = getLibreOfficeInfo(ctx)
+    if not checkVersion(version, g_lover):
+        raise getException(logger, None, 1001, None, 122, 123, name, version, name, g_lover)
+    version = getExtensionVersion(ctx, g_jdbcid)
+    if version is None:
+        raise getException(logger, None, 1001, None, 121, 124, g_jdbcext, g_extension)
+    if not checkVersion(version, g_jdbcver):
+        raise getException(logger, None, 1001, None, 122, 125, version, g_jdbcext, g_jdbcver)
 
-    def __init__(self, ctx, lock, logger, service, implementation):
-        DriverBase.__init__(self, ctx, lock, logger, service, implementation)
-        self._services = (implementation, 'com.sun.star.sdbc.Driver')
+def getException(logger, ctx, code, exc, state, resource, *args):
+    error = SQLException()
+    error.ErrorCode = code
+    error.NextException = exc
+    error.SQLState = logger.resolveString(state)
+    error.Message = logger.resolveString(resource, *args)
+    error.Context = ctx
+    return error
 
