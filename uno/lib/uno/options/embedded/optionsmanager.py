@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -43,16 +43,22 @@ class OptionsManager():
         self._model = OptionsModel(ctx, url)
         window.addEventListener(OptionsListener(self))
         self._view = OptionsView(window)
-        self._manager = OptionManager(ctx, window, 21, g_defaultlog)
+        self._manager = OptionManager(ctx, window, OptionsManager._restart, 20, g_defaultlog)
+        self._manager.initView()
         version = self._model.getDriverVersion(self._service())
         self._view.setDriverVersion(version)
+
+    _restart = False
 
     def dispose(self):
         self._manager.dispose()
 
 # OptionsManager setter methods
     def saveSetting(self):
-        self._manager.saveSetting() 
+        if self._manager.saveSetting():
+            OptionsManager._restart = True
+            self._manager.setRestart(True)
+
 
     def loadSetting(self):
         self._manager.loadSetting()

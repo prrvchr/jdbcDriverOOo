@@ -32,10 +32,12 @@ from com.sun.star.logging.LogLevel import INFO
 from ..unotool import getConfiguration
 
 from ..logger import getLogger
-g_basename = 'OptionsDialog'
+
+from ..jdbcdriver import g_services
 
 from ..configuration import g_identifier
-from ..configuration import g_services
+
+g_basename = 'OptionsDialog'
 
 import traceback
 
@@ -47,14 +49,14 @@ class OptionModel():
                         'com.sun.star.sdbcx',
                         'com.sun.star.sdb')
         self._config = getConfiguration(ctx, g_identifier, True)
-        self._service = self.getDriverService()
         self._settings = self._getSettings()
+        self._service = self.getDriverService()
         self._logger = getLogger(ctx, logger, g_basename)
         self._logger.logprb(INFO, 'OptionModel', '__init__()', 101)
 
 # OptionModel getter methods
     def getDriverService(self):
-        return g_services.get(self._config.getByName('ApiLevel'))
+        return g_services.get(self._settings['ApiLevel'])
 
     def getViewData(self):
         level = self._levels.index(self._settings.get('ApiLevel'))

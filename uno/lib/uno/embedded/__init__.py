@@ -4,7 +4,7 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -30,8 +30,10 @@
 from . import sdbc
 from . import sdbcx
 
+from .options import OptionsManager
+
 from .unotool import getConfiguration
 
-from .configuration import g_identifier
+from .jdbcdriver import g_services
 
-from .options import OptionsManager
+from .configuration import g_identifier
