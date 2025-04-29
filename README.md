@@ -226,14 +226,14 @@ ___
 
 Normally, the extension is created with Eclipse for Java and [LOEclipse][52]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
 To create the jdbcDriverOOo extension with the help of Apache Ant, you need to:
-- Install the [Java SDK version 17][53] minimum.
+- Install the [Java SDK][53] version 17 or higher.
 - Install [Apache Ant][54] version 1.9.1 or higher.
 - Install [LibreOffice and its SDK][55] version 7.x or higher.
 - Clone the [jdbcDriverOOo][56] repository on GitHub into a folder.
 - From this folder, move to the directory: `source/jdbcDriverOOo/`
 - In this directory, edit the file: `build.properties` so that the `office.install.dir` and `sdk.dir` properties point to the folders where LibreOffice and its SDK were installed, respectively.
 - Start the archive creation process using the command: `ant`
-- You will find the generated archive in the folder: `dist/`
+- You will find the generated archive in the subfolder: `dist/`
 
 ___
 
