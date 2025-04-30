@@ -94,9 +94,9 @@ Restart LibreOffice after installation.
 - **On Windows** to ensure that LibreOffice restarts correctly, use Windows Task Manager to verify that no LibreOffice services are visible after LibreOffice shuts down (and kill it if so).
 - **Under Linux or macOS** you can also ensure that LibreOffice restarts correctly, by launching it from a terminal with the command `soffice` and using the key combination `Ctrl + C` if after stopping LibreOffice, the terminal is not active (no command prompt).
 
-After restarting LibreOffice, you can ensure that the extension and its driver are correctly installed by checking that the `io.github.prrvchr.jdbcDriverOOo.Driver` driver is listed in the **Connection Pool**, accessible via the menu: **Tools -> Options... -> LibreOffice Base -> Connections**. It is not necessary to enable the connection pool.
+After restarting LibreOffice, you can ensure that the extension and its driver are correctly installed by checking that the `io.github.prrvchr.jdbcDriverOOo.Driver` driver is listed in the **Connection Pool**, accessible via the menu: **Tools -> Options -> LibreOffice Base -> Connections**. It is not necessary to enable the connection pool.
 
-If the driver is not listed, the reason for the driver failure can be found in the extension's logging. This log is accessible via the menu: **Tools -> Options... -> LibreOffice Base -> Pure Java JDBC Driver -> Logging Options**.  
+If the driver is not listed, the reason for the driver failure can be found in the extension's logging. This log is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC Driver -> Logging Options**.  
 The `Driver` logging must first be enabled, then LibreOffice restarted and the **Connection Pool** checked again to force the driver to load and obtain the error message in the log.
 
 Remember to first update the version of the Java JRE or JDK installed on your computer, this new version of jdbcDriverOOo requires **Java version 17 or later** instead of Java 11 previously.

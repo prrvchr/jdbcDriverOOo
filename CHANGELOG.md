@@ -285,7 +285,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 - Updated the [Python setuptools][85] package to version 73.0.1.
 - Logging accessible in extension options now displays correctly on Windows.
-- The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> JDBC Driver**
+- The extension options are now accessible via: **Tools -> Options -> LibreOffice Base -> JDBC Driver**
 - Changes to extension options that require a restart of LibreOffice will result in a message being displayed.
 - Support for LibreOffice version 24.8.x.
 
@@ -293,7 +293,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 - It is now possible to insert data into an empty table when using an `TYPE_FORWARD_ONLY` ResultSet (ie: SQLite, Trino).
 - The options button is now accessible in the list of installed extensions obtained by the menu: **Tools -> Extensions Manager...**
-- The extension options are now accessible via: **Tools -> Options... -> LibreOffice Base -> Pure Java JDBC Driver**
+- The extension options are now accessible via: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC Driver**
 - The extension options: **View system tables**, **Use bookmarks** and **Force SQL mode** will be searched in the information provided when connecting and will take precedence if present.
 - Updated Trino driver to version 455.
 
