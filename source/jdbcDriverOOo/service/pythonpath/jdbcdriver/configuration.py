@@ -36,6 +36,6 @@ g_service = '%s.Driver' % g_identifier
 # jdbcDriverOOo special configuration
 g_resource = 'resource'
 g_basename = 'Driver'
-g_defaultlog = 'jdbcDriverLogger'
+g_defaultlog = 'Driver'
 g_errorlog = 'jdbcDriverError'
 

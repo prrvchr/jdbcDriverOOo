@@ -42,17 +42,18 @@ import traceback
 
 
 class OptionModel():
-    def __init__(self, ctx, logger):
+    def __init__(self, ctx):
         self._keys = ('ApiLevel', 'ShowSystemTable', 'UseBookmark', 'SQLMode')
         self._levels = ('com.sun.star.sdbc',
                         'com.sun.star.sdbcx',
                         'com.sun.star.sdb')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
-        self._logger = getLogger(ctx, logger, g_basename)
-        self._logger.logprb(INFO, 'OptionModel', '__init__', 301)
 
 # OptionModel getter methods
+    def getConfigApiLevel(self):
+        return self._config.getByName('ApiLevel')
+
     def getApiLevel(self):
         return self._settings['ApiLevel']
 

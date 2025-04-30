@@ -27,11 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from .configuration import g_identifier
-from .configuration import g_service
-
-from .jdbcdriver import g_services
-
 from .unotool import createService
 from .unotool import hasInterface
 from .unotool import getConfiguration
@@ -43,4 +38,11 @@ from .logger import getLogger
 from .options import OptionsManager
 
 from .dbadmin import AdminDispatch
+
+from .jdbcdriver import g_services
+
+from .configuration import g_basename
+from .configuration import g_defaultlog
+from .configuration import g_identifier
+from .configuration import g_service
 

@@ -54,6 +54,10 @@ class TabManager():
         self._manager.dispose()
         self._view.dispose()
 
+# TabManager getter methods
+    def getConfigApiLevel(self):
+        return self._manager.getConfigApiLevel()
+
     # Option1Dialog.xdl handler entry
     def setJavaLogger(self, enabled):
         self._model.setJavaLogger(enabled)

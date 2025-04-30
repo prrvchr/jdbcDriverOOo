@@ -27,18 +27,30 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+from ..unotool import createService
 from ..unotool import getStringResource
 
 from ..configuration import g_identifier
+from ..configuration import g_service
 
 import traceback
 
 
 class OptionsModel():
     def __init__(self, ctx):
+        self._ctx = ctx
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', 'OptionsDialog')
         self._resources = {'TabTitle1': 'OptionsDialog.Tab1.Title',
                            'TabTitle2': 'OptionsDialog.Tab2.Title'}
+
+# OptionsModel setter methods
+    def loadDriver(self):
+        try:
+            driver = createService(self._ctx, g_service)
+            driver.dispose()
+        except:
+            # Nothing to do the error is already logged
+            pass
 
 # OptionsModel getter methods
     def getTabTitles(self):

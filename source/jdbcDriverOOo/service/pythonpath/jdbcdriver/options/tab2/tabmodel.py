@@ -45,10 +45,10 @@ from ...unotool import getUrl
 from ...dbconfig import g_folder
 
 from ...logger import getLogger
-g_basename = 'OptionsDialog'
 
+from ...configuration import g_basename
+from ...configuration import g_defaultlog
 from ...configuration import g_identifier
-from ...configuration import g_extension
 from ...configuration import g_service
 
 from threading import Thread
@@ -85,8 +85,8 @@ class TabModel():
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', xdl)
         self._resources = {'Version1': 'Option2Dialog.Label6.Label.0',
                            'Version2': 'Option2Dialog.Label6.Label.1'}
-        self._logger = getLogger(ctx, 'Driver', g_basename)
-        self._logger.logprb(INFO, 'OptionModel', '__init__', 101)
+        self._logger = getLogger(ctx, g_defaultlog, g_basename)
+        self._logger.logprb(INFO, 'OptionsModel', '__init__', 301)
         self._drivers = self._getDriverConfigurations()
 
     _directory = None
@@ -420,19 +420,9 @@ class TabModel():
     def _getSubProtocol(self, driver):
         return driver.split(':')[1] if driver else ''
 
-    def _getConnectionVersion(self, driver, url, version):
-        connection = driver.connect(url, ())
-        version = self._getVersion(connection.getMetaData().getDriverVersion())
-        connection.close()
-        return version
-
     def _getDefaultVersion(self):
         resource = self._resources.get('Version1')
         return self._resolver.resolveString(resource)
-
-    def _getVersion(self, version):
-        resource = self._resources.get('Version2')
-        return self._resolver.resolveString(resource) % version
 
 # TabModel private setter methods
     def _saveConfiguration(self):
@@ -487,31 +477,41 @@ class TabModel():
             sf.kill(folder)
         sf.createFolder(folder)
 
-    def _setDriverVersions(self, update):
+    def _setDriverVersions(self, apilevel, update):
+        driver = None
         try:
             versions = {}
             default = self._getDefaultVersion()
             config = self._config.getByName('Installed')
             name = 'Properties/InMemoryDataBase/Value'
             pool = createService(self._ctx, 'com.sun.star.sdbc.ConnectionPool')
-            service = createService(self._ctx, g_service)
+            driver = createService(self._ctx, g_service)
             for protocol in config.getElementNames():
-                driver = config.getByName(protocol)
-                if driver.hasByHierarchicalName(name):
-                    url = driver.getByHierarchicalName(name)
+                setting = config.getByName(protocol)
+                if setting.hasByHierarchicalName(name):
+                    url = setting.getByHierarchicalName(name)
                     if url:
-                        url = self._protocol + url
-                        connection = pool.getConnection(url)
-                        if connection is None:
-                            versions[protocol] = self._getConnectionVersion(service, url, default)
-                        else:
-                            versions[protocol] = self._getVersion(connection.getMetaData().getDriverVersion())
-                            connection.close()
+                        connection = driver.connect(self._protocol + url, ())
+                        version = connection.getMetaData().getDriverVersion()
+                        versions[protocol] = self._getVersion(version)
+                        connection.close()
                         continue
                 versions[protocol] = default
             with self._lock:
                 self._versions = versions
             update(versions)
         except UnoException as e:
-            self._logger.logprb(SEVERE, 'TabModel', '_setDriverVersions', 111, g_service, e.Message)
+            # If the driver is None, the error is already logged
+            if driver is not None:
+                self._logger.logprb(SEVERE, 'TabModel', 'setDriverVersions', 102, g_service, apilevel, e.Message)
 
+
+    def _getConnectionVersion(self, driver, url, version):
+        connection = driver.connect(url, ())
+        version = self._getVersion(connection.getMetaData().getDriverVersion())
+        connection.close()
+        return version
+
+    def _getVersion(self, version):
+        resource = self._resources.get('Version2')
+        return self._resolver.resolveString(resource) % version

@@ -75,8 +75,8 @@ class TabManager():
             self._view.dispose()
             self._disposed = True
 
-    def setDriverVersions(self):
-        self._model.setDriverVersions(self.updateVersion)
+    def setDriverVersions(self, apilevel):
+        self._model.setDriverVersions(apilevel, self.updateVersion)
 
     def setRestart(self, state):
         self._model.setRestart(state)

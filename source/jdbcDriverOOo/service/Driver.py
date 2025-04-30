@@ -38,14 +38,14 @@ from jdbcdriver import createService
 from jdbcdriver import getConfiguration
 from jdbcdriver import getLogger
 
+from jdbcdriver import g_basename
+from jdbcdriver import g_defaultlog
 from jdbcdriver import g_identifier
 from jdbcdriver import g_services
 from jdbcdriver import g_service
 
 from threading import Lock
 import traceback
-
-g_basename = 'Driver'
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
@@ -61,15 +61,15 @@ class Driver():
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    logger = getLogger(ctx, 'Driver', g_basename)
+                    logger = getLogger(ctx, g_defaultlog, g_basename)
                     apilevel = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
                     try:
                         cls._instance = createService(ctx, g_services[apilevel])
-                        cls._log(logger, INFO, 101, g_ImplementationName, apilevel)
+                        logger.logprb(INFO, 'Driver', '__new__', 101, g_ImplementationName, apilevel)
                     except UNOException as e:
                         if cls._logger is None:
                             cls._logger = logger
-                        cls._log(logger, SEVERE, 102, g_ImplementationName, apilevel, e.Message)
+                        logger.logprb(SEVERE, 'Driver', '__new__', 102, g_ImplementationName, apilevel, e.Message)
                         raise e
         return cls._instance
 
@@ -78,9 +78,6 @@ class Driver():
     _logger = None
     _instance = None
     _lock = Lock()
-
-    def _log(logger, level, resource, *args):
-        logger.logprb(level, 'Driver', '__new__', resource, *args)
 
 g_ImplementationHelper.addImplementation(Driver,                          # UNO object class
                                          g_ImplementationName,            # Implementation name

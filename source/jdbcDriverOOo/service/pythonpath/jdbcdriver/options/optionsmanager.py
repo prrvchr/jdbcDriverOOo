@@ -46,11 +46,13 @@ class OptionsManager():
         self._disposed = False
         self._listener = TabListener(self)
         window.addEventListener(EventListener(self))
-        self._view = OptionsView(ctx, window, self._listener, *OptionsModel(ctx).getTabTitles())
+        self._model = OptionsModel(ctx)
+        self._view = OptionsView(ctx, window, self._listener, *self._model.getTabTitles())
         restart = OptionsManager._restart
         self._tab1 = Tab1Manager(ctx, self._view.getTab1(), restart, 0, 'Driver')
         self._tab2 = Tab2Manager(ctx, self._view.getTab2(), restart)
         self._tab1.initView()
+        self._model.loadDriver()
 
     _restart = False
 
@@ -64,7 +66,7 @@ class OptionsManager():
 
     def activateTab2(self):
         self._view.removeTabListener(self._listener)
-        self._tab2.setDriverVersions()
+        self._tab2.setDriverVersions(self._tab1.getConfigApiLevel())
 
     def saveSetting(self):
         saved = self._tab1.saveSetting()
