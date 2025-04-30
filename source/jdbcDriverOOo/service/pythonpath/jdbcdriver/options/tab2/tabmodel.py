@@ -85,9 +85,9 @@ class TabModel():
         self._resolver = getStringResource(ctx, g_identifier, 'dialogs', xdl)
         self._resources = {'Version1': 'Option2Dialog.Label6.Label.0',
                            'Version2': 'Option2Dialog.Label6.Label.1'}
+        self._drivers = self._getDriverConfigurations()
         self._logger = getLogger(ctx, g_defaultlog, g_basename)
         self._logger.logprb(INFO, 'OptionsModel', '__init__', 301)
-        self._drivers = self._getDriverConfigurations()
 
     _directory = None
 
@@ -424,6 +424,10 @@ class TabModel():
         resource = self._resources.get('Version1')
         return self._resolver.resolveString(resource)
 
+    def _getVersion(self, version):
+        resource = self._resources.get('Version2')
+        return self._resolver.resolveString(resource) % version
+
 # TabModel private setter methods
     def _saveConfiguration(self):
         config = self._config.getByName('Installed')
@@ -505,13 +509,3 @@ class TabModel():
             if driver is not None:
                 self._logger.logprb(SEVERE, 'TabModel', 'setDriverVersions', 102, g_service, apilevel, e.Message)
 
-
-    def _getConnectionVersion(self, driver, url, version):
-        connection = driver.connect(url, ())
-        version = self._getVersion(connection.getMetaData().getDriverVersion())
-        connection.close()
-        return version
-
-    def _getVersion(self, version):
-        resource = self._resources.get('Version2')
-        return self._resolver.resolveString(resource) % version

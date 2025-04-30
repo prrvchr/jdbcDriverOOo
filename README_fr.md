@@ -97,7 +97,7 @@ Redémarrez LibreOffice après l'installation.
 Après avoir redémarré LibreOffice, vous pouvez vous assurer que l'extension et son pilote sont correctement installés en vérifiant que le pilote `io.github.prrvchr.jdbcDriverOOo.Driver` est répertorié dans le **Pool de Connexions**, accessible via le menu: **Outils -> Options -> LibreOffice Base -> Connexions**. Il n'est pas nécessaire d'activer le pool de connexions.
 
 Si le pilote n'est pas répertorié, la raison de l'échec du chargement du pilote peut être trouvée dans la journalisation de l'extension. Cette journalisation est accessible via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC Pure Java -> Options de journalisation**.  
-La journalisation `Driver` doit d'abord être activée puis LibreOffice redémarré et le **Pool de Connexions** à nouveau consulté afin de forcer le chargement du pilote et d'obtenir le message d'erreur dans le journal.
+La journalisation `Driver` doit d'abord être activée, puis LibreOffice redémarré pour obtenir le message d'erreur dans le journal.
 
 N'oubliez pas au préalable de mettre à jour la version du JRE ou JDK Java installée sur votre ordinateur, cette nouvelle version de jdbcDriverOOo nécessite **Java version 17 ou ultérieure** au lieu de Java 11 auparavant.
 
