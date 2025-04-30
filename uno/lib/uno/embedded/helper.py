@@ -35,14 +35,10 @@ from .unotool import checkVersion
 from .unotool import getExtensionVersion
 from .unotool import getLibreOfficeInfo
 
-from .logger import getLogger
-
 from .jdbcdriver import g_extension as g_jdbcext
 from .jdbcdriver import g_identifier as g_jdbcid
 from .jdbcdriver import g_version as g_jdbcver
 
-from .configuration import g_basename
-from .configuration import g_defaultlog
 from .configuration import g_dbname
 from .configuration import g_extension
 from .configuration import g_lover
@@ -50,15 +46,15 @@ from .configuration import g_lover
 import traceback
 
 
-def checkConfiguration(ctx):
+def checkConfiguration(ctx, logger):
     name, version = getLibreOfficeInfo(ctx)
     if not checkVersion(version, g_lover):
-        raise _getException(ctx, 1001, 122, 123, name, version, name, g_lover)
+        raise _getException(logger, 1001, 122, 123, name, version, name, g_lover)
     version = getExtensionVersion(ctx, g_jdbcid)
     if version is None:
-        raise _getException(ctx, 1001, 121, 124, g_jdbcext, g_extension)
+        raise _getException(logger, 1001, 121, 124, g_jdbcext, g_extension)
     if not checkVersion(version, g_jdbcver):
-        raise _getException(ctx, 1001, 122, 125, version, g_jdbcext, g_jdbcver)
+        raise _getException(logger, 1001, 122, 125, version, g_jdbcext, g_jdbcver)
 
 def getException(logger, source, code, exc, state, resource, *args):
     error = SQLException()
@@ -69,7 +65,6 @@ def getException(logger, source, code, exc, state, resource, *args):
     error.Context = source
     return error
 
-def _getException(ctx, code, state, resource, *args):
-    logger = getLogger(ctx, g_defaultlog, g_basename)
+def _getException(logger, code, state, resource, *args):
     return getException(logger, None, code, None, state, resource, *args)
 

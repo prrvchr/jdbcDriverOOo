@@ -32,8 +32,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.uno import Exception as UnoException
 
-from ..helper import checkConfiguration
-
 from ..logger import getLogger
 
 from ..unotool import createService
@@ -52,19 +50,19 @@ class OptionsModel():
 
 # OptionsModel getter methods
     def getDriverVersion(self, apilevel):
+        driver = None
         version = 'N/A'
         try:
-            checkConfiguration(self._ctx)
+            driver = createService(self._ctx, g_service)
             if self._url is not None:
-                driver = createService(self._ctx, g_service)
-                # FIXME: If jdbcDriverOOo extension has not been installed then driver is None
-                if driver is not None:
-                    connection = driver.connect(self._url, ())
-                    version = connection.getMetaData().getDriverVersion()
-                    connection.close()
-                    driver.dispose()
+                connection = driver.connect(self._url, ())
+                version = connection.getMetaData().getDriverVersion()
+                connection.close()
+            driver.dispose()
         except UnoException as e:
-            logger = getLogger(self._ctx, g_defaultlog, g_basename)
-            logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, g_service, apilevel, e.Message)
+            # If the driver is None, the error is already logged
+            if driver is not None:
+                logger = getLogger(self._ctx, g_defaultlog, g_basename)
+                logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, g_service, apilevel, e.Message)
         return version
 
