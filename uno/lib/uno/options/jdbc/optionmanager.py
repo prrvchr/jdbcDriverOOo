@@ -52,8 +52,8 @@ class OptionManager():
         self._view.dispose()
 
 # OptionManager getter methods
-    def getDriverService(self):
-        return self._model.getDriverService()
+    def getApiLevel(self):
+        return self._model.getApiLevel()
 
 # OptionManager setter methods
     def saveSetting(self):

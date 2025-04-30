@@ -41,12 +41,11 @@ import traceback
 class OptionsManager():
     def __init__(self, ctx, window, url=None):
         self._model = OptionsModel(ctx, url)
-        window.addEventListener(OptionsListener(self))
-        self._view = OptionsView(window)
         self._manager = OptionManager(ctx, window, OptionsManager._restart, 20, g_defaultlog)
+        self._view = OptionsView(window)
+        window.addEventListener(OptionsListener(self))
         self._manager.initView()
-        version = self._model.getDriverVersion(self._service())
-        self._view.setDriverVersion(version)
+        self._initView()
 
     _restart = False
 
@@ -62,10 +61,14 @@ class OptionsManager():
 
     def loadSetting(self):
         self._manager.loadSetting()
-        version = self._model.getDriverVersion(self._service())
+        version = self._model.getDriverVersion(self._getApiLevel())
         self._view.setDriverVersion(version)
 
-# OptionsManager private methods
-    def _service(self):
-        return self._manager.getDriverService()
+# OptionsManager private getter methods
+    def _getApiLevel(self):
+        return self._manager.getApiLevel()
 
+# OptionsManager private setter methods
+    def _initView(self):
+        version = self._model.getDriverVersion(self._manager.getApiLevel())
+        self._view.setDriverVersion(version)

@@ -32,12 +32,15 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.uno import Exception as UnoException
 
+from ..helper import checkConfiguration
+
+from ..logger import getLogger
+
 from ..unotool import createService
 
 from ..configuration import g_defaultlog
-
-from ..logger import getLogger
-g_basename = 'OptionsDialog'
+from ..configuration import g_basename
+from ..configuration import g_service
 
 import traceback
 
@@ -48,24 +51,20 @@ class OptionsModel():
         self._url = url
 
 # OptionsModel getter methods
-    def getDriverVersion(self, service):
+    def getDriverVersion(self, apilevel):
         version = 'N/A'
-        if self._url is None:
-            return version
         try:
-            driver = createService(self._ctx, service)
-            # FIXME: If jdbcDriverOOo extension has not been installed then driver is None
-            if driver is not None:
-                connection = driver.connect(self._url, ())
-                version = connection.getMetaData().getDriverVersion()
-                connection.close()
-                driver.dispose()
+            checkConfiguration(self._ctx)
+            if self._url is not None:
+                driver = createService(self._ctx, g_service)
+                # FIXME: If jdbcDriverOOo extension has not been installed then driver is None
+                if driver is not None:
+                    connection = driver.connect(self._url, ())
+                    version = connection.getMetaData().getDriverVersion()
+                    connection.close()
+                    driver.dispose()
         except UnoException as e:
-            self._getLogger().logprb(SEVERE, 'OptionsModel', '_getDriverVersion()', 141, e.Message)
-        except Exception as e:
-            self._getLogger().logprb(SEVERE, 'OptionsModel', '_getDriverVersion()', 142, str(e), traceback.format_exc())
+            logger = getLogger(self._ctx, g_defaultlog, g_basename)
+            logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, g_service, apilevel, e.Message)
         return version
 
-# OptionsModel private methods
-    def _getLogger(self):
-        return getLogger(self._ctx, g_defaultlog, g_basename)
