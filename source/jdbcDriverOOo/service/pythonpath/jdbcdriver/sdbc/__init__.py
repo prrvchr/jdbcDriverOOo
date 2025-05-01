@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,24 +27,5 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from . import sdbc
-from . import sdbcx
-
-from .unotool import createService
-from .unotool import hasInterface
-from .unotool import getConfiguration
-
-from .logger import LoggerPool
-
-from .logger import getLogger
-
-from .options import OptionsManager
-
-from .dbadmin import AdminDispatch
-
-from .jdbcdriver import g_services
-
-from .configuration import g_basename
-from .configuration import g_defaultlog
-from .configuration import g_identifier
+from .driver import Driver
 

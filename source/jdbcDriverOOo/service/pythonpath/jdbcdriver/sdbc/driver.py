@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,24 +27,14 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from . import sdbc
-from . import sdbcx
+from ..driver import Driver as DriverBase
 
-from .unotool import createService
-from .unotool import hasInterface
-from .unotool import getConfiguration
+import traceback
 
-from .logger import LoggerPool
 
-from .logger import getLogger
+class Driver(DriverBase):
 
-from .options import OptionsManager
-
-from .dbadmin import AdminDispatch
-
-from .jdbcdriver import g_services
-
-from .configuration import g_basename
-from .configuration import g_defaultlog
-from .configuration import g_identifier
+    def __init__(self, cls, ctx, service, implementation):
+        services = (implementation, 'com.sun.star.sdbc.Driver')
+        DriverBase.__init__(self, cls, ctx, service, implementation, services)
 

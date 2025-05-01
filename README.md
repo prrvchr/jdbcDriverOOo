@@ -67,18 +67,21 @@ jdbcDriverOOo is a JDBC driver written in Java.
 Its use requires the [installation and configuration][33] in LibreOffice of a **Java JRE or JDK version 17 or later**.  
 I recommend [Adoptium][34] as your Java installation source.
 
-If you are using **LibreOffice on Linux** and **LibreOffice was installed with the package manager**, you may experience:
-  - You are subject to [bug #139538][35]. To work around the problem, please **uninstall the packages** with commands:
+The minimum version of LibreOffice supported by the jdbcDriverOOo extension depends on how you installed LibreOffice on your computer:
+
+- **Regardless of platform**, if you installed LibreOffice from the [LibreOffice download site][35], **the minimum version of LibreOffice is 7.0**.
+
+- **On Linux**, if you used the package manager to install LibreOffice, **the minimum version of LibreOffice is 6.0**. However, you must ensure that the system-provided Python version is not lower than 3.8.  
+  In addition, you may experience the following issues:
+  - You are subject to [bug #139538][36]. To work around the problem, please **uninstall the packages** with commands:
     - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
-    - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
-
-    If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HyperSQLOOo][36] extension.
-
-  - Your Python packages are system-provided and out of date. The extension's logging will allow you to check if this is the case. It is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info** and requires restarting LibreOffice after activation.  
+    - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)  
+    If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HyperSQLOOo][37] extension.
+  - Your system-provided Python packages are out of date. The extension's logging will allow you to check if this is the case. It is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info** and requires restarting LibreOffice after activation.  
   If outdated packages appear, you can update them with the command:  
   `pip install --upgrade <package-name>`
 
-For more information see: [What has been done for version 1.1.0][37].
+  For more information see: [What has been done for version 1.1.0][38].
 
 ___
 
@@ -87,7 +90,7 @@ ___
 It seems important that the file was not renamed when it was downloaded.  
 If necessary, rename it before installing it.
 
-- ![jdbcDriverOOo logo][38] Install **[jdbcDriverOOo.oxt][39]** extension [![Version][40]][39]
+- ![jdbcDriverOOo logo][39] Install **[jdbcDriverOOo.oxt][40]** extension [![Version][41]][40]
 
 Restart LibreOffice after installation.  
 **Be careful, restarting LibreOffice may not be enough.**
@@ -113,14 +116,14 @@ This mode of use explains how to connect with the **file://** and **hsql://** pr
 
 In LibreOffice / OpenOffice go to menu: **File -> New -> Database**
 
-![jdbcDriverOOo screenshot 1][41]
+![jdbcDriverOOo screenshot 1][42]
 
 In step: **Select database**
 - select: Connect to an existing database
 - choose: **HsqlDB Driver**
 - click on button: Next
 
-![jdbcDriverOOo screenshot 2][42]
+![jdbcDriverOOo screenshot 2][43]
 
 In step: **Connection settings**
 
@@ -137,22 +140,22 @@ In step: **Connection settings**
 
 - click on button: Next
 
-![jdbcDriverOOo screenshot 3][43]
+![jdbcDriverOOo screenshot 3][44]
 
 In step: **Set up user authentication**
 - click on button: Test connection
 
-![jdbcDriverOOo screenshot 4][44]
+![jdbcDriverOOo screenshot 4][45]
 
 If the connection was successful, you should see this dialog window:
 
-![jdbcDriverOOo screenshot 5][45]
+![jdbcDriverOOo screenshot 5][46]
 
 Have fun...
 
 ### How to update the JDBC driver:
 
-If you want to update an embedded HsqlDB database (single odb file), please refer to the section: [How to migrate an embedded database][46].
+If you want to update an embedded HsqlDB database (single odb file), please refer to the section: [How to migrate an embedded database][47].
 
 It is possible to update the JDBC driver (hsqldb.jar, h2.jar, derbytools.jar) to a newer version.  
 If you use HsqlDB as database, follow these steps:
@@ -173,27 +176,27 @@ This driver allows in LibreOffice / OpenOffice Base the management of **users**,
 
 User management of the underlying database is accessible in Base via the menu: **Administration -> User administration**
 
-![jdbcDriverOOo screenshot 6][47]
+![jdbcDriverOOo screenshot 6][48]
 
 The privileges management of the users of the underlying database is accessible in this window by the button: **Change privileges**  
 If the privilege is inherited from an assigned role, the checkbox is a three-state type.
 
-![jdbcDriverOOo screenshot 7][48]
+![jdbcDriverOOo screenshot 7][49]
 
 ### Managing roles (groups) in Base:
 
 The management of the roles (groups) of the underlying database is accessible in Base via the menu: **Administration -> Group administration**
 
-![jdbcDriverOOo screenshot 8][49]
+![jdbcDriverOOo screenshot 8][50]
 
 The management of users who are members of the group of the underlying database is accessible in this window via the button: **Group users**
 
-![jdbcDriverOOo screenshot 9][50]
+![jdbcDriverOOo screenshot 9][51]
 
 The management of roles assigned to the group of the underlying database is accessible in this window via the button: **Group roles**  
 This functionality is an extension of the UNO API and will only be available if the underlying LibreOffice / OpenOffice driver allows it.
 
-![jdbcDriverOOo screenshot 10][51]
+![jdbcDriverOOo screenshot 10][52]
 
 ___
 
@@ -223,12 +226,12 @@ ___
 
 ## How to build the extension:
 
-Normally, the extension is created with Eclipse for Java and [LOEclipse][52]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
+Normally, the extension is created with Eclipse for Java and [LOEclipse][53]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
 To create the jdbcDriverOOo extension with the help of Apache Ant, you need to:
-- Install the [Java SDK][53] version 17 or higher.
-- Install [Apache Ant][54] version 1.9.1 or higher.
-- Install [LibreOffice and its SDK][55] version 7.x or higher.
-- Clone the [jdbcDriverOOo][56] repository on GitHub into a folder.
+- Install the [Java SDK][54] version 17 or higher.
+- Install [Apache Ant][55] version 1.9.1 or higher.
+- Install [LibreOffice and its SDK][56] version 7.x or higher.
+- Clone the [jdbcDriverOOo][57] repository on GitHub into a folder.
 - From this folder, move to the directory: `source/jdbcDriverOOo/`
 - In this directory, edit the file: `build.properties` so that the `office.install.dir` and `sdk.dir` properties point to the folders where LibreOffice and its SDK were installed, respectively.
 - Start the archive creation process using the command: `ant`
@@ -252,7 +255,7 @@ I will try to solve it :smile:
 
 ___
 
-## [Historical][57]:
+## Historical:
 
 ### Introduction:
 
@@ -281,7 +284,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 
-### All changes are logged in the [version History][57]
+### [All changes are logged in the version History][59]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -309,27 +312,28 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
 [33]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10>
 [34]: <https://adoptium.net/temurin/releases/?version=17&package=jre>
-[35]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[36]: <https://prrvchr.github.io/HyperSQLOOo/>
-[37]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
-[38]: <img/jdbcDriverOOo.svg#middle>
-[39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
-[41]: <img/jdbcDriverOOo-1.png>
-[42]: <img/jdbcDriverOOo-2.png>
-[43]: <img/jdbcDriverOOo-3.png>
-[44]: <img/jdbcDriverOOo-4.png>
-[45]: <img/jdbcDriverOOo-5.png>
-[46]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-migrate-an-embedded-database>
-[47]: <img/jdbcDriverOOo-6.png>
-[48]: <img/jdbcDriverOOo-7.png>
-[49]: <img/jdbcDriverOOo-8.png>
-[50]: <img/jdbcDriverOOo-9.png>
-[51]: <img/jdbcDriverOOo-10.png>
-[52]: <https://github.com/LibreOffice/loeclipse>
-[53]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
-[54]: <https://ant.apache.org/manual/install.html>
-[55]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
-[56]: <https://github.com/prrvchr/jdbcDriverOOo.git>
-[57]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>
+[35]: <https://www.libreoffice.org/download/download-libreoffice/>
+[36]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
+[37]: <https://prrvchr.github.io/HyperSQLOOo/>
+[38]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
+[39]: <img/jdbcDriverOOo.svg#middle>
+[40]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
+[41]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
+[42]: <img/jdbcDriverOOo-1.png>
+[43]: <img/jdbcDriverOOo-2.png>
+[44]: <img/jdbcDriverOOo-3.png>
+[45]: <img/jdbcDriverOOo-4.png>
+[46]: <img/jdbcDriverOOo-5.png>
+[47]: <https://prrvchr.github.io/HyperSQLOOo/#how-to-migrate-an-embedded-database>
+[48]: <img/jdbcDriverOOo-6.png>
+[49]: <img/jdbcDriverOOo-7.png>
+[50]: <img/jdbcDriverOOo-8.png>
+[51]: <img/jdbcDriverOOo-9.png>
+[52]: <img/jdbcDriverOOo-10.png>
+[53]: <https://github.com/LibreOffice/loeclipse>
+[54]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[55]: <https://ant.apache.org/manual/install.html>
+[56]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[57]: <https://github.com/prrvchr/jdbcDriverOOo.git>
 [58]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[59]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>

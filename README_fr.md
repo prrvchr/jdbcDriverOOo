@@ -67,18 +67,21 @@ jdbcDriverOOo est un pilote JDBC écrit en Java.
 Son utilisation nécessite [l'installation et la configuration][33] dans LibreOffice d'un **JRE ou JDK Java version 17 ou ultérieure**.  
 Je vous recommande [Adoptium][34] comme source d'installation de Java.
 
-Si vous utilisez **LibreOffice sous Linux** et que **LibreOffice a été installé avec le gestionnaire de paquets**, il se peut que:
-  - Vous soyez sujet au [dysfonctionnement #139538][35]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
+La version minimale de LibreOffice prise en charge par l'extension jdbcDriverOOo dépend de la façon dont vous avez installé LibreOffice sur votre ordinateur:
+
+- **Quelle que soit la plateforme**, si vous avez installé LibreOffice depuis le [site de téléchargement de LibreOffice][35], **la version minimale de LibreOffice est 7.0**.
+
+- **Sous Linux** si vous avez utilisé le gestionnaire de paquets pour installer LibreOffice, **la version minimale de LibreOffice est 6.0**. Cependant, vous devez vous assurer que la version de Python fournie par le système n'est pas inférieure à 3.8.  
+  De plus, vous pouvez rencontrer les problèmes suivants:
+  - Vous êtes sujet au [dysfonctionnement #139538][36]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
     - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
-    - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
-
-    Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][36].
-
-  - Vos packages Python sont fournis par le système et obsolètes. La journalisation de l'extension vous permettera de verifier si c'est le cas. Elle est accessible via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options du pilote UNO -> Voir journal -> Info système** et nécessite le redemarrage de LibreOffice aprés son activation.  
+    - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)  
+    Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][37].
+  - Vos packages Python fournis par le système sont obsolètes. La journalisation de l'extension vous permettera de verifier si c'est le cas. Elle est accessible via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options du pilote UNO -> Voir journal -> Info système** et nécessite le redemarrage de LibreOffice aprés son activation.  
   Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
   `pip install --upgrade <package-name>`
 
-Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][37].
+  Pour plus d'information voir: [Ce qui a été fait pour la version 1.1.0][38].
 
 ___
 
@@ -87,7 +90,7 @@ ___
 Il semble important que le fichier n'ait pas été renommé lors de son téléchargement.  
 Si nécessaire, renommez-le avant de l'installer.
 
-- ![jdbcDriverOOo logo][38] Installer l'extension **[jdbcDriverOOo.oxt][39]** [![Version][40]][39]
+- ![jdbcDriverOOo logo][39] Installer l'extension **[jdbcDriverOOo.oxt][40]** [![Version][41]][40]
 
 Redémarrez LibreOffice après l'installation.  
 **Attention, redémarrer LibreOffice peut ne pas suffire.**
@@ -113,14 +116,14 @@ Ce mode d'utilisation vous explique comment vous connecter avec les protocoles *
 
 Dans LibreOffice / OpenOffice aller au menu: **Fichier -> Nouveau -> Base de données**
 
-![jdbcDriverOOo screenshot 1][41]
+![jdbcDriverOOo screenshot 1][42]
 
 A l'étape: **Sélectionner une base de données**
 - selectionner: Connecter une base de données existante
 - choisir: **Pilote HsqlDB**
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 2][42]
+![jdbcDriverOOo screenshot 2][43]
 
 A l'étape: **Paramètres de connexion**
 
@@ -137,22 +140,22 @@ A l'étape: **Paramètres de connexion**
 
 - cliquer sur le bouton: Suivant
 
-![jdbcDriverOOo screenshot 3][43]
+![jdbcDriverOOo screenshot 3][44]
 
 A l'étape: **Paramétrer l'authentification de l'utilisateur**
 - cliquer sur le bouton: Tester la connexion
 
-![jdbcDriverOOo screenshot 4][44]
+![jdbcDriverOOo screenshot 4][45]
 
 Si la connexion a réussi, vous devriez voir cette fenêtre de dialogue:
 
-![jdbcDriverOOo screenshot 5][45]
+![jdbcDriverOOo screenshot 5][46]
 
 Maintenant à vous d'en profiter...
 
 ### Comment mettre à jour le pilote JDBC:
 
-Si vous souhaitez mettre à jour une base de données HsqlDB intégrée (un seul fichier odb), veuillez vous référer à la section: [Comment migrer une base de données intégrée][46].
+Si vous souhaitez mettre à jour une base de données HsqlDB intégrée (un seul fichier odb), veuillez vous référer à la section: [Comment migrer une base de données intégrée][47].
 
 Il est possible de mettre à jour le pilote JDBC (hsqldb.jar, h2.jar, derbytools.jar) vers une version plus récente.  
 Si vous utilisez HsqlDB comme base de données, procédez comme suit:
@@ -173,27 +176,27 @@ Ce pilote permet dans LibreOffice / OpenOffice Base la gestion des **utilisateur
 
 La gestion des utilisateurs de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des utilisateurs**
 
-![jdbcDriverOOo screenshot 6][47]
+![jdbcDriverOOo screenshot 6][48]
 
 La gestion des privilèges des utilisateurs de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Modifier les privilèges**  
 Si le privilège est hérité d'un rôle assigné, la case à cocher est de type à trois états.
 
-![jdbcDriverOOo screenshot 7][48]
+![jdbcDriverOOo screenshot 7][49]
 
 ### La gestion des rôles (groupes) dans Base:
 
 La gestion des rôles (groupes) de la base de données sous jacente est accessible dans Base par le menu: **Administration -> Gestion des groupes**
 
-![jdbcDriverOOo screenshot 8][49]
+![jdbcDriverOOo screenshot 8][50]
 
 La gestion des utilisateurs membres du groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Utilisateurs du groupe**
 
-![jdbcDriverOOo screenshot 9][50]
+![jdbcDriverOOo screenshot 9][51]
 
 La gestion des roles assignés au groupe de la base de données sous jacente est accessible dans cette fenêtre par le bouton: **Roles du groupe**  
 Cette fonctionnalité est une extension de l'API UNO et ne sera disponible que si le pilote LibreOffice / OpenOffice sous jacent le permet.
 
-![jdbcDriverOOo screenshot 10][51]
+![jdbcDriverOOo screenshot 10][52]
 
 ___
 
@@ -223,12 +226,12 @@ ___
 
 ## Comment créer l'extension:
 
-Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][52]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
+Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][53]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
 Pour créer l'extension jdbcDriverOOo avec l'aide d'Apache Ant, vous devez:
-- Installer le [SDK Java][53] version 17 ou supérieure.
-- Installer [Apache Ant][54] version 1.9.1 ou supérieure.
-- Installer [LibreOffice et son SDK][55] version 7.x ou supérieure.
-- Cloner le dépôt [jdbcDriverOOo][56] sur GitHub dans un dossier.
+- Installer le [SDK Java][54] version 17 ou supérieure.
+- Installer [Apache Ant][55] version 1.9.1 ou supérieure.
+- Installer [LibreOffice et son SDK][56] version 7.x ou supérieure.
+- Cloner le dépôt [jdbcDriverOOo][57] sur GitHub dans un dossier.
 - Depuis ce dossier, accédez au répertoire: `source/jdbcDriverOOo/`
 - Dans ce répertoire, modifiez le fichier `build.properties` afin que les propriétés `office.install.dir` et `sdk.dir` pointent vers les dossiers d'installation de LibreOffice et de son SDK, respectivement.
 - Lancez la création de l'archive avec la commande: `ant`
@@ -252,7 +255,7 @@ J'essaierai de le résoudre :smile:
 
 ___
 
-## [Historique][57]:
+## Historique:
 
 ### Introduction:
 
@@ -281,7 +284,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
 
-### Toutes les changements sont consignées dans l'[Historique des versions][57]
+### [Toutes les changements sont consignées dans l'Historique des versions][59]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -309,27 +312,28 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
 [33]: <https://wiki.documentfoundation.org/Documentation/HowTo/Install_the_correct_JRE_-_LibreOffice_on_Windows_10/fr>
 [34]: <https://adoptium.net/temurin/releases/?version=17&package=jre>
-[35]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
-[36]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
-[37]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
-[38]: <img/jdbcDriverOOo.svg#middle>
-[39]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[40]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
-[41]: <img/jdbcDriverOOo-1_fr.png>
-[42]: <img/jdbcDriverOOo-2_fr.png>
-[43]: <img/jdbcDriverOOo-3_fr.png>
-[44]: <img/jdbcDriverOOo-4_fr.png>
-[45]: <img/jdbcDriverOOo-5_fr.png>
-[46]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-migrer-une-base-de-donn%C3%A9es-int%C3%A9gr%C3%A9e>
-[47]: <img/jdbcDriverOOo-6_fr.png>
-[48]: <img/jdbcDriverOOo-7_fr.png>
-[49]: <img/jdbcDriverOOo-8_fr.png>
-[50]: <img/jdbcDriverOOo-9_fr.png>
-[51]: <img/jdbcDriverOOo-10_fr.png>
-[52]: <https://github.com/LibreOffice/loeclipse>
-[53]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
-[54]: <https://ant.apache.org/manual/install.html>
-[55]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
-[56]: <https://github.com/prrvchr/jdbcDriverOOo.git>
-[57]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
+[35]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
+[36]: <https://bugs.documentfoundation.org/show_bug.cgi?id=139538>
+[37]: <https://prrvchr.github.io/HyperSQLOOo/README_fr>
+[38]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
+[39]: <img/jdbcDriverOOo.svg#middle>
+[40]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
+[41]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
+[42]: <img/jdbcDriverOOo-1_fr.png>
+[43]: <img/jdbcDriverOOo-2_fr.png>
+[44]: <img/jdbcDriverOOo-3_fr.png>
+[45]: <img/jdbcDriverOOo-4_fr.png>
+[46]: <img/jdbcDriverOOo-5_fr.png>
+[47]: <https://prrvchr.github.io/HyperSQLOOo/README_fr#comment-migrer-une-base-de-donn%C3%A9es-int%C3%A9gr%C3%A9e>
+[48]: <img/jdbcDriverOOo-6_fr.png>
+[49]: <img/jdbcDriverOOo-7_fr.png>
+[50]: <img/jdbcDriverOOo-8_fr.png>
+[51]: <img/jdbcDriverOOo-9_fr.png>
+[52]: <img/jdbcDriverOOo-10_fr.png>
+[53]: <https://github.com/LibreOffice/loeclipse>
+[54]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[55]: <https://ant.apache.org/manual/install.html>
+[56]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[57]: <https://github.com/prrvchr/jdbcDriverOOo.git>
 [58]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[59]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>

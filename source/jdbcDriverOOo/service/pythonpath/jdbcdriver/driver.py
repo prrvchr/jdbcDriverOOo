@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,24 +27,71 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from . import sdbc
-from . import sdbcx
+import uno
+import unohelper
+
+from com.sun.star.lang import XComponent
+from com.sun.star.lang import XServiceInfo
+
+from com.sun.star.sdbc import XDriver
 
 from .unotool import createService
-from .unotool import hasInterface
-from .unotool import getConfiguration
 
-from .logger import LoggerPool
 
-from .logger import getLogger
+import traceback
 
-from .options import OptionsManager
 
-from .dbadmin import AdminDispatch
+class Driver(unohelper.Base,
+             XComponent,
+             XServiceInfo,
+             XDriver):
 
-from .jdbcdriver import g_services
+    def __init__(self, cls, ctx, service, implementation, services):
+        self._cls = cls
+        self._driver = createService(ctx, service)
+        self._implementation = implementation
+        self._services = services
+        self._listeners = []
 
-from .configuration import g_basename
-from .configuration import g_defaultlog
-from .configuration import g_identifier
+    # XDriver
+    def connect(self, url, infos):
+        print("Driver.connect 1")
+        connection = self._driver.connect(url, infos)
+        print("Driver.connect 2")
+        return connection
 
+    def acceptsURL(self, url):
+        return self._driver.acceptsURL(url)
+
+    def getPropertyInfo(self, url, infos):
+        return self._driver.getPropertyInfo(url, infos)
+
+    def getMajorVersion(self):
+        return self._driver.getMajorVersion()
+    def getMinorVersion(self):
+        return getMajorVersion.getMinorVersion()
+
+    # XComponent
+    def dispose(self):
+        print("Driver.dispose() 1 instance: %s" % self._cls.instance)
+        source = uno.createUnoStruct('com.sun.star.lang.EventObject', self)
+        for listener in self._listeners:
+            listener.disposing(source)
+        self._driver.dispose()
+        with self._cls.lock:
+            self._cls.instance = None
+        print("Driver.dispose() 2 instance: %s" % self._cls.instance)
+    def addEventListener(self, listener):
+        if listener not in self._listeners:
+            self._listeners.add(listener)
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
+    # XServiceInfo
+    def supportsService(self, service):
+        return service in self._services
+    def getImplementationName(self):
+        return self._implementation
+    def getSupportedServiceNames(self):
+        return self._services

@@ -1,5 +1,5 @@
 #!
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 
 """
 ╔════════════════════════════════════════════════════════════════════════════════════╗
@@ -27,24 +27,39 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from . import sdbc
-from . import sdbcx
+from com.sun.star.logging.LogLevel import INFO
+from com.sun.star.logging.LogLevel import SEVERE
 
-from .unotool import createService
-from .unotool import hasInterface
-from .unotool import getConfiguration
+from com.sun.star.sdbcx import XDataDefinitionSupplier
+from com.sun.star.sdbcx import XCreateCatalog
+from com.sun.star.sdbcx import XDropCatalog
 
-from .logger import LoggerPool
+from ..driver import Driver as DriverBase
 
-from .logger import getLogger
+import traceback
 
-from .options import OptionsManager
 
-from .dbadmin import AdminDispatch
+class Driver(DriverBase,
+             XDataDefinitionSupplier,
+             XCreateCatalog,
+             XDropCatalog):
 
-from .jdbcdriver import g_services
+    def __init__(self, cls, ctx, service, implementation):
+        services = (implementation, 'com.sun.star.sdbc.Driver', 'com.sun.star.sdbcx.Driver')
+        DriverBase.__init__(self, cls, ctx, service, implementation, services)
 
-from .configuration import g_basename
-from .configuration import g_defaultlog
-from .configuration import g_identifier
+    # XDataDefinitionSupplier
+    def getDataDefinitionByConnection(self, connection):
+        return self._driver.getDataDefinitionByConnection(connection)
+
+    def getDataDefinitionByURL(self, url, infos):
+        return self.getDataDefinitionByConnection(connect(url, infos))
+
+    # XCreateCatalog
+    def createCatalog(self, info):
+        self._driver.createCatalog(info)
+
+    # XDropCatalog
+    def dropCatalog(self, name, info):
+        self._driver.dropCatalog(name, info)
 
