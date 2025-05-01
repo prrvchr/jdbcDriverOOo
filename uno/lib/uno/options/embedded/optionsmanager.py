@@ -61,14 +61,14 @@ class OptionsManager():
 
     def loadSetting(self):
         self._manager.loadSetting()
-        version = self._model.getDriverVersion(self._getApiLevel())
+        version = self._model.getDriverVersion(self._getConfigApiLevel())
         self._view.setDriverVersion(version)
 
 # OptionsManager private getter methods
-    def _getApiLevel(self):
-        return self._manager.getApiLevel()
+    def _getConfigApiLevel(self):
+        return self._manager.getConfigApiLevel()
 
 # OptionsManager private setter methods
     def _initView(self):
-        version = self._model.getDriverVersion(self._manager.getApiLevel())
+        version = self._model.getDriverVersion(self._getConfigApiLevel())
         self._view.setDriverVersion(version)

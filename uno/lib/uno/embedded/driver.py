@@ -27,8 +27,10 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import uno
 import unohelper
 
+from com.sun.star.lang import XComponent
 from com.sun.star.lang import XServiceInfo
 
 from com.sun.star.logging.LogLevel import INFO
@@ -70,21 +72,25 @@ import traceback
 
 
 class Driver(unohelper.Base,
+             XComponent,
              XServiceInfo,
              XDriver):
 
-    def __init__(self, ctx, lock, logger, service, implementation):
+    def __init__(self, cls, ctx, logger, service, implementation, services):
+        self._cls = cls
         self._ctx = ctx
-        self._lock = lock
-        self._implementation = implementation
-        self._logger = logger
         self._driver = createService(ctx, service)
+        self._implementation = implementation
+        self._services = services
+        self._logger = logger
+        self._listeners = []
         # FIXME: If we want to add the StorageChangeListener only once,
         # FIXME: we need to be able to retrieve the DocumentHandler (keep a reference)
         self._handlers = []
 
     # XDriver
     def connect(self, url, infos):
+        print("Driver.connect 1 url: %s" % url)
         # XXX: We need to test first if configuration is OK...
         newinfos, document, storage, location = self._getConnectionInfo(infos)
         if storage is None or location is None:
@@ -131,6 +137,23 @@ class Driver(unohelper.Base,
         return 1
     def getMinorVersion(self):
         return 0
+
+    # XComponent
+    def dispose(self):
+        print("Driver.dispose() 1 instance: %s" % self._cls.instance)
+        source = uno.createUnoStruct('com.sun.star.lang.EventObject', self)
+        for listener in self._listeners:
+            listener.disposing(source)
+        self._driver.dispose()
+        with self._cls.lock:
+            self._cls.instance = None
+        print("Driver.dispose() 2 instance: %s" % self._cls.instance)
+    def addEventListener(self, listener):
+        if listener not in self._listeners:
+            self._listeners.add(listener)
+    def removeEventListener(self, listener):
+        if listener in self._listeners:
+            self._listeners.remove(listener)
 
     # XServiceInfo
     def supportsService(self, service):
@@ -182,14 +205,14 @@ class Driver(unohelper.Base,
         return document
 
     def _getDocumentHandler(self, location):
-        with self._lock:
+        with self._cls.lock:
             handler = self._getHandler(location)
             if handler is None:
-                handler = DocumentHandler(self._ctx, self._lock, self._logger, self._driver, location)
+                handler = DocumentHandler(self._ctx, self._cls.lock, self._logger, self._driver, location)
             return handler
 
     def _setDocumentHandler(self, document, handler):
-        with self._lock:
+        with self._cls.lock:
             # FIXME: We only add handler if connection is successful
             if handler not in self._handlers:
                 if self._setListener(document, handler):
