@@ -30,8 +30,10 @@
 from ..unotool import createService
 from ..unotool import getStringResource
 
+from ..jdbcdriver import g_service
+
 from ..configuration import g_identifier
-from ..configuration import g_service
+
 
 import traceback
 

@@ -27,11 +27,9 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+# jdbcDriverOOo general configuration
 from .jdbcdriver import g_extension
 from .jdbcdriver import g_identifier
-
-# jdbcDriverOOo general configuration
-g_service = '%s.Driver' % g_identifier
 
 # jdbcDriverOOo special configuration
 g_resource = 'resource'

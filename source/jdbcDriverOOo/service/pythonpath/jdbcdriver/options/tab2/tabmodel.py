@@ -46,10 +46,11 @@ from ...dbconfig import g_folder
 
 from ...logger import getLogger
 
+from ...jdbcdriver import g_service
+
 from ...configuration import g_basename
 from ...configuration import g_defaultlog
 from ...configuration import g_identifier
-from ...configuration import g_service
 
 from threading import Thread
 import traceback
