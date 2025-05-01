@@ -27,9 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from . import sdbc
-from . import sdbcx
-
 from .unotool import createService
 from .unotool import hasInterface
 from .unotool import getConfiguration

@@ -34,9 +34,6 @@ from com.sun.star.logging.LogLevel import SEVERE
 
 from com.sun.star.uno import Exception as UNOException
 
-from jdbcdriver import sdbc
-from jdbcdriver import sdbcx
-
 from jdbcdriver import createService
 from jdbcdriver import getConfiguration
 from jdbcdriver import getLogger
@@ -60,31 +57,26 @@ g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.Driver', 'com.sun.star.sdbc.D
 
 class Driver():
     def __new__(cls, ctx, *args, **kwargs):
-        if cls.instance is None:
-            with cls.lock:
-                if cls.instance is None:
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
                     logger = getLogger(ctx, g_defaultlog, g_basename)
                     apilevel = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
-                    service = g_services[apilevel]
                     try:
-                        if apilevel == 'com.sun.star.sdbc':
-                            instance = sdbc.Driver(cls, ctx, service, g_ImplementationName)
-                        else:
-                            instance = sdbcx.Driver(cls, ctx, service, g_ImplementationName)
-                        cls.instance = instance
+                        cls._instance = createService(ctx, g_services[apilevel])
                         logger.logprb(INFO, 'Driver', '__new__', 101, g_ImplementationName, apilevel)
                     except UNOException as e:
                         if cls._logger is None:
                             cls._logger = logger
                         logger.logprb(SEVERE, 'Driver', '__new__', 102, g_ImplementationName, apilevel, e.Message)
                         raise e
-        return cls.instance
+        return cls._instance
 
     # XXX: If the driver fails to load then we keep a reference
     # XXX: to the logger so we can read the error message later
     _logger = None
-    instance = None
-    lock = Lock()
+    _instance = None
+    _lock = Lock()
 
 g_ImplementationHelper.addImplementation(Driver,                          # UNO object class
                                          g_ImplementationName,            # Implementation name

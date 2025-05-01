@@ -49,7 +49,6 @@ class OptionsModel():
     def loadDriver(self):
         try:
             driver = createService(self._ctx, g_service)
-            driver.dispose()
         except:
             # Nothing to do the error is already logged
             pass
