@@ -44,9 +44,9 @@ class Driver(DriverBase,
              XCreateCatalog,
              XDropCatalog):
 
-    def __init__(self, cls, ctx, logger, service, implementation):
+    def __init__(self, ctx, lock, logger, service, implementation):
         services = (implementation, 'com.sun.star.sdbc.Driver', 'com.sun.star.sdbcx.Driver')
-        DriverBase.__init__(self, cls, ctx, logger, service, implementation, services)
+        DriverBase.__init__(self, ctx, lock, logger, service, implementation, services)
 
     # XDataDefinitionSupplier
     def getDataDefinitionByConnection(self, connection):

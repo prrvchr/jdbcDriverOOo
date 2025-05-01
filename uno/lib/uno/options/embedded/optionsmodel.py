@@ -36,9 +36,11 @@ from ..logger import getLogger
 
 from ..unotool import createService
 
+from ..jdbcdriver import g_service as jdbc
+
+from ..configuration import g_service as embedded
 from ..configuration import g_defaultlog
 from ..configuration import g_basename
-from ..configuration import g_service
 
 import traceback
 
@@ -52,24 +54,19 @@ class OptionsModel():
 
 # OptionsModel getter methods
     def getDriverVersion(self, apilevel):
-        print("OptionsModel.getDriverVersion 1 g_service: %s" % g_service)
         driver = None
         version = 'N/A'
         try:
-            driver = createService(self._ctx, g_service)
+            # We must try all the required services 
+            driver = createService(self._ctx, embedded)
+            driver = createService(self._ctx, jdbc)
             if driver and self._url:
-                print("OptionsModel.getDriverVersion 2 URL: %s" % self._url)
                 connection = driver.connect(self._url, ())
                 version = connection.getMetaData().getDriverVersion()
                 connection.close()
-                print("OptionsModel.getDriverVersion 3 version: %s" % version)
-            driver.dispose()
-            print("OptionsModel.getDriverVersion 4")
         except UnoException as e:
             # If the driver is None, the error is already logged
-            #if driver is not None:
-            self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, g_service, apilevel, e.Message)
-        except Exception as e:
-            print("OptionsModel.getDriverVersion ERROR: %s" % traceback.format_exc())
+            if driver is not None:
+                self._logger.logprb(SEVERE, 'OptionsModel', 'getDriverVersion', 102, g_service, apilevel, e.Message)
         return version
 

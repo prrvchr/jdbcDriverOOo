@@ -27,9 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from com.sun.star.logging.LogLevel import INFO
-from com.sun.star.logging.LogLevel import SEVERE
-
 from ..driver import Driver as DriverBase
 
 import traceback
@@ -37,7 +34,7 @@ import traceback
 
 class Driver(DriverBase):
 
-    def __init__(self, cls, ctx, logger, service, implementation):
+    def __init__(self, ctx, lock, logger, service, implementation):
         services = (implementation, 'com.sun.star.sdbc.Driver')
-        DriverBase.__init__(self, cls, ctx, logger, service, implementation, services)
+        DriverBase.__init__(self, ctx, lock, logger, service, implementation, services)
 
