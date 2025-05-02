@@ -78,6 +78,7 @@ The minimum version of LibreOffice supported by the jdbcDriverOOo extension depe
     - You are subject to [bug #139538][36]. To work around the problem, please **uninstall the packages** with commands:
         - `sudo apt remove libreoffice-sdbc-hsqldb` (to uninstall the libreoffice-sdbc-hsqldb package)
         - `sudo apt remove libhsqldb1.8.0-java` (to uninstall the libhsqldb1.8.0-java package)
+
     If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HyperSQLOOo][37] extension.
 
     - Your system-provided Python packages are out of date. The extension's logging will allow you to check if this is the case. It is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info** and requires restarting LibreOffice after activation.  
