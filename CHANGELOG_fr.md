@@ -313,14 +313,18 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 ### Ce qui a été fait pour la version 1.5.0:
 
-- Déploiement de l'enregistrement passif permettant une installation beaucoup plus rapide des extensions et de différencier les services UNO enregistrés de ceux fournis par une implémentation Java ou Python. Cet enregistrement passif est assuré par l'extension [LOEclipse][92] via les [PR#152][93] et [PR#157][94].
-- Ajout de la prise en charge de l'[instrumentation Java][95] à LibreOffice avec [Enhancement Request #165774][96] puis [PR#183280][97]. Cela permettra, à partir de LibreOffice 25.8.x, d'accéder à la journalisation pour tous les pilotes JDBC utilisant `java.lang.System.Logger` comme interface de journalisation. Cette nouvelle fonctionnalité peut être activée dans les options d'extension si la version de LibreOffice le permet. Le rétroportage vers LibreOffice 25.2.x m'a été refusé alors soyez patient.
-- Toutes les commandes SQL, DDL ou DCL proviennent désormais du fichier de configuration du pilote JDBC [Drivers.xcu][48]. L'implémentation du traitement de ces commandes et de leurs paramètres a été regroupée dans le package [io.github.prrvchr.driver.query][98].
+- Mise à jour du paquet [Python packaging][84] vers la version 25.0.
+- Mise à jour du paquet [Python setuptools][85] vers la version 75.3.2.
+- Mise à jour du paquet [Python six][92] vers la version 1.17.0.
+- Déploiement de l'enregistrement passif permettant une installation beaucoup plus rapide des extensions et de différencier les services UNO enregistrés de ceux fournis par une implémentation Java ou Python. Cet enregistrement passif est assuré par l'extension [LOEclipse][93] via les [PR#152][94] et [PR#157][95].
+- Ajout de la prise en charge de l'[instrumentation Java][96] à LibreOffice avec [Enhancement Request #165774][97] puis [PR#183280][98]. Cela permettra, à partir de LibreOffice 25.8.x, d'accéder à la journalisation pour tous les pilotes JDBC utilisant `java.lang.System.Logger` comme interface de journalisation. Cette nouvelle fonctionnalité peut être activée dans les options d'extension si la version de LibreOffice le permet. Le rétroportage vers LibreOffice 25.2.x m'a été refusé alors soyez patient.
+- Toutes les commandes SQL, DDL ou DCL proviennent désormais du fichier de configuration du pilote JDBC [Drivers.xcu][48]. L'implémentation du traitement de ces commandes et de leurs paramètres a été regroupée dans le package [io.github.prrvchr.driver.query][99].
 - Compilation de toutes les archives Java contenues dans l'extension avec **Java JDK version 17**.
 - Mise à jour de tous les pilotes JDBC intégrés, à l'exception de SQLite et Trino, vers leurs dernières versions respectives prenant en charge Java 17.
 - Suppression de tous les fichiers idl definissant les structures suivantes: Date, DateTime, DateTimeWithTimezone, DateWithTimezone, Duration, Time et TimeWithTimezone. Ces fichiers étaient nécessaires à la compatibilité avec OpenOffice et sont désormais remplacés par les fichiers idl équivalents de l'API LibreOffice. **Ce changement rend toutes les versions des extensions utilisant la version précédente de jdbcDriverOOo incompatibles**.
 - La gestion des utilisateurs, des rôles et des privilèges a été testée avec tous les pilotes intégrés à jdbcDriverOOo, à l'exception de SQLite et Trino.
-- Il est désormais possible de créer le fichier oxt de l'extension jdbcDriverOOo uniquement avec Apache Ant et une copie du dépôt GitHub. La section [Comment créer l'extension][99] a été ajoutée à la documentation.
+- Il est désormais possible de créer le fichier oxt de l'extension jdbcDriverOOo uniquement avec Apache Ant et une copie du dépôt GitHub. La section [Comment créer l'extension][100] a été ajoutée à la documentation.
+- Implémentation de [PEP 570][101] dans la [journalisation][102] pour prendre en charge les arguments multiples uniques.
 - Toute erreur survenant lors du chargement du pilote sera consignée dans le journal de l'extension si la journalisation a été préalablement activé. Cela facilite l'identification des problèmes d'installation sous Windows.
 
 ### Que reste-t-il à faire pour la version 1.5.0:
@@ -420,11 +424,14 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [89]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/UnoHelper/source/io/github/prrvchr/uno/helper/PropertySet.java>
 [90]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/UnoHelper/source/io/github/prrvchr/uno/helper/PropertySetAdapter.java>
 [91]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/UnoHelper/source/io/github/prrvchr/uno/helper/PropertyWrapper.java>
-[92]: <https://github.com/LibreOffice/loeclipse>
-[93]: <https://github.com/LibreOffice/loeclipse/pull/152>
-[94]: <https://github.com/LibreOffice/loeclipse/pull/157>
-[95]: <https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html>
-[96]: <https://bugs.documentfoundation.org/show_bug.cgi?id=165774>
-[97]: <https://gerrit.libreoffice.org/c/core/+/183280>
-[98]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/query>
-[99]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-cr%C3%A9er-lextension>
+[92]: <https://pypi.org/project/six/>
+[93]: <https://github.com/LibreOffice/loeclipse>
+[94]: <https://github.com/LibreOffice/loeclipse/pull/152>
+[95]: <https://github.com/LibreOffice/loeclipse/pull/157>
+[96]: <https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html>
+[97]: <https://bugs.documentfoundation.org/show_bug.cgi?id=165774>
+[98]: <https://gerrit.libreoffice.org/c/core/+/183280>
+[99]: <https://github.com/prrvchr/jdbcDriverOOo/tree/master/source/jdbcDriverOOo/source/io/github/prrvchr/driver/query>
+[100]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-cr%C3%A9er-lextension>
+[101]: <https://peps.python.org/pep-0570/>
+[102]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L109>
