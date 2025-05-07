@@ -8,10 +8,10 @@
         ************************************************************
     -->
 
-    <fail message="Please build using Ant 1.9.1 or higher.">
+    <fail message="Please build using Ant 1.10.0 or higher.">
         <condition>
             <not>
-                <antversion atleast="1.9.1"/>
+                <antversion atleast="1.10.0"/>
             </not>
         </condition>
     </fail>
@@ -118,7 +118,7 @@
     </target>
 
     <target name="init-java" depends="init-env" if="project.isjava">
-        <echo message="Project is Java"/>
+        <echo message="Project is Java using version: ${ant.java.version}"/>
 
         <!-- Setting lib.dir dependencies default directory is /lib or /libs if exist -->
         <condition property="lib.dir" value="libs">
@@ -143,7 +143,7 @@
         <property name="src.module" value="${toString:module}"/>
         <condition property="src.withmodule">
             <and>
-                <javaversion atleast="9"/>
+                <javaversion atleast="11"/>
                 <available file="${src.module}" type="file"/>
             </and>
         </condition>
@@ -160,6 +160,12 @@
         <path id="office.class.path">
             <fileset dir="${office.libs.path}${file.separator}classes">
                 <include name="*.jar"/>
+            </fileset>
+        </path>
+
+        <path id="office.module.path">
+            <fileset dir="${office.libs.path}${file.separator}classes">
+                <include name="libreoffice.jar"/>
             </fileset>
         </path>
 
@@ -278,13 +284,13 @@
     <target name="compile-module" depends="compile-java" if="src.withmodule">
         <echo message="Build module path: ${build.classes.dir}"/>
         <echo message="Source dir: ${src.dir.absolute}"/>
-        <javac srcdir="${src.dir.absolute}" source="9" target="9" encoding="UTF-8" includeantruntime="false"
+        <javac srcdir="${src.dir.absolute}" source="11" target="11" encoding="UTF-8" includeantruntime="false"
             destdir="${build.classes.dir}" excludes="**/*Test*">
             <modulepath>
                 <pathelement location="${build.classes.dir}"/>
                 <path refid="build.class.path"/>
                 <path refid="build.lib.path"/>
-                <path refid="office.class.path"/>
+                <path refid="office.module.path"/>
             </modulepath>
         </javac>
     </target>
