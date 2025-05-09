@@ -92,12 +92,21 @@ public class DriverPropertiesHelper {
     private static final String getConfigPath(final String protocol,
                                               final String path,
                                               final String name) {
-        return "Installed/" + REGISTRED_PROTOCOL + protocol + ":*/" + path + "/" + name + "/Value";
+        return getConfigPath(protocol, path + "/" + name) + "/Value";
+    }
+
+    private static final String getConfigPath(final String protocol,
+                                              final String name) {
+        return "Installed/" + REGISTRED_PROTOCOL + protocol + ":*/" + name;
     }
 
     public static final String getDefaultConfigPath(final String path,
                                                     final String name) {
-        return "Installed/" + REGISTRED_PROTOCOL + "*/" + path + "/" + name + "/Value";
+        return getDefaultConfigPath(path + "/" + name) + "/Value";
+    }
+
+    public static final String getDefaultConfigPath(final String name) {
+        return "Installed/" + REGISTRED_PROTOCOL + "*/" + name;
     }
 
     public static final Object getConfigProperties(final XHierarchicalNameAccess driver,
@@ -166,6 +175,25 @@ public class DriverPropertiesHelper {
                                                  final String protocol,
                                                  final String name) {
         return getConfigMetaData(driver, protocol, name , null);
+    }
+
+    public static final Object getConfig(final XHierarchicalNameAccess driver,
+                                         final String protocol,
+                                         final String name,
+                                         final Object dflt) {
+        Object value = dflt;
+        String property = getConfigPath(protocol, name);
+        System.out.println("DriverManagerHelper.getConfig() 1 property: " + property);
+        if (!driver.hasByHierarchicalName(property)) {
+            property = getDefaultConfigPath(name);
+        }
+        System.out.println("DriverManagerHelper.getConfig() 2 property: " + property);
+        if (driver.hasByHierarchicalName(property)) {
+            try {
+                value = driver.getByHierarchicalName(property);
+            } catch (NoSuchElementException e) { }
+        }
+        return value;
     }
 
     public static final Object getConfigMetaData(final XHierarchicalNameAccess driver,

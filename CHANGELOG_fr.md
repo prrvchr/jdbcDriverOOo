@@ -319,13 +319,14 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Déploiement de l'enregistrement passif permettant une installation beaucoup plus rapide des extensions et de différencier les services UNO enregistrés de ceux fournis par une implémentation Java ou Python. Cet enregistrement passif est assuré par l'extension [LOEclipse][93] via les [PR#152][94] et [PR#157][95].
 - Ajout de la prise en charge de l'[instrumentation Java][96] à LibreOffice avec [Enhancement Request #165774][97] puis [PR#183280][98]. Cela permettra, à partir de LibreOffice 25.8.x, d'accéder à la journalisation pour tous les pilotes JDBC utilisant `java.lang.System.Logger` comme interface de journalisation. Cette nouvelle fonctionnalité peut être activée dans les options d'extension si la version de LibreOffice le permet. Le rétroportage vers LibreOffice 25.2.x m'a été refusé alors soyez patient.
 - Toutes les commandes SQL, DDL ou DCL proviennent désormais du fichier de configuration du pilote JDBC [Drivers.xcu][48]. L'implémentation du traitement de ces commandes et de leurs paramètres a été regroupée dans le package [io.github.prrvchr.driver.query][99].
-- Compilation de toutes les archives Java contenues dans l'extension avec **Java JDK version 17**.
+- Compilation de toutes les archives Java contenues dans l'extension sous forme de modules et avec **Java JDK version 17**.
 - Mise à jour de tous les pilotes JDBC intégrés, à l'exception de SQLite et Trino, vers leurs dernières versions respectives prenant en charge Java 17.
 - Suppression de tous les fichiers idl definissant les structures suivantes: Date, DateTime, DateTimeWithTimezone, DateWithTimezone, Duration, Time et TimeWithTimezone. Ces fichiers étaient nécessaires à la compatibilité avec OpenOffice et sont désormais remplacés par les fichiers idl équivalents de l'API LibreOffice. **Ce changement rend toutes les versions des extensions utilisant la version précédente de jdbcDriverOOo incompatibles**.
 - La gestion des utilisateurs, des rôles et des privilèges a été testée avec tous les pilotes intégrés à jdbcDriverOOo, à l'exception de SQLite et Trino.
 - Il est désormais possible de créer le fichier oxt de l'extension jdbcDriverOOo uniquement avec Apache Ant et une copie du dépôt GitHub. La section [Comment créer l'extension][100] a été ajoutée à la documentation.
 - Implémentation de [PEP 570][101] dans la [journalisation][102] pour prendre en charge les arguments multiples uniques.
 - Toute erreur survenant lors du chargement du pilote sera consignée dans le journal de l'extension si la journalisation a été préalablement activé. Cela facilite l'identification des problèmes d'installation sous Windows.
+- Lorsque les pilotes JDBC intégrés à l'extension jdbcDriverOOo sont enregistrés auprès de `java.sql.DriverManager`, c'est à dire lors de la première connexion nécessitant ce pilote, si ce pilote est déjà présent dans le classpath Java, alors cela sera détecté, le pilote non enregistré, la connexion refusée et l'erreur journalisée.
 
 ### Que reste-t-il à faire pour la version 1.5.0:
 

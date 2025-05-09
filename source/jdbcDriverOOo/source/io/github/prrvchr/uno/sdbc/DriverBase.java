@@ -137,15 +137,20 @@ public abstract class DriverBase
         // XXX: The driver should return NULL if it realizes it is
         // XXX: the wrong kind of driver to connect to the given URL
         if (acceptsURL(url)) {
-            ApiLevel apiLevel = getApiLevel(info);
-            Properties properties = DriverPropertiesHelper.getJdbcConnectionProperties(info);
-            DriverProvider provider = new DriverProvider(mContext, this, mLogger,
-                                                         mDriver, mConfig, url, info, properties, apiLevel);
-            System.out.println("sdbc.DriverBase.connect() 2 Service: " + apiLevel);
-            connection = getConnection(mContext, provider, url, info, properties.stringPropertyNames());
-            String services = String.join(", ", connection.getSupportedServiceNames());
-            mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
-                           connection.getProvider().getLogger().getObjectId());
+            try {
+                ApiLevel apiLevel = getApiLevel(info);
+                Properties properties = DriverPropertiesHelper.getJdbcConnectionProperties(info);
+                DriverProvider provider = new DriverProvider(mContext, this, mLogger,
+                                                             mDriver, mConfig, url, info, properties, apiLevel);
+                System.out.println("sdbc.DriverBase.connect() 2 Service: " + apiLevel);
+                connection = getConnection(mContext, provider, url, info, properties.stringPropertyNames());
+                String services = String.join(", ", connection.getSupportedServiceNames());
+                mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
+                               connection.getProvider().getLogger().getObjectId());
+            } catch (SQLException e) {
+                mLogger.logp(LogLevel.SEVERE, e.getMessage());
+                throw e;
+            }
         }
         return connection;
     }

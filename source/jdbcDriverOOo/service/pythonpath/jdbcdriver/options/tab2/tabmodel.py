@@ -496,17 +496,20 @@ class TabModel():
                 if setting.hasByHierarchicalName(name):
                     url = setting.getByHierarchicalName(name)
                     if url:
-                        connection = driver.connect(self._protocol + url, ())
-                        version = connection.getMetaData().getDriverVersion()
-                        versions[protocol] = self._getVersion(version)
-                        connection.close()
-                        continue
+                        try:
+                            connection = driver.connect(self._protocol + url, ())
+                            version = connection.getMetaData().getDriverVersion()
+                            versions[protocol] = self._getVersion(version)
+                            connection.close()
+                            continue
+                        except UnoException as e:
+                            # If the connection fails, the error is already logged
+                            pass
                 versions[protocol] = default
             with self._lock:
                 self._versions = versions
             update(versions)
         except UnoException as e:
-            # If the driver is None, the error is already logged
-            if driver is not None:
-                self._logger.logprb(SEVERE, 'TabModel', 'setDriverVersions', 102, g_service, apilevel, e.Message)
+            # If the driver fails, the error is already logged
+            pass
 

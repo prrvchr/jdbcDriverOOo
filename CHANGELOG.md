@@ -319,13 +319,14 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Passive registration deployment that allows for much faster installation of extensions and differentiation of registered UNO services from those provided by a Java or Python implementation. This passive registration is provided by the [LOEclipse][93] extension via [PR#152][94] and [PR#157][95].
 - Added support for [Java instrumentation][96] to LibreOffice with [Enhancement Request #165774][97] and then [PR#183280][98]. This will allow, starting with LibreOffice 25.8.x, access to logging for all JDBC drivers using `java.lang.System.Logger` as a logging facade. This new feature can be enabled in the extension options if the LibreOffice version allows it. I was refused to backport to LibreOffice 25.2.x so please be patient.
 - All SQL, DDL, or DCL commands now come from the JDBC driver configuration file [Drivers.xcu][48]. The implementation of processing these commands and their parameters has been grouped under the package [io.github.prrvchr.driver.query][99].
-- Compilation of all Java archives contained in the extension with **Java JDK version 17**.
+- Compilation of all Java archives contained in the extension as modules and with **Java JDK version 17**.
 - Updated all embedded JDBC drivers, except SQLite and Trino, to their respective latest versions supporting Java 17.
 - Removed all idl files defining the following struct: Date, DateTime, DateTimeWithTimezone, DateWithTimezone, Duration, Time, and TimeWithTimezone. These files were required for compatibility with OpenOffice and are now replaced by the equivalent idl files from the LibreOffice API. **This change makes all versions of extensions using the previous version of jdbcDriverOOo incompatible**.
 - User, role, and privilege management has been tested with all drivers built into jdbcDriverOOo, excluding SQLite and Trino.
 - It is now possible to build the oxt file of the jdbcDriverOOo extension only with the help of Apache Ant and a copy of the GitHub repository. The [How to build the extension][100] section has been added to the documentation.
 - Implemented [PEP 570][101] in [logging][102] to support unique multiple arguments.
 - Any errors occurring while loading the driver will be logged in the extension's log if logging has been previously enabled. This makes it easier to identify installation problems on Windows.
+- When JDBC drivers embedded with the jdbcDriverOOo extension are registered with `java.sql.DriverManager`, i.e. during the first connection requiring this driver, if this driver is already present in the Java class path then this will be detected, the driver not registred, the connection refused and the error recorded in the log.
 
 ### What remains to be done for version 1.5.0:
 

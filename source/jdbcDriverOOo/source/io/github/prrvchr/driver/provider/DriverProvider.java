@@ -28,7 +28,12 @@ package io.github.prrvchr.driver.provider;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.io.PrintWriter;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -62,6 +67,7 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
+@SuppressWarnings("unused")
 public class DriverProvider {
 
     static final String LEVEL_OFF = "OFF";
@@ -109,11 +115,11 @@ public class DriverProvider {
                                                          ApiLevel.COM_SUN_STAR_SDB);
 
     // The constructor method:
-    public DriverProvider(final XComponentContext context,
+    public DriverProvider(final XComponentContext ctx,
                           final XInterface source,
                           final ResourceBasedEventLogger logger,
-                          final XHierarchicalNameAccess driver,
-                          final XHierarchicalNameAccess config,
+                          final XHierarchicalNameAccess drvConfig,
+                          final XHierarchicalNameAccess optConfig,
                           final String url,
                           final PropertyValue[] infos,
                           final Properties properties,
@@ -124,19 +130,28 @@ public class DriverProvider {
         try {
             mSubProtocol = DriverPropertiesHelper.getSubProtocol(url);
             if (!DriverManagerHelper.isDriverRegistered(location)) {
-                DriverManagerHelper.registerDriver(context, source, driver, logger, mSubProtocol, infos);
+                String name = DriverManagerHelper.getDriverName(drvConfig, mSubProtocol);
+                String clsPath = DriverManagerHelper.getDriverClassPath(ctx, source, drvConfig,
+                                                                        infos, mSubProtocol, name);
+                Driver driver = DriverManagerHelper.getJdbcDriver(source, drvConfig, mSubProtocol,
+                                                                  infos, clsPath, name);
+                String drvPath = driver.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+                DriverManagerHelper.registerDriver(source, driver, drvPath, clsPath, name);
+                logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, drvPath);
+
                 System.out.println("jdbcdriver.DriverProvider() 2");
             }
+
             // XXX: It is the provider who holds the connection log
             mLogger = new ConnectionLog(logger, LoggerObjectType.CONNECTION);
 
             mInfos = infos;
 
-            setDriverProperties(driver);
+            setDriverProperties(drvConfig);
 
             System.out.println("jdbcdriver.DriverProvider() 3");
 
-            setSystemProperties(logger, driver, infos);
+            setSystemProperties(logger, drvConfig, infos);
 
             java.sql.Connection connection = DriverManager.getConnection(location, properties);
             System.out.println("jdbcdriver.DriverProvider() 4");
@@ -144,17 +159,17 @@ public class DriverProvider {
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
             boolean generatedKeys = metadata.supportsGetGeneratedKeys();
             String identifierQuote = metadata.getIdentifierQuoteString();
-            setConnectionMetaData(driver, metadata, identifierQuote);
+            setConnectionMetaData(drvConfig, metadata, identifierQuote);
 
             switch (level.service()) {
                 case "com.sun.star.sdb":
-                    mSQLConfig = new DCLQuery(driver, infos, generatedKeys, mSubProtocol, identifierQuote);
+                    mSQLConfig = new DCLQuery(drvConfig, infos, generatedKeys, mSubProtocol, identifierQuote);
                     break;
                 case "com.sun.star.sdbcx":
-                    mSQLConfig = new DDLQuery(driver, infos, generatedKeys, mSubProtocol, identifierQuote);
+                    mSQLConfig = new DDLQuery(drvConfig, infos, generatedKeys, mSubProtocol, identifierQuote);
                     break;
                 case "com.sun.star.sdbc":
-                    mSQLConfig = new SQLQuery(driver, infos, generatedKeys, mSubProtocol, identifierQuote);
+                    mSQLConfig = new SQLQuery(drvConfig, infos, generatedKeys, mSubProtocol, identifierQuote);
                     break;
             }
 
@@ -162,6 +177,8 @@ public class DriverProvider {
             // XXX: which allows us to find the connection if necessary.
             mStatement = connection.createStatement();
             System.out.println("jdbcdriver.DriverProvider() 5 **********************************************");
+        } catch (SQLException e) {
+            throw e;
         } catch (Throwable e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));

@@ -175,7 +175,7 @@ public class UnoHelper {
 
     public static XMultiServiceFactory getMultiServiceFactory(XComponentContext context,
                                                               String service) {
-        return (XMultiServiceFactory) UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
+        return UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
     }
 
     public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
@@ -204,7 +204,7 @@ public class UnoHelper {
         }
         service += update ? "UpdateAccess" : "Access";
         Object config = provider.createInstanceWithArguments(service, arguments.toArray());
-        return (XHierarchicalNameAccess) UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
+        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
     }
 
     public static String getPackageLocation(XComponentContext context, String identifier, String path) {
@@ -216,7 +216,7 @@ public class UnoHelper {
         String location = "";
         XPackageInformationProvider provider = null;
         String service = "/singletons/com.sun.star.deployment.PackageInformationProvider";
-        provider = (XPackageInformationProvider) UnoRuntime.queryInterface(XPackageInformationProvider.class, context.getValueByName(service));
+        provider = UnoRuntime.queryInterface(XPackageInformationProvider.class, context.getValueByName(service));
         if (provider != null) {
             location = provider.getPackageLocation(identifier);
         }
@@ -236,7 +236,7 @@ public class UnoHelper {
         }
         else {
             Object service = createService(context, "com.sun.star.i18n.LocaleData");
-            XLocaleData data = (XLocaleData) UnoRuntime.queryInterface(XLocaleData.class, service);
+            XLocaleData data = UnoRuntime.queryInterface(XLocaleData.class, service);
             locale.Country = data.getLanguageCountryInfo(locale).Country;
         }
         return locale;
@@ -260,7 +260,7 @@ public class UnoHelper {
         String name = "com.sun.star.resource.StringResourceWithLocation";
         String location = getPackageLocation(ctx, identifier, path);
         Object service = createService(ctx, name, location, true, locale, filename, "", null);
-        return (XStringResourceResolver) UnoRuntime.queryInterface(XStringResourceResolver.class, service);
+        return UnoRuntime.queryInterface(XStringResourceResolver.class, service);
     }
 
     public static URL getDriverURL(String location) {
@@ -832,7 +832,7 @@ public class UnoHelper {
     public static void inspect(XComponentContext context, XInterface descriptor) {
         String service = "mytools.Mri";
         Object object = UnoHelper.createService(context, service);
-        XIntrospection mri = (XIntrospection) UnoRuntime.queryInterface(XIntrospection.class, object);
+        XIntrospection mri = UnoRuntime.queryInterface(XIntrospection.class, object);
         mri.inspect(descriptor);
     }
 

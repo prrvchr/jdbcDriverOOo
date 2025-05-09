@@ -96,19 +96,16 @@ public class Resources {
     public static final int STR_LOG_DRIVER_ARCHIVE_LOADING                                  = LOGGER_BASE +    4;
     public static final int STR_LOG_DRIVER_SUCCESS                                          = LOGGER_BASE +    5;
 
-    public static final int STR_LOG_DRIVER_REQUIRED_PARAMETER_NOT_FOUND                     = LOGGER_BASE +   10;
-    public static final int STR_LOG_DRIVER_UNSUPPORTED_JAVA_VERSION                         = LOGGER_BASE +   11;
-    public static final int STR_LOG_DRIVER_JAVA_CLASS_NOT_FOUND                             = LOGGER_BASE +   12;
-    public static final int STR_LOG_DRIVER_CLASS_PATH_NOT_FOUND                             = LOGGER_BASE +   13;
-    public static final int STR_LOG_DRIVER_CLASS_PATH_NO_ARCHIVE                            = LOGGER_BASE +   14;
-    public static final int STR_LOG_DRIVER_CLASS_PATH_EMPTY                                 = LOGGER_BASE +   15;
-    public static final int STR_LOG_DRIVER_CLASS_PATH_ERROR                                 = LOGGER_BASE +   16;
-    public static final int STR_LOG_DRIVER_UNEXPECTED_LOADING_ERROR                         = LOGGER_BASE +   17;
-    public static final int STR_LOG_DRIVER_SERVICE_LOADER_ERROR                             = LOGGER_BASE +   18;
-    public static final int STR_LOG_DRIVER_REGISTER_ERROR                                   = LOGGER_BASE +   19;
-    public static final int STR_LOG_DRIVER_SETTING_SYSTEM_PROPERTIES_ERROR                  = LOGGER_BASE +   20;
-    public static final int STR_LOG_NO_SYSTEM_CONNECTION                                    = LOGGER_BASE +   21;
-    public static final int STR_LOG_CONFIGURATION_LOADING_ERROR                             = LOGGER_BASE +   22;
+    public static final int STR_LOG_DRIVER_UNSUPPORTED_JAVA_VERSION                         = LOGGER_BASE +   10;
+    public static final int STR_LOG_DRIVER_CLASS_NOT_FOUND                                  = LOGGER_BASE +   11;
+    public static final int STR_LOG_DRIVER_JAVA_CLASS_NOT_SUPPORTED                         = LOGGER_BASE +   12;
+    public static final int STR_LOG_DRIVER_CLASS_PATH_NO_ARCHIVE                            = LOGGER_BASE +   13;
+    public static final int STR_LOG_DRIVER_CLASS_PATH_EMPTY                                 = LOGGER_BASE +   14;
+    public static final int STR_LOG_DRIVER_CLASS_PATH_ERROR                                 = LOGGER_BASE +   15;
+    public static final int STR_LOG_DRIVER_UNEXPECTED_LOADING_ERROR                         = LOGGER_BASE +   16;
+    public static final int STR_LOG_DRIVER_SETTING_SYSTEM_PROPERTIES_ERROR                  = LOGGER_BASE +   17;
+    public static final int STR_LOG_NO_SYSTEM_CONNECTION                                    = LOGGER_BASE +   18;
+    public static final int STR_LOG_CONFIGURATION_LOADING_ERROR                             = LOGGER_BASE +   19;
 
     public static final int STR_LOG_CONNECTION_ESTABLISHED                                  = LOGGER_BASE +  100;
     public static final int STR_LOG_CONNECTION_SHUTDOWN                                     = LOGGER_BASE +  101;

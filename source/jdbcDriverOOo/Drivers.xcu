@@ -612,7 +612,7 @@
         <node oor:name="GetUserGroupsQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
           <!-- XXX: We use recursion to find privileges inherited from roles.
-             XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
+               XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
             <value>SELECT R.ROLE_NAME FROM INFORMATION_SCHEMA.ROLE_AUTHORIZATION_DESCRIPTORS AS R INNER JOIN INFORMATION_SCHEMA.AUTHORIZATIONS AS A ON A.AUTHORIZATION_TYPE = 'ROLE' AND R.ROLE_NAME = A.AUTHORIZATION_NAME WHERE R.ROLE_NAME != R.GRANTEE AND R.GRANTEE = ${User}</value>
           </prop>
         </node>
