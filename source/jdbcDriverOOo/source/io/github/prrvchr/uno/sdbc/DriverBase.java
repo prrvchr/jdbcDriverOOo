@@ -140,8 +140,8 @@ public abstract class DriverBase
             try {
                 ApiLevel apiLevel = getApiLevel(info);
                 Properties properties = DriverPropertiesHelper.getJdbcConnectionProperties(info);
-                DriverProvider provider = new DriverProvider(mContext, this, mLogger,
-                                                             mDriver, mConfig, url, info, properties, apiLevel);
+                DriverProvider provider = new DriverProvider(mContext, this, mLogger, mDriver, mConfig,
+                                                             url, info, properties, apiLevel);
                 System.out.println("sdbc.DriverBase.connect() 2 Service: " + apiLevel);
                 connection = getConnection(mContext, provider, url, info, properties.stringPropertyNames());
                 String services = String.join(", ", connection.getSupportedServiceNames());

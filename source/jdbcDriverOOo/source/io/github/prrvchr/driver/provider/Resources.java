@@ -105,7 +105,8 @@ public class Resources {
     public static final int STR_LOG_DRIVER_UNEXPECTED_LOADING_ERROR                         = LOGGER_BASE +   16;
     public static final int STR_LOG_DRIVER_SETTING_SYSTEM_PROPERTIES_ERROR                  = LOGGER_BASE +   17;
     public static final int STR_LOG_NO_SYSTEM_CONNECTION                                    = LOGGER_BASE +   18;
-    public static final int STR_LOG_CONFIGURATION_LOADING_ERROR                             = LOGGER_BASE +   19;
+    public static final int STR_LOG_DRIVER_REGISTRATION_ERROR                               = LOGGER_BASE +   19;
+    public static final int STR_LOG_CONFIGURATION_LOADING_ERROR                             = LOGGER_BASE +   20;
 
     public static final int STR_LOG_CONNECTION_ESTABLISHED                                  = LOGGER_BASE +  100;
     public static final int STR_LOG_CONNECTION_SHUTDOWN                                     = LOGGER_BASE +  101;

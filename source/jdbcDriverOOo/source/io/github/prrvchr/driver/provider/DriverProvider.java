@@ -28,10 +28,6 @@ package io.github.prrvchr.driver.provider;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.io.PrintWriter;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -67,7 +63,6 @@ import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 import io.github.prrvchr.uno.sdbc.DatabaseMetaDataBase;
 
-@SuppressWarnings("unused")
 public class DriverProvider {
 
     static final String LEVEL_OFF = "OFF";
@@ -127,17 +122,20 @@ public class DriverProvider {
         throws SQLException {
         System.out.println("jdbcdriver.DriverProvider() 1");
         String location = DriverPropertiesHelper.getJdbcUrl(url);
+
         try {
             mSubProtocol = DriverPropertiesHelper.getSubProtocol(url);
-            if (!DriverManagerHelper.isDriverRegistered(location)) {
-                String name = DriverManagerHelper.getDriverName(drvConfig, mSubProtocol);
-                String clsPath = DriverManagerHelper.getDriverClassPath(ctx, source, drvConfig,
+            final String name = DriverManagerHelper.getDriverName(drvConfig, mSubProtocol);
+            final String clsname = DriverManagerHelper.getDriverClassName(source, drvConfig, infos,
+                                                                          mSubProtocol, name);
+
+            if (!DriverManagerHelper.isDriverRegistered(clsname)) {
+                String clspath = DriverManagerHelper.getDriverClassPath(ctx, source, drvConfig,
                                                                         infos, mSubProtocol, name);
-                Driver driver = DriverManagerHelper.getJdbcDriver(source, drvConfig, mSubProtocol,
-                                                                  infos, clsPath, name);
-                String drvPath = driver.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-                DriverManagerHelper.registerDriver(source, driver, drvPath, clsPath, name);
-                logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, drvPath);
+                Driver driver = DriverManagerHelper.getDriverByClassName(source, clspath, clsname);
+                String drvpath = driver.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+                DriverManagerHelper.registerDriver(source, driver, drvpath, clspath, clsname, name);
+                logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, drvpath);
 
                 System.out.println("jdbcdriver.DriverProvider() 2");
             }
