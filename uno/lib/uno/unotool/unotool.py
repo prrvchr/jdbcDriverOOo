@@ -64,6 +64,9 @@ def getConnectionMode(ctx, host, port=80):
 def getDesktop(ctx):
     return createService(ctx, 'com.sun.star.frame.Desktop')
 
+def getDispatcher(ctx):
+    return createService(ctx, 'com.sun.star.frame.DispatchHelper')
+
 def getSimpleFile(ctx):
     return createService(ctx, 'com.sun.star.ucb.SimpleFileAccess')
 
@@ -337,14 +340,17 @@ def executeDispatch(ctx, url, arguments=(), listener=None):
     frame = getDesktop(ctx).getCurrentFrame()
     executeFrameDispatch(ctx, frame, url, arguments, listener)
 
-def createMessageBox(peer, message, title, box='message', buttons=2):
+def createMessageBox(peer, message, title, box='message', button=2):
     boxtypes = {'message': 'MESSAGEBOX',
-                'info': 'INFOBOX',
+                'info':    'INFOBOX',
                 'warning': 'WARNINGBOX',
-                'error': 'ERRORBOX',
-                'query': 'QUERYBOX'}
+                'error':   'ERRORBOX',
+                'query':   'QUERYBOX'}
     box = uno.Enum('com.sun.star.awt.MessageBoxType', boxtypes.get(box, 'MESSAGEBOX'))
-    return peer.getToolkit().createMessageBox(peer, box, buttons, title, message)
+    return getMessageBox(peer, {'Box': box, 'Button': button, 'Title': title, 'Message': message})
+
+def getMessageBox(peer, /, **args):
+    return peer.getToolkit().createMessageBox(peer, args['Box'], args['Button'], args['Title'], args['Message'])
 
 def createService(ctx, name, *args, **kwargs):
     if args:
@@ -355,6 +361,12 @@ def createService(ctx, name, *args, **kwargs):
     else:
         service = ctx.ServiceManager.createInstanceWithContext(name, ctx)
     return service
+
+def getArgumentSet(properties):
+    arguments = {}
+    for property in properties:
+        arguments[property.Name] = property.Value
+    return arguments
 
 def getDefaultPropertyValueSet(args, default):
     properties = []
