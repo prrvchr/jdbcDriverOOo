@@ -35,7 +35,7 @@ from com.sun.star.frame import XDispatchProvider
 from com.sun.star.lang import XInitialization
 from com.sun.star.lang import XServiceInfo
 
-from jdbcdriver import AdminDispatch
+from jdbcdriver import Dispatch
 
 from jdbcdriver import hasInterface
 
@@ -45,14 +45,14 @@ import traceback
 
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
-g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.AdminDispatcher'
-g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.AdminDispatcher', )
+g_ImplementationName = 'io.github.prrvchr.jdbcDriverOOo.Dispatcher'
+g_ServiceNames = ('io.github.prrvchr.jdbcDriverOOo.Dispatcher', )
 
 
-class AdminDispatcher(unohelper.Base,
-                      XDispatchProvider,
-                      XInitialization,
-                      XServiceInfo):
+class Dispatcher(unohelper.Base,
+                 XDispatchProvider,
+                 XInitialization,
+                 XServiceInfo):
     def __init__(self, ctx):
         self._ctx = ctx
         self._frame = None
@@ -67,8 +67,8 @@ class AdminDispatcher(unohelper.Base,
 # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
         dispatch = None
-        if url.Path in ('users', 'groups'):
-            dispatch = AdminDispatch(self._ctx, self._frame)
+        if url.Protocol == 'jdbcdriver':
+            dispatch = Dispatch(self._ctx, self._frame)
         return dispatch
 
     def queryDispatches(self, requests):
@@ -87,7 +87,7 @@ class AdminDispatcher(unohelper.Base,
         return g_ImplementationHelper.getSupportedServiceNames(g_ImplementationName)
 
 
-g_ImplementationHelper.addImplementation(AdminDispatcher,                 # UNO object class
+g_ImplementationHelper.addImplementation(Dispatcher,                      # UNO object class
                                          g_ImplementationName,            # Implementation name
                                          g_ServiceNames)                  # List of implemented services
 

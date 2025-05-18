@@ -303,8 +303,10 @@ class AdminManager(unohelper.Base):
         return table, privileges, flags
 
     def _showDialogError(self, title, error):
-        box = createMessageBox(self._view.getPeer(), error.Message, title, 'error', 1)
-        box.execute()
+        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'ERRORBOX')
+        msgbox = createMessageBox(self._view.getPeer(), box, 1, title, error.Message)
+        msgbox.execute()
+        msgbox.dispose()
 
     def _getRoles(self, xdl, handler, grantees, title, availables, isgroup=True):
         roles = None
@@ -355,7 +357,8 @@ class AdminManager(unohelper.Base):
         self._dialog.enableOk(enabled)
 
     def _dropGrantee(self, message, title):
-        dialog = createMessageBox(self._view.getPeer(), message, title, 'query')
+        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'QUERYBOX')
+        dialog = createMessageBox(self._view.getPeer(), box, 2, title, message)
         if dialog.execute() == OK:
             grantees = self._model.dropGrantee()
             self._updateGrantee(grantees)

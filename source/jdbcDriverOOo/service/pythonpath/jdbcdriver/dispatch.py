@@ -53,8 +53,8 @@ from .configuration import g_identifier
 import traceback
 
 
-class AdminDispatch(unohelper.Base,
-                    XNotifyingDispatch):
+class Dispatch(unohelper.Base,
+               XNotifyingDispatch):
     def __init__(self, ctx, frame):
         self._ctx = ctx
         self._frame = frame
@@ -74,12 +74,12 @@ class AdminDispatch(unohelper.Base,
         close, connection = self._getConnection()
         if connection is None:
             self._showDialog(parent, 'MessageBox.Connection')
-        elif url.Path == 'users':
+        elif url.Path == 'ShowUsers':
             if not self._supportUsers(connection):
                 self._showDialog(parent, 'MessageBox.Admin')
             else:
                 state, result = self._showUsers(connection, parent, connection.getGroups())
-        elif url.Path == 'groups':
+        elif url.Path == 'ShowGroups':
             if not self._supportUsers(connection) or not self._supportGroups(connection):
                 self._showDialog(parent, 'MessageBox.Admin')
             else:
@@ -172,8 +172,9 @@ class AdminDispatch(unohelper.Base,
         dialog.dispose()
 
     def _getDialogData(self, template):
+        box = uno.Enum('com.sun.star.awt.MessageBoxType', 'ERRORBOX')
         resolver = getStringResource(self._ctx, g_identifier, 'dialogs', 'MessageBox')
         message = resolver.resolveString(template + '.Message')
         title = resolver.resolveString(template + '.Title')
-        return message, title, 'error', 1
+        return box, 1, title, message
 

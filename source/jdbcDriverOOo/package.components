@@ -52,9 +52,9 @@
       <service name="io.github.prrvchr.jdbcDriverOOo.OptionsHandler"/>
     </implementation>
   </component>
-  <component loader="com.sun.star.loader.Python" uri="service/AdminDispatcher.py">
-    <implementation name="io.github.prrvchr.jdbcDriverOOo.AdminDispatcher">
-      <service name="io.github.prrvchr.jdbcDriverOOo.AdminDispatcher"/>
+  <component loader="com.sun.star.loader.Python" uri="service/Dispatcher.py">
+    <implementation name="io.github.prrvchr.jdbcDriverOOo.Dispatcher">
+      <service name="io.github.prrvchr.jdbcDriverOOo.Dispatcher"/>
     </implementation>
   </component>
 </components>

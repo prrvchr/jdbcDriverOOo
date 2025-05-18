@@ -37,7 +37,7 @@ from .logger import getLogger
 
 from .options import OptionsManager
 
-from .dbadmin import AdminDispatch
+from .dispatch import Dispatch
 
 from .jdbcdriver import g_services
 

@@ -31,9 +31,9 @@
   oor:package="org.openoffice.Office"
   oor:name="ProtocolHandler">
     <node oor:name="HandlerSet">
-        <node oor:name="io.github.prrvchr.jdbcDriverOOo.AdminDispatcher" oor:op="replace">
+        <node oor:name="io.github.prrvchr.jdbcDriverOOo.Dispatcher" oor:op="replace">
             <prop oor:name="Protocols">
-                <value>sdbcx:*</value>
+                <value>jdbcdriver:*</value>
             </prop>
         </node>
     </node>

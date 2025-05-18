@@ -49,7 +49,7 @@
               <value>_self</value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>sdbcx:users</value>
+              <value>jdbcdriver:ShowUsers</value>
             </prop>
           </node>
           <node oor:name="m2" oor:op="replace">
@@ -61,7 +61,7 @@
               <value>_self</value>
             </prop>
             <prop oor:name="URL" oor:type="xs:string">
-              <value>sdbcx:groups</value>
+              <value>jdbcdriver:ShowGroups</value>
             </prop>
           </node>
         </node>
