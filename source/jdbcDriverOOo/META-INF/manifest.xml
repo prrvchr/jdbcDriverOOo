@@ -25,6 +25,7 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 --><manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">
   <manifest:file-entry manifest:full-path="types.rdb" manifest:media-type="application/vnd.sun.star.uno-typelibrary;type=RDB"/>
+  <manifest:file-entry manifest:full-path="jdbcDriverOOo/" manifest:media-type="application/vnd.sun.star.basic-library"/>
   <manifest:file-entry manifest:full-path="Options.xcs" manifest:media-type="application/vnd.sun.star.configuration-schema"/>
   <manifest:file-entry manifest:full-path="Options.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>
   <manifest:file-entry manifest:full-path="ProtocolHandler.xcu" manifest:media-type="application/vnd.sun.star.configuration-data"/>

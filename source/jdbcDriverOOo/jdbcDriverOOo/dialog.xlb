@@ -1,7 +1,8 @@
-/*
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 ╔════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                    ║
-║   Copyright (c) 2020-24 https://prrvchr.github.io                                  ║
+║   Copyright (c) 2020-25 https://prrvchr.github.io                                  ║
 ║                                                                                    ║
 ║   Permission is hereby granted, free of charge, to any person obtaining            ║
 ║   a copy of this software and associated documentation files (the "Software"),     ║
@@ -22,34 +23,5 @@
 ║   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                    ║
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
-*/
-package io.github.prrvchr.uno.helper;
-
-
-public final class ServiceInfo
-{
-
-    // com.sun.star.lang.XServiceInfo:
-    public static String getImplementationName(final String name)
-    {
-        return name;
-    }
-
-    public static String[] getSupportedServiceNames(final String[] services)
-    {
-        return services.clone();
-    }
-
-    public static boolean supportsService(final String[] services,
-                                          final String service)
-    {
-        for (int i = 0; i < services.length; i++)
-        {
-            if (service.equals(services[i]))
-                return true;
-        }
-        return false;
-    }
-
-
-}
+-->
+<library:library xmlns:library="http://openoffice.org/2000/library" library:name="jdbcDriverOOo" library:readonly="false" library:passwordprotected="false"/>
