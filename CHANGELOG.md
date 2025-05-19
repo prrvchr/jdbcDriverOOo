@@ -317,6 +317,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Updated the [Python setuptools][85] package to version 75.3.2.
 - Updated the [Python six][92] package to version 1.17.0.
 - Passive registration deployment that allows for much faster installation of extensions and differentiation of registered UNO services from those provided by a Java or Python implementation. This passive registration is provided by the [LOEclipse][93] extension via [PR#152][94] and [PR#157][95].
+- Modified [LOEclipse][93] to support the new `rdb` file format produced by the `unoidl-write` compilation utility. `idl` files have been updated to support both available compilation tools: idlc and unoidl-write.
 - Added support for [Java instrumentation][96] to LibreOffice with [Enhancement Request #165774][97] and then [PR#183280][98]. This will allow, starting with LibreOffice 25.8.x, access to logging for all JDBC drivers using `java.lang.System.Logger` as a logging facade. This new feature can be enabled in the extension options if the LibreOffice version allows it. I was refused to backport to LibreOffice 25.2.x so please be patient.
 - All SQL, DDL, or DCL commands now come from the JDBC driver configuration file [Drivers.xcu][48]. The implementation of processing these commands and their parameters has been grouped under the package [io.github.prrvchr.driver.query][99].
 - Compilation of all Java archives contained in the extension as modules and with **Java JDK version 17**.

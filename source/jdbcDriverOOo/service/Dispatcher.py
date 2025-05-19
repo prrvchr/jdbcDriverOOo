@@ -67,7 +67,7 @@ class Dispatcher(unohelper.Base,
 # XDispatchProvider
     def queryDispatch(self, url, frame, flags):
         dispatch = None
-        if url.Protocol == 'jdbcdriver':
+        if url.Protocol == 'jdbcdriver:':
             dispatch = Dispatch(self._ctx, self._frame)
         return dispatch
 
