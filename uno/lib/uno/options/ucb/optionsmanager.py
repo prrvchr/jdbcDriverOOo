@@ -30,18 +30,20 @@
 from com.sun.star.logging.LogLevel import INFO
 from com.sun.star.logging.LogLevel import SEVERE
 
+from com.sun.star.uno import Exception as UnoException
+
 from .optionsmodel import OptionsModel
 from .optionsview import OptionsView
 
 from ..unotool import executeDispatch
 from ..unotool import getDesktop
 from ..unotool import getFilePicker
-from ..unotool import createService
 
-from ..logger import getLogger
+from ..helper import getDataBaseConnection
+from ..helper import getDataBaseUrl
+
 from ..logger import LogManager
 
-from ..configuration import g_identifier
 from ..configuration import g_defaultlog
 from ..configuration import g_synclog
 
@@ -49,15 +51,22 @@ import traceback
 
 
 class OptionsManager():
-    def __init__(self, ctx, window):
+    def __init__(self, ctx, source, logger, window):
         self._ctx = ctx
-        self._logger = getLogger(ctx, g_defaultlog)
+        self._logger = logger
         self._model = OptionsModel(ctx)
         self._view = OptionsView(window, *self._model.getInitData())
         self._logmanager = LogManager(ctx, window, 'requirements.txt', g_defaultlog, g_synclog)
         self._logmanager.initView()
         self._view.setViewData(*self._model.getViewData(OptionsManager._restart))
         self._logger.logprb(INFO, 'OptionsManager', '__init__', 151)
+        try:
+            url = getDataBaseUrl(ctx)
+            connection = getDataBaseConnection(ctx, source, logger, url, False, False)
+        except UnoException as e:
+            logger.logprb(SEVERE, 'OptionsManager', '__init__', 152, e.Message)
+        else:
+            connection.close()
 
     _restart = False
 
@@ -110,4 +119,3 @@ class OptionsManager():
 
     def customizeMenu(self):
         executeDispatch(self._ctx, '.uno:ConfigureDialog')
-
