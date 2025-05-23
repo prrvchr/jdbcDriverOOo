@@ -1,0 +1,12 @@
+#UNO project configuration file
+#Mon May 19 11:14:46 CEST 2025
+javaversion=java5
+project.build=build
+project.idl=/idl
+project.implementation=driver
+project.language=Java
+project.ooo=LibreOffice 7.6
+project.prefix=io.github.prrvchr
+project.sdk=7.6.7.2
+project.srcdir=/source
+regclassname=io.github.prrvchr.driver.RegistrationHandler
