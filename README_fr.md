@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.4.6][5]
+# version [1.5.0][5]
 
 ## Introduction:
 
@@ -317,7 +317,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [38]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [39]: <img/jdbcDriverOOo.svg#middle>
 [40]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[41]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
+[41]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.0#right>
 [42]: <img/jdbcDriverOOo-1_fr.png>
 [43]: <img/jdbcDriverOOo-2_fr.png>
 [44]: <img/jdbcDriverOOo-3_fr.png>

@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.4.6][5]
+# version [1.5.0][5]
 
 ## Introduction:
 
@@ -317,7 +317,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [38]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [39]: <img/jdbcDriverOOo.svg#middle>
 [40]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[41]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.4.6#right>
+[41]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.0#right>
 [42]: <img/jdbcDriverOOo-1.png>
 [43]: <img/jdbcDriverOOo-2.png>
 [44]: <img/jdbcDriverOOo-3.png>
