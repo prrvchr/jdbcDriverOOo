@@ -47,29 +47,22 @@ class OptionWindow():
             if self._getApiLevel(level).State == 1:
                 return level
 
-    def getOptions(self):
-        system = self._getSytemTable().State
-        bookmark = self._getBookmark().State
-        mode = self._getSQLMode().State
-        return system, bookmark, mode
-
 # OptionWindow setter methods
     def dispose(self):
         self._window.dispose()
 
-    def setApiLevel(self, level, system, bookmark, mode):
+    def initView(self, level, system, bookmark, mode):
         self._getApiLevel(level).State = 1
-        self.enableOptions(level, system, bookmark, mode)
+        self._getSytemTable().State = int(system)
+        self.enableOptions(level, bookmark, mode)
 
     def setRestart(self, enabled):
         self._getRestart().setVisible(enabled)
 
-    def enableOptions(self, level, system, bookmark, mode):
+    def enableOptions(self, level, bookmark, mode):
         if level == 0:
-            self._enableSytemTable(False)
             self._enableBookmark(False)
-        elif level == 1:
-            self._enableSytemTable(True, system)
+        else:
             self._enableBookmark(True, bookmark, mode)
 
     def enableSQLMode(self, enable, state=0):
@@ -81,10 +74,6 @@ class OptionWindow():
         self._getBookmark().Model.Enabled = enable
         self._getBookmark().State = int(enable and state)
         self.enableSQLMode(enable, mode)
-
-    def _enableSytemTable(self, enable, state=0):
-        self._getSytemTable().Model.Enabled = enable
-        self._getSytemTable().State = int(enable and state)
 
     def _getApiLevel(self, index):
         return self._window.getControl('OptionButton%s' % (index + 1))

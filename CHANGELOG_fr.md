@@ -329,7 +329,18 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Toute erreur survenant lors du chargement du pilote sera consignée dans le journal de l'extension si la journalisation a été préalablement activé. Cela facilite l'identification des problèmes d'installation sous Windows.
 - Lorsque les pilotes JDBC intégrés à l'extension jdbcDriverOOo sont enregistrés auprès de `java.sql.DriverManager`, c'est à dire lors de la première connexion nécessitant ce pilote, si ce pilote est déjà présent dans le classpath Java, alors cela sera détecté, le pilote non enregistré, la connexion refusée et l'erreur journalisée.
 
-### Que reste-t-il à faire pour la version 1.5.0:
+### Ce qui a été fait pour la version 1.5.1:
+
+- L'**instrumentation Java est désormais requise** pour le fonctionnement de jdbcDriverOOo. Pour les versions de LibreOffice antérieures à la version 25.8.x, il est actuellement nécessaire d'installer l'instrumentation Java manuellement. Une section expliquant [Comment installer l'instrumentation Java][] a été ajoutée à la documentation. Si l'instrumentation Java n'est pas présente, le chargement des pilotes JDBC échouera et un message d'erreur sera présent dans le journal.
+- Réécriture du Service Provider Interface Java: `javax.sql.rowset.CachedRowSet`. Ce nouveau service SPI est implémenté à l'aide de l'archive `RowSetFactory.jar`, chargée via l'instrumentation Java. Cette nouvelle implémentation a été modifiée pour prendre en charge:
+    - Les identifiants avec casse mixte dans les requêtes SQL.
+    - L'exclusion des colonnes à incrémentation automatique dans les requêtes d'insertion (requis par PostgreSQL).
+    - La mise en conformité du code source à l'aide de CheckStyle et du modèle [checkstyle.xml][]. Il reste encore du travail à faire.
+    - L'utilisation de `java.lang.System.Logger` comme facade de journalisation.
+    - Beaucoup de petites corrections nécessaires pour que cela fonctionne correctement car l'implémentation de base du SDK Java 11 ne me semble pas très fonctionnelle.
+    - Compilation avec Java 17 sous forme d'archive modulaire.
+
+### Que reste-t-il à faire pour la version 1.5.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 

@@ -61,7 +61,7 @@ class OptionManager():
 # OptionManager setter methods
     def saveSetting(self):
         saved = self._logmanager.saveSetting()
-        saved |= self._model.saveSetting(*self._view.getOptions())
+        saved |= self._model.saveSetting()
         return saved
 
     def setRestart(self, state):
@@ -85,6 +85,5 @@ class OptionManager():
 
 # OptionManager private methods
     def _initView(self):
-        level, system, bookmark, mode = self._model.getViewData()
-        self._view.setApiLevel(level, system, bookmark, mode)
+        self._view.initView(*self._model.getViewData())
 

@@ -29,7 +29,7 @@ import java.util.HashMap;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
@@ -50,14 +50,14 @@ public final class ResultSet
                      java.sql.ResultSet resultset,
                      StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, connection, resultset, statement);
+        super(SERVICE, SERVICES, connection, resultset, statement, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     public ResultSet(ConnectionBase connection,
                      java.sql.ResultSet resultset)
         throws SQLException {
-        super(SERVICE, SERVICES, connection, resultset, null);
+        super(SERVICE, SERVICES, connection, resultset, null, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 

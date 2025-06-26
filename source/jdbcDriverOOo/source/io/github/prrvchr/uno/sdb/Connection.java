@@ -40,9 +40,9 @@ import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
@@ -82,9 +82,11 @@ public final class Connection
     protected synchronized void postDisposing() {
         if (mUsers != null) {
             mUsers.dispose();
+            mUsers = null;
         }
         if (mGroups != null) {
             mGroups.dispose();
+            mGroups = null;
         }
         super.postDisposing();
     }

@@ -47,19 +47,19 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.driver.helper.ColumnHelper;
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.IndexHelper;
-import io.github.prrvchr.driver.helper.KeyHelper;
-import io.github.prrvchr.driver.helper.TableHelper;
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.IndexHelper;
+import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.TableHelper;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -142,16 +142,16 @@ public abstract class TableSuper
 
     @Override
     protected void postDisposing() {
-        super.postDisposing();
         if (mKeys != null) {
             mKeys.dispose();
-        }
-        if (mColumns != null) {
-            mColumns.dispose();
         }
         if (mIndexes != null) {
             mIndexes.dispose();
         }
+        if (mColumns != null) {
+            mColumns.dispose();
+        }
+        super.postDisposing();
     }
 
     // com.sun.star.sdbcx.XColumnsSupplier:

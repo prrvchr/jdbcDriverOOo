@@ -35,8 +35,8 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.XUsersSupplier;
 
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 

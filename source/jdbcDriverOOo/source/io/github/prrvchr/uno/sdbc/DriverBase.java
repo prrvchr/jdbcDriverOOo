@@ -44,18 +44,18 @@ import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 import com.sun.star.lib.uno.helper.ComponentBase;
 
+import io.github.prrvchr.uno.driver.helper.DBException;
+import io.github.prrvchr.uno.driver.provider.ApiLevel;
+import io.github.prrvchr.uno.driver.provider.DriverManagerHelper;
+import io.github.prrvchr.uno.driver.provider.DriverPropertiesHelper;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.helper.UnoLoggerPool;
-import io.github.prrvchr.driver.helper.DBException;
-import io.github.prrvchr.driver.provider.ApiLevel;
-import io.github.prrvchr.driver.provider.DriverManagerHelper;
-import io.github.prrvchr.driver.provider.DriverPropertiesHelper;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
 
 
 public abstract class DriverBase
@@ -84,9 +84,15 @@ public abstract class DriverBase
         mLogger = new ResourceBasedEventLogger(context, IDENTIFIER, "resource",
                                                "Driver", "io.github.prrvchr.jdbcDriverOOo.Driver");
         UnoLoggerPool.initialize(context, IDENTIFIER);
+        // XXX: Is the necessary Java instrumentation installed correctly?
+        if (!DriverManagerHelper.isJavaInstrumantationInstalled()) {
+            String msg = mLogger.getStringResource(Resources.STR_LOG_DRIVER_JAVA_INSTRUMENTATION_ERROR);
+            throw new SQLException(msg);
+        }
         // XXX: We are loading configurations...
         mConfig = getDriverConfiguration(context, IDENTIFIER, this);
         mDriver = getDriverConfiguration(context, "org.openoffice.Office.DataAccess.Drivers", this);
+        DriverManagerHelper.setJavaRowSetFactory(context, IDENTIFIER);
         if (isJavaLoggerEnabled()) {
             DriverManagerHelper.setJavaLoggerService(context, IDENTIFIER);
         }

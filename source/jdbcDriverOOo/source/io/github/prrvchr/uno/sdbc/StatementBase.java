@@ -36,10 +36,10 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.helper.SqlCommand;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.SqlCommand;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 

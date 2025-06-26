@@ -42,16 +42,16 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Exception;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.TableHelper;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.TableHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.query.DDLParameter;
 
 
 public abstract class TableContainerSuper<T extends TableSuper>
@@ -139,7 +139,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
                     if (result.wasNull()) {
                         type = "";
                     } else {
-                        type = mConnection.getProvider().getTableType(type);
+                        type = mConnection.getProvider().getSQLQuery().getTableType(type);
                     }
                     String remarks = result.getString(REMARKS);
                     if (result.wasNull()) {

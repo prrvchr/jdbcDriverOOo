@@ -27,7 +27,6 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from ...unotool import checkVersion
 from ...unotool import getConfiguration
 from ...unotool import getLibreOfficeVersion
 
@@ -44,9 +43,6 @@ class TabModel():
         self._javalogger = self._getJavaLogger()
 
 # TabModel getter methods
-    def checkVersion(self):
-        return checkVersion(self._version, '25.8.0')
-
     def getJavaLogger(self):
         return self._javalogger
 

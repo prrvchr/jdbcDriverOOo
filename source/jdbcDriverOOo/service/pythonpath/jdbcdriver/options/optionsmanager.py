@@ -69,9 +69,9 @@ class OptionsManager():
         self._tab2.setDriverVersions(self._tab1.getConfigApiLevel())
 
     def saveSetting(self):
-        saved = self._tab1.saveSetting()
-        saved |= self._tab2.saveSetting()
-        if saved:
+        reboot = self._tab1.saveSetting()
+        reboot |= self._tab2.saveSetting()
+        if reboot:
             OptionsManager._restart = True
             self._tab1.setRestart(True)
             self._tab2.setRestart(True)

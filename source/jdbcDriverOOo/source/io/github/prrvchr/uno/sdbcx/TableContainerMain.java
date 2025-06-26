@@ -32,11 +32,11 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 
 public abstract class TableContainerMain<T extends TableMain>

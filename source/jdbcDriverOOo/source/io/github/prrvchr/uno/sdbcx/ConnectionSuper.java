@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.sql.ResultSet;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
@@ -39,13 +40,16 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.metadata.RowSetData;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
+import io.github.prrvchr.uno.sdbc.DatabaseMetaData;
 
 
 public abstract class ConnectionSuper
@@ -79,9 +83,11 @@ public abstract class ConnectionSuper
     protected synchronized void postDisposing() {
         if (mTables != null) {
             mTables.dispose();
+            mTables = null;
         }
         if (mViews != null) {
             mViews.dispose();
+            mViews = null;
         }
         super.postDisposing();
     }
@@ -130,9 +136,18 @@ public abstract class ConnectionSuper
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
             List<String> names = new ArrayList<>();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes())) {
-                while (result.next()) {
-                    String name = buildName(result);
+            RowSetData data = getProvider().getSQLQuery().getTableData();
+            RowSetData filter = getProvider().getSQLQuery().getSytemTableFilter();
+            String[] types = getProvider().getSQLQuery().getTableTypes();
+            //java.sql.ResultSet result1 = metadata.getTables(null, null, "%", getProvider().getTableTypes());
+            //DBTools.printResultSet(result1);
+            if (types != null) {
+                System.out.println("ConnectionSuper.refreshTables() 1 TableType: " + String.join(", ", types));
+            }
+            try (ResultSet rs = ResultSetHelper.getCustomResultSet(metadata.getTables(null, null, "%", types),
+                                                                   data, filter)) {
+                while (rs.next()) {
+                    String name = buildName(rs);
                     names.add(name);
                 }
             }
@@ -152,10 +167,13 @@ public abstract class ConnectionSuper
     private void refreshViews() {
         try {
             List<String> names = new ArrayList<>();
+            String[] types = getProvider().getSQLQuery().getViewTypes();
+            RowSetData filter = getProvider().getSQLQuery().getSytemTableFilter();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes())) {
-                while (result.next()) {
-                    String name = buildName(result);
+            try (java.sql.ResultSet rs = ResultSetHelper.getCustomResultSet(metadata.getTables(null, null, "%", types),
+                                                                            filter)) {
+                while (rs.next()) {
+                    String name = buildName(rs);
                     names.add(name);
                 }
             }
@@ -178,6 +196,11 @@ public abstract class ConnectionSuper
         } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
+    }
+
+    protected DatabaseMetaData getDatabaseMetaData(ConnectionBase connection)
+        throws java.sql.SQLException {
+        return new DatabaseMetaData(this);
     }
 
 }

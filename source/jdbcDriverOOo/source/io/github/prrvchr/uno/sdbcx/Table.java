@@ -31,7 +31,7 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 

@@ -35,12 +35,12 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.helper.PrivilegesHelper;
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
@@ -74,7 +74,7 @@ public final class Table
                  String type,
                  String remarks) {
         super(SERVICE, SERVICES, connection, sensitive, catalog, schema, name, type, remarks);
-        registerProperties();
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     // XXX: To keep access to logger in protected mode we need this access
@@ -93,8 +93,7 @@ public final class Table
         return new ColumnContainer(this, isCaseSensitive(), descriptions);
     }
 
-    private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+    private void registerProperties(HashMap<String, PropertyWrapper> properties) {
         short bound = PropertyAttribute.BOUND;
         short readonly = PropertyAttribute.READONLY;
 

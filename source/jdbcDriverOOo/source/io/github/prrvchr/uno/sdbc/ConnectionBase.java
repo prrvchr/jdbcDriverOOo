@@ -46,12 +46,12 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverPropertiesHelper;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.provider.Tools;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DriverPropertiesHelper;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.provider.Tools;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -115,6 +115,7 @@ public abstract class ConnectionBase
             getLogger().logp(LogLevel.WARNING, e);
             System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
+        super.postDisposing();
     }
 
     // com.sun.star.lang.XServiceInfo:
@@ -170,16 +171,14 @@ public abstract class ConnectionBase
     public XDatabaseMetaData getMetaData()
         throws SQLException {
         checkDisposed();
-        DatabaseMetaDataBase metadata = null;
+        DatabaseMetaData metadata = null;
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
-            metadata = getProvider().getDatabaseMetaData(this);
+            metadata = new DatabaseMetaData(this);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID,
                                metadata.getLogger().getObjectId());
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
-        } catch (java.lang.Exception e) {
-            e.printStackTrace();
         }
         return metadata;
     }

@@ -149,6 +149,7 @@
 
         <property name="project.jar" value="${ant.project.name}.jar"/>
         <property name="build.jar" value="${basedir}${file.separator}${project.jar}"/>
+        <property name="manifest.dir" value="${basedir}${file.separator}META-INF"/>
 
         <first id="module">
             <fileset dir="${src.dir.absolute}" includes="module-info.java"/>
@@ -332,6 +333,10 @@
         <echo message="Build Java archive: ${project.jar}"/>
 
         <jar destfile="${build.jar}">
+            <metainf dir="${manifest.dir}">
+                <include name="**/*.*"/>
+                <exclude name="manifest.xml"/>
+            </metainf>
             <manifest>
                 <attribute name="RegistrationClassName" value="${regclassname}"/>
                 <attribute name="Class-Path" value="${manifest.class.path}"/>

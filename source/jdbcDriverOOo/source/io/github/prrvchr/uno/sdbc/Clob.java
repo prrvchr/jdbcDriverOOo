@@ -34,7 +34,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XClob;
 
-import io.github.prrvchr.driver.provider.ReaderInputStream;
+import io.github.prrvchr.uno.driver.provider.ReaderInputStream;
 
 
 public final class Clob

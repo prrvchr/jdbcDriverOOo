@@ -32,8 +32,8 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
@@ -50,10 +50,11 @@ public abstract class ResultSetSuper
                           ConnectionSuper connection,
                           java.sql.ResultSet resultset,
                           StatementMain statement,
+                          boolean cached,
                           boolean bookmark,
                           boolean updatable)
         throws SQLException {
-        super(service, services, connection, resultset, statement);
+        super(service, services, connection, resultset, statement, cached);
         mIsBookmarkable = bookmark;
         mCanUpdateInsertedRows = updatable;
     }

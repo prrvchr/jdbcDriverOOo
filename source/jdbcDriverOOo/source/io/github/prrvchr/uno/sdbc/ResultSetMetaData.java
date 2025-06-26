@@ -39,12 +39,21 @@ public final class ResultSetMetaData
     private final java.sql.ResultSetMetaData mMetadata;
     private final ConnectionBase mConnection;
     private int mCount;
+    private boolean mCached;
 
     // The constructor method:
     public ResultSetMetaData(ConnectionBase connection,
                              java.sql.ResultSetMetaData metadata) {
+        this(connection, metadata, false);
+    }
+
+    public ResultSetMetaData(ConnectionBase connection,
+                             java.sql.ResultSetMetaData metadata,
+                             boolean cached) {
+        System.out.println("ResultSetMetaData() 1");
         mConnection = connection;
         mMetadata = metadata;
+        mCached = cached;
         mCount = -1;
     }
 
@@ -208,11 +217,13 @@ public final class ResultSetMetaData
     @Override
     public boolean isAutoIncrement(int index)
         throws SQLException {
+        boolean auto = false;
         try {
-            return mMetadata.isAutoIncrement(index);
+            auto =  mMetadata.isAutoIncrement(index);
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return auto;
     }
 
     @Override
@@ -268,31 +279,43 @@ public final class ResultSetMetaData
     @Override
     public boolean isReadOnly(int index)
         throws SQLException {
-        try {
-            return mMetadata.isReadOnly(index);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+        boolean readonly = false;
+        if (!mCached) {
+            try {
+                readonly = mMetadata.isReadOnly(index);
+            } catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
+        return readonly;
     }
 
     @Override
     public boolean isDefinitelyWritable(int index)
         throws SQLException {
-        try {
-            return  mMetadata.isDefinitelyWritable(index);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+        boolean writable = true;
+        if (!mCached) {
+            try {
+                writable = mMetadata.isDefinitelyWritable(index);
+            } catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
+        return writable;
     }
 
     @Override
     public boolean isWritable(int index)
         throws SQLException {
-        try {
-            return mMetadata.isWritable(index);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+        boolean writable = true;
+        if (!mCached) {
+            try {
+                writable = mMetadata.isWritable(index);
+            } catch (java.sql.SQLException e) {
+                throw UnoHelper.getSQLException(e, this);
+            }
         }
+        return writable;
     }
 
 

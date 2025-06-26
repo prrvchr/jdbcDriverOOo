@@ -27,7 +27,7 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.sql.PreparedStatement;
 
-import io.github.prrvchr.driver.helper.SqlCommand;
+import io.github.prrvchr.uno.driver.helper.SqlCommand;
 
 public abstract class PreparedStatementBase
     extends PreparedStatementMain {

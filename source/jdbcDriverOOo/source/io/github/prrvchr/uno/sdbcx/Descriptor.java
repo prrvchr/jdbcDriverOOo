@@ -31,7 +31,7 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;

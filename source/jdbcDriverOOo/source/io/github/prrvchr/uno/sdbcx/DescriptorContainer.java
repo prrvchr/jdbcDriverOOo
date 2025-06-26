@@ -28,8 +28,8 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 

@@ -31,7 +31,7 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
 
 
 public final class Driver

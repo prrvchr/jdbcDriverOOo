@@ -48,7 +48,6 @@ class TabManager():
     def initView(self):
         self._manager.initView()
         self._initView()
-        self._view.enableJavaLogger(self._model.checkVersion())
 
     def dispose(self):
         self._manager.dispose()
@@ -63,9 +62,9 @@ class TabManager():
         self._model.setJavaLogger(enabled)
 
     def saveSetting(self):
-        saved = self._model.saveSetting()
-        saved |= self._manager.saveSetting()
-        return saved
+        reboot = self._model.saveSetting()
+        reboot |= self._manager.saveSetting()
+        return reboot
 
     def setRestart(self, state):
         self._manager.setRestart(state)

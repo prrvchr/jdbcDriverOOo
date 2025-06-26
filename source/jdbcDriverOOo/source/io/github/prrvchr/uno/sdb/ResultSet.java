@@ -32,7 +32,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
-import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
@@ -48,10 +48,10 @@ public final class ResultSet
 
     // The constructor method:
     public ResultSet(Connection connection,
-                     java.sql.ResultSet resultset,
+                     java.sql.ResultSet result,
                      StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, connection, resultset, statement, false, false);
+        super(SERVICE, SERVICES, connection, result, statement, false, false, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.ResultSet() 1");
     }

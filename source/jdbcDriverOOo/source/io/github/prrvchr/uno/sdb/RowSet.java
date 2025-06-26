@@ -31,9 +31,7 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.rowset.RowCatalog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.RowSetSuper;
@@ -42,23 +40,19 @@ import io.github.prrvchr.uno.sdbcx.RowSetSuper;
 public final class RowSet
     extends RowSetSuper
     implements XColumnsSupplier {
-    private static final String SERVICE = ResultSet.class.getName();
+    private static final String SERVICE = RowSet.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdb.ResultSet",
                                               "com.sun.star.sdbc.ResultSet", 
                                               "com.sun.star.sdbcx.ResultSet"};
 
-
     // The constructor method:
-    protected RowSet(DriverProvider provider,
-                     Connection connection,
-                     java.sql.ResultSet result,
-                     StatementMain statement,
-                     RowCatalog catalog,
-                     String table)
+    protected RowSet(Connection connection,
+                     javax.sql.rowset.CachedRowSet rowset,
+                     StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, provider, connection, result, statement, catalog, table);
+        super(SERVICE, SERVICES, connection, rowset, statement);
         registerProperties(new HashMap<String, PropertyWrapper>());
-        System.out.println("sdb.RowSet() 1");
+        System.out.println("sdb.CachedRowSet() 1");
     }
 
     @Override

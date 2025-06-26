@@ -42,14 +42,14 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.driver.helper.GeneratedKeys;
-import io.github.prrvchr.driver.helper.SqlCommand;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.rowset.RowCatalog;
+import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
+import io.github.prrvchr.uno.driver.helper.SqlCommand;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.rowset.RowCatalog;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
@@ -384,13 +384,13 @@ public abstract class StatementMain
     protected synchronized void postDisposing() {
         if (mStatement != null) {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
-            super.postDisposing();
             try {
                 mStatement.close();
             } catch (java.sql.SQLException e) {
                 mLogger.logp(LogLevel.WARNING, e);
             }
             mStatement = null;
+            super.postDisposing();
         }
     }
 

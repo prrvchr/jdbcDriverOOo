@@ -43,7 +43,9 @@ import traceback
 
 class OptionModel():
     def __init__(self, ctx):
-        self._keys = ('ApiLevel', 'ShowSystemTable', 'UseBookmark', 'SQLMode')
+        self._rebootkeys = ('ApiLevel', )
+        configkeys = ('ShowSystemTable', 'UseBookmark', 'SQLMode')
+        self._keys = self._rebootkeys + configkeys
         self._levels = ('com.sun.star.sdbc',
                         'com.sun.star.sdbcx',
                         'com.sun.star.sdb')
@@ -58,6 +60,7 @@ class OptionModel():
         return self._settings['ApiLevel']
 
     def getViewData(self):
+        self._settings = self._getSettings()
         level = self._levels.index(self._settings.get('ApiLevel'))
         system = self._settings.get('ShowSystemTable')
         bookmark = self._settings.get('UseBookmark')
@@ -67,10 +70,9 @@ class OptionModel():
 # OptionModel setter methods
     def setApiLevel(self, level):
         self._settings['ApiLevel'] = self._levels[level]
-        system = self._settings.get('ShowSystemTable')
         bookmark = self._settings.get('UseBookmark')
         mode = self._settings.get('SQLMode')
-        return level, system, bookmark, mode
+        return level, bookmark, mode
 
     def setSystemTable(self, state):
         self._settings['ShowSystemTable'] = bool(state)
@@ -82,19 +84,17 @@ class OptionModel():
     def setSQLMode(self, state):
         self._settings['SQLMode'] = bool(state)
 
-    def saveSetting(self, system, bookmark, mode):
-        changed = False
-        self.setSystemTable(system)
-        self.setBookmark(bookmark)
-        self.setSQLMode(mode)
+    def saveSetting(self):
+        reboot = False
         for key in self._keys:
             value = self._settings.get(key)
             if value != self._config.getByName(key):
                 self._config.replaceByName(key, value)
+                if key in self._rebootkeys:
+                    reboot = True
         if self._config.hasPendingChanges():
             self._config.commitChanges()
-            changed = True
-        return changed
+        return reboot
 
 # OptionModel private methods
     def _getSettings(self):

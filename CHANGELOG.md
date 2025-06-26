@@ -329,7 +329,18 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - Any errors occurring while loading the driver will be logged in the extension's log if logging has been previously enabled. This makes it easier to identify installation problems on Windows.
 - When JDBC drivers embedded with the jdbcDriverOOo extension are registered with `java.sql.DriverManager`, i.e. during the first connection requiring this driver, if this driver is already present in the Java class path then this will be detected, the driver not registred, the connection refused and the error recorded in the log.
 
-### What remains to be done for version 1.5.0:
+### What has been done for version 1.5.1:
+
+- **Java instrumentation is now required** for jdbcDriverOOo to work. For LibreOffice versions prior to 25.8.x, it is currently necessary to manually install Java instrumentation. A section explaining [How to install Java instrumentation][] has been added to the documentation. If Java instrumentation is not present, loading the JDBC drivers will fail and an error message will be present in the log.
+- Rewritten Java Service Provider Interface: `javax.sql.rowset.CachedRowSet`. This new SPI service is implemented using the `RowSetFactory.jar` archive, which is loaded using Java instrumentation. This new implementation has been modified to support:
+    - Identifiers with mixed case in SQL queries.
+    - Excluding auto-increment columns in insert queries (required by PostgreSQL).
+    - Bringing the source code into compliance with the help of CheckStyle and the [checkstyle.xml][] template. There is still work to be done.
+    - Using `java.lang.System.Logger` as a logging facade.
+    - Lots of small fixes needed for it to work properly because the basic implementation of the Java 11 SDK doesn't seem very functional to me.
+    - Compiled with Java 17 as a modular archive.
+
+### What remains to be done for version 1.5.1:
 
 - Add new languages for internationalization...
 
