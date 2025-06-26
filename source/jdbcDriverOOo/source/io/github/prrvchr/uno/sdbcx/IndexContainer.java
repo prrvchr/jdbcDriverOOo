@@ -43,22 +43,22 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.IndexHelper;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.IndexHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class IndexContainer
-    extends Container<Index> {
+    extends ContainerSuper<Index> {
     private static final String SERVICE = IndexContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Indexes",
                                               "com.sun.star.sdbcx.Container"};
@@ -174,7 +174,7 @@ public final class IndexContainer
         try {
             if (getConnection() != null) {
                 ComposeRule rule = ComposeRule.InIndexDefinitions;
-                DriverProvider provider = getConnection().getProvider();
+                Provider provider = getConnection().getProvider();
                 boolean unique = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISUNIQUE);
                 XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
                 XIndexAccess columns = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
@@ -183,7 +183,7 @@ public final class IndexContainer
                     XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, columns.getByIndex(i));
                     String column = DBTools.getDescriptorStringValue(property, PropertyIds.NAME);
                     String index = provider.enquoteIdentifier(column, isCaseSensitive());
-                    if (!unique && provider.getSQLQuery().addIndexAppendix()) {
+                    if (!unique && provider.getConfigSQL().addIndexAppendix()) {
                         if (DBTools.getDescriptorBooleanValue(property, PropertyIds.ISASCENDING)) {
                             index += " ASC";
                         } else {
@@ -195,8 +195,8 @@ public final class IndexContainer
                 if (!indexes.isEmpty()) {
                     String table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
                     String index = provider.enquoteIdentifier(name, isCaseSensitive());
-                    Map<String, Object> arguments = DDLParameter.getAddIndex(table, index, indexes);
-                    query = provider.getDDLQuery().getAddIndexCommand(arguments, unique);
+                    Map<String, Object> arguments = ParameterDDL.getAddIndex(table, index, indexes);
+                    query = provider.getConfigDDL().getAddIndexCommand(arguments, unique);
                     System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
                     table = DBTools.composeTableName(provider, mTable, rule, false);
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXES_CREATE_INDEX_QUERY, name, table, query);
@@ -229,10 +229,10 @@ public final class IndexContainer
         String table = null;
         try {
             ComposeRule rule = ComposeRule.InIndexDefinitions;
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
             String constraint = provider.enquoteIdentifier(name, isCaseSensitive());
-            query = provider.getDDLQuery().getDropConstraintCommand(DDLParameter.getDropConstraint(table, constraint),
+            query = provider.getConfigDDL().getDropConstraintCommand(ParameterDDL.getDropConstraint(table, constraint),
                                                                     KeyType.UNIQUE);
             table = DBTools.composeTableName(provider, mTable, rule, false);
             System.out.println("sdbcx.IndexContainer.removeDataBaseElement() Query: " + query);

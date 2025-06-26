@@ -54,14 +54,14 @@ import com.sun.star.uno.Type;
 import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DCLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDCL;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdb.Connection;
@@ -90,7 +90,7 @@ public abstract class RoleContainer<T extends Role>
     protected InterfaceContainer mRefresh = new InterfaceContainer();
     protected Object mLock;
     protected final ConnectionLog mLogger; 
-    protected final DriverProvider mProvider;
+    protected final Provider mProvider;
     // The type of The Role (Group or User)
     protected final boolean mIsrole;
     private final String mService;
@@ -99,15 +99,15 @@ public abstract class RoleContainer<T extends Role>
     private List<String> mNames;
     private boolean mSensitive;
     // A pointer to all roles (User xor Group) in the underlying database
-    private Container<T> mRoles;
+    private ContainerSuper<T> mRoles;
 
     // The constructor method:
     protected RoleContainer(String service,
                             String[] services,
                             Connection connection,
-                            DriverProvider provider,
+                            Provider provider,
                             String name,
-                            Container<T> roles,
+                            ContainerSuper<T> roles,
                             boolean sensitive,
                             List<String> names,
                             boolean isrole,
@@ -128,7 +128,7 @@ public abstract class RoleContainer<T extends Role>
     }
 
     protected abstract ConnectionLog getLogger();
-    protected abstract DriverProvider getProvider();
+    protected abstract Provider getProvider();
 
     // Would be from com.sun.star.lang.XComponent ;)
     public void dispose() {
@@ -337,9 +337,9 @@ public abstract class RoleContainer<T extends Role>
             role2 = mName;
         }
         try {
-            Map<String, Object> Arguments = DCLParameter.getAlterRoleArguments(getProvider(), role1, role2,
+            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(), role1, role2,
                                                                                   mIsrole, mRole, isCaseSensitive());
-            query = getProvider().getDCLQuery().getGrantRoleCommand(Arguments);
+            query = getProvider().getConfigDCL().getGrantRoleCommand(Arguments);
             int resource;
             if (mIsrole) {
                 resource = Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY;
@@ -374,9 +374,9 @@ public abstract class RoleContainer<T extends Role>
             role2 = mName;
         }
         try {
-            Map<String, Object> Arguments = DCLParameter.getAlterRoleArguments(getProvider(), role1, role2,
+            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(), role1, role2,
                                                                                   mIsrole, mRole, isCaseSensitive());
-            query = getProvider().getDCLQuery().getRevokeRoleCommand(Arguments);
+            query = getProvider().getConfigDCL().getRevokeRoleCommand(Arguments);
             int resource;
             if (mIsrole) {
                 resource = Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY;

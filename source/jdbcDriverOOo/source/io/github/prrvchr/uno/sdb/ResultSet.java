@@ -32,7 +32,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.uno.sdbcx.ResultSetSuper;
-import io.github.prrvchr.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
@@ -40,18 +40,20 @@ import io.github.prrvchr.uno.sdbc.StatementMain;
 public final class ResultSet
     extends ResultSetSuper
     implements XColumnsSupplier {
+
     private static final String SERVICE = ResultSet.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdb.ResultSet",
                                               "com.sun.star.sdbc.ResultSet", 
                                               "com.sun.star.sdbcx.ResultSet"};
 
+    private XNameAccess mColumns;
 
     // The constructor method:
     public ResultSet(Connection connection,
-                     java.sql.ResultSet resultset,
+                     java.sql.ResultSet result,
                      StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, connection, resultset, statement, false, false);
+        super(SERVICE, SERVICES, connection, result, statement, false, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.ResultSet() 1");
     }
@@ -65,23 +67,21 @@ public final class ResultSet
     @Override
     public XNameAccess getColumns() {
         System.out.println("sdb.ResultSet.getColumns() 1 *********************************************");
-        /*XNameAccess columns = null;
         try {
-            columns = new ColumnContainer((Connection) m_Connection, m_Result);
-        }
-        catch (java.sql.SQLException e) {
+            if (mColumns == null) {
+                mColumns = new ResultColumnContainer(this, mResult.getStatement().getConnection().getMetaData(),
+                                                     mResult.getMetaData(), true);
+            }
+        } catch (java.sql.SQLException e) {
             System.out.println("sdb.ResultSet.getColumns() ERROR *****************************************");
-            //throw UnoHelper.getSQLException(e, this);
         }
         System.out.println("sdb.ResultSet.getColumns() 2 *********************************************");
-        return columns;*/
-        return null;
+        return mColumns;
     }
 
     @Override
     protected Connection getConnection() {
         return (Connection) mConnection;
     }
-
 
 }

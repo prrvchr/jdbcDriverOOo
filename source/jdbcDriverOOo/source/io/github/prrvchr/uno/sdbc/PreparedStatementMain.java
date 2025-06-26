@@ -47,9 +47,9 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -74,10 +74,12 @@ public abstract class PreparedStatementMain
     }
 
     @Override
-    protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException {
-        java.sql.PreparedStatement statement = getJdbcStatement();
-        return statement.executeQuery();
+    protected java.sql.ResultSet getJdbcResultSet() throws SQLException {
+        try {
+            return getJdbcStatement().executeQuery();
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     protected abstract PreparedStatement getJdbcStatement() throws java.sql.SQLException;

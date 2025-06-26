@@ -36,14 +36,14 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CheckOption;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
@@ -72,7 +72,7 @@ public final class ViewContainer
         boolean created = false;
         String query = null;
         try {
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             query = DBTools.getCreateViewCommand(provider, descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
@@ -102,13 +102,13 @@ public final class ViewContainer
     private View createView(String name, ComposeRule rule) throws java.sql.SQLException {
         int option = CheckOption.NONE;
         String command = "";
-        DriverProvider provider = getConnection().getProvider();
+        Provider provider = getConnection().getProvider();
         NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
-        if (provider.getDDLQuery().supportsViewDefinition()) {
-            Map<String, Object> parameters = DDLParameter.getViewDefinition(provider, component,
+        if (provider.getConfigDDL().supportsViewDefinition()) {
+            Map<String, Object> parameters = ParameterDDL.getViewDefinition(provider, component,
                                                                                      name, rule, false);
             List<Object> values = new ArrayList<Object>();
-            String query = provider.getDDLQuery().getViewDefinitionQuery(parameters, values);
+            String query = provider.getConfigDDL().getViewDefinitionQuery(parameters, values);
             if (query != null && !query.isBlank() && !values.isEmpty()) {
                 try (java.sql.PreparedStatement smt = provider.getConnection().prepareStatement(query)) {
                     for (int i = 0; i < values.size(); i++) {
@@ -171,7 +171,7 @@ public final class ViewContainer
         String query = null;
         try {
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             String table = DBTools.buildName(provider, view.getNamedComponents(), rule, isCaseSensitive());
             query = DBTools.getDropViewCommand(provider, table);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);

@@ -59,14 +59,13 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.driver.helper.DBException;
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.rowset.RowHelper;
+import io.github.prrvchr.uno.driver.helper.DBException;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
@@ -98,6 +97,8 @@ public abstract class ResultSetBase
     protected final ConnectionLog mLogger;
     private final String mService;
     private final String[] mServices;
+    private boolean mIsBookmarkable = false;
+    private String mMethod;
 
     // The constructor method:
 
@@ -106,22 +107,49 @@ public abstract class ResultSetBase
                          ConnectionBase connection,
                          java.sql.ResultSet result)
         throws SQLException {
-        this(service, services, connection, result, null);
+        this(service, services, connection, result, null, false);
+    }
+
+    public ResultSetBase(String service,
+                         String[] services,
+                         ConnectionBase connection,
+                         java.sql.ResultSet result,
+                         String method)
+        throws SQLException {
+        this(service, services, connection, result, null, false, method);
+    }
+
+    public ResultSetBase(String service,
+                         String[] services,
+                         ConnectionBase connection,
+                         java.sql.ResultSet result,
+                         StatementMain statement,
+                         boolean bookmark)
+        throws SQLException {
+        this(service, services, connection, result, statement, bookmark, "");
     }
 
     public ResultSetBase(String service,
                          String[] services,
                          ConnectionBase connection,
                          java.sql.ResultSet resultset,
-                         StatementMain statement)
+                         StatementMain statement,
+                         boolean bookmark,
+                         String method)
         throws SQLException {
         mService = service;
         mServices = services;
         mConnection = connection;
         mResult = resultset;
         mStatement = statement;
+        mIsBookmarkable = bookmark;
+        mMethod = method;
         mInserted = new BitSet(getResultColumnCount(resultset, statement));
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), LoggerObjectType.RESULTSET);
+        if (!method.isEmpty()) {
+            System.out.println("sdbc.ResultSetBase() 1 method: " + mMethod);
+        }
+
     }
 
     private static int getResultColumnCount(java.sql.ResultSet resultset,
@@ -134,9 +162,7 @@ public abstract class ResultSetBase
         }
     }
 
-    protected StatementMain getJdbcStatement() {
-        return mStatement;
-    }
+    protected void checkCursor() throws java.sql.SQLException { }
 
     protected abstract ConnectionBase getConnection();
 
@@ -151,46 +177,54 @@ public abstract class ResultSetBase
         properties.put(PropertyIds.CURSORNAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return _getCursorName();
+                    return getCursorName();
                 },
                 null));
 
         properties.put(PropertyIds.FETCHDIRECTION.getName(),
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getFetchDirection();
+                    return getFetchDirection();
                 },
                 value -> {
-                    _setFetchDirection((int) value);
+                    setFetchDirection((int) value);
                 }));
 
         properties.put(PropertyIds.FETCHSIZE.getName(),
             new PropertyWrapper(Type.LONG,
                 () -> {
-                    return _getFetchSize();
+                    return getFetchSize();
                 },
                 value -> {
-                    _setFetchSize((int) value);
+                    setFetchSize((int) value);
                 }));
 
         properties.put(PropertyIds.RESULTSETCONCURRENCY.getName(),
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
-                    return _getResultSetConcurrency();
+                    return getResultSetConcurrency();
                 },
                 null));
 
         properties.put(PropertyIds.RESULTSETTYPE.getName(),
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
-                    return _getResultSetType();
+                    return getResultSetType();
+                },
+                null));
+
+        properties.put(PropertyIds.ISBOOKMARKABLE.getName(),
+            new PropertyWrapper(Type.BOOLEAN, readonly,
+                () -> {
+                    System.out.println("ResultSetBase.IsBookmarkable() 1: " + mIsBookmarkable);
+                    return mIsBookmarkable;
                 },
                 null));
 
         super.registerProperties(properties);
     }
 
-    private String _getCursorName()
+    private String getCursorName()
         throws WrappedTargetException {
         try {
             String cursor = mResult.getCursorName();
@@ -204,7 +238,7 @@ public abstract class ResultSetBase
         }
     }
 
-    private int _getFetchDirection()
+    private int getFetchDirection()
         throws WrappedTargetException {
         try {
             int direction = mResult.getFetchDirection();
@@ -215,7 +249,7 @@ public abstract class ResultSetBase
         }
     }
 
-    private synchronized void _setFetchDirection(int direction)
+    private synchronized void setFetchDirection(int direction)
         throws WrappedTargetException {
         try {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_DIRECTION, Integer.toString(direction));
@@ -225,7 +259,7 @@ public abstract class ResultSetBase
         }
     }
 
-    protected int _getFetchSize()
+    protected int getFetchSize()
         throws WrappedTargetException {
         try {
             int size = mResult.getFetchSize();
@@ -236,7 +270,7 @@ public abstract class ResultSetBase
         }
     }
 
-    protected synchronized void _setFetchSize(int size)
+    protected synchronized void setFetchSize(int size)
         throws WrappedTargetException {
         try {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_SET_FETCH_SIZE, Integer.toString(size));
@@ -246,9 +280,10 @@ public abstract class ResultSetBase
         }
     }
 
-    protected int _getResultSetConcurrency()
+    protected int getResultSetConcurrency()
         throws WrappedTargetException {
         try {
+            System.out.println("ResultSetBase._getResultSetConcurrency() 1 type: " + mResult.getConcurrency());
             int concurrency = mResult.getConcurrency();
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
             return concurrency;
@@ -257,11 +292,12 @@ public abstract class ResultSetBase
         }
     }
 
-    protected int _getResultSetType()
+    protected int getResultSetType()
         throws WrappedTargetException {
         try {
+            System.out.println("ResultSetBase._getResultSetType() 1 type: " + mResult.getType());
             int type = mResult.getType();
-            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, Integer.toString(type));
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, type);
             return type;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getWrappedException(UnoHelper.getSQLException(e, this));
@@ -271,21 +307,30 @@ public abstract class ResultSetBase
     // com.sun.star.lang.XComponent
     @Override
     protected synchronized void postDisposing() {
-        if (mResult != null) {
-            super.postDisposing();
-            try {
-                mResult.close();
-            } catch (java.sql.SQLException e) {
-                mLogger.logp(LogLevel.WARNING, e);
+        try {
+            System.out.println("sdbc.ResultSetBase.postDisposing() 1 method: " + mMethod);
+            if (mResult != null) {
+                // FIXME: Can't log here without LibreOffice crashing
+                //mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
+                try {
+                    if (!mResult.isClosed()) {
+                        mResult.close();
+                    }
+                } catch (java.sql.SQLException e) {
+                    mLogger.logp(LogLevel.WARNING, e);
+                }
+                mResult = null;
+                super.postDisposing();
             }
-            mResult = null;
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
     // com.sun.star.sdbc.XCloseable
     @Override
-    public void close()
-        throws SQLException {
+    public void close() throws SQLException {
+        checkDisposed();
         dispose();
     }
 
@@ -306,8 +351,7 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             boolean moved = mResult.absolute(row);
-            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, Integer.toString(row),
-                           Boolean.toString(moved));
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_ABSOLUTE, row, moved);
             return moved;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -383,6 +427,7 @@ public abstract class ResultSetBase
     @Override
     public boolean isFirst()
         throws SQLException {
+        System.out.println("ResultSetBase.isFirst() 1");
         try {
             return mResult.isFirst();
         } catch (java.sql.SQLException e) {
@@ -393,6 +438,7 @@ public abstract class ResultSetBase
     @Override
     public boolean isLast()
         throws SQLException {
+        System.out.println("ResultSetBase.isLast() 1");
         try {
             return mResult.isLast();
         } catch (java.sql.SQLException e) {
@@ -414,6 +460,7 @@ public abstract class ResultSetBase
     public boolean next()
         throws SQLException {
         try {
+            checkCursor();
             boolean next = mResult.next();
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_NEXT, Boolean.toString(next));
             return next;
@@ -426,7 +473,9 @@ public abstract class ResultSetBase
     public boolean previous()
         throws SQLException {
         try {
-            return mResult.previous();
+            checkCursor();
+            boolean previous = mResult.previous();
+            return previous;
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -436,6 +485,7 @@ public abstract class ResultSetBase
     public void refreshRow()
         throws SQLException {
         try {
+            System.out.println("ResultSetBase.refreshRow() *****************");
             mResult.refreshRow();
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -511,6 +561,7 @@ public abstract class ResultSetBase
     @Override
     public void clearWarnings()
         throws SQLException {
+        System.out.println("ResultSetBase.clearWarnings() 1");
         if (mConnection.getProvider().supportWarningsSupplier()) {
             WarningsSupplier.clearWarnings(mResult, this);
         }
@@ -519,6 +570,7 @@ public abstract class ResultSetBase
     @Override
     public Object getWarnings()
         throws SQLException {
+        System.out.println("ResultSetBase.getWarnings() 1");
         Object warning = Any.VOID;
         if (mConnection.getProvider().supportWarningsSupplier()) {
             warning = WarningsSupplier.getWarnings(mResult, this);
@@ -541,11 +593,13 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_INSERT_ROW);
-            RowHelper.setDefaultColumnValues(mResult, mInserted);
             mResult.insertRow();
             moveToCurrentRow();
         } catch (java.sql.SQLException e) {
+            System.out.println("ResultSetBase.insertNewRow() ERROR: " + UnoHelper.getStackTrace(e));
             throw UnoHelper.getSQLException(e, this);
+        } catch (Throwable e) {
+            System.out.println("ResultSetBase.insertNewRow() ERROR: " + UnoHelper.getStackTrace(e));
         }
     }
 
@@ -589,12 +643,13 @@ public abstract class ResultSetBase
         }
     }
 
-    // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx Line 111:
-    // xUp->cancelRowUpdates()
+    // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx Line 111: xUp->cancelRowUpdates()
+    // XXX: Fixed in LO 26.2 see: https://gerrit.libreoffice.org/c/core/+/187567
     @Override
     public void cancelRowUpdates()
         throws SQLException {
         try {
+            System.out.println("ResultSetBase.cancelRowUpdates() **********************************");
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CANCEL_ROW_UPDATES);
             cancelRowUpdatesInternal();
         } catch (java.sql.SQLException e) {
@@ -609,6 +664,7 @@ public abstract class ResultSetBase
         // FIXME: this method is called on a closed result set; the result set concurrency is CONCUR_READ_ONLY
         // FIXME: or if this method is called when the cursor is on the insert row
         // FIXME: see: https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html#cancelRowUpdates--
+        // XXX: Fixed in LO 26.2 see: https://gerrit.libreoffice.org/c/core/+/187567
         if (isOnInsertRow()) {
             moveToCurrentRowInternal();
         } else {
@@ -616,8 +672,8 @@ public abstract class ResultSetBase
         }
     }
 
-    // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx Line 110:
-    // xUp->moveToInsertRow()
+    // XXX: see: libreoffice/dbaccess/source/core/api/RowSetCache.cxx Line 110: xUp->moveToInsertRow()
+    // XXX: Fixed in LO 26.2 see: https://gerrit.libreoffice.org/c/core/+/187567
     @Override
     public void moveToInsertRow()
         throws SQLException {
@@ -790,7 +846,8 @@ public abstract class ResultSetBase
     public int getInt(int index)
         throws SQLException {
         try {
-            return mResult.getInt(index);
+            int value = mResult.getInt(index);
+            return value;
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
@@ -810,7 +867,8 @@ public abstract class ResultSetBase
     public Object getObject(int index, XNameAccess map)
         throws SQLException {
         try {
-            return DBTools.getObject(mResult.getObject(index), map);
+            System.out.println("ResultSetBase.getObject() 1");
+            return DBTools.getObject(mResult.getObject(index));
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
@@ -903,6 +961,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateNull(index);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -913,6 +974,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateBoolean(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -923,6 +987,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateByte(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -933,6 +1000,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateShort(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -943,6 +1013,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateInt(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -953,6 +1026,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateLong(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -963,6 +1039,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateFloat(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -973,6 +1052,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateDouble(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -983,6 +1065,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateString(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -993,6 +1078,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateBytes(index, value);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1003,6 +1091,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateDate(index, java.sql.Date.valueOf(UnoHelper.getJavaLocalDate(value)));
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1013,6 +1104,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateTime(index, java.sql.Time.valueOf(UnoHelper.getJavaLocalTime(value)));
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1023,6 +1117,9 @@ public abstract class ResultSetBase
         throws SQLException {
         try {
             mResult.updateTimestamp(index, java.sql.Timestamp.valueOf(UnoHelper.getJavaLocalDateTime(value)));
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1034,6 +1131,9 @@ public abstract class ResultSetBase
         try {
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             mResult.updateBinaryStream(index, input, lenght);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1046,6 +1146,9 @@ public abstract class ResultSetBase
             InputStream input = new XInputStreamToInputStreamAdapter(value);
             Reader reader = new java.io.InputStreamReader(input);
             mResult.updateCharacterStream(index, reader, lenght);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1058,6 +1161,9 @@ public abstract class ResultSetBase
             String error = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_UNKNOWN_COLUMN_TYPE,
                     this.getClass().getName(), "updateObject()", Integer.toString(index));
             throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        }
+        if (isOnInsertRow()) {
+            mInserted.set(index - 1);
         }
     }
 
@@ -1072,6 +1178,9 @@ public abstract class ResultSetBase
                 bigDecimal = new BigDecimal(AnyConverter.toString(value));
             }
             mResult.updateObject(index, bigDecimal, scale);
+            if (isOnInsertRow()) {
+                mInserted.set(index - 1);
+            }
         } catch (IllegalArgumentException | java.sql.SQLException e) {
             updateObject(index, value);
         }
@@ -1083,9 +1192,9 @@ public abstract class ResultSetBase
         throws SQLException {
         XResultSetMetaData metadata = null;
         try {
-            java.sql.ResultSetMetaData value = mResult.getMetaData();
-            if (value != null) {
-                metadata = new ResultSetMetaData(mConnection, value);
+            java.sql.ResultSetMetaData rsmd = mResult.getMetaData();
+            if (rsmd != null) {
+                metadata = new ResultSetMetaData(mConnection, rsmd);
             }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -1095,11 +1204,6 @@ public abstract class ResultSetBase
 
     protected boolean isOnInsertRow() {
         return mOnInsert;
-    }
-
-    protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException {
-        return getJdbcStatement().getJdbcResultSet();
     }
 
 }

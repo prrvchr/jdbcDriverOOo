@@ -30,15 +30,18 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class IndexColumn
-    extends ColumnBase {
+    extends ColumnMain 
+    implements XDataDescriptorFactory {
+
     private static final String SERVICE = IndexColumn.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexColumn"};
 
@@ -46,7 +49,9 @@ public final class IndexColumn
 
 
     // The constructor method:
-    public IndexColumn(final TableSuper table,
+    public IndexColumn(final String catalog,
+                       final String schema,
+                       final String table,
                        final boolean sensitive,
                        final String name,
                        final String typename,
@@ -60,7 +65,7 @@ public final class IndexColumn
                        final boolean rowversion,
                        final boolean currency,
                        final boolean ascending) {
-        super(SERVICE, SERVICES, table, sensitive, name, typename, defaultvalue,
+        super(SERVICE, SERVICES, catalog, schema, table, sensitive, name, typename, defaultvalue,
               description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         mIsAscending = ascending;
         registerProperties();

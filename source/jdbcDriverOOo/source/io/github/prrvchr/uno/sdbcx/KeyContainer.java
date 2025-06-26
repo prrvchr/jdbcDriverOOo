@@ -43,23 +43,23 @@ import com.sun.star.sdbcx.KeyType;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Exception;
 
-import io.github.prrvchr.driver.helper.ConstraintHelper;
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.KeyHelper;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ConstraintHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class KeyContainer
-    extends Container<Key> {
+    extends ContainerSuper<Key> {
     private static final String SERVICE = KeyContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Keys",
                                               "com.sun.star.sdbcx.Container"};
@@ -138,7 +138,7 @@ public final class KeyContainer
         ColumnSuper col2 = null;
         System.out.println("sdbcx.KeyContainer.appendElement() 2");
         Map<String, String> columns = new TreeMap<>();
-        String table = KeyHelper.getKeyFromDescriptor(getConnection().getProvider(), descriptor, columns);
+        String table = KeyHelper.getKeyFromDescriptor(descriptor, columns);
         System.out.println("sdbcx.KeyContainer.appendElement() 3 Table: " + table + " ************** ");
         ColumnContainerBase<?> columns1 = mTable.getColumnsInternal();
         TableContainerSuper<?> tables = mTable.getConnection().getTablesInternal();
@@ -176,16 +176,16 @@ public final class KeyContainer
         String query = null;
         String name = null;
         ComposeRule rule = ComposeRule.InIndexDefinitions;
-        DriverProvider provider = getConnection().getProvider();
+        Provider provider = getConnection().getProvider();
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
         NamedComponents table = mTable.getNamedComponents();
 
-        if (type == KeyType.PRIMARY && !provider.getDDLQuery().supportsAlterPrimaryKey()) {
+        if (type == KeyType.PRIMARY && !provider.getConfigDDL().supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
-        if (type == KeyType.FOREIGN && !provider.getDDLQuery().supportsAlterForeignKey()) {
+        if (type == KeyType.FOREIGN && !provider.getConfigDDL().supportsAlterForeignKey()) {
             int resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
@@ -246,7 +246,7 @@ public final class KeyContainer
                 referencedName = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
             }
             String newname = oldname;
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
             try (java.sql.ResultSet result = getKeyResultSet(metadata, type)) {
                 while (result.next()) {
@@ -297,13 +297,13 @@ public final class KeyContainer
         } else {
             type = KeyType.PRIMARY;
         }
-        DriverProvider provider = getConnection().getProvider();
-        if (type == KeyType.PRIMARY && !provider.getDDLQuery().supportsAlterPrimaryKey()) {
+        Provider provider = getConnection().getProvider();
+        if (type == KeyType.PRIMARY && !provider.getConfigDDL().supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
-        if (type == KeyType.FOREIGN && !provider.getDDLQuery().supportsAlterForeignKey()) {
+        if (type == KeyType.FOREIGN && !provider.getConfigDDL().supportsAlterForeignKey()) {
             int resource = Resources.STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
@@ -312,7 +312,7 @@ public final class KeyContainer
         try {
             table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
             String contraint = provider.enquoteIdentifier(name, isCaseSensitive());
-            query = provider.getDDLQuery().getDropConstraintCommand(DDLParameter.getDropConstraint(table, contraint),
+            query = provider.getConfigDDL().getDropConstraintCommand(ParameterDDL.getDropConstraint(table, contraint),
                                                                     type);
             System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
             int resource = getRemoveKeyResource(type, false);

@@ -42,14 +42,12 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
-import io.github.prrvchr.driver.helper.GeneratedKeys;
-import io.github.prrvchr.driver.helper.SqlCommand;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.rowset.RowCatalog;
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
@@ -67,9 +65,8 @@ public abstract class StatementMain
 
     protected ConnectionBase mConnection;
     protected java.sql.Statement mStatement = null;
-    protected RowCatalog mCatalog = null;
     protected boolean mParsed = false;
-    protected SqlCommand mSql = null;
+    protected QueryHelper mQuery = null;
     // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
     protected int mResultSetConcurrency = java.sql.ResultSet.CONCUR_READ_ONLY;
     // FIXME: We are doing lazy loading on Statement because we need this property to create one!!!
@@ -187,7 +184,7 @@ public abstract class StatementMain
     }
 
     protected abstract java.sql.Statement getJdbcStatement() throws java.sql.SQLException;
-    protected abstract java.sql.ResultSet getJdbcResultSet() throws java.sql.SQLException;
+    protected abstract java.sql.ResultSet getJdbcResultSet() throws SQLException;
 
     protected java.sql.Statement setStatement(java.sql.Statement statement)
         throws java.sql.SQLException {
@@ -384,13 +381,13 @@ public abstract class StatementMain
     protected synchronized void postDisposing() {
         if (mStatement != null) {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
-            super.postDisposing();
             try {
                 mStatement.close();
             } catch (java.sql.SQLException e) {
                 mLogger.logp(LogLevel.WARNING, e);
             }
             mStatement = null;
+            super.postDisposing();
         }
     }
 
@@ -406,7 +403,7 @@ public abstract class StatementMain
     // com.sun.star.util.XCancellable:
     @Override
     public void cancel() {
-        if (mSql != null) {
+        if (mQuery != null) {
             try {
                 getJdbcStatement().cancel();
             } catch (java.sql.SQLException e) {
@@ -419,10 +416,25 @@ public abstract class StatementMain
     // com.sun.star.sdbc.XGeneratedResultSet:
     @Override
     public synchronized XResultSet getGeneratedValues() throws SQLException {
-        checkDisposed();
-        checkSqlCommand();
-        ResultSet resultset = null;
         try {
+            checkDisposed();
+            checkSqlCommand();
+            java.sql.ResultSet result = getGeneratedValues(mConnection.getProvider(), mStatement);
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+            ResultSet resultset = new ResultSet(getConnectionInternal(), result);
+            String services = String.join(", ", resultset.getSupportedServiceNames());
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID, services,
+                           resultset.getLogger().getObjectId());
+            int count = result.getMetaData().getColumnCount();
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_GENERATED_VALUES_RESULT,
+                           count, getColumnNames(result, count));
+            return resultset;
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
+    }
+    
+    /*try {
             int resource;
             java.sql.ResultSet result = null;
             DriverProvider provider = mConnection.getProvider();
@@ -430,13 +442,11 @@ public abstract class StatementMain
             if (provider.getSQLQuery().isAutoRetrievingEnabled() && command != null) {
                 if (command.isBlank()) {
                     result = getJdbcStatement().getGeneratedKeys();
-                } else {
-                    RowCatalog catalog = getStatementCatalog();
-                    if (catalog != null) {
-                        resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
-                        mLogger.logprb(LogLevel.FINE, resource, catalog.getMainTable().getName(), mSql);
-                        result = GeneratedKeys.getGeneratedResult(provider, getJdbcStatement(), catalog, command);
-                    }
+                } else if (mSql.hasTable()) {
+                    String query = String.format(command, mSql.getTable());
+                    resource = Resources.STR_LOG_STATEMENT_GENERATED_VALUES_TABLE;
+                    mLogger.logprb(LogLevel.FINE, resource, query);
+                    result = GeneratedKeys.getGeneratedResult(provider, getJdbcStatement(), query);
                 }
             }
             if (result == null) {
@@ -458,17 +468,10 @@ public abstract class StatementMain
             throw UnoHelper.getSQLException(e, this);
         }
         return resultset;
-    }
+    } */
 
-    private RowCatalog getStatementCatalog()
-        throws java.sql.SQLException {
-        if (mCatalog == null) {
-            if (mSql.hasTable() && mSql.isInsertCommand()) {
-                mCatalog = new RowCatalog(mConnection.getProvider(), mSql.getTable());
-            }
-        }
-        return mCatalog;
-    }
+    protected abstract java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
+        throws SQLException;
 
     private String getColumnNames(java.sql.ResultSet result,
                                    int count)
@@ -506,7 +509,7 @@ public abstract class StatementMain
     }
 
     public void checkSqlCommand() throws SQLException {
-        if (mSql == null) {
+        if (mQuery == null) {
             throw UnoHelper.getUnoSQLException("ERROR: checkSqlCommand not set");
         }
     }

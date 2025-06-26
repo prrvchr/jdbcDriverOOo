@@ -28,6 +28,7 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.sql.ResultSet;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
@@ -39,12 +40,14 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
+import io.github.prrvchr.uno.driver.resultset.RowSetData;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 
 
@@ -60,14 +63,14 @@ public abstract class ConnectionSuper
     protected ConnectionSuper(XComponentContext ctx,
                               String service,
                               String[] services,
-                              DriverProvider provider,
+                              Provider provider,
                               String url,
                               PropertyValue[] info,
                               Set<String> properties) {
         super(ctx, service, services, provider, url, info, properties);
     }
 
-    protected DriverProvider getProvider() {
+    protected Provider getProvider() {
         return super.getProvider();
     }
     protected ConnectionLog getLogger() {
@@ -79,9 +82,11 @@ public abstract class ConnectionSuper
     protected synchronized void postDisposing() {
         if (mTables != null) {
             mTables.dispose();
+            mTables = null;
         }
         if (mViews != null) {
             mViews.dispose();
+            mViews = null;
         }
         super.postDisposing();
     }
@@ -130,9 +135,13 @@ public abstract class ConnectionSuper
             // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
             List<String> names = new ArrayList<>();
             java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getTableTypes())) {
-                while (result.next()) {
-                    String name = buildName(result);
+            RowSetData data = getProvider().getConfigSQL().getTableData();
+            RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
+            String[] types = getProvider().getConfigSQL().getTableTypes();
+            try (ResultSet rs = ResultSetHelper.getCustomDataResultSet(metadata.getTables(null, null, "%", types),
+                                                                       data, filter)) {
+                while (rs.next()) {
+                    String name = buildName(rs);
                     names.add(name);
                 }
             }
@@ -152,8 +161,10 @@ public abstract class ConnectionSuper
     private void refreshViews() {
         try {
             List<String> names = new ArrayList<>();
-            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getTables(null, null, "%", getProvider().getViewTypes())) {
+            String[] types = getProvider().getConfigSQL().getViewTypes();
+            RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
+            java.sql.ResultSet rs = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
+            try (java.sql.ResultSet result = ResultSetHelper.getCustomDataResultSet(rs, filter)) {
                 while (result.next()) {
                     String name = buildName(result);
                     names.add(name);

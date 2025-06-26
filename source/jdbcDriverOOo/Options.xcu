@@ -37,11 +37,8 @@
     <prop oor:name="ShowSystemTable" oor:op="fuse">
         <value>false</value>
     </prop>
-    <prop oor:name="UseBookmark" oor:op="fuse">
-        <value>true</value>
-    </prop>
-    <prop oor:name="SQLMode" oor:op="fuse">
-        <value>false</value>
+    <prop oor:name="CachedRowSet" oor:op="fuse">
+        <value>1</value>
     </prop>
     <prop oor:name="EnableJavaSystemLogger" oor:op="fuse">
         <value>false</value>

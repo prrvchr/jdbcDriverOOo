@@ -33,19 +33,19 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.RoleHelper;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.RoleHelper;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.sdbcx.Container;
+import io.github.prrvchr.uno.sdbcx.ContainerSuper;
 
 
 public class GroupContainer
-    extends Container<Group> {
+    extends ContainerSuper<Group> {
     private static final String SERVICE = GroupContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
@@ -86,14 +86,14 @@ public class GroupContainer
         throws SQLException {
         Group group = null;
         String name = getElementName(descriptor);
-        if (_createGroup(descriptor, name)) {
+        if (createGroup(descriptor, name)) {
             group = createElement(name);
         }
         return group;
     }
 
-    protected boolean _createGroup(XPropertySet descriptor,
-                                   String name)
+    protected boolean createGroup(XPropertySet descriptor,
+                                  String name)
         throws SQLException {
         String query = null;
         try {
@@ -123,7 +123,7 @@ public class GroupContainer
                                          String name)
         throws SQLException {
         String query = null;
-        DriverProvider provider = mConnection.getProvider();
+        Provider provider = mConnection.getProvider();
         try {
             query = RoleHelper.getDropGroupCommand(provider, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);

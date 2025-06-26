@@ -329,7 +329,7 @@ class AdminManager(unohelper.Base):
     def _getTablePrivilegesSetting(self, connection):
         columns = OrderedDict()
         for info in connection.getMetaData().getConnectionInfo():
-            if info.Name == 'TablePrivilegesSettings':
+            if info.Name == 'PrivilegesSettings':
                 index = 0
                 infos = info.Value
                 count = self._getEvenLength(len(infos))

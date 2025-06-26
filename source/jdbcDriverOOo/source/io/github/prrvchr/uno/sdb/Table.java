@@ -35,12 +35,12 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.helper.PrivilegesHelper;
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.TableSuper;
@@ -63,7 +63,6 @@ public final class Table
     protected String mOrder = "";
     protected int mRowHeight = ROW_HEIGHT;
     protected int mTextColor = 0;
-    private int mPrivileges = 0;
 
     // The constructor method:
     public Table(Connection connection,
@@ -74,7 +73,7 @@ public final class Table
                  String type,
                  String remarks) {
         super(SERVICE, SERVICES, connection, sensitive, catalog, schema, name, type, remarks);
-        registerProperties();
+        registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
     // XXX: To keep access to logger in protected mode we need this access
@@ -93,10 +92,8 @@ public final class Table
         return new ColumnContainer(this, isCaseSensitive(), descriptions);
     }
 
-    private void registerProperties() {
-        Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();
+    private void registerProperties(HashMap<String, PropertyWrapper> properties) {
         short bound = PropertyAttribute.BOUND;
-        short readonly = PropertyAttribute.READONLY;
 
         properties.put(PropertyIds.APPLYFILTER.getName(),
             new PropertyWrapper(Type.BOOLEAN,
@@ -143,10 +140,10 @@ public final class Table
                     mHavingClause = (String) value;
                 }));
 
-        registerProperties(properties, bound, readonly);
+        registerProperties(properties, bound);
     }
 
-    private void registerProperties(Map<String, PropertyWrapper> properties, short bound, short readonly) {
+    private void registerProperties(Map<String, PropertyWrapper> properties, short bound) {
 
         properties.put(PropertyIds.ORDER.getName(),
             new PropertyWrapper(Type.STRING, bound,
@@ -156,16 +153,6 @@ public final class Table
                 value -> {
                     mOrder = (String) value;
                 }));
-
-        properties.put(PropertyIds.PRIVILEGES.getName(),
-            new PropertyWrapper(Type.LONG, readonly,
-                () -> {
-                    System.out.println("sdb.Table.getPrivileges() 1");
-                    int privileges = getPrivileges();
-                    System.out.println("sdb.Table.getPrivileges() 2 Privileges: " + privileges);
-                    return privileges;
-                },
-                null));
 
         properties.put(PropertyIds.ROWHEIGHT.getName(),
             new PropertyWrapper(Type.LONG,
@@ -208,22 +195,22 @@ public final class Table
         return super.getName();
     }
 
-    private int getPrivileges()
+    protected int getPrivileges()
         throws WrappedTargetException {
         try {
-            System.out.println("sdb.Table.getPrivileges() 1");
+            System.out.println("scb.Table.getPrivileges() 1");
             if (mPrivileges == 0) {
-                DriverProvider provider = getConnection().getProvider();
+                Provider provider = getConnection().getProvider();
                 int privileges = PrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
                 if (privileges == 0) {
-                    privileges = provider.getDCLQuery().getMockPrivileges();
+                    privileges = provider.getConfigDCL().getMockPrivileges();
                 }
                 mPrivileges = privileges;
             }
-            System.out.println("sdb.Table.getPrivileges() 2: " + mPrivileges);
+            System.out.println("scb.Table.getPrivileges() 2: " + mPrivileges);
             return mPrivileges;
         } catch (java.sql.SQLException e) {
-            System.out.println("sdb.Table.getPrivileges() 2 ERROR ******************");
+            System.out.println("scb.Table.getPrivileges() 2 ERROR ******************");
             throw UnoHelper.getWrappedException(e);
         }
     }

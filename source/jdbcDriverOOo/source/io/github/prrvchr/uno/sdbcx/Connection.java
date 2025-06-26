@@ -36,9 +36,9 @@ import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.Resources;
 
 
 public final class Connection
@@ -50,7 +50,7 @@ public final class Connection
 
     // The constructor method:
     protected Connection(XComponentContext ctx,
-                         DriverProvider provider,
+                         Provider provider,
                          String url,
                          PropertyValue[] info,
                          Set<String> properties) {
@@ -58,7 +58,7 @@ public final class Connection
         System.out.println("sdbcx.Connection() *************************");
     }
 
-    protected DriverProvider getProvider() {
+    protected Provider getProvider() {
         return super.getProvider();
     }
 
@@ -103,13 +103,13 @@ public final class Connection
     @Override
     protected TableContainer getTableContainer(List<String> names)
         throws ElementExistException {
-        return new TableContainer(this, getProvider().isCaseSensitive(null), names);
+        return new TableContainer(this, getProvider().isCaseSensitive(), names);
     }
 
     @Override
     protected ViewContainer getViewContainer(List<String> names)
         throws ElementExistException {
-        return new ViewContainer(this, getProvider().isCaseSensitive(null), names);
+        return new ViewContainer(this, getProvider().isCaseSensitive(), names);
     }
 
 }

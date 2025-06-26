@@ -72,8 +72,8 @@ class OptionsView():
     def _getTabModel(self, window):
         service = 'com.sun.star.awt.tab.UnoControlTabPageContainerModel'
         model = window.Model.createInstance(service)
-        model.PositionX = window.Model.PositionX
-        model.PositionY = window.Model.PositionY
+        #model.PositionX = window.Model.PositionX
+        #model.PositionY = window.Model.PositionY
         model.Width = window.Model.Width
         model.Height = window.Model.Height
         return model

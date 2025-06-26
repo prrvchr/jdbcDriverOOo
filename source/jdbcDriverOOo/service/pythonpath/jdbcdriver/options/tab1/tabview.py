@@ -50,10 +50,6 @@ class TabWindow():
     def setJavaLogger(self, enabled):
         self._getJavaLogger().State = int(enabled)
 
-    def enableJavaLogger(self, enabled):
-        self._getJavaLogger().Model.Enabled = enabled
-
-
 # TabWindow private control methods
     def _getJavaLogger(self):
         return self._window.getControl('CheckBox1')

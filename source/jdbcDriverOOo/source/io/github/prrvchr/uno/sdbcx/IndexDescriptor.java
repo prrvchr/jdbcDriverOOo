@@ -31,7 +31,7 @@ import java.util.Map;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 

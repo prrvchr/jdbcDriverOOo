@@ -42,13 +42,12 @@ class TabManager():
     def __init__(self, ctx, window, restart, offset, logger, *loggers):
         self._model = TabModel(ctx)
         self._view = TabWindow(ctx, window, TabHandler(self))
-        self._manager = OptionManager(ctx, self._view.getWindow(), restart, offset, logger, *loggers)
+        self._manager = OptionManager(ctx, self._view.getWindow(), (), restart, offset, logger, *loggers)
 
 # TabManager setter methods
     def initView(self):
         self._manager.initView()
         self._initView()
-        self._view.enableJavaLogger(self._model.checkVersion())
 
     def dispose(self):
         self._manager.dispose()
@@ -63,9 +62,9 @@ class TabManager():
         self._model.setJavaLogger(enabled)
 
     def saveSetting(self):
-        saved = self._model.saveSetting()
-        saved |= self._manager.saveSetting()
-        return saved
+        reboot = self._model.saveSetting()
+        reboot |= self._manager.saveSetting()
+        return reboot
 
     def setRestart(self, state):
         self._manager.setRestart(state)

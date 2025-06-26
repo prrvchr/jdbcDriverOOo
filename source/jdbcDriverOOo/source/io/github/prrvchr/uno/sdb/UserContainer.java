@@ -34,18 +34,18 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.RoleHelper;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.RoleHelper;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
-import io.github.prrvchr.uno.sdbcx.Container;
+import io.github.prrvchr.uno.sdbcx.ContainerSuper;
 
 
 public class UserContainer
-    extends Container<User> {
+    extends ContainerSuper<User> {
     private static final String SERVICE = UserContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
@@ -74,13 +74,13 @@ public class UserContainer
     protected User appendElement(XPropertySet descriptor)
         throws SQLException {
         String name = getElementName(descriptor);
-        if (!mConnection.getProvider().getDCLQuery().supportsCreateUser()) {
+        if (!mConnection.getProvider().getConfigDCL().supportsCreateUser()) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_FEATURE_NOT_IMPLEMENTED;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
         User user = null;
-        if (_createUser(descriptor, name)) {
+        if (createUser(descriptor, name)) {
             user = createElement(name);
         }
         return user;
@@ -107,8 +107,8 @@ public class UserContainer
         return super.getElement(name);
     }
 
-    protected boolean _createUser(XPropertySet descriptor,
-                                  String name)
+    protected boolean createUser(XPropertySet descriptor,
+                                 String name)
         throws SQLException {
         String query = null;
         try {
@@ -168,7 +168,7 @@ public class UserContainer
     @Override
     protected XPropertySet createDescriptor() {
         XPropertySet descriptor = null;
-        if (mConnection.getProvider().getDCLQuery().supportsCreateUser()) {
+        if (mConnection.getProvider().getConfigDCL().supportsCreateUser()) {
             descriptor =  new UserDescriptor(isCaseSensitive());
         }
         return descriptor;

@@ -35,8 +35,8 @@ import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.XUsersSupplier;
 
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -76,7 +76,7 @@ public final class Group
     protected void refreshUsers() {
         List<String> users = new ArrayList<>();
         List<Object> values = new ArrayList<>();
-        String query = mConnection.getProvider().getDCLQuery().getGroupUsersQuery(getName(), values);
+        String query = mConnection.getProvider().getConfigDCL().getGroupUsersQuery(getName(), values);
         if (query != null) {
             try (PreparedStatement statement = mConnection.getProvider().getConnection().prepareStatement(query)) {
                 for (int i = 0; i < values.size(); i++) {

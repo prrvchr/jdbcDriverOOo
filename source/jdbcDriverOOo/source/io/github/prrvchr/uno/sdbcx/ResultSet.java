@@ -41,16 +41,16 @@ public final class ResultSet
 
     // The constructor method:
     public ResultSet(ConnectionSuper connection,
-                     java.sql.ResultSet resultset)
+                     java.sql.ResultSet result)
         throws SQLException {
-        this(connection, resultset, null);
+        this(connection, result, null);
     }
 
     public ResultSet(ConnectionSuper connection,
-                     java.sql.ResultSet resultset,
+                     java.sql.ResultSet result,
                      StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, connection, resultset, statement, false, false);
+        super(SERVICE, SERVICES, connection, result, statement, false, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.ResultSet() 1");
     }

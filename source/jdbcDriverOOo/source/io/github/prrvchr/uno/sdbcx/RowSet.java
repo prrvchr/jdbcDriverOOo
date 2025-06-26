@@ -27,33 +27,37 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.HashMap;
 
+import javax.sql.rowset.CachedRowSet;
+
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.rowset.RowCatalog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 
 
 public final class RowSet
     extends RowSetSuper {
-    private static final String SERVICE = ResultSet.class.getName();
-    private static final String[] SERVICES = {"com.sun.star.sdbc.ResultSet",
+    private static final String SERVICE = RowSet.class.getName();
+    private static final String[] SERVICES = {"com.sun.star.sdbc.ResultSet", 
                                               "com.sun.star.sdbcx.ResultSet"};
 
     // The constructor method:
-    protected RowSet(DriverProvider provider,
-                     Connection connection,
-                     java.sql.ResultSet result,
-                     StatementMain statement,
-                     RowCatalog catalog,
-                     String table)
+    protected RowSet(Connection connection,
+                     CachedRowSet rowset,
+                     StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, provider, connection, result, statement, catalog, table);
+        super(SERVICE, SERVICES, connection, rowset, statement);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.RowSet() 1");
     }
 
+    @Override
+    protected ConnectionLog getLogger() {
+        return super.getLogger();
+    }
+
+    @Override
     protected Connection getConnection() {
         return (Connection) mConnection;
     }

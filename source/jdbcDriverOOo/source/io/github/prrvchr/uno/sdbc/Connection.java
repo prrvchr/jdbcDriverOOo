@@ -30,13 +30,14 @@ import java.util.Set;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.Resources;
 
 
 public final class Connection
@@ -47,7 +48,7 @@ public final class Connection
 
     // The constructor method:
     protected Connection(XComponentContext ctx,
-                         DriverProvider provider,
+                         Provider provider,
                          String url,
                          PropertyValue[] info,
                          Set<String> properties) {
@@ -55,7 +56,7 @@ public final class Connection
         System.out.println("sdbc.Connection() *************************");
     }
 
-    protected DriverProvider getProvider() {
+    protected Provider getProvider() {
         return super.getProvider();
     }
     protected ConnectionLog getLogger() {
@@ -72,7 +73,7 @@ public final class Connection
         return statement;
     }
 
-    protected XPreparedStatement getPreparedStatement(String sql) {
+    protected XPreparedStatement getPreparedStatement(String sql) throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_STATEMENT, sql);
         PreparedStatement statement = new PreparedStatement(this, sql);
         getStatements().put(statement, statement);
@@ -82,7 +83,7 @@ public final class Connection
         return statement;
     }
 
-    protected XPreparedStatement getCallableStatement(String sql) {
+    protected XPreparedStatement getCallableStatement(String sql) throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_PREPARE_CALL, sql);
         CallableStatement statement = new CallableStatement(this, sql);
         getStatements().put(statement, statement);

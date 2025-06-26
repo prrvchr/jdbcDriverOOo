@@ -36,15 +36,15 @@ import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XGroupsSupplier;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.PrivilegesHelper;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
@@ -55,7 +55,7 @@ public abstract class Role
                XGroupsSupplier {
 
     protected final Connection mConnection;
-    protected final DriverProvider mProvider;
+    protected final Provider mProvider;
     protected final ConnectionLog mLogger; 
     protected Groups mGroups;
     private final boolean mIsrole;
@@ -84,8 +84,8 @@ public abstract class Role
     public int getGrantablePrivileges(String name, int type)
         throws SQLException {
         int privileges = 0;
-        if (mProvider.getSQLQuery().ignoreDriverPrivileges()) {
-            privileges = mProvider.getDCLQuery().getMockPrivileges();
+        if (mProvider.getConfigSQL().ignoreDriverPrivileges()) {
+            privileges = mProvider.getConfigDCL().getMockPrivileges();
         } else if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             try {
                 XNameAccess tables = mConnection.getTables();
@@ -99,7 +99,7 @@ public abstract class Role
                         privileges = PrivilegesHelper.getGrantablePrivileges(mProvider, getName(), table, rule);
                     }
                 } else {
-                    privileges = mProvider.getDCLQuery().getMockPrivileges();
+                    privileges = mProvider.getConfigDCL().getMockPrivileges();
                 }
             } catch (java.sql.SQLException e) {
                 throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -122,7 +122,7 @@ public abstract class Role
                     NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
                     privileges = PrivilegesHelper.getTablePrivileges(mProvider, getName(), table, rule);
                 } else {
-                    privileges = mProvider.getDCLQuery().getMockPrivileges();
+                    privileges = mProvider.getConfigDCL().getMockPrivileges();
                 }
             } catch (java.sql.SQLException e) {
                 throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -138,7 +138,7 @@ public abstract class Role
         throws SQLException {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
-            String privileges = String.join(", ", mProvider.getDCLQuery().getPrivileges(privilege));
+            String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
                 NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
@@ -175,7 +175,7 @@ public abstract class Role
         throws SQLException {
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
-            String privileges = String.join(", ", mProvider.getDCLQuery().getPrivileges(privilege));
+            String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
             try {
                 XNameAccess tables = mConnection.getTables();
                 if (tables.hasByName(name)) {
@@ -220,7 +220,7 @@ public abstract class Role
 
     void refreshGroups() {
         List<Object> values = new ArrayList<>();
-        String query = mConnection.getProvider().getDCLQuery().getRoleGroupsQuery(getName(), mIsrole, values);
+        String query = mConnection.getProvider().getConfigDCL().getRoleGroupsQuery(getName(), mIsrole, values);
         if (query != null) {
             ArrayList<String> groups = new ArrayList<>();
             try (java.sql.PreparedStatement smt = mConnection.getProvider().getConnection().prepareStatement(query)) {

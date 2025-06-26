@@ -42,16 +42,16 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Exception;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.TableHelper;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.TableHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 
 public abstract class TableContainerSuper<T extends TableSuper>
@@ -89,13 +89,13 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 type = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPE);
             }
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            DriverProvider provider = mConnection.getProvider();
+            Provider provider = mConnection.getProvider();
             String table = DBTools.composeTableName(provider, descriptor, rule, isCaseSensitive());
             queries = TableHelper.getCreateTableQueries(provider, descriptor, table, type, rule, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
-            if (!description.isEmpty() && provider.getDDLQuery().supportsTableDescription()) {
-                Map<String, Object> arguments = DDLParameter.getTableDescription(table, description);
-                String query = provider.getDDLQuery().getTableDescriptionCommand(arguments);
+            if (!description.isEmpty() && provider.getConfigDDL().supportsTableDescription()) {
+                Map<String, Object> arguments = ParameterDDL.getTableDescription(table, description);
+                String query = provider.getConfigDDL().getTableDescriptionCommand(arguments);
                 queries.add(query);
             }
             for (String query : queries) {
@@ -139,7 +139,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
                     if (result.wasNull()) {
                         type = "";
                     } else {
-                        type = mConnection.getProvider().getTableType(type);
+                        type = mConnection.getProvider().getConfigSQL().getTableType(type);
                     }
                     String remarks = result.getString(REMARKS);
                     if (result.wasNull()) {
@@ -176,11 +176,11 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 views.dropByName(name);
                 return;
             }
-            DriverProvider provider = mConnection.getProvider();
+            Provider provider = mConnection.getProvider();
             ComposeRule rule = ComposeRule.InDataManipulation;
             NamedComponents component = DBTools.qualifiedNameComponents(mConnection.getProvider(), name, rule);
             String table = DBTools.buildName(provider, component, rule, isCaseSensitive());
-            query = provider.getDDLQuery().getDropTableCommand(DDLParameter.getDropTable(table));
+            query = provider.getConfigDDL().getDropTableCommand(ParameterDDL.getDropTable(table));
             System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
             DBTools.executeSQLQuery(mConnection.getProvider(), query);

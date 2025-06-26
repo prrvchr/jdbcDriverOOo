@@ -30,22 +30,27 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public final class KeyColumn
-    extends ColumnBase {
+    extends ColumnMain 
+    implements XDataDescriptorFactory {
+
     private static final String SERVICE = KeyColumn.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumn"};
 
     protected String mRelatedColumn;
 
     // The constructor method:
-    public KeyColumn(TableSuper table,
+    public KeyColumn(final String catalog,
+                     final String schema,
+                     final String table,
                      final boolean sensitive,
                      final String name,
                      final String typename,
@@ -59,8 +64,8 @@ public final class KeyColumn
                      final boolean rowversion,
                      final boolean currency,
                      final String referenced) {
-        super(SERVICE, SERVICES, table, sensitive, name, typename, defaultvalue, description,
-              nullable, precision, scale, type, autoincrement, rowversion, currency);
+        super(SERVICE, SERVICES, catalog, schema, table, sensitive, name, typename, defaultvalue,
+              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         mRelatedColumn = referenced;
         System.out.println("KeyColumn() RelatedColumn: " + referenced);
         registerProperties();

@@ -26,11 +26,21 @@
 package io.github.prrvchr.uno.sdbc;
 
 import java.sql.PreparedStatement;
+import java.util.Map;
 
-import io.github.prrvchr.driver.helper.SqlCommand;
+import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
+import com.sun.star.uno.Type;
+
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 public abstract class PreparedStatementBase
     extends PreparedStatementMain {
+
+    protected boolean mUseBookmarks = false;
 
     // The constructor method:
     // XXX: Constructor called from methods:
@@ -39,9 +49,31 @@ public abstract class PreparedStatementBase
     public PreparedStatementBase(String service,
                                  String[] services,
                                  ConnectionBase connection,
-                                 String sql) {
+                                 String sql)
+        throws SQLException {
         super(service, services, connection);
-        mSql = new SqlCommand(sql);
+        mQuery = new QueryHelper(connection.getProvider(), sql);
+    }
+
+    @Override
+    protected void registerProperties(Map<String, PropertyWrapper> properties) {
+
+        properties.put(PropertyIds.USEBOOKMARKS.getName(),
+            new PropertyWrapper(Type.BOOLEAN,
+                () -> {
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS,
+                                       Boolean.toString(mUseBookmarks));
+                    System.out.println("PreparedStatementBase.getUseBookmark(): " + mUseBookmarks);
+                    return mUseBookmarks;
+                },
+                value -> {
+                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS,
+                                       value.toString());
+                    System.out.println("PreparedStatementBase.setUseBookmark(): " + value);
+                    mUseBookmarks = (boolean) value;
+                }));
+
+        super.registerProperties(properties);
     }
 
     @Override
@@ -50,8 +82,8 @@ public abstract class PreparedStatementBase
         checkDisposed();
         if (mStatement == null) {
             PreparedStatement statement;
-            String sql = mSql.getCommand();
-            if (mSql.isInsertCommand()) {
+            String sql = mQuery.getQuery();
+            if (mQuery.isInsertCommand()) {
                 int option = mConnection.getProvider().getGeneratedKeysOption();
                 statement = mConnection.getProvider().getConnection().prepareStatement(sql, option);
             } else if (mResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||

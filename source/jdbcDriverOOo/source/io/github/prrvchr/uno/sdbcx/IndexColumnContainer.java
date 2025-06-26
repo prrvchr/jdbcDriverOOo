@@ -32,12 +32,12 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 
 public final class IndexColumnContainer
-    extends Container<IndexColumn> {
+    extends ContainerSuper<IndexColumn> {
     private static final String SERVICE = IndexColumnContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexColumns",
                                               "com.sun.star.sdbcx.Container"};
@@ -116,8 +116,9 @@ public final class IndexColumnContainer
                     if (result.wasNull()) {
                         defaultvalue = "";
                     }
-                    index = new IndexColumn(mIndex.getTable(), isCaseSensitive(), name, typename,
-                                            defaultvalue, "", nullable, precision, scale, datatype,
+                    index = new IndexColumn(table.getCatalog(), table.getSchema(), table.getTable(),
+                                            isCaseSensitive(), name, typename, defaultvalue, "",
+                                            nullable, precision, scale, datatype,
                                             false, false, false, isascending);
                     break;
                 }
