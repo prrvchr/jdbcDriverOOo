@@ -45,7 +45,7 @@ public final class Driver
     // The constructor method:
     public Driver(XComponentContext ctx)
         throws Exception {
-        super(ctx, mImplementationName, mServiceNames);
+        super(ctx, mImplementationName, mServiceNames, "sdbc");
         System.out.println("sdbc.Driver() 1");
     }
 

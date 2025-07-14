@@ -45,7 +45,6 @@ import com.sun.star.uno.XInterface;
 import com.sun.star.lib.uno.helper.ComponentBase;
 
 import io.github.prrvchr.uno.driver.helper.DBException;
-import io.github.prrvchr.uno.driver.provider.ApiLevel;
 import io.github.prrvchr.uno.driver.provider.DriverManager;
 import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -67,6 +66,7 @@ public abstract class DriverBase
     protected final ResourceBasedEventLogger mLogger;
     private final String mService;
     private final String[] mServices;
+    private final String mApi;
     private XComponentContext mContext;
     private XHierarchicalNameAccess mConfig;
     private XHierarchicalNameAccess mDriver;
@@ -74,11 +74,13 @@ public abstract class DriverBase
     // The constructor method:
     public DriverBase(final XComponentContext context,
                       final String service, 
-                      final String[] services)
+                      final String[] services,
+                      final String api)
         throws Exception {
         mContext = context;
         mService = service;
         mServices = services;
+        mApi = api;
         // XXX: We are loading the logger provider...
         SharedResources.registerClient(context, IDENTIFIER, "resource", "Driver");
         mLogger = new ResourceBasedEventLogger(context, IDENTIFIER, "resource",
@@ -144,11 +146,10 @@ public abstract class DriverBase
         // XXX: the wrong kind of driver to connect to the given URL
         if (acceptsURL(url)) {
             try {
-                ApiLevel apiLevel = getApiLevel(info);
                 Properties properties = PropertiesHelper.getJdbcConnectionProperties(info);
                 Provider provider = new Provider(mContext, this, mLogger, mDriver, mConfig,
-                                                 url, info, properties, apiLevel);
-                System.out.println("sdbc.DriverBase.connect() 2 Service: " + apiLevel);
+                                                 url, info, properties, mApi);
+                System.out.println("sdbc.DriverBase.connect() 2 Service: " + mApi);
                 connection = getConnection(mContext, provider, url, info, properties.stringPropertyNames());
                 String services = String.join(", ", connection.getSupportedServiceNames());
                 mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
@@ -305,13 +306,6 @@ public abstract class DriverBase
     }
 
     // Private methods:
-    private ApiLevel getApiLevel(PropertyValue[] info) {
-        String apilevel = ApiLevel.COM_SUN_STAR_SDBC.service();
-        apilevel = UnoHelper.getConfigurationOption(mConfig, "ApiLevel", apilevel);
-        apilevel = UnoHelper.getDefaultPropertyValue(info, "ApiLevel", apilevel);
-        return ApiLevel.fromString(apilevel);
-    }
-
     private static XHierarchicalNameAccess getDriverConfiguration(final XComponentContext context,
                                                                   final String path,
                                                                   final XInterface source)

@@ -46,9 +46,6 @@ class OptionModel():
         self._rebootkeys = ('ApiLevel', )
         configkeys = ('CachedRowSet', 'ShowSystemTable')
         self._keys = self._rebootkeys + configkeys
-        self._levels = ('com.sun.star.sdbc',
-                        'com.sun.star.sdbcx',
-                        'com.sun.star.sdb')
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()
 
@@ -56,19 +53,16 @@ class OptionModel():
     def getConfigApiLevel(self):
         return self._config.getByName('ApiLevel')
 
-    def getApiLevel(self):
-        return self._settings['ApiLevel']
-
     def getViewData(self):
         self._settings = self._getSettings()
-        level = self._levels.index(self._settings.get('ApiLevel'))
+        level = self._settings.get('ApiLevel')
         crs = self._settings.get('CachedRowSet')
         system = self._settings.get('ShowSystemTable')
         return level, crs, system
 
 # OptionModel setter methods
     def setApiLevel(self, level):
-        self._settings['ApiLevel'] = self._levels[level]
+        self._settings['ApiLevel'] = level
 
     def setCachedRowSet(self, level):
         self._settings['CachedRowSet'] = level

@@ -55,9 +55,6 @@ class OptionManager():
     def getConfigApiLevel(self):
         return self._model.getConfigApiLevel()
 
-    def getApiLevel(self):
-        return self._model.getApiLevel()
-
 # OptionManager setter methods
     def saveSetting(self):
         saved = self._logmanager.saveSetting()

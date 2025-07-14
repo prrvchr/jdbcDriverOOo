@@ -43,12 +43,6 @@ class OptionWindow():
         self.setRestart(restart)
         self._getRestart().Model.PositionY += offset
 
-# OptionWindow getter methods
-    def getApiLevel(self):
-        for level in range(3):
-            if self._getApiLevel(level).State == 1:
-                return level
-
 # OptionWindow setter methods
     def dispose(self):
         self._window.dispose()

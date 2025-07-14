@@ -32,13 +32,13 @@
   oor:package="io.github.prrvchr"
   oor:name="jdbcDriverOOo">
     <prop oor:name="ApiLevel" oor:op="fuse">
-        <value>com.sun.star.sdb</value>
-    </prop>
-    <prop oor:name="ShowSystemTable" oor:op="fuse">
-        <value>false</value>
+        <value>2</value>
     </prop>
     <prop oor:name="CachedRowSet" oor:op="fuse">
         <value>1</value>
+    </prop>
+    <prop oor:name="ShowSystemTable" oor:op="fuse">
+        <value>false</value>
     </prop>
     <prop oor:name="EnableJavaSystemLogger" oor:op="fuse">
         <value>false</value>

@@ -26,10 +26,11 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ContainerEvent;
@@ -61,7 +62,7 @@ public abstract class ContainerSuper<T extends Descriptor>
                XRefreshable {
 
     protected InterfaceContainer mRefresh = new InterfaceContainer();
-    private TreeMap<String, Integer> mNames;
+    private BiMap<String, Integer> mNames;
     private Comparator<String> mCaseSensitiveComparator = new Comparator<String>() {
         @Override
         public int compare(String x, String y) {
@@ -81,7 +82,7 @@ public abstract class ContainerSuper<T extends Descriptor>
                      Object lock,
                      boolean sensitive) {
         super(service, services, lock, sensitive);
-        mNames = new TreeMap<>(mCaseSensitiveComparator);
+        mNames = new BiMap<>(mCaseSensitiveComparator);
     }
 
     public ContainerSuper(String service,
@@ -312,13 +313,7 @@ public abstract class ContainerSuper<T extends Descriptor>
     // XXX: ContainerBase support duplicate name and the contents will not be sorted.
     // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
     protected String removeElementNameInternal(int index) {
-        String key = null;
-        for (Entry<String, Integer> entry : mNames.entrySet()) {
-            if (entry.getValue() == index) {
-                key = entry.getKey();
-                break;
-            }
-        }
+        String key = mNames.getKey(index);
         if (key != null) {
             mNames.remove(key);
         }
@@ -326,14 +321,7 @@ public abstract class ContainerSuper<T extends Descriptor>
     }
 
     protected String getElementNameInternal(int index) {
-        String name = null;
-        for (Entry<String, Integer> entry : mNames.entrySet()) {
-            if (entry.getValue() == index) {
-                name = entry.getKey();
-                break;
-            }
-        }
-        return name;
+        return mNames.getKey(index);
     }
 
     protected boolean hasByNameInternal(String name) {
@@ -358,5 +346,38 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected abstract void removeDataBaseElement(int index, String name) throws SQLException;
     protected abstract void refreshInternal();
     protected abstract T createElement(String name) throws SQLException;
+
+    class BiMap<K, V> extends TreeMap<K, V> {
+
+        private static final long serialVersionUID = 8544367001531865987L;
+        private Map<V, K> mReverse = new HashMap<>();
+
+        public BiMap(Comparator<K> comparator) {
+            super(comparator);
+        }
+
+        @Override
+        public void clear() {
+            mReverse.clear();
+            super.clear();
+        }
+
+        @Override
+        public V put(K key, V value) {
+            mReverse.put(value, key);
+            return super.put(key, value);
+        }
+
+        @Override
+        public V remove(Object key) {
+            V value = super.remove(key);
+            mReverse.remove(value);
+            return value;
+        }
+
+        public K getKey(V value) {
+            return mReverse.get(value);
+        }
+    }
 
 }

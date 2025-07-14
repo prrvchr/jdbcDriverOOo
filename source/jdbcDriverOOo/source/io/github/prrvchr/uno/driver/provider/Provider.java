@@ -33,7 +33,6 @@ import java.nio.file.Path;
 import java.io.PrintWriter;
 import java.sql.Driver;
 import java.sql.ResultSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -50,6 +49,7 @@ import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBException;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
+
 
 public class Provider {
 
@@ -88,10 +88,6 @@ public class Provider {
     private String mCatalogSeparator = "";
     private String mIdentifierQuoteString = "";
 
-    private List<ApiLevel> mSupportedAPILevels = List.of(ApiLevel.COM_SUN_STAR_SDBC,
-                                                         ApiLevel.COM_SUN_STAR_SDBCX,
-                                                         ApiLevel.COM_SUN_STAR_SDB);
-
     // The constructor method:
     public Provider(final XComponentContext ctx,
                     final XInterface source,
@@ -101,7 +97,7 @@ public class Provider {
                     final String url,
                     final PropertyValue[] infos,
                     final Properties properties,
-                    final ApiLevel level)
+                    final String api)
         throws SQLException {
         System.out.println("jdbcdriver.DriverProvider() 1");
         String location = PropertiesHelper.getJdbcUrl(url);
@@ -140,14 +136,14 @@ public class Provider {
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
             // XXX: Get the corresponding query composer at the API level
-            switch (level.service()) {
-                case "com.sun.star.sdb":
+            switch (api) {
+                case "sdb":
                     mConfig = new ConfigDCL(config, opts, infos, metadata, mSubProtocol);
                     break;
-                case "com.sun.star.sdbcx":
+                case "sdbcx":
                     mConfig = new ConfigDDL(config, opts, infos, metadata, mSubProtocol);
                     break;
-                case "com.sun.star.sdbc":
+                case "sdbc":
                     mConfig = new ConfigSQL(config, opts, infos, metadata, mSubProtocol);
                     break;
             }
@@ -201,10 +197,6 @@ public class Provider {
         return mInfos;
     }
 
-    public List<ApiLevel> getAPILevels() {
-        return mSupportedAPILevels;
-    }
-
     public String enquoteLiteral(final String literal)
         throws java.sql.SQLException {
         return getStatement().enquoteLiteral(literal);
@@ -237,10 +229,6 @@ public class Provider {
             identifier = mIdentifierQuoteString + identifier + mIdentifierQuoteString;
         }
         return identifier;
-    }
-
-    public boolean supportService(final ApiLevel service) {
-        return mSupportedAPILevels.contains(service);
     }
 
     public ConfigSQL getConfigSQL() {

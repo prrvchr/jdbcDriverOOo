@@ -1660,7 +1660,6 @@ public class CachedRowSetImpl
         // the disconnected rowset
 
         if (rvh != null) {
-            System.out.println("CachedRowSetImpl.:close() 1");
 
             internalBeforeFirst();
             numRows = 0;
@@ -1676,7 +1675,6 @@ public class CachedRowSetImpl
             // this will make it eligible for gc
             rvh = null;
         }
-        System.out.println("CachedRowSetImpl.:close() 2");
     }
 
     /**

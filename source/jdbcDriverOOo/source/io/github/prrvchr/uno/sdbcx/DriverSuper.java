@@ -47,9 +47,12 @@ public abstract class DriverSuper
     implements XDataDefinitionSupplier {
 
     // The constructor method:
-    public DriverSuper(XComponentContext ctx, String service, String[] services)
+    public DriverSuper(XComponentContext ctx,
+                       String service,
+                       String[] services,
+                       String api)
         throws Exception {
-        super(ctx, service, services);
+        super(ctx, service, services, api);
         System.out.println("sdbcx.DriverSuper() 1");
     }
 
