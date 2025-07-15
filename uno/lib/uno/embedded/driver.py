@@ -76,6 +76,7 @@ class Driver(unohelper.Base,
     def __init__(self, ctx, lock, logger, service, implementation, services):
         self._ctx = ctx
         self._lock = lock
+        print("Driver.__init__() service: %s ******************************************************" % service)
         self._driver = createService(ctx, service)
         self._implementation = implementation
         self._services = services
@@ -142,18 +143,16 @@ class Driver(unohelper.Base,
         return self._services
 
     # Driver private getter methods
+    def _getDriver(self):
+        return self._driver
+
     def _getConnectionInfo(self, infos):
         document = storage = url = None
         config = getConfiguration(self._ctx, g_identifier)
-        level = config.getByName('ApiLevel')
+        rowset = config.getByName('CachedRowSet')
         system = config.getByName('ShowSystemTable')
-        bookmark = config.getByName('UseBookmark')
-        mode = config.getByName('SQLMode')
-        newinfos = {'Url': g_url,
-                    'ApiLevel': level,
-                    'ShowSystemTable': system,
-                    'UseBookmark': bookmark,
-                    'SQLMode': mode}
+        print("SQLiteOOo.Driver._getConnectionInfo() Url: %s" % g_url)
+        newinfos = {'Url': g_url, 'CachedRowSet': rowset, 'ShowSystemTable': system}
         if g_user:
             newinfos['user'] = g_user
         if g_driver:
