@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.sql.ResultSet;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
@@ -65,9 +64,8 @@ public abstract class ConnectionSuper
                               String[] services,
                               Provider provider,
                               String url,
-                              PropertyValue[] info,
                               Set<String> properties) {
-        super(ctx, service, services, provider, url, info, properties);
+        super(ctx, service, services, provider, url, properties);
     }
 
     protected Provider getProvider() {

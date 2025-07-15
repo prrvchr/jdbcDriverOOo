@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.util.Set;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XPreparedStatement;
@@ -50,9 +49,8 @@ public final class Connection
     protected Connection(XComponentContext ctx,
                          Provider provider,
                          String url,
-                         PropertyValue[] info,
                          Set<String> properties) {
-        super(ctx, SERVICE, SERVICES, provider, url, info, properties);
+        super(ctx, SERVICE, SERVICES, provider, url, properties);
         System.out.println("sdbc.Connection() *************************");
     }
 

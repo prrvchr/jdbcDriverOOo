@@ -53,6 +53,7 @@ public abstract class ConfigBase extends ParameterBase {
     // Connection Infos properties
     public static final String SHOW_SYSTEM_TABLE = "ShowSystemTable";
     public static final String CACHED_ROWSET = "CachedRowSet";
+    public static final String CONNECTION_URL = "Url";
     public static final String TYPE_INFO_SETTINGS = "TypeInfoSettings";
     public static final String SYSTEM_TABLE_SETTINGS = "SystemTableSettings";
     public static final String TABLE_TYPES_SETTINGS = "TableTypesSettings";
@@ -80,6 +81,9 @@ public abstract class ConfigBase extends ParameterBase {
 
     private String mAutoIncrementCreation = "";
     private String mAutoRetrievingStatement = "";
+
+    private String mUrl = null;
+    private PropertyValue[] mInfos;
  
     private Boolean mIsAutoRetrievingEnabled = null;
     private Boolean mShowSystemTable = null;
@@ -102,6 +106,7 @@ public abstract class ConfigBase extends ParameterBase {
     protected ConfigBase(final XHierarchicalNameAccess config,
                          final XHierarchicalNameAccess opts,
                          final PropertyValue[] infos,
+                         final String url,
                          final DatabaseMetaData metadata,
                          final String subProtocol,
                          final boolean rewriteTable)
@@ -111,6 +116,7 @@ public abstract class ConfigBase extends ParameterBase {
         Object[] typeInfo = null;
         Object[] tableType = null;
         setPropertiesInfo(infos, typeInfo, tableType);
+        mInfos = infos;
 
         if (typeInfo == null) {
             typeInfo = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
@@ -129,7 +135,15 @@ public abstract class ConfigBase extends ParameterBase {
                                                                                   TABLE_PRIVILEGES_SETTINGS);
         setPropertiesData(tableSetting, typeInfo, systemTable, tableType, tablePrivilege);
 
-        setProperties(opts, metadata, rewriteTable);
+        setProperties(opts, url, metadata, rewriteTable);
+    }
+
+    public String getURL() {
+        return mUrl;
+    }
+
+    public PropertyValue[] getConnectionInfo() {
+        return mInfos;
     }
 
     public String getTableType(String type) {
@@ -314,6 +328,7 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     private void setProperties(final XHierarchicalNameAccess opts,
+                               final String url,
                                final java.sql.DatabaseMetaData metadata,
                                final boolean rewriteTable)
         throws SQLException {
@@ -322,7 +337,7 @@ public abstract class ConfigBase extends ParameterBase {
 
             setCachedRowSet(opts);
             setShowSystemTable(opts);
-            setPropertiesMetaData(metadata, rewriteTable);
+            setPropertiesMetaData(url, metadata, rewriteTable);
 
         } catch (NoSuchElementException | java.sql.SQLException e) {
             throw new SQLException(e.getMessage());
@@ -363,9 +378,16 @@ public abstract class ConfigBase extends ParameterBase {
         }
     }
 
-    private void setPropertiesMetaData(final java.sql.DatabaseMetaData metadata,
+    private void setPropertiesMetaData(final String url,
+                                       final java.sql.DatabaseMetaData metadata,
                                        final boolean rewriteTable)
         throws java.sql.SQLException {
+        // XXX: If Url not provided in the connection information properties it will be obtained
+        // XXX: from the connection and overwrite in the DataBaseMetaData.getURL() method
+        if (mUrl == null) {
+            mUrl = url;
+        }
+
         // XXX: If IsAutoRetrievingEnabled is not provided in the connection information properties
         // XXX: It will be obtained from the DataBaseMetaData.supportsGetGeneratedKeys() method
         if (mIsAutoRetrievingEnabled == null) {
@@ -384,48 +406,58 @@ public abstract class ConfigBase extends ParameterBase {
                                    @SuppressWarnings("unused") Object[] typeInfo,
                                    @SuppressWarnings("unused") Object[] tableType)
         throws java.sql.SQLException {
+        Object obj;
         for (PropertyValue info : infos) {
 
+            obj = info.Value;
             switch (info.Name) {
                 case DOCUMENT:
-                    mDocument = (XOfficeDatabaseDocument) info.Value;
+                    mDocument = (XOfficeDatabaseDocument) obj;
                     break;
                 case TYPE_INFO_SETTINGS:
-                    typeInfo = (Object[]) info.Value;
+                    typeInfo = (Object[]) obj;
                     break;
                 case TABLE_TYPES_SETTINGS:
-                    tableType = (Object[]) info.Value;
+                    tableType = (Object[]) obj;
                     break;
                 case PRIVILEGES_SETTINGS:
-                    mPrivileges = (Object[]) info.Value;
+                    mPrivileges = (Object[]) obj;
                     break;
                 case AUTO_INCREMENT_CREATION:
-                    mAutoIncrementCreation = (String) info.Value;
+                    mAutoIncrementCreation = (String) obj;
                     break;
                 case IGNORE_DRIVER_PRIVILEGES:
-                    mIgnoreDriverPrivileges = (boolean) info.Value;
+                    mIgnoreDriverPrivileges = (boolean) obj;
                     break;
                 case IGNORE_CURRENCY:
-                    mIgnoreCurrency = (boolean) info.Value;
+                    mIgnoreCurrency = (boolean) obj;
                     break;
                 case ADD_INDEX_APPENDIX:
-                    mAddIndexAppendix = (boolean) info.Value;
+                    mAddIndexAppendix = (boolean) obj;
                     break;
                 case AUTO_RETRIEVING_STATEMENT:
-                    mAutoRetrievingStatement = (String) info.Value;
+                    mAutoRetrievingStatement = (String) obj;
                     break;
                 case IS_AUTORETRIEVING_ENABLED:
-                    mIsAutoRetrievingEnabled = (Boolean) info.Value;
+                    mIsAutoRetrievingEnabled = (Boolean) obj;
                     break;
                 case SHOW_SYSTEM_TABLE:
-                    Boolean bVal = (Boolean) info.Value;
-                    System.out.println("ConfigBase.setPropertiesInfo() 1 mShowSystemTable: " + bVal.toString());
-                    mShowSystemTable = bVal;
+                    if (obj != null && AnyConverter.isBoolean(obj)) {
+                        mShowSystemTable = AnyConverter.toBoolean(obj);
+                        System.out.println("ConfigBase.setPropertiesInfo() 1 mShowSystemTable: " + obj.toString());
+                    }
                     break;
                 case CACHED_ROWSET:
-                    Integer iVal = (Integer) info.Value;
-                    System.out.println("ConfigBase.setPropertiesInfo() 2 mCachedRowSet: " + iVal.toString());
-                    mCachedRowSet = iVal;
+                    if (obj != null && AnyConverter.isInt(obj)) {
+                        mCachedRowSet = AnyConverter.toInt(obj);
+                        System.out.println("ConfigBase.setPropertiesInfo() 2 mCachedRowSet: " + obj.toString());
+                    }
+                    break;
+                case CONNECTION_URL:
+                    if (obj != null && AnyConverter.isString(obj)) {
+                        mUrl = AnyConverter.toString(obj);
+                        System.out.println("ConfigBase.setPropertiesInfo() 3 mUrl: " + obj.toString());
+                    }
                     break;
             }
         }

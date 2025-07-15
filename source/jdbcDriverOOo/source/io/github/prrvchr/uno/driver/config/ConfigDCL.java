@@ -67,10 +67,11 @@ public class ConfigDCL extends ConfigDDL {
     public ConfigDCL(final XHierarchicalNameAccess config,
                      final XHierarchicalNameAccess opts,
                      final PropertyValue[] infos,
+                     final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
         throws SQLException, java.sql.SQLException {
-        super(config, opts, infos,  metadata, subProtocol);
+        super(config, opts, infos, url, metadata, subProtocol);
         if (mPrivileges != null) {
             mPrivilegeNames = new ArrayList<>();
             mPrivilegeValues  = new ArrayList<>();

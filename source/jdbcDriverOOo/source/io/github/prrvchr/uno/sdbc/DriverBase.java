@@ -150,7 +150,7 @@ public abstract class DriverBase
                 Provider provider = new Provider(mContext, this, mLogger, mDriver, mConfig,
                                                  url, info, properties, mApi);
                 System.out.println("sdbc.DriverBase.connect() 2 Service: " + mApi);
-                connection = getConnection(mContext, provider, url, info, properties.stringPropertyNames());
+                connection = getConnection(mContext, provider, url, properties.stringPropertyNames());
                 String services = String.join(", ", connection.getSupportedServiceNames());
                 mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
                                connection.getProvider().getLogger().getObjectId());
@@ -322,7 +322,6 @@ public abstract class DriverBase
     protected abstract ConnectionBase getConnection(XComponentContext ctx,
                                                     Provider provider,
                                                     String url,
-                                                    PropertyValue[] info,
                                                     Set<String> properties);
 
 }

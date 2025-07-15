@@ -106,12 +106,12 @@ public class Provider {
             mSubProtocol = PropertiesHelper.getSubProtocol(url);
             final String name = DriverManager.getDriverName(config, mSubProtocol);
             final String clsname = DriverManager.getDriverClassName(source, config, infos,
-                                                                          mSubProtocol, name);
+                                                                    mSubProtocol, name);
 
             if (!DriverManager.isDriverRegistered(clsname)) {
                 boolean add = false;
                 String clspath = DriverManager.getDriverClassPath(ctx, source, config,
-                                                                        infos, mSubProtocol, name);
+                                                                  infos, mSubProtocol, name);
                 Driver driver = DriverManager.getDriverByClassName(source, clspath, clsname, location, add);
                 URL drvurl = driver.getClass().getProtectionDomain().getCodeSource().getLocation();
                 Path drvpath = Path.of(drvurl.toURI()).toRealPath();
@@ -138,13 +138,13 @@ public class Provider {
             // XXX: Get the corresponding query composer at the API level
             switch (api) {
                 case "sdb":
-                    mConfig = new ConfigDCL(config, opts, infos, metadata, mSubProtocol);
+                    mConfig = new ConfigDCL(config, opts, infos, url, metadata, mSubProtocol);
                     break;
                 case "sdbcx":
-                    mConfig = new ConfigDDL(config, opts, infos, metadata, mSubProtocol);
+                    mConfig = new ConfigDDL(config, opts, infos, url, metadata, mSubProtocol);
                     break;
                 case "sdbc":
-                    mConfig = new ConfigSQL(config, opts, infos, metadata, mSubProtocol);
+                    mConfig = new ConfigSQL(config, opts, infos, url, metadata, mSubProtocol);
                     break;
             }
 
@@ -211,14 +211,12 @@ public class Provider {
         return result.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
     }
 
-    public String enquoteIdentifier(String identifier)
-        throws java.sql.SQLException {
+    public String enquoteIdentifier(String identifier) {
         return enquoteIdentifier(identifier, true);
     }
 
     public String enquoteIdentifier(String identifier,
-                                    final boolean always)
-        throws java.sql.SQLException {
+                                    final boolean always) {
         // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
         // XXX: mySQL don't support Statement.enquoteIdentifier()
         // XXX: It seems that double quotes are used instead of backticks
@@ -226,7 +224,7 @@ public class Provider {
         //    identifier = getStatement().enquoteIdentifier(identifier, always);
         //}
         if (always) {
-            identifier = mIdentifierQuoteString + identifier + mIdentifierQuoteString;
+            identifier = mConfig.enquoteIdentifier(identifier);
         }
         return identifier;
     }

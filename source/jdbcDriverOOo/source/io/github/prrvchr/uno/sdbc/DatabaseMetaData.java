@@ -78,14 +78,16 @@ public class DatabaseMetaData
     // com.sun.star.sdbc.XDatabaseMetaData2
     @Override
     public PropertyValue[] getConnectionInfo() {
-        return mConnection.getInfo();
+        return mConnection.getProvider().getConfigSQL().getConnectionInfo();
     }
-    
+
     @Override
     public String getURL() throws SQLException {
-        return mConnection.getUrl();
+        String url = mConnection.getProvider().getConfigSQL().getURL();
+        System.out.println("sdbc.DatabaseMetaData.getURL() 1 url: " + url);
+        return url;
     }
-    
+
     @Override
     public boolean allProceduresAreCallable() throws SQLException {
         try {

@@ -73,19 +73,21 @@ public class ConfigSQL extends ConfigBase {
     public ConfigSQL(final XHierarchicalNameAccess config,
                      final XHierarchicalNameAccess opts,
                      final PropertyValue[] infos,
+                     final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
         throws SQLException, java.sql.SQLException {
-        this(config, opts, infos, metadata, subProtocol, true);
+        this(config, opts, infos, url, metadata, subProtocol, true);
     }
     protected ConfigSQL(final XHierarchicalNameAccess config,
                         final XHierarchicalNameAccess opts,
                         final PropertyValue[] infos,
+                        final String url,
                         final DatabaseMetaData metadata,
                         final String subProtocol,
                         final boolean rewriteTable)
         throws SQLException, java.sql.SQLException {
-        super(config, opts, infos, metadata, subProtocol, rewriteTable);
+        super(config, opts, infos, url, metadata, subProtocol, rewriteTable);
         System.out.println("SQLQuery() 1");
         mConfig = config;
         mSubProtocol = subProtocol;
@@ -95,6 +97,10 @@ public class ConfigSQL extends ConfigBase {
         mStringProperties = new HashMap<>();
         mStringsProperties = new HashMap<>();
         System.out.println("SQLQuery() 2");
+    }
+
+    public String enquoteIdentifier(String identifier) {
+        return mIdentifierQuote + identifier + mIdentifierQuote;
     }
 
     public boolean supportsDCLQuery() {
@@ -183,10 +189,6 @@ public class ConfigSQL extends ConfigBase {
     protected String getIdentifiersAsString(final List<String> identifiers)
         throws java.sql.SQLException {
         return String.join(getSeparator(), identifiers);
-    }
-
-    protected String enquoteIdentifier(String identifier) {
-        return mIdentifierQuote + identifier + mIdentifierQuote;
     }
 
     protected final String format(final String command,

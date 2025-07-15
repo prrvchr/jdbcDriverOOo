@@ -60,6 +60,7 @@ public abstract class DriverSuper
     @Override
     public XTablesSupplier getDataDefinitionByConnection(XConnection connection)
         throws SQLException {
+        System.out.println("sdbcx.DriverSuper.getDataDefinitionByConnection() 1");
         XTablesSupplier tables = null;
         XServiceInfo service = UnoRuntime.queryInterface(XServiceInfo.class, connection);
         if (service.supportsService("com.sun.star.sdbcx.DatabaseDefinition")) {
@@ -71,6 +72,7 @@ public abstract class DriverSuper
     @Override
     public XTablesSupplier getDataDefinitionByURL(String url, PropertyValue[] info)
         throws SQLException {
+        System.out.println("sdbcx.DriverSuper.getDataDefinitionByURL() 2");
         if (!acceptsURL(url)) {
             String message = SharedResources.getInstance().getResourceWithSubstitution(Resources.STR_URI_SYNTAX_ERROR,
                                                                                        url);

@@ -67,8 +67,6 @@ public abstract class ConnectionBase
     private final String mService;
     private final String[] mServices;
     private final Provider mProvider;
-    private String mUrl;
-    private PropertyValue[] mInfo;
     private final WeakMap<StatementMain, StatementMain> mStatements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
@@ -77,14 +75,11 @@ public abstract class ConnectionBase
                              String[] services,
                              Provider provider,
                              String url,
-                             PropertyValue[] info,
                              Set<String> properties) {
         mContext = ctx;
         mService = service;
         mServices = services;
         mProvider = provider;
-        mUrl = url;
-        mInfo = info;
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_ESTABLISHED,
                            PropertiesHelper.getJdbcUrl(url), String.join(", ", properties));
         System.out.println("ConnectionBase() 1");
@@ -370,15 +365,6 @@ public abstract class ConnectionBase
 
     protected XComponentContext getComponentContext() {
         return mContext;
-    }
-
-    protected String getUrl() {
-        return mUrl;
-    }
-
-
-    protected PropertyValue[] getInfo() {
-        return mInfo;
     }
 
     protected abstract XStatement getStatement();

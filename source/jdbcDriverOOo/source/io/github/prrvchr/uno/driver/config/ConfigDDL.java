@@ -87,10 +87,11 @@ public class ConfigDDL extends ConfigSQL {
     public ConfigDDL(final XHierarchicalNameAccess config,
                      final XHierarchicalNameAccess opts,
                      final PropertyValue[] infos,
+                     final String url,
                      final DatabaseMetaData metadata,
                      final String subProtocol)
         throws SQLException, java.sql.SQLException {
-        super(config, opts, infos, metadata, subProtocol, false);
+        super(config, opts, infos, url, metadata, subProtocol, false);
     }
 
     // XXX: this RowSetData will be used in methods:

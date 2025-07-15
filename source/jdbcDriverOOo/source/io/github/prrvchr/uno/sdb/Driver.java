@@ -25,9 +25,9 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.lang.StackWalker.Option;
 import java.util.Set;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
@@ -48,16 +48,17 @@ public final class Driver
     public Driver(XComponentContext ctx)
         throws Exception {
         super(ctx, mImplementationName, mServiceNames, "sdb");
-        System.out.println("sdb.Driver() 1");
+        StackWalker.getInstance(Option.RETAIN_CLASS_REFERENCE)
+                   .forEach(frame -> System.out.println(frame.getDeclaringClass()));
+        System.out.println("sdb.Driver() 1 *****************************************************************");
     }
  
     @Override
     protected ConnectionBase getConnection(XComponentContext ctx,
                                            Provider provider,
                                            String url,
-                                           PropertyValue[] info,
                                            Set<String> properties) {
-        return new Connection(ctx, provider, url, info, properties);
+        return new Connection(ctx, provider, url, properties);
     }
 
 }
