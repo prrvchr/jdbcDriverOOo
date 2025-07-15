@@ -118,10 +118,7 @@ public abstract class TableSuper
         properties.put(PropertyIds.PRIVILEGES.getName(),
             new PropertyWrapper(Type.LONG, readonly,
                 () -> {
-                    System.out.println("TableSuper.getPrivileges() 1");
-                    int privileges = getPrivileges();
-                    System.out.println("TableSuper.getPrivileges() 2 Privileges: " + privileges);
-                    return privileges;
+                    return getPrivileges();
                 },
                 null));
 
@@ -312,7 +309,6 @@ public abstract class TableSuper
         // Column have changed its identity (auto-increment)
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_IDENTITY)) {
             oldcolumn.mIsAutoIncrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
-            System.out.println("TableSuper.setColumnProperties() AutoIncrement: " + oldcolumn.mIsAutoIncrement);
         }
         // Column have changed its name
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
@@ -408,7 +404,6 @@ public abstract class TableSuper
     public void rename(String name)
         throws SQLException,
                ElementExistException {
-        System.out.println("sdbcx.TableSuper.rename() Table: '" + name + "'");
 
         String query = null;
         String table = null;
@@ -419,6 +414,7 @@ public abstract class TableSuper
             ComposeRule rule = ComposeRule.InDataManipulation;
             Provider provider = getConnection().getProvider();
             table = DBTools.buildName(provider, getNamedComponents(), rule);
+
             // XXX: We can handle renaming if it is a table and the driver does not have a command to rename the table
             // XXX: or it's a view and we don't have access to the view's command definition.
             if (!isview && !provider.getConfigDDL().supportsRenamingTable() ||
@@ -518,7 +514,6 @@ public abstract class TableSuper
         try {
             Provider provider = getConnection().getProvider();
             List<String> keys = KeyHelper.refreshKeys(provider, getNamedComponents());
-            System.out.println("TableSuper.refreshKeys() Table: " + getName() + " - Keys: " + String.join(", ", keys));
             if (mKeys == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
                 mKeys = new KeyContainer(this, isCaseSensitive(), keys);

@@ -33,12 +33,14 @@ import java.util.Set;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.DriverPropertyInfo;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
 import com.sun.star.sdbc.XDriver;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
@@ -68,7 +70,6 @@ public abstract class DriverBase
     private final String[] mServices;
     private final String mApi;
     private XComponentContext mContext;
-    private XHierarchicalNameAccess mConfig;
     private XHierarchicalNameAccess mDriver;
 
     // The constructor method:
@@ -92,19 +93,23 @@ public abstract class DriverBase
             throw new SQLException(msg);
         }
         // XXX: We are loading configurations...
-        mConfig = getDriverConfiguration(context, IDENTIFIER, this);
-        mDriver = getDriverConfiguration(context, "org.openoffice.Office.DataAccess.Drivers", this);
         DriverManager.setJavaRowSetFactory(context, IDENTIFIER);
-        if (isJavaLoggerEnabled()) {
+        if (isJavaLoggerEnabled(context)) {
             DriverManager.setJavaLoggerService(context, IDENTIFIER);
         }
+        mDriver = getDriverConfig(context, "org.openoffice.Office.DataAccess.Drivers", this);
         System.out.println("sdbc.DriverBase.DriverBase() 1");
     }
 
-    private boolean isJavaLoggerEnabled() {
+    private boolean isJavaLoggerEnabled(XComponentContext context) throws SQLException {
         boolean enabled = false;
         try {
-            enabled = (boolean) mConfig.getByHierarchicalName("EnableJavaSystemLogger");
+            XHierarchicalNameAccess config = getDriverConfig(context, IDENTIFIER, this);
+            Object obj = config.getByHierarchicalName("EnableJavaSystemLogger");
+            if (obj != null && AnyConverter.isBoolean(obj)) {
+                enabled = AnyConverter.toBoolean(obj);
+            }
+            UnoHelper.disposeComponent(config);
         } catch (NoSuchElementException e) { }
         return enabled;
     }
@@ -114,7 +119,6 @@ public abstract class DriverBase
     protected synchronized void postDisposing() {
         mContext = null;
         SharedResources.revokeClient();
-        UnoHelper.disposeComponent(mConfig);
         UnoHelper.disposeComponent(mDriver);
     }
 
@@ -140,16 +144,16 @@ public abstract class DriverBase
                                PropertyValue[] info)
         throws SQLException {
         ConnectionBase connection = null;
-        System.out.println("sdbc.DriverBase.connect() 1 Url: " + url);
         mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_CONNECTING_URL, url);
         // XXX: The driver should return NULL if it realizes it is
         // XXX: the wrong kind of driver to connect to the given URL
         if (acceptsURL(url)) {
             try {
+                XNameAccess config = getOptionConfig(mContext, IDENTIFIER, this);
                 Properties properties = PropertiesHelper.getJdbcConnectionProperties(info);
-                Provider provider = new Provider(mContext, this, mLogger, mDriver, mConfig,
+                Provider provider = new Provider(mContext, this, mLogger, mDriver, config,
                                                  url, info, properties, mApi);
-                System.out.println("sdbc.DriverBase.connect() 2 Service: " + mApi);
+                UnoHelper.disposeComponent(config);
                 connection = getConnection(mContext, provider, url, properties.stringPropertyNames());
                 String services = String.join(", ", connection.getSupportedServiceNames());
                 mLogger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_SUCCESS, services,
@@ -287,7 +291,6 @@ public abstract class DriverBase
         properties.add(new DriverPropertyInfo("PrivilegesSettings",
             "Lists privileges supported by the underlying driver.", true, "", new String[0]));
 */
-        System.out.println("sdbc.DriverBase.getPropertyInfo() 2");
         return properties.toArray(new DriverPropertyInfo[0]);
     }
 
@@ -306,12 +309,27 @@ public abstract class DriverBase
     }
 
     // Private methods:
-    private static XHierarchicalNameAccess getDriverConfiguration(final XComponentContext context,
+
+    private static XNameAccess getOptionConfig(final XComponentContext context,
+                                               final String path,
+                                               final XInterface source)
+        throws SQLException {
+        try {
+            return UnoHelper.getFlatConfig(context, path);
+        } catch (Exception e) {
+            int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);
+            throw DBException.getSQLException(msg, source, StandardSQLState.SQL_GENERAL_ERROR);
+        }
+    }
+
+
+    private static XHierarchicalNameAccess getDriverConfig(final XComponentContext context,
                                                                   final String path,
                                                                   final XInterface source)
         throws SQLException {
         try {
-            return UnoHelper.getConfiguration(context, path);
+            return UnoHelper.getTreeConfig(context, path);
         } catch (Exception e) {
             int resource = Resources.STR_LOG_CONFIGURATION_LOADING_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path);

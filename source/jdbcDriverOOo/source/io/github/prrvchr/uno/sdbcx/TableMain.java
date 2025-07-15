@@ -189,10 +189,10 @@ public abstract class TableMain
             }
 
             Map<String, Object> arguments = ParameterDDL.getRenameTable(mConnection.getProvider(),
-                                                                                 component,
-                                                                                 getNamedComponents(),
-                                                                                 oldname, reversed,
-                                                                                 rule, isCaseSensitive());
+                                                                        component,
+                                                                        getNamedComponents(),
+                                                                        oldname, reversed,
+                                                                        rule, isCaseSensitive());
             queries = mConnection.getProvider().getConfigDDL().getRenameTableCommands(arguments, reversed);
             changed = renameTableOrView(queries, newname, isview, moved, renamed, multiquery, fullchange);
 

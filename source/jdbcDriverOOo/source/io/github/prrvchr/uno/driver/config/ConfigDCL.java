@@ -32,6 +32,7 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.Privilege;
 
@@ -65,7 +66,7 @@ public class ConfigDCL extends ConfigDDL {
 
     // The constructor method:
     public ConfigDCL(final XHierarchicalNameAccess config,
-                     final XHierarchicalNameAccess opts,
+                     final XNameAccess opts,
                      final PropertyValue[] infos,
                      final String url,
                      final DatabaseMetaData metadata,

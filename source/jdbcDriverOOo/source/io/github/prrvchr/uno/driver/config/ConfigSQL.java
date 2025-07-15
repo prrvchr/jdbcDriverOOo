@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
@@ -57,7 +58,7 @@ public class ConfigSQL extends ConfigBase {
 
     private final String mKeyPrefix = "${";
     private final String mKeySuffix = "}";
-    private final String mKeyPattern = "[$][{](\\w+)}";
+    private final String mKeyPattern = "[$][{]([\\w+\\.*]+)}";
 
     private final String mIdentifierQuote;
     private final String mSubProtocol;
@@ -71,7 +72,7 @@ public class ConfigSQL extends ConfigBase {
 
     // The constructor method:
     public ConfigSQL(final XHierarchicalNameAccess config,
-                     final XHierarchicalNameAccess opts,
+                     final XNameAccess opts,
                      final PropertyValue[] infos,
                      final String url,
                      final DatabaseMetaData metadata,
@@ -80,7 +81,7 @@ public class ConfigSQL extends ConfigBase {
         this(config, opts, infos, url, metadata, subProtocol, true);
     }
     protected ConfigSQL(final XHierarchicalNameAccess config,
-                        final XHierarchicalNameAccess opts,
+                        final XNameAccess opts,
                         final PropertyValue[] infos,
                         final String url,
                         final DatabaseMetaData metadata,

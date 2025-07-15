@@ -43,8 +43,8 @@ import traceback
 
 class OptionModel():
     def __init__(self, ctx):
-        self._rebootkeys = ('ApiLevel', )
-        configkeys = ('CachedRowSet', 'ShowSystemTable')
+        self._rebootkeys = ('ApiLevel', 'CachedRowSet')
+        configkeys = ('ShowSystemTable', )
         self._keys = self._rebootkeys + configkeys
         self._config = getConfiguration(ctx, g_identifier, True)
         self._settings = self._getSettings()

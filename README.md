@@ -39,7 +39,7 @@ This extension is the transcription in pure Java of the [java.sql.*][9] API to t
 **It allows you to use the JDBC driver of your choice directly in Base.**  
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][13] version 2.7.4
-- [SQLite via xerial sqlite-jdbc][14] version 3.49.1.1-SNAPSHOT
+- [SQLite via xerial sqlite-jdbc][14] version 3.50.2.1-SNAPSHOT
 - [MariaDB via Connector/J][15] version 3.5.3
 - [PostgreSQL via pgJDBC][16] version 42.7.5
 - [H2 Database Engine][17] version 2.2.224
@@ -223,6 +223,8 @@ To create a database, in LibreOffice go to the menu: **File -> New -> Database -
   - Linux: `embedded:/home/prrvchr/testdb/firebird?createDatabaseIfNotExist=true`
   - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
+    Firebird requires, for the proper functioning of its embedded mode, the installation of [Firebird Server 5.x][54].
+
 ___
 
 ## How to install Java Instrumentation:
@@ -230,7 +232,7 @@ ___
 In order to use the Java SPI services offered by the `RowSetFactory.jar` implementation, the Java instrumentation must be installed under LibreOffice.  
 This is done automatically starting from LibreOffice version 25.8.x, but must be done manually for lower versions.  
 Here are the different steps:
-- Download the archive [InstrumentationAgent.jar][54] and place it in a folder.
+- Download the archive [InstrumentationAgent.jar][55] and place it in a folder.
 - In LibreOffice, go to **Tools -> Options -> LibreOffice -> Advanced -> Java Options -> Settings -> Java Startup Settings** and add the following command:
     - For Windows: `-javaagent:c:\folder\InstrumentationAgent.jar`.
     - For Linux: `-javaagent:/folder/InstrumentationAgent.jar`.
@@ -238,18 +240,18 @@ Here are the different steps:
     Of course, the path to the archive remains to be adapted to your use case.
 - Restart LibreOffice to apply these changes.
 
-If you think it would be good to avoid this manipulation, then ask LibreOffice to [backport the Java instrumentation][55].
+If you think it would be good to avoid this manipulation, then ask LibreOffice to [backport the Java instrumentation][56].
 
 ___
 
 ## How to build the extension:
 
-Normally, the extension is created with Eclipse for Java and [LOEclipse][56]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
+Normally, the extension is created with Eclipse for Java and [LOEclipse][57]. To work around Eclipse, I modified LOEclipse to allow the extension to be created with Apache Ant.  
 To create the jdbcDriverOOo extension with the help of Apache Ant, you need to:
-- Install the [Java SDK][57] version 17 or higher.
-- Install [Apache Ant][58] version 1.10.0 or higher.
-- Install [LibreOffice and its SDK][59] version 7.x or higher.
-- Clone the [jdbcDriverOOo][60] repository on GitHub into a folder.
+- Install the [Java SDK][58] version 17 or higher.
+- Install [Apache Ant][59] version 1.10.0 or higher.
+- Install [LibreOffice and its SDK][60] version 7.x or higher.
+- Clone the [jdbcDriverOOo][61] repository on GitHub into a folder.
 - From this folder, move to the directory: `source/jdbcDriverOOo/`
 - In this directory, edit the file: `build.properties` so that the `office.install.dir` and `sdk.dir` properties point to the folders where LibreOffice and its SDK were installed, respectively.
 - Start the archive creation process using the command: `ant`
@@ -280,7 +282,7 @@ ___
 This driver was written to work around certain problems inherent in the UNO implementation of the JDBC driver built into LibreOffice / OpenOffice, namely: 
 
 - The inability to provide the path to the Java driver archive (hsqldb.jar) when loading the JDBC driver.
-- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][61].
+- Not being able to use prepared SQL statements (PreparedStatement) see [bug #132195][62].
 
 In order to take advantage of the latest features offered by databases and among others HsqlDB, it was necessary to write a new driver.
 
@@ -302,7 +304,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 - The use of the SQL Array type in the queries.
 - Everything we are ready to implement.
 
-### [All changes are logged in the version History][62]
+### [All changes are logged in the version History][63]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -349,12 +351,13 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [51]: <img/jdbcDriverOOo-8.png>
 [52]: <img/jdbcDriverOOo-9.png>
 [53]: <img/jdbcDriverOOo-10.png>
-[54]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/InstrumentationAgent.jar>
-[55]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167071>
-[56]: <https://github.com/LibreOffice/loeclipse>
-[57]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
-[58]: <https://ant.apache.org/manual/install.html>
-[59]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
-[60]: <https://github.com/prrvchr/jdbcDriverOOo.git>
-[61]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[62]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>
+[54]: <https://firebirdsql.org/en/firebird-5-0-3>
+[55]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/InstrumentationAgent.jar>
+[56]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167071>
+[57]: <https://github.com/LibreOffice/loeclipse>
+[58]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[59]: <https://ant.apache.org/manual/install.html>
+[60]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[61]: <https://github.com/prrvchr/jdbcDriverOOo.git>
+[62]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[63]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG>

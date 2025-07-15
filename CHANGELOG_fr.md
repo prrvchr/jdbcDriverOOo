@@ -346,7 +346,10 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
     - L'archive a été compilée avec Java 17 et sous forme de module.
 - Nous avons maintenant la possibilité d'utiliser ou non CachedRowSet. Cette option peut être configurée dans les options de l'extension. Si cette option est forcée, **il est même possible de modifier les requêtes dans LibreOffice Base. Wahou...**
 - Les ResultSets des méthodes `getTables()`, `getTableTypes()`, `getTypeInfo()` et `getTablePrivileges()` de l'interface XDatabaseMetaData sont désormais des CachedRowSet dont les données sont mises à jour selon le fichier de configuration [Drivers.xcu][48]. Cela permet d'obtenir les résultats attendus dans LibreOffice Base avec n'importe quel pilote sous-jacent.
+- Grâce à ces ResultSets modifiables en fonction de la configuration, l'option d'affichage des tables système fonctionne avec n'importe quel pilote sous-jacent et quel que soit le niveau de l'API utilisée (sdbc, sdbcx et sdb).
 - Il est désormais possible d'obtenir les numéros de ligne de code source dans les traces Java grâce au changement dans LOEclipse [PR#166][107].
+- Correction de nombreuses régressions liées à la dernière mise à jour qui a apporté de nombreux changements.
+- La nouvelle version du pilote SQLite est désormais compilée sous Java 11 et utilise `java.lang.System.Logger` comme façade de journalisation, ce qui permet d'y accéder dans LibreOffice. C'est le seul qui nécessite l'utilisation de l'option CachedRowSet, sinon Base n'affichera que les tables et vues en lecture seule.
 - Il semble que ce soit la mise à jour la plus importante de JdbcDriverOOo, et je ne m'attendais pas à en arriver là. La prochaine étape consistera à intégrer Trino et à pouvoir exécuter des requêtes réparties sur différentes bases de données dans LibreOffice Base. CachecRowSet est exactement la brique dont j'avais besoin pour pouvoir terminer cela.
 
 ### Que reste-t-il à faire pour la version 1.5.1:

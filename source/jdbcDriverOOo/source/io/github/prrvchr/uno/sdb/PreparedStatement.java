@@ -86,9 +86,10 @@ public final class PreparedStatement
         XResultSet resultset = null;
         java.sql.ResultSet rs = getJdbcResultSet();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
+        System.out.println("sdb.PreparedStatement.getResultSet() 1");
+        if (mUseBookmarks && getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
             CachedRowSet crs = ResultSetHelper.getCachedRowSet(rs);
-            System.out.println("sdb.PreparedStatement.getResultSet() 1 isReadOnly: " + crs.isReadOnly());
+            System.out.println("sdb.PreparedStatement.getResultSet() 2 isReadOnly: " + crs.isReadOnly());
             if (!crs.isReadOnly()) {
                 RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
                 String services = String.join(", ", rowset.getSupportedServiceNames());
@@ -100,6 +101,7 @@ public final class PreparedStatement
             }
         }
         if (resultset == null) {
+            System.out.println("sdb.PreparedStatement.getResultSet() 3");
             ResultSet result = new ResultSet(getConnectionInternal(), rs, this);
             String services = String.join(", ", result.getSupportedServiceNames());
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,

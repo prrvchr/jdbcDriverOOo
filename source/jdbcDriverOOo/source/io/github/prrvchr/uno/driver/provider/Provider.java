@@ -38,6 +38,7 @@ import java.util.Properties;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XComponentContext;
@@ -93,7 +94,7 @@ public class Provider {
                     final XInterface source,
                     final ResourceBasedEventLogger logger,
                     final XHierarchicalNameAccess config,
-                    final XHierarchicalNameAccess opts,
+                    final XNameAccess opts,
                     final String url,
                     final PropertyValue[] infos,
                     final Properties properties,

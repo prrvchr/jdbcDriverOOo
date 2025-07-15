@@ -39,6 +39,8 @@ import java.util.regex.Pattern;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.sdb.XOfficeDatabaseDocument;
@@ -87,7 +89,7 @@ public abstract class ConfigBase extends ParameterBase {
  
     private Boolean mIsAutoRetrievingEnabled = null;
     private Boolean mShowSystemTable = null;
-    private Integer mCachedRowSet = null;
+    private Short mCachedRowSet = null;
 
     private XOfficeDatabaseDocument mDocument = null;
 
@@ -104,7 +106,7 @@ public abstract class ConfigBase extends ParameterBase {
     private String[] mViewTypes = new String[] {"VIEW"};
 
     protected ConfigBase(final XHierarchicalNameAccess config,
-                         final XHierarchicalNameAccess opts,
+                         final XNameAccess opts,
                          final PropertyValue[] infos,
                          final String url,
                          final DatabaseMetaData metadata,
@@ -185,7 +187,6 @@ public abstract class ConfigBase extends ParameterBase {
 
     public boolean useCachedRowSet(ResultSet rs, QueryHelper query)
         throws SQLException {
-        System.out.println("SQLBase.getCachedRowSetOption() 1 UseBookmark: " + mCachedRowSet);
         boolean use = true;
         try {
             switch (mCachedRowSet) {
@@ -323,11 +324,10 @@ public abstract class ConfigBase extends ParameterBase {
 
         if (tablePrivilege != null) {
             mTablePrivilegeData = parseRowsetData(tablePrivilege);
-            System.out.println("ConfigBase.setPropertiesData() 2");
         }
     }
 
-    private void setProperties(final XHierarchicalNameAccess opts,
+    private void setProperties(final XNameAccess opts,
                                final String url,
                                final java.sql.DatabaseMetaData metadata,
                                final boolean rewriteTable)
@@ -339,37 +339,35 @@ public abstract class ConfigBase extends ParameterBase {
             setShowSystemTable(opts);
             setPropertiesMetaData(url, metadata, rewriteTable);
 
-        } catch (NoSuchElementException | java.sql.SQLException e) {
+        } catch (NoSuchElementException | WrappedTargetException | java.sql.SQLException e) {
             throw new SQLException(e.getMessage());
         }
     }
 
-    private void setCachedRowSet(final XHierarchicalNameAccess opts)
-        throws NoSuchElementException {
+    private void setCachedRowSet(final XNameAccess opts)
+        throws NoSuchElementException, WrappedTargetException {
         // XXX: If CachedRowSet is not provided in the connection information properties
         // XXX: It will be obtained from the Options.xcu configuration file
-        System.out.println("ConfigBase.setCachedRowSet() 1");
         if (mCachedRowSet == null) {
-            Integer cachedRowSet = 1;
-            if (opts.hasByHierarchicalName(CACHED_ROWSET)) {
-                Object obj = opts.getByHierarchicalName(CACHED_ROWSET);
-                System.out.println("ConfigBase.setCachedRowSet() 2 obj: " + obj.toString());
-                if (obj != null && AnyConverter.isInt(obj)) {
-                    cachedRowSet = AnyConverter.toInt(obj);
+            short cachedRowSet = 1;
+            if (opts.hasByName(CACHED_ROWSET)) {
+                Object obj = opts.getByName(CACHED_ROWSET);
+                if (obj != null && AnyConverter.isShort(obj)) {
+                    cachedRowSet = AnyConverter.toShort(obj);
                 }
             }
             mCachedRowSet = cachedRowSet;
         }
     }
 
-    private void setShowSystemTable(final XHierarchicalNameAccess opts)
-        throws NoSuchElementException {
+    private void setShowSystemTable(final XNameAccess opts)
+        throws NoSuchElementException, WrappedTargetException {
         // XXX: If ShowSystemTable is not provided in the connection information properties
         // XXX: It will be obtained from the Options.xcu configuration file
         if (mShowSystemTable == null) {
             Boolean showSystemTable = false;
-            if (opts.hasByHierarchicalName(SHOW_SYSTEM_TABLE)) {
-                Object obj = opts.getByHierarchicalName(SHOW_SYSTEM_TABLE);
+            if (opts.hasByName(SHOW_SYSTEM_TABLE)) {
+                Object obj = opts.getByName(SHOW_SYSTEM_TABLE);
                 if (obj != null && AnyConverter.isBoolean(obj)) {
                     showSystemTable = AnyConverter.toBoolean(obj);
                 }
@@ -399,7 +397,6 @@ public abstract class ConfigBase extends ParameterBase {
             mRewriteTableData = getRewriteTableData(tableTypes);
         }
         mTableTypes = tableTypes;
-        System.out.println("SQLBase.setProperties() 1 TableType: " + String.join(", ", tableTypes));
     }
 
     private void setPropertiesInfo(PropertyValue[] infos,
@@ -444,19 +441,16 @@ public abstract class ConfigBase extends ParameterBase {
                 case SHOW_SYSTEM_TABLE:
                     if (obj != null && AnyConverter.isBoolean(obj)) {
                         mShowSystemTable = AnyConverter.toBoolean(obj);
-                        System.out.println("ConfigBase.setPropertiesInfo() 1 mShowSystemTable: " + obj.toString());
                     }
                     break;
                 case CACHED_ROWSET:
-                    if (obj != null && AnyConverter.isInt(obj)) {
-                        mCachedRowSet = AnyConverter.toInt(obj);
-                        System.out.println("ConfigBase.setPropertiesInfo() 2 mCachedRowSet: " + obj.toString());
+                    if (obj != null && AnyConverter.isShort(obj)) {
+                        mCachedRowSet = AnyConverter.toShort(obj);
                     }
                     break;
                 case CONNECTION_URL:
                     if (obj != null && AnyConverter.isString(obj)) {
                         mUrl = AnyConverter.toString(obj);
-                        System.out.println("ConfigBase.setPropertiesInfo() 3 mUrl: " + obj.toString());
                     }
                     break;
             }
@@ -569,9 +563,6 @@ public abstract class ConfigBase extends ParameterBase {
         }
         // XXX: row to be deleted have not values
         if (targetIndex != null) {
-            if (targetValue == null) {
-                System.out.println("SQLBase.addRowSetDataValue() targetValue is null 1 **************************");
-            }
 
             String key = RowSetData.getDataKey(keyIndex, keyValue);
             if (!values.containsKey(key)) {
@@ -581,9 +572,6 @@ public abstract class ConfigBase extends ParameterBase {
                                                                                                     targetValue);
             if (!values.get(key).contains(value)) {
                 values.get(key).add(value);
-            }
-            if (targetValue == null) {
-                System.out.println("SQLBase.addRowSetDataValue() targetValue is null 2 key: " + key);
             }
         }
     }

@@ -34,6 +34,7 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
@@ -85,7 +86,7 @@ public class ConfigDDL extends ConfigSQL {
 
     // The constructor method:
     public ConfigDDL(final XHierarchicalNameAccess config,
-                     final XHierarchicalNameAccess opts,
+                     final XNameAccess opts,
                      final PropertyValue[] infos,
                      final String url,
                      final DatabaseMetaData metadata,
@@ -425,7 +426,7 @@ public class ConfigDDL extends ConfigSQL {
     }
 
     private boolean getSupportsRenameView() {
-        return getPropertyBoolean(SUPPORTS_RENAME_VIEW);
+        return getPropertyBoolean(SUPPORTS_RENAME_VIEW, true);
     }
 
     private String getAddColumnCommand() {

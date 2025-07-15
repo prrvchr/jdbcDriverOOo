@@ -39,7 +39,7 @@ Cette extension est la transcription en Java pur de l'API [java.sql.*][9] vers l
 **Elle vous permet d'utiliser le pilote JDBC de votre choix directement dans Base.**  
 Elle embarque les pilotes pour les base de données suivantes:
 - [HyperSQL ou HsqlDB][13] version 2.7.4
-- [SQLite via xerial sqlite-jdbc][14] version 3.49.1.1-SNAPSHOT
+- [SQLite via xerial sqlite-jdbc][14] version 3.50.2.1-SNAPSHOT
 - [MariaDB via Connector/J][15] version 3.5.3
 - [PostgreSQL via pgJDBC][16] version 42.7.5
 - [H2 Database Engine][17] version 2.2.224
@@ -223,6 +223,8 @@ Pour créer une base de données, dans LibreOffice allez dans le menu: **Fichier
   - Linux: `embedded:/home/prrvchr/testdb/firebird?createDatabaseIfNotExist=true`
   - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
+    Firebird nécessite, pour le bon fonctionnement de son mode intégré, l'installation du [Serveur Firebird 5.x][54].
+
 ___
 
 ## Comment installer l'Instrumentation Java:
@@ -230,7 +232,7 @@ ___
 Afin d'utiliser les services Java SPI offerts par l'implémentation `RowSetFactory.jar`, l'instrumentation Java doit être installée sous LibreOffice.  
 Cela se fait automatiquement à partir de la version 25.8.x de LibreOffice, mais doit être fait manuellement pour les versions inférieures.  
 Voici les différentes étapes:
-- Télécharger l'archive [InstrumentationAgent.jar][54] et placez-la dans un dossier.
+- Télécharger l'archive [InstrumentationAgent.jar][55] et placez-la dans un dossier.
 - Dans LibreOffice, par le menu: **Outils -> Options -> LibreOffice -> Avancé -> Options Java -> Paramètres -> Paramètre de démarrage Java** ajouter la commande:
     - Pour Windows: `-javaagent:c:\dossier\InstrumentationAgent.jar`.
     - Pour Linux: `-javaagent:/dossier/InstrumentationAgent.jar`.
@@ -238,18 +240,18 @@ Voici les différentes étapes:
     Bien entendu, le chemin vers l'archive reste à adapter à votre cas d'utilisation.
 - Redémarrez LibreOffice pour prendre en compte ces modifications.
 
-Si vous pensez qu'il serait bon d'éviter cette manipulation, demandez à LibreOffice de [rétroporter l'instrumentation Java][55].
+Si vous pensez qu'il serait bon d'éviter cette manipulation, demandez à LibreOffice de [rétroporter l'instrumentation Java][56].
 
 ___
 
 ## Comment créer l'extension:
 
-Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][56]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
+Normalement, l'extension est créée avec Eclipse pour Java et [LOEclipse][57]. Pour contourner Eclipse, j'ai modifié LOEclipse afin de permettre la création de l'extension avec Apache Ant.  
 Pour créer l'extension jdbcDriverOOo avec l'aide d'Apache Ant, vous devez:
-- Installer le [SDK Java][57] version 17 ou supérieure.
-- Installer [Apache Ant][58] version 1.10.0 ou supérieure.
-- Installer [LibreOffice et son SDK][59] version 7.x ou supérieure.
-- Cloner le dépôt [jdbcDriverOOo][60] sur GitHub dans un dossier.
+- Installer le [SDK Java][58] version 17 ou supérieure.
+- Installer [Apache Ant][59] version 1.10.0 ou supérieure.
+- Installer [LibreOffice et son SDK][60] version 7.x ou supérieure.
+- Cloner le dépôt [jdbcDriverOOo][61] sur GitHub dans un dossier.
 - Depuis ce dossier, accédez au répertoire: `source/jdbcDriverOOo/`
 - Dans ce répertoire, modifiez le fichier `build.properties` afin que les propriétés `office.install.dir` et `sdk.dir` pointent vers les dossiers d'installation de LibreOffice et de son SDK, respectivement.
 - Lancez la création de l'archive avec la commande: `ant`
@@ -280,7 +282,7 @@ ___
 Ce pilote a été écrit pour contourner certains problèmes inhérents à l'implémentation UNO du pilote JDBC intégré dans LibreOffice / OpenOffice, à savoir:
 
 - L'impossibilité de fournir le chemin de l'archive Java du driver (hsqldb.jar) lors du chargement du pilote JDBC.
-- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][61].
+- Ne pas pouvoir utiliser les instructions SQL préparées (PreparedStatement) voir [dysfonctionnement #132195][62].
 
 Afin de profiter des dernières fonctionnalités offertes par les bases de données et entre autre HsqlDB, il était nécessaire d'écrire un nouveau pilote.
 
@@ -302,7 +304,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 - L'utilisation du type SQL Array dans les requêtes.
 - Tout ce que nous sommes prêts à mettre en œuvre.
 
-### [Toutes les changements sont consignées dans l'Historique des versions][62]
+### [Toutes les changements sont consignées dans l'Historique des versions][63]
 
 [1]: </img/jdbcdriver.svg#collapse>
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
@@ -349,12 +351,13 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [51]: <img/jdbcDriverOOo-8_fr.png>
 [52]: <img/jdbcDriverOOo-9_fr.png>
 [53]: <img/jdbcDriverOOo-10_fr.png>
-[54]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/InstrumentationAgent.jar>
-[55]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167071>
-[56]: <https://github.com/LibreOffice/loeclipse>
-[57]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
-[58]: <https://ant.apache.org/manual/install.html>
-[59]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
-[60]: <https://github.com/prrvchr/jdbcDriverOOo.git>
-[61]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
-[62]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>
+[54]: <https://firebirdsql.org/en/firebird-5-0-3>
+[55]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/InstrumentationAgent.jar>
+[56]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167071>
+[57]: <https://github.com/LibreOffice/loeclipse>
+[58]: <https://adoptium.net/temurin/releases/?version=17&package=jdk>
+[59]: <https://ant.apache.org/manual/install.html>
+[60]: <https://downloadarchive.documentfoundation.org/libreoffice/old/7.6.7.2/>
+[61]: <https://github.com/prrvchr/jdbcDriverOOo.git>
+[62]: <https://bugs.documentfoundation.org/show_bug.cgi?id=132195>
+[63]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr>

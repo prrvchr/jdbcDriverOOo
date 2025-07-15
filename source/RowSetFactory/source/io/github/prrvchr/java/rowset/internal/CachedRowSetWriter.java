@@ -382,7 +382,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             crs.beforeFirst();
 
             // Process all the rows in the CachedRowSet.
-            SQLException[] conflicts = writeData(crs, crsRes, status);
+            List<SQLException> conflicts = writeData(crs, crsRes, status);
 
             // reset
             crs.setShowDeleted(showDel);
@@ -392,22 +392,23 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
 
             crsRes.beforeFirst();
 
-            if (conflicts.length != 0) {
+            if (conflicts.isEmpty()) {
+                success = true;
+
+            } else {
                 SyncResolverImpl syncRes = new SyncResolverImpl();
                 syncRes.setCachedRowSet(crs);
                 syncRes.setCachedRowSetResolver(crsRes);
                 syncRes.setStatus(status);
                 syncRes.setCachedRowSetWriter(this);
 
-                String msg = resBundle.handleGetObject("crswriter.conflictsno").toString();
-                SyncProviderException spe = new SyncProviderException(MessageFormat.format(msg, conflicts.length));
+                String msg = conflicts.remove(0).getMessage();
+                SyncProviderException spe = new SyncProviderException(msg);
                 setSyncProviderException(spe, conflicts);
                 spe.setSyncResolver(syncRes);
                 throw spe;
-
-            } else {
-                success = true;
             }
+
         }
         return success;
     }
@@ -427,78 +428,50 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         crsRes.setMetaData(md);
     }
 
-    private void setSyncProviderException(SQLException e, SQLException[] conflicts) {
-        for (SQLException conflict : conflicts) {
-            e.setNextException(conflict);
-            e = conflict;
+    private void setSyncProviderException(SQLException ex, List<SQLException> conflicts) {
+        for (SQLException e : conflicts) {
+            ex.setNextException(e);
+            ex = e;
         }
     }
 
-    private SQLException[] writeData(CachedRowSetImpl crs, CachedRowSetImpl crsRes,
-                                     ArrayList<Integer> status)
+    private List<SQLException> writeData(CachedRowSetImpl crs, CachedRowSetImpl crsRes,
+                                         ArrayList<Integer> status)
         throws SQLException {
         List<SQLException> conflicts = new ArrayList<>();
-        int conflict = SyncResolver.NO_ROW_CONFLICT;
         int row = 1;
 
         while (crs.next()) {
 
             try {
+                // XXX: If a conflict occurs, an exception will be thrown
 
                 if (crs.rowRemoved()) {
                     // The row has been removed and will be deleted.
-                    conflict = SyncResolver.DELETE_ROW_CONFLICT;
-                    if (deleteCurrentRow(crs, crsRes)) {
-                        // delete happened without any occurrence of conflicts
-                        // so update status accordingly
-                        setResolverNoConflict(crsRes);
-                        status.add(row, SyncResolver.NO_ROW_CONFLICT);
-                    }
+                    deleteCurrentRow(crs, crsRes, status, row);
 
                 } else if (crs.rowCreated()) {
                     // The row has been created and will be inserted.
-                    conflict = SyncResolver.INSERT_ROW_CONFLICT;
-                    if (insertCurrentRow(crs, crsRes)) {
-                        // insert happened without any occurrence of conflicts
-                        // so update status accordingly
-                        setResolverNoConflict(crsRes);
-                        status.add(row, SyncResolver.NO_ROW_CONFLICT);
-                    }
+                    insertCurrentRow(crs, crsRes, status, row);
 
                 } else  if (crs.rowUpdated()) {
                     // The row has been updated.
-                    conflict = SyncResolver.UPDATE_ROW_CONFLICT;
-                    if (updateCurrentRow(crs, crsRes)) {
-                        // update happened without any occurrence of conflicts
-                        // so update status accordingly
-                        setResolverNoConflict(crsRes);
-                        status.add(row, SyncResolver.NO_ROW_CONFLICT);
-                    }
-
-                } else {
-                    /** The row is neither of inserted, updated or deleted.
-                     *  So set nulls in the this.crsResolve for this row,
-                     *  as nothing is to be done for such rows.
-                     *  Also note that if such a row has been changed in database
-                     *  and we have not changed(inserted, updated or deleted)
-                     *  that is fine.
-                     **/
-                    setResolverNoConflict(crsRes);
-                    status.add(row, SyncResolver.NO_ROW_CONFLICT);
+                    updateCurrentRow(crs, crsRes, status, row);
                 }
 
+                setResolverNoConflict(crsRes);
+                status.add(row, SyncResolver.NO_ROW_CONFLICT);
+
             } catch (SQLException e) {
-                status.add(row, conflict);
                 conflicts.add(e);
             } catch (Throwable ex) {
                 ex.printStackTrace();
                 SQLException e = new SQLException(ex.getMessage());
-                status.add(row, conflict);
                 conflicts.add(e);
             }
             row++;
         }
-        return conflicts.toArray(new SQLException[0]);
+        return conflicts;
     }
 
     /**
@@ -519,14 +492,15 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      * @param crs the {@code CachedRowSet} object to be updated
      * @param crsRes the {@code CachedRowSet} will hold the conflicting values
      * retrieved from the db and hold it.
+     * @param status the {@code ArrayList<Integer>} object to update if
+     * a conflict occur
+     * @param row the {@code int} row number to be updated
      *
-     * @return {@code true} if the update to the underlying data source is
-     *         successful; {@code false} otherwise
      * @throws SQLException if a database access error occurs
      */
-    private boolean updateCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes)
+    private void updateCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
+                                  ArrayList<Integer> status, int row)
         throws SQLException {
-        boolean success = false;
 
         // Select the row from the database.
         ResultSet origVals = crs.getOriginalRow();
@@ -542,16 +516,16 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             setStatementProperties(crs, stmt);
 
             if (hasPrimarykeys) {
-                success = updateCurrentRow(crs, origVals, stmt, predicate);
+                updateCurrentRow(crs, origVals, stmt, predicate, row);
             } else {
-                success = updateCurrentRowWithCheck(crs, origVals, stmt, predicate);
+                updateCurrentRowWithCheck(crs, origVals, stmt, predicate, row);
             }
 
         } catch (SQLException e) {
+            status.add(row, SyncResolver.UPDATE_ROW_CONFLICT);
             setResolverConflict(crsRes, origVals);
             throw e;
         }
-        return success;
     }
 
     private void setStatementParameters(PreparedStatement stmt)
@@ -576,13 +550,12 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         }
     }
 
-    private boolean updateCurrentRow(CachedRowSet crs, ResultSet origVals,
-                                     PreparedStatement stmt, String predicate)
+    private void updateCurrentRow(CachedRowSet crs, ResultSet origVals,
+                                  PreparedStatement stmt, String predicate, int row)
         throws SQLException {
-        boolean succes = false;
         try (ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
-                succes = updateCurrentRow(crs, origVals, rs, predicate);
+                updateCurrentRow(crs, origVals, rs, predicate, row);
             } else {
                 /**
                  * Cursor will be here, if the ResultSet may not return even a single row
@@ -598,17 +571,16 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                  * no row is retrieved and will throw a SyncProviderException. For details
                  * see bug Id 5053830
                  **/
-                throw new SQLException("cant update cant retreive the row");
+                String msg = resBundle.handleGetObject("crswriter.update.norow.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row));
             }
         }
-        return succes;
     }
 
-    private boolean updateCurrentRowWithCheck(CachedRowSet crs, ResultSet origVals,
-                                              PreparedStatement stmt, String predicate)
+    private void updateCurrentRowWithCheck(CachedRowSet crs, ResultSet origVals,
+                                           PreparedStatement stmt, String predicate, int row)
         throws SQLException {
-        boolean success = false;
-        boolean completed = false;
+        boolean updated = false;
         try (ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
@@ -626,28 +598,30 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                     while (rs.next()) {
                         duplicate++;
                     }
-                    throw new SQLException("cant update with duplicate: " + duplicate);
+                    String msg = resBundle.handleGetObject("crswriter.update.duplicate.error").toString();
+                    throw new SQLException(MessageFormat.format(msg, row, duplicate));
                 }
                 if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
                     rs.first();
-                    success = updateCurrentRow(crs, origVals, rs, predicate);
-                    completed = true;
+                    updateCurrentRow(crs, origVals, rs, predicate, row);
+                    updated = true;
                 }
+            } else {
+                String msg = resBundle.handleGetObject("crswriter.update.norow.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row));
             }
         }
 
         // XXX: We need to close the ResultSet and open an other one for
         // XXX: database like SQLite supporting only ResultSet.TYPE_FORWARD_ONLY
-        if (!success && !completed) {
-            success = updateCurrentRow(crs, origVals, stmt, predicate);
+        if (!updated) {
+            updateCurrentRow(crs, origVals, stmt, predicate, row);
         }
-        return success;
     }
 
-    private boolean updateCurrentRow(CachedRowSet crs, ResultSet origVals,
-                                     ResultSet rs, String predicate)
+    private void updateCurrentRow(CachedRowSet crs, ResultSet origVals,
+                                  ResultSet rs, String predicate, int row)
         throws SQLException {
-        boolean success = false;
 
         // how many fields need to be updated
         StringJoiner updateSet = new StringJoiner(", ");
@@ -663,19 +637,18 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
 
         for (int i = 0; i < tabCols.length; i++) {
             int index = tabCols[i];
-            updateCurrentRow(crs, origVals, rs, index, map, cols, updateSet);
+            updateCurrentRow(crs, origVals, rs, index, map, cols, updateSet, row);
         }
 
         if (cols.size() > 0 ) {
             String query = updateCmd + updateSet.toString() + predicate;
-            success = executeUpdate(crs, cols, query);
+            executeUpdate(crs, cols, query, row);
         }
-        return success;
     }
 
     private void updateCurrentRow(CachedRowSet crs, ResultSet origVals, ResultSet rs,
                                   int index, Map<String, Class<?>> map,
-                                  List<Integer> cols, StringJoiner updateSet)
+                                  List<Integer> cols, StringJoiner updateSet, int row)
         throws SQLException {
         Object orig = origVals.getObject(index);
         Object curr = crs.getObject(index);
@@ -687,7 +660,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
          * into a CachedRowSet so that comparison of the column values
          * from the ResultSet and CachedRowSet are possible
          */
-        rsval = getResultSetValue(map, rsval);
+        rsval = getResultSetValue(map, rsval, row, index);
 
         /** This additional checking has been added when the current value
          *  in the DB is null, but the DB had a different value when the
@@ -698,7 +671,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             // value in db has changed
             // don't proceed with synchronization
             // get the value in db and pass it to the resolver.
-            throw new SQLException("cant update row db has changed");
+            String msg = resBundle.handleGetObject("crswriter.update.conflict.error").toString();
+            throw new SQLException(MessageFormat.format(msg, row));
         }
         if (orig == null && curr != null || curr != null && !curr.equals(orig)) {
             // When values from db and values in CachedRowSet are not equal,
@@ -719,7 +693,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
 
             if (crs.columnUpdated(index)) {
                 if (!rsval.equals(orig)) {
-                    throw new SQLException("cant update row db has changed");
+                    String msg = resBundle.handleGetObject("crswriter.update.conflict.error").toString();
+                    throw new SQLException(MessageFormat.format(msg, row));
                 }
                 // At this point we are sure that
                 // the value updated in crs was from
@@ -729,18 +704,20 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 cols.add(index);
             } else {
                 // XXX: Normally this should never happen
-                throw new SQLException("Unable to update an unexpected error occurred");
+                String msg = resBundle.handleGetObject("crswriter.update.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row));
             }
         }
     }
 
-    private Object getResultSetValue(Map<String, Class<?>> map, Object rsval)
+    private Object getResultSetValue(Map<String, Class<?>> map, Object rsval, int row, int index)
         throws SQLException {
         if (rsval instanceof Struct) {
             Struct s = (Struct) rsval;
             // look up the class in the map
             Class<?> c = null;
-            c = map.get(s.getSQLTypeName());
+            String type = s.getSQLTypeName();
+            c = map.get(type);
             if (c != null) {
                 // create new instance of the class
                 SQLData obj = null;
@@ -748,7 +725,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                     Object tmp = c.getDeclaredConstructor().newInstance();
                     obj = (SQLData) tmp;
                 } catch (Exception ex) {
-                    throw new SQLException("Unable to Instantiate: ", ex);
+                    String column = callerMd.getColumnName(index);
+                    String msg = resBundle.handleGetObject("crswriter.update.struct.error").toString();
+                    throw new SQLException(MessageFormat.format(msg, row, type, column), ex);
                 }
                 // get the attributes from the struct
                 Object attribs[] = s.getAttributes(map);
@@ -770,9 +749,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         return rsval;
     }
 
-    private boolean executeUpdate(CachedRowSet crs, List<Integer> cols, String query)
+    private void executeUpdate(CachedRowSet crs, List<Integer> cols, String query, int row)
         throws SQLException {
-        boolean success = false;
 
         try (PreparedStatement stmt = con.prepareStatement(query)) {
 
@@ -808,13 +786,13 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
              * do updations properly i.e there is a conflict in database
              * versus what is in CachedRowSet for this particular row.
              **/
-            success = stmt.executeUpdate() == 1;
-            if (!success) {
-                throw new SQLException("Unable to update an unexpected error occurred");
+            int count = stmt.executeUpdate();
+            if (count != 1) {
+                String msg = resBundle.handleGetObject("crswriter.update.cmd.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row, query, count));
             }
-            log(Level.INFO, "crswriter.executeStatement", query, values.toString());
+            log(Level.INFO, "crswriter.update.cmd", row, query, values.toString());
         }
-        return success;
     }
 
     /**
@@ -826,14 +804,15 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      * @param crs the {@code CachedRowSet} object that has had a row inserted
      *            and to whose underlying data source the row will be inserted
      * @param crsRes the {@code CachedRowSet} will hold the conflicting values
+     * @param status the {@code ArrayList<Integer>} object to update if
+     * a conflict occur
+     * @param row the {@code int} row number to be updated
      * retrieved from the db and hold it.
-     * @return {@code true} to indicate that the insertion was successful;
-     *         {@code false} otherwise
      * @throws SQLException if a database access error occurs
      */
-    private boolean insertCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes) throws SQLException {
+    private void insertCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
+                                  ArrayList<Integer> status, int row) throws SQLException {
 
-        boolean success = false;
 
         int opt;
         // We update on insert only if we have auto-increment columns in the CachedRowSet
@@ -865,15 +844,16 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 }
             }
 
-            success = stmt.executeUpdate() == 1;
-            if (!success) {
-                throw new SQLException("Unable to insert an unexpected error occurred");
+            int count = stmt.executeUpdate();
+            if (count != 1) {
+                String msg = resBundle.handleGetObject("crswriter.insert.cmd.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row, insertCmd, count));
             }
 
             if (opt == Statement.RETURN_GENERATED_KEYS) {
                 updateGeneratedKeys(crs, stmt);
             }
-            log(Level.INFO, "crswriter.executeStatement", insertCmd, values.toString());
+            log(Level.INFO, "crswriter.insert.cmd", row, insertCmd, values.toString());
 
         } catch (SQLException e) {
             /*
@@ -883,11 +863,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
              * Hence we cannot exactly identify why the insertion failed,
              * present the current row as a null row to the caller.
              */
+            status.add(row, SyncResolver.INSERT_ROW_CONFLICT);
             setResolverConflict(crsRes, crs);
             throw e;
         }
-
-        return success;
     }
 
     /**
@@ -1068,13 +1047,14 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      *     {@code CachedRowSetWriter} object is the writer
      * @param crsRes the {@code CachedRowSet} will hold the conflicting values
      * retrieved from the db and hold it.
+     * @param status the {@code ArrayList<Integer>} object to update if
+     * a conflict occur
+     * @param row the {@code int} row number to be updated
      *
-     * @return {@code true} if the deletion was successful, which means that
-     *         there was no conflict; {@code false} otherwise
      * @throws SQLException if there was a conflict or database access error
      */
-    private boolean deleteCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes) throws SQLException {
-        boolean success = false;
+    private void deleteCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
+                                  ArrayList<Integer> status, int row) throws SQLException {
         // Select the row from the database.
         ResultSet origVals = crs.getOriginalRow();
         origVals.next();
@@ -1089,37 +1069,35 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             setStatementProperties(crs, stmt);
 
             if (hasPrimarykeys) {
-                success = deleteCurrentRow(origVals, stmt, predicate);
+                deleteCurrentRow(origVals, stmt, predicate, row);
             } else {
-                success = deleteCurrentRowWithCheck(origVals, stmt, predicate);
+                deleteCurrentRowWithCheck(origVals, stmt, predicate, row);
             }
         } catch (SQLException e) {
+            status.add(row, SyncResolver.DELETE_ROW_CONFLICT);
             setResolverConflict(crsRes, origVals);
             throw e;
         }
-        return success;
     }
 
-    private boolean deleteCurrentRow(ResultSet origVals, PreparedStatement stmt,
-                                     String predicate)
+    private void deleteCurrentRow(ResultSet origVals, PreparedStatement stmt,
+                                  String predicate, int row)
         throws SQLException {
-        boolean success = false;
         try (ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
-                success = deleteCurrentRow(origVals, rs, predicate);
+                deleteCurrentRow(origVals, rs, predicate, row);
             } else {
                 // didn't find the row
-                throw new SQLException("cant delete cant retreive the row");
+                String msg = resBundle.handleGetObject("crswriter.delete.norow.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row));
             }
         }
-        return success;
     }
 
-    private boolean deleteCurrentRowWithCheck(ResultSet origVals, PreparedStatement stmt,
-                                              String predicate)
+    private void deleteCurrentRowWithCheck(ResultSet origVals, PreparedStatement stmt,
+                                           String predicate, int row)
         throws SQLException {
-        boolean success = false;
-        boolean completed = false;
+        boolean deleted = false;
         try (ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
                 if (rs.next()) {
@@ -1128,35 +1106,38 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                     while (rs.next()) {
                         duplicate++;
                     }
-                    throw new SQLException("cant delete with duplicate: " + duplicate);
+                    String msg = resBundle.handleGetObject("crswriter.delete.duplicate.error").toString();
+                    throw new SQLException(MessageFormat.format(msg, row, duplicate));
                 }
                 if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
                     rs.first();
-                    success = deleteCurrentRow(origVals, rs, predicate);
-                    completed = true;
+                    deleteCurrentRow(origVals, rs, predicate, row);
+                    deleted = true;
                 }
+            } else {
+                String msg = resBundle.handleGetObject("crswriter.delete.norow.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row));
             }
         }
 
         // XXX: We need to close the ResultSet and open an other one for
         // XXX: database like SQLite supporting only ResultSet.TYPE_FORWARD_ONLY
-        if (!success && !completed) {
-            success = deleteCurrentRow(origVals, stmt, predicate);
+        if (!deleted) {
+            deleteCurrentRow(origVals, stmt, predicate, row);
         }
-        return success;
     }
 
-    private boolean deleteCurrentRow(ResultSet origVals, ResultSet rs,
-                                     String predicate)
+    private void deleteCurrentRow(ResultSet origVals, ResultSet rs,
+                                  String predicate, int row)
         throws SQLException {
         // Now check all the values in rs to be same in
         // db also before actually going ahead with deleting
-        boolean changed = isCachedRowSetModified(origVals, rs);
 
-        if (changed) {
-            throw new SQLException("cant delete the row has be modified");
+        if (isCachedRowSetModified(origVals, rs)) {
+            String msg = resBundle.handleGetObject("crswriter.delete.conflict.error").toString();
+            throw new SQLException(MessageFormat.format(msg, row));
         }
-        return executeDeleteStatement(deleteCmd + predicate);
+        executeDeleteStatement(deleteCmd + predicate, row);
     }
 
     private boolean isCachedRowSetModified(ResultSet origVals, ResultSet rs)
@@ -1178,8 +1159,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         return modified;
     }
 
-    private boolean executeDeleteStatement(String query) throws SQLException {
-        boolean success = false;
+    private void executeDeleteStatement(String query, int row) throws SQLException {
         try (PreparedStatement stmt = con.prepareStatement(query)) {
             int index = 0;
             StringJoiner values = new StringJoiner(", ");
@@ -1191,13 +1171,13 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 }
             }
 
-            success = stmt.executeUpdate() == 1;
-            if (!success) {
-                throw new SQLException("Unable to delete an unexpected error occurred");
+            int count = stmt.executeUpdate();
+            if (count != 1) {
+                String msg = resBundle.handleGetObject("crswriter.delete.cmd.error").toString();
+                throw new SQLException(MessageFormat.format(msg, row, query, count));
             }
-            log(Level.INFO, "crswriter.executeStatement", query, values.toString());
+            log(Level.INFO, "crswriter.delete.cmd", row, query, values.toString());
         }
-        return success;
     }
 
     private void setResolverNoConflict(CachedRowSetImpl crsRes) throws SQLException {

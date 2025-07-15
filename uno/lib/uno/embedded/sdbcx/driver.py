@@ -53,23 +53,18 @@ class Driver(DriverBase,
         try:
             self._logger.logprb(INFO, 'Driver', 'getDataDefinitionByConnection()', 151)
             data = None
-            print("Driver.getDataDefinitionByConnection() 1")
             if connection.supportsService("com.sun.star.sdbcx.DatabaseDefinition"):
                 data = connection
-                print("Driver.getDataDefinitionByConnection() 2")
             return data
         except SQLException as e:
-            raise e
-        except Exception as e:
             self._logger.logprb(SEVERE, 'Driver', 'getDataDefinitionByConnection()', 152, e, traceback.format_exc())
+            raise e
 
     def getDataDefinitionByURL(self, url, infos):
         self._logger.logprb(INFO, 'Driver', 'getDataDefinitionByURL()', 161, url)
         data = None
-        print("Driver.getDataDefinitionByURL() 1")
         if self.acceptsURL(url):
             data = self.getDataDefinitionByConnection(self.connect(url, infos))
-            print("Driver.getDataDefinitionByURL() 2")
         return data
 
     # XCreateCatalog

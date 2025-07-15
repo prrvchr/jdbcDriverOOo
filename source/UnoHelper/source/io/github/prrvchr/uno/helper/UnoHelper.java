@@ -42,6 +42,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.i18n.XLocaleData;
 import com.sun.star.lang.IllegalArgumentException;
@@ -177,23 +178,29 @@ public class UnoHelper {
         return UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
     }
 
-    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
-                                                           final String path)
+    public static XNameAccess getFlatConfig(final XComponentContext context,
+                                            final String path)
         throws Exception {
-        return getConfiguration(context, path, false, null);
+        return UnoRuntime.queryInterface(XNameAccess.class, getConfig(context, path, false, null));
     }
 
-    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
-                                                           final String path,
-                                                           final boolean update)
+    public static XHierarchicalNameAccess getTreeConfig(final XComponentContext context,
+                                                        final String path)
         throws Exception {
-        return getConfiguration(context, path, update, null);
+        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, getConfig(context, path, false, null));
     }
 
-    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
-                                                           final String path,
-                                                           final boolean update,
-                                                           final String language)
+    public static XHierarchicalNameAccess getTreeConfig(final XComponentContext context,
+                                                        final String path,
+                                                        final boolean update)
+        throws Exception {
+        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, getConfig(context, path, update, null));
+    }
+
+    private static Object getConfig(final XComponentContext context,
+                                    final String path,
+                                    final boolean update,
+                                    final String language)
         throws Exception {
         String service = "com.sun.star.configuration.Configuration";
         final XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
@@ -201,9 +208,12 @@ public class UnoHelper {
         if (language != null) {
             arguments.add(new NamedValue("Locale", language));
         }
-        service += update ? "UpdateAccess" : "Access";
-        Object config = provider.createInstanceWithArguments(service, arguments.toArray());
-        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
+        if (update) {
+            service += "UpdateAccess";
+        } else {
+            service += "Access";
+        }
+        return provider.createInstanceWithArguments(service, arguments.toArray());
     }
 
     public static String getPackageLocation(XComponentContext context, String identifier, String path) {
@@ -227,7 +237,7 @@ public class UnoHelper {
                Exception {
         String nodepath = "/org.openoffice.Setup/L10N";
         String config = "";
-        config = (String) getConfiguration(context, nodepath).getByHierarchicalName("ooLocale");
+        config = (String) getTreeConfig(context, nodepath).getByHierarchicalName("ooLocale");
         String[] parts = config.split("-");
         Locale locale = new Locale(parts[0], "", "");
         if (parts.length > 1) {

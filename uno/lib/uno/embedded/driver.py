@@ -76,7 +76,6 @@ class Driver(unohelper.Base,
     def __init__(self, ctx, lock, logger, service, implementation, services):
         self._ctx = ctx
         self._lock = lock
-        print("Driver.__init__() service: %s ******************************************************" % service)
         self._driver = createService(ctx, service)
         self._implementation = implementation
         self._services = services
@@ -123,10 +122,10 @@ class Driver(unohelper.Base,
                 self._logger.logprb(INFO, 'Driver', 'getPropertyInfo()', 142, info.Name, info.Value)
             return drvinfo
         except SQLException as e:
-            self._logger.logp(SEVERE, 'Driver', 'getPropertyInfo()', e.Message)
+            self._logger.logp(SEVERE, 'Driver', 'getPropertyInfo()', 143, e.Message)
             raise e
         except Exception as e:
-            self._logger.logprb(SEVERE, 'Driver', 'getPropertyInfo()', 143, e, traceback.format_exc())
+            self._logger.logprb(SEVERE, 'Driver', 'getPropertyInfo()', 144, e, traceback.format_exc())
             raise e
 
     def getMajorVersion(self):
@@ -143,15 +142,11 @@ class Driver(unohelper.Base,
         return self._services
 
     # Driver private getter methods
-    def _getDriver(self):
-        return self._driver
-
     def _getConnectionInfo(self, infos):
         document = storage = url = None
         config = getConfiguration(self._ctx, g_identifier)
         rowset = config.getByName('CachedRowSet')
         system = config.getByName('ShowSystemTable')
-        print("SQLiteOOo.Driver._getConnectionInfo() Url: %s" % g_url)
         newinfos = {'Url': g_url, 'CachedRowSet': rowset, 'ShowSystemTable': system}
         if g_user:
             newinfos['user'] = g_user
