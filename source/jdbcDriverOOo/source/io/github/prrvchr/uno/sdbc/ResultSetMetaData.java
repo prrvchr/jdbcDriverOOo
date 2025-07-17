@@ -196,7 +196,7 @@ public final class ResultSetMetaData
         throws SQLException {
         try {
             boolean currency = false;
-            if (!mConnection.getProvider().getSQLQuery().isIgnoreCurrencyEnabled()) {
+            if (!mConnection.getProvider().getConfigSQL().isIgnoreCurrencyEnabled()) {
                 currency = mMetadata.isCurrency(index);
             }
             return currency;
@@ -208,11 +208,13 @@ public final class ResultSetMetaData
     @Override
     public boolean isAutoIncrement(int index)
         throws SQLException {
+        boolean auto = false;
         try {
-            return mMetadata.isAutoIncrement(index);
+            auto =  mMetadata.isAutoIncrement(index);
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
+        return auto;
     }
 
     @Override
@@ -279,7 +281,7 @@ public final class ResultSetMetaData
     public boolean isDefinitelyWritable(int index)
         throws SQLException {
         try {
-            return  mMetadata.isDefinitelyWritable(index);
+            return mMetadata.isDefinitelyWritable(index);
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }

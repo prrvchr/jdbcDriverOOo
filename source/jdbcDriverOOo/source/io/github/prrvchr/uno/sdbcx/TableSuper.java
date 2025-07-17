@@ -36,6 +36,7 @@ import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
@@ -47,19 +48,19 @@ import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.driver.helper.ColumnHelper;
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.IndexHelper;
-import io.github.prrvchr.driver.helper.KeyHelper;
-import io.github.prrvchr.driver.helper.TableHelper;
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.IndexHelper;
+import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.TableHelper;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -75,6 +76,7 @@ public abstract class TableSuper
 
     protected String mDescription = "";
     protected String mType = "";
+    protected int mPrivileges = 0;
     private ColumnContainerBase<?> mColumns = null;
     private KeyContainer mKeys = null;
     private IndexContainer mIndexes = null;
@@ -113,6 +115,13 @@ public abstract class TableSuper
                 },
                 null));
 
+        properties.put(PropertyIds.PRIVILEGES.getName(),
+            new PropertyWrapper(Type.LONG, readonly,
+                () -> {
+                    return getPrivileges();
+                },
+                null));
+
         super.registerProperties(properties);
     }
 
@@ -142,16 +151,16 @@ public abstract class TableSuper
 
     @Override
     protected void postDisposing() {
-        super.postDisposing();
         if (mKeys != null) {
             mKeys.dispose();
-        }
-        if (mColumns != null) {
-            mColumns.dispose();
         }
         if (mIndexes != null) {
             mIndexes.dispose();
         }
+        if (mColumns != null) {
+            mColumns.dispose();
+        }
+        super.postDisposing();
     }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
@@ -196,7 +205,7 @@ public abstract class TableSuper
 
     private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
         throws SQLException {
-        DriverProvider provider = getConnection().getProvider();
+        Provider provider = getConnection().getProvider();
 
         String oldname = oldcolumn.getName();
         boolean autoincrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
@@ -212,27 +221,26 @@ public abstract class TableSuper
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
 
-        int result = alterColumn(provider, oldcolumn, newcolumn, oldname, autoincrement, flags);
+        int result = alterColumn(provider, oldcolumn, newcolumn, oldname, flags);
         if (result != flags) {
             System.out.println("TableSuper.alterColumn() ERROR ******************************************");
         }
     }
 
-    private boolean supportColumnIdentityChange(DriverProvider provider) {
-        return provider.getDDLQuery().supportsAlterIdentity() ||
-               provider.getDDLQuery().hasAlterColumnCommand();
+    private boolean supportColumnIdentityChange(Provider provider) {
+        return provider.getConfigDDL().supportsAlterIdentity() ||
+               provider.getConfigDDL().hasAlterColumnCommand();
     }
 
-    private boolean supportColumnTypeChange(DriverProvider provider) {
-        return provider.getDDLQuery().hasAlterColumnTypeCommand() ||
-               provider.getDDLQuery().hasAlterColumnCommand();
+    private boolean supportColumnTypeChange(Provider provider) {
+        return provider.getConfigDDL().hasAlterColumnTypeCommand() ||
+               provider.getConfigDDL().hasAlterColumnCommand();
     }
 
-    private int alterColumn(DriverProvider provider,
+    private int alterColumn(Provider provider,
                             ColumnSuper oldcolumn,
                             XPropertySet newcolumn,
                             String oldname,
-                            boolean autoincrement,
                             int flags)
         throws SQLException {
         int result = 0;
@@ -269,7 +277,7 @@ public abstract class TableSuper
         return result;
     }
 
-    private void setColumnProperties(DriverProvider provider,
+    private void setColumnProperties(Provider provider,
                                      ColumnSuper oldcolumn,
                                      XPropertySet newcolumn,
                                      NamedComponents component,
@@ -301,7 +309,6 @@ public abstract class TableSuper
         // Column have changed its identity (auto-increment)
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_IDENTITY)) {
             oldcolumn.mIsAutoIncrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
-            System.out.println("TableSuper.setColumnProperties() AutoIncrement: " + oldcolumn.mIsAutoIncrement);
         }
         // Column have changed its name
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
@@ -311,7 +318,7 @@ public abstract class TableSuper
         }
     }
 
-    private void renameColumnName(DriverProvider provider,
+    private void renameColumnName(Provider provider,
                                   NamedComponents component,
                                   ComposeRule rule,
                                   String table,
@@ -397,7 +404,6 @@ public abstract class TableSuper
     public void rename(String name)
         throws SQLException,
                ElementExistException {
-        System.out.println("sdbcx.TableSuper.rename() Table: '" + name + "'");
 
         String query = null;
         String table = null;
@@ -406,12 +412,13 @@ public abstract class TableSuper
             // XXX: Table and View use the same functions to rename.
             boolean isview = mType.toUpperCase().contains("VIEW");
             ComposeRule rule = ComposeRule.InDataManipulation;
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             table = DBTools.buildName(provider, getNamedComponents(), rule);
+
             // XXX: We can handle renaming if it is a table and the driver does not have a command to rename the table
             // XXX: or it's a view and we don't have access to the view's command definition.
-            if (!isview && !provider.getDDLQuery().supportsRenamingTable() ||
-                isview && !provider.getDDLQuery().supportsViewDefinition()) {
+            if (!isview && !provider.getConfigDDL().supportsRenamingTable() ||
+                isview && !provider.getConfigDDL().supportsViewDefinition()) {
                 int resource = getRenameTableNotImplementedResource(isview);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
@@ -444,7 +451,7 @@ public abstract class TableSuper
         }
     }
 
-    private boolean renameView(DriverProvider provider,
+    private boolean renameView(Provider provider,
                                NamedComponents component,
                                ComposeRule rule,
                                String table,
@@ -461,7 +468,7 @@ public abstract class TableSuper
         // XXX: Some databases DRIVER cannot rename views (ie: SQLite). In this case the Drivers.xcu property
         // XXX: SupportRenameView can be used to signal this and allow execution by a DROP VIEW then CREATE VIEW
         try {
-            if (provider.getDDLQuery().supportsRenameView()) {
+            if (provider.getConfigDDL().supportsRenameView()) {
                 view.rename(name);
                 renamed = true;
             } else {
@@ -505,9 +512,8 @@ public abstract class TableSuper
 
     protected void refreshKeys() {
         try {
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             List<String> keys = KeyHelper.refreshKeys(provider, getNamedComponents());
-            System.out.println("TableSuper.refreshKeys() Table: " + getName() + " - Keys: " + String.join(", ", keys));
             if (mKeys == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
                 mKeys = new KeyContainer(this, isCaseSensitive(), keys);
@@ -537,6 +543,8 @@ public abstract class TableSuper
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }
+
+    protected abstract int getPrivileges() throws WrappedTargetException;
 
     protected abstract ColumnContainerBase<?> getColumnContainer(List<ColumnDescription> descriptions)
         throws ElementExistException;

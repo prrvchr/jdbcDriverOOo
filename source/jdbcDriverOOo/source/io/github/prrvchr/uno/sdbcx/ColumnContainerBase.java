@@ -39,21 +39,21 @@ import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.driver.helper.ColumnHelper;
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.TableHelper;
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.TableHelper;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class ColumnContainerBase<C extends ColumnSuper>
-    extends Container<C> {
+    extends ContainerSuper<C> {
 
     protected final TableSuper mTable;
     private Map<String, ColumnDescription> mDescriptions = new HashMap<>();
@@ -98,7 +98,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         String table = null;
         List<String> queries = new ArrayList<>();
         try {
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             table = DBTools.composeTableName(provider, mTable, ComposeRule.InTableDefinitions, false);
             TableHelper.getAddColumnQueries(queries, provider, mTable,  descriptor, isCaseSensitive());
             if (!queries.isEmpty()) {
@@ -127,7 +127,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             @SuppressWarnings("unused")
             int dataType = DataType.OTHER;
 
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             ColumnDescription description = mDescriptions.get(name);
             if (description == null) {
                 description = getColumnDescription(provider, name);
@@ -163,7 +163,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         return column;
     }
 
-    private ColumnDescription getColumnDescription(DriverProvider provider,
+    private ColumnDescription getColumnDescription(Provider provider,
                                                    String name) throws java.sql.SQLException {
         // could be a recently added column. Refresh:
         List<ColumnDescription> newcolumns = ColumnHelper.readColumns(provider, mTable.getNamedComponents());
@@ -185,12 +185,12 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             return;
         }
         String query = null;
-        DriverProvider provider = getConnection().getProvider();
+        Provider provider = getConnection().getProvider();
         try {
             ComposeRule rule = ComposeRule.InTableDefinitions;
             String table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
             String column = provider.enquoteIdentifier(name, isCaseSensitive());
-            query = provider.getDDLQuery().getDropColumnCommand(DDLParameter.getDropColumn(table, column));
+            query = provider.getConfigDDL().getDropColumnCommand(ParameterDDL.getDropColumn(table, column));
             table = DBTools.composeTableName(provider, mTable, rule, false);
             mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table, query);
             DBTools.executeSQLQuery(provider, query);

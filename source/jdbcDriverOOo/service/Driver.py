@@ -61,14 +61,16 @@ class Driver():
             with cls._lock:
                 if cls._instance is None:
                     logger = getLogger(ctx, g_defaultlog, g_basename)
-                    apilevel = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
+                    level = getConfiguration(ctx, g_identifier).getByName('ApiLevel')
+                    service = g_services[level]
                     try:
-                        cls._instance = createService(ctx, g_services[apilevel])
-                        logger.logprb(INFO, 'Driver', '__new__', 101, g_ImplementationName, apilevel)
+                        print("jdbcDriverOOo.Driver() 1 **********************************")
+                        cls._instance = createService(ctx, service)
+                        logger.logprb(INFO, 'Driver', '__new__', 101, g_ImplementationName, service)
                     except UNOException as e:
                         if cls._logger is None:
                             cls._logger = logger
-                        logger.logprb(SEVERE, 'Driver', '__new__', 102, g_ImplementationName, apilevel, e.Message)
+                        logger.logprb(SEVERE, 'Driver', '__new__', 102, g_ImplementationName, service, e.Message)
                         raise e
         return cls._instance
 

@@ -29,20 +29,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.XChild;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.NoSupportException;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdb.XCommandPreparation;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XDataSource;
 import com.sun.star.sdbc.XPreparedStatement;
 import com.sun.star.sdbc.XStatement;
 import com.sun.star.sdbcx.XGroupsSupplier;
 import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.uno.XInterface;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.ConnectionSuper;
 import io.github.prrvchr.uno.sdbcx.ViewContainer;
 
@@ -50,7 +54,9 @@ import io.github.prrvchr.uno.sdbcx.ViewContainer;
 public final class Connection
     extends ConnectionSuper
     implements XUsersSupplier,
-               XGroupsSupplier {
+               XGroupsSupplier,
+               XCommandPreparation,
+               XChild {
 
     private static final String SERVICE = Connection.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdb.Connection",
@@ -58,18 +64,18 @@ public final class Connection
                                               "com.sun.star.sdbcx.DatabaseDefinition"};
     private UserContainer mUsers = null;
     private GroupContainer mGroups = null;
+    private XDataSource mDataSource = null;
 
     // The constructor method:
     protected Connection(XComponentContext ctx,
-                         DriverProvider provider,
+                         Provider provider,
                          String url,
-                         PropertyValue[] info,
                          Set<String> properties) {
-        super(ctx, SERVICE, SERVICES, provider, url, info, properties);
-        System.out.println("sdb.Connection() *************************");
+        super(ctx, SERVICE, SERVICES, provider, url, properties);
+        mDataSource = DocumentContainer.getDataSource();
     }
 
-    protected DriverProvider getProvider() {
+    protected Provider getProvider() {
         return super.getProvider();
     }
 
@@ -82,26 +88,21 @@ public final class Connection
     protected synchronized void postDisposing() {
         if (mUsers != null) {
             mUsers.dispose();
+            mUsers = null;
         }
         if (mGroups != null) {
             mGroups.dispose();
+            mGroups = null;
         }
         super.postDisposing();
     }
 
-    /*
     // com.sun.star.container.XChild:
     @Override
     public XInterface getParent() {
-        XInterface parent = null;
         System.out.println("sdb.Connection.getParent() 1 *************************");
-        if (getProvider().getSQLQuery().hasDocument()) {
-            System.out.println("sdb.Connection.getParent() 2 *************************");
-            parent = getProvider().getSQLQuery().getDocument().getDataSource();
-        }
-        return parent;
+        return mDataSource;
     }
-
 
     @Override
     public void setParent(Object arg0) throws NoSupportException {
@@ -117,6 +118,7 @@ public final class Connection
         return null;
     }
 
+    /*
 
     // import com.sun.star.lang.XMultiServiceFactory:
     @Override
@@ -167,19 +169,25 @@ public final class Connection
         return null;
     }*/
 
-
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public synchronized XNameAccess getUsers() {
-        return getUsersInternal();
+        XNameAccess users = null;
+        if (getProvider().getConfigSQL().supportsDCLQuery()) {
+            users = getUsersInternal();
+        }
+        return users;
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
     public XNameAccess getGroups() {
-        return getGroupsInternal();
+        XNameAccess groups = null;
+        if (getProvider().getConfigSQL().supportsDCLQuery()) {
+            groups = getGroupsInternal();
+        }
+        return groups;
     }
-
 
     protected synchronized GroupContainer getGroupsInternal() {
         checkDisposed();
@@ -238,7 +246,7 @@ public final class Connection
     }
 
     public void refreshUsers() {
-        String query = getProvider().getDCLQuery().getUsersQuery();
+        String query = getProvider().getConfigDCL().getUsersQuery();
         if (query != null) {
             List<String> names = new ArrayList<>();
             try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
@@ -252,7 +260,7 @@ public final class Connection
                 }
                 if (mUsers == null) {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
-                    mUsers = new UserContainer(this, getProvider().isCaseSensitive(User.class.getName()), names);
+                    mUsers = new UserContainer(this, getProvider().isCaseSensitive(), names);
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID,
                                        mUsers.getLogger().getObjectId());
                 } else {
@@ -265,7 +273,7 @@ public final class Connection
     }
 
     public void refreshGroups() {
-        String query = getProvider().getDCLQuery().getGroupsQuery();
+        String query = getProvider().getConfigDCL().getGroupsQuery();
         if (query != null) {
             List<String> names = new ArrayList<>();
             try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
@@ -279,7 +287,7 @@ public final class Connection
                 }
                 if (mGroups == null) {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
-                    mGroups = new GroupContainer(this, getProvider().isCaseSensitive(Group.class.getName()), names);
+                    mGroups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID,
                                        mGroups.getLogger().getObjectId());
                 }  else {
@@ -294,16 +302,14 @@ public final class Connection
     @Override
     protected TableContainer getTableContainer(List<String> names)
         throws ElementExistException {
-        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(null), names);
-        System.out.println("sdb.Connection.getTableContainer() *************************");
+        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(), names);
         return tables;
     }
 
     @Override
     protected ViewContainer getViewContainer(List<String> names)
         throws ElementExistException {
-        ViewContainer views = new ViewContainer(this, getProvider().isCaseSensitive(null), names);
-        System.out.println("sdb.Connection.getViewContainer() *************************");
+        ViewContainer views = new ViewContainer(this, getProvider().isCaseSensitive(), names);
         return views;
     }
 

@@ -28,36 +28,23 @@ package io.github.prrvchr.uno.sdbcx;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public abstract class ColumnBase
-    extends Descriptor
-    implements XDataDescriptorFactory {
-
-    protected String mDefaultValue = "";
-    protected String mDescription = "";
-    protected boolean mIsAutoIncrement;
-    protected int mIsNullable;
-    protected int mType;
-    protected String mTypeName = "";
-    protected final TableSuper mTable;
-    private boolean mIsCurrency;
-    private boolean mIsRowVersion;
-    private int mPrecision;
-    private int mScale;
+    extends ColumnMain {
 
     // The constructor method:
-    public ColumnBase(String service,
-                      String[] services,
-                      TableSuper table,
-                      boolean sensitive,
-                      String name,
+    public ColumnBase(final String service,
+                      final String[] services,
+                      final String catalog,
+                      final String schema,
+                      final String table,
+                      final boolean sensitive,
+                      final String name,
                       final String typename,
                       final String defaultvalue,
                       final String description,
@@ -68,107 +55,38 @@ public abstract class ColumnBase
                       final boolean autoincrement,
                       final boolean rowversion,
                       final boolean currency) {
-        super(service, services, sensitive, name);
-        mTable = table;
-        mTypeName = typename;
-        mDescription = description;
-        mDefaultValue = defaultvalue;
-        mIsNullable = nullable;
-        mPrecision = precision;
-        mScale = scale;
-        mType = type;
-        mIsAutoIncrement = autoincrement;
-        mIsRowVersion = rowversion;
-        mIsCurrency = currency;
+        super(service, services, catalog, schema, table, sensitive, name, typename, defaultvalue,
+              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
     }
 
     @Override
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
 
-        properties.put(PropertyIds.DEFAULTVALUE.getName(),
+        // FIXME: Although these properties are not in the UNO API, they are claimed by
+        // FIXME: LibreOffice/Base and necessary to obtain tables whose contents can be edited in Base
+        properties.put(PropertyIds.CATALOGNAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mDefaultValue;
+                    return mCatalog;
                 },
                 null));
 
-        properties.put(PropertyIds.DESCRIPTION.getName(),
+        properties.put(PropertyIds.SCHEMANAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mDescription;
+                    return mSchema;
                 },
                 null));
 
-        properties.put(PropertyIds.ISAUTOINCREMENT.getName(),
-            new PropertyWrapper(Type.BOOLEAN, readonly,
-                () -> {
-                    return mIsAutoIncrement;
-                },
-                null));
-
-        properties.put(PropertyIds.ISCURRENCY.getName(),
-            new PropertyWrapper(Type.BOOLEAN, readonly,
-                () -> {
-                    return mIsCurrency;
-                },
-                null));
-
-        properties.put(PropertyIds.ISNULLABLE.getName(),
-            new PropertyWrapper(Type.LONG, readonly,
-                () -> {
-                    return mIsNullable;
-                },
-                null));
-
-        properties.put(PropertyIds.ISROWVERSION.getName(),
-            new PropertyWrapper(Type.BOOLEAN, readonly,
-                () -> {
-                    return mIsRowVersion;
-                },
-                null));
-
-        properties.put(PropertyIds.PRECISION.getName(),
-            new PropertyWrapper(Type.LONG, readonly,
-                () -> {
-                    return mPrecision;
-                },
-                null));
-
-        properties.put(PropertyIds.SCALE.getName(),
-            new PropertyWrapper(Type.LONG, readonly,
-                () -> {
-                    return mScale;
-                },
-                null));
-
-        properties.put(PropertyIds.TYPE.getName(),
-            new PropertyWrapper(Type.LONG, readonly,
-                () -> {
-                    return mType;
-                },
-                null));
-
-        properties.put(PropertyIds.TYPENAME.getName(),
+        properties.put(PropertyIds.TABLENAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mTypeName;
+                    return mTable;
                 },
                 null));
 
         super.registerProperties(properties);
-    }
-
-
-    // XDataDescriptorFactory
-    @Override
-    public abstract XPropertySet createDataDescriptor();
-
-
-    // com.sun.star.lang.XComponent
-    @Override
-    protected void postDisposing() {
-        super.postDisposing();
     }
 
 }

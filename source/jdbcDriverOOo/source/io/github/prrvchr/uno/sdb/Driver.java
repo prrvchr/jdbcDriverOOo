@@ -27,11 +27,10 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.Set;
 
-import com.sun.star.beans.PropertyValue;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.driver.provider.DriverProvider;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.sdbc.ConnectionBase;
 import io.github.prrvchr.uno.sdbcx.DriverSuper;
 
@@ -47,17 +46,15 @@ public final class Driver
     // The constructor method:
     public Driver(XComponentContext ctx)
         throws Exception {
-        super(ctx, mImplementationName, mServiceNames);
-        System.out.println("sdb.Driver() 1");
+        super(ctx, mImplementationName, mServiceNames, "sdb");
     }
  
     @Override
     protected ConnectionBase getConnection(XComponentContext ctx,
-                                           DriverProvider provider,
+                                           Provider provider,
                                            String url,
-                                           PropertyValue[] info,
                                            Set<String> properties) {
-        return new Connection(ctx, provider, url, info, properties);
+        return new Connection(ctx, provider, url, properties);
     }
 
 }

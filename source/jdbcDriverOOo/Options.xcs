@@ -31,13 +31,12 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   oor:package="io.github.prrvchr"
   oor:name="jdbcDriverOOo">
-    <component>
-        <prop oor:name="ApiLevel" oor:type="xs:string"/>
-        <prop oor:name="ShowSystemTable" oor:type="xs:boolean"/>
-        <prop oor:name="UseBookmark" oor:type="xs:boolean"/>
-        <prop oor:name="SQLMode" oor:type="xs:boolean"/>
-        <prop oor:name="EnableJavaSystemLogger" oor:type="xs:boolean"/>
-        <prop oor:name="AdminGridColumns" oor:type="xs:string"/>
-        <prop oor:name="AdminGridOrders" oor:type="xs:string"/>
-    </component>
+  <component>
+    <prop oor:name="ApiLevel" oor:type="xs:short"/>
+    <prop oor:name="CachedRowSet" oor:type="xs:short"/>
+    <prop oor:name="ShowSystemTable" oor:type="xs:boolean"/>
+    <prop oor:name="EnableJavaSystemLogger" oor:type="xs:boolean"/>
+    <prop oor:name="AdminGridColumns" oor:type="xs:string"/>
+    <prop oor:name="AdminGridOrders" oor:type="xs:string"/>
+  </component>
 </oor:component-schema>

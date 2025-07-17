@@ -329,7 +329,30 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 - Toute erreur survenant lors du chargement du pilote sera consignée dans le journal de l'extension si la journalisation a été préalablement activé. Cela facilite l'identification des problèmes d'installation sous Windows.
 - Lorsque les pilotes JDBC intégrés à l'extension jdbcDriverOOo sont enregistrés auprès de `java.sql.DriverManager`, c'est à dire lors de la première connexion nécessitant ce pilote, si ce pilote est déjà présent dans le classpath Java, alors cela sera détecté, le pilote non enregistré, la connexion refusée et l'erreur journalisée.
 
-### Que reste-t-il à faire pour la version 1.5.0:
+### Ce qui a été fait pour la version 1.5.1:
+
+- **L'instrumentation Java est désormais requise pour le bon fonctionnement de jdbcDriverOOo.** Pour les versions de LibreOffice antérieures à la version 25.8.x, il est actuellement nécessaire d'installer l'instrumentation Java manuellement. Une section expliquant [Comment installer l'instrumentation Java][103] a été ajoutée à la documentation. Si l'instrumentation Java n'est pas présente, le chargement des pilotes JDBC échouera et un message d'erreur sera présent dans le journal.
+- Réécriture du Service Provider Interface Java: `javax.sql.rowset.RowSetFactory`. Ce nouveau service SPI est implémenté à l'aide de l'archive [RowSetFactory.jar][104], chargée via l'instrumentation Java. Cette nouvelle implémentation a été modifiée pour prendre en charge:
+    - Les identifiants avec casse mixte dans les requêtes SQL.
+    - L'exclusion des colonnes à incrémentation automatique et/ou calculées dans les requêtes d'insertion (requis par PostgreSQL).
+    - L'utilisation de l'interface `java.sql.Statement.getGeneratedKeys()` après toutes les insertions afin de récupérer la valeur des colonnes utilisant des valeurs générées par la base de données sous-jacente (ie: colonne auto-incrémentée et/ou calculée).
+    - La mise en conformité du code source à l'aide de CheckStyle et du modèle [checkstyle.xml][105]. Il reste encore du travail à faire.
+    - L'utilisation de `java.lang.System.Logger` comme facade de journalisation.
+    - Beaucoup de petites corrections nécessaires pour que cela fonctionne correctement car l'implémentation de base du SDK Java 11 ne me semble pas très fonctionnelle, voire même fantaisiste.
+    - Avec cette nouvelle implémentation de [CachedRowSetImpl][106], toutes les colonnes de la première table d'un `java.sql.ResultSet` **sont modifiables dans Base**. Actuellement, seule la table de la première colonne du ResultSet est prise en compte. Cependant, il est nécessaire que les colonnes de la table de ce jeu de résultats répondent aux critères suivants:
+        - Si ces colonnes proviennent d'une table avec des clés primaires, ces clés doivent faire partie des colonnes du jeu de résultats.
+        - Si ces colonnes proviennent d'une table sans clé primaire, les enregistrements d'un ResultSet seront modifiables s'ils sont clairement identifiables par les colonnes du ResultSet. Dans le cas contraire, une exception SQL sera levée lors de toute tentative de mise à jour ou de suppression.
+    - Ce nouveau CachedRowSet, fonctionnant sans connexion, doit charger l'intégralité du contenu du jeu de résultats en mémoire et s'assurera, avant toute modification ou suppression, que l'enregistrement n'a pas été modifié dans la base de données sous-jacente. Si tel est le cas, une exception sera levée et l'opération sera annulée.
+    - L'archive a été compilée avec Java 17 et sous forme de module.
+- Nous avons maintenant la possibilité d'utiliser ou non CachedRowSet. Cette option peut être configurée dans les options de l'extension. Si cette option est forcée, **il est même possible de modifier les requêtes dans LibreOffice Base. Wahou...**
+- Les ResultSets des méthodes `getTables()`, `getTableTypes()`, `getTypeInfo()` et `getTablePrivileges()` de l'interface XDatabaseMetaData sont désormais des CachedRowSet dont les données sont mises à jour selon le fichier de configuration [Drivers.xcu][48]. Cela permet d'obtenir les résultats attendus dans LibreOffice Base avec n'importe quel pilote sous-jacent.
+- Grâce à ces ResultSets modifiables en fonction de la configuration, l'option d'affichage des tables système fonctionne avec n'importe quel pilote sous-jacent et quel que soit le niveau de l'API utilisée (sdbc, sdbcx et sdb).
+- Il est désormais possible d'obtenir les numéros de ligne de code source dans les traces Java grâce au changement dans LOEclipse [PR#166][107].
+- Correction de nombreuses régressions liées à la dernière mise à jour qui a apporté de nombreux changements.
+- La nouvelle version du pilote SQLite est désormais compilée sous Java 11 et utilise `java.lang.System.Logger` comme façade de journalisation, ce qui permet d'y accéder dans LibreOffice. C'est le seul qui nécessite l'utilisation de l'option CachedRowSet, sinon Base n'affichera que les tables et vues en lecture seule.
+- Il semble que ce soit la mise à jour la plus importante de JdbcDriverOOo, et je ne m'attendais pas à en arriver là. La prochaine étape consistera à intégrer Trino et à pouvoir exécuter des requêtes réparties sur différentes bases de données dans LibreOffice Base. CachecRowSet est exactement la brique dont j'avais besoin pour pouvoir terminer cela.
+
+### Que reste-t-il à faire pour la version 1.5.1:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -437,3 +460,8 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 [100]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-cr%C3%A9er-lextension>
 [101]: <https://peps.python.org/pep-0570/>
 [102]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/uno/lib/uno/logger/logwrapper.py#L109>
+[103]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#comment-installer-linstrumentation-java>
+[104]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/RowSetFactory/dist/RowSetFactory.jar>
+[105]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/checkstyle.xml>
+[106]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/RowSetFactory/source/io/github/prrvchr/java/rowset/CachedRowSetImpl.java>
+[107]: <https://github.com/LibreOffice/loeclipse/pull/166>

@@ -1,8 +1,11 @@
 namespace: jdbcDriverOOo
+
 output:
   file_path: ./Fluid-Attacks-Results.csv
   format: CSV
+
 working_dir: .
+
 sast:
   include:
     - glob(source/Driver-Derby/source/*)
@@ -14,8 +17,13 @@ sast:
     - glob(source/jdbcDriverOOo/service/pythonpath/jdbcdriver/*)
     - glob(source/jdbcDriverOOo/source/*)
     - glob(source/UnoLogger/source/*)
+
 sca:
+  exclude:
+    - dependency_name: setuptools
+      reason: False Positive
   include:
     - .
+
 language: EN
 strict: true

@@ -36,11 +36,12 @@ import com.sun.star.sdbc.XStatement;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.helper.SqlCommand;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class StatementBase
@@ -59,9 +60,13 @@ public abstract class StatementBase
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException {
-        mParsed = false;
-        return getJdbcStatement().executeQuery(mSql.getCommand());
+        throws SQLException {
+        try {
+            mParsed = false;
+            return getJdbcStatement().executeQuery(mQuery.getQuery());
+        } catch (java.sql.SQLException e) {
+            throw UnoHelper.getSQLException(e, this);
+        }
     }
 
     @Override
@@ -124,7 +129,7 @@ public abstract class StatementBase
     public void addBatch(String sql)
         throws SQLException {
         try {
-            mSql = new SqlCommand(sql);
+            mQuery = new QueryHelper(mConnection.getProvider(), sql);
             getJdbcStatement().addBatch(sql);
         } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
@@ -134,7 +139,7 @@ public abstract class StatementBase
     @Override
     public void clearBatch()
         throws SQLException {
-        if (mSql != null) {
+        if (mQuery != null) {
             try {
                 getJdbcStatement().clearBatch();
             } catch (java.sql.SQLException e) {
@@ -147,7 +152,7 @@ public abstract class StatementBase
     public int[] executeBatch()
         throws SQLException {
         int[] batch = new int[0];
-        if (mSql != null) {
+        if (mQuery != null) {
             try {
                 batch = getJdbcStatement().executeBatch();
             } catch (java.sql.SQLException e) {
@@ -164,7 +169,7 @@ public abstract class StatementBase
         throws SQLException {
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE, sql);
-            mSql = new SqlCommand(sql);
+            mQuery = new QueryHelper(mConnection.getProvider(), sql);
             return getJdbcStatement().execute(sql);
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
@@ -176,7 +181,7 @@ public abstract class StatementBase
     public XResultSet executeQuery(String sql)
         throws SQLException {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_QUERY, sql);
-        mSql = new SqlCommand(sql);
+        mQuery = new QueryHelper(mConnection.getProvider(), sql);
         return getResultSet();
     }
 
@@ -185,7 +190,7 @@ public abstract class StatementBase
         throws SQLException {
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_EXECUTE_UPDATE, sql);
-            mSql = new SqlCommand(sql);
+            mQuery = new QueryHelper(mConnection.getProvider(), sql);
             return getJdbcStatement().executeUpdate(sql);
         } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);

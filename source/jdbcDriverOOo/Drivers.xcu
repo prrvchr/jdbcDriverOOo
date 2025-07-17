@@ -111,7 +111,7 @@
         </node>
         <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
+            <value>false</value>
           </prop>
         </node>
         <node oor:name="EnableSQL92Check" oor:op="replace">
@@ -159,7 +159,6 @@
             <value>false</value>
           </prop>
         </node>
-
 <!--      <node oor:name="Forms" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>io.github.prrvchr.jdbcDriverOOo.DefinitionContainer</value>
@@ -167,17 +166,10 @@
         </node>
         <node oor:name="Reports" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>io.github.prrvchr.jdbcDriverOOo.DefinitionContainer</value>
-          </prop>
-        </node>
-        <node oor:name="CommandDefinitions" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:string">
-            <value>io.github.prrvchr.jdbcDriverOOo.DefinitionContainer</value>
+            <value>io.github.prrvchr.jdbcdriver.sdb.DocumentContainer</value>
           </prop>
         </node> -->
-
       </node>
-
 
 <!-- "Features" node is the properties that are supposed to be exposed in the UI in: Base -> Edit -> DataBase -> Advanced settings -->
       <node oor:name="Features">
@@ -229,7 +221,7 @@
         </node>
         <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
+            <value>true</value>
           </prop>
         </node>
         <node oor:name="UseBracketedOuterJoinSyntax" oor:op="replace">
@@ -480,9 +472,14 @@
       <!-- Properties node is for connection properties -->
       <!-- To be accessible by Base, the properties must be listed in the DriverBase.getPropertyInfo() method. -->
       <node oor:name="Properties">
+        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(5) = DBA|Column(5) = SA</value>
+          </prop>
+        </node>
         <node oor:name="TypeInfoSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(12) = true|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
+            <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
           </prop>
         </node>
         <node oor:name="AddIndexAppendix" oor:op="replace">
@@ -525,12 +522,7 @@
             <value>hsqldb:mem:dbversion</value>
           </prop>
         </node>
-        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
           </prop>
@@ -539,16 +531,6 @@
 
       <!-- MetaData node is for the driver properties -->
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
-        <node oor:name="UpdateVisibleInsensitive" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
         <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
@@ -650,9 +632,19 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="TableSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(4) = BASE TABLE|Column(4) = TABLE</value>
+          </prop>
+        </node>
+        <node oor:name="SystemTableSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(2) = INFORMATION_SCHEMA|null</value>
+          </prop>
+        </node>
         <node oor:name="TableTypesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">BASE TABLE|TABLE</value>
+            <value oor:separator="|">Column(1) = BASE TABLE|Column(1) = TABLE</value>
           </prop>
         </node>
         <node oor:name="AddIndexAppendix" oor:op="replace">
@@ -695,7 +687,7 @@
             <value>true</value>
           </prop>
         </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8</value>
           </prop>
@@ -703,26 +695,6 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
-        <node oor:name="UseSQLDelete" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
-        <node oor:name="InsertVisibleInsensitive" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="UpdateVisibleInsensitive" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
         <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
@@ -797,9 +769,14 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="SystemTableSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = mysql|null|Column(1) = performance_schema|null|Column(1) = sys|null</value>
+          </prop>
+        </node>
         <node oor:name="TypeInfoSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
+            <value oor:separator="|">Column(1) = INTEGER|Column(6) = null|Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
           </prop>
         </node>
         <node oor:name="AddIndexAppendix" oor:op="replace">
@@ -832,12 +809,12 @@
             <value>SELECT * FROM %s WHERE %s</value>
           </prop>
         </node>
-        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
+        <node oor:name="IgnoreCurrency" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
+            <value>true</value>
           </prop>
         </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|DELETE HISTORY|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
           </prop>
@@ -845,24 +822,9 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
-        <node oor:name="InsertVisibleInsensitive" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
         <node oor:name="DropIndexCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>DROP INDEX ${Name} ON ${TableName}</value>
-          </prop>
-        </node>
-        <node oor:name="IgnoreCurrency" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
           </prop>
         </node>
         <node oor:name="ViewDefinitionQuery" oor:op="replace">
@@ -936,6 +898,11 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="SystemTableSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = sys|null</value>
+          </prop>
+        </node>
         <node oor:name="TypeInfoSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
@@ -971,12 +938,7 @@
             <value>SELECT * FROM %s WHERE %s</value>
           </prop>
         </node>
-        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|DELETE HISTORY|32|ALTER|64|INDEX|128|DROP|256|TRIGGER|512</value>
           </prop>
@@ -984,11 +946,6 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
         <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>
@@ -1110,12 +1067,7 @@
             <value></value>
           </prop>
         </node>
-        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|TRUNCATE|64|REFERENCES|128|TRIGGER|512</value>
           </prop>
@@ -1123,11 +1075,6 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
         <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
@@ -1270,9 +1217,9 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
+        <node oor:name="SupportsDCLQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
+            <value>false</value>
           </prop>
         </node>
         <node oor:name="SupportsAlterPrimaryKey" oor:op="replace">
@@ -1281,11 +1228,6 @@
           </prop>
         </node>
         <node oor:name="SupportsRenameView" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="SupportsDCLQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
           </prop>
@@ -1379,7 +1321,7 @@
             <value>true</value>
           </prop>
         </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128|TRIGGER|512</value>
           </prop>
@@ -1390,11 +1332,6 @@
         <node oor:name="SupportsDCLQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
           </prop>
         </node>
         <node oor:name="LogLevel" oor:op="replace">
@@ -1516,17 +1453,12 @@
             <value>SELECT * FROM %s WHERE %s</value>
           </prop>
         </node>
-        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
         <node oor:name="IgnoreCurrency" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>
           </prop>
         </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
           </prop>
@@ -1534,11 +1466,6 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
         <node oor:name="SQLCommandSuffix" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>;</value>
@@ -1703,17 +1630,12 @@
             <value></value>
           </prop>
         </node>
-        <node oor:name="IgnoreDriverPrivileges" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
         <node oor:name="IgnoreCurrency" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>
           </prop>
         </node>
-        <node oor:name="TablePrivilegesSettings" oor:op="replace">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8|REFERENCES|128</value>
           </prop>
@@ -1721,11 +1643,6 @@
       </node>
 
       <node oor:name="MetaData">
-        <node oor:name="UseSQLInsert" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>true</value>
-          </prop>
-        </node>
         <node oor:name="SupportTransaction" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>

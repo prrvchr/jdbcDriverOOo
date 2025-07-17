@@ -32,7 +32,6 @@ import java.net.URLClassLoader;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.NamedValue;
@@ -43,6 +42,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
+import com.sun.star.container.XNameAccess;
 import com.sun.star.deployment.XPackageInformationProvider;
 import com.sun.star.i18n.XLocaleData;
 import com.sun.star.lang.IllegalArgumentException;
@@ -178,23 +178,29 @@ public class UnoHelper {
         return UnoRuntime.queryInterface(XMultiServiceFactory.class, createService(context, service));
     }
 
-    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
-                                                           final String path)
+    public static XNameAccess getFlatConfig(final XComponentContext context,
+                                            final String path)
         throws Exception {
-        return getConfiguration(context, path, false, null);
+        return UnoRuntime.queryInterface(XNameAccess.class, getConfig(context, path, false, null));
     }
 
-    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
-                                                           final String path,
-                                                           final boolean update)
+    public static XHierarchicalNameAccess getTreeConfig(final XComponentContext context,
+                                                        final String path)
         throws Exception {
-        return getConfiguration(context, path, update, null);
+        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, getConfig(context, path, false, null));
     }
 
-    public static XHierarchicalNameAccess getConfiguration(final XComponentContext context,
-                                                           final String path,
-                                                           final boolean update,
-                                                           final String language)
+    public static XHierarchicalNameAccess getTreeConfig(final XComponentContext context,
+                                                        final String path,
+                                                        final boolean update)
+        throws Exception {
+        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, getConfig(context, path, update, null));
+    }
+
+    private static Object getConfig(final XComponentContext context,
+                                    final String path,
+                                    final boolean update,
+                                    final String language)
         throws Exception {
         String service = "com.sun.star.configuration.Configuration";
         final XMultiServiceFactory provider = getMultiServiceFactory(context, service + "Provider");
@@ -202,9 +208,12 @@ public class UnoHelper {
         if (language != null) {
             arguments.add(new NamedValue("Locale", language));
         }
-        service += update ? "UpdateAccess" : "Access";
-        Object config = provider.createInstanceWithArguments(service, arguments.toArray());
-        return UnoRuntime.queryInterface(XHierarchicalNameAccess.class, config);
+        if (update) {
+            service += "UpdateAccess";
+        } else {
+            service += "Access";
+        }
+        return provider.createInstanceWithArguments(service, arguments.toArray());
     }
 
     public static String getPackageLocation(XComponentContext context, String identifier, String path) {
@@ -228,7 +237,7 @@ public class UnoHelper {
                Exception {
         String nodepath = "/org.openoffice.Setup/L10N";
         String config = "";
-        config = (String) getConfiguration(context, nodepath).getByHierarchicalName("ooLocale");
+        config = (String) getTreeConfig(context, nodepath).getByHierarchicalName("ooLocale");
         String[] parts = config.split("-");
         Locale locale = new Locale(parts[0], "", "");
         if (parts.length > 1) {
@@ -751,71 +760,6 @@ public class UnoHelper {
             }
         }
         return value;
-    }
-
-    public static int mapSQLDataType(int type) {
-        Map<Integer, Integer> maps = Map.ofEntries(Map.entry(-16, -1),
-                                                   Map.entry(-15, 1),
-                                                   Map.entry(-9, 12),
-                                                   Map.entry(-8, 4),
-                                                   Map.entry(70, 1111),
-                                                   Map.entry(2009, 1111),
-                                                   Map.entry(2011, 2005),
-                                                   Map.entry(2012, 2006),
-                                                   Map.entry(2013, 12),
-                                                   Map.entry(2014, 12));
-        if (maps.containsKey(type)) {
-            System.out.println("UnoHelper.mapSQLDataType() Type: " + type);
-            type = maps.get(type);
-        }
-        return type;
-    }
-
-    public static String mapSQLDataTypeName(String name, int type) {
-        //String name = null;
-        //Map<Integer, String> maps = _getUnoSQLDataType();
-        //if (!maps.containsValue(name))
-        //    if (maps.containsKey(type))
-        //    {
-        //        //name = maps.get(type);
-        //        System.out.println("UnoHelper.mapSQLDataTypeName() 1 ************************* Name: " + name + " Type: " + type);
-        //    }
-        //    else
-        //        System.out.println("UnoHelper.mapSQLDataTypeName() 2 ************************* Name: " + name + " Type: " + type);
-        return name;
-    }
-
-    public static Map<Integer, String> _getUnoSQLDataType() {
-        Map<Integer, String> maps = Map.ofEntries(Map.entry(-7, "BIT"),
-                                                  Map.entry(-6, "TINYINT"),
-                                                  Map.entry(-5, "BIGINT"),
-                                                  Map.entry(-4, "LONGVARBINARY"),
-                                                  Map.entry(-3, "VARBINARY"),
-                                                  Map.entry(-2, "BINARY"),
-                                                  Map.entry(-1, "LONGVARCHAR"),
-                                                  Map.entry(0, "SQLNULL"),
-                                                  Map.entry(1, "CHAR"),
-                                                  Map.entry(2, "NUMERIC"),
-                                                  Map.entry(3, "DECIMAL"),
-                                                  Map.entry(4, "INTEGER"),
-                                                  Map.entry(5, "SMALLINT"),
-                                                  Map.entry(6, "FLOAT"),
-                                                  Map.entry(7, "REAL"),
-                                                  Map.entry(8, "DOUBLE"),
-                                                  Map.entry(12, "VARCHAR"),
-                                                  Map.entry(16, "BOOLEAN"),
-                                                  Map.entry(91, "DATE"),
-                                                  Map.entry(92, "TIME"),
-                                                  Map.entry(93, "TIMESTAMP"),
-                                                  Map.entry(1111, "OTHER"),
-                                                  Map.entry(2000, "OBJECT"),
-                                                  Map.entry(2001, "DISTINCT"),
-                                                  Map.entry(2002, "STRUCT"),
-                                                  Map.entry(2003, "ARRAY"),
-                                                  Map.entry(2004, "BLOB"),
-                                                  Map.entry(2005, "CLOB"),
-                                                  Map.entry(2006, "REF"));
-        return maps;
     }
 
     public static String getClassPath() {

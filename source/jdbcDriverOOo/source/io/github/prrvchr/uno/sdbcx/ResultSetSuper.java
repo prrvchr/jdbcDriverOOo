@@ -32,8 +32,8 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.ResultSetBase;
 import io.github.prrvchr.uno.sdbc.StatementMain;
@@ -41,9 +41,9 @@ import io.github.prrvchr.uno.sdbc.StatementMain;
 
 public abstract class ResultSetSuper
     extends ResultSetBase {
-    private boolean mIsBookmarkable = false;
+
     private boolean mCanUpdateInsertedRows = false;
-    
+
     // The constructor method:
     public ResultSetSuper(String service,
                           String[] services,
@@ -53,8 +53,7 @@ public abstract class ResultSetSuper
                           boolean bookmark,
                           boolean updatable)
         throws SQLException {
-        super(service, services, connection, resultset, statement);
-        mIsBookmarkable = bookmark;
+        super(service, services, connection, resultset, statement, bookmark);
         mCanUpdateInsertedRows = updatable;
     }
 
@@ -65,26 +64,12 @@ public abstract class ResultSetSuper
         properties.put(PropertyIds.CANUPDATEINSERTEDROWS.getName(),
             new PropertyWrapper(Type.BOOLEAN, readonly,
                 () -> {
-                    System.out.println("sdbcx.ResultSetSuper.CanUpdateInsertedRows() 1: " + mCanUpdateInsertedRows);
+                    System.out.println("ResultSetSuper.CanUpdateInsertedRows() 1: " + mCanUpdateInsertedRows);
                     return mCanUpdateInsertedRows;
                 },
                 null));
 
-        properties.put(PropertyIds.ISBOOKMARKABLE.getName(),
-            new PropertyWrapper(Type.BOOLEAN, readonly,
-                () -> {
-                    System.out.println("sdbcx.ResultSetSuper.IsBookmarkable() 1: " + mIsBookmarkable);
-                    return mIsBookmarkable;
-                },
-                null));
-
         super.registerProperties(properties);
-    }
-
-    @Override
-    protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException {
-        return super.getJdbcResultSet();
     }
 
     @Override

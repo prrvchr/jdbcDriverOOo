@@ -27,13 +27,13 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.HashMap;
 
+import javax.sql.rowset.CachedRowSet;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.rowset.RowCatalog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.StatementMain;
 import io.github.prrvchr.uno.sdbcx.RowSetSuper;
@@ -42,23 +42,21 @@ import io.github.prrvchr.uno.sdbcx.RowSetSuper;
 public final class RowSet
     extends RowSetSuper
     implements XColumnsSupplier {
-    private static final String SERVICE = ResultSet.class.getName();
+
+    private static final String SERVICE = RowSet.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdb.ResultSet",
                                               "com.sun.star.sdbc.ResultSet", 
                                               "com.sun.star.sdbcx.ResultSet"};
 
+    private XNameAccess mColumns;
 
     // The constructor method:
-    protected RowSet(DriverProvider provider,
-                     Connection connection,
-                     java.sql.ResultSet result,
-                     StatementMain statement,
-                     RowCatalog catalog,
-                     String table)
+    protected RowSet(Connection connection,
+                     CachedRowSet rowset,
+                     StatementMain statement)
         throws SQLException {
-        super(SERVICE, SERVICES, provider, connection, result, statement, catalog, table);
+        super(SERVICE, SERVICES, connection, rowset, statement);
         registerProperties(new HashMap<String, PropertyWrapper>());
-        System.out.println("sdb.RowSet() 1");
     }
 
     @Override
@@ -69,24 +67,22 @@ public final class RowSet
     // com.sun.star.sdbcx.XColumnsSupplier:
     @Override
     public XNameAccess getColumns() {
-        System.out.println("sdb.ResultSet.getColumns() 1 *********************************************");
-        /*XNameAccess columns = null;
+        System.out.println("sdb.RowSet.getColumns() 1 *********************************************");
         try {
-            columns = new ColumnContainer((Connection) m_Connection, m_ResultSet);
+            if (mColumns == null) {
+                mColumns = new ResultColumnContainer(this, mResult.getStatement().getConnection().getMetaData(),
+                                                     mResult.getMetaData(), true);
+            }
+        } catch (java.sql.SQLException e) {
+            System.out.println("sdb.RowSet.getColumns() ERROR *****************************************");
         }
-        catch (java.sql.SQLException e) {
-            System.out.println("sdb.ResultSet.getColumns() ERROR *****************************************");
-            //throw UnoHelper.getSQLException(e, this);
-        }
-        System.out.println("sdb.ResultSet.getColumns() 2 *********************************************");
-        return columns;*/
-        return null;
+        System.out.println("sdb.RowSet.getColumns() 2 *********************************************");
+        return mColumns;
     }
 
     @Override
     protected Connection getConnection() {
         return (Connection) mConnection;
     }
-
 
 }

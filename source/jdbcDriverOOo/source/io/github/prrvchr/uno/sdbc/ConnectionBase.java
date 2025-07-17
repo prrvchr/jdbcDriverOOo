@@ -46,12 +46,12 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XStringSubstitution;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.DriverPropertiesHelper;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.provider.Tools;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.provider.Tools;
 import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -66,31 +66,25 @@ public abstract class ConnectionBase
     private final XComponentContext mContext;
     private final String mService;
     private final String[] mServices;
-    private final DriverProvider mProvider;
-    private String mUrl;
-    private PropertyValue[] mInfo;
+    private final Provider mProvider;
     private final WeakMap<StatementMain, StatementMain> mStatements = new WeakMap<StatementMain, StatementMain>();
 
     // The constructor method:
     protected ConnectionBase(XComponentContext ctx,
                              String service,
                              String[] services,
-                             DriverProvider provider,
+                             Provider provider,
                              String url,
-                             PropertyValue[] info,
                              Set<String> properties) {
         mContext = ctx;
         mService = service;
         mServices = services;
         mProvider = provider;
-        mUrl = url;
-        mInfo = info;
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_ESTABLISHED,
-                           DriverPropertiesHelper.getJdbcUrl(url), String.join(", ", properties));
-        System.out.println("ConnectionBase() 1");
+                           PropertiesHelper.getJdbcUrl(url), String.join(", ", properties));
     }
 
-    protected DriverProvider getProvider() {
+    protected Provider getProvider() {
         return mProvider;
     }
     protected ConnectionLog getLogger() {
@@ -115,6 +109,7 @@ public abstract class ConnectionBase
             getLogger().logp(LogLevel.WARNING, e);
             System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
+        super.postDisposing();
     }
 
     // com.sun.star.lang.XServiceInfo:
@@ -170,16 +165,14 @@ public abstract class ConnectionBase
     public XDatabaseMetaData getMetaData()
         throws SQLException {
         checkDisposed();
-        DatabaseMetaDataBase metadata = null;
+        DatabaseMetaData metadata = null;
         try {
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_DATABASE_METADATA);
-            metadata = getProvider().getDatabaseMetaData(this);
+            metadata = new DatabaseMetaData(this);
             getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_DATABASE_METADATA_ID,
                                metadata.getLogger().getObjectId());
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
-        } catch (java.lang.Exception e) {
-            e.printStackTrace();
         }
         return metadata;
     }
@@ -371,15 +364,6 @@ public abstract class ConnectionBase
 
     protected XComponentContext getComponentContext() {
         return mContext;
-    }
-
-    protected String getUrl() {
-        return mUrl;
-    }
-
-
-    protected PropertyValue[] getInfo() {
-        return mInfo;
     }
 
     protected abstract XStatement getStatement();

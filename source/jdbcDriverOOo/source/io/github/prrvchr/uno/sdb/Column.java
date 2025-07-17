@@ -32,7 +32,7 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
@@ -72,8 +72,9 @@ public final class Column
                   final boolean autoincrement,
                   final boolean rowversion,
                   final boolean currency) {
-        super(SERVICE, SERVICES, table, sensitive, name, typeName, defaultValue,
-              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        super(SERVICE, SERVICES, table.getConnection(), table.getCatalogName(), table.getSchemaName(),
+              table.getName(),sensitive, name, typeName, defaultValue, description, nullable,
+              precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();
     }
 
@@ -172,9 +173,7 @@ public final class Column
     public XPropertySet createDataDescriptor() {
         System.out.println("sdb.Column.createDataDescriptor() 1");
 
-        Table table = (Table) mTable;
-        ColumnDescriptor descriptor = new ColumnDescriptor(table.getCatalogName(),
-                            table.getSchemaName(), table.getName(), isCaseSensitive());
+        ColumnDescriptor descriptor = new ColumnDescriptor(mCatalog, mSchema, mTable, isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

@@ -28,13 +28,13 @@ package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public abstract class DescriptorContainer<T extends Descriptor>
-    extends Container<T> {
+    extends ContainerSuper<T> {
     private static final String SERVICE = DescriptorContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 

@@ -30,8 +30,9 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.lang.WrappedTargetException;
 
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -41,6 +42,7 @@ public final class Table
 
     private static final String SERVICE = Table.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Table"};
+    private static final int PRIVILEGES = 15;
 
     // The constructor method:
     public Table(Connection connection,
@@ -72,5 +74,17 @@ public final class Table
             throws ElementExistException {
         return new ColumnContainer(this, isCaseSensitive(), descriptions);
     }
+
+
+    protected int getPrivileges()
+        throws WrappedTargetException {
+        System.out.println("scdbx.Table.getPrivileges() 1");
+        if (mPrivileges == 0) {
+            mPrivileges = PRIVILEGES;
+        }
+        System.out.println("TableSuper.getPrivileges() 2: " + mPrivileges);
+        return mPrivileges;
+    }
+
 
 }

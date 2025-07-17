@@ -25,23 +25,16 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.Map;
+import com.sun.star.sdbc.SQLException;
 
-import com.sun.star.logging.LogLevel;
-import com.sun.star.uno.Type;
-
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.uno.helper.PropertyWrapper;
+import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.sdbc.PreparedStatementBase;
 
 
 public abstract class PreparedStatementSuper
     extends PreparedStatementBase {
-
-    protected boolean mUseBookmarks = false;
-
 
     // The constructor method:
     // XXX: Constructor called from methods:
@@ -50,36 +43,15 @@ public abstract class PreparedStatementSuper
     public PreparedStatementSuper(String service,
                                   String[] services,
                                   ConnectionSuper connection,
-                                  String sql) {
+                                  String sql)
+        throws SQLException {
         super(service, services, connection, sql);
         System.out.println("sdbc.PreparedStatementSuper() 1: '" + sql + "'");
     }
 
     @Override
-    protected void registerProperties(Map<String, PropertyWrapper> properties) {
-
-        properties.put(PropertyIds.USEBOOKMARKS.getName(),
-            new PropertyWrapper(Type.BOOLEAN,
-                () -> {
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_USEBOOKMARKS,
-                                       Boolean.toString(mUseBookmarks));
-                    System.out.println("sdbc.PreparedStatementSuper.getUseBookmark(): " + mUseBookmarks);
-                    return mUseBookmarks;
-                },
-                value -> {
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_SET_USEBOOKMARKS,
-                                       value.toString());
-                    boolean use = getConnectionInternal().getProvider().getSQLQuery().useBookmarks((boolean) value);
-                    System.out.println("sdbc.PreparedStatementSuper.setUseBookmark(): " + use);
-                    mUseBookmarks = use;
-                }));
-
-        super.registerProperties(properties);
-    }
-
-    @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException {
+        throws SQLException {
         return super.getJdbcResultSet();
     }
 
@@ -91,6 +63,12 @@ public abstract class PreparedStatementSuper
     @Override
     protected ConnectionSuper getConnectionInternal() {
         return (ConnectionSuper) mConnection;
+    }
+
+    @Override
+    protected java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
+        throws SQLException {
+        return GeneratedKeys.getGeneratedResult(provider, getConnectionInternal(), statement, mQuery);
     }
 
 }

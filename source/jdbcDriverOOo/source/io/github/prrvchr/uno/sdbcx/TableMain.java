@@ -37,15 +37,15 @@ import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.ComposeRule;
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.LoggerObjectType;
-import io.github.prrvchr.driver.provider.PropertyIds;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.provider.StandardSQLState;
-import io.github.prrvchr.driver.query.DDLParameter;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.SharedResources;
 
@@ -139,7 +139,7 @@ public abstract class TableMain
         // FIXME: Any driver capable of changing catalog or schema must have at least 2 commands...
         // FIXME: If the driver can do this in a single command (like MariaDB) then it is necessary
         // FIXME: to warn by leaving an empty field after the first two that the SQL query requests
-        if (moved && !mConnection.getProvider().getDDLQuery().canRenameAndMove()) {
+        if (moved && !mConnection.getProvider().getConfigDDL().canRenameAndMove()) {
             int resource = getRenameTableUnsupportedResource(isview);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FUNCTION_NOT_SUPPORTED.text(), 0, Any.VOID);
@@ -160,7 +160,7 @@ public abstract class TableMain
         String fname = newname;
         boolean changed = true;
         boolean reversed = false;
-        boolean multiquery = mConnection.getProvider().getDDLQuery().hasMultiRenameQueries();
+        boolean multiquery = mConnection.getProvider().getConfigDDL().hasMultiRenameQueries();
         boolean fullchange = multiquery && moved && renamed;
         List<String> queries = new ArrayList<>();
 
@@ -188,12 +188,12 @@ public abstract class TableMain
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
-            Map<String, Object> arguments = DDLParameter.getRenameTable(mConnection.getProvider(),
-                                                                                 component,
-                                                                                 getNamedComponents(),
-                                                                                 oldname, reversed,
-                                                                                 rule, isCaseSensitive());
-            queries = mConnection.getProvider().getDDLQuery().getRenameTableCommands(arguments, reversed);
+            Map<String, Object> arguments = ParameterDDL.getRenameTable(mConnection.getProvider(),
+                                                                        component,
+                                                                        getNamedComponents(),
+                                                                        oldname, reversed,
+                                                                        rule, isCaseSensitive());
+            queries = mConnection.getProvider().getConfigDDL().getRenameTableCommands(arguments, reversed);
             changed = renameTableOrView(queries, newname, isview, moved, renamed, multiquery, fullchange);
 
         } catch (java.sql.SQLException e) {

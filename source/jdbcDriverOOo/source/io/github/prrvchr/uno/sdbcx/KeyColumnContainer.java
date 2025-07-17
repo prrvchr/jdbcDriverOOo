@@ -32,13 +32,13 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
-import io.github.prrvchr.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.driver.provider.DriverProvider;
-import io.github.prrvchr.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 
 public final class KeyColumnContainer
-    extends Container<KeyColumn> {
+    extends ContainerSuper<KeyColumn> {
     private static final String SERVICE = IndexContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumns",
                                               "com.sun.star.sdbcx.Container"};
@@ -61,7 +61,7 @@ public final class KeyColumnContainer
         final int FKCOLUMN_NAME = 8;
         final int FK_NAME = 12;
         try {
-            DriverProvider provider = getConnection().getProvider();
+            Provider provider = getConnection().getProvider();
             NamedComponents table = mKey.getTable().getNamedComponents();
             String refColumnName = "";
             try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(table.getCatalog(),
@@ -82,7 +82,7 @@ public final class KeyColumnContainer
         return column;
     }
 
-    private KeyColumn createKey(DriverProvider provider,
+    private KeyColumn createKey(Provider provider,
                                 NamedComponents table,
                                 String name,
                                 String refColumnName) throws java.sql.SQLException {
@@ -112,7 +112,8 @@ public final class KeyColumnContainer
                     } catch (java.sql.SQLException e) {
                         // sometimes we get an error when asking for this param
                     }
-                    column = new KeyColumn(mKey.getTable(), isCaseSensitive(), name, typeName, "", columnDef,
+                    column = new KeyColumn(table.getCatalog(), table.getSchema(), table.getTable(),
+                                           isCaseSensitive(), name, typeName, "", columnDef,
                                            nul, size, dec, dataType, false, false, false, refColumnName);
                 }
             }

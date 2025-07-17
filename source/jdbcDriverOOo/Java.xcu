@@ -33,7 +33,7 @@
     <node oor:name="InstrumentationAgents">
       <node oor:name="jdbcDriverInstrumentationAgent" oor:op="fuse">
         <prop oor:name="URL">
-          <value>%origin%/lib/UnoAgent.jar</value>
+          <value>%origin%/lib/InstrumentationAgent.jar</value>
         </prop>
       </node>
     </node>

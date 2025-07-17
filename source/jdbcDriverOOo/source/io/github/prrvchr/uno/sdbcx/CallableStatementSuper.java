@@ -27,10 +27,13 @@ package io.github.prrvchr.uno.sdbcx;
 
 import java.util.Map;
 
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbc.CallableStatementBase;
 
@@ -48,7 +51,8 @@ public abstract class CallableStatementSuper
     public CallableStatementSuper(String service,
                                   String[] services,
                                   ConnectionSuper connection,
-                                  String sql) {
+                                  String sql)
+        throws SQLException {
         super(service, services, connection, sql);
     }
 
@@ -70,12 +74,23 @@ public abstract class CallableStatementSuper
 
     @Override
     protected java.sql.ResultSet getJdbcResultSet()
-        throws java.sql.SQLException {
+        throws SQLException {
         return super.getJdbcResultSet();
     }
 
     protected ConnectionLog getLogger() {
         return super.getLogger();
+    }
+
+    @Override
+    protected ConnectionSuper getConnectionInternal() {
+        return (ConnectionSuper) mConnection;
+    }
+
+    @Override
+    protected java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
+        throws SQLException {
+        return GeneratedKeys.getGeneratedResult(provider, getConnectionInternal(), statement, mQuery);
     }
 
 }

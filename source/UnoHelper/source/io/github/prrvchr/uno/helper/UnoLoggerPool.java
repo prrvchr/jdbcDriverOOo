@@ -41,26 +41,21 @@ public final class UnoLoggerPool {
 
     // The constructor method:
     public UnoLoggerPool() {
-        System.out.println("logging.UnoLoggerPool() 1: ");
+        System.out.println("logging.UnoLoggerPool()");
     }
 
     public static void initialize(XComponentContext context,
                                   String root) {
-        System.out.println("logging.UnoLoggerPool.setRoot() 1: ");
         m_xContext = context;
         m_root = root;
     }
 
     public static XLogger getNamedLogger(String name) {
-        XLogger logger = _getLoggerPool().getNamedLogger(getLoggerName(name));
-        System.out.println("logging.UnoLoggerPool.getNamedLogger() " + logger.getName());
-        return logger;
+        return _getLoggerPool().getNamedLogger(getLoggerName(name));
     }
 
     public static XLogger getDefaultLogger() {
-        XLogger logger = _getLoggerPool().getDefaultLogger();
-        System.out.println("logging.UnoLoggerPool.getDefaultLogger() " + logger.getName());
-        return logger;
+        return _getLoggerPool().getDefaultLogger();
     }
 
     private static String getLoggerName(String name) {

@@ -40,8 +40,8 @@ import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
 
-import io.github.prrvchr.driver.helper.DBTools;
-import io.github.prrvchr.driver.helper.SqlCommand;
+import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
@@ -57,9 +57,10 @@ public abstract class CallableStatementBase
     public CallableStatementBase(String service,
                                  String[] services,
                                  ConnectionBase connection,
-                                 String sql) {
+                                 String sql)
+        throws SQLException {
         super(service, services, connection);
-        mSql = new SqlCommand(sql);
+        mQuery = new QueryHelper(connection.getProvider(), sql);
         System.out.println("sdbc.BaseCallableStatement() 1: '" + sql + "'");
     }
 
@@ -71,10 +72,10 @@ public abstract class CallableStatementBase
             java.sql.CallableStatement statement;
             if (mResultSetType != java.sql.ResultSet.TYPE_FORWARD_ONLY ||
                 mResultSetConcurrency != java.sql.ResultSet.CONCUR_READ_ONLY) {
-                statement = mConnection.getProvider().getConnection().prepareCall(mSql.getCommand(),
+                statement = mConnection.getProvider().getConnection().prepareCall(mQuery.getQuery(),
                         mResultSetType, mResultSetConcurrency);
             } else {
-                statement = mConnection.getProvider().getConnection().prepareCall(mSql.getCommand());
+                statement = mConnection.getProvider().getConnection().prepareCall(mQuery.getQuery());
             }
             mStatement = setStatement(statement);
         }
@@ -244,7 +245,7 @@ public abstract class CallableStatementBase
     @Override
     public Object getObject(int index, XNameAccess map) throws SQLException {
         try {
-            return DBTools.getObject(getJdbcStatement().getObject(index), map);
+            return DBTools.getObject(getJdbcStatement().getObject(index));
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getLoggedSQLException(this, getLogger(), e);
         }

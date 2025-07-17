@@ -31,7 +31,7 @@ import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertySet;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.ServiceInfo;
@@ -76,13 +76,13 @@ public abstract class Descriptor
     @Override
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short attribute;
+        PropertySetter setter;
+
         if (mReadonly) {
             attribute = PropertyAttribute.READONLY;
+            setter = null;
         } else {
             attribute = 0;
-        }
-        PropertySetter setter = null;
-        if (!mReadonly) {
             setter = value -> {
                 mName = (String) value;
             };
@@ -114,7 +114,6 @@ public abstract class Descriptor
         return ServiceInfo.supportsService(mServices, service);
     }
 
-
     // Method for internal use (no UNO method)
     protected String getName() {
         return mName;
@@ -127,6 +126,5 @@ public abstract class Descriptor
     protected boolean isCaseSensitive() {
         return mSensitive;
     }
-
 
 }

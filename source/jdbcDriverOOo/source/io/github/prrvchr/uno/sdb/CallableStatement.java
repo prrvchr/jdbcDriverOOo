@@ -27,18 +27,18 @@ package io.github.prrvchr.uno.sdb;
 
 import java.util.HashMap;
 
+import javax.sql.rowset.CachedRowSet;
+
 import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
-import io.github.prrvchr.driver.provider.ConnectionLog;
-import io.github.prrvchr.driver.provider.Resources;
-import io.github.prrvchr.driver.resultset.ResultSetHelper;
-import io.github.prrvchr.driver.rowset.RowCatalog;
+import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Resources;
+import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.CallableStatementSuper;
 
 
@@ -56,7 +56,8 @@ public final class CallableStatement
 
     // The constructor method:
     public CallableStatement(Connection connection,
-                             String sql) {
+                             String sql)
+        throws SQLException {
         super(SERVICE, SERVICES, connection, sql);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdb.CallableStatement() 1");
@@ -85,35 +86,26 @@ public final class CallableStatement
     public XResultSet getResultSet()
         throws SQLException {
         XResultSet resultset = null;
-        try {
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-            Connection connection = getConnectionInternal();
-            java.sql.ResultSet result = getJdbcResultSet();
-            if (mUseBookmarks) {
-                RowCatalog catalog = null;
-                if (ResultSetHelper.isUpdatable(connection.getProvider(), result, catalog, mSql)) {
-                    RowSet rowset = new RowSet(connection.getProvider(), connection, result, this,
-                                               catalog, mSql.getTable());
-                    String services = String.join(", ", rowset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                       services, rowset.getLogger().getObjectId());
-                    resultset = rowset;
-                } else {
-                    ResultSet rowset = new ResultSet(connection, result, this);
-                    String services = String.join(", ", rowset.getSupportedServiceNames());
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                       services, rowset.getLogger().getObjectId());
-                    resultset = rowset;
-                }
-            } else {
-                ResultSet rowset =  new ResultSet(connection, result, this);
+        java.sql.ResultSet rs = getJdbcResultSet();
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
+        if (getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
+            CachedRowSet crs = ResultSetHelper.getCachedRowSet(rs);
+            if (!crs.isReadOnly()) {
+                RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
                 String services = String.join(", ", rowset.getSupportedServiceNames());
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
                                    services, rowset.getLogger().getObjectId());
                 resultset = rowset;
+            } else {
+                rs = getJdbcResultSet();
             }
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
+        }
+        if (resultset == null) {
+            ResultSet result = new ResultSet(getConnectionInternal(), rs, this);
+            String services = String.join(", ", result.getSupportedServiceNames());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                               services, result.getLogger().getObjectId());
+            resultset = result;
         }
         return resultset;
     }

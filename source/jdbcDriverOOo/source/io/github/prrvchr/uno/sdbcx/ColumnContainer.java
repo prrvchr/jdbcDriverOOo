@@ -30,7 +30,7 @@ import java.util.List;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 
-import io.github.prrvchr.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 
 
 public final class ColumnContainer
@@ -63,7 +63,9 @@ public final class ColumnContainer
                                boolean autoincrement,
                                boolean rowversion,
                                boolean currency) {
-        return new Column((Table) mTable, isCaseSensitive(), name, typename, defaultvalue, description,
-                          nullable, precision, scale, type, autoincrement, rowversion, currency);
+        return new Column(mTable.getConnection(), mTable.mCatalogName,
+                          mTable.mSchemaName, mTable.getName(), isCaseSensitive(),
+                          name, typename, defaultvalue, description, nullable, precision,
+                          scale, type, autoincrement, rowversion, currency);
     }
 }
