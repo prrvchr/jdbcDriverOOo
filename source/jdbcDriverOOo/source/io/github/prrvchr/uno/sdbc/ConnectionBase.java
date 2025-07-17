@@ -82,7 +82,6 @@ public abstract class ConnectionBase
         mProvider = provider;
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_ESTABLISHED,
                            PropertiesHelper.getJdbcUrl(url), String.join(", ", properties));
-        System.out.println("ConnectionBase() 1");
     }
 
     protected Provider getProvider() {

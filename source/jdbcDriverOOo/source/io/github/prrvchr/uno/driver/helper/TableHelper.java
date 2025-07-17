@@ -327,12 +327,10 @@ public class TableHelper {
                                                     String comment,
                                                     boolean sensitive)
         throws java.sql.SQLException {
-        System.out.println("DBTableHelper.getCreateTableQueries() 1 Column" + column );
         String name = DBTools.composeColumnName(provider, table, column, sensitive);
         comment = provider.enquoteLiteral(comment);
         Map<String, Object> arguments = ParameterDDL.getColumnDescription(name, comment);
         String query = provider.getConfigDDL().getColumnDescriptionCommand(arguments);
-        System.out.println("DBTableHelper.getCreateTableQueries() 2 Comment: " + comment + " - Query: " + query);
         return query;
     }
 
@@ -364,7 +362,6 @@ public class TableHelper {
         ColumnProperties column = getStandardColumnProperties(provider, "", descriptor, sensitive);
         Map<String, Object> arguments = ParameterDDL.getAddColumn(name, column.toString());
         String query = provider.getConfigDDL().getAddColumnCommand(arguments);
-        System.out.println("helper.TableHelper.getAddColumnQueries() 1 query: " + query);
         queries.add(query);
         if (provider.getConfigDDL().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);

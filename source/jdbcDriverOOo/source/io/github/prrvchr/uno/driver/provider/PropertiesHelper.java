@@ -37,6 +37,8 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XHierarchicalNameAccess;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
+
 public class PropertiesHelper {
 
     public static final String CONNECT_PROTOCOL = "jdbc:";
@@ -115,15 +117,11 @@ public class PropertiesHelper {
                                                    final String name,
                                                    final Object dflt) {
         Object value = dflt;
-        System.out.println("DriverPropertiesHelper.getConfigProperties() 1");
         if (hasInfosProperty(infos, name)) {
-            System.out.println("DriverManagerHelper.getConfigProperties() 2");
             value = getInfosProperty(infos, name, null);
         } else {
-            System.out.println("DriverPropertiesHelper.getConfigProperties() 3");
             value = getConfigProperties(driver, protocol, name, null);
         }
-        System.out.println("DriverPropertiesHelper.getConfigProperties() 4 Value: " + value);
         return value;
     }
 
@@ -133,15 +131,11 @@ public class PropertiesHelper {
                                                  final String name,
                                                  final Object dflt) {
         Object value = dflt;
-        System.out.println("DriverPropertiesHelper.getConfigMetaData() 1");
         if (hasInfosProperty(infos, name)) {
-            System.out.println("DriverManagerHelper.getConfigMetaData() 2");
             value = getInfosProperty(infos, name, null);
         } else {
-            System.out.println("DriverPropertiesHelper.getConfigMetaData() 3");
             value = getConfigMetaData(driver, protocol, name, null);
         }
-        System.out.println("DriverPropertiesHelper.getConfigMetaData() 4 Name: " + name + " - Value: " + value);
         return value;
     }
 
@@ -183,11 +177,9 @@ public class PropertiesHelper {
                                          final Object dflt) {
         Object value = dflt;
         String property = getConfigPath(protocol, name);
-        System.out.println("DriverManagerHelper.getConfig() 1 property: " + property);
         if (!driver.hasByHierarchicalName(property)) {
             property = getDefaultConfigPath(name);
         }
-        System.out.println("DriverManagerHelper.getConfig() 2 property: " + property);
         if (driver.hasByHierarchicalName(property)) {
             try {
                 value = driver.getByHierarchicalName(property);
@@ -238,18 +230,13 @@ public class PropertiesHelper {
                                                    final String name,
                                                    final Object dflt) {
         Object value = dflt;
-        System.out.println("DriverPropertiesHelper.getConfigProperties() 1");
         String property = getConfigPropertiesPath(protocol, name);
-        System.out.println("DriverPropertiesHelper.getConfigProperties() 2 Property: " + property);
         if (!driver.hasByHierarchicalName(property)) {
             property = getDefaultConfigPropertiesPath(name);
-            System.out.println("DriverPropertiesHelper.getConfigProperties() 3 Property: " + property);
         }
         if (driver.hasByHierarchicalName(property)) {
             try {
-                System.out.println("DriverPropertiesHelper.getConfigProperties() 4");
                 value = driver.getByHierarchicalName(property);
-                System.out.println("DriverPropertiesHelper.getConfigProperties() 5 Value: " + value);
             } catch (NoSuchElementException e) { }
         }
         return value;
@@ -301,9 +288,8 @@ public class PropertiesHelper {
     public static final String[] getFormatKeys(final String template) {
         List<String> keys = new ArrayList<>();
 
-        Matcher matcher = Pattern.compile("[$][{](\\w+)}").matcher(template);
+        Matcher matcher = Pattern.compile(ConfigSQL.KEY_PATTERN).matcher(template);
         while (matcher.find()) {
-            System.out.println("DriverProviderHelper.getFormatKeys() 1 Key: " + matcher.group(1));
             keys.add(matcher.group(1));
         }
 
@@ -316,7 +302,7 @@ public class PropertiesHelper {
         List<Object> valueList = new ArrayList<>();
 
         for (String key : getFormatKeys(template)) {
-            String paramName = "${" + key + "}";
+            String paramName = ConfigSQL.KEY_PREFIX + key + ConfigSQL.KEY_SUFFIX;
             int index = newTemplate.indexOf(paramName);
             if (index != -1) {
                 newTemplate.replace(index, index + paramName.length(), "%s");
@@ -333,7 +319,6 @@ public class PropertiesHelper {
                                                             final String[] keys) {
         Map<String, Object> arguments = new HashMap<>();
         for (String key : keys) {
-            System.out.println("DriverPropertiesHelper.getKeysArgument() 1 Key: " + key);
             Object value = null;
             if (hasInfosProperty(infos, key)) {
                 value = getInfosProperty(infos, key, null);
@@ -341,7 +326,6 @@ public class PropertiesHelper {
                 value = getConfigStringProperty(config, protocol, key, null);
             }
             if (value != null) {
-                System.out.println("DriverPropertiesHelper.getKeysArgument() 2 Value: " + value);
                 arguments.put(key, value);
             }
         }

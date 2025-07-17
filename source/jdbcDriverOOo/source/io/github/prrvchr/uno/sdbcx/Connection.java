@@ -53,7 +53,6 @@ public final class Connection
                          String url,
                          Set<String> properties) {
         super(ctx, SERVICE, SERVICES, provider, url, properties);
-        System.out.println("sdbcx.Connection() *************************");
     }
 
     protected Provider getProvider() {

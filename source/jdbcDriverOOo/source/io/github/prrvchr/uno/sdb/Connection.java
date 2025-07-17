@@ -73,7 +73,6 @@ public final class Connection
                          Set<String> properties) {
         super(ctx, SERVICE, SERVICES, provider, url, properties);
         mDataSource = DocumentContainer.getDataSource();
-        System.out.println("sdb.Connection() *************************");
     }
 
     protected Provider getProvider() {
@@ -170,19 +169,25 @@ public final class Connection
         return null;
     }*/
 
-
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public synchronized XNameAccess getUsers() {
-        return getUsersInternal();
+        XNameAccess users = null;
+        if (getProvider().getConfigSQL().supportsDCLQuery()) {
+            users = getUsersInternal();
+        }
+        return users;
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
     public XNameAccess getGroups() {
-        return getGroupsInternal();
+        XNameAccess groups = null;
+        if (getProvider().getConfigSQL().supportsDCLQuery()) {
+            groups = getGroupsInternal();
+        }
+        return groups;
     }
-
 
     protected synchronized GroupContainer getGroupsInternal() {
         checkDisposed();
@@ -298,7 +303,6 @@ public final class Connection
     protected TableContainer getTableContainer(List<String> names)
         throws ElementExistException {
         TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(), names);
-        System.out.println("sdb.Connection.getTableContainer() *************************");
         return tables;
     }
 
@@ -306,7 +310,6 @@ public final class Connection
     protected ViewContainer getViewContainer(List<String> names)
         throws ElementExistException {
         ViewContainer views = new ViewContainer(this, getProvider().isCaseSensitive(), names);
-        System.out.println("sdb.Connection.getViewContainer() *************************");
         return views;
     }
 

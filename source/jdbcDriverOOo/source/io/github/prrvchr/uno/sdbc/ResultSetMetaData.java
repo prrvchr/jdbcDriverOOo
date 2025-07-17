@@ -43,7 +43,6 @@ public final class ResultSetMetaData
     // The constructor method:
     public ResultSetMetaData(ConnectionBase connection,
                              java.sql.ResultSetMetaData metadata) {
-        System.out.println("ResultSetMetaData() 1");
         mConnection = connection;
         mMetadata = metadata;
         mCount = -1;

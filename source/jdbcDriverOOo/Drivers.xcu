@@ -1217,17 +1217,17 @@
       </node>
 
       <node oor:name="MetaData">
+        <node oor:name="SupportsDCLQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
         <node oor:name="SupportsAlterPrimaryKey" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
           </prop>
         </node>
         <node oor:name="SupportsRenameView" oor:op="replace">
-          <prop oor:name="Value" oor:type="xs:boolean">
-            <value>false</value>
-          </prop>
-        </node>
-        <node oor:name="SupportsDCLQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>false</value>
           </prop>

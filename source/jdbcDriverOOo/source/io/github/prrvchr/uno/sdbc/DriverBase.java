@@ -98,7 +98,6 @@ public abstract class DriverBase
             DriverManager.setJavaLoggerService(context, IDENTIFIER);
         }
         mDriver = getDriverConfig(context, "org.openoffice.Office.DataAccess.Drivers", this);
-        System.out.println("sdbc.DriverBase.DriverBase() 1");
     }
 
     private boolean isJavaLoggerEnabled(XComponentContext context) throws SQLException {

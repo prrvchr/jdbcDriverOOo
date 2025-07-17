@@ -116,7 +116,6 @@ public abstract class ContainerBase<T extends Descriptor>
             }
             mElements.clear();
         }
-        System.out.println("sdbcx.ContainerBase.disposeInternal() Class: " + this.getClass().getName());
     }
 
     // com.sun.star.lang.XServiceInfo:

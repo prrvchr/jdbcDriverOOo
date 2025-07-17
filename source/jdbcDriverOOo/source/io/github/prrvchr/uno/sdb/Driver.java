@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.lang.StackWalker.Option;
 import java.util.Set;
 
 import com.sun.star.uno.Exception;
@@ -48,9 +47,6 @@ public final class Driver
     public Driver(XComponentContext ctx)
         throws Exception {
         super(ctx, mImplementationName, mServiceNames, "sdb");
-        StackWalker.getInstance(Option.RETAIN_CLASS_REFERENCE)
-                   .forEach(frame -> System.out.println(frame.getDeclaringClass()));
-        System.out.println("sdb.Driver() 1 *****************************************************************");
     }
  
     @Override

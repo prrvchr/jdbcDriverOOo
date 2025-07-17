@@ -821,7 +821,6 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
         } else {
             opt = Statement.NO_GENERATED_KEYS;
         }
-        System.out.println("CachedRowSetWriter.insertCurrentRow() 1 insertCmd: " + insertCmd);
 
         try (PreparedStatement stmt = con.prepareStatement(insertCmd, opt)) {
             // XXX: Auto-increment columns are ignored during inserts (needed by PostGreSQL)
@@ -829,12 +828,9 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             int index = 1;
             for (int i = 0; i < tabCols.length; i++) {
                 int j = tabCols[i];
-                System.out.println("CachedRowSetWriter.insertCurrentRow() 2 i: " + i);
                 if (isInsertableColumns(j)) {
                     Object value = crs.getObject(j);
                     if (value != null) {
-                        System.out.println("CachedRowSetWriter.insertCurrentRow() 3 value: " + value +
-                                           " - index: " + i + 1);
                         stmt.setObject(index, value);
                     } else {
                         stmt.setNull(index, callerMd.getColumnType(j));

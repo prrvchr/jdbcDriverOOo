@@ -49,8 +49,9 @@ class Logger implements System.Logger {
     private static final String LOGGER_WRAPPER_CLASS = "jdk.internal.logger.AbstractLoggerWrapper";
     private XLogger mLogger;
 
-    public Logger(XComponentContext context, String name, Module module) {
-        System.out.println("DriverLogger() 1 Name: " + name + " - Module: " + module.toString());
+    public Logger(XComponentContext context,
+                  String name,
+                  @SuppressWarnings("unused") Module module) {
         if (name == null || name.isBlank()) {
             name = BASE_NAME + "Driver";
         } else {
@@ -75,7 +76,6 @@ class Logger implements System.Logger {
         if (mLogger != null) {
             loggable = level.getSeverity() >= mLogger.getLevel();
         }
-        System.out.println("DriverLogger.isLoggable() 1 : " + loggable);
         return loggable;
     }
 
@@ -128,7 +128,7 @@ class Logger implements System.Logger {
             try {
                 msg = MessageFormat.format(template, parameters);
             } catch (IllegalArgumentException e) {
-                System.out.println("DriverLogger.log() 2 Msg: " + key);
+                System.out.println("DriverLogger.log() Msg: " + key);
                 StringBuffer buffer = new StringBuffer(template);
                 for (Object parameter : parameters) {
                     buffer.append(" ");

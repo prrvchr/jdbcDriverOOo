@@ -131,7 +131,6 @@ public class KeyHelper {
                     component.setTable(result.getString(FKTABLE_NAME));
                     String name = DBTools.buildName(provider, component, rule);
                     value = result.getString(FKCOLUMN_NAME);
-                    System.out.println("DBKeyHelper.getExportedTables() 1 Table " + name + " - Column: " + value);
                     if (!tables.containsKey(name)) {
                         tables.put(name, List.of(value));
                     } else {
@@ -170,7 +169,6 @@ public class KeyHelper {
                     }
                     component.setTable(result.getString(FKTABLE_NAME));
                     String name = DBTools.buildName(provider, component, rule);
-                    System.out.println("DBKeyHelper.getExportedTables() 1 Table " + name);
                     if (!tables.contains(name)) {
                         tables.add(name);
                     }

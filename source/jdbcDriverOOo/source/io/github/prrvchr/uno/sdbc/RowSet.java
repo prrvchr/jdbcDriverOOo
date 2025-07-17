@@ -47,7 +47,6 @@ public final class RowSet
         throws SQLException {
         super(SERVICE, SERVICES, connection, rowset, statement);
         registerProperties(new HashMap<String, PropertyWrapper>());
-        System.out.println("sdbc.RowSet() 1");
     }
 
     @Override

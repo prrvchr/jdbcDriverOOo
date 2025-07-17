@@ -73,7 +73,6 @@ public class PrivilegesHelper {
         Map<String, Object> arguments = ParameterDCL.getAlterPrivilegesArguments(provider, table, privileges,
                                                                                     isrole, grantee, rule, sensitive);
         String query = provider.getConfigDCL().getGrantPrivilegesCommand(arguments);
-        System.out.println("DBPrivilegesHelper.getGrantPrivilegesCommand() SQL: " + query);
         return query;
     }
 
@@ -88,7 +87,6 @@ public class PrivilegesHelper {
         Map<String, Object> arguments = ParameterDCL.getAlterPrivilegesArguments(provider, table, privileges,
                                                                                     isrole, grantee, rule, sensitive);
         String query = provider.getConfigDCL().getRevokePrivilegesCommand(arguments);
-        System.out.println("DBPrivilegesHelper.getRevokePrivilegesCommand() SQL: " + query);
         return query;
     }
 
@@ -101,10 +99,8 @@ public class PrivilegesHelper {
         java.sql.ResultSet result = null;
         if (provider.getConfigSQL().ignoreDriverPrivileges()) {
             String user = md.getUserName();
-            System.out.println("PrivilegesHelper.getTablePrivilegesResultSet() 1 username: " + user);
             result = ResultSetHelper.getDefaultTablePrivilegesResultset(provider, catalog, schema, table, user);
         } else {
-            System.out.println("PrivilegesHelper.getTablePrivilegesResultSet() 2");
             String[] columns = provider.getConfigSQL().getTablePrivilegesColumns();
             RowSetData data = provider.getConfigSQL().getTablePrivilegeData();
             result = ResultSetHelper.getTablePrivilegesResultset(md.getTablePrivileges(catalog, schema, table),
@@ -188,19 +184,17 @@ public class PrivilegesHelper {
         throws java.sql.SQLException, SQLException {
         int privileges = 0;
         try {
-            System.out.println("PrivilegesHelper.getTablePrivileges() 1");
             if (provider.getConfigDCL().supportsTablePrivileges()) {
                 Map<String, Object> arguments = ParameterDCL.getPrivilegesArguments(grantee, table);
                 List<Object> values = new ArrayList<>();
                 String query = provider.getConfigDCL().getTablePrivilegesQuery(arguments, values);
                 privileges = getPrivileges(provider, query, values);
-                System.out.println("PrivilegesHelper.getTablePrivileges() 2 privileges: " + privileges);
             } else {
                 privileges = provider.getConfigDCL().getMockPrivileges();
-                System.out.println("PrivilegesHelper.getTablePrivileges() 3 privileges: " + privileges);
             }
         } catch (Exception e) {
             System.out.println("PrivilegesHelper.getPrivileges() ERROR: " + UnoHelper.getStackTrace(e));
+            throw e;
         }
         return privileges;
     }
@@ -243,7 +237,6 @@ public class PrivilegesHelper {
                                      List<Object> values)
         throws java.sql.SQLException, SQLException {
         int privileges = 0;
-        System.out.println("PrivilegesHelper.getPrivileges() 1 query: " + query);
         try (java.sql.PreparedStatement statement = provider.getConnection().prepareStatement(query)) {
             setPreparedStatementParameter(statement, values);
             try (java.sql.ResultSet result = statement.executeQuery()) {

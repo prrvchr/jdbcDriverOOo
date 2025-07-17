@@ -45,7 +45,6 @@ public final class Driver
     public Driver(XComponentContext ctx)
         throws Exception {
         super(ctx, mImplementationName, mServiceNames, "sdbc");
-        System.out.println("sdbc.Driver() 1 *****************************************************************");
     }
 
     @Override

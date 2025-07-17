@@ -889,17 +889,14 @@ public class DBTools {
     public static void cloneDescriptorColumns(XPropertySet source,
                                               XPropertySet destination)
         throws SQLException {
-        System.out.println("DataBaseTools.cloneDescriptorColumns() 1");
         XColumnsSupplier sourceColumnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, source);
         XIndexAccess sourceColumns = UnoRuntime.queryInterface(XIndexAccess.class, sourceColumnsSupplier.getColumns());
         
         XColumnsSupplier destinationColumnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, destination);
         XAppend destinationAppend = UnoRuntime.queryInterface(XAppend.class, destinationColumnsSupplier.getColumns());
         
-        System.out.println("DataBaseTools.cloneDescriptorColumns() 2");
         int count = sourceColumns.getCount();
         for (int i = 0; i < count; i++) {
-            System.out.println("DataBaseTools.cloneDescriptorColumns() 3");
             try {
                 XPropertySet columnProperties = UnoRuntime.queryInterface(XPropertySet.class,
                                                                           sourceColumns.getByIndex(i));
@@ -909,7 +906,6 @@ public class DBTools {
                 throw new SQLException("Error", Any.VOID, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, exception);
             }
         }
-        System.out.println("DataBaseTools.cloneDescriptorColumns() 4");
     }
 
     public static boolean updateObject(java.sql.ResultSet resultset,

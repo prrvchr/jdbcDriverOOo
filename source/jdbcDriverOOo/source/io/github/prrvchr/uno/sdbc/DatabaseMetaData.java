@@ -83,9 +83,7 @@ public class DatabaseMetaData
 
     @Override
     public String getURL() throws SQLException {
-        String url = mConnection.getProvider().getConfigSQL().getURL();
-        System.out.println("sdbc.DatabaseMetaData.getURL() 1 url: " + url);
-        return url;
+        return mConnection.getProvider().getConfigSQL().getURL();
     }
 
     @Override
@@ -788,7 +786,6 @@ public class DatabaseMetaData
     public String getUserName() throws SQLException {
         try {
             String user = mMetadata.getUserName();
-            System.out.println("DatabaseMetaData.getUserName() 1 username: '" + user + "'");
             if (user == null) {
                 user = "";
             }

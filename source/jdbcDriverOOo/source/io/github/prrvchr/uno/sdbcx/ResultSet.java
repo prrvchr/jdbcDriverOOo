@@ -52,7 +52,6 @@ public final class ResultSet
         throws SQLException {
         super(SERVICE, SERVICES, connection, result, statement, false, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
-        System.out.println("sdbcx.ResultSet() 1");
     }
 
     @Override

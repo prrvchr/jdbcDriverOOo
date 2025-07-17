@@ -41,15 +41,11 @@ public class LoggerFinder extends System.LoggerFinder {
 
     @Override
     public System.Logger getLogger(String name, Module module) {
-        System.out.println("DriverLoggerFinder() 1 Name: " + name);
         Logger logger = null;
         if (!sLOGGERS.containsKey(name)) {
             try {
-                System.out.println("DriverLoggerFinder() 2");
                 logger = new Logger(mContext, name, module);
-                System.out.println("DriverLoggerFinder() 3 Name: " + name);
                 sLOGGERS.put(name, logger);
-                System.out.println("DriverLoggerFinder() 4 Name: " + name);
             } catch (Throwable e) {
                 e.printStackTrace();
                 throw new SecurityException(e);

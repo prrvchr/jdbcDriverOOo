@@ -293,7 +293,6 @@ public abstract class RowSetBase
     @Override
     public Object getWarnings()
         throws SQLException {
-        System.out.println("RowSetSuper.getWarnings() 1");
         return Any.VOID;
     }
 

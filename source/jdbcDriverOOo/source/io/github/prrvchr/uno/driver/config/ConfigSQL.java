@@ -44,6 +44,11 @@ import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
 
 public class ConfigSQL extends ConfigBase {
 
+
+    public static final String KEY_PREFIX = "${";
+    public static final String KEY_SUFFIX = "}";
+    public static final String KEY_PATTERN = "[$][{]([\\w+\\.*]+)}";
+
     private static final String SQL_COMMAND_SUFFIX = "SQLCommandSuffix";
     private static final String SUPPORTS_DCL_QUERY = "SupportsDCLQuery";
 
@@ -55,10 +60,6 @@ public class ConfigSQL extends ConfigBase {
                                                               "GRANTOR", "GRANTEE", "PRIVILEGE", "IS_GRANTABLE"};
     private static final String[] DEFAULT_TABLE_PRIVILEGES = {"SELECT", "INSERT", "UPDATE", "DELETE"};
 
-
-    private final String mKeyPrefix = "${";
-    private final String mKeySuffix = "}";
-    private final String mKeyPattern = "[$][{]([\\w+\\.*]+)}";
 
     private final String mIdentifierQuote;
     private final String mSubProtocol;
@@ -89,7 +90,6 @@ public class ConfigSQL extends ConfigBase {
                         final boolean rewriteTable)
         throws SQLException, java.sql.SQLException {
         super(config, opts, infos, url, metadata, subProtocol, rewriteTable);
-        System.out.println("SQLQuery() 1");
         mConfig = config;
         mSubProtocol = subProtocol;
         mIdentifierQuote =  metadata.getIdentifierQuoteString();
@@ -97,7 +97,6 @@ public class ConfigSQL extends ConfigBase {
         mBooleanProperties = new HashMap<>();
         mStringProperties = new HashMap<>();
         mStringsProperties = new HashMap<>();
-        System.out.println("SQLQuery() 2");
     }
 
     public String enquoteIdentifier(String identifier) {
@@ -205,7 +204,7 @@ public class ConfigSQL extends ConfigBase {
                                   String token) {
         StringBuilder template = new StringBuilder(command);
         for (String key : getFormatKeys(command)) {
-            String parameter = mKeyPrefix + key + mKeySuffix;
+            String parameter = KEY_PREFIX + key + KEY_SUFFIX;
             int index = template.indexOf(parameter);
             if (index != -1) {
                 template.replace(index, index + parameter.length(), token);
@@ -222,7 +221,6 @@ public class ConfigSQL extends ConfigBase {
     private String getConfigurationString(final String name, String value)
         throws NoSuchElementException {
         value = (String) getConfiguration(mConfig, mSubProtocol, name, value);
-        System.out.println("Connection.getConfigurationString() 1 value: " + value);
         if (!mCommandSuffix.isBlank() && value != null && !value.isBlank()) {
             value += mCommandSuffix;
         }
@@ -243,7 +241,7 @@ public class ConfigSQL extends ConfigBase {
 
     private final String[] getFormatKeys(final String template) {
         List<String> keys = new ArrayList<>();
-        Matcher matcher = Pattern.compile(mKeyPattern).matcher(template);
+        Matcher matcher = Pattern.compile(KEY_PATTERN).matcher(template);
         while (matcher.find()) {
             keys.add(matcher.group(1));
         }

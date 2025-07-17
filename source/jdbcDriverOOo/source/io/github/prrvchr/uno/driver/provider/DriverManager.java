@@ -156,14 +156,12 @@ public class DriverManager {
                                                     final boolean add)
         throws SQLException {
         Driver driver = null;
-        System.out.println("DriverManagerHelper.getDriverByClassName() 1 url: " + url);
         try {
             final File[] files = getDriverArchiveFiles(source, clspath, clsname);
             if (add && InstrumentationAgent.isSupported()) {
                 URL[] urls = getDriverArchiveUrls(source, files, clsname, false);
                 try {
                     for (URL archive : urls) {
-                        System.out.println("DriverManagerHelper.getDriverByClassName() 2 url: " + archive.toString());
                         InstrumentationAgent.addToClassPath(archive.toString());
                     }
                     driver = java.sql.DriverManager.getDriver(url);
@@ -205,14 +203,10 @@ public class DriverManager {
                                             final String name,
                                             final boolean add)
         throws SQLException {
-        System.out.println("DriverManagerHelper.registerDriver() 1 drvpath: " + drvpath.toString() + 
-                           " - clspath: " + clspath);
         Path path = null;
         try {
             path = Path.of(new URI(clspath)).toRealPath();
         } catch (URISyntaxException | IOException e) { }
-        System.out.println("DriverManagerHelper.registerDriver() 2 drvpath: " + drvpath.toString() +
-                           " - clspath: " + path.toString());
         // XXX: Does Java provide the jdbcDriverOOo embedded driver?
         if (path == null || !drvpath.startsWith(path)) {
             final int resource = Resources.STR_LOG_DRIVER_JAVA_CLASS_NOT_SUPPORTED;
@@ -233,7 +227,6 @@ public class DriverManager {
                                               DBException.getSQLException(source, e));
         }
         mRegisteredDriver.add(clsname);
-        System.out.println("DriverManagerHelper.registerDriver() 3");
     }
 
     private static final String expandURL(final XComponentContext context,

@@ -100,7 +100,6 @@ public class Provider {
                     final Properties properties,
                     final String api)
         throws SQLException {
-        System.out.println("jdbcdriver.DriverProvider() 1");
         String location = PropertiesHelper.getJdbcUrl(url);
 
         try {
@@ -119,7 +118,6 @@ public class Provider {
                 DriverManager.registerDriver(source, driver, drvpath, clspath, clsname, name, add);
                 logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, drvpath);
 
-                System.out.println("jdbcdriver.DriverProvider() 2");
             }
 
             // XXX: It is the provider who holds the connection log
@@ -127,13 +125,9 @@ public class Provider {
 
             mInfos = infos;
 
-            System.out.println("jdbcdriver.DriverProvider() 3");
-
             setSystemProperties(logger, config, infos);
 
             java.sql.Connection connection = java.sql.DriverManager.getConnection(location, properties);
-            System.out.println("jdbcdriver.DriverProvider() 4");
-
             java.sql.DatabaseMetaData metadata = connection.getMetaData();
 
             // XXX: Get the corresponding query composer at the API level
@@ -155,7 +149,7 @@ public class Provider {
             // XXX: We do not keep the connection but the statement
             // XXX: which allows us to find the connection if necessary.
             mStatement = connection.createStatement();
-            System.out.println("jdbcdriver.DriverProvider() 5 **********************************************");
+
         } catch (SQLException e) {
             throw e;
         } catch (Throwable e) {
@@ -419,8 +413,8 @@ public class Provider {
     }
 
     private String getFormatedPropertyValue(final XHierarchicalNameAccess config,
-                                          final PropertyValue[] infos,
-                                          final String template) {
+                                            final PropertyValue[] infos,
+                                            final String template) {
         String value = template;
         String[] keys = PropertiesHelper.getFormatKeys(template);
         Map<String, Object> arguments = PropertiesHelper.getKeysArgument(config, infos, mSubProtocol, keys);
