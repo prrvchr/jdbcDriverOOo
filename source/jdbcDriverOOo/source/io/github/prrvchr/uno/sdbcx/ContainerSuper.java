@@ -25,18 +25,21 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.ListIterator;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ContainerEvent;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XContainerListener;
+import com.sun.star.container.XEnumeration;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lib.uno.helper.InterfaceContainer;
@@ -62,7 +65,7 @@ public abstract class ContainerSuper<T extends Descriptor>
                XRefreshable {
 
     protected InterfaceContainer mRefresh = new InterfaceContainer();
-    private BiMap<String, Integer> mNames;
+    private BiMap<String> mNames;
     private Comparator<String> mCaseSensitiveComparator = new Comparator<String>() {
         @Override
         public int compare(String x, String y) {
@@ -93,21 +96,11 @@ public abstract class ContainerSuper<T extends Descriptor>
         throws ElementExistException {
         this(service, services, lock, sensitive);
         for (String name : names) {
-            if (hasByNameInternal(name)) {
+            if (mNames.contains(name)) {
                 throw new ElementExistException(name, this);
             }
-            mNames.put(name, mElements.size());
+            mNames.add(name);
             mElements.add(null);
-        }
-    }
-
-    // Would be from com.sun.star.lang.XComponent ;)
-    public void dispose() {
-        EventObject event = new EventObject(this);
-        mRefresh.disposeAndClear(event);
-        disposeInternal(event);
-        synchronized (mLock) {
-            mNames.clear();
         }
     }
 
@@ -171,7 +164,7 @@ public abstract class ContainerSuper<T extends Descriptor>
                 throw new NoSuchElementException();
             }
         }
-        removeElement(mNames.get(name));
+        removeElement(mNames.indexOf(name));
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -197,7 +190,7 @@ public abstract class ContainerSuper<T extends Descriptor>
             }
             // XXX: appendElement() can change the name!!!
             String name = getElementName(descriptor);
-            mNames.put(name, mElements.size());
+            mNames.add(name);
             mElements.add(element);
 
             // XXX: notify our container listeners
@@ -213,8 +206,8 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected void refill(List<String> names) {
         // XXX: We only add new elements, as per the C++ implementation.
         for (String name : names) {
-            if (!mNames.containsKey(name)) {
-                mNames.put(name, mElements.size());
+            if (!mNames.contains(name)) {
+                mNames.add(name);
                 mElements.add(null);
             }
         }
@@ -247,15 +240,15 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected void replaceElement(String oldname, String newname, boolean rename)
         throws SQLException {
         synchronized (mLock) {
-            if (!newname.equals(oldname) && mNames.containsKey(oldname)) {
-                int index = mNames.remove(oldname);
-                T element = mElements.remove(index);
-                // XXX: We cannot set the name of composed names (ie: table and view)
+            if (!newname.equals(oldname) && mNames.contains(oldname)) {
+                int index = mNames.indexOf(oldname);
+                mNames.remove(oldname);
+                mNames.add(index, newname);
+                T element = mElements.get(index);
                 if (element != null && rename) {
+                    // XXX: We cannot set the name of composed names (ie: table and view)
                     element.setName(newname);
                 }
-                mElements.add(index, element);
-                mNames.put(newname, index);
                 ContainerEvent event = new ContainerEvent(this, newname, element, oldname);
                 for (Iterator<?> iterator = mContainer.iterator(); iterator.hasNext();) {
                     XContainerListener listener = (XContainerListener) iterator.next();
@@ -278,14 +271,15 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected void removeElement(String name,
                                  boolean really)
         throws SQLException {
-        removeElement(getElementIndexInternal(name), really);
+        int index = mNames.indexOf(name);
+        removeElement(index, really);
     }
 
     protected void removeElement(int index,
                                  boolean really)
         throws SQLException {
         if (really) {
-            String name = getElementNameInternal(index);
+            String name = mNames.get(index);
             removeDataBaseElement(index, name);
         }
         super.removeElement(index);
@@ -302,8 +296,8 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected void insertElement(String name,
                                  T element) {
         synchronized (mLock) {
-            if (!hasByNameInternal(name)) {
-                mNames.put(name, mElements.size());
+            if (!mNames.contains(name)) {
+                mNames.add(name);
                 mElements.add(element);
             }
         }
@@ -312,32 +306,18 @@ public abstract class ContainerSuper<T extends Descriptor>
     // XXX: Shared methods between ContainerBase and ContainerSuper
     // XXX: ContainerBase support duplicate name and the contents will not be sorted.
     // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
-    protected String removeElementNameInternal(int index) {
-        String key = mNames.getKey(index);
-        if (key != null) {
-            mNames.remove(key);
-        }
-        return key;
+    @Override
+    protected List<String> getNamesInternal() {
+        return mNames;
     }
 
-    protected String getElementNameInternal(int index) {
-        return mNames.getKey(index);
-    }
-
-    protected boolean hasByNameInternal(String name) {
-        return mNames.containsKey(name);
-    }
-
-    protected String[] getElementNamesInternal() {
-        return mNames.keySet().toArray(new String[mNames.size()]);
-    }
-
-    protected int getElementIndexInternal(String name) {
-        return mNames.get(name);
+    @Override
+    protected XEnumeration createEnumerationInternal() {
+        return new ContainerEnumeration(this, mNames.getEnumerationOrder());
     }
 
     protected T createElement(int index) throws SQLException {
-        String name = getElementNameInternal(index);
+        String name = mNames.get(index);
         return createElement(name);
     }
 
@@ -347,36 +327,152 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected abstract void refreshInternal();
     protected abstract T createElement(String name) throws SQLException;
 
-    class BiMap<K, V> extends TreeMap<K, V> {
+    private class BiMap<K> implements List<K> {
 
-        private static final long serialVersionUID = 8544367001531865987L;
-        private Map<V, K> mReverse = new HashMap<>();
+        private Set<K> mOrder;
+        private List<K> mIndex;
 
         public BiMap(Comparator<K> comparator) {
-            super(comparator);
+            mOrder = new TreeSet<>(comparator);
+            mIndex = new ArrayList<>();
+        }
+
+        public int[] getEnumerationOrder() {
+            int[] orders = new int[mOrder.size()];
+            int i = 0;
+            for (K value : mOrder) {
+                orders[i] = mIndex.indexOf(value);
+                i++;
+            }
+            return orders;
+        }
+
+        @Override
+        public K get(int index) {
+            return mIndex.get(index);
         }
 
         @Override
         public void clear() {
-            mReverse.clear();
-            super.clear();
+            mIndex.clear();
+            mOrder.clear();
         }
 
         @Override
-        public V put(K key, V value) {
-            mReverse.put(value, key);
-            return super.put(key, value);
+        public boolean add(K value) {
+            mOrder.add(value);
+            return mIndex.add(value);
         }
 
         @Override
-        public V remove(Object key) {
-            V value = super.remove(key);
-            mReverse.remove(value);
+        public void add(int index, K value) {
+            mOrder.add(value);
+            mIndex.add(index, value);
+        }
+
+        @Override
+        public boolean remove(Object value) {
+            mOrder.remove(value);
+            return mIndex.remove(value);
+        }
+
+        @Override
+        public K remove(int index) {
+            K value = mIndex.remove(index);
+            mOrder.remove(value);
             return value;
         }
 
-        public K getKey(V value) {
-            return mReverse.get(value);
+        @Override
+        public boolean contains(Object value) {
+            return mIndex.contains(value);
+        }
+
+        @Override
+        public int indexOf(Object value) {
+            return mIndex.indexOf(value);
+        }
+
+        @Override
+        public int size() {
+            return mIndex.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return mIndex.isEmpty();
+        }
+
+        @Override
+        public Iterator<K> iterator() {
+            return mOrder.iterator();
+        }
+
+        @Override
+        public Object[] toArray() {
+            return mOrder.toArray();
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Object[] toArray(Object[] values) {
+            return mOrder.toArray(values);
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return mIndex.containsAll(c);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends K> c) {
+            mOrder.addAll(c);
+            return mIndex.addAll(c);
+        }
+
+        @Override
+        public boolean addAll(int index, Collection<? extends K> c) {
+            mOrder.addAll(c);
+            return mIndex.addAll(index, c);
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            mOrder.removeAll(c);
+            return mIndex.removeAll(c);
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            mOrder.retainAll(c);
+            return mIndex.retainAll(c);
+        }
+
+        @Override
+        public K set(int index, K element) {
+            mOrder.remove(mIndex.get(index));
+            mOrder.add(element);
+            return mIndex.set(index, element);
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            return mIndex.lastIndexOf(o);
+        }
+
+        @Override
+        public ListIterator<K> listIterator() {
+            return mIndex.listIterator();
+        }
+
+        @Override
+        public ListIterator<K> listIterator(int index) {
+            return mIndex.listIterator(index);
+        }
+
+        @Override
+        public List<K> subList(int fromIndex, int toIndex) {
+            return mIndex.subList(fromIndex, toIndex);
         }
     }
 

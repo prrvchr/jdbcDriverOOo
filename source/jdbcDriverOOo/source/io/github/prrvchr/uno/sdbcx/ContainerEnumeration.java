@@ -45,6 +45,7 @@
  *************************************************************/
 package io.github.prrvchr.uno.sdbcx;
 
+
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XEnumeration;
 import com.sun.star.container.XIndexAccess;
@@ -60,20 +61,27 @@ public final class ContainerEnumeration
     implements XEnumeration,
                XEventListener {
 
-    boolean mIsListening;
-    private XIndexAccess mCollection;
-    private int mPosition;
+    private boolean mIsListening;
+    private XIndexAccess mElements;
+    private int[] mOrders;
+    private int mIndex;
 
-    public ContainerEnumeration(XIndexAccess collection) {
-        mCollection = collection;
+
+    public ContainerEnumeration(XIndexAccess elements) {
+        this(elements, null);
+    }
+
+    public ContainerEnumeration(XIndexAccess elements, int[] orders) {
+        mElements = elements;
+        mOrders = orders;
         startDisposeListening();
     }
 
     @Override
     public void disposing(EventObject event) {
         synchronized (this) {
-            if (event.Source == mCollection) {
-                mCollection = null;
+            if (event.Source == mElements) {
+                dispose();
             }
         }
     }
@@ -82,12 +90,12 @@ public final class ContainerEnumeration
     public boolean hasMoreElements() {
         boolean hasmore = false;
         synchronized (this) {
-            if (mCollection != null) {
-                if (mPosition < mCollection.getCount()) {
+            if (mElements != null) {
+                if (mIndex < mElements.getCount()) {
                     hasmore = true;
                 } else {
                     stopDisposeListening();
-                    mCollection = null;
+                    dispose();
                 }
             }
             return hasmore;
@@ -100,17 +108,18 @@ public final class ContainerEnumeration
                WrappedTargetException {
         Object value = null;
         synchronized (this) {
-            if (mCollection != null) {
-                if (mPosition < mCollection.getCount()) {
+            if (mElements != null) {
+                if (mIndex < mElements.getCount()) {
                     try {
-                        value = mCollection.getByIndex(mPosition++);
+                        int index = getIndex();
+                        value = mElements.getByIndex(index);
                     } catch (com.sun.star.lang.IndexOutOfBoundsException e) {
                         // can't happen
                     }
                 }
-                if (mPosition >= mCollection.getCount()) {
+                if (mIndex >= mElements.getCount()) {
                     stopDisposeListening();
-                    mCollection = null;
+                    dispose();
                 }
             }
         }
@@ -125,7 +134,7 @@ public final class ContainerEnumeration
             if (mIsListening) {
                 return;
             }
-            XComponent component = UnoRuntime.queryInterface(XComponent.class, mCollection);
+            XComponent component = UnoRuntime.queryInterface(XComponent.class, mElements);
             if (component != null) {
                 component.addEventListener(this);
                 mIsListening = true;
@@ -138,12 +147,27 @@ public final class ContainerEnumeration
             if (!mIsListening) {
                 return;
             }
-            XComponent component = UnoRuntime.queryInterface(XComponent.class, mCollection);
+            XComponent component = UnoRuntime.queryInterface(XComponent.class, mElements);
             if (component != null) {
                 component.removeEventListener(this);
                 mIsListening = false;
             }
         }
+    }
+
+    private int getIndex() {
+        int index;
+        if (mOrders != null) {
+            index = mOrders[mIndex++];
+        } else {
+            index = mIndex++;
+        }
+        return index;
+    }
+
+    private void dispose() {
+        mElements = null;
+        mOrders = null;
     }
 
 }
