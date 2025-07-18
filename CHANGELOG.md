@@ -352,7 +352,11 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - The new version of the SQLite driver is now compiled under Java 11 and uses `java.lang.System.Logger` as the logging facade, allowing access to it in LibreOffice. This is the only one that requires the use of the CachedRowSet option, otherwise Base will only display read-only tables and views.
 - This seems to be the most significant update to JdbcDriverOOo, and I didn't expect it to get this far. The next step will be to integrate Trino and be able to run queries distributed across different databases in LibreOffice Base. CachecRowSet is exactly the building block I needed to be able to complete this.
 
-### What remains to be done for version 1.5.1:
+### What has been done for version 1.5.2:
+
+A regression in container management (tables, views, and columns) has been present since the last update. It comes from the new integration of the [ResultColumn][108] service, which requires containers capable of handling name duplication, as is sometimes the case for columns in a ResultSet. This addition caused an error in index management after deleting an item. This issue has just been fixed and implemented in both [ContainerBase.java][109] and [ContainerSuper.java][110] files.
+
+### What remains to be done for version 1.5.2:
 
 - Add new languages for internationalization...
 
@@ -465,3 +469,6 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 [105]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/checkstyle.xml>
 [106]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/RowSetFactory/source/io/github/prrvchr/java/rowset/CachedRowSetImpl.java>
 [107]: <https://github.com/LibreOffice/loeclipse/pull/166>
+[108]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdb/ResultColumn.html>
+[109]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
+[110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>

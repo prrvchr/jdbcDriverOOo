@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.5.1][5]
+# version [1.5.2][5]
 
 ## Introduction:
 
@@ -103,7 +103,9 @@ After restarting LibreOffice, you can ensure that the extension and its driver a
 If the driver is not listed, the reason for the driver failure can be found in the extension's logging. This log is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC Driver -> Logging Options**.  
 The `Driver` logging must first be enabled and then LibreOffice restarted to get the error message in the log.
 
-Remember to first update the version of the Java JRE or JDK installed on your computer, this new version of jdbcDriverOOo requires **Java version 17 or later** instead of Java 11 previously.
+Remember:
+- To first update the version of the Java JRE or JDK installed on your computer, this new version of jdbcDriverOOo requires **Java version 17 or later** instead of Java 11 previously.
+- To install Java instrumentation if LibreOffice is lower than 25.8, please follow the description in section [How to install Java instrumentation][35].
 
 ___
 
@@ -310,7 +312,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-151>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-152>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -339,7 +341,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [39]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [40]: <img/jdbcDriverOOo.svg#middle>
 [41]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.1#right>
+[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.2#right>
 [43]: <img/jdbcDriverOOo-1.png>
 [44]: <img/jdbcDriverOOo-2.png>
 [45]: <img/jdbcDriverOOo-3.png>

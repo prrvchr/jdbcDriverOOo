@@ -102,15 +102,9 @@ public abstract class ContainerBase<T extends Descriptor>
     // Would be from com.sun.star.lang.XComponent ;)
     public void dispose() {
         EventObject event = new EventObject(this);
-        disposeInternal(event);
-        synchronized (mLock) {
-            mNames.clear();
-        }
-    }
-
-    protected void disposeInternal(EventObject event) {
         mContainer.disposeAndClear(event);
         synchronized (mLock) {
+            getNamesInternal().clear();
             for (T element : mElements) {
                 UnoHelper.disposeComponent(element);
             }
@@ -144,20 +138,21 @@ public abstract class ContainerBase<T extends Descriptor>
                 throw new NoSuchElementException();
             }
         }
-        return getElementByIndex(getElementIndexInternal(name));
+        int index = getNamesInternal().indexOf(name);
+        return getElementByIndex(index);
     }
 
     @Override
     public String[] getElementNames() {
         synchronized (mLock) {
-            return getElementNamesInternal();
+            return getNamesInternal().toArray(new String[0]);
         }
     }
 
     @Override
     public boolean hasByName(String name) {
         synchronized (mLock) {
-            return hasByNameInternal(name);
+            return getNamesInternal().contains(name);
         }
     }
 
@@ -172,7 +167,6 @@ public abstract class ContainerBase<T extends Descriptor>
     public boolean hasElements() {
         return !mElements.isEmpty();
     }
-
 
     // com.sun.star.container.XIndexAccess:
     @Override
@@ -206,13 +200,11 @@ public abstract class ContainerBase<T extends Descriptor>
         mContainer.remove(listener);
     }
 
-
     // com.sun.star.container.XEnumerationAccess:
     @Override
     public XEnumeration createEnumeration() {
-        return new ContainerEnumeration(this);
+        return createEnumerationInternal();
     }
-
 
     // com.sun.star.sdbcx.XColumnLocate
     @Override
@@ -222,7 +214,7 @@ public abstract class ContainerBase<T extends Descriptor>
             String error = String.format("Error Column: %s not fount", name);
             throw new SQLException(error, this, StandardSQLState.SQL_COLUMN_NOT_FOUND.text(), 0, null);
         }
-        return getElementIndexInternal(name);
+        return getNamesInternal().indexOf(name);
     }
 
     // Protected methods
@@ -230,11 +222,11 @@ public abstract class ContainerBase<T extends Descriptor>
         return mSensitive;
     }
 
-    public Iterator<String> getActiveNames() {
+    protected Iterator<String> getActiveNames() {
         return getActiveNames(Arrays.asList(getElementNames()));
     }
 
-    public Iterator<String> getActiveNames(Collection<String> filter) {
+    protected Iterator<String> getActiveNames(Collection<String> filter) {
         class Elements implements Iterator<String> {
             int mIndex = 0;
 
@@ -243,7 +235,7 @@ public abstract class ContainerBase<T extends Descriptor>
                 boolean next = false;
                 while (mIndex < mElements.size()) {
                     T element = mElements.get(mIndex);
-                    String name = getElementNameInternal(mIndex);
+                    String name = getNamesInternal().get(mIndex);
                     if (element != null && filter.contains(name)) {
                         next = true;
                         break;
@@ -255,18 +247,18 @@ public abstract class ContainerBase<T extends Descriptor>
 
             @Override
             public String next() {
-                return getElementNameInternal(mIndex++);
+                return getNamesInternal().get(mIndex++);
             }
         }
         return new Elements();
     }
 
 
-    public Iterator<T> getActiveElements() {
+    protected Iterator<T> getActiveElements() {
         return getActiveElements(Arrays.asList(getElementNames()));
     }
 
-    public Iterator<T> getActiveElements(Collection<String> filter) {
+    protected Iterator<T> getActiveElements(Collection<String> filter) {
         class Elements implements Iterator<T> {
             int mIndex = 0;
 
@@ -275,7 +267,7 @@ public abstract class ContainerBase<T extends Descriptor>
                 boolean next = false;
                 while (mIndex < mElements.size()) {
                     T element = mElements.get(mIndex);
-                    String name = getElementNameInternal(mIndex);
+                    String name = getNamesInternal().get(mIndex);
                     if (element != null && filter.contains(name)) {
                         next = true;
                         break;
@@ -308,9 +300,9 @@ public abstract class ContainerBase<T extends Descriptor>
         throws SQLException {
         T element = null;
         synchronized (mLock) {
-            if (hasByNameInternal(name)) {
+            if (getNamesInternal().contains(name)) {
                 try {
-                    int index = getElementIndexInternal(name);
+                    int index = getNamesInternal().indexOf(name);
                     element = getElementByIndex(index);
                 } catch (WrappedTargetException e) {
                     throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -320,6 +312,33 @@ public abstract class ContainerBase<T extends Descriptor>
         return element;
     }
 
+    protected void removeElement(int index)
+        throws SQLException {
+        String name = getNamesInternal().remove(index);
+        T element = mElements.remove(index);
+        UnoHelper.disposeComponent(element);
+        ContainerEvent event = new ContainerEvent(this, name, null, null);
+        for (Iterator<?> iterator = mContainer.iterator(); iterator.hasNext(); ) {
+            XContainerListener listener = (XContainerListener) iterator.next();
+            listener.elementRemoved(event);
+        }
+    }
+
+    // XXX: Shared methods between ContainerBase and ContainerSuper
+    // XXX: ContainerBase support duplicate name and the contents will not be sorted.
+    // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
+    protected List<String> getNamesInternal() {
+        return mNames;
+    }
+
+    protected XEnumeration createEnumerationInternal() {
+        return new ContainerEnumeration(this);
+    }
+
+    // Abstract protected methods
+    protected abstract T createElement(int index) throws SQLException;
+
+    // Private methods
     private T getElementByIndex(int index)
         throws WrappedTargetException {
         T element = mElements.get(index);
@@ -336,43 +355,5 @@ public abstract class ContainerBase<T extends Descriptor>
         }
         return element;
     }
-
-    protected void removeElement(int index)
-        throws SQLException {
-        String name = removeElementNameInternal(index);
-        T element = mElements.remove(index);
-        UnoHelper.disposeComponent(element);
-        ContainerEvent event = new ContainerEvent(this, name, null, null);
-        for (Iterator<?> iterator = mContainer.iterator(); iterator.hasNext(); ) {
-            XContainerListener listener = (XContainerListener) iterator.next();
-            listener.elementRemoved(event);
-        }
-    }
-
-    // XXX: Shared methods between ContainerBase and ContainerSuper
-    // XXX: ContainerBase support duplicate name and the contents will not be sorted.
-    // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
-    protected String removeElementNameInternal(int index) {
-        return mNames.remove(index);
-    }
-
-    protected String getElementNameInternal(int index) {
-        return mNames.get(index);
-    }
-
-    protected boolean hasByNameInternal(String name) {
-        return mNames.contains(name);
-    }
-
-    protected String[] getElementNamesInternal() {
-        return mNames.toArray(new String[mNames.size()]);
-    }
-
-    protected int getElementIndexInternal(String name) {
-        return mNames.indexOf(name);
-    }
-
-    // Abstract protected methods
-    protected abstract T createElement(int index) throws SQLException;
 
 }
