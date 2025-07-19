@@ -242,8 +242,7 @@ public abstract class ContainerSuper<T extends Descriptor>
         synchronized (mLock) {
             if (!newname.equals(oldname) && mNames.contains(oldname)) {
                 int index = mNames.indexOf(oldname);
-                mNames.remove(oldname);
-                mNames.add(index, newname);
+                mNames.set(index, newname);
                 T element = mElements.get(index);
                 if (element != null && rename) {
                     // XXX: We cannot set the name of composed names (ie: table and view)
@@ -449,10 +448,11 @@ public abstract class ContainerSuper<T extends Descriptor>
         }
 
         @Override
-        public K set(int index, K element) {
-            mOrder.remove(mIndex.get(index));
-            mOrder.add(element);
-            return mIndex.set(index, element);
+        public K set(int index, K newvalue) {
+            K oldvalue = mIndex.set(index, newvalue);
+            mOrder.remove(oldvalue);
+            mOrder.add(newvalue);
+            return oldvalue;
         }
 
         @Override

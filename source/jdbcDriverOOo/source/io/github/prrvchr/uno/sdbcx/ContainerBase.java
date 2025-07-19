@@ -214,7 +214,7 @@ public abstract class ContainerBase<T extends Descriptor>
             String error = String.format("Error Column: %s not fount", name);
             throw new SQLException(error, this, StandardSQLState.SQL_COLUMN_NOT_FOUND.text(), 0, null);
         }
-        return getNamesInternal().indexOf(name);
+        return getNamesInternal().indexOf(name) + 1;
     }
 
     // Protected methods
@@ -351,7 +351,7 @@ public abstract class ContainerBase<T extends Descriptor>
                 } catch (Exception ignored) { }
                 throw new WrappedTargetException(e.getMessage(), this, e);
             }
-            mElements.add(element);
+            mElements.set(index, element);
         }
         return element;
     }

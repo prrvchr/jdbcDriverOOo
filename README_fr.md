@@ -103,7 +103,7 @@ Après avoir redémarré LibreOffice, vous pouvez vous assurer que l'extension e
 Si le pilote n'est pas répertorié, la raison de l'échec du chargement du pilote peut être trouvée dans la journalisation de l'extension. Cette journalisation est accessible via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC Pure Java -> Options de journalisation**.  
 La journalisation `Driver` doit d'abord être activée, puis LibreOffice redémarré pour obtenir le message d'erreur dans le journal.
 
-N'oubliez pas:
+**Attention ne pas oublier:**
 - De mettre à jour la version du JRE ou JDK Java installée sur votre ordinateur si nécessaire, cette nouvelle version de jdbcDriverOOo nécessite **Java version 17 ou ultérieure** au lieu de Java 11 auparavant.
 - D'installer l'instrumentation Java si LibreOffice est inférieur à 25.8, veuillez suivre la description dans la section [Comment installer l'instrumentation Java][35].
 

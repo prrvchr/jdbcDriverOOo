@@ -103,8 +103,8 @@ After restarting LibreOffice, you can ensure that the extension and its driver a
 If the driver is not listed, the reason for the driver failure can be found in the extension's logging. This log is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC Driver -> Logging Options**.  
 The `Driver` logging must first be enabled and then LibreOffice restarted to get the error message in the log.
 
-Remember:
-- To first update the version of the Java JRE or JDK installed on your computer, this new version of jdbcDriverOOo requires **Java version 17 or later** instead of Java 11 previously.
+**Warning don't forget:**
+- To first update the version of the Java JRE or JDK installed on your computer if needed, this new version of jdbcDriverOOo requires **Java version 17 or later** instead of Java 11 previously.
 - To install Java instrumentation if LibreOffice is lower than 25.8, please follow the description in section [How to install Java instrumentation][35].
 
 ___
