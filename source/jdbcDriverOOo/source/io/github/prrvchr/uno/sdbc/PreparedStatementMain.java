@@ -369,10 +369,13 @@ public abstract class PreparedStatementMain
     @Override
     public XResultSetMetaData getMetaData() throws SQLException {
         XResultSetMetaData metadata = null;
+        System.out.println("PreparedStatementMain.getMetaData() 1");
         try {
             java.sql.ResultSetMetaData md = getJdbcStatement().getMetaData();
             if (md != null) {
                 metadata = new ResultSetMetaData(mConnection, md);
+            } else {
+                System.out.println("PreparedStatementMain.getMetaData() ERROR ********************************");
             }
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);

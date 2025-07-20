@@ -32,8 +32,8 @@
   <identifier value="io.github.prrvchr.jdbcDriverOOo"/>
   <platform value="all"/>
   <dependencies>
-    <OpenOffice.org-minimal-version value="LibreOffice 6.0" d:name="LibreOffice 6.0"/>
-    <l:LibreOffice-minimal-version value="6.0" d:name="LibreOffice 6.0"/>
+    <d:OpenOffice.org-minimal-version value="6.0" d:name="LibreOffice 6.0"/>
+    <l:LibreOffice-minimal-version value="6.0" l:name="LibreOffice 6.0"/>
   </dependencies>
   <update-information>
     <src xlink:href="https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.update.xml"/>
