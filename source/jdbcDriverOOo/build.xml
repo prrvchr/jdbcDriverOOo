@@ -381,7 +381,7 @@
     </target>
 
     <target name="package-oxt" depends="package-zip">
-        <echo file="${project.mimetype}" append="false">application/vnd.sun.star.package-bundle</echo>
+        <echo file="${project.mimetype}" append="false">application/vnd.openofficeorg.extension</echo>
         <zip destfile="${uno.package.name}" compress="false" keepcompression="true">
             <zipfileset file="${project.mimetype}"/>
             <zipfileset src="${project.zip}"/>

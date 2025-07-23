@@ -1,6 +1,7 @@
 /.settings/
 /bin/
 /build/
+/dist/
 .classpath
 .project
 .pydevproject

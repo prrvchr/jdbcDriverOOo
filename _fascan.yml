@@ -8,14 +8,12 @@ working_dir: .
 
 sast:
   include:
-    - glob(source/Driver-Derby/source/*)
-    - glob(source/Driver-H2/source/*)
-    - glob(source/Driver-HsqlDB/source/*)
-    - glob(source/Driver-MariaDB/source/*)
-    - glob(source/Driver-SQLite/source/*)
+    - glob(source/InstrumentationAgent/source/*)
     - glob(source/jdbcDriverOOo/service/*.py)
     - glob(source/jdbcDriverOOo/service/pythonpath/jdbcdriver/*)
     - glob(source/jdbcDriverOOo/source/*)
+    - glob(source/RowSetFactory/source/*)
+    - glob(source/UnoHelper/source/*)
     - glob(source/UnoLogger/source/*)
 
 sca:

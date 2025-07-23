@@ -109,7 +109,7 @@ public class Provider {
                                                                     mSubProtocol, name);
 
             if (!DriverManager.isDriverRegistered(clsname)) {
-                boolean add = false;
+                boolean add = true;
                 String clspath = DriverManager.getDriverClassPath(ctx, source, config,
                                                                   infos, mSubProtocol, name);
                 Driver driver = DriverManager.getDriverByClassName(source, clspath, clsname, location, add);
