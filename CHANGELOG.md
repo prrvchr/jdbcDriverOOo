@@ -356,7 +356,11 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 
 A regression in container management (tables, views, and columns) has been present since the last update. It comes from the new integration of the [ResultColumn][108] service, which requires containers capable of handling name duplication, as is sometimes the case for columns in a ResultSet. This addition caused an error in index management after deleting an item. This issue has just been fixed and implemented in both [ContainerBase.java][109] and [ContainerSuper.java][110] files.
 
-### What remains to be done for version 1.5.2:
+### What has been done for version 1.5.3:
+
+JaybirdEmbedded archive integration allows for true embedded mode for Jaybird. It is no longer necessary to install the Firebird Server to use Firebird in embedded mode (ie: `embedded:*`).
+
+### What remains to be done for version 1.5.3:
 
 - Add new languages for internationalization...
 

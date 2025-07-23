@@ -29,14 +29,15 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.5.2][5]
+# version [1.5.3][5]
 
 ## Introduction:
 
 **jdbcDriverOOo** is part of a [Suite][6] of [LibreOffice][7] ~~and/or [OpenOffice][8]~~ extensions allowing to offer you innovative services in these office suites.  
 
-This extension is the transcription in pure Java of the [java.sql.*][9] API to the [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] and [com.sun.star.sdb][12] API of UNO.
-**It allows you to use the JDBC driver of your choice directly in Base.**  
+This extension is the transcription in pure Java of the [java.sql.*][9] API to the SDBC API of UNO (ie: [com.sun.star.sdbc][10], [com.sun.star.sdbcx][11] and [com.sun.star.sdb][12]).
+**It allows you to use the JDBC driver of your choice directly in Base.**
+
 It embeds the drivers for the following databases:
 - [HyperSQL or HsqlDB][13] version 2.7.4
 - [SQLite via xerial sqlite-jdbc][14] version 3.50.2.1-SNAPSHOT
@@ -44,9 +45,9 @@ It embeds the drivers for the following databases:
 - [PostgreSQL via pgJDBC][16] version 42.7.5
 - [H2 Database Engine][17] version 2.2.224
 - [Apache Derby][18] version 11.16.1.1
-- [Firebird via Jaybird][19] version 6.0.2
-- [MySQL via Connector/J][20] version 9.3.0
-- [Trino or PrestoSQL][21] version 458-SNAPSHOT (currently being integrated, use with caution)
+- Firebird via [Jaybird][19] version 6.0.2 and [JaybirdEmbedded][20] version 1.0.0
+- [MySQL via Connector/J][21] version 9.3.0
+- [Trino or PrestoSQL][22] version 458-SNAPSHOT (currently being integrated, use with caution)
 
 Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite, Derby or Jaybird, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
@@ -225,7 +226,8 @@ To create a database, in LibreOffice go to the menu: **File -> New -> Database -
   - Linux: `embedded:/home/prrvchr/testdb/firebird?createDatabaseIfNotExist=true`
   - Windows: `embedded:C:\Utilisateurs\prrvc\testdb\firebird?createDatabaseIfNotExist=true`
 
-    Firebird requires, for the proper functioning of its embedded mode, the installation of [Firebird Server 5.x][54].
+    Firebird uses [JaybirdEmbedded][20] for its embedded mode to work. You can find the supported platforms in the [JaybirdEmbedded][20] documentation.  
+    For unsupported platforms, you can always install the [Firebird Server][54] for your platform.
 
 ___
 
@@ -312,7 +314,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-152>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-153>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -327,8 +329,9 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [17]: <https://www.h2database.com/html/main.html>
 [18]: <https://db.apache.org/derby/>
 [19]: <https://firebirdsql.org/en/jdbc-driver/>
-[20]: <https://dev.mysql.com/downloads/connector/j/>
-[21]: <https://trino.io/docs/current/client/jdbc.html#installing>
+[20]: <https://prrvchr.github.io/JaybirdEmbedded/>
+[21]: <https://dev.mysql.com/downloads/connector/j/>
+[22]: <https://trino.io/docs/current/client/jdbc.html#installing>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/#connection-url>
 [31]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
@@ -341,7 +344,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [39]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [40]: <img/jdbcDriverOOo.svg#middle>
 [41]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.2#right>
+[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.3#right>
 [43]: <img/jdbcDriverOOo-1.png>
 [44]: <img/jdbcDriverOOo-2.png>
 [45]: <img/jdbcDriverOOo-3.png>

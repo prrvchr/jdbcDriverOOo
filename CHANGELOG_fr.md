@@ -356,7 +356,11 @@ Les clients utilisant le pilote jdbcDriverOOo peuvent accéder aux fonctionnalit
 
 Une régression dans la gestion des conteneurs (tables, vues et colonnes) est présente depuis la dernière mise à jour. Elle provient de la nouvelle intégration du service [ResultColumn][108], qui nécessite des conteneurs capables de gérer la duplication de noms, comme c'est parfois le cas pour les colonnes d'un ResultSet. Cet ajout provoquait une erreur dans la gestion des index après la suppression d'un élément. Ce problème vient d'être corrigé et implementé dans les deux fichiers [ContainerBase.java][109] et [ContainerSuper.java][110].
 
-### Que reste-t-il à faire pour la version 1.5.2:
+### Ce qui a été fait pour la version 1.5.3:
+
+L'intégration de l'archive JaybirdEmbedded permet un véritable mode intégré pour Jaybird. Il n'est plus nécessaire d'installer le serveur Firebird pour utiliser Firebird en mode embarqué (ie: `embedded:*`).
+
+### Que reste-t-il à faire pour la version 1.5.3:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
