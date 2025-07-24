@@ -358,7 +358,7 @@ A regression in container management (tables, views, and columns) has been prese
 
 ### What has been done for version 1.5.3:
 
-JaybirdEmbedded archive integration allows for true embedded mode for Jaybird. It is no longer necessary to install the Firebird Server to use Firebird in embedded mode (ie: `embedded:*`).
+[JaybirdEmbedded][111] archive integration allows for true embedded mode for Jaybird. It is no longer necessary to install the Firebird Server to use Firebird in embedded mode (ie: `embedded:*`).
 
 ### What remains to be done for version 1.5.3:
 
@@ -476,3 +476,4 @@ JaybirdEmbedded archive integration allows for true embedded mode for Jaybird. I
 [108]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdb/ResultColumn.html>
 [109]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
+[111]: <https://prrvchr.github.io/JaybirdEmbedded/>

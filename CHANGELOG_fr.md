@@ -358,7 +358,7 @@ Une régression dans la gestion des conteneurs (tables, vues et colonnes) est pr
 
 ### Ce qui a été fait pour la version 1.5.3:
 
-L'intégration de l'archive JaybirdEmbedded permet un véritable mode intégré pour Jaybird. Il n'est plus nécessaire d'installer le serveur Firebird pour utiliser Firebird en mode embarqué (ie: `embedded:*`).
+L'intégration de l'archive [JaybirdEmbedded][111] permet un véritable mode intégré pour Jaybird. Il n'est plus nécessaire d'installer le serveur Firebird pour utiliser Firebird en mode embarqué (ie: `embedded:*`).
 
 ### Que reste-t-il à faire pour la version 1.5.3:
 
@@ -476,3 +476,4 @@ L'intégration de l'archive JaybirdEmbedded permet un véritable mode intégré 
 [108]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdb/ResultColumn.html>
 [109]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
+[111]: <https://prrvchr.github.io/JaybirdEmbedded/README_fr>
