@@ -360,7 +360,13 @@ A regression in container management (tables, views, and columns) has been prese
 
 [JaybirdEmbedded][111] archive integration allows for true embedded mode for Jaybird. It is no longer necessary to install the Firebird Server to use Firebird in embedded mode (ie: `embedded:*`).
 
-### What remains to be done for version 1.5.3:
+### What has been done for version 1.5.4:
+
+In order to avoid any regressions on extensions using jdbcDriverOOo:
+- `CachedRowSet` will only be used if Bookmarks are used.
+- `CachedRowSet` will not be used for the `com.sun.star.sdbc` API level.
+
+### What remains to be done for version 1.5.4:
 
 - Add new languages for internationalization...
 

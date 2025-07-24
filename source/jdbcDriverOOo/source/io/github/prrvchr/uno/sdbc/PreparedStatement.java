@@ -27,8 +27,6 @@ package io.github.prrvchr.uno.sdbc;
 
 import java.util.HashMap;
 
-import javax.sql.rowset.CachedRowSet;
-
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
@@ -36,7 +34,6 @@ import com.sun.star.sdbc.XResultSet;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
@@ -63,30 +60,13 @@ public final class PreparedStatement
     @Override
     public XResultSet getResultSet()
         throws SQLException {
-        XResultSet resultset = null;
         java.sql.ResultSet rs = getJdbcResultSet();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
-            CachedRowSet crs = ResultSetHelper.getCachedRowSet(rs);
-            System.out.println("sdbc.PreparedStatement.getResultSet() 1 isReadOnly: " + crs.isReadOnly());
-            if (!crs.isReadOnly()) {
-                RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
-                String services = String.join(", ", rowset.getSupportedServiceNames());
-                getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                                   services, rowset.getLogger().getObjectId());
-                resultset = rowset;
-            } else {
-                rs = getJdbcResultSet();
-            }
-        }
-        if (resultset == null) {
-            ResultSet result = new ResultSet(getConnectionInternal(), rs, this);
-            String services = String.join(", ", result.getSupportedServiceNames());
-            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
-                               services, result.getLogger().getObjectId());
-            resultset = result;
-        }
-        return resultset;
+        ResultSet result = new ResultSet(getConnectionInternal(), rs, this);
+        String services = String.join(", ", result.getSupportedServiceNames());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_RESULTSET_ID,
+                           services, result.getLogger().getObjectId());
+        return result;
     }
 
     protected java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
