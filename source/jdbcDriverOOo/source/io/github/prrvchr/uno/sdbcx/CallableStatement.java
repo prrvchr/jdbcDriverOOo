@@ -59,7 +59,7 @@ public final class CallableStatement
         XResultSet resultset = null;
         java.sql.ResultSet rs = getJdbcResultSet();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
+        if (mUseBookmarks && getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
             CachedRowSet crs = ResultSetHelper.getCachedRowSet(rs);
             if (!crs.isReadOnly()) {
                 RowSet rowset = new RowSet(getConnectionInternal(), crs, this);

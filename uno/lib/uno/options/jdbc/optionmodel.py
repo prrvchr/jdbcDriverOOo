@@ -58,11 +58,12 @@ class OptionModel():
         level = self._settings.get('ApiLevel')
         crs = self._settings.get('CachedRowSet')
         system = self._settings.get('ShowSystemTable')
-        return level, crs, system
+        return level, crs, system, self._isRowSetEnabled(level)
 
 # OptionModel setter methods
     def setApiLevel(self, level):
         self._settings['ApiLevel'] = level
+        return self._isRowSetEnabled(level)
 
     def setCachedRowSet(self, level):
         self._settings['CachedRowSet'] = level
@@ -89,3 +90,5 @@ class OptionModel():
             settings[key] = self._config.getByName(key)
         return settings
 
+    def _isRowSetEnabled(self, level):
+        return level != 0

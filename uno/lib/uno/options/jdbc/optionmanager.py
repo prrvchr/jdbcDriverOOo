@@ -69,7 +69,7 @@ class OptionManager():
         self._initView()
 
     def setApiLevel(self, level):
-        self._model.setApiLevel(level)
+        self._view.enableCachedRowSet(self._model.setApiLevel(level))
 
     def setCachedRowSet(self, level):
         self._model.setCachedRowSet(level)

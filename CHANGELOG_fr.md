@@ -360,7 +360,13 @@ Une régression dans la gestion des conteneurs (tables, vues et colonnes) est pr
 
 L'intégration de l'archive [JaybirdEmbedded][111] permet un véritable mode intégré pour Jaybird. Il n'est plus nécessaire d'installer le serveur Firebird pour utiliser Firebird en mode embarqué (ie: `embedded:*`).
 
-### Que reste-t-il à faire pour la version 1.5.3:
+### Ce qui a été fait pour la version 1.5.4:
+
+Afin d'éviter toute régression sur les extensions utilisant jdbcDriverOOo :
+- `CachedRowSet` ne sera utilisé que si des Bookmarks sont utilisés.
+- `CachedRowSet` ne sera pas utilisé pour le niveau d'API `com.sun.star.sdbc`.
+
+### Que reste-t-il à faire pour la version 1.5.4:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
