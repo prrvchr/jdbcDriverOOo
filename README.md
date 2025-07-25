@@ -323,7 +323,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [11]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdbcx/module-ix.html>
 [12]: <https://www.openoffice.org/api/docs/common/ref/com/sun/star/sdb/module-ix.html>
 [13]: <http://hsqldb.org/>
-[14]: <https://github.com/prrvchr/sqlite-jdbc>
+[14]: <https://prrvchr.github.io/sqlite-jdbc/>
 [15]: <https://mariadb.com/downloads/connectors/connectors-data-access/java8-connector/>
 [16]: <https://jdbc.postgresql.org/>
 [17]: <https://www.h2database.com/html/main.html>
