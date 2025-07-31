@@ -350,7 +350,7 @@ Clients using the jdbcDriverOOo driver can access features of the underlying JDB
 - It is now possible to get source code line numbers in Java traces thanks to the change in LOEclipse [PR#166][107].
 - Fixed many regressions related to the last update which brought many changes.
 - The new version of the SQLite driver is now compiled under Java 11 and uses `java.lang.System.Logger` as the logging facade, allowing access to it in LibreOffice. This is the only one that requires the use of the CachedRowSet option, otherwise Base will only display read-only tables and views.
-- This seems to be the most significant update to JdbcDriverOOo, and I didn't expect it to get this far. The next step will be to integrate Trino and be able to run queries distributed across different databases in LibreOffice Base. CachecRowSet is exactly the building block I needed to be able to complete this.
+- This seems to be the most significant update to JdbcDriverOOo, and I didn't expect it to get this far. The next step will be to integrate Trino and be able to run queries distributed across different databases in LibreOffice Base. `CachedRowSet` is exactly the building block I needed to be able to complete this.
 
 ### What has been done for version 1.5.2:
 

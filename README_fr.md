@@ -77,8 +77,9 @@ La version minimale de LibreOffice prise en charge par l'extension jdbcDriverOOo
 - **Sous Linux** si vous avez utilisé le gestionnaire de paquets pour installer LibreOffice, **la version minimale de LibreOffice est 6.0**. Cependant, vous devez vous assurer que la version de Python fournie par le système n'est pas inférieure à 3.8.  
 De plus, vous pouvez rencontrer les problèmes suivants:
     - Vous êtes sujet au [dysfonctionnement #139538][37]. Pour contourner le problème, veuillez **désinstaller les paquets** avec les commandes:
-        - `sudo apt remove libreoffice-sdbc-hsqldb` (pour désinstaller le paquet libreoffice-sdbc-hsqldb)
-        - `sudo apt remove libhsqldb1.8.0-java` (pour désinstaller le paquet libhsqldb1.8.0-java)
+        - `sudo apt remove libreoffice-sdbc-hsqldb` pour désinstaller le paquet libreoffice-sdbc-hsqldb.
+        - `sudo apt remove libhsqldb1.8.0-java` pour désinstaller le paquet libhsqldb1.8.0-java.
+
     Si vous souhaitez quand même utiliser la fonctionnalité HsqlDB intégré fournie par LibreOffice, alors installez l'extension [HyperSQLOOo][38].
     - Vos packages Python fournis par le système sont obsolètes. La journalisation de l'extension vous permettera de vérifier si c'est le cas. Elle est accessible via le menu: **Outils -> Options -> LibreOffice Base -> Pilote JDBC pur Java -> Options du pilote UNO -> Voir journal -> Info système** et nécessite le redemarrage de LibreOffice aprés son activation.  
     Si des paquets obsolètes apparaissent, vous pouvez les mettre à jour avec la commande:  
