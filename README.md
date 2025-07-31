@@ -75,15 +75,15 @@ The minimum version of LibreOffice supported by the jdbcDriverOOo extension depe
 - **Regardless of platform**, if you installed LibreOffice from the [LibreOffice download site][36], **the minimum version of LibreOffice is 7.0**.
 
 - **On Linux**, if you used the package manager to install LibreOffice, **the minimum version of LibreOffice is 6.0**. However, you must ensure that the system-provided Python version is not lower than 3.8.  
-In addition, you may experience the following issues:
-    - You are subject to [bug #139538][37]. To work around the problem, please **uninstall the packages** with commands:
-        - `sudo apt remove libreoffice-sdbc-hsqldb` to uninstall the libreoffice-sdbc-hsqldb package.
-        - `sudo apt remove libhsqldb1.8.0-java` to uninstall the libhsqldb1.8.0-java package.  
+  In addition, you may experience the following issues:
+  - You are subject to [bug #139538][37]. To work around the problem, please **uninstall the packages** with commands:
+    - `sudo apt remove libreoffice-sdbc-hsqldb` to uninstall the libreoffice-sdbc-hsqldb package.
+    - `sudo apt remove libhsqldb1.8.0-java` to uninstall the libhsqldb1.8.0-java package.  
     If you still want to use the Embedded HsqlDB functionality provided by LibreOffice, then install the [HyperSQLOOo][38] extension.
-    - Your system-provided Python packages are out of date. The extension's logging will allow you to check if this is the case. It is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info** and requires restarting LibreOffice after activation.  
-    If outdated packages appear, you can update them with the command:  
-    `pip install --upgrade <package-name>`  
-    For more information see: [What has been done for version 1.1.0][39].
+  - Your system-provided Python packages are out of date. The extension's logging will allow you to check if this is the case. It is accessible via the menu: **Tools -> Options -> LibreOffice Base -> Pure Java JDBC driver -> UNO driver settings -> View log -> System Info** and requires restarting LibreOffice after activation.  
+  If outdated packages appear, you can update them with the command:  
+  `pip install --upgrade <package-name>`  
+  For more information see: [What has been done for version 1.1.0][39].
 
 ___
 
