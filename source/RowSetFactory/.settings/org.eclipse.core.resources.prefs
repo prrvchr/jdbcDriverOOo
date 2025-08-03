@@ -1,2 +1,13 @@
 eclipse.preferences.version=1
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_de.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_es.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_fr.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_it.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_ja.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_ko.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_pt_BR.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_sv.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_zh_CN.properties=UTF-8
+encoding//source/io/github/prrvchr/java/rowset/RowSetResourceBundle_zh_TW.properties=UTF-8
 encoding/<project>=UTF-8

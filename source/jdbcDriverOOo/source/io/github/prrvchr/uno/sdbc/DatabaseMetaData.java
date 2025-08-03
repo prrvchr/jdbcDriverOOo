@@ -182,7 +182,9 @@ public class DatabaseMetaData
     @Override
     public XResultSet getCatalogs() throws SQLException {
         try {
-            return getResultSet(mMetadata.getCatalogs(), "getCatalogs");
+            RowSetData filter = mConnection.getProvider().getConfigSQL().getSytemCatalogFilter();
+            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getCatalogs(), filter);
+            return getResultSet(rs, "getCatalogs");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -644,8 +646,9 @@ public class DatabaseMetaData
     @Override
     public XResultSet getSchemas() throws SQLException {
         try {
-            java.sql.ResultSet result = mMetadata.getSchemas();
-            return getResultSet(result, "getSchemas");
+            RowSetData filter = mConnection.getProvider().getConfigSQL().getSytemSchemaFilter();
+            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getSchemas(), filter);
+            return getResultSet(rs, "getSchemas");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }

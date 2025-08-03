@@ -366,7 +366,17 @@ Afin d'éviter toute régression sur les extensions utilisant jdbcDriverOOo :
 - `CachedRowSet` ne sera utilisé que si des Bookmarks sont utilisés.
 - `CachedRowSet` ne sera pas utilisé pour le niveau d'API `com.sun.star.sdbc`.
 
-### Que reste-t-il à faire pour la version 1.5.4:
+### Ce qui a été fait pour la version 1.5.5:
+
+- Désormais, `RowSetFactory` affiche et/ou journalise correctement les messages en français et son code est entièrement conforme aux règles de CheckStyle.
+- Deux nouvelles entrées dans le fichier de configuration `Drivers.xcu` permettent de filtrer les catalogues et schémas systèmes si nécessaire et s'ils existent:
+  - `SystemCatalogSettings`
+  - `SystemSchemaSettings`
+- Par conséquent, les méthodes `getCatalogues()` et `getSchemas()` de l'interface `XDatabaseMetaData` seront filtrées respectivement pour n'afficher que les entrées nécessaires lors de la création d'une table dans Base.
+- Les pilotes JDBC peuvent être ajoutés au ClassPath Java lors de leur chargement. Cette option est même requise pour le bon fonctionnement du pilote Jaybird 6.0.2 en mode intégré.
+- Pour garantir un chargement systématique des pilotes, ceux-ci sont désormais chargés uniquement par la méthode `classForName()`, puis enregistrés auprés de `java.sql.DriverManager`.
+
+### Que reste-t-il à faire pour la version 1.5.5:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 

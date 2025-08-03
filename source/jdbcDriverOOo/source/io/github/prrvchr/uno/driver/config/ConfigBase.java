@@ -52,14 +52,18 @@ import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
 public abstract class ConfigBase extends ParameterBase {
 
+    public static final String ADD_TO_CLASS_PATH = "AddDriverToClassPath";
+
     // Connection Infos properties
     public static final String SHOW_SYSTEM_TABLE = "ShowSystemTable";
     public static final String CACHED_ROWSET = "CachedRowSet";
     public static final String CONNECTION_URL = "Url";
     public static final String TYPE_INFO_SETTINGS = "TypeInfoSettings";
-    public static final String SYSTEM_TABLE_SETTINGS = "SystemTableSettings";
     public static final String TABLE_TYPES_SETTINGS = "TableTypesSettings";
     public static final String TABLE_SETTINGS = "TableSettings";
+    public static final String SYSTEM_CATALOG_SETTINGS = "SystemCatalogSettings";
+    public static final String SYSTEM_SCHEMA_SETTINGS = "SystemSchemaSettings";
+    public static final String SYSTEM_TABLE_SETTINGS = "SystemTableSettings";
     public static final String TABLE_PRIVILEGES_SETTINGS = "TablePrivilegesSettings";
 
     private static final String DOCUMENT = "Document";
@@ -97,6 +101,8 @@ public abstract class ConfigBase extends ParameterBase {
     private RowSetData mRewriteTableData = null;
     private RowSetData mTypeInfoData = null;
     private RowSetData mSystemTableData = null;
+    private RowSetData mSystemSchemaData = null;
+    private RowSetData mSystemCatalogData = null;
     private RowSetData mTablePrivilegeData = null;
 
     private Map<String, String> mTableTypeMap = null;
@@ -131,13 +137,33 @@ public abstract class ConfigBase extends ParameterBase {
 
         Object[] tableSetting = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
                                                                                 TABLE_SETTINGS);
+        Object[] systemCatalog = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                 SYSTEM_CATALOG_SETTINGS);
+        Object[] systemSchema = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                SYSTEM_SCHEMA_SETTINGS);
         Object[] systemTable = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
                                                                                SYSTEM_TABLE_SETTINGS);
         Object[] tablePrivilege = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
                                                                                   TABLE_PRIVILEGES_SETTINGS);
-        setPropertiesData(tableSetting, typeInfo, systemTable, tableType, tablePrivilege);
+        setPropertiesData(typeInfo, tableType, tableSetting,
+                          systemCatalog, systemSchema, systemTable, tablePrivilege);
 
         setProperties(opts, url, metadata, rewriteTable);
+    }
+
+    public static final boolean addDriverToClassPath(XNameAccess opts) {
+        boolean add = true;
+        try {
+            if (opts.hasByName(ADD_TO_CLASS_PATH)) {
+                Object obj = opts.getByName(ADD_TO_CLASS_PATH);
+                if (obj != null && AnyConverter.isBoolean(obj)) {
+                    add = AnyConverter.toBoolean(obj);
+                }
+            }
+        } catch (NoSuchElementException | WrappedTargetException e) {
+            e.printStackTrace();
+        }
+        return add;
     }
 
     public String getURL() {
@@ -264,6 +290,26 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     // XXX: this RowSetData will be used in methods:
+    // XXX: - DatabaseMetaData.getCatalogs()
+    public RowSetData getSytemCatalogFilter() {
+        RowSetData data = null;
+        if (!mShowSystemTable) {
+            data = mSystemCatalogData;
+        }
+        return data;
+    }
+
+    // XXX: this RowSetData will be used in methods:
+    // XXX: - DatabaseMetaData.getSchemas()
+    public RowSetData getSytemSchemaFilter() {
+        RowSetData data = null;
+        if (!mShowSystemTable) {
+            data = mSystemSchemaData;
+        }
+        return data;
+    }
+
+    // XXX: this RowSetData will be used in methods:
     // XXX: - ConnectionSuper.refreshTables()
     // XXX: - DatabaseMetaData.getTables()
     public RowSetData getSytemTableFilter() {
@@ -273,6 +319,7 @@ public abstract class ConfigBase extends ParameterBase {
         }
         return data;
     }
+
 
     // XXX: this RowSetData will be used in methods:
     // XXX: - PrivilegesHelper.getTablePrivilegesResultSet()
@@ -297,10 +344,12 @@ public abstract class ConfigBase extends ParameterBase {
     }
 
     // XXX: private methods
-    private void setPropertiesData(final Object[] tableSetting,
-                                   final Object[] typeInfo,
-                                   final Object[] systemTable,
+    private void setPropertiesData(final Object[] typeInfo,
                                    final Object[] tableType,
+                                   final Object[] tableSetting,
+                                   final Object[] systemCatalog,
+                                   final Object[] systemSchema,
+                                   final Object[] systemTable,
                                    final Object[] tablePrivilege)
         throws java.sql.SQLException {
         if (tableSetting != null) {
@@ -311,6 +360,14 @@ public abstract class ConfigBase extends ParameterBase {
         // XXX: It will be obtained from the Drivers.xcu configuration file if present...
         if (typeInfo != null) {
             mTypeInfoData = parseRowsetData(typeInfo);
+        }
+
+        if (systemCatalog != null) {
+            mSystemCatalogData = parseRowsetData(systemCatalog);
+        }
+
+        if (systemSchema != null) {
+            mSystemSchemaData = parseRowsetData(systemSchema);
         }
 
         if (systemTable != null) {

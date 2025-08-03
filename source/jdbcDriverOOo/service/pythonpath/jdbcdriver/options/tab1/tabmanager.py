@@ -61,6 +61,9 @@ class TabManager():
     def setJavaLogger(self, enabled):
         self._model.setJavaLogger(enabled)
 
+    def setClassPath(self, enabled):
+        self._model.setClassPath(enabled)
+
     def saveSetting(self):
         reboot = self._model.saveSetting()
         reboot |= self._manager.saveSetting()
@@ -76,4 +79,5 @@ class TabManager():
 # TabManager private methods
     def _initView(self):
         self._view.setJavaLogger(self._model.getJavaLogger())
+        self._view.setClassPath(self._model.getClassPath())
 
