@@ -372,7 +372,7 @@ Afin d'éviter toute régression sur les extensions utilisant jdbcDriverOOo :
 - Deux nouvelles entrées dans le fichier de configuration `Drivers.xcu` permettent de filtrer les catalogues et schémas systèmes si nécessaire et s'ils existent:
   - `SystemCatalogSettings`
   - `SystemSchemaSettings`
-- Par conséquent, les méthodes `getCatalogues()` et `getSchemas()` de l'interface `XDatabaseMetaData` seront filtrées respectivement pour n'afficher que les entrées nécessaires lors de la création d'une table dans Base.
+- Par conséquent, les méthodes `getCatalogs()` et `getSchemas()` de l'interface `XDatabaseMetaData` seront filtrées respectivement pour n'afficher que les entrées nécessaires lors de la création d'une table dans Base.
 - Les pilotes JDBC peuvent être ajoutés au ClassPath Java lors de leur chargement. Cette option est même requise pour le bon fonctionnement du pilote Jaybird 6.0.2 en mode intégré.
 - Pour garantir un chargement systématique des pilotes, ceux-ci sont désormais chargés uniquement par la méthode `classForName()`, puis enregistrés auprés de `java.sql.DriverManager`.
 
