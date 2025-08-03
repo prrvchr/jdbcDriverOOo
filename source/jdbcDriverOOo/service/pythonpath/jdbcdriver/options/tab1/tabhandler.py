@@ -45,11 +45,14 @@ class TabHandler(unohelper.Base,
             if method == 'JavaLogger':
                 self._manager.setJavaLogger(bool(event.Source.State))
                 handled = True
+            elif method == 'ClassPath':
+                self._manager.setClassPath(bool(event.Source.State))
+                handled = True
             return handled
         except Exception as e:
             msg = "TabHandler.callHandlerMethod() Error: %s" % traceback.format_exc()
             print(msg)
 
     def getSupportedMethodNames(self):
-        return ('JavaLogger', )
+        return ('JavaLogger', 'ClassPath')
 

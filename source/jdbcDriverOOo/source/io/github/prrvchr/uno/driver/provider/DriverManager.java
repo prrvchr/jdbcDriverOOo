@@ -152,35 +152,45 @@ public class DriverManager {
     public static final Driver getDriverByClassName(final XInterface source,
                                                     final String clspath,
                                                     final String clsname,
-                                                    final String url,
                                                     final boolean add)
         throws SQLException {
         Driver driver = null;
         try {
+            URL[] urls = null;
             final File[] files = getDriverArchiveFiles(source, clspath, clsname);
             if (add && InstrumentationAgent.isSupported()) {
-                URL[] urls = getDriverArchiveUrls(source, files, clsname, false);
+                urls = getDriverArchiveUrls(source, files, clsname, false);
                 try {
                     for (URL archive : urls) {
                         InstrumentationAgent.addToClassPath(archive.toString());
                     }
-                    driver = java.sql.DriverManager.getDriver(url);
-                } catch (IOException | URISyntaxException | java.sql.SQLException e) {
+                } catch (IOException | URISyntaxException e) {
                     // XXX Auto-generated catch block
                     e.printStackTrace();
                 }
             } else {
-                // XXX: Pick your JDBC driver at runtime: https://www.kfu.com/~nsayer/Java/dyn-jdbc.html
-                URL[] urls = getDriverArchiveUrls(source, files, clsname, true);
-                final URLClassLoader loader = new URLClassLoader(urls, source.getClass().getClassLoader());
-                final Class<?> clazz = Class.forName(clsname, true, loader);
-                driver = (Driver) clazz.getDeclaredConstructor().newInstance();
+                urls = getDriverArchiveUrls(source, files, clsname, true);
             }
+            // XXX: Pick your JDBC driver at runtime: https://www.kfu.com/~nsayer/Java/dyn-jdbc.html
+            driver = getDriverByName(source, urls, clsname);
         } catch (UnsupportedClassVersionError e) {
             final String version = System.getProperty("java.version");
             final int resource = Resources.STR_LOG_DRIVER_UNSUPPORTED_JAVA_VERSION;
             final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, version, clsname);
             throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
+        }
+        return driver;
+    }
+
+    private static final Driver getDriverByName(final XInterface source,
+                                                final URL[] urls,
+                                                final String clsname)
+        throws SQLException {
+        final URLClassLoader loader = new URLClassLoader(urls, source.getClass().getClassLoader());
+        Class<?> clazz;
+        try {
+            clazz = Class.forName(clsname, true, loader);
+            return (Driver) clazz.getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException | IllegalAccessException e) {
             final int resource = Resources.STR_LOG_DRIVER_CLASS_NOT_FOUND;
             final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, clsname,
@@ -192,7 +202,6 @@ public class DriverManager {
             final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, clsname);
             throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT, e);
         }
-        return driver;
     }
 
     public static final void registerDriver(final XInterface source,
@@ -200,8 +209,7 @@ public class DriverManager {
                                             final Path drvpath,
                                             final String clspath,
                                             final String clsname,
-                                            final String name,
-                                            final boolean add)
+                                            final String name)
         throws SQLException {
         Path path = null;
         try {
@@ -215,11 +223,7 @@ public class DriverManager {
             throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT);
         }
         try {
-            if (add && InstrumentationAgent.isSupported()) {
-                java.sql.DriverManager.registerDriver(driver);
-            } else {
-                java.sql.DriverManager.registerDriver(new DriverWrapper(driver));
-            }
+            java.sql.DriverManager.registerDriver(new DriverWrapper(driver));
         } catch (java.sql.SQLException e) {
             final int resource = Resources.STR_LOG_DRIVER_REGISTRATION_ERROR;
             final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);

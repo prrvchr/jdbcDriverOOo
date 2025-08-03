@@ -180,7 +180,6 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
-
     }
 
     /**
@@ -201,63 +200,27 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
      *         additional <code>RowSet</code> violates the active <code>JOIN</code>
      * @see CachedRowSet#setMatchColumn
      */
-    @SuppressWarnings("resource")
     public void addRowSet(Joinable rowset) throws SQLException {
-        boolean boolColId, boolColName;
 
-        boolColId = false;
-        boolColName = false;
-        CachedRowSetImpl cRowset;
-
-        if (!(rowset instanceof RowSet)) {
-            throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.notinstance").toString());
-        }
-
-        if (rowset instanceof JdbcRowSetImpl) {
-            cRowset = new CachedRowSetImpl();
-            cRowset.populate((RowSet)rowset);
-            if (cRowset.size() == 0) {
-                throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.emptyrowset").toString());
-            }
-
-
-            try {
-                int matchColumnCount = 0;
-                for (int i = 0; i < rowset.getMatchColumnIndexes().length; i++) {
-                    if (rowset.getMatchColumnIndexes()[i] != -1) {
-                        ++ matchColumnCount;
-                    } else {
-                        break;
-                    }
-                }
-                int[] pCol = new int[matchColumnCount];
-                for (int i = 0; i < matchColumnCount; i++) {
-                    pCol[i] = rowset.getMatchColumnIndexes()[i];
-                }
-                cRowset.setMatchColumn(pCol);
-            } catch (SQLException sqle) { }
-
-        } else {
-            cRowset = (CachedRowSetImpl)rowset;
-            if (cRowset.size() == 0) {
-                throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.emptyrowset").toString());
-            }
-        }
+        CachedRowSetImpl crs = getCachedRowSet(rowset);
 
         // Either column id or column name will be set
         // If both not set throw exception.
 
+        boolean boolColId = false;
+        boolean boolColName = false;
+
         try {
-            iMatchKey = (cRowset.getMatchColumnIndexes())[0];
+            iMatchKey = (crs.getMatchColumnIndexes())[0];
         } catch (SQLException sqle) {
-            //if not set catch the exception but do nothing now.
+            // if not set catch the exception but do nothing now.
             boolColId = true;
         }
 
         try {
-            strMatchKey = (cRowset.getMatchColumnNames())[0];
+            strMatchKey = (crs.getMatchColumnNames())[0];
         } catch (SQLException sqle) {
-            //if not set catch the exception but do nothing now.
+            // if not set catch the exception but do nothing now.
             boolColName = true;
         }
 
@@ -265,15 +228,14 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
             // neither setter methods have been used to set
             throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.matchnotset").toString());
         } else {
-            //if(boolColId || boolColName)
+            // if(boolColId || boolColName)
             // either of the setter methods have been set.
             if (boolColId) {
-              //
                 List<Integer> indices = new ArrayList<>();
-                for (int i = 0; i < cRowset.getMatchColumnNames().length; i++) {
-                    strMatchKey = cRowset.getMatchColumnNames()[i];
+                for (int i = 0; i < crs.getMatchColumnNames().length; i++) {
+                    strMatchKey = crs.getMatchColumnNames()[i];
                     if (strMatchKey != null) {
-                        iMatchKey = cRowset.findColumn(strMatchKey);
+                        iMatchKey = crs.findColumn(strMatchKey);
                         indices.add(iMatchKey);
                     } else {
                         break;
@@ -283,11 +245,9 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
                 for (int i = 0; i < indices.size(); i++) {
                     indexes[i] = indices.get(i);
                 }
-                cRowset.setMatchColumn(indexes);
-                // Set the match column here because join will be
-                // based on columnId,
-                // (nested for loop in initJOIN() checks for equality
-                //  based on columnIndex)
+                crs.setMatchColumn(indexes);
+                // Set the match column here because join will be based on columnId,
+                // (nested for loop in initJOIN() checks for equality based on columnIndex)
             }
             // do nothing, iMatchKey is set.
             // Now both iMatchKey and strMatchKey have been set pointing
@@ -299,8 +259,7 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
         // be set and for subsequent additions of rowset, if not set
         // keep on adding join type as JoinRowSet.INNER_JOIN
         // to vecJoinType.
-
-        initJOIN(cRowset);
+        initJOIN(crs);
     }
 
     /**
@@ -328,9 +287,9 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
     public void addRowSet(RowSet rowset, int columnIdx) throws SQLException {
         //passing the rowset as well as the columnIdx to form the joinrowset.
 
-        ((CachedRowSetImpl)rowset).setMatchColumn(columnIdx);
+        ((CachedRowSetImpl) rowset).setMatchColumn(columnIdx);
 
-        addRowSet((Joinable)rowset);
+        addRowSet((Joinable) rowset);
     }
 
     /**
@@ -356,8 +315,10 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
      */
     public void addRowSet(RowSet rowset, String columnName) throws SQLException {
         //passing the rowset as well as the columnIdx to form the joinrowset.
-        ((CachedRowSetImpl)rowset).setMatchColumn(columnName);
-        addRowSet((Joinable)rowset);
+
+        ((CachedRowSetImpl) rowset).setMatchColumn(columnName);
+
+        addRowSet((Joinable) rowset);
     }
 
     /**
@@ -389,17 +350,17 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
      */
     public void addRowSet(RowSet[] rowset, int[] columnIdx) throws SQLException {
         //validate if length of rowset array is same as length of int array.
+
         if (rowset.length != columnIdx.length) {
             throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.numnotequal").toString());
         } else {
             for (int i = 0; i < rowset.length; i++) {
                 ((CachedRowSetImpl) rowset[i]).setMatchColumn(columnIdx[i]);
                 addRowSet((Joinable) rowset[i]);
-            } //end for
-        } //end if
+            }
+        }
 
     }
-
 
     /**
      * Adds the given <code>RowSet</code> objects to the <code>JOIN</code> relationship
@@ -438,10 +399,10 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
             throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.numnotequal").toString());
         } else {
             for (int i = 0; i < rowset.length; i++) {
-                ((CachedRowSetImpl)rowset[i]).setMatchColumn(columnName[i]);
-                addRowSet((Joinable)rowset[i]);
-            } //end for
-        } //end if
+                ((CachedRowSetImpl) rowset[i]).setMatchColumn(columnName[i]);
+                addRowSet((Joinable) rowset[i]);
+            }
+        }
 
     }
 
@@ -598,22 +559,46 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
         }  //end if
     }
 
+    private CachedRowSetImpl getCachedRowSet(Joinable rowset) throws SQLException {
 
-    /**
-     * This checks for a match column for
-     * whether it exists or not.
-     *
-     * @param rs <code>CachedRowSet</code> object whose match column needs to be checked.
-     * @throws SQLException if MatchColumn is not set.
-     */
-    @SuppressWarnings("unused")
-    private boolean checkforMatchColumn(Joinable rs) throws SQLException {
-        boolean match = true;
-        int[] i = rs.getMatchColumnIndexes();
-        if (i.length <= 0) {
-            match = false;
+        CachedRowSetImpl crs;
+        if (!(rowset instanceof RowSet)) {
+            throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.notinstance").toString());
         }
-        return match;
+
+        if (rowset instanceof JdbcRowSetImpl) {
+            crs = new CachedRowSetImpl();
+            crs.populate((RowSet) rowset);
+            if (crs.size() == 0) {
+                crs.close();
+                throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.emptyrowset").toString());
+            }
+
+            try {
+                int i;
+                int matchColumnCount = 0;
+                for (i = 0; i < rowset.getMatchColumnIndexes().length; i++) {
+                    if (rowset.getMatchColumnIndexes()[i] != -1) {
+                        ++ matchColumnCount;
+                    } else {
+                        break;
+                    }
+                }
+                int[] pCol = new int[matchColumnCount];
+                for (i = 0; i < matchColumnCount; i++) {
+                    pCol[i] = rowset.getMatchColumnIndexes()[i];
+                }
+                crs.setMatchColumn(pCol);
+            } catch (SQLException sqle) { }
+
+        } else {
+            crs = (CachedRowSetImpl) rowset;
+            if (crs.size() == 0) {
+                crs.close();
+                throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.emptyrowset").toString());
+            }
+        }
+        return crs;
     }
 
     /**
@@ -623,10 +608,9 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
     private void initJOIN(CachedRowSet rowset) throws SQLException {
         try {
 
-            CachedRowSetImpl cRowset = (CachedRowSetImpl)rowset;
+            CachedRowSetImpl crs = (CachedRowSetImpl)rowset;
             // Create a new CachedRowSet object local to this function.
-            @SuppressWarnings("resource")
-            CachedRowSetImpl crsTemp = new CachedRowSetImpl();
+            CachedRowSetImpl crstmp = new CachedRowSetImpl();
             RowSetMetaDataImpl rsmd = new RowSetMetaDataImpl();
 
             /* The following 'if block' seems to be always going true.
@@ -645,10 +629,10 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
                 // Also add it to the class variable of type vector
                 // do not need to check "type" of Join but it should be set.
                 crsInternal = (CachedRowSetImpl)rowset.createCopy();
-                crsInternal.setMetaData((RowSetMetaDataImpl)cRowset.getMetaData());
+                crsInternal.setMetaData((RowSetMetaDataImpl)crs.getMetaData());
                 // metadata will also set the MatchColumn.
 
-                vecRowSetsInJOIN.add(cRowset);
+                vecRowSetsInJOIN.add(crs);
 
             } else {
                 // At this point we are ready to add another rowset to 'this' object
@@ -664,18 +648,18 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
 
 
                 if ((vecRowSetsInJOIN.size() - vecJoinType.size()) == 2) {
-                   // we are going to add next rowset and setJoinType has not been set
-                   // recently, so set it to setJoinType() to JoinRowSet.INNER_JOIN.
-                   // the default join type
+                    // we are going to add next rowset and setJoinType has not been set
+                    // recently, so set it to setJoinType() to JoinRowSet.INNER_JOIN.
+                    // the default join type
 
                     setJoinType(JoinRowSet.INNER_JOIN);
-                } else if ((vecRowSetsInJOIN.size() - vecJoinType.size()) == 1) {
-                   // do nothing setjoinType() has been set by programmer
                 }
+                // else if ((vecRowSetsInJOIN.size() - vecJoinType.size()) == 1)
+                // do nothing setjoinType() has been set by programmer
 
                 // Add the table names to the class variable of type vector.
                 vecTableNames.add(crsInternal.getTableName());
-                vecTableNames.add(cRowset.getTableName());
+                vecTableNames.add(crs.getTableName());
                 // Now we have two rowsets crsInternal and cRowset which need
                 // to be INNER JOIN'ED to form a new rowset
                 // Compare table1.MatchColumn1.value1 == { table2.MatchColumn2.value1
@@ -686,191 +670,49 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
                 //
                 // Assuming first rowset has M rows and second N rows.
 
-                int rowCount2 = cRowset.size();
-                int rowCount1 = crsInternal.size();
-
                 // total columns in the new CachedRowSet will be sum of both -1
                 // (common column)
-                int matchColumnCount = 0;
+                int columnCount = 0;
                 for (int i = 0; i < crsInternal.getMatchColumnIndexes().length; i++) {
                     if (crsInternal.getMatchColumnIndexes()[i] != -1) {
-                        ++ matchColumnCount;
+                        ++ columnCount;
                     } else {
                         break;
                     }
                 }
 
                 rsmd.setColumnCount (crsInternal.getMetaData().getColumnCount() +
-                                     cRowset.getMetaData().getColumnCount() - matchColumnCount);
+                                     crs.getMetaData().getColumnCount() - columnCount);
 
-                crsTemp.setMetaData(rsmd);
+                crstmp.setMetaData(rsmd);
                 crsInternal.beforeFirst();
-                cRowset.beforeFirst();
-                for (int i = 1 ; i <= rowCount1 ; i++) {
+                crs.beforeFirst();
+                int rowCount = crs.size();
+                int count = crsInternal.size();
+                for (int i = 1 ; i <= count ; i++) {
                     if (crsInternal.isAfterLast() ) {
                         break;
                     }
                     if (crsInternal.next()) {
-                        cRowset.beforeFirst();
-                        for (int j = 1 ; j <= rowCount2 ; j++) {
-                            if (cRowset.isAfterLast()) {
-                                break;
-                            }
-                            if (cRowset.next()) {
-                                boolean match = true;
-                                for (int k = 0; k < matchColumnCount; k++) {
-                                    if (!crsInternal.getObject(crsInternal.getMatchColumnIndexes()[k]).equals
-                                        (cRowset.getObject(cRowset.getMatchColumnIndexes()[k]))) {
-                                        match = false;
-                                        break;
-                                    }
-                                }
-                                if (match) {
-
-                                    int p;
-                                    int colc = 0;   // reset this variable every time you loop
-                                    // re create a JoinRowSet in crsTemp object
-                                    crsTemp.moveToInsertRow();
-
-                                    // create a new rowset crsTemp with data from first rowset
-                                    for (p = 1; p <= crsInternal.getMetaData().getColumnCount(); p++) {
-
-                                        match = false;
-                                        for (int k = 0; k < matchColumnCount; k++) {
-                                            if (p == crsInternal.getMatchColumnIndexes()[k] ) {
-                                                match = true;
-                                                break;
-                                            }
-                                        }
-                                        ResultSetMetaData crsmd = crsInternal.getMetaData();
-                                        if (!match) {
-
-                                            crsTemp.updateObject(++colc, crsInternal.getObject(p));
-                                            // column type also needs to be passed.
-        
-                                            rsmd.setColumnName
-                                                (colc, crsmd.getColumnName(p));
-                                            rsmd.setTableName(colc, crsInternal.getTableName());
-        
-                                            rsmd.setColumnType(p, crsmd.getColumnType(p));
-                                            rsmd.setAutoIncrement(p, crsmd.isAutoIncrement(p));
-                                            rsmd.setCaseSensitive(p, crsmd.isCaseSensitive(p));
-                                            rsmd.setCatalogName(p, crsmd.getCatalogName(p));
-                                            rsmd.setColumnDisplaySize(p, crsmd.getColumnDisplaySize(p));
-                                            rsmd.setColumnLabel(p, crsmd.getColumnLabel(p));
-                                            rsmd.setColumnType(p, crsmd.getColumnType(p));
-                                            rsmd.setColumnTypeName(p, crsmd.getColumnTypeName(p));
-                                            rsmd.setCurrency(p,crsmd.isCurrency(p) );
-                                            rsmd.setNullable(p, crsmd.isNullable(p));
-                                            rsmd.setPrecision(p, crsmd.getPrecision(p));
-                                            rsmd.setScale(p, crsmd.getScale(p));
-                                            rsmd.setSchemaName(p, crsmd.getSchemaName(p));
-                                            rsmd.setSearchable(p, crsmd.isSearchable(p));
-                                            rsmd.setSigned(p, crsmd.isSigned(p));
-
-                                        } else {
-                                            // will happen only once, for that  merged column pass
-                                            // the types as OBJECT, if types not equal
-
-                                            crsTemp.updateObject(++colc, crsInternal.getObject(p));
-
-                                            rsmd.setColumnName(colc, crsmd.getColumnName(p));
-                                            rsmd.setTableName(colc, crsInternal.getTableName() + "#" + cRowset.getTableName());
-
-                                            rsmd.setColumnType(p, crsmd.getColumnType(p));
-                                            rsmd.setAutoIncrement(p, crsmd.isAutoIncrement(p));
-                                            rsmd.setCaseSensitive(p, crsmd.isCaseSensitive(p));
-                                            rsmd.setCatalogName(p, crsmd.getCatalogName(p));
-                                            rsmd.setColumnDisplaySize(p, crsmd.getColumnDisplaySize(p));
-                                            rsmd.setColumnLabel(p, crsmd.getColumnLabel(p));
-                                            rsmd.setColumnType(p, crsmd.getColumnType(p));
-                                            rsmd.setColumnTypeName(p, crsmd.getColumnTypeName(p));
-                                            rsmd.setCurrency(p,crsmd.isCurrency(p) );
-                                            rsmd.setNullable(p, crsmd.isNullable(p));
-                                            rsmd.setPrecision(p, crsmd.getPrecision(p));
-                                            rsmd.setScale(p, crsmd.getScale(p));
-                                            rsmd.setSchemaName(p, crsmd.getSchemaName(p));
-                                            rsmd.setSearchable(p, crsmd.isSearchable(p));
-                                            rsmd.setSigned(p, crsmd.isSigned(p));
-        
-                                            //don't do ++colc in the above statement
-                                        } //end if
-                                    } //end for
-
-
-                                    // append the rowset crsTemp, with data from second rowset
-                                    for (int q = 1; q <= cRowset.getMetaData().getColumnCount(); q++) {
-
-                                        match = false;
-                                        for (int k = 0; k < matchColumnCount; k++) {
-                                            if (q == cRowset.getMatchColumnIndexes()[k]) {
-                                                match = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!match) {
-
-                                            crsTemp.updateObject(++colc, cRowset.getObject(q));
-
-                                            rsmd.setColumnName(colc, cRowset.getMetaData().getColumnName(q));
-                                            rsmd.setTableName(colc, cRowset.getTableName());
-
-                                            /**
-                                              * This will happen for a special case scenario. The value of 'p'
-                                              * will always be one more than the number of columns in the first
-                                              * rowset in the join. So, for a value of 'q' which is the number of
-                                              * columns in the second rowset that participates in the join.
-                                              * So decrement value of 'p' by 1 else `p+q-1` will be out of range.
-                                              **/
-        
-                                            //if((p+q-1) > ((crsmd.getColumnCount()) +
-                                              //            (cRowset.getMetaData().getColumnCount())     - 1)) {
-                                              // --p;
-                                            //}
-                                            rsmd.setColumnType(p + q - 1, cRowset.getMetaData().getColumnType(q));
-                                            rsmd.setAutoIncrement(p + q - 1, cRowset.getMetaData().isAutoIncrement(q));
-                                            rsmd.setCaseSensitive(p + q - 1, cRowset.getMetaData().isCaseSensitive(q));
-                                            rsmd.setCatalogName(p + q - 1, cRowset.getMetaData().getCatalogName(q));
-                                            rsmd.setColumnDisplaySize(p + q - 1, cRowset.getMetaData().getColumnDisplaySize(q));
-                                            rsmd.setColumnLabel(p + q - 1, cRowset.getMetaData().getColumnLabel(q));
-                                            rsmd.setColumnType(p + q - 1, cRowset.getMetaData().getColumnType(q));
-                                            rsmd.setColumnTypeName(p + q - 1, cRowset.getMetaData().getColumnTypeName(q));
-                                            rsmd.setCurrency(p + q - 1,cRowset.getMetaData().isCurrency(q) );
-                                            rsmd.setNullable(p + q - 1, cRowset.getMetaData().isNullable(q));
-                                            rsmd.setPrecision(p + q - 1, cRowset.getMetaData().getPrecision(q));
-                                            rsmd.setScale(p + q - 1, cRowset.getMetaData().getScale(q));
-                                            rsmd.setSchemaName(p + q - 1, cRowset.getMetaData().getSchemaName(q));
-                                            rsmd.setSearchable(p + q - 1, cRowset.getMetaData().isSearchable(q));
-                                            rsmd.setSigned(p + q - 1, cRowset.getMetaData().isSigned(q));
-                                        } else {
-                                            --p;
-                                        }
-                                    }
-                                    crsTemp.insertRow();
-                                    crsTemp.moveToCurrentRow();
-                                } else {
-                                    // since not equa12
-                                    // so do nothing
-                                } //end if
-                            // bool1 = cRowset.next();
-                            }
-                        } // end inner for
-                    //bool2 = crsInternal.next();
+                        crs.beforeFirst();
+                        initJOIN(crs, crstmp, rsmd, rowCount, columnCount);
+                        
                     }
 
-                } //end outer for
-                crsTemp.setMetaData(rsmd);
-                crsTemp.setOriginal();
+                }
+                crstmp.setMetaData(rsmd);
+                crstmp.setOriginal();
 
                 // Now the join is done.
                 // Make crsInternal = crsTemp, to be ready for next merge, if at all.
 
-                int[] pCol = new int[matchColumnCount];
-                for (int i = 0; i < matchColumnCount; i++) {
+                int[] pCol = new int[columnCount];
+                for (int i = 0; i < columnCount; i++) {
                     pCol[i] = crsInternal.getMatchColumnIndexes()[i];
                 }
 
-                crsInternal = (CachedRowSetImpl)crsTemp.createCopy();
+                crsInternal = (CachedRowSetImpl)crstmp.createCopy();
+                crstmp.close();
 
                 // Because we add the first rowset as crsInternal to the
                 // merged rowset, so pCol will point to the Match column.
@@ -882,7 +724,7 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
                 crsInternal.setMatchColumn(pCol);
                 // Add the merged rowset to the class variable of type vector.
                 crsInternal.setMetaData(rsmd);
-                vecRowSetsInJOIN.add(cRowset);
+                vecRowSetsInJOIN.add(crs);
             } //end if
         } catch (SQLException sqle) {
             // %%% Exception should not dump here:
@@ -892,6 +734,154 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
             e.printStackTrace();
             throw new SQLException(resBundle.handleGetObject("joinrowsetimpl.genericerr").toString() + e);
         }
+    }
+
+    private void initJOIN(CachedRowSetImpl crs, CachedRowSetImpl crstmp, RowSetMetaDataImpl rsmd,
+                          int rowCount, int columnCount) throws SQLException {
+        for (int j = 1 ; j <= rowCount ; j++) {
+            if (crs.isAfterLast()) {
+                break;
+            }
+            if (crs.next()) {
+                boolean match = true;
+                for (int k = 0; k < columnCount; k++) {
+                    if (!crsInternal.getObject(crsInternal.getMatchColumnIndexes()[k]).equals
+                        (crs.getObject(crs.getMatchColumnIndexes()[k]))) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    initJOIN(crs, crstmp, rsmd, columnCount);
+                }
+                // since not equa12 so do nothing
+            }
+        }
+    }
+
+    private void initJOIN(CachedRowSetImpl crs, CachedRowSetImpl crstmp, RowSetMetaDataImpl rsmd,
+                          int matchColumnCount) throws SQLException {
+
+        int p;
+        // reset this variable every time you loop
+        int colc = 0;
+        boolean match;
+        // re create a JoinRowSet in crsTemp object
+        crstmp.moveToInsertRow();
+
+        // create a new rowset crsTemp with data from first rowset
+        for (p = 1; p <= crsInternal.getMetaData().getColumnCount(); p++) {
+
+            match = false;
+            for (int k = 0; k < matchColumnCount; k++) {
+                if (p == crsInternal.getMatchColumnIndexes()[k] ) {
+                    match = true;
+                    break;
+                }
+            }
+            ResultSetMetaData crsmd = crsInternal.getMetaData();
+            if (!match) {
+
+                crstmp.updateObject(++colc, crsInternal.getObject(p));
+                // column type also needs to be passed.
+
+                rsmd.setColumnName(colc, crsmd.getColumnName(p));
+                rsmd.setTableName(colc, crsInternal.getTableName());
+
+                rsmd.setColumnType(p, crsmd.getColumnType(p));
+                rsmd.setAutoIncrement(p, crsmd.isAutoIncrement(p));
+                rsmd.setCaseSensitive(p, crsmd.isCaseSensitive(p));
+                rsmd.setCatalogName(p, crsmd.getCatalogName(p));
+                rsmd.setColumnDisplaySize(p, crsmd.getColumnDisplaySize(p));
+                rsmd.setColumnLabel(p, crsmd.getColumnLabel(p));
+                rsmd.setColumnType(p, crsmd.getColumnType(p));
+                rsmd.setColumnTypeName(p, crsmd.getColumnTypeName(p));
+                rsmd.setCurrency(p,crsmd.isCurrency(p) );
+                rsmd.setNullable(p, crsmd.isNullable(p));
+                rsmd.setPrecision(p, crsmd.getPrecision(p));
+                rsmd.setScale(p, crsmd.getScale(p));
+                rsmd.setSchemaName(p, crsmd.getSchemaName(p));
+                rsmd.setSearchable(p, crsmd.isSearchable(p));
+                rsmd.setSigned(p, crsmd.isSigned(p));
+
+            } else {
+                // will happen only once, for that  merged column pass
+                // the types as OBJECT, if types not equal
+
+                crstmp.updateObject(++colc, crsInternal.getObject(p));
+
+                rsmd.setColumnName(colc, crsmd.getColumnName(p));
+                rsmd.setTableName(colc, crsInternal.getTableName() + "#" + crs.getTableName());
+
+                rsmd.setColumnType(p, crsmd.getColumnType(p));
+                rsmd.setAutoIncrement(p, crsmd.isAutoIncrement(p));
+                rsmd.setCaseSensitive(p, crsmd.isCaseSensitive(p));
+                rsmd.setCatalogName(p, crsmd.getCatalogName(p));
+                rsmd.setColumnDisplaySize(p, crsmd.getColumnDisplaySize(p));
+                rsmd.setColumnLabel(p, crsmd.getColumnLabel(p));
+                rsmd.setColumnType(p, crsmd.getColumnType(p));
+                rsmd.setColumnTypeName(p, crsmd.getColumnTypeName(p));
+                rsmd.setCurrency(p,crsmd.isCurrency(p) );
+                rsmd.setNullable(p, crsmd.isNullable(p));
+                rsmd.setPrecision(p, crsmd.getPrecision(p));
+                rsmd.setScale(p, crsmd.getScale(p));
+                rsmd.setSchemaName(p, crsmd.getSchemaName(p));
+                rsmd.setSearchable(p, crsmd.isSearchable(p));
+                rsmd.setSigned(p, crsmd.isSigned(p));
+                //don't do ++colc in the above statement
+            }
+        }
+
+        // append the rowset crsTemp, with data from second rowset
+        for (int q = 1; q <= crs.getMetaData().getColumnCount(); q++) {
+
+            match = false;
+            for (int k = 0; k < matchColumnCount; k++) {
+                if (q == crs.getMatchColumnIndexes()[k]) {
+                    match = true;
+                    break;
+                }
+            }
+            if (!match) {
+
+                crstmp.updateObject(++colc, crs.getObject(q));
+
+                rsmd.setColumnName(colc, crs.getMetaData().getColumnName(q));
+                rsmd.setTableName(colc, crs.getTableName());
+
+                /**
+                  * This will happen for a special case scenario. The value of 'p'
+                  * will always be one more than the number of columns in the first
+                  * rowset in the join. So, for a value of 'q' which is the number of
+                  * columns in the second rowset that participates in the join.
+                  * So decrement value of 'p' by 1 else `p+q-1` will be out of range.
+                  **/
+
+                //if((p+q-1) > ((crsmd.getColumnCount()) +
+                  //            (cRowset.getMetaData().getColumnCount())     - 1)) {
+                  // --p;
+                //}
+                rsmd.setColumnType(p + q - 1, crs.getMetaData().getColumnType(q));
+                rsmd.setAutoIncrement(p + q - 1, crs.getMetaData().isAutoIncrement(q));
+                rsmd.setCaseSensitive(p + q - 1, crs.getMetaData().isCaseSensitive(q));
+                rsmd.setCatalogName(p + q - 1, crs.getMetaData().getCatalogName(q));
+                rsmd.setColumnDisplaySize(p + q - 1, crs.getMetaData().getColumnDisplaySize(q));
+                rsmd.setColumnLabel(p + q - 1, crs.getMetaData().getColumnLabel(q));
+                rsmd.setColumnType(p + q - 1, crs.getMetaData().getColumnType(q));
+                rsmd.setColumnTypeName(p + q - 1, crs.getMetaData().getColumnTypeName(q));
+                rsmd.setCurrency(p + q - 1,crs.getMetaData().isCurrency(q) );
+                rsmd.setNullable(p + q - 1, crs.getMetaData().isNullable(q));
+                rsmd.setPrecision(p + q - 1, crs.getMetaData().getPrecision(q));
+                rsmd.setScale(p + q - 1, crs.getMetaData().getScale(q));
+                rsmd.setSchemaName(p + q - 1, crs.getMetaData().getSchemaName(q));
+                rsmd.setSearchable(p + q - 1, crs.getMetaData().isSearchable(q));
+                rsmd.setSigned(p + q - 1, crs.getMetaData().isSigned(q));
+            } else {
+                --p;
+            }
+        }
+        crstmp.insertRow();
+        crstmp.moveToCurrentRow();
     }
 
     /**
@@ -911,7 +901,7 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
         String strWhereClause = "Select ";
         @SuppressWarnings("unused")
         String whereClause;
-        String tabName= "";
+        String tabName = "";
         String strTabName = "";
         int sz,cols;
         int j;
@@ -939,7 +929,6 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
                 strWhereClause = strWhereClause.concat(", ");
             } //end while
         } //end for
-
 
         // now remove the last ","
         strWhereClause = strWhereClause.substring(0, strWhereClause.lastIndexOf(','));
@@ -971,7 +960,6 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
         return strWhereClause;
     }
 
-
     /**
      * Moves the cursor down one row from its current position and
      * returns <code>true</code> if the new cursor position is a
@@ -996,7 +984,6 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
         return crsInternal.next();
     }
 
-
     /**
      * Releases the current contents of this rowset, discarding  outstanding
      * updates.  The rowset contains no rows after the method
@@ -1009,7 +996,6 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
     public void close() throws SQLException {
         crsInternal.close();
     }
-
 
     /**
      * Reports whether the last column read was SQL <code>NULL</code>.
@@ -1996,7 +1982,6 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
     public boolean first() throws SQLException {
         return crsInternal.first();
     }
-
 
     /**
      * Moves this <code>JoinRowSetImpl</code> object's cursor to the last row
@@ -4205,6 +4190,7 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
      * the contents of the <code>ResultSet</code> and creates an output
      * streams the internal state and contents of the rowset for XML processing.
      *
+     * @param rs the <code>java.sql.ResultSet</code> object
      * @param oStream the <code>java.io.OutputStream</code> object
      * @throws SQLException if a datasource access occurs
      * @throws IOException if an IO exception occurs
@@ -4216,18 +4202,21 @@ public class JoinRowSetImpl extends WebRowSetImpl implements JoinRowSet {
     }
 
     /**
-     * %%% Javadoc comments to be added here
+     * Returns the <code>WebRowSet</code> object if exist or populates it with
+     * the <code>CachedRowSet</code> object that encapsulates this
+     * <code>JoinRowSet</code> object.
+     *
+     * @return the <code>WebRowSet</code> object
+     * @throws SQLException if a datasource access occurs
      */
     private WebRowSet createWebRowSet() throws SQLException {
-        if (wrs != null) {
-            // check if it has already been initialized.
-            return wrs;
-        } else {
+        // check if it has already been initialized.
+        if (wrs == null) {
             wrs = new WebRowSetImpl();
             crsInternal.beforeFirst();
             wrs.populate(crsInternal);
-            return wrs;
         }
+        return wrs;
     }
 
     /**

@@ -71,43 +71,25 @@ public class JdbcRowSetResourceBundle implements Serializable {
     static final long serialVersionUID = 436199386225359954L;
 
     /**
-     * The variable which will represent the properties
-     * the suffix or extension of the resource bundle.
+     * The variable which will represent the package.
      **/
-    @SuppressWarnings("unused")
-    private static final String PROPERTIES = "properties";
-
-    /**
-     * The variable to represent underscore.
-     **/
-    @SuppressWarnings("unused")
-    private static final String UNDERSCORE = "_";
+    private static final String PACKAGE = JdbcRowSetResourceBundle.class.getPackage().getName();
 
     /**
      * The variable which will represent dot.
      **/
-    @SuppressWarnings("unused")
     private static final String DOT = ".";
 
     /**
-     * The variable which will represent the slash.
+     * The variable which will represent the resource file.
      **/
-    @SuppressWarnings("unused")
-    private static final String SLASH = "/";
+    private static final String RESOURCE = "RowSetResourceBundle";
 
     /**
      * The variable where the default resource bundle will
      * be placed.
      **/
-    private static final String PATH = "io.github.prrvchr.java.rowset.RowSetResourceBundle";
-
-
-    /**
-     * This <code>String</code> variable stores the location
-     * of the resource bundle location.
-     */
-    @SuppressWarnings("unused")
-    private static String sFileName;
+    private static final String PATH = PACKAGE + DOT + RESOURCE;
 
     /**
      * The constructor initializes to this object.
@@ -120,7 +102,6 @@ public class JdbcRowSetResourceBundle implements Serializable {
      * of the text to be internationalized.
      */
     private transient PropertyResourceBundle propResBundle;
-
 
     /**
      * The constructor which initializes the resource bundle.
@@ -142,8 +123,8 @@ public class JdbcRowSetResourceBundle implements Serializable {
         Locale locale = Locale.getDefault();
 
         // Load appropriate bundle according to locale
-        propResBundle = (PropertyResourceBundle) ResourceBundle.getBundle(PATH,
-                           locale, JdbcRowSetResourceBundle.class.getModule());
+        Module module = JdbcRowSetResourceBundle.class.getModule();
+        propResBundle = (PropertyResourceBundle) ResourceBundle.getBundle(PATH, locale, module);
 
     }
 

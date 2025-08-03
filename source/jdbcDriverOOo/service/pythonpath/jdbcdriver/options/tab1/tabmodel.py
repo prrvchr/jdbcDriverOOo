@@ -37,22 +37,30 @@ import traceback
 
 class TabModel():
     def __init__(self, ctx):
-        self._key = 'EnableJavaSystemLogger'
+        self._key1 = 'EnableJavaSystemLogger'
+        self._key2 = 'AddDriverToClassPath'
         self._config = getConfiguration(ctx, g_identifier, True)
         self._version = getLibreOfficeVersion(ctx)
         self._javalogger = self._getJavaLogger()
+        self._classpath = self._getClassPath()
 
 # TabModel getter methods
     def getJavaLogger(self):
         return self._javalogger
 
+    def getClassPath(self):
+        return self._classpath
+
     def saveSetting(self):
         changed = False
         javalogger = self._getJavaLogger()
         if javalogger != self._javalogger:
-            self._config.replaceByName(self._key, self._javalogger)
-            if self._config.hasPendingChanges():
-                self._config.commitChanges()
+            self._config.replaceByName(self._key1, self._javalogger)
+        classpath = self._getClassPath()
+        if classpath != self._classpath:
+            self._config.replaceByName(self._key2, self._classpath)
+        if self._config.hasPendingChanges():
+            self._config.commitChanges()
             changed = True
         return changed
 
@@ -60,7 +68,13 @@ class TabModel():
     def setJavaLogger(self, enabled):
         self._javalogger = enabled
 
+    def setClassPath(self, enabled):
+        self._classpath = enabled
+
 # TabModel private getter methods
     def _getJavaLogger(self):
-        return self._config.getByName(self._key)
+        return self._config.getByName(self._key1)
+
+    def _getClassPath(self):
+        return self._config.getByName(self._key2)
 

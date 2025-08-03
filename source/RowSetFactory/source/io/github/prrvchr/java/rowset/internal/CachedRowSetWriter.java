@@ -119,6 +119,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
 
     static final long serialVersionUID = -8506030970299413976L;
 
+    static final String DOT = ".";
+
     /**
      * The {@code Connection} object that this writer will use to make a
      * connection to the data source to which it will write data.
@@ -1363,13 +1365,13 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             }
             if (schema != null && !schema.isBlank()) {
                 tableName.append(getQuotedIdentifier(schema));
-                tableName.append(".");
+                tableName.append(DOT);
             }
             tableName.append(getQuotedIdentifier(table));
         } else {
             if (schema != null && !schema.isBlank()) {
                 tableName.append(getQuotedIdentifier(schema));
-                tableName.append(".");
+                tableName.append(DOT);
             }
             tableName.append(getQuotedIdentifier(table));
             if (catalog != null && !catalog.isBlank()) {

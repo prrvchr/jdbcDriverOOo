@@ -482,6 +482,11 @@
             <value oor:separator="|">Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
           </prop>
         </node>
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = INFORMATION_SCHEMA|null|Column(1) = SYSTEM_LOBS|null</value>
+          </prop>
+        </node>
         <node oor:name="AddIndexAppendix" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>
@@ -494,7 +499,7 @@
         </node>
         <node oor:name="JavaDriverClass" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>org.hsqldb.jdbcDriver</value>
+            <value>org.hsqldb.jdbc.JDBCDriver</value>
           </prop>
         </node>
         <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
@@ -637,6 +642,11 @@
             <value oor:separator="|">Column(4) = BASE TABLE|Column(4) = TABLE</value>
           </prop>
         </node>
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = INFORMATION_SCHEMA|null</value>
+          </prop>
+        </node>
         <node oor:name="SystemTableSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">Column(2) = INFORMATION_SCHEMA|null</value>
@@ -769,6 +779,11 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="SystemCatalogSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = mysql|null|Column(1) = performance_schema|null|Column(1) = sys|null|Column(1) = information_schema|null</value>
+          </prop>
+        </node>
         <node oor:name="SystemTableSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">Column(1) = mysql|null|Column(1) = performance_schema|null|Column(1) = sys|null</value>
@@ -776,7 +791,7 @@
         </node>
         <node oor:name="TypeInfoSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
-            <value oor:separator="|">Column(1) = INTEGER|Column(6) = null|Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
+            <value oor:separator="|">Column(1) = INTEGER|Column(6) = null|Column(1) = INTEGER UNSIGNED|Column(6) = null|Column(1) = INT|Column(6) = null|Column(1) = INT UNSIGNED|Column(6) = null|Column(1) = MEDIUMINT|Column(6) = null|Column(1) = MEDIUMINT UNSIGNED|Column(6) = null|Column(1) = SMALLINT|Column(6) = null|Column(1) = SMALLINT UNSIGNED|Column(6) = null|Column(1) = BIGINT|Column(6) = null|Column(1) = BIGINT UNSIGNED|Column(6) = null|Column(1) = TINYINT|Column(6) = null|Column(1) = TINYINT UNSIGNED|Column(6) = null|Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = DATETIME|Column(6) = SCALE|Column(1) = DATETIME|Column(14) = 0|Column(1) = DATETIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6</value>
           </prop>
         </node>
         <node oor:name="AddIndexAppendix" oor:op="replace">
@@ -898,6 +913,11 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="SystemCatalogSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = sys|null|Column(1) = mysql|null|Column(1) = information_schema|null|Column(1) = performance_schema|null</value>
+          </prop>
+        </node>
         <node oor:name="SystemTableSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">Column(1) = sys|null</value>
@@ -1032,6 +1052,11 @@
       </prop>
 
       <node oor:name="Properties">
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = pg_catalog|null|Column(1) = information_schema|null</value>
+          </prop>
+        </node>
         <node oor:name="TypeInfoSettings" oor:op="replace">
           <prop oor:name="Value" oor:type="oor:string-list">
             <value oor:separator="|">Column(1) = int2|Column(12) = true|Column(1) = int4|Column(12) = true|Column(1) = int8|Column(12) = true|Column(1) = time|Column(6) = SCALE|Column(1) = time|Column(14) = 0|Column(1) = time|Column(15) = 6|Column(1) = timestamp|Column(6) = SCALE|Column(1) = timestamp|Column(14) = 0|Column(1) = timestamp|Column(15) = 6|Column(1) = timetz|Column(6) = SCALE|Column(1) = timetz|Column(14) = 0|Column(1) = timetz|Column(15) = 6|Column(1) = timestamptz|Column(6) = SCALE|Column(1) = timestamptz|Column(14) = 0|Column(1) = timestamptz|Column(15) = 6</value>
@@ -1281,6 +1306,11 @@
         <value xml:lang="en-US">Derby pure Java</value>
       </prop>
       <node oor:name="Properties">
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = NULLID|null|Column(1) = SQLJ|null|Column(1) = SYS|null|Column(1) = SYSCAT|null|Column(1) = SYSCS_DIAG|null|Column(1) = SYSCS_UTIL|null|Column(1) = SYSFUN|null|Column(1) = SYSIBM|null|Column(1) = SYSPROC|null|Column(1) = SYSSTAT|null</value>
+          </prop>
+        </node>
         <node oor:name="AddIndexAppendix" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:boolean">
             <value>true</value>

@@ -44,6 +44,7 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.uno.driver.config.ConfigBase;
 import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
@@ -109,13 +110,16 @@ public class Provider {
                                                                     mSubProtocol, name);
 
             if (!DriverManager.isDriverRegistered(clsname)) {
-                boolean add = true;
+                boolean add = ConfigBase.addDriverToClassPath(opts);
                 String clspath = DriverManager.getDriverClassPath(ctx, source, config,
                                                                   infos, mSubProtocol, name);
-                Driver driver = DriverManager.getDriverByClassName(source, clspath, clsname, location, add);
+                System.out.println("jdbcdriver.Provider() 1 ClassPath: "  + clspath + " - ClassName: " + clsname);
+                System.out.println("jdbcdriver.Provider() 2 Location: "  + location);
+
+                Driver driver = DriverManager.getDriverByClassName(source, clspath, clsname, add);
                 URL drvurl = driver.getClass().getProtectionDomain().getCodeSource().getLocation();
                 Path drvpath = Path.of(drvurl.toURI()).toRealPath();
-                DriverManager.registerDriver(source, driver, drvpath, clspath, clsname, name, add);
+                DriverManager.registerDriver(source, driver, drvpath, clspath, clsname, name);
                 logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, drvpath);
 
             }
