@@ -46,7 +46,6 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.sdb.XOfficeDatabaseDocument;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
 
@@ -76,10 +75,11 @@ public abstract class ConfigBase extends ParameterBase {
     private static final String IS_AUTORETRIEVING_ENABLED = "IsAutoRetrievingEnabled";
 
     private static final String INDEX_PATTERN = "[(]\\s*(\\d+)\\s*[)]";
-    private static final String VALUE_PATTERN = "[=]\\s*([\\w+\\s*\\w+]+)";
+    private static final String VALUE_PATTERN = "[=]\\s*([\\w+\\s*\\W*]+)";
 
     protected Object[] mPrivileges = null;
     protected RowSetData mTableData = null;
+    protected Short mCachedRowSet = null;
 
     private boolean mAddIndexAppendix = false;
     private boolean mIgnoreCurrency = false;
@@ -93,7 +93,6 @@ public abstract class ConfigBase extends ParameterBase {
  
     private Boolean mIsAutoRetrievingEnabled = null;
     private Boolean mShowSystemTable = null;
-    private Short mCachedRowSet = null;
 
     private XOfficeDatabaseDocument mDocument = null;
 
@@ -209,26 +208,6 @@ public abstract class ConfigBase extends ParameterBase {
             tabletypes = types.toArray(new String[0]);
         }
         return tabletypes;
-    }
-
-    public boolean useCachedRowSet(ResultSet rs, QueryHelper query)
-        throws SQLException {
-        boolean use = true;
-        try {
-            switch (mCachedRowSet) {
-                case 0:
-                    use = false;
-                    break;
-                case 1:
-                    use = rs.getType() == ResultSet.TYPE_FORWARD_ONLY ||
-                          rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY ||
-                          !query.hasPrimaryKeys();
-                    break;
-            }
-        } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage());
-        }
-        return use;
     }
 
     public boolean showSystemTable() {

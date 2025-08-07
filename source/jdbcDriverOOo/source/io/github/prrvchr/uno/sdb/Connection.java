@@ -172,21 +172,31 @@ public final class Connection
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public synchronized XNameAccess getUsers() {
-        XNameAccess users = null;
-        if (getProvider().getConfigSQL().supportsDCLQuery()) {
-            users = getUsersInternal();
+        try {
+            XNameAccess users = null;
+            if (getProvider().getConfigSQL().supportsDCLQuery()) {
+                users = getUsersInternal();
+            }
+            return users;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
         }
-        return users;
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
     public XNameAccess getGroups() {
-        XNameAccess groups = null;
-        if (getProvider().getConfigSQL().supportsDCLQuery()) {
-            groups = getGroupsInternal();
+        try {
+            XNameAccess groups = null;
+            if (getProvider().getConfigSQL().supportsDCLQuery()) {
+                groups = getGroupsInternal();
+            }
+            return groups;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
         }
-        return groups;
     }
 
     protected synchronized GroupContainer getGroupsInternal() {
@@ -260,7 +270,7 @@ public final class Connection
                 }
                 if (mUsers == null) {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
-                    mUsers = new UserContainer(this, getProvider().isCaseSensitive(), names);
+                    mUsers = new UserContainer(this, names, getProvider().isCaseSensitive());
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID,
                                        mUsers.getLogger().getObjectId());
                 } else {
@@ -287,7 +297,7 @@ public final class Connection
                 }
                 if (mGroups == null) {
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
-                    mGroups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
+                    mGroups = new GroupContainer(this, names, getProvider().isCaseSensitive());
                     getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID,
                                        mGroups.getLogger().getObjectId());
                 }  else {

@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
@@ -50,12 +51,12 @@ public class UserContainer
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
     protected final Connection mConnection;
-    private final ConnectionLog mLogger; 
+    private final ConnectionLog mLogger;
 
     // The constructor method:
     protected UserContainer(Connection connection,
-                            boolean sensitive,
-                            List<String> names)
+                            List<String> names,
+                            boolean sensitive)
         throws ElementExistException {
         this(connection, sensitive, names, LoggerObjectType.USERCONTAINER);
     }
@@ -68,6 +69,16 @@ public class UserContainer
         super(SERVICE, SERVICES, connection, sensitive, names);
         mConnection = connection;
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
+    }
+
+    @Override
+    protected List<String> getIndexes() {
+        return getNamesInternal();
+    }
+
+    @Override
+    protected User getElementByIndex(int index) throws WrappedTargetException {
+        return super.getElementByIndex(index);
     }
 
     @Override
@@ -128,11 +139,10 @@ public class UserContainer
     protected User createElement(String name)
         throws SQLException {
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
-        User user = new User(mConnection, isCaseSensitive(), name);
+        User user = new User(mConnection, mConnection.getGroupsInternal(), name, isCaseSensitive());
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, user.getLogger().getObjectId());
         return user;
     }
-
 
     @Override
     protected void removeDataBaseElement(int index,
@@ -141,17 +151,23 @@ public class UserContainer
         String query = null;
         try {
             query = RoleHelper.getDropUserCommand(mConnection.getProvider(), name, isCaseSensitive());
-            System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
+            System.out.println("sdbcx.UserContainer.removeDataBaseElement() 1 SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
             if (DBTools.executeSQLQuery(mConnection.getProvider(), query)) {
                 // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
-                mConnection.getGroupsInternal().removeRole(name);
+                System.out.println("sdbcx.UserContainer.removeDataBaseElement() 2");
+                //mConnection.getGroupsInternal().removeRole(name);
+                System.out.println("sdbcx.UserContainer.removeDataBaseElement() 3");
             }
         } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        } catch (Throwable e) {
+            System.out.println("sdbcx.UserContainer.removeDataBaseElement() ERROR");
+            e.printStackTrace();
         }
     }
 

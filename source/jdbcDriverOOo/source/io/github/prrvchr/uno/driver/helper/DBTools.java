@@ -817,11 +817,6 @@ public class DBTools {
         return provider.getConfigDDL().getCreateViewCommand(ParameterDDL.getCreateView(view, command));
     }
 
-    public static String getDropViewCommand(Provider provider, String view) {
-        
-        return provider.getConfigDDL().getDropViewCommand(ParameterDDL.getDropView(view));
-    }
-
     /** returns the primary key columns of the table.
      * @param table
      *    The table as a property set.

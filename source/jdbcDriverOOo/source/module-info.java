@@ -8,6 +8,7 @@ module io.github.prrvchr.jdbcdriver {
     requires io.github.prrvchr.javainstrumentation;
     requires io.github.prrvchr.javarowset;
     requires org.libreoffice.uno;
+    requires java.desktop;
 
     exports io.github.prrvchr.uno.driver;
     exports io.github.prrvchr.uno.sdb;

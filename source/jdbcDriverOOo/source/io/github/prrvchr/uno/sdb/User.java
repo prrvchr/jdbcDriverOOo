@@ -50,9 +50,10 @@ public final class User
 
     // The constructor method:
     public User(Connection connection,
-                boolean sensitive,
-                String name) {
-        super(SERVICE, SERVICES, connection, sensitive, name, LoggerObjectType.USER, false);
+                GroupContainer groups,
+                String name,
+                boolean sensitive) {
+        super(SERVICE, SERVICES, connection, groups, name, sensitive, LoggerObjectType.USER, false);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 

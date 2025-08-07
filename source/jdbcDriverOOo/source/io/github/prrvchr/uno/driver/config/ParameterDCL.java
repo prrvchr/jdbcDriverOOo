@@ -38,6 +38,21 @@ import io.github.prrvchr.uno.driver.provider.Provider;
 
 public class ParameterDCL extends ParameterBase {
 
+    public static Map<String, Object> getUserArguments(Provider provider,
+                                                       String user,
+                                                       String password,
+                                                       boolean sensitive)
+        throws java.sql.SQLException {
+        Map<String, Object> arguments = new HashMap<>();
+        // XXX: ${User} quoted / unquoted user name
+        arguments.put("User", provider.enquoteIdentifier(user, sensitive));
+        // XXX: ${Password} quoted password
+        arguments.put("Password", provider.enquoteLiteral(password));
+        // XXX: ${RawPwd} unquoted password
+        arguments.put("RawPwd", password);
+        return arguments;
+    }
+
     public static Map<String, Object> getPrivilegesArguments(String grantee,
                                                              NamedComponents table)
         throws java.sql.SQLException, SQLException {

@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.driver.helper;
 
 import java.util.ArrayList;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.Provider;
 
@@ -34,14 +35,18 @@ import io.github.prrvchr.uno.driver.provider.Provider;
 public class IndexHelper {
 
     public static ArrayList<String> readIndexes(Provider provider,
-                                                NamedComponents table,
+                                                NamedComponents component,
                                                 boolean qualified)
         throws java.sql.SQLException {
         ArrayList<String> names = new ArrayList<>();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         String separator = metadata.getCatalogSeparator();
-        try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(), table.getSchema(),
-                                                               table.getTable(), false, false)) {
+        ConfigSQL config = provider.getConfigSQL();
+        try (java.sql.ResultSet result = metadata.getIndexInfo(config.getMetaDataIdentifier(component.getCatalog()),
+                                                               config.getMetaDataIdentifier(component.getSchema()),
+                                                               config.getMetaDataIdentifier(component.getTable()),
+                                                               false, false)) {
+            String name;
             String previous = "";
             final int INDEX_QUALIFIER = 5;
             final int INDEX_NAME = 6;
@@ -54,12 +59,15 @@ public class IndexHelper {
                         buffer.append(separator);
                     }
                 }
-                buffer.append(result.getString(INDEX_NAME));
-                String name = buffer.toString();
-                // XXX: Don't insert the name if the last one we inserted was the same
-                if (!result.wasNull() && !name.isEmpty() && !previous.equals(name)) {
-                    names.add(name);
-                    previous = name;
+                name = result.getString(INDEX_NAME);
+                if (!result.wasNull()) {
+                    buffer.append(name);
+                    name = buffer.toString();
+                    // XXX: Don't insert the name if the last one we inserted was the same
+                    if (!name.isEmpty() && !previous.equals(name)) {
+                        names.add(name);
+                        previous = name;
+                    }
                 }
             }
         }

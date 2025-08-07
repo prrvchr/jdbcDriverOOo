@@ -32,6 +32,7 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
@@ -69,9 +70,10 @@ public final class IndexColumnContainer
         NamedComponents table = mIndex.getTable().getNamedComponents();
         try {
             java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
-            try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(),
-                                                                   table.getSchema(),
-                                                                   table.getTable(),
+            ConfigSQL config = getConnection().getProvider().getConfigSQL();
+            try (java.sql.ResultSet result = metadata.getIndexInfo(config.getMetaDataIdentifier(table.getCatalog()),
+                                                                   config.getMetaDataIdentifier(table.getSchema()),
+                                                                   config.getMetaDataIdentifier(table.getTable()),
                                                                    false, false)) {
                 while (result.next()) {
                     if (name.equals(result.getString(COLUMN_NAME))) {

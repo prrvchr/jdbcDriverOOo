@@ -104,6 +104,10 @@ public abstract class ContainerSuper<T extends Descriptor>
         }
     }
 
+    protected List<String> getIndexes() {
+        return getNamesInternal();
+    }
+
     // com.sun.star.util.XRefreshable
     @Override
     public void refresh() {
@@ -180,8 +184,8 @@ public abstract class ContainerSuper<T extends Descriptor>
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException {
         ContainerEvent event;
-        Iterator<?> iterator;
         synchronized (mLock) {
+            System.out.println("ContainerBase.appendByDescriptor() 1");
             T element = appendElement(descriptor);
             if (element == null) {
                 String name = getElementName(descriptor);
@@ -195,10 +199,9 @@ public abstract class ContainerSuper<T extends Descriptor>
 
             // XXX: notify our container listeners
             event = new ContainerEvent(this, name, element, null);
-            iterator = mContainer.iterator();
         }
-        while (iterator.hasNext()) {
-            XContainerListener listener = (XContainerListener) iterator.next();
+        for (XContainerListener listener : getContainerListeners()) {
+            System.out.println("ContainerBase.appendByDescriptor() 2");
             listener.elementInserted(event);
         }
     }
@@ -219,17 +222,6 @@ public abstract class ContainerSuper<T extends Descriptor>
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 
-    // com.sun.star.container.XContainer:
-    @Override
-    public void addContainerListener(XContainerListener listener) {
-        mContainer.add(listener);
-    }
-
-    @Override
-    public void removeContainerListener(XContainerListener listener) {
-        mContainer.remove(listener);
-    }
-
     // Protected methods
     protected void replaceElement(String oldname, String newname)
         throws SQLException {
@@ -240,6 +232,7 @@ public abstract class ContainerSuper<T extends Descriptor>
     protected void replaceElement(String oldname, String newname, boolean rename)
         throws SQLException {
         synchronized (mLock) {
+            System.out.println("ContainerSuper.replaceElement() 1");
             if (!newname.equals(oldname) && mNames.contains(oldname)) {
                 int index = mNames.indexOf(oldname);
                 mNames.set(index, newname);
@@ -248,15 +241,21 @@ public abstract class ContainerSuper<T extends Descriptor>
                     // XXX: We cannot set the name of composed names (ie: table and view)
                     element.setName(newname);
                 }
-                ContainerEvent event = new ContainerEvent(this, newname, element, oldname);
-                for (Iterator<?> iterator = mContainer.iterator(); iterator.hasNext();) {
-                    XContainerListener listener = (XContainerListener) iterator.next();
-                    listener.elementReplaced(event);
+                ContainerEvent e1 = null;
+                for (XContainerListener listener : getContainerListeners()) {
+                    if (e1 == null) {
+                        e1 = new ContainerEvent(this, newname, element, oldname);
+                    }
+                    System.out.println("ContainerSuper.replaceElement() 2");
+                    listener.elementReplaced(e1);
                 }
-                EventObject event2 = new EventObject(this);
-                for (Iterator<?> iterator2 = mRefresh.iterator(); iterator2.hasNext();) {
-                    XRefreshListener listener = (XRefreshListener) iterator2.next();
-                    listener.refreshed(event2);
+                EventObject e2 = null; 
+                for (Iterator<?> iterator = mRefresh.iterator(); iterator.hasNext();) {
+                    if (e2 == null) {
+                        e2 = new EventObject(this);
+                    }
+                    XRefreshListener listener = (XRefreshListener) iterator.next();
+                    listener.refreshed(e2);
                 }
             }
         }
@@ -264,6 +263,7 @@ public abstract class ContainerSuper<T extends Descriptor>
 
     protected void removeElement(int index)
         throws SQLException {
+        System.out.println("ContainerSuper.removeElement() 1 index: "  + index);
         removeElement(index, true);
     }
 
@@ -281,7 +281,7 @@ public abstract class ContainerSuper<T extends Descriptor>
             String name = mNames.get(index);
             removeDataBaseElement(index, name);
         }
-        super.removeElement(index);
+        removeContainerElement(index);
     }
 
     protected XPropertySet cloneDescriptor(XPropertySet descriptor) {

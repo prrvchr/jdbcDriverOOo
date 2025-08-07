@@ -91,23 +91,19 @@ public class ConfigDCL extends ConfigDDL {
         return  getCreateUserCommand() != null;
     }
 
-    public String getCreateUserCommand(final String name, final String password) {
+    public String getCreateUserCommand(Map<String, Object> keys) {
         String command = getCreateUserCommand();
-        Map<String, Object> keys = Map.of("User", name,
-                                          "Password", password);
+        return format(command, keys);
+    }
+
+    public String getAlterUserCommand(Map<String, Object> keys) {
+        String command = getAlterUserCommand();
         return format(command, keys);
     }
 
     public String getDropUserCommand(final String name) {
         String command = getDropUserCommand();
         Map<String, Object> keys = Map.of("User", name);
-        return format(command, keys);
-    }
-
-    public String getAlterUserCommand(final String name, final String password) {
-        String command = getAlterUserCommand();
-        Map<String, Object> keys = Map.of("User", name,
-                                          "Password", password);
         return format(command, keys);
     }
 

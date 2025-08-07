@@ -155,14 +155,14 @@ public class TableHelper {
             return builder.toString();
         }
 
-        public Map<String, Object> toArguments(String table)
+        public Map<String, Object> toArguments(String tablename, String table)
             throws java.sql.SQLException {
             // XXX: We try to have arguments to be able to fill two query:
             // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${Column} ${Type} ${Default} ${Nullable} ${Autoincrement}
             // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${OldName} RENAME TO ${Column}
-            return ParameterDDL.getColumnProperties(table, mOldIdentifier, mNewIdentifier, mColumnType.toString(),
-                                                    mDefaultValue, mNotNull, mIsAutoincrement,
-                                                    mAutoincrement, toString());
+            return ParameterDDL.getColumnProperties(tablename, table, mOldIdentifier, mNewIdentifier,
+                                                    mColumnType.toString(), mDefaultValue, mNotNull,
+                                                    mIsAutoincrement, mAutoincrement, toString());
         }
 
         public boolean isRowVersion() {
@@ -411,26 +411,24 @@ public class TableHelper {
     *      The old column descriptor.
     * @param descriptor2
     *      The new column descriptor.
-    * @param name
+    * @param oldname
     *      The old the column name.
-    * @param autoincrement
-    *      Is the new column autoincrement.
     * @return
     *      The binary status (ie: 1 -> renamed, 2 -> type changed ...) as int
     */
     public static int getAlterColumnChanges(XPropertySet descriptor1,
                                             XPropertySet descriptor2,
-                                            String name,
-                                            boolean autoincrement) {
+                                            String oldname) {
         int changes = 0;
         // XXX: Column name have been changed?
-        String name2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.NAME);
-        if (!name.equals(name2)) {
+        String newname = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.NAME);
+        if (!oldname.equals(newname)) {
             changes |= COLUMN_NAME;
         }
         // XXX: Identity have been changed?
         boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyIds.ISAUTOINCREMENT);
-        if (auto1 != autoincrement) {
+        boolean auto2 = DBTools.getDescriptorBooleanValue(descriptor2, PropertyIds.ISAUTOINCREMENT);
+        if (auto1 != auto2) {
             changes |= COLUMN_IDENTITY;
         }
         // XXX: Type have been changed?
@@ -467,8 +465,10 @@ public class TableHelper {
     *      The list of queries to fill.
     * @param provider
     *      The driver provider.
-    * @param tablename
-    *      The table of the column.
+    * @param component
+    *      The component of the table.
+    * @param rule
+    *      The rule of the component.
     * @param oldname
     *      The old column name.
     * @param descriptor1
@@ -490,7 +490,8 @@ public class TableHelper {
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static Integer getAlterColumnQueries(List<String> queries,
                                                 Provider provider,
-                                                String tablename,
+                                                NamedComponents component,
+                                                ComposeRule rule,
                                                 String oldname,
                                                 XPropertySet descriptor1,
                                                 XPropertySet descriptor2,
@@ -503,10 +504,11 @@ public class TableHelper {
         // XXX: Added the possibility of changing column type if the contained data can be cast
         // XXX: Added the possibility of renaming a primary key
         // XXX: Added the possibility of adding or removing Identity (auto increment on column) {
-
+        String tablename = DBTools.composeTableName(provider, component, rule, sensitive);
+        String table = provider.enquoteIdentifier(component.getTable(), sensitive);
         ColumnProperties column = getStandardColumnProperties(provider, oldname, descriptor2, sensitive);
         int result = setAlterColumnQueries(provider, queries, column, descriptor2, flags,
-                                           alterkey, tablename);
+                                           alterkey, tablename, table);
         // XXX: Column description have been changed?
         if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && provider.getConfigDDL().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
@@ -526,13 +528,14 @@ public class TableHelper {
                                              XPropertySet descriptor,
                                              int flags,
                                              boolean alterkey,
+                                             String tablename,
                                              String table)
         throws java.sql.SQLException {
 
         // XXX: Modify an existing column
         int results = 0;
         boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
-        Map<String, Object> arguments = column.toArguments(table);
+        Map<String, Object> arguments = column.toArguments(tablename, table);
 
         // XXX: Column name have changed
         if (hasPropertyChanged(flags, COLUMN_NAME)) {

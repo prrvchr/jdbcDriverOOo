@@ -39,6 +39,7 @@ import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
+import io.github.prrvchr.uno.sdbcx.ContainerListener;
 
 
 public final class Group
@@ -48,15 +49,33 @@ public final class Group
     private static final String SERVICE = Group.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Group"};
     private Users mUsers;
+    private UserContainer mUserContainer;
+    private ContainerListener<User> mListener;
 
     // The constructor method:
     public Group(Connection connection,
-                 boolean sensitive,
-                 String name) {
-        super(SERVICE, SERVICES, connection, sensitive, name, LoggerObjectType.GROUP, true);
+                 GroupContainer groups,
+                 UserContainer users,
+                 String name,
+                 boolean sensitive) {
+        super(SERVICE, SERVICES, connection, groups, name, sensitive, LoggerObjectType.GROUP, true);
+        mUserContainer = users;
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
 
+    // com.sun.star.lang.XComponent
+    @Override
+    public void dispose() {
+        if (mUsers != null) {
+            synchronized (mUsers) {
+                if (mListener != null) {
+                    mUserContainer.removeContainerListener(mListener);
+                }
+                mUsers.dispose();
+            }
+        }
+        super.dispose();
+    }
 
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
@@ -92,9 +111,12 @@ public final class Group
                 }
                 if (mUsers == null) {
                     mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
-                    mUsers = new Users(mConnection, isCaseSensitive(), getName(), users);
+                    mUsers = new Users(mConnection, mUserContainer, users, getName(), isCaseSensitive());
                     mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID,
                                    mUsers.getLogger().getObjectId());
+                    mListener = new ContainerListener<User>(mUsers);
+                    mUserContainer.addContainerListener(mListener);
+
                 } else {
                     mUsers.refill(users);
                 }

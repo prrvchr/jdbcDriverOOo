@@ -88,35 +88,35 @@ public abstract class RoleContainer<T extends Role>
     // XXX: In fact here we only manage a list of names
     protected InterfaceContainer mContainer = new InterfaceContainer();
     protected InterfaceContainer mRefresh = new InterfaceContainer();
-    protected Object mLock;
+    protected ConnectionSuper mConnection;
     protected final ConnectionLog mLogger; 
     protected final Provider mProvider;
     // The type of The Role (Group or User)
     protected final boolean mIsrole;
+    // A pointer to all roles (User xor Group) in the underlying database
+    protected ContainerSuper<T> mRoles;
+    // The list of roles held by The Role
+    protected List<String> mNames;
     private final String mService;
     private final String[] mServices;
-    // The list of roles held by The Role
-    private List<String> mNames;
     private boolean mSensitive;
-    // A pointer to all roles (User xor Group) in the underlying database
-    private ContainerSuper<T> mRoles;
 
     // The constructor method:
     protected RoleContainer(String service,
                             String[] services,
                             Connection connection,
                             Provider provider,
-                            String name,
                             ContainerSuper<T> roles,
-                            boolean sensitive,
                             List<String> names,
+                            String name,
+                            boolean sensitive,
                             boolean isrole,
                             String role,
                             LoggerObjectType type)
         throws ElementExistException {
         mService = service;
         mServices = services;
-        mLock = connection;
+        mConnection = connection;
         mProvider = provider;
         mSensitive = sensitive;
         mName = name;
@@ -127,12 +127,16 @@ public abstract class RoleContainer<T extends Role>
         mIsrole = isrole;
     }
 
+    protected List<String> getNamesInternal() {
+        return mNames;
+    }
+
     protected abstract ConnectionLog getLogger();
     protected abstract Provider getProvider();
 
     // Would be from com.sun.star.lang.XComponent ;)
     public void dispose() {
-        System.out.println("sdbcx.RoleContainer.dispose() Class: " + this.getClass().getName());
+        System.out.println("RoleContainer.dispose() Class: " + this.getClass().getName());
     }
 
 
@@ -166,14 +170,14 @@ public abstract class RoleContainer<T extends Role>
 
     @Override
     public void addRefreshListener(XRefreshListener listener) {
-        synchronized (mLock) {
+        synchronized (mConnection) {
             mRefresh.add(listener);
         }
     }
 
     @Override
     public void removeRefreshListener(XRefreshListener listener) {
-        synchronized (mLock) {
+        synchronized (mConnection) {
             mRefresh.remove(listener);
         }
     }
@@ -184,24 +188,25 @@ public abstract class RoleContainer<T extends Role>
     public Object getByName(String name)
         throws NoSuchElementException,
                WrappedTargetException {
-        synchronized (mLock) {
-            if (!mNames.contains(name)) {
+        synchronized (mRoles) {
+            if (!mNames.contains(name) || !mRoles.getIndexes().contains(name)) {
                 throw new NoSuchElementException();
             }
+            int index = mRoles.getIndexes().indexOf(name);
+            return mRoles.getElementByIndex(index);
         }
-        return mRoles.getByName(name);
     }
 
     @Override
     public String[] getElementNames() {
-        synchronized (mLock) {
+        synchronized (mNames) {
             return mNames.toArray(new String[0]);
         }
     }
 
     @Override
     public boolean hasByName(String name) {
-        synchronized (mLock) {
+        synchronized (mNames) {
             return mNames.contains(name);
         }
     }
@@ -226,19 +231,17 @@ public abstract class RoleContainer<T extends Role>
         if (index < 0 || index >= getCount()) {
             throw new IndexOutOfBoundsException();
         }
-        String name = mNames.get(index);
-        if (!mRoles.hasByName(name)) {
-            throw new IndexOutOfBoundsException();
+        synchronized (mRoles) {
+            String name = mNames.get(index);
+            if (!mRoles.getIndexes().contains(name)) {
+                throw new IndexOutOfBoundsException();
+            }
+            index = mRoles.getIndexes().indexOf(name);
+            return mRoles.getElementByIndex(index);
         }
-        Object element = null;
-        try {
-            element = mRoles.getElement(name);
-        } catch (SQLException e) {
-            // XXX Auto-generated catch block
-            e.printStackTrace();
-        }
-        return element;
     }
+
+    protected abstract T createRoleElement(String name) throws SQLException;
 
     @Override
     public int getCount() {
@@ -251,28 +254,28 @@ public abstract class RoleContainer<T extends Role>
     public void dropByIndex(int index)
         throws SQLException,
                IndexOutOfBoundsException {
-        synchronized (mLock) {
-            if (index < 0 || index >= getCount()) {
-                throw new IndexOutOfBoundsException();
-            }
+        if (index < 0 || index >= getCount()) {
+            throw new IndexOutOfBoundsException();
         }
-        String name = mNames.get(index);
-        if (revokeRole(name)) {
-            removeElement(name);
+        synchronized (mRoles) {
+            String name = mNames.get(index);
+            if (revokeRole(name)) {
+                removeElement(name);
+            }
         }
     }
 
     @Override
     public void dropByName(String name)
         throws SQLException, NoSuchElementException {
-        synchronized (mLock) {
-            if (!hasByName(name)) {
-                System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
-                throw new NoSuchElementException();
-            }
+        if (!mNames.contains(name)) {
+            System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
+            throw new NoSuchElementException();
         }
-        if (revokeRole(name)) {
-            removeElement(name);
+        synchronized (mRoles) {
+            if (revokeRole(name)) {
+                removeElement(name);
+            }
         }
     }
 
@@ -291,8 +294,14 @@ public abstract class RoleContainer<T extends Role>
             throw new ElementExistException();
         }
         if (grantRole(name)) {
+            T element;
             mNames.add(name);
-            T element = mRoles.getElement(name);
+            int index = mRoles.getIndexes().indexOf(name);
+            try {
+                element = mRoles.getElementByIndex(index);
+            } catch (WrappedTargetException e) {
+                throw new SQLException();
+            }
             // XXX: notify our container listeners
             ContainerEvent event = new ContainerEvent(this, name, element, null);
             Iterator<?> iterator = mContainer.iterator();
@@ -302,7 +311,6 @@ public abstract class RoleContainer<T extends Role>
             }
         }
     }
-
 
     // com.sun.star.container.XContainer:
     @Override
@@ -322,78 +330,69 @@ public abstract class RoleContainer<T extends Role>
         return new ContainerEnumeration(this);
     }
 
-
     // Protected methods
     protected boolean grantRole(String name)
         throws SQLException {
-        String query = null;
-        String role1;
-        String role2;
+        boolean granted = false;
         if (mIsrole) {
-            role1 = mName;
-            role2 = name;
+            int res1 = Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY;
+            int res2 = Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY_ERROR;
+            granted = grantRole(mName, name, res1, res2);
         } else {
-            role1 = name;
-            role2 = mName;
+            int res1 = Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY;
+            int res2 = Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY_ERROR;
+            granted = grantRole(name, mName, res1, res2);
         }
+        return granted;
+    }
+
+    private boolean grantRole(String role1, String role2, int res1, int res2)
+        throws SQLException {
+        String query = null;
         try {
-            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(), role1, role2,
-                                                                                  mIsrole, mRole, isCaseSensitive());
+            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(),
+                                                                               role1, role2,
+                                                                               mIsrole, mRole,
+                                                                               isCaseSensitive());
             query = getProvider().getConfigDCL().getGrantRoleCommand(Arguments);
-            int resource;
-            if (mIsrole) {
-                resource = Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY;
-            } else {
-                resource = Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY;
-            }
-            getLogger().logprb(LogLevel.INFO, resource, role1, role2, query);
-            System.out.println("sdbcx.RoleContainer.grantRole() 1 IsRole: " + mIsrole + " - Query: " + query);
+            getLogger().logprb(LogLevel.INFO, res1, role1, role2, query);
             return DBTools.executeSQLQuery(getProvider(), query);
         } catch (java.sql.SQLException e) {
-            int resource;
-            if (mIsrole) {
-                resource = Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY_ERROR;
-            } else {
-                resource = Resources.STR_LOG_USERROLES_GRANT_ROLE_QUERY_ERROR;
-            }
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, role1, role2, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, role1, role2, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
     private boolean revokeRole(String name)
         throws SQLException {
-        String query = null;
-        String role1;
-        String role2;
+        boolean revoked = false;
         if (mIsrole) {
-            role1 = mName;
-            role2 = name;
+            int res1 = Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY;
+            int res2 = Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY_ERROR;
+            revoked = revokeRole(mName, name, res1, res2);
         } else {
-            role1 = name;
-            role2 = mName;
+            int res1 = Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY;
+            int res2 = Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY_ERROR;
+            revoked = revokeRole(name, mName, res1, res2);
         }
+        return revoked;
+    }
+
+    private boolean revokeRole(String role1, String role2, int res1, int res2)
+        throws SQLException {
+        String query = null;
         try {
-            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(), role1, role2,
-                                                                                  mIsrole, mRole, isCaseSensitive());
+            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(),
+                                                                               role1, role2,
+                                                                               mIsrole, mRole,
+                                                                               isCaseSensitive());
             query = getProvider().getConfigDCL().getRevokeRoleCommand(Arguments);
-            int resource;
-            if (mIsrole) {
-                resource = Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY;
-            } else {
-                resource = Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY;
-            }
-            getLogger().logprb(LogLevel.INFO, resource, role1, role2, query);
-            System.out.println("sdbcx.RoleContainer.revokeRole() 1 IsRole: " + mIsrole + " - Query: " + query);
+            getLogger().logprb(LogLevel.INFO, res1, role1, role2, query);
             return DBTools.executeSQLQuery(getProvider(), query);
         } catch (java.sql.SQLException e) {
-            int resource;
-            if (mIsrole) {
-                resource = Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY_ERROR;
-            } else {
-                resource = Resources.STR_LOG_USERROLES_REVOKE_ROLE_QUERY_ERROR;
-            }
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, role1, role2, query);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, role1, role2, query);
+            getLogger().logp(LogLevel.SEVERE, msg);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }

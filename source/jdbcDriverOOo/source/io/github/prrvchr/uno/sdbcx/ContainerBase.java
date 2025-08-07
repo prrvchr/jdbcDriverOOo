@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.event.EventListenerList;
+
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ContainerEvent;
 import com.sun.star.container.NoSuchElementException;
@@ -40,11 +42,9 @@ import com.sun.star.container.XEnumeration;
 import com.sun.star.container.XEnumerationAccess;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.lang.EventObject;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
-import com.sun.star.lib.uno.helper.InterfaceContainer;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XColumnLocate;
@@ -66,13 +66,13 @@ public abstract class ContainerBase<T extends Descriptor>
                XEnumerationAccess,
                XColumnLocate {
 
-    protected InterfaceContainer mContainer = new InterfaceContainer();
     protected Object mLock;
     protected List<T> mElements;
     protected boolean mSensitive;
     private List<String> mNames;
     private final String mService;
     private final String[] mServices;
+    private final EventListenerList mContainer = new EventListenerList();
 
     // The constructor method:
     public ContainerBase(String service,
@@ -99,10 +99,14 @@ public abstract class ContainerBase<T extends Descriptor>
         }
     }
 
+    protected XContainerListener[] getContainerListeners() {
+        return mContainer.getListeners(XContainerListener.class);
+    }
+
     // Would be from com.sun.star.lang.XComponent ;)
     public void dispose() {
-        EventObject event = new EventObject(this);
-        mContainer.disposeAndClear(event);
+        //EventObject event = new EventObject(this);
+        //mContainer.disposeAndClear(event);
         synchronized (mLock) {
             getNamesInternal().clear();
             for (T element : mElements) {
@@ -168,6 +172,7 @@ public abstract class ContainerBase<T extends Descriptor>
         return !mElements.isEmpty();
     }
 
+
     // com.sun.star.container.XIndexAccess:
     @Override
     public Object getByIndex(int index)
@@ -189,22 +194,25 @@ public abstract class ContainerBase<T extends Descriptor>
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 
+
     // com.sun.star.container.XContainer:
     @Override
     public void addContainerListener(XContainerListener listener) {
-        mContainer.add(listener);
+        mContainer.add(XContainerListener.class, listener);
     }
 
     @Override
     public void removeContainerListener(XContainerListener listener) {
-        mContainer.remove(listener);
+        mContainer.remove(XContainerListener.class, listener);
     }
+
 
     // com.sun.star.container.XEnumerationAccess:
     @Override
     public XEnumeration createEnumeration() {
         return createEnumerationInternal();
     }
+
 
     // com.sun.star.sdbcx.XColumnLocate
     @Override
@@ -216,6 +224,7 @@ public abstract class ContainerBase<T extends Descriptor>
         }
         return getNamesInternal().indexOf(name) + 1;
     }
+
 
     // Protected methods
     protected boolean isCaseSensitive() {
@@ -312,14 +321,15 @@ public abstract class ContainerBase<T extends Descriptor>
         return element;
     }
 
-    protected void removeElement(int index)
+    protected void removeContainerElement(int index)
         throws SQLException {
+        System.out.println("ContainerBase.removeContainerElement() 1 index: "  + index);
         String name = getNamesInternal().remove(index);
         T element = mElements.remove(index);
         UnoHelper.disposeComponent(element);
         ContainerEvent event = new ContainerEvent(this, name, null, null);
-        for (Iterator<?> iterator = mContainer.iterator(); iterator.hasNext(); ) {
-            XContainerListener listener = (XContainerListener) iterator.next();
+        for (XContainerListener listener : getContainerListeners()) {
+            System.out.println("ContainerBase.removeContainerElement() 2 index: "  + index);
             listener.elementRemoved(event);
         }
     }
@@ -339,15 +349,17 @@ public abstract class ContainerBase<T extends Descriptor>
     protected abstract T createElement(int index) throws SQLException;
 
     // Private methods
-    private T getElementByIndex(int index)
+    protected T getElementByIndex(int index)
         throws WrappedTargetException {
         T element = mElements.get(index);
         if (element == null) {
             try {
                 element = createElement(index);
             } catch (SQLException e) {
+                e.printStackTrace();
+                System.out.println("ContainerBase.getElementByIndex() 1 index: "  + index);
                 try {
-                    removeElement(index);
+                    removeContainerElement(index);
                 } catch (Exception ignored) { }
                 throw new WrappedTargetException(e.getMessage(), this, e);
             }

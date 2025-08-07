@@ -186,6 +186,7 @@ public abstract class TableSuper
     @Override
     public void alterColumnByIndex(int index, XPropertySet newcolumn)
         throws SQLException, IndexOutOfBoundsException {
+        System.out.println("TableSuper.alterColumnByIndex() 1");
         checkDisposed();
         ColumnSuper oldcolumn = mColumns.getElement(index);
         if (oldcolumn != null) {
@@ -196,6 +197,7 @@ public abstract class TableSuper
     @Override
     public void alterColumnByName(String name, XPropertySet newcolumn)
         throws SQLException, NoSuchElementException {
+        System.out.println("TableSuper.alterColumnByName() 1");
         checkDisposed();
         ColumnSuper oldcolumn = mColumns.getElement(name);
         if (oldcolumn != null) {
@@ -205,23 +207,27 @@ public abstract class TableSuper
 
     private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
         throws SQLException {
+        System.out.println("TableSuper.alterColumn() 1");
         Provider provider = getConnection().getProvider();
 
         String oldname = oldcolumn.getName();
-        boolean autoincrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
-        int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, autoincrement);
+        int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname);
+        System.out.println("TableSuper.alterColumn() 2 flags: " + flags);
 
         // XXX: Identity or Type have been changed?
         // XXX: Identity switching is only allowed if the underlying driver supports it.
         // XXX: Changing column type is only allowed if the underlying driver supports it.
         if (TableHelper.hasColumnIdentityChanged(flags) && !supportColumnIdentityChange(provider) ||
             TableHelper.hasColumnTypeChanged(flags) && !supportColumnTypeChange(provider)) {
+            System.out.println("TableSuper.alterColumn() 3 ERROR");
             int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
             throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
         }
 
+        System.out.println("TableSuper.alterColumn() 4");
         int result = alterColumn(provider, oldcolumn, newcolumn, oldname, flags);
+        System.out.println("TableSuper.alterColumn() 5 result: " + result);
         if (result != flags) {
             System.out.println("TableSuper.alterColumn() ERROR ******************************************");
         }
@@ -245,18 +251,26 @@ public abstract class TableSuper
         throws SQLException {
         int result = 0;
         String table = null;
+        System.out.println("TableSuper.alterColumn() 1");
         List<String> queries = new ArrayList<>();
+        System.out.println("TableSuper.alterColumn() 2");
         NamedComponents component = getNamedComponents();
+        System.out.println("TableSuper.alterColumn() 3");
         ComposeRule rule = ComposeRule.InTableDefinitions;
         try {
+            System.out.println("TableSuper.alterColumn() 4");
             table = DBTools.buildName(provider, component, rule);
+            System.out.println("TableSuper.alterColumn() 5");
             boolean alterpk = isPrimaryKeyColumn(oldname);
+            System.out.println("TableSuper.alterColumn() 6");
             boolean alterfk = isForeignKeyColumn(oldname);
+            System.out.println("TableSuper.alterColumn() 7");
             boolean alteridx = isIndexColumn(oldname);
             boolean alterkey = alterpk || alterfk;
-            String tablename = DBTools.composeTableName(provider, component, rule, isCaseSensitive());
-            result = TableHelper.getAlterColumnQueries(queries, provider, tablename, oldname, oldcolumn,
+            System.out.println("TableSuper.alterColumn() 8");
+            result = TableHelper.getAlterColumnQueries(queries, provider, component, rule, oldname, oldcolumn,
                                                        newcolumn, flags, alterkey, isCaseSensitive());
+            System.out.println("TableSuper.alterColumn() 9");
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
@@ -379,10 +393,17 @@ public abstract class TableSuper
     private boolean isIndexColumn(String column)
         throws SQLException {
         boolean index = false;
-        // FIXME: Here we search and retrieve if this column is declared as index.
-        IndexContainer indexes = getIndexesInternal();
-        for (String name : indexes.getElementNames()) {
-            index = indexes.getElement(name).getColumnsInternal().hasByName(column);
+        try {
+            // FIXME: Here we search and retrieve if this column is declared as index.
+            System.out.println("TableSuper.isIndexColumn() 1");
+            IndexContainer indexes = getIndexesInternal();
+            System.out.println("TableSuper.isIndexColumn() 2");
+            for (String name : indexes.getElementNames()) {
+                System.out.println("TableSuper.isIndexColumn() 3");
+                index = indexes.getElement(name).getColumnsInternal().hasByName(column);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
         return index;
     }
@@ -540,6 +561,7 @@ public abstract class TableSuper
                 mIndexes.refill(indexes);
             }
         } catch (java.sql.SQLException | ElementExistException e) {
+            e.printStackTrace();
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
     }

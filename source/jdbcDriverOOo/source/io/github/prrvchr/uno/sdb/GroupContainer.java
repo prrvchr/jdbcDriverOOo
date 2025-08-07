@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
@@ -50,24 +51,33 @@ public class GroupContainer
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
     protected final Connection mConnection;
-    private final ConnectionLog mLogger; 
+    private final ConnectionLog mLogger;
 
     // The constructor method:
     public GroupContainer(Connection connection,
-                          boolean sensitive,
-                          List<String> names)
+                          List<String> names,
+                          boolean sensitive)
         throws ElementExistException {
-        this(connection, sensitive, names, LoggerObjectType.GROUPCONTAINER);
+        this(connection, names, sensitive, LoggerObjectType.GROUPCONTAINER);
     }
 
     protected GroupContainer(Connection connection,
-                             boolean sensitive,
                              List<String> names,
+                             boolean sensitive,
                              LoggerObjectType type)
         throws ElementExistException {
         super(SERVICE, SERVICES, connection, sensitive, names);
         mConnection = connection;
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
+    }
+
+    @Override
+    protected List<String> getIndexes() {
+        return getNamesInternal();
+    }
+
+    protected Group getElementByIndex(int index) throws WrappedTargetException {
+        return super.getElementByIndex(index);
     }
 
     protected ConnectionLog getLogger() {
@@ -112,10 +122,11 @@ public class GroupContainer
     @Override
     protected Group createElement(String name)
         throws SQLException {
+        System.out.println("sdbcx.GroupContainer.createElement() name: " + name);
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATE_GROUP);
-        Group goup = new Group(mConnection, isCaseSensitive(), name);
-        getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATED_GROUP_ID, goup.getLogger().getObjectId());
-        return goup;
+        Group group = new Group(mConnection, this, mConnection.getUsersInternal(), name, isCaseSensitive());
+        getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, group.getLogger().getObjectId());
+        return group;
     }
 
     @Override

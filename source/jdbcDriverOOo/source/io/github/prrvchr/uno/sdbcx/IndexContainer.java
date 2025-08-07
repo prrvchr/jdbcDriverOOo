@@ -43,6 +43,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
@@ -130,9 +131,10 @@ public final class IndexContainer
         final int TYPE = 7;
         final int COLUMN_NAME = 9;
         NamedComponents table = mTable.getNamedComponents();
-        try (java.sql.ResultSet result = metadata.getIndexInfo(table.getCatalog(),
-                                                               table.getSchema(),
-                                                               table.getTable(),
+        ConfigSQL config = getConnection().getProvider().getConfigSQL();
+        try (java.sql.ResultSet result = metadata.getIndexInfo(config.getMetaDataIdentifier(table.getCatalog()),
+                                                               config.getMetaDataIdentifier(table.getSchema()),
+                                                               config.getMetaDataIdentifier(table.getTable()),
                                                                false, false)) {
             while (result.next()) {
                 unique  = !result.getBoolean(NON_UNIQUE);

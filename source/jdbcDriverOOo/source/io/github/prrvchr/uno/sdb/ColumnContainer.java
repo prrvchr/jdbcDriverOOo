@@ -32,7 +32,6 @@ import com.sun.star.container.ElementExistException;
 
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase;
-import io.github.prrvchr.uno.sdbcx.ColumnDescriptor;
 
 
 public final class ColumnContainer
@@ -51,6 +50,7 @@ public final class ColumnContainer
     @Override
     protected XPropertySet createDescriptor() {
         Table table = (Table) mTable;
+        System.out.println("sdb.ColumnContainer.createDescriptor() 1");
         return new ColumnDescriptor(table.getCatalogName(), table.getSchemaName(), table.getName(), isCaseSensitive());
     }
 

@@ -36,6 +36,7 @@ import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbcx.XColumnsSupplier;
 
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
@@ -85,10 +86,11 @@ public final class PreparedStatement
         throws SQLException {
         XResultSet resultset = null;
         java.sql.ResultSet rs = getJdbcResultSet();
+        Provider provider = getConnectionInternal().getProvider();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
         System.out.println("sdb.PreparedStatement.getResultSet() 1");
-        if (mUseBookmarks && getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
-            CachedRowSet crs = ResultSetHelper.getCachedRowSet(rs);
+        if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
+            CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
             System.out.println("sdb.PreparedStatement.getResultSet() 2 isReadOnly: " + crs.isReadOnly());
             if (!crs.isReadOnly()) {
                 RowSet rowset = new RowSet(getConnectionInternal(), crs, this);

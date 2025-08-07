@@ -210,6 +210,15 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     private int[] tabCols;
 
     /**
+     * An array containing the column name of the columns that coming from
+     * the same table as keyCols and using for getGeneratedKeys().
+     *
+     * @serial
+     */
+    private String[] autoCols;
+
+
+    /**
      * An array of the parameters that should be used to set the parameter
      * placeholders in a {@code PreparedStatement} object that this
      * writer will execute.
@@ -370,7 +379,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             CachedRowSetImpl crsRes = new CachedRowSetImpl();
             setCachedRowSetResolverMetaData(crsRes);
 
-            ArrayList<Integer> status = new ArrayList<>(crs.size() + 1);
+            List<Integer> status = new ArrayList<>(crs.size() + 1);
             status.add(0, null);
 
             // We need to save the sursor position before processing.
@@ -401,7 +410,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 SyncResolverImpl syncRes = new SyncResolverImpl();
                 syncRes.setCachedRowSet(crs);
                 syncRes.setCachedRowSetResolver(crsRes);
-                syncRes.setStatus(status);
+                syncRes.setStatus((ArrayList<?>) status);
                 syncRes.setCachedRowSetWriter(this);
 
                 String msg = conflicts.remove(0).getMessage();
@@ -438,7 +447,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
     }
 
     private List<SQLException> writeData(CachedRowSetImpl crs, CachedRowSetImpl crsRes,
-                                         ArrayList<Integer> status)
+                                         List<Integer> status)
         throws SQLException {
         List<SQLException> conflicts = new ArrayList<>();
         int row = 1;
@@ -465,6 +474,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 status.add(row, SyncResolver.NO_ROW_CONFLICT);
 
             } catch (SQLException e) {
+                e.printStackTrace();
                 conflicts.add(e);
             } catch (Throwable ex) {
                 ex.printStackTrace();
@@ -494,14 +504,14 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      * @param crs the {@code CachedRowSet} object to be updated
      * @param crsRes the {@code CachedRowSet} will hold the conflicting values
      * retrieved from the db and hold it.
-     * @param status the {@code ArrayList<Integer>} object to update if
+     * @param status the {@code List<Integer>} object to update if
      * a conflict occur
      * @param row the {@code int} row number to be updated
      *
      * @throws SQLException if a database access error occurs
      */
     private void updateCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
-                                  ArrayList<Integer> status, int row)
+                                  List<Integer> status, int row)
         throws SQLException {
 
         // Select the row from the database.
@@ -806,25 +816,20 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      * @param crs the {@code CachedRowSet} object that has had a row inserted
      *            and to whose underlying data source the row will be inserted
      * @param crsRes the {@code CachedRowSet} will hold the conflicting values
-     * @param status the {@code ArrayList<Integer>} object to update if
+     * @param status the {@code List<Integer>} object to update if
      * a conflict occur
      * @param row the {@code int} row number to be updated
      * retrieved from the db and hold it.
      * @throws SQLException if a database access error occurs
      */
     private void insertCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
-                                  ArrayList<Integer> status, int row) throws SQLException {
+                                  List<Integer> status, int row) throws SQLException {
 
 
-        int opt;
         // We update on insert only if we have auto-increment columns in the CachedRowSet
-        if (updateOnInsert && supportsGeneratedKeys) {
-            opt = Statement.RETURN_GENERATED_KEYS;
-        } else {
-            opt = Statement.NO_GENERATED_KEYS;
-        }
+        boolean generatedKey = updateOnInsert && supportsGeneratedKeys;
 
-        try (PreparedStatement stmt = con.prepareStatement(insertCmd, opt)) {
+        try (PreparedStatement stmt = getInsertPreparedStatement(generatedKey)) {
             // XXX: Auto-increment columns are ignored during inserts (needed by PostGreSQL)
             StringJoiner values = new StringJoiner(", ");
             int index = 1;
@@ -834,10 +839,12 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                     Object value = crs.getObject(j);
                     if (value != null) {
                         stmt.setObject(index, value);
+                        values.add(value.toString());
                     } else {
                         stmt.setNull(index, callerMd.getColumnType(j));
+                        values.add("null");
                     }
-                    values.add(value.toString());
+                    
                     index++;
                 }
             }
@@ -848,7 +855,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 throw new SQLException(MessageFormat.format(msg, row, insertCmd, count));
             }
 
-            if (opt == Statement.RETURN_GENERATED_KEYS) {
+            if (generatedKey) {
                 updateGeneratedKeys(crs, stmt);
             }
             log(Level.INFO, "crswriter.insert.cmd", row, insertCmd, values.toString());
@@ -865,6 +872,31 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             setResolverConflict(crsRes, crs);
             throw e;
         }
+    }
+
+    private PreparedStatement getInsertPreparedStatement(boolean generatedKey) throws SQLException {
+        PreparedStatement stmt;
+        if (generatedKey) {
+            if (autoCols == null) {
+                autoCols = getGeneratedColumns();
+            }
+            stmt = con.prepareStatement(insertCmd, autoCols);
+        } else {
+            stmt = con.prepareStatement(insertCmd, Statement.NO_GENERATED_KEYS);
+        }
+        return stmt;
+    }
+
+    private String[] getGeneratedColumns() throws SQLException {
+        int index;
+        List<String> columns = new ArrayList<>();
+        for (int i = 0; i < tabCols.length; i++) {
+            index = tabCols[i];
+            if (callerMd.isAutoIncrement(index)) {
+                columns.add(callerMd.getColumnName(index));
+            }
+        }
+        return columns.toArray(new String[0]);
     }
 
     /**
@@ -1045,14 +1077,14 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      *     {@code CachedRowSetWriter} object is the writer
      * @param crsRes the {@code CachedRowSet} will hold the conflicting values
      * retrieved from the db and hold it.
-     * @param status the {@code ArrayList<Integer>} object to update if
+     * @param status the {@code List<Integer>} object to update if
      * a conflict occur
      * @param row the {@code int} row number to be updated
      *
      * @throws SQLException if there was a conflict or database access error
      */
     private void deleteCurrentRow(CachedRowSet crs, CachedRowSetImpl crsRes,
-                                  ArrayList<Integer> status, int row) throws SQLException {
+                                  List<Integer> status, int row) throws SQLException {
         // Select the row from the database.
         ResultSet origVals = crs.getOriginalRow();
         origVals.next();
@@ -1245,12 +1277,12 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             buildKeyDesc(dbmd, caller);
 
             if (keyCols != null && keyCols.length > 0) {
-                setSQLStatements(dbmd, caller);
+                setSQLStatements(dbmd);
             }
         }
     }
 
-    private void setSQLStatements(DatabaseMetaData dbmd, CachedRowSet caller)
+    private void setSQLStatements(DatabaseMetaData dbmd)
         throws SQLException {
         /*
          * If the RowSet has a Table name we should use it.
@@ -1258,18 +1290,13 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
          * a lot of the jdbc drivers can't provide the tab.
          */
         int index = keyCols[0];
-        String table = caller.getTableName();
-        if (table == null) {
-            /*
-             * attempt to build a table name using the info
-             * that the driver gave us for the first column
-             * in the source result set.
-             */
-            table = callerMd.getTableName(index);
-            if (table == null || table.isBlank()) {
-                throw new SQLException(resBundle.handleGetObject("crswriter.tname").toString());
-            }
+        System.out.println("CachedRowSetWriter.setSQLStatements() 1 Index: " + index);
+        String table = callerMd.getTableName(index);
+        if (table == null || table.isBlank()) {
+            System.out.println("CachedRowSetWriter.setSQLStatements() 4 ERROR ***********");
+            throw new SQLException(resBundle.handleGetObject("crswriter.tname").toString());
         }
+        System.out.println("CachedRowSetWriter.setSQLStatements() 5 Table: " + table);
         String catalog = callerMd.getCatalogName(index);
         String schema = callerMd.getSchemaName(index);
 
@@ -1406,58 +1433,21 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
      *
      * @throws SQLException if a database access error occurs
      */
+
     private void buildKeyDesc(DatabaseMetaData dbmd, CachedRowSet caller) throws SQLException {
 
-        String catalog;
-        String schema;
-        String table;
         int[] keys = caller.getKeyColumns();
         if (keys == null || keys.length == 0) {
-            // XXX: The table corresponding to the first column of the CachedRowSet will be the updated table
-            catalog = callerMd.getCatalogName(1);
-            schema = callerMd.getSchemaName(1);
-            table = callerMd.getTableName(1);
-            List<String> pkNames = getPrimaryKeys(dbmd, catalog, schema, table);
-            if (pkNames.isEmpty()) {
-                // XXX: A natural compound key will be constructed from the table columns
-                keys = getKeyDescFromTableColumns(catalog, schema, table);
-            } else {
-                // XXX: We have primary keys and we use them
-                keys = getKeyDescFromPrimaryKeys(pkNames, catalog, schema, table);
-            }
-            if (keys.length == 0) {
-                hasPrimarykeys = false;
-            } else {
-                hasPrimarykeys = !pkNames.isEmpty();
-                caller.setKeyColumns(keys);
-                caller.setTableName(table);
-            }
-        } else if (isKeyIndexValid(keys)) {
-            // XXX: We need to know if the provided columns are primary keys
-            // XXX: We only consider the description of the first column provided
-            int index = keys[0];
-            catalog = callerMd.getCatalogName(index);
-            schema = callerMd.getSchemaName(index);
-            table = callerMd.getTableName(index);
-            if (isKeyTableValid(keys, catalog, schema, table)) {
-                List<String> pkNames = getPrimaryKeys(dbmd, catalog, schema, table);
-                boolean isPrimaryKey = true;
-                for (int i : keys) {
-                    if (!pkNames.contains(callerMd.getColumnName(i))) {
-                        isPrimaryKey = false;
-                        break;
-                    }
-                }
-                hasPrimarykeys = isPrimaryKey && pkNames.size() == keys.length;
-            } else {
-                throw new SQLException(resBundle.handleGetObject("crswriter.coldesc").toString());
-            }
-        } else {
             throw new SQLException(resBundle.handleGetObject("crswriter.coldesc").toString());
         }
         keyCols = keys;
         params = new Object[keys.length];
+        int index = keys[0];
+        String catalog = callerMd.getCatalogName(index);
+        String schema = callerMd.getSchemaName(index);
+        String table = callerMd.getTableName(index);
         tabCols = getTableColumns(catalog, schema, table);
+        hasPrimarykeys = RowSetHelper.hasPrimaryKeys(dbmd, catalog, schema, table);
     }
 
     private int[] getTableColumns(String catalog, String schema, String table)
@@ -1469,89 +1459,6 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
             }
         }
         return colIndexes.stream().mapToInt(Integer::intValue).toArray();
-    }
-
-    private boolean isKeyIndexValid(int[] keys)
-        throws SQLException {
-        boolean valid = true;
-        for (int i : keys) {
-            if (i < 1 || i > callerColumnCount) {
-                valid = false;
-                break;
-            }
-        }
-        return valid;
-    }
-
-    private boolean isKeyTableValid(int[] keys, String catalog, String schema, String table)
-        throws SQLException {
-        boolean valid = true;
-        for (int i : keys) {
-            if (!isSameTableColumn(catalog, schema, table, i)) {
-                valid = false;
-                break;
-            }
-        }
-        return valid;
-    }
-
-    private int[] getKeyDescFromPrimaryKeys(List<String> pkNames,
-                                            String catalog,
-                                            String schema,
-                                            String table)
-        throws SQLException {
-        List<Integer> pkIndexes = new ArrayList<>();
-        for (int i = 1; i <= callerColumnCount; i++) {
-            if (pkNames.contains(callerMd.getColumnName(i)) &&
-                isSameTableColumn(catalog, schema, table, i)) {
-                pkIndexes.add(i);
-            }
-        }
-        int[] keys = null;
-        if (pkIndexes.size() == pkNames.size()) {
-            keys = pkIndexes.stream().mapToInt(Integer::intValue).toArray();
-        } else {
-            keys = new int[0];
-        }
-        return keys;
-    }
-
-    private int[] getKeyDescFromTableColumns(String catalog,
-                                             String schema,
-                                             String table)
-        throws SQLException {
-        List<Integer> keys = new ArrayList<>();
-        for (int i = 1; i <= callerColumnCount; i++) {
-            switch (callerMd.getColumnType(i)) {
-                case java.sql.Types.CLOB:
-                case java.sql.Types.STRUCT:
-                case java.sql.Types.SQLXML:
-                case java.sql.Types.BLOB:
-                case java.sql.Types.ARRAY:
-                case java.sql.Types.OTHER:
-                    break;
-                default:
-                    if (isSameTableColumn(catalog, schema, table, i)) {
-                        keys.add(i);
-                    }
-            }
-        }
-        return keys.stream().mapToInt(Integer::intValue).toArray();
-    }
-
-    private List<String> getPrimaryKeys(DatabaseMetaData dbmd, String catalog, String schema, String table)
-        throws SQLException {
-        final int COLUMN_NAME = 4;
-        List<String> keys = new ArrayList<>();
-        try (ResultSet rs = dbmd.getPrimaryKeys(catalog, schema, table)) {
-            while (rs.next()) {
-                String column = rs.getString(COLUMN_NAME);
-                if (!rs.wasNull()) {
-                    keys.add(column);
-                }
-            }
-        }
-        return keys;
     }
 
     private boolean isSameTableColumn(String catalog, String schema, String table, int i)

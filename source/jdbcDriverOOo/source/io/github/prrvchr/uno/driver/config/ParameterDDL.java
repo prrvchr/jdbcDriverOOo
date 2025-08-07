@@ -169,6 +169,8 @@ public class ParameterDDL extends ParameterBase {
         arguments.put("Catalog.NewSchema.Table",
                       DBTools.buildName(provider, oldtable.getCatalogName(), newtable.getSchemaName(),
                                         oldtable.getTableName(), rule, sensitive));
+        // XXX: ${Table} quoted / unquoted old table name
+        arguments.put("Table", provider.enquoteIdentifier(oldtable.getTableName(), sensitive));
         // XXX: ${NewTable} quoted / unquoted new table name
         arguments.put("NewTable", provider.enquoteIdentifier(newtable.getTableName(), sensitive));
         // XXX: ${Catalog.Schema.NewTable} quoted / unquoted full old table name overwritten with the new table name
@@ -224,7 +226,8 @@ public class ParameterDDL extends ParameterBase {
         return arguments;
     }
 
-    public static Map<String, Object> getColumnProperties(String table,
+    public static Map<String, Object> getColumnProperties(String tablename,
+                                                          String table,
                                                           String oldIdentifier,
                                                           String newIdentifier,
                                                           String columnType,
@@ -234,7 +237,8 @@ public class ParameterDDL extends ParameterBase {
                                                           String autoincrement,
                                                           String columndescription) {
         Map<String, Object> arguments = new HashMap<>();
-        arguments.put("TableName", table);
+        arguments.put("TableName", tablename);
+        arguments.put("Table", table);
         arguments.put("OldName", oldIdentifier);
         arguments.put("Column", newIdentifier);
         arguments.put("Type", columnType);

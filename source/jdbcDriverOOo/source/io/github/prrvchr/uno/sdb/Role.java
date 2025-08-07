@@ -46,6 +46,7 @@ import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
+import io.github.prrvchr.uno.sdbcx.ContainerListener;
 import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
@@ -58,25 +59,43 @@ public abstract class Role
     protected final Provider mProvider;
     protected final ConnectionLog mLogger; 
     protected Groups mGroups;
+    protected GroupContainer mGroupContainer;
     private final boolean mIsrole;
+    private ContainerListener<Group> mListener;
 
     // The constructor method:
     protected Role(String service,
                    String[] services,
                    Connection connection,
-                   boolean sensitive,
+                   GroupContainer groups,
                    String name,
+                   boolean sensitive,
                    LoggerObjectType type,
                    boolean isrole) {
         super(service, services, sensitive, name);
         mConnection = connection;
         mProvider = connection.getProvider();
+        mGroupContainer = groups;
         mLogger = new ConnectionLog(mProvider.getLogger(), type);
         mIsrole = isrole;
     }
 
     protected ConnectionLog getLogger() {
         return mLogger;
+    }
+
+    // com.sun.star.lang.XComponent
+    @Override
+    public void dispose() {
+        if (mGroups != null) {
+            synchronized (mGroups) {
+                if (mListener != null) {
+                    mGroupContainer.removeContainerListener(mListener);
+                }
+                mGroups.dispose();
+            }
+        }
+        super.dispose();
     }
 
     // com.sun.star.sdbcx.XAuthorizable:
@@ -136,36 +155,15 @@ public abstract class Role
                                 int type,
                                 int privilege)
         throws SQLException {
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            String query = null;
-            String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
-            try {
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
-                query = PrivilegesHelper.getGrantPrivilegesCommand(mProvider, table, privileges,
-                                                                 mIsrole, getName(), rule, isCaseSensitive());
-                int resource;
-                if (mIsrole) {
-                    resource = Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY;
-                } else {
-                    resource = Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
-                }
-                getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
-                System.out.println("sdb.Role.grantPrivileges() Query: " + query);
-                DBTools.executeSQLQuery(mConnection.getProvider(), query);
-            } catch (java.sql.SQLException e) {
-                int resource;
-                if (mIsrole) {
-                    resource = Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY_ERROR;
-                } else {
-                    resource = Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY_ERROR;
-                }
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, privileges,
-                                                                                       getName(), name, query);
-                getLogger().logp(LogLevel.SEVERE, msg);
-                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-            }
+        int res1, res2;
+        if (mIsrole) {
+            res1 = Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY;
+            res2 = Resources.STR_LOG_GROUP_GRANT_PRIVILEGE_QUERY_ERROR;
+        } else {
+            res1 = Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY;
+            res2 = Resources.STR_LOG_USER_GRANT_PRIVILEGE_QUERY_ERROR;
         }
+        grantPrivileges(name, type, privilege, res1, res2);
     }
 
     @Override
@@ -173,40 +171,16 @@ public abstract class Role
                                  int type,
                                  int privilege)
         throws SQLException {
-        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
-            String query = null;
-            String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
-            try {
-                XNameAccess tables = mConnection.getTables();
-                if (tables.hasByName(name)) {
-                    ComposeRule rule = ComposeRule.InDataManipulation;
-                    NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
-                    query = PrivilegesHelper.getRevokePrivilegesCommand(mProvider, table, privileges,
-                                                                        mIsrole, getName(), rule, isCaseSensitive());
-                    int resource;
-                    if (mIsrole) {
-                        resource = Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY;
-                    } else {
-                        resource = Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
-                    }
-                    getLogger().logprb(LogLevel.INFO, resource, privileges, getName(), name, query);
-                    DBTools.executeSQLQuery(mProvider, query);
-                }
-            } catch (java.sql.SQLException e) {
-                int resource;
-                if (mIsrole) {
-                    resource = Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY_ERROR;
-                } else {
-                    resource = Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY_ERROR;
-                }
-                String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, privileges,
-                                                                                       getName(), name, query);
-                getLogger().logp(LogLevel.SEVERE, msg);
-                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-            }
+        int res1, res2;
+        if (mIsrole) {
+            res1 = Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY;
+            res2 = Resources.STR_LOG_GROUP_REVOKE_PRIVILEGE_QUERY_ERROR;
+        } else {
+            res1 = Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY;
+            res2 = Resources.STR_LOG_USER_REVOKE_PRIVILEGE_QUERY_ERROR;
         }
+        revokePrivileges(name, type, privilege, res1, res2);
     }
-
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
@@ -218,7 +192,11 @@ public abstract class Role
         return mGroups;
     }
 
-    void refreshGroups() {
+    protected Groups getGroupsInternal() {
+        return mGroups;
+    }
+
+    private void refreshGroups() {
         List<Object> values = new ArrayList<>();
         String query = mConnection.getProvider().getConfigDCL().getRoleGroupsQuery(getName(), mIsrole, values);
         if (query != null) {
@@ -237,9 +215,12 @@ public abstract class Role
                 }
                 if (mGroups == null) {
                     mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPROLES);
-                    mGroups = new Groups(mConnection, isCaseSensitive(), getName(), groups, mIsrole);
+                    mGroups = new Groups(mConnection, mGroupContainer, groups,
+                                         getName(), isCaseSensitive(), mIsrole);
                     mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPROLES_ID,
                                    mGroups.getLogger().getObjectId());
+                    mListener = new ContainerListener<Group>(mGroups);
+                    mGroupContainer.addContainerListener(mListener);
                 } else {
                     mGroups.refill(groups);
                 }
@@ -249,8 +230,58 @@ public abstract class Role
         }
     }
 
-    protected Groups getGroupsInternal() {
-        return mGroups;
+    private void grantPrivileges(String name,
+                                 int type,
+                                 int privilege,
+                                 int res1,
+                                 int res2)
+        throws SQLException {
+        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            String query = null;
+            String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
+            try {
+                ComposeRule rule = ComposeRule.InDataManipulation;
+                NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
+                query = PrivilegesHelper.getGrantPrivilegesCommand(mProvider, table, privileges,
+                                                                   mIsrole, getName(), rule, isCaseSensitive());
+                getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
+                System.out.println("Role.grantPrivileges() Query: " + query);
+                DBTools.executeSQLQuery(mConnection.getProvider(), query);
+            } catch (java.sql.SQLException e) {
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, privileges,
+                                                                                       getName(), name, query);
+                getLogger().logp(LogLevel.SEVERE, msg);
+                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            }
+        }
+    }
+
+    private void revokePrivileges(String name,
+                                 int type,
+                                 int privilege,
+                                 int res1,
+                                 int res2)
+        throws SQLException {
+        if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
+            String query = null;
+            String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
+            try {
+                XNameAccess tables = mConnection.getTables();
+                if (tables.hasByName(name)) {
+                    ComposeRule rule = ComposeRule.InDataManipulation;
+                    NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, rule);
+                    query = PrivilegesHelper.getRevokePrivilegesCommand(mProvider, table, privileges,
+                                                                        mIsrole, getName(), rule, isCaseSensitive());
+                    getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
+                    DBTools.executeSQLQuery(mProvider, query);
+                }
+            } catch (java.sql.SQLException e) {
+                String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, privileges,
+                                                                                       getName(), name, query);
+                getLogger().logp(LogLevel.SEVERE, msg);
+                throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            }
+        }
     }
 
 }

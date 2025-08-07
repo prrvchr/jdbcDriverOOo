@@ -218,11 +218,15 @@ public abstract class RowSetBase
     public void insertRow() throws SQLException {
         try {
             // XXX: ResultSetBase.insertRow() take in account moveToCurrentRow() after insertion
+            System.out.println("RowSetBase.insertRow() 1");
             super.insertRow();
+            System.out.println("RowSetBase.insertRow() 2");
             // XXX: We must position the cursor on the new inserted row (ie last row)
             mResult.last();
             // XXX: The insert will be committed
+            System.out.println("RowSetBase.insertRow() 3");
             acceptChanges();
+            System.out.println("RowSetBase.insertRow() 4");
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
@@ -231,9 +235,12 @@ public abstract class RowSetBase
     @Override
     public void updateRow() throws SQLException {
         try {
+            System.out.println("RowSetBase.updateRow() 1");
             mResult.updateRow();
             // XXX: the update will be committed
+            System.out.println("RowSetBase.updateRow() 2");
             acceptChanges();
+            System.out.println("RowSetBase.updateRow() 3");
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
@@ -252,7 +259,7 @@ public abstract class RowSetBase
 
     private void acceptChanges() throws java.sql.SQLException {
         try {
-            getRowSet().acceptChanges();
+            getRowSet().acceptChanges(mConnection.getProvider().getConnection());
         } catch (SyncProviderException e) {
             // XXX: If conflicts occur then the current operation will be canceled
 

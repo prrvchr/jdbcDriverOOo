@@ -178,7 +178,9 @@ class AdminModel(unohelper.Base):
             self._grid.refresh()
 
     def dropGrantee(self):
+        print("AdminModel.dropGrantee() 1")
         self._grid.getGrantees().dropByName(self._grantee)
+        print("AdminModel.dropGrantee() 2")
         return self.getGrantees()
 
     def setUserPassword(self, pwd):

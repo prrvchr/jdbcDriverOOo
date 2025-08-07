@@ -376,7 +376,23 @@ In order to avoid any regressions on extensions using jdbcDriverOOo:
 - JDBC drivers can be added to the Java ClassPath when they are loaded. This option is even required for the Jaybird 6.0.2 driver to work properly in embedded mode.
 - To ensure consistent driver loading, drivers are now loaded only using the `Class.forName()` method and then registered in `java.sql.DriverManager`.
 
-### What remains to be done for version 1.5.5:
+### What has been done for version 1.5.6:
+
+Integration of the [Oracle JDBC driver][] `ojdbc17.jar`. This integration required the following modifications to the underlying code:
+- Added two additional parameters to the `Drivers.xcu` file:
+  - `QuotedMetaData`, which forces quotes on identifier names if they are not uppercase for method `DatabaseMetaData.getIndexInfo()`.
+  - `CompletedMetaData`, which determines whether the underlying driver provides ResultSets with missing metadata.
+- [QueryHelper][] is now able to determine whether the executed SQL query is a `SELECT` query on a single table.
+- If so, when constructing an XResultSet, [QueryHelper][] provides the fully qualified table name used in the SQL `SELECT` query to the `CachedRowSet` emulating this XResultSet.
+- When initializing this CachedRowSet, missing data from the Oracle driver's ResultSet metadata (ie: `getTableName(int index)` and `getSchemaName(int index)`) will be extracted from the table name and assigned to the CachedRowSet's metadata.
+Due to these limitations of the Oracle driver, only ResultSets from SQL `SELECT` queries that apply to a single table will be editable in LibreOffice Base.
+
+- It is now possible to insert records with null values if the columns allow it.
+- User and role management has been completely redesigned:
+  - For each user or role there is now only one instance of the `Group` or `User` class, regardless of access.
+  - A new [ContainerListener][] listener allows for necessary updates following the deletion of a user or role
+
+### What remains to be done for version 1.5.6:
 
 - Add new languages for internationalization...
 

@@ -25,9 +25,13 @@
 */
 package io.github.prrvchr.uno.driver.resultset;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.AbstractMap.SimpleImmutableEntry;
 
 import javax.sql.rowset.CachedRowSet;
@@ -38,6 +42,7 @@ import javax.sql.rowset.spi.SyncFactory;
 
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.Provider;
 
 
@@ -52,9 +57,26 @@ public class ResultSetHelper {
         try {
             CachedRowSet rowset = getCachedRowSet();
             rowset.populate(result);
-            // XXX: Does this CachedRowSet is writable or readonly? This can be found
-            // XXX: by running acceptChange() and reading the isReadOnly() property.
-            rowset.acceptChanges(result.getStatement().getConnection());
+            result.close();
+            return rowset;
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage());
+        }
+    }
+
+    public static CachedRowSet getCachedRowSet(Provider provider, ResultSet result, QueryHelper query)
+        throws SQLException {
+        try {
+            CachedRowSet rowset = getCachedRowSet();
+            // XXX: Some drivers do not provide the table or schema name in the ResultSet metadata.
+            // XXX: For these drivers, you must provide before populating
+            // XXX: the full table name on which the select query is based.
+            if (provider.getConfigSQL().needCompletedMetaData()) {
+                rowset.setTableName(query.getTableName());
+            }
+            rowset.populate(result);
+            // XXX: Assigning the key descriptions lets us know if this result is editable
+            setCachedRowSetKeyDesc(result.getStatement().getConnection(), rowset);
             result.close();
             return rowset;
         } catch (java.sql.SQLException e) {
@@ -256,6 +278,101 @@ public class ResultSetHelper {
         } catch (NumberFormatException e) {
             throw new java.sql.SQLException(e);
         }
+    }
+
+    private static void setCachedRowSetKeyDesc(Connection connection, CachedRowSet crs)
+        throws java.sql.SQLException {
+
+        int[] keys = new int[0];
+        ResultSetMetaData md = crs.getMetaData();
+        if (!crs.isReadOnly() && md.getColumnCount() > 0) {
+            // XXX: The table corresponding to the first column of the CachedRowSet will be the updated table
+            String catalog = md.getCatalogName(1);
+            String schema = md.getSchemaName(1);
+            String table = md.getTableName(1);
+            List<String> pkNames = getPrimaryKeys(connection.getMetaData(), catalog, schema, table);
+            if (pkNames.isEmpty()) {
+                // XXX: A natural compound key will be constructed from the table columns
+                keys = getKeyDescFromTableColumns(md, catalog, schema, table);
+            } else {
+                // XXX: We have primary keys and we use them
+                keys = getKeyDescFromPrimaryKeys(md, pkNames, catalog, schema, table);
+            }
+            crs.setReadOnly(keys.length == 0);
+            crs.setKeyColumns(keys);
+        }
+    }
+
+    private static final List<String> getPrimaryKeys(DatabaseMetaData dbmd, String catalog, String schema, String table)
+        throws java.sql.SQLException {
+        final int COLUMN_NAME = 4;
+        List<String> keys = new ArrayList<>();
+        try (ResultSet rs = dbmd.getPrimaryKeys(catalog, schema, table)) {
+            while (rs.next()) {
+                String column = rs.getString(COLUMN_NAME);
+                if (!rs.wasNull()) {
+                    keys.add(column);
+                }
+            }
+        }
+        return keys;
+    }
+
+    private static int[] getKeyDescFromTableColumns(ResultSetMetaData md,
+                                                    String catalog,
+                                                    String schema,
+                                                    String table)
+        throws java.sql.SQLException {
+        List<Integer> keys = new ArrayList<>();
+        for (int i = 1; i <= md.getColumnCount(); i++) {
+            switch (md.getColumnType(i)) {
+                case java.sql.Types.CLOB:
+                case java.sql.Types.STRUCT:
+                case java.sql.Types.SQLXML:
+                case java.sql.Types.BLOB:
+                case java.sql.Types.ARRAY:
+                case java.sql.Types.OTHER:
+                    break;
+                default:
+                    if (isSameTableColumn(md, catalog, schema, table, i)) {
+                        keys.add(i);
+                    }
+            }
+        }
+        return keys.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private static boolean isSameTableColumn(ResultSetMetaData md, String catalog, String schema, String table, int i)
+        throws java.sql.SQLException {
+        return compare(md.getCatalogName(i), catalog) &&
+               compare(md.getSchemaName(i), schema) &&
+               compare(md.getTableName(i), table);
+    }
+
+    private static boolean compare(String str1, String str2) {
+        return str1 == null && str2 == null || str1.equals(str2);
+    }
+
+    private static int[] getKeyDescFromPrimaryKeys(ResultSetMetaData md,
+                                                   List<String> pkNames,
+                                                   String catalog,
+                                                   String schema,
+                                                   String table)
+        throws java.sql.SQLException {
+        List<Integer> pkIndexes = new ArrayList<>();
+        for (int i = 1; i <= md.getColumnCount(); i++) {
+            if (pkNames.contains(md.getColumnName(i)) &&
+                isSameTableColumn(md, catalog, schema, table, i)) {
+                pkIndexes.add(i);
+            }
+        }
+        int[] keys = null;
+        if (pkIndexes.size() == pkNames.size()) {
+            keys = pkIndexes.stream().mapToInt(Integer::intValue).toArray();
+        } else {
+            keys = new int[0];
+        }
+        return keys;
     }
 
 }

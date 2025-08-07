@@ -26,14 +26,20 @@
 package io.github.prrvchr.java.rowset.internal;
 
 import java.math.BigDecimal;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.github.prrvchr.java.rowset.JdbcRowSetResourceBundle;
 
 public class RowSetHelper {
+
+    private static final String YES = "YES";
 
     /**
      * Indicates whether the given SQL data type is a numeric type.
@@ -454,6 +460,35 @@ public class RowSetHelper {
 
     public static boolean isSimilarType(int type1, int type2) {
         return isNumericType(type1, type2) || isStringType(type1, type2) || isBooleanType(type1, type2);
+    }
+
+    public static final boolean hasPrimaryKeys(DatabaseMetaData dbmd, String catalog, String schema, String table)
+        throws SQLException {
+        boolean has = false;
+        try (ResultSet rs = dbmd.getPrimaryKeys(catalog, schema, table)) {
+            if (rs.next()) {
+                has = true;
+            }
+        }
+        return has;
+    }
+
+    public static final List<String> getAutoIncrementColumns(DatabaseMetaData dbmd, NamedComponent table)
+        throws SQLException {
+        List<String> autos = new ArrayList<>();
+        String column, value;
+        final int COLUMN_NAME = 4;
+        final int IS_AUTOINCREMENT = 23;
+        try (ResultSet rs = dbmd.getColumns(table.getCatalog(), table.getSchema(), table.getName(), "%")) {
+            while (rs.next()) {
+                column = rs.getString(COLUMN_NAME);
+                value = rs.getString(IS_AUTOINCREMENT);
+                if (!rs.wasNull() && YES.equals(value)) {
+                    autos.add(column);
+                }
+            }
+        }
+        return autos;
     }
 
     private static boolean isNumericType(int type1, int type2) {

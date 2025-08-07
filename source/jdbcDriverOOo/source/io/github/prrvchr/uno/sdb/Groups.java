@@ -29,7 +29,9 @@ import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -39,28 +41,32 @@ import io.github.prrvchr.uno.sdbcx.RoleContainer;
 
 public final class Groups
     extends RoleContainer<Group> {
+
     private static final String SERVICE = Groups.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Groups",
                                               "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public Groups(Connection connection,
-                  boolean sensitive,
-                  String role,
+                  GroupContainer groups,
                   List<String> names,
+                  String role,
+                  boolean sensitive,
                   boolean isrole)
         throws ElementExistException {
+        // XXX: isrole lets you know the role that holds this class.
+        // XXX: Currently it is a role or a user
         super(SERVICE, SERVICES, connection, connection.getProvider(),
-              role, connection.getGroupsInternal(), sensitive, names, isrole,
-              getRoleName(isrole), LoggerObjectType.GROUPS);
+              groups, names, role, sensitive, isrole, getRoleName(isrole), LoggerObjectType.GROUPS);
+        System.out.println("Groups() 1");
     }
 
-    private static final String getRoleName(boolean isrole) {
-        String name = null;
-        if (isrole) {
-            name = "";
-        }
-        return name;
+    private GroupContainer getGroups() {
+        return (GroupContainer) mRoles;
+    }
+
+    protected Connection getConnection() {
+        return (Connection) mConnection;
     }
 
     protected ConnectionLog getLogger() {
@@ -90,6 +96,26 @@ public final class Groups
     @Override
     protected void removeElement(String name) {
         super.removeElement(name);
+    }
+
+    protected Group createRoleElement(String name) throws SQLException {
+        if (!mNames.contains(name) || !getGroups().getIndexes().contains(name)) {
+            throw new SQLException();
+        }
+        try {
+            int index = getGroups().getIndexes().indexOf(name);
+            return getGroups().getElementByIndex(index);
+        } catch (WrappedTargetException e) {
+            throw new SQLException();
+        }
+    }
+
+    private static final String getRoleName(boolean isrole) {
+        String name = null;
+        if (isrole) {
+            name = "";
+        }
+        return name;
     }
 
 }
