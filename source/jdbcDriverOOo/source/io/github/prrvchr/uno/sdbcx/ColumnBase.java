@@ -37,6 +37,11 @@ import io.github.prrvchr.uno.helper.PropertyWrapper;
 public abstract class ColumnBase
     extends ColumnMain {
 
+    protected String mCatalogName;
+    protected String mSchemaName;
+    protected String mTableName;
+    protected TableSuper mTable;
+
     // The constructor method:
     public ColumnBase(final String service,
                       final String[] services,
@@ -55,9 +60,51 @@ public abstract class ColumnBase
                       final boolean autoincrement,
                       final boolean rowversion,
                       final boolean currency) {
-        super(service, services, catalog, schema, table, sensitive, name, typename, defaultvalue,
-              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
+        this(service, services, sensitive, name, typename, defaultvalue, description,
+             nullable, precision, scale, type, autoincrement, rowversion, currency);
+        mCatalogName = catalog;
+        mSchemaName = schema;
+        mTableName = table;
     }
+
+    public ColumnBase(final String service,
+                      final String[] services,
+                      final TableSuper table,
+                      final boolean sensitive,
+                      final String name,
+                      final String typename,
+                      final String defaultvalue,
+                      final String description,
+                      final int nullable,
+                      final int precision,
+                      final int scale,
+                      final int type,
+                      final boolean autoincrement,
+                      final boolean rowversion,
+                      final boolean currency) {
+        this(service, services, sensitive, name, typename, defaultvalue, description,
+             nullable, precision, scale, type, autoincrement, rowversion, currency);
+        mTable = table;
+    }
+
+    private ColumnBase(final String service,
+                       final String[] services,
+                       final boolean sensitive,
+                       final String name,
+                       final String typename,
+                       final String defaultvalue,
+                       final String description,
+                       final int nullable,
+                       final int precision,
+                       final int scale,
+                       final int type,
+                       final boolean autoincrement,
+                       final boolean rowversion,
+                       final boolean currency) {
+        super(service, services, sensitive, name, typename, defaultvalue, description,
+              nullable, precision, scale, type, autoincrement, rowversion, currency);
+    }
+
 
     @Override
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
@@ -68,25 +115,47 @@ public abstract class ColumnBase
         properties.put(PropertyIds.CATALOGNAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mCatalog;
+                    String catalog;
+                    if (mTable != null) {
+                        catalog = mTable.getCatalogName();
+                    } else {
+                        catalog = mCatalogName;
+                    }
+                    return catalog;
                 },
                 null));
 
         properties.put(PropertyIds.SCHEMANAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mSchema;
+                    String schema;
+                    if (mTable != null) {
+                        schema = mTable.getSchemaName();
+                    } else {
+                        schema = mSchemaName;
+                    }
+                    return schema;
                 },
                 null));
 
         properties.put(PropertyIds.TABLENAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mTable;
+                    String table;
+                    if (mTable != null) {
+                        table = mTable.getName();
+                    } else {
+                        table = mTableName;
+                    }
+                    return table;
                 },
                 null));
 
         super.registerProperties(properties);
+    }
+
+    protected TableSuper getTableInternal() {
+        return mTable;
     }
 
 }

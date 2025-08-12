@@ -48,7 +48,7 @@ public final class ColumnContainer
 
     @Override
     protected XPropertySet createDescriptor() {
-        return new ColumnDescriptor(mTable.mCatalogName, mTable.mSchemaName, mTable.getName(), isCaseSensitive());
+        return new ColumnDescriptor(mTable, isCaseSensitive());
     }
 
     @Override
@@ -63,8 +63,7 @@ public final class ColumnContainer
                                boolean autoincrement,
                                boolean rowversion,
                                boolean currency) {
-        return new Column(mTable.getConnection(), mTable.mCatalogName,
-                          mTable.mSchemaName, mTable.getName(), isCaseSensitive(),
+        return new Column(mTable.getConnection(), mTable, isCaseSensitive(),
                           name, typename, defaultvalue, description, nullable, precision,
                           scale, type, autoincrement, rowversion, currency);
     }

@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.driver.helper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
@@ -34,11 +35,11 @@ import io.github.prrvchr.uno.driver.provider.Provider;
 
 public class IndexHelper {
 
-    public static ArrayList<String> readIndexes(Provider provider,
-                                                NamedComponents component,
-                                                boolean qualified)
+    public static String[] readIndexes(Provider provider,
+                                       NamedComponents component,
+                                       boolean qualified)
         throws java.sql.SQLException {
-        ArrayList<String> names = new ArrayList<>();
+        List<String> names = new ArrayList<>();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         String separator = metadata.getCatalogSeparator();
         ConfigSQL config = provider.getConfigSQL();
@@ -71,7 +72,7 @@ public class IndexHelper {
                 }
             }
         }
-        return names;
+        return names.toArray(new String[0]);
     }
 
     public static boolean isPrimaryKeyIndex(java.sql.DatabaseMetaData metadata,

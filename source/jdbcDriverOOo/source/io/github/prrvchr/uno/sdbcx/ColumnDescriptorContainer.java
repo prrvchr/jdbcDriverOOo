@@ -48,8 +48,7 @@ public final class ColumnDescriptorContainer
     @Override
     protected XPropertySet createDescriptor() {
         System.out.println("sdbcx.ColumnDescriptorContainer._createDescriptor()");
-        return new ColumnDescriptor(mTable.getCatalogName(), mTable.getSchemaName(),
-                                    mTable.getName(), isCaseSensitive());
+        return new ColumnDescriptor(mTable, isCaseSensitive());
     }
 
 

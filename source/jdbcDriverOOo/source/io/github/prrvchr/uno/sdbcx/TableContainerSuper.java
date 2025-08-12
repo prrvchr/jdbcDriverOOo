@@ -26,9 +26,11 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
@@ -57,18 +59,29 @@ import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 public abstract class TableContainerSuper<T extends TableSuper>
     extends TableContainerMain<T> {
 
+    // XXX: In order to be able to remove correctly any reference after deleting
+    // XXX: a table, I need to keep track of all tables with a foreign key.
+    // XXX: Only loading a foreign Key will add entry to mTrackedTables
+    private Set<TableSuper> mReferencedTables = new HashSet<>();
+
     // The constructor method:
     public TableContainerSuper(String service,
                                String[] services,
                                ConnectionSuper connection,
                                boolean sensitive,
-                               List<String> names)
+                               String[] names)
         throws ElementExistException {
         super(service, services, connection, sensitive, names, LoggerObjectType.TABLECONTAINER);
     }
 
     protected ConnectionSuper getConnection() {
         return mConnection;
+    }
+
+    protected void addTrackedTables(TableSuper table) {
+        if (!mReferencedTables.contains(table)) {
+            mReferencedTables.add(table);
+        }
     }
 
     @Override
@@ -197,50 +210,69 @@ public abstract class TableContainerSuper<T extends TableSuper>
         }
     }
 
-    // XXX: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
-    // XXX: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
-    // XXX: This is called from TableSuper.rename(String name) (ie: com.sun.star.sdbcx.XRename)
-    // XXX: If renamed table are part of a foreign key the referenced table name is not any more valid.
-    // XXX: So we need to rename the referenced table name in all other
-    // XXX: table having a foreign keys referencing this table.
-    protected void renameReferencedTableName(List<String> filter,
-                                             String oldname,
-                                             String newname)
-        throws SQLException {
-        Iterator<T> tables = getActiveElements(filter);
-        while (tables.hasNext()) {
-            T table = tables.next();
-            // XXX: We are looking for foreign key on other table.
-            if (table.getName().equals(newname)) {
-                continue;
-            }
-            Iterator<Key> keys = table.getKeysInternal().getActiveElements();
-            while (keys.hasNext()) {
-                Key key = keys.next();
-                if (key.mReferencedTable.equals(oldname)) {
-                    key.mReferencedTable = newname;
+
+    // XXX: ColumnListener methods
+    protected void removeForeignKeyColumns(ColumnBase column, String name) {
+        if (mReferencedTables.contains(column.getTableInternal())) {
+            TableSuper table = column.getTableInternal();
+            removeForeignKeyColumns(table.composeTableName(), name);
+        }
+    }
+
+
+    // XXX: TableListener methods
+    protected void removeForeignKeyTables(TableSuper table, String name) {
+        if (mReferencedTables.contains(table)) {
+            removeForeignKeyTables(name);
+            mReferencedTables.remove(table);
+        }
+    }
+
+
+    protected abstract T getTable(NamedComponents component,
+                                  String type,
+                                  String remarks);
+
+
+    private void removeForeignKeyColumns(String ref, String name) {
+        for (TableSuper table : mReferencedTables) {
+            removeForeignKeyColumns(table, ref, name);
+        }
+    }
+
+    private void removeForeignKeyColumns(TableSuper table, String ref, String name) {
+        Iterator<Key> it = table.getKeysInternal().getActiveElements();
+        while (it.hasNext()) {
+            Key key = it.next();
+            if (key.getReferencedTableInternal().equals(ref)) {
+                KeyColumns columns = key.getColumnsInternal();
+                Iterator<KeyColumn> iter = columns.getActiveElements();
+                while (iter.hasNext()) {
+                    KeyColumn column = iter.next();
+                    if (column.getName().equals(name)) {
+                        columns.removeContainerElement(name);
+                        System.out.println("TableContainer.removeForeignKeyColumns() 1 **************");
+                    }
+                }
+                if (!columns.hasElements()) {
+                    it.remove();
+                    System.out.println("TableContainer.removeForeignKeyColumns() 2 **************");
                 }
             }
         }
     }
 
-    // XXX: If the renamed column is a foreign key we need to rename the RelatedColumn on the KeyColumn to.
-    protected void renameForeignKeyColumn(Map<String, List<String>> filters,
-                                          String referenced,
-                                          String oldname,
-                                          String newname)
-        throws SQLException {
-        Iterator<String> tables = getActiveNames(filters.keySet());
-        while (tables.hasNext()) {
-            // XXX: We are looking for foreign key on other table.
-            String table = tables.next();
-            getElement(table).getKeysInternal().renameForeignKeyColumn(filters.get(table), referenced,
-                                                                       oldname, newname);
+    private void removeForeignKeyTables(String name) {
+        for (TableSuper table : mReferencedTables) {
+            Iterator<Key> it = table.getKeysInternal().getActiveElements();
+            while (it.hasNext()) {
+                Key key = it.next();
+                if (key.getReferencedTableInternal().equals(name)) {
+                    it.remove();
+                    System.out.println("TableContainer.removeForeignKeyTables() 1 **************");
+                }
+            }
         }
     }
-
-    protected abstract T getTable(NamedComponents component,
-                                  String type,
-                                  String remarks);
 
 }

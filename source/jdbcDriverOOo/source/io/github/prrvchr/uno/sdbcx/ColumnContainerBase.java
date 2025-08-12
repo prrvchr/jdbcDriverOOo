@@ -37,6 +37,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
+import com.sun.star.sdbc.XColumnLocate;
 import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
@@ -53,7 +54,8 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class ColumnContainerBase<C extends ColumnSuper>
-    extends ContainerSuper<C> {
+    extends ContainerBase<C>
+    implements XColumnLocate {
 
     protected final TableSuper mTable;
     private Map<String, ColumnDescription> mDescriptions = new HashMap<>();
@@ -73,12 +75,23 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         }
     }
 
-    private static List<String> toColumnNames(List<ColumnDescription> descriptions) {
+    private static String[] toColumnNames(List<ColumnDescription> descriptions) {
         List<String> names = new ArrayList<>(descriptions.size());
         for (ColumnDescription description : descriptions) {
             names.add(description.mColumnName);
         }
-        return names;
+        return names.toArray(new String[0]);
+    }
+
+    // com.sun.star.sdbcx.XColumnLocate
+    @Override
+    public int findColumn(String name)
+        throws SQLException {
+        if (!hasByName(name)) {
+            String error = String.format("Error Column: %s not fount", name);
+            throw new SQLException(error, this, StandardSQLState.SQL_COLUMN_NOT_FOUND.text(), 0, null);
+        }
+        return getIndexInternal(name) + 1;
     }
 
     @Override

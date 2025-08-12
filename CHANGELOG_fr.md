@@ -378,19 +378,20 @@ Afin d'éviter toute régression sur les extensions utilisant jdbcDriverOOo :
 
 ### Ce qui a été fait pour la version 1.5.6:
 
-Intégration du [pilote JDBC Oracle][] `ojdbc17.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
+Intégration du [pilote JDBC Oracle][112] `ojdbc17.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
 - Ajout de deux paramètres supplémentaires au fichier `Drivers.xcu`:
   - `QuotedMetaData`, qui force la mise entre guillemets des noms d'identifiants s'ils ne sont pas en majuscules pour la méthode `DatabaseMetaData.getIndexInfo()`.
   - `CompletedMetaData`, qui permet de déterminer si le pilote sous-jacent fournit des ResultSets avec des métadonnées manquantes.
-- [QueryHelper][] est désormais capable de déterminer si la requête SQL exécutée est une requête `SELECT` sur une seule table.
-- Si tel est le cas, lors de la construction d'un XResultSet, [QueryHelper][] fournit le nom complet de la table utilisée dans la requête SQL `SELECT` au CachedRowSet émulant ce XResultSet.
+- [QueryHelper][113] est désormais capable de déterminer si la requête SQL exécutée est une requête `SELECT` sur une seule table.
+- Si tel est le cas, lors de la construction d'un XResultSet, [QueryHelper][113] fournit le nom complet de la table utilisée dans la requête SQL `SELECT` au CachedRowSet émulant ce XResultSet.
 - Lors de l'initialisation de ce CachedRowSet, les données manquantes des métadonnées du ResultSet du pilote Oracle (ie: `getTableName(int index)` et `getSchemaName(int index)`) seront déduites du nom de la table et affectées aux métadonnées du CachedRowSet.
 En raison de ces limitations du pilote Oracle, seuls les ResultSets des requêtes SQL `SELECT` qui ne s'appliquent qu'à une seule table seront modifiables dans LibreOffice Base.
 
 - Il est désormais possible d'insérer des enregistrements avec des valeurs nulles si les colonnes le permettent.
 - La gestion des utilisateurs et des rôles a été entièrement repensée:
   - Pour chaque utilisateur ou rôle il n'existe désormais qu'une seule instance de la classe `Group` ou `User`, quel que soit l'accès.
-  - Un nouvel écouteur [ContainerListener][] permet les mises à jour nécessaires suite à la suppression d'un utilisateur ou d'un rôle.
+  - Un nouvel écouteur [RoleListener][114] permet les mises à jour nécessaires suite à la suppression d'un utilisateur ou d'un rôle.
+- La méthode `cancelRowUpdates` de la classe `CachedRowSetImpl` accepte désormais l'exécution sur un `RowSet` vide. Ceci est nécessaire pour contourner le problème [tdf#167434][115].
 
 ### Que reste-t-il à faire pour la version 1.5.6:
 
@@ -509,3 +510,7 @@ En raison de ces limitations du pilote Oracle, seuls les ResultSets des requête
 [109]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
 [111]: <https://prrvchr.github.io/JaybirdEmbedded/README_fr>
+[112]: <https://www.oracle.com/fr/database/technologies/appdev/jdbc-downloads.html>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/QueryHelper.java>
+[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleListener.java>
+[115]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>

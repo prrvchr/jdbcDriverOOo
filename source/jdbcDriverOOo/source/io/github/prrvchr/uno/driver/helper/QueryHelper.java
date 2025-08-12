@@ -60,14 +60,15 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class QueryHelper {
 
+    public static final String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
+    public static final String SPACE = " ";
+
     private static final int NO_INDEX = -1;
 
-    private static final String SPACE = " ";
     private static final String REGEX_SPACE = "\\s+";
     private static final String TOKEN_MULTI_LINE_COMMENT_START = "/*+";
     private static final String TOKEN_MULTI_LINE_COMMENT_END = "*/";
     private static final String TOKEN_SINGLE_LINE_COMMENT = "--";
-    private static final String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
     private static final String TOKEN_SEMI_COLON = ";";
     private static final String TOKEN_COMMA = ",";
 
@@ -83,7 +84,6 @@ public final class QueryHelper {
 
     private static final List<String> SQL_COMMANDS = List.of(SQL_INSERT, SQL_UPDATE, SQL_SELECT);
 
-
     private String mCatalog = null;
     private String mSchema = null;
     private String mTable = null;
@@ -96,6 +96,7 @@ public final class QueryHelper {
     private Boolean mSingleTableSelect = false;
 
     private DatabaseMetaData mMetaData = null;
+
     /**
      * Extracts table name out of SQL if query is INSERT, UPDATE or SELECT.
      * ie queries executed by: - java.sql.Statement.executeUpdate()

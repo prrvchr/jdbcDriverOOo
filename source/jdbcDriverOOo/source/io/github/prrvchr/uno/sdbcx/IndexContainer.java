@@ -59,7 +59,8 @@ import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public final class IndexContainer
-    extends ContainerSuper<Index> {
+    extends ContainerBase<Index> {
+
     private static final String SERVICE = IndexContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Indexes",
                                               "com.sun.star.sdbcx.Container"};
@@ -70,8 +71,7 @@ public final class IndexContainer
     // The constructor method:
     public IndexContainer(TableSuper table,
                           boolean sensitive,
-                          List<String> indexes)
-        throws ElementExistException {
+                          String[] indexes) {
         super(SERVICE, SERVICES, table, sensitive, indexes);
         mTable = table;
         mLogger = new ConnectionLog(table.getLogger(), LoggerObjectType.INDEXCONTAINER);
@@ -152,7 +152,8 @@ public final class IndexContainer
         if (found) {
             Boolean primary = IndexHelper.isPrimaryKeyIndex(metadata, table, subname);
             boolean clustered = type == IndexType.CLUSTERED;
-            index = new Index(mTable, isCaseSensitive(), subname, qualifier, unique, primary, clustered, columns);
+            index = new Index(mTable, isCaseSensitive(), subname, qualifier, unique,
+                              primary, clustered, columns.toArray(new String[0]));
         }
         return index;
     }
@@ -197,7 +198,8 @@ public final class IndexContainer
                 if (!indexes.isEmpty()) {
                     String table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
                     String index = provider.enquoteIdentifier(name, isCaseSensitive());
-                    Map<String, Object> arguments = ParameterDDL.getAddIndex(table, index, indexes);
+                    Map<String, Object> arguments = ParameterDDL.getAddIndex(table, index,
+                                                                             indexes.toArray(new String[0]));
                     query = provider.getConfigDDL().getAddIndexCommand(arguments, unique);
                     System.out.println("sdbcx.IndexContainer.createIndex() 1 Query: " + query);
                     table = DBTools.composeTableName(provider, mTable, rule, false);
@@ -260,11 +262,11 @@ public final class IndexContainer
 
     protected void removePrimaryKeyIndex()
         throws SQLException {
-        Iterator<Index> Indexes = getActiveElements();
-        while (Indexes.hasNext()) {
-            Index index = Indexes.next();
+        Iterator<Index> it = getActiveElements();
+        while (it.hasNext()) {
+            Index index = it.next();
             if (index.mIsPrimaryKeyIndex) {
-                removeElement(index.getName(), false);
+                it.remove();
                 break;
             }
         }
@@ -272,11 +274,11 @@ public final class IndexContainer
 
     protected void removeForeignKeyIndex(String name)
             throws SQLException {
-        Iterator<Index> Indexes = getActiveElements();
-        while (Indexes.hasNext()) {
-            Index index = Indexes.next();
+        Iterator<Index> it = getActiveElements();
+        while (it.hasNext()) {
+            Index index = it.next();
             if (name.equals(index.getName())) {
-                removeElement(name, false);
+                it.remove();
                 break;
             }
         }
@@ -285,9 +287,9 @@ public final class IndexContainer
     protected void renameIndexColumn(String oldname,
                                      String newname)
         throws SQLException {
-        Iterator<Index> Indexes = getActiveElements();
-        while (Indexes.hasNext()) {
-            IndexColumnContainer columns = Indexes.next().getColumnsInternal();
+        Iterator<Index> it = getActiveElements();
+        while (it.hasNext()) {
+            IndexColumns columns = it.next().getColumnsInternal();
             if (columns.hasByName(oldname)) {
                 columns.renameIndexColumn(oldname, newname);
                 break;

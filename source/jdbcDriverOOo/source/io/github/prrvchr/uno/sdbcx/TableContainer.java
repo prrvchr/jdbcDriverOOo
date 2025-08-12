@@ -25,8 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.List;
-
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
@@ -43,8 +41,8 @@ public final class TableContainer
 
     // The constructor method:
     public TableContainer(Connection connection,
-                          boolean sensitive,
-                          List<String> names)
+                          String[] names,
+                          boolean sensitive)
         throws ElementExistException {
         super(SERVICE, SERVICES, connection, sensitive, names);
     }

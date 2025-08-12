@@ -25,12 +25,10 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.XUsersSupplier;
@@ -38,8 +36,7 @@ import com.sun.star.sdbcx.XUsersSupplier;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
-import io.github.prrvchr.uno.helper.UnoHelper;
-import io.github.prrvchr.uno.sdbcx.ContainerListener;
+import io.github.prrvchr.uno.sdbcx.RoleListener;
 
 
 public final class Group
@@ -50,7 +47,7 @@ public final class Group
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Group"};
     private Users mUsers;
     private UserContainer mUserContainer;
-    private ContainerListener<User> mListener;
+    private RoleListener<User> mListener;
 
     // The constructor method:
     public Group(Connection connection,
@@ -80,55 +77,39 @@ public final class Group
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public XNameAccess getUsers() {
-        XNameAccess users = null;
-        try {
-            if (mUsers == null) {
-                refreshUsers();
-            }
-            users = mUsers;
-        } catch (java.lang.Exception e) {
-            System.out.println("sdbcx.Group.getUsers() ERROR: " + UnoHelper.getStackTrace(e));
-        }
-        return users;
-    }
-
-    protected void refreshUsers() {
-        List<String> users = new ArrayList<>();
-        List<Object> values = new ArrayList<>();
-        String query = mConnection.getProvider().getConfigDCL().getGroupUsersQuery(getName(), values);
-        if (query != null) {
-            try (PreparedStatement statement = mConnection.getProvider().getConnection().prepareStatement(query)) {
-                for (int i = 0; i < values.size(); i++) {
-                    statement.setObject(i + 1, values.get(i));
-                }
-                try (java.sql.ResultSet result = statement.executeQuery()) {
-                    while (result.next()) {
-                        String user = result.getString(1);
-                        if (!result.wasNull()) {
-                            users.add(user);
-                        }
-                    }
-                }
-                if (mUsers == null) {
-                    mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
-                    mUsers = new Users(mConnection, mUserContainer, users, getName(), isCaseSensitive());
-                    mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID,
-                                   mUsers.getLogger().getObjectId());
-                    mListener = new ContainerListener<User>(mUsers);
-                    mUserContainer.addContainerListener(mListener);
-
-                } else {
-                    mUsers.refill(users);
-                }
-            } catch (ElementExistException | java.sql.SQLException e) {
-                UnoHelper.getSQLException(e, mConnection);
-            }
-
-        }
+        return getUsersInternal();
     }
 
     protected Users getUsersInternal() {
+        checkDisposed();
+        if (mUsers == null) {
+            refreshUsers();
+        }
         return mUsers;
     }
 
+    protected void refreshUsers() {
+        String[] users;
+        if (mUsers == null) {
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERROLES);
+        }
+        List<Object> values = new ArrayList<>();
+        String query = mConnection.getProvider().getConfigDCL().getGroupUsersQuery(getName(), values);
+        if (query != null) {
+            int resource = Resources.STR_LOG_CREATE_USERROLES_ERROR;
+            users = mConnection.getRoleNames(mLogger, values, query, resource);
+        } else {
+            users = new String[0];
+            getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_CREATE_USERROLES_NOT_SUPPORTED);
+        }
+        if (mUsers == null) {
+            mUsers = new Users(mConnection, mUserContainer, users, getName(), isCaseSensitive());
+            mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID,
+                           mUsers.getLogger().getObjectId());
+            mListener = new RoleListener<User>(mUsers);
+            mUserContainer.addContainerListener(mListener);
+        } else {
+            mUsers.refill(users);
+        }
+    }
 }

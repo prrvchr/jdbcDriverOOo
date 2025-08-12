@@ -33,22 +33,22 @@ import com.sun.star.uno.AnyConverter;
 import io.github.prrvchr.uno.sdb.Role;
 
 
-public class ContainerListener<T extends Role>
+public class RoleListener<T extends Role>
     implements XContainerListener {
 
     private RoleContainer<T> mContainer;
 
-    public ContainerListener(RoleContainer<T> container) {
+    public RoleListener(RoleContainer<T> container) {
         mContainer = container;
     }
 
     @Override
-    public void disposing(EventObject arg0) {
+    public void disposing(EventObject event) {
         System.out.println("RoleListener.disposing()");
     }
 
     @Override
-    public void elementInserted(ContainerEvent arg0) {
+    public void elementInserted(ContainerEvent event) {
         System.out.println("RoleListener.elementInserted()");
     }
 
@@ -66,7 +66,7 @@ public class ContainerListener<T extends Role>
     }
 
     @Override
-    public void elementReplaced(ContainerEvent arg0) {
+    public void elementReplaced(ContainerEvent event) {
         System.out.println("RoleListener.elementReplaced()");
     }
 

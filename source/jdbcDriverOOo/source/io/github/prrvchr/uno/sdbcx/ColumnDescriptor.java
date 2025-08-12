@@ -35,11 +35,9 @@ public final class ColumnDescriptor
     private static final String[] SERVICES = {"com.sun.star.sdbcx.ColumnDescriptor"};
 
     // The constructor method:
-    public ColumnDescriptor(String catalog,
-                            String schema,
-                            String table,
-                            boolean sensitive) {
-        super(SERVICE, SERVICES, catalog, schema, table, sensitive);
+    public ColumnDescriptor(final TableMain table,
+                            final boolean sensitive) {
+        super(SERVICE, SERVICES, table, sensitive);
         registerProperties(new HashMap<String, PropertyWrapper>());
         System.out.println("sdbcx.descriptors.ColumnDescriptor()");
     }

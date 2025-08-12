@@ -378,7 +378,7 @@ public abstract class StatementMain
 
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing() {
+    public synchronized void dispose() {
         if (mStatement != null) {
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_STATEMENT_CLOSING);
             try {
@@ -387,7 +387,7 @@ public abstract class StatementMain
                 mLogger.logp(LogLevel.WARNING, e);
             }
             mStatement = null;
-            super.postDisposing();
+            super.dispose();
         }
     }
 

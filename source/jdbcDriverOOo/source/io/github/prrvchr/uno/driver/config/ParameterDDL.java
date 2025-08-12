@@ -27,7 +27,6 @@ package io.github.prrvchr.uno.driver.config;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.star.sdbc.KeyRule;
@@ -88,13 +87,13 @@ public class ParameterDDL extends ParameterBase {
 
     public static Map<String, Object> getAddIndex(final String table,
                                                   final String name,
-                                                  List<String> columns) {
+                                                  String[] columns) {
         return getCreateConstraint(table, name, columns);
     }
 
     public static Map<String, Object> getCreateConstraint(final String table,
                                                           final String name,
-                                                          List<String> columns) {
+                                                          String[] columns) {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("TableName", table);
         arguments.put("Name", name);
@@ -108,7 +107,7 @@ public class ParameterDDL extends ParameterBase {
 
     public static void setCreateConstraint(Map<String, Object> arguments,
                                            String table,
-                                           List<String> columns,
+                                           String[] columns,
                                            int update,
                                            int delete) {
         arguments.put("ReferencedTable", table);

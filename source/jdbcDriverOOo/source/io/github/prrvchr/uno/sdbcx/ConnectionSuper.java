@@ -57,6 +57,7 @@ public abstract class ConnectionSuper
 
     protected TableContainerSuper<?> mTables = null;
     private ViewContainer mViews = null;
+    private TableListener mListener = null;
 
     // The constructor method:
     protected ConnectionSuper(XComponentContext ctx,
@@ -71,14 +72,18 @@ public abstract class ConnectionSuper
     protected Provider getProvider() {
         return super.getProvider();
     }
+
     protected ConnectionLog getLogger() {
         return super.getLogger();
     }
 
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing() {
+    public synchronized void dispose() {
         if (mTables != null) {
+            if (mListener != null) {
+                mTables.removeContainerListener(mListener);
+            }
             mTables.dispose();
             mTables = null;
         }
@@ -86,7 +91,7 @@ public abstract class ConnectionSuper
             mViews.dispose();
             mViews = null;
         }
-        super.postDisposing();
+        super.dispose();
     }
 
     // com.sun.star.sdbcx.XTablesSupplier:
@@ -124,28 +129,17 @@ public abstract class ConnectionSuper
         refreshViews();
     }
 
-    protected abstract TableContainerSuper<?> getTableContainer(List<String> names) throws ElementExistException;
-    protected abstract ViewContainer getViewContainer(List<String> names) throws ElementExistException;
+    protected abstract TableContainerSuper<?> getTableContainer(String[] names) throws ElementExistException;
+    protected abstract ViewContainer getViewContainer(String[] names) throws ElementExistException;
 
     private void refreshTables() {
         try {
-            // FIXME: It is preferable to display all the entities of the underlying database.
-            // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
-            List<String> names = new ArrayList<>();
-            java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
-            RowSetData data = getProvider().getConfigSQL().getTableData();
-            RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
-            String[] types = getProvider().getConfigSQL().getTableTypes();
-            try (ResultSet rs = ResultSetHelper.getCustomDataResultSet(metadata.getTables(null, null, "%", types),
-                                                                       data, filter)) {
-                while (rs.next()) {
-                    String name = buildName(rs);
-                    names.add(name);
-                }
-            }
+            String[] names = getTableNames();
             if (mTables == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
                 mTables = getTableContainer(names);
+                mListener = new TableListener();
+                mTables.addContainerListener(mListener);
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID,
                                    mTables.getLogger().getObjectId());
             } else {
@@ -158,16 +152,7 @@ public abstract class ConnectionSuper
 
     private void refreshViews() {
         try {
-            List<String> names = new ArrayList<>();
-            String[] types = getProvider().getConfigSQL().getViewTypes();
-            RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
-            java.sql.ResultSet rs = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
-            try (java.sql.ResultSet result = ResultSetHelper.getCustomDataResultSet(rs, filter)) {
-                while (result.next()) {
-                    String name = buildName(result);
-                    names.add(name);
-                }
-            }
+            String[] names = getViewNames();
             if (mViews == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_VIEWS);
                 mViews = getViewContainer(names);
@@ -178,6 +163,38 @@ public abstract class ConnectionSuper
         } catch (ElementExistException | SQLException | java.sql.SQLException e) {
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
+    }
+
+    private String[] getTableNames() throws java.sql.SQLException, SQLException {
+        // FIXME: It is preferable to display all the entities of the underlying database.
+        // FIXME: Filtering tables in Base or creating users with the appropriate rights seems more sensible.
+        List<String> names = new ArrayList<>();
+        java.sql.DatabaseMetaData metadata = getProvider().getConnection().getMetaData();
+        RowSetData data = getProvider().getConfigSQL().getTableData();
+        RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
+        String[] types = getProvider().getConfigSQL().getTableTypes();
+        try (ResultSet rs = ResultSetHelper.getCustomDataResultSet(metadata.getTables(null, null, "%", types),
+                                                                   data, filter)) {
+            while (rs.next()) {
+                String name = buildName(rs);
+                names.add(name);
+            }
+        }
+        return names.toArray(new String[0]);
+    }
+
+    private String[] getViewNames() throws java.sql.SQLException, SQLException {
+        List<String> names = new ArrayList<>();
+        String[] types = getProvider().getConfigSQL().getViewTypes();
+        RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
+        java.sql.ResultSet rs = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
+        try (java.sql.ResultSet result = ResultSetHelper.getCustomDataResultSet(rs, filter)) {
+            while (result.next()) {
+                String name = buildName(result);
+                names.add(name);
+            }
+        }
+        return names.toArray(new String[0]);
     }
 
     private String buildName(java.sql.ResultSet result)

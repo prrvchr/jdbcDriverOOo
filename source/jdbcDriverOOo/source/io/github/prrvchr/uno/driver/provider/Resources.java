@@ -302,7 +302,9 @@ public class Resources {
 
     public static final int STR_LOG_CREATE_USERS                                            = LOGGER_BASE + 1000;
     public static final int STR_LOG_CREATED_USERS_ID                                        = LOGGER_BASE + 1001;
-    public static final int STR_LOG_USERS_DISPOSING                                         = LOGGER_BASE + 1002;
+    public static final int STR_LOG_CREATE_USERS_ERROR                                      = LOGGER_BASE + 1002;
+    public static final int STR_LOG_CREATE_USERS_NOT_SUPPORTED                              = LOGGER_BASE + 1003;
+    public static final int STR_LOG_USERS_DISPOSING                                         = LOGGER_BASE + 1004;
 
     public static final int STR_LOG_USERS_CREATE_USER_QUERY                                 = LOGGER_BASE + 1010;
     public static final int STR_LOG_USERS_CREATE_USER_QUERY_ERROR                           = LOGGER_BASE + 1011;
@@ -313,7 +315,9 @@ public class Resources {
 
     public static final int STR_LOG_CREATE_GROUPS                                           = LOGGER_BASE + 1100;
     public static final int STR_LOG_CREATED_GROUPS_ID                                       = LOGGER_BASE + 1101;
-    public static final int STR_LOG_GROUPS_DISPOSING                                        = LOGGER_BASE + 1102;
+    public static final int STR_LOG_CREATE_GROUPS_ERROR                                     = LOGGER_BASE + 1102;
+    public static final int STR_LOG_CREATE_GROUPS_NOT_SUPPORTED                             = LOGGER_BASE + 1103;
+    public static final int STR_LOG_GROUPS_DISPOSING                                        = LOGGER_BASE + 1104;
 
     public static final int STR_LOG_GROUPS_CREATE_GROUP_QUERY                               = LOGGER_BASE + 1110;
     public static final int STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR                         = LOGGER_BASE + 1111;
@@ -345,7 +349,9 @@ public class Resources {
 
     public static final int STR_LOG_CREATE_USERROLES                                        = LOGGER_BASE + 1400;
     public static final int STR_LOG_CREATED_USERROLES_ID                                    = LOGGER_BASE + 1401;
-    public static final int STR_LOG_USERROLES_DISPOSING                                     = LOGGER_BASE + 1402;
+    public static final int STR_LOG_CREATE_USERROLES_ERROR                                  = LOGGER_BASE + 1402;
+    public static final int STR_LOG_CREATE_USERROLES_NOT_SUPPORTED                          = LOGGER_BASE + 1403;
+    public static final int STR_LOG_USERROLES_DISPOSING                                     = LOGGER_BASE + 1404;
 
     public static final int STR_LOG_USERROLES_GRANT_ROLE_QUERY                              = LOGGER_BASE + 1410;
     public static final int STR_LOG_USERROLES_GRANT_ROLE_QUERY_ERROR                        = LOGGER_BASE + 1411;
@@ -354,11 +360,23 @@ public class Resources {
 
     public static final int STR_LOG_CREATE_GROUPROLES                                       = LOGGER_BASE + 1500;
     public static final int STR_LOG_CREATED_GROUPROLES_ID                                   = LOGGER_BASE + 1501;
-    public static final int STR_LOG_GROUPROLES_DISPOSING                                    = LOGGER_BASE + 1502;
+    public static final int STR_LOG_CREATE_GROUPROLES_ERROR                                 = LOGGER_BASE + 1502;
+    public static final int STR_LOG_CREATE_GROUPROLES_NOT_SUPPORTED                         = LOGGER_BASE + 1503;
+    public static final int STR_LOG_GROUPROLES_DISPOSING                                    = LOGGER_BASE + 1504;
 
     public static final int STR_LOG_GROUPROLES_GRANT_ROLE_QUERY                             = LOGGER_BASE + 1510;
     public static final int STR_LOG_GROUPROLES_GRANT_ROLE_QUERY_ERROR                       = LOGGER_BASE + 1511;
     public static final int STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY                            = LOGGER_BASE + 1512;
     public static final int STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY_ERROR                      = LOGGER_BASE + 1513;
+
+    public static final int STR_LOG_CREATE_KEYCOLUMNS                                       = LOGGER_BASE + 1520;
+    public static final int STR_LOG_CREATED_KEYCOLUMNS_ID                                   = LOGGER_BASE + 1521;
+    public static final int STR_LOG_KEYCOLUMNS_DISPOSING                                    = LOGGER_BASE + 1522;
+
+    public static final int STR_LOG_CREATE_INDEXCOLUMN                                      = LOGGER_BASE + 1530;
+    public static final int STR_LOG_CREATED_INDEXCOLUMN_ID                                  = LOGGER_BASE + 1531;
+    public static final int STR_LOG_INDEXCOLUMNS_DISPOSING                                  = LOGGER_BASE + 1532;
+
+    public static final int STR_LOG_TABLE_PRIVILEGE_ACCESS_ERROR                            = LOGGER_BASE + 1550;
 
 }

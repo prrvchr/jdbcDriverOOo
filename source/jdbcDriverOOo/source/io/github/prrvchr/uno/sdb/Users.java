@@ -25,10 +25,8 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
@@ -50,15 +48,13 @@ public final class Users
     // The constructor method:
     public Users(Connection connection,
                  UserContainer users,
-                 List<String> names,
+                 String[] names,
                  String role,
-                 boolean sensitive)
-        throws ElementExistException {
+                 boolean sensitive) {
         // XXX: isrole lets you know the role that holds this class.
         // XXX: Currently it is a role since users can only be held by a role
         super(SERVICE, SERVICES, connection, connection.getProvider(),
               users, names, role, sensitive, true, "USER", LoggerObjectType.USERS);
-        System.out.println("Users() 1");
     }
 
     private UserContainer getUsers() {
@@ -89,7 +85,7 @@ public final class Users
     }
 
     @Override
-    protected void refill(List<String> roles) {
+    protected void refill(String[] roles) {
         super.refill(roles);
     }
 
@@ -99,12 +95,12 @@ public final class Users
     }
 
     protected User createRoleElement(String name) throws SQLException {
-        if (!mNames.contains(name) || !getUsers().getIndexes().contains(name)) {
+        if (!mNames.contains(name) || !getUsers().getNamesInternal().contains(name)) {
             throw new SQLException();
         }
         try {
-            int index = getUsers().getIndexes().indexOf(name);
-            return getUsers().getElementByIndex(index);
+            int idx = getUsers().getIndexInternal(name);
+            return getUsers().getElementByIndex(idx);
         } catch (WrappedTargetException e) {
             throw new SQLException();
         }

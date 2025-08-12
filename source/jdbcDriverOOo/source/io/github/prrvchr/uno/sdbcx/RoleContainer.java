@@ -55,6 +55,7 @@ import com.sun.star.util.XRefreshable;
 import com.sun.star.util.XRefreshListener;
 
 import io.github.prrvchr.uno.driver.config.ParameterDCL;
+import io.github.prrvchr.uno.driver.helper.BiMap;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -95,8 +96,8 @@ public abstract class RoleContainer<T extends Role>
     protected final boolean mIsrole;
     // A pointer to all roles (User xor Group) in the underlying database
     protected ContainerSuper<T> mRoles;
-    // The list of roles held by The Role
-    protected List<String> mNames;
+    // The list of role names held by The Role
+    protected BiMap<String> mNames;
     private final String mService;
     private final String[] mServices;
     private boolean mSensitive;
@@ -107,13 +108,12 @@ public abstract class RoleContainer<T extends Role>
                             Connection connection,
                             Provider provider,
                             ContainerSuper<T> roles,
-                            List<String> names,
+                            String[] names,
                             String name,
                             boolean sensitive,
                             boolean isrole,
                             String role,
-                            LoggerObjectType type)
-        throws ElementExistException {
+                            LoggerObjectType type) {
         mService = service;
         mServices = services;
         mConnection = connection;
@@ -122,7 +122,7 @@ public abstract class RoleContainer<T extends Role>
         mName = name;
         mRole = role;
         mRoles = roles;
-        mNames = names;
+        mNames = new BiMap<>(BiMap.getComparator(sensitive), names);
         mLogger = new ConnectionLog(provider.getLogger(), type);
         mIsrole = isrole;
     }
@@ -189,24 +189,24 @@ public abstract class RoleContainer<T extends Role>
         throws NoSuchElementException,
                WrappedTargetException {
         synchronized (mRoles) {
-            if (!mNames.contains(name) || !mRoles.getIndexes().contains(name)) {
+            if (!mNames.contains(name) || !mRoles.getNamesInternal().contains(name)) {
                 throw new NoSuchElementException();
             }
-            int index = mRoles.getIndexes().indexOf(name);
-            return mRoles.getElementByIndex(index);
+            int idx = mRoles.getIndexInternal(name);
+            return mRoles.getElementByIndex(idx);
         }
     }
 
     @Override
     public String[] getElementNames() {
-        synchronized (mNames) {
-            return mNames.toArray(new String[0]);
+        synchronized (mRoles) {
+            return getNamesInternal().toArray(new String[0]);
         }
     }
 
     @Override
     public boolean hasByName(String name) {
-        synchronized (mNames) {
+        synchronized (mRoles) {
             return mNames.contains(name);
         }
     }
@@ -233,11 +233,11 @@ public abstract class RoleContainer<T extends Role>
         }
         synchronized (mRoles) {
             String name = mNames.get(index);
-            if (!mRoles.getIndexes().contains(name)) {
+            if (!mRoles.getNamesInternal().contains(name)) {
                 throw new IndexOutOfBoundsException();
             }
-            index = mRoles.getIndexes().indexOf(name);
-            return mRoles.getElementByIndex(index);
+            int idx = mRoles.getIndexInternal(name);
+            return mRoles.getElementByIndex(idx);
         }
     }
 
@@ -296,9 +296,9 @@ public abstract class RoleContainer<T extends Role>
         if (grantRole(name)) {
             T element;
             mNames.add(name);
-            int index = mRoles.getIndexes().indexOf(name);
+            int idx = mRoles.getIndexInternal(name);
             try {
-                element = mRoles.getElementByIndex(index);
+                element = mRoles.getElementByIndex(idx);
             } catch (WrappedTargetException e) {
                 throw new SQLException();
             }
@@ -411,9 +411,11 @@ public abstract class RoleContainer<T extends Role>
         return mSensitive;
     }
 
-    protected void refill(List<String> names) {
-        // XXX: We need to remove members of role.
-        mNames = names;
+    protected void refill(String[] names) {
+        mNames.clear();
+        for (String name : names) {
+            mNames.add(name);
+        }
     }
 
 }

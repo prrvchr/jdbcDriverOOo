@@ -5461,10 +5461,15 @@ public class CachedRowSetImpl
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidcp").toString());
         }
 
-        Row row = (Row) getCurrentRow();
-        if (row.getUpdated()) {
-            row.clearUpdated();
-            notifyRowChanged();
+        // XXX: We need to allow cancelRowUpdate when RowSet is empty. This is required
+        // XXX: for LibreOffice Base and in this case this method will have no effect.
+        // XXX: see: https://bugs.documentfoundation.org/show_bug.cgi?id=167434
+        if (numRows > 0) {
+            Row row = (Row) getCurrentRow();
+            if (row.getUpdated()) {
+                row.clearUpdated();
+                notifyRowChanged();
+            }
         }
     }
 

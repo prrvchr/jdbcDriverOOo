@@ -23,90 +23,43 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbc;
+package io.github.prrvchr.uno.sdbcx;
 
-import com.sun.star.io.XInputStream;
-import com.sun.star.lib.uno.adapter.InputStreamToXInputStreamAdapter;
-import com.sun.star.lib.uno.helper.ComponentBase;
-import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XBlob;
-
-import io.github.prrvchr.uno.helper.UnoHelper;
+import com.sun.star.container.ContainerEvent;
+import com.sun.star.container.XContainerListener;
+import com.sun.star.lang.EventObject;
+import com.sun.star.uno.AnyConverter;
 
 
-public final class Blob
-    extends ComponentBase
-    implements XBlob {
+public class TableListener
+    implements XContainerListener {
 
-    private final ConnectionBase mConnection;
-    private java.sql.Blob mBlob;
+    public TableListener() { }
 
-    // The constructor method:
-    public Blob(ConnectionBase connection,
-                java.sql.Blob blob) {
-        mConnection = connection;
-        mBlob = blob;
-    }
-
-    // com.sun.star.lang.XComponent
     @Override
-    public void dispose() {
-        try {
-            mBlob.free();
-        } catch (java.sql.SQLException e) {
-            mConnection.getLogger().log(LogLevel.WARNING, e.getMessage());
-        }
-    }
-
-    // com.sun.star.sdbc.XBlob:
-    @Override
-    public XInputStream getBinaryStream()
-        throws SQLException {
-        try {
-            return new InputStreamToXInputStreamAdapter(mBlob.getBinaryStream());
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+    public void disposing(EventObject event) {
+        System.out.println("TableListener.disposing()");
     }
 
     @Override
-    public byte[] getBytes(long position, int length)
-        throws SQLException {
-        try {
-            return mBlob.getBytes(position, length);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+    public void elementInserted(ContainerEvent event) {
+        System.out.println("TableListener.elementInserted()");
     }
 
     @Override
-    public long length()
-        throws SQLException {
-        try {
-            return mBlob.length();
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+    public void elementRemoved(ContainerEvent event) {
+        System.out.println("TableListener.elementRemoved() 1");
+        String name = AnyConverter.toString(event.Accessor);
+        TableSuper table = (TableSuper) event.Element;
+        System.out.println("TableListener.elementRemoved() 2 TableName:" + table.getName() +
+                           " - name: " + name);
+        //table.getConnection().getTablesInternal().removeForeignKeyTables(table, name);
+        System.out.println("TableListener.elementRemoved() 3");
     }
 
     @Override
-    public long position(byte[] pattern, long start)
-        throws SQLException {
-        try {
-            return mBlob.position(pattern, start);
-        } catch (java.sql.SQLException e) {
-            throw UnoHelper.getSQLException(e, this);
-        }
+    public void elementReplaced(ContainerEvent event) {
+        System.out.println("TableListener.elementReplaced() 1");
     }
-
-    @Override
-    public long positionOfBlob(XBlob blob, long start)
-        throws SQLException {
-        long position = 0;
-        int lenght = (int) blob.length();
-        return position(blob.getBytes(position, lenght), start);
-    }
-
 
 }

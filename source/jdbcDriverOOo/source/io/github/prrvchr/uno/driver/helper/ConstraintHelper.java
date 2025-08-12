@@ -59,7 +59,7 @@ public class ConstraintHelper {
             String tablename = DBTools.buildName(provider, table, rule, sensitive);
             String keyname = KeyHelper.getKeyName(name, table.getTableName(), type);
             keyname = provider.enquoteIdentifier(keyname, sensitive);
-            List<String> columns = getKeyColumns(provider, descriptor, PropertyIds.NAME, sensitive);
+            String[] columns = getKeyColumns(provider, descriptor, PropertyIds.NAME, sensitive);
             Map<String, Object> arguments = ParameterDDL.getCreateConstraint(tablename, keyname, columns);
             if (type == KeyType.FOREIGN) {
                 String reftable = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
@@ -76,10 +76,10 @@ public class ConstraintHelper {
         }
     }
 
-    public static List<String> getKeyColumns(Provider provider,
-                                             XPropertySet descriptor,
-                                             PropertyIds name,
-                                             boolean sensitive)
+    public static String[] getKeyColumns(Provider provider,
+                                         XPropertySet descriptor,
+                                         PropertyIds name,
+                                         boolean sensitive)
         throws java.sql.SQLException, SQLException {
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
         XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
@@ -159,8 +159,8 @@ public class ConstraintHelper {
         throws java.sql.SQLException, SQLException {
         String separator = ", ";
         StringBuilder buffer = new StringBuilder();
-        List<String> names = getKeyColumns(provider, columns, PropertyIds.NAME, sensitive);
-        if (!names.isEmpty()) {
+        String[] names = getKeyColumns(provider, columns, PropertyIds.NAME, sensitive);
+        if (names.length > 0) {
             buffer.append(" (");
             buffer.append(String.join(separator, names));
             buffer.append(")");
@@ -168,10 +168,10 @@ public class ConstraintHelper {
         return buffer.toString();
     }
 
-    private static List<String> getKeyColumns(Provider provider,
-                                              XIndexAccess indexes,
-                                              PropertyIds name,
-                                              boolean sensitive)
+    private static String[] getKeyColumns(Provider provider,
+                                          XIndexAccess indexes,
+                                          PropertyIds name,
+                                          boolean sensitive)
         throws java.sql.SQLException, SQLException {
         List<String> columns = new ArrayList<>();
         try {
@@ -185,7 +185,7 @@ public class ConstraintHelper {
         } catch (IndexOutOfBoundsException | WrappedTargetException e) {
             throw new SQLException(e.getMessage());
         }
-        return columns;
+        return columns.toArray(new String[0]);
     }
 
 }

@@ -55,7 +55,7 @@ public class ParameterDCL extends ParameterBase {
 
     public static Map<String, Object> getPrivilegesArguments(String grantee,
                                                              NamedComponents table)
-        throws java.sql.SQLException, SQLException {
+        throws java.sql.SQLException {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Grantee} quoted / unquoted grantee name
         arguments.put("Grantee", grantee);

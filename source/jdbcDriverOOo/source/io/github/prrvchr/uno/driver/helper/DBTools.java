@@ -405,16 +405,14 @@ public class DBTools {
 
     public static String buildName(Provider provider,
                                    NamedComponents component,
-                                   ComposeRule rule)
-        throws java.sql.SQLException {
+                                   ComposeRule rule) {
         return buildName(provider, component, rule, false);
     }
 
     public static String buildName(Provider provider,
                                    NamedComponents component,
                                    ComposeRule rule,
-                                   boolean sensitive)
-        throws java.sql.SQLException {
+                                   boolean sensitive) {
         return buildName(provider, component.getCatalogName(),
                          component.getSchemaName(), component.getTableName(), rule, sensitive);
     }
@@ -423,8 +421,7 @@ public class DBTools {
                                    String catalog,
                                    String schema,
                                    String table,
-                                   ComposeRule rule)
-        throws java.sql.SQLException {
+                                   ComposeRule rule) {
         return buildName(provider, catalog, schema, table, rule, false);
     }
 
@@ -433,8 +430,7 @@ public class DBTools {
                                    String schema,
                                    String table,
                                    ComposeRule rule,
-                                   boolean sensitive)
-        throws java.sql.SQLException {
+                                   boolean sensitive) {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         return doComposeTableName(provider, support, catalog, schema, table, sensitive);
     }
@@ -442,8 +438,7 @@ public class DBTools {
     public static String buildName(Provider provider,
                                    NamedComponents component,
                                    NameComponentSupport support,
-                                   boolean sensitive)
-        throws java.sql.SQLException {
+                                   boolean sensitive) {
         return doComposeTableName(provider, support, component, sensitive);
     }
 
@@ -452,8 +447,7 @@ public class DBTools {
                                           ComposeRule rule,
                                           boolean catalog,
                                           boolean schema,
-                                          boolean sensitive)
-        throws java.sql.SQLException {
+                                          boolean sensitive) {
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         NamedComponents component = getTableNamedComponents(provider, table);
         String catalogName;
@@ -475,8 +469,7 @@ public class DBTools {
     public static String composeTableName(Provider provider,
                                           XPropertySet table,
                                           ComposeRule rule,
-                                          boolean sensitive)
-        throws java.sql.SQLException {
+                                          boolean sensitive) {
         NamedComponents component = getTableNamedComponents(provider, table);
         NameComponentSupport support = getNameComponentSupport(provider, rule);
         String catalogName;
@@ -498,8 +491,7 @@ public class DBTools {
     public static String composeTableName(Provider provider,
                                           XPropertySet table,
                                           NameComponentSupport support,
-                                          boolean sensitive)
-        throws java.sql.SQLException {
+                                          boolean sensitive) {
         NamedComponents component = getTableNamedComponents(provider, table);
         String catalogName;
         if (support.mUseCatalogs) {
@@ -520,8 +512,7 @@ public class DBTools {
     public static String doComposeTableName(Provider provider,
                                             NameComponentSupport support,
                                             NamedComponents component,
-                                            boolean sensitive)
-        throws java.sql.SQLException {
+                                            boolean sensitive) {
         return doComposeTableName(provider, support, component.getCatalog(),
                                   component.getSchema(), component.getTable(), sensitive);
     }
@@ -531,8 +522,7 @@ public class DBTools {
                                             String catalog,
                                             String schema,
                                             String table,
-                                            boolean sensitive)
-        throws java.sql.SQLException {
+                                            boolean sensitive) {
         StringBuilder buffer = new StringBuilder();
 
         String catalogSeparator = "";

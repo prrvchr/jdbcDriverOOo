@@ -413,15 +413,17 @@ public class TableHelper {
     *      The new column descriptor.
     * @param oldname
     *      The old the column name.
+    * @param newname
+    *      The new the column name.
     * @return
     *      The binary status (ie: 1 -> renamed, 2 -> type changed ...) as int
     */
     public static int getAlterColumnChanges(XPropertySet descriptor1,
                                             XPropertySet descriptor2,
-                                            String oldname) {
+                                            String oldname,
+                                            String newname) {
         int changes = 0;
         // XXX: Column name have been changed?
-        String newname = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.NAME);
         if (!oldname.equals(newname)) {
             changes |= COLUMN_NAME;
         }

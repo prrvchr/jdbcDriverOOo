@@ -35,11 +35,11 @@ import java.util.List;
 import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.sdbcx.ContainerBase;
+import io.github.prrvchr.uno.sdbcx.ContainerMain;
 
 
 public final class ResultColumnContainer
-    extends ContainerBase<ResultColumn> {
+    extends ContainerMain<ResultColumn> {
     private static final String SERVICE = ResultColumnContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
@@ -60,7 +60,7 @@ public final class ResultColumnContainer
         mRsMetaData = rsMetadata;
     }
 
-    private static List<String> getColumnNames(ResultSetMetaData metadata) {
+    private static String[] getColumnNames(ResultSetMetaData metadata) {
         List<String> names = new ArrayList<>();
         try {
             int count = metadata.getColumnCount();
@@ -68,7 +68,7 @@ public final class ResultColumnContainer
                 names.add(metadata.getColumnName(i));
             }
         } catch (java.sql.SQLException e) { }
-        return names;
+        return names.toArray(new String[0]);
     }
 
     @Override

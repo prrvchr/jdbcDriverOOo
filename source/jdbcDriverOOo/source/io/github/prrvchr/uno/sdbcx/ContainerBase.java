@@ -25,167 +25,182 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-
-import javax.swing.event.EventListenerList;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ContainerEvent;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
-import com.sun.star.container.XContainer;
 import com.sun.star.container.XContainerListener;
-import com.sun.star.container.XEnumeration;
-import com.sun.star.container.XEnumerationAccess;
-import com.sun.star.container.XIndexAccess;
-import com.sun.star.container.XNameAccess;
+import com.sun.star.lang.EventObject;
 import com.sun.star.lang.IndexOutOfBoundsException;
-import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.lang.XServiceInfo;
-import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.lib.uno.helper.InterfaceContainer;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbc.XColumnLocate;
-import com.sun.star.uno.Type;
+import com.sun.star.sdbcx.XAppend;
+import com.sun.star.sdbcx.XDataDescriptorFactory;
+import com.sun.star.sdbcx.XDrop;
+import com.sun.star.uno.Any;
+import com.sun.star.util.XRefreshListener;
+import com.sun.star.util.XRefreshable;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
-import io.github.prrvchr.uno.helper.ServiceInfo;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class ContainerBase<T extends Descriptor>
-    extends WeakBase
-    implements XServiceInfo,
-               XContainer,
-               XNameAccess,
-               XIndexAccess,
-               XEnumerationAccess,
-               XColumnLocate {
+    extends ContainerMain<T>
+    implements XAppend,
+               XDrop,
+               XDataDescriptorFactory,
+               XRefreshable {
 
-    protected Object mLock;
-    protected List<T> mElements;
-    protected boolean mSensitive;
-    private List<String> mNames;
-    private final String mService;
-    private final String[] mServices;
-    private final EventListenerList mContainer = new EventListenerList();
+    private InterfaceContainer mRefresh = new InterfaceContainer();
 
     // The constructor method:
     public ContainerBase(String service,
                      String[] services,
                      Object lock,
                      boolean sensitive) {
-        mService = service;
-        mServices = services;
-        mLock = lock;
-        mSensitive = sensitive;
-        mElements = new ArrayList<>();
+        super(service, services, lock, sensitive);
+    }
+
+    public ContainerBase(String service,
+                         String[] services,
+                         Object lock,
+                         boolean sensitive,
+                         boolean master) {
+        super(service, services, lock, sensitive, master);
+    }
+
+    public ContainerBase(String service,
+                         String[] services,
+                         Object lock,
+                         boolean sensitive,
+                         String[] names,
+                         boolean master) {
+        super(service, services, lock, sensitive, names, master);
     }
 
     public ContainerBase(String service,
                      String[] services,
                      Object lock,
                      boolean sensitive,
-                     List<String> names) {
-        this(service, services, lock, sensitive);
-        mNames = new ArrayList<>();
-        for (String name : names) {
-            mNames.add(name);
-            mElements.add(null);
-        }
+                     String[] names) {
+        super(service, services, lock, sensitive, names);
     }
 
-    protected XContainerListener[] getContainerListeners() {
-        return mContainer.getListeners(XContainerListener.class);
-    }
 
-    // Would be from com.sun.star.lang.XComponent ;)
-    public void dispose() {
-        //EventObject event = new EventObject(this);
-        //mContainer.disposeAndClear(event);
+    // com.sun.star.util.XRefreshable
+    @Override
+    public void refresh() {
+        Iterator<?> iterator;
         synchronized (mLock) {
-            getNamesInternal().clear();
             for (T element : mElements) {
                 UnoHelper.disposeComponent(element);
             }
             mElements.clear();
+            getNamesInternal().clear();
+            refreshInternal();
+            iterator = mRefresh.iterator();
+        }
+        if (iterator == null) {
+            // early disposal
+            return;
+        }
+        EventObject event = new EventObject(this);
+        while (iterator.hasNext()) {
+            XRefreshListener listener = (XRefreshListener) iterator.next();
+            listener.refreshed(event);
         }
     }
 
-    // com.sun.star.lang.XServiceInfo:
     @Override
-    public String getImplementationName() {
-        return ServiceInfo.getImplementationName(mService);
+    public void addRefreshListener(XRefreshListener listener) {
+        synchronized (mLock) {
+            mRefresh.add(listener);
+        }
     }
 
     @Override
-    public String[] getSupportedServiceNames() {
-        return ServiceInfo.getSupportedServiceNames(mServices);
+    public void removeRefreshListener(XRefreshListener listener) {
+        synchronized (mLock) {
+            mRefresh.remove(listener);
+        }
+    }
+
+    // com.sun.star.sdbcx.XDrop:
+    @Override
+    public void dropByIndex(int index)
+        throws SQLException,
+               IndexOutOfBoundsException {
+        synchronized (mLock) {
+            if (index < 0 || index >= getCount()) {
+                throw new IndexOutOfBoundsException();
+            }
+        }
+        removeElement(getIndexInternal(index));
     }
 
     @Override
-    public boolean supportsService(String service) {
-        return ServiceInfo.supportsService(mServices, service);
-    }
-
-    // com.sun.star.container.XNameAccess:
-    @Override
-    public Object getByName(String name)
-        throws NoSuchElementException,
-               WrappedTargetException {
+    public void dropByName(String name)
+        throws SQLException, NoSuchElementException {
         synchronized (mLock) {
             if (!hasByName(name)) {
+                System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
                 throw new NoSuchElementException();
             }
         }
-        int index = getNamesInternal().indexOf(name);
-        return getElementByIndex(index);
+        removeElement(getIndexInternal(name));
     }
 
+
+    // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
-    public String[] getElementNames() {
+    public XPropertySet createDataDescriptor() {
         synchronized (mLock) {
-            return getNamesInternal().toArray(new String[0]);
+            return createDescriptor();
         }
     }
 
+
+    // com.sun.star.sdbcx.XAppend
     @Override
-    public boolean hasByName(String name) {
+    public void appendByDescriptor(XPropertySet descriptor)
+        throws SQLException, ElementExistException {
+        ContainerEvent event;
         synchronized (mLock) {
-            return getNamesInternal().contains(name);
+            System.out.println("ContainerBase.appendByDescriptor() 1");
+            T element = appendElement(descriptor);
+            if (element == null) {
+                String name = getElementName(descriptor);
+                String error = String.format("Table: %s can't be created!!!", name);
+                throw new SQLException(error, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            }
+            // XXX: appendElement() can change the name!!!
+            String name = getElementName(descriptor);
+            getNamesInternal().add(name);
+            mElements.add(element);
+
+            // XXX: notify our container listeners
+            event = new ContainerEvent(this, name, element, null);
+        }
+        for (XContainerListener listener : getContainerListeners()) {
+            System.out.println("ContainerBase.appendByDescriptor() 2");
+            listener.elementInserted(event);
         }
     }
 
-
-    // com.sun.star.container.XElementAccess:
-    @Override
-    public Type getElementType() {
-        return new Type(XPropertySet.class);
-    }
-
-    @Override
-    public boolean hasElements() {
-        return !mElements.isEmpty();
-    }
-
-
-    // com.sun.star.container.XIndexAccess:
-    @Override
-    public Object getByIndex(int index)
-        throws IndexOutOfBoundsException, WrappedTargetException {
-        if (index < 0 || index >= getCount()) {
-            throw new IndexOutOfBoundsException();
+    // Protected methods
+    protected void refill(String[] names) {
+        // XXX: We only add new elements, as per the C++ implementation.
+        for (String name : names) {
+            if (!getNamesInternal().contains(name)) {
+                getNamesInternal().add(name);
+                mElements.add(null);
+            }
         }
-        return getElementByIndex(index);
-    }
-
-    @Override
-    public int getCount() {
-        return mElements.size();
     }
 
     // XXX: For all container but TableContainerMain has its own method
@@ -194,178 +209,105 @@ public abstract class ContainerBase<T extends Descriptor>
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 
-
-    // com.sun.star.container.XContainer:
-    @Override
-    public void addContainerListener(XContainerListener listener) {
-        mContainer.add(XContainerListener.class, listener);
-    }
-
-    @Override
-    public void removeContainerListener(XContainerListener listener) {
-        mContainer.remove(XContainerListener.class, listener);
-    }
-
-
-    // com.sun.star.container.XEnumerationAccess:
-    @Override
-    public XEnumeration createEnumeration() {
-        return createEnumerationInternal();
-    }
-
-
-    // com.sun.star.sdbcx.XColumnLocate
-    @Override
-    public int findColumn(String name)
+    protected void replaceElement(String oldname, String newname)
         throws SQLException {
-        if (!hasByName(name)) {
-            String error = String.format("Error Column: %s not fount", name);
-            throw new SQLException(error, this, StandardSQLState.SQL_COLUMN_NOT_FOUND.text(), 0, null);
-        }
-        return getNamesInternal().indexOf(name) + 1;
+        // XXX: We can set the name only for simple name (ie: column, index...)
+        replaceElement(oldname, newname, true);
     }
 
-
-    // Protected methods
-    protected boolean isCaseSensitive() {
-        return mSensitive;
-    }
-
-    protected Iterator<String> getActiveNames() {
-        return getActiveNames(Arrays.asList(getElementNames()));
-    }
-
-    protected Iterator<String> getActiveNames(Collection<String> filter) {
-        class Elements implements Iterator<String> {
-            int mIndex = 0;
-
-            @Override
-            public boolean hasNext() {
-                boolean next = false;
-                while (mIndex < mElements.size()) {
-                    T element = mElements.get(mIndex);
-                    String name = getNamesInternal().get(mIndex);
-                    if (element != null && filter.contains(name)) {
-                        next = true;
-                        break;
-                    }
-                    mIndex++;
-                }
-                return next;
-            }
-
-            @Override
-            public String next() {
-                return getNamesInternal().get(mIndex++);
-            }
-        }
-        return new Elements();
-    }
-
-
-    protected Iterator<T> getActiveElements() {
-        return getActiveElements(Arrays.asList(getElementNames()));
-    }
-
-    protected Iterator<T> getActiveElements(Collection<String> filter) {
-        class Elements implements Iterator<T> {
-            int mIndex = 0;
-
-            @Override
-            public boolean hasNext() {
-                boolean next = false;
-                while (mIndex < mElements.size()) {
-                    T element = mElements.get(mIndex);
-                    String name = getNamesInternal().get(mIndex);
-                    if (element != null && filter.contains(name)) {
-                        next = true;
-                        break;
-                    }
-                    mIndex++;
-                }
-                return next;
-            }
-
-            @Override
-            public T next() {
-                return mElements.get(mIndex++);
-            }
-        }
-        return new Elements();
-    }
-
-    protected T getElement(int index)
+    protected void replaceElement(String oldname, String newname, boolean rename)
         throws SQLException {
         synchronized (mLock) {
-            try {
-                return getElementByIndex(index);
-            } catch (WrappedTargetException e) {
-                throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            System.out.println("ContainerSuper.replaceElement() 1");
+            if (!newname.equals(oldname) && getNamesInternal().contains(oldname)) {
+                int idx = getIndexInternal(oldname);
+                getNamesInternal().set(idx, newname);
+                T element = mElements.get(idx);
+                if (element != null && rename) {
+                    // XXX: We cannot set the name of composed names (ie: table and view)
+                    element.setName(newname);
+                }
+                ContainerEvent e1 = null;
+                for (XContainerListener listener : getContainerListeners()) {
+                    if (e1 == null) {
+                        e1 = new ContainerEvent(this, newname, element, oldname);
+                    }
+                    System.out.println("ContainerSuper.replaceElement() 2");
+                    listener.elementReplaced(e1);
+                }
+                EventObject e2 = null; 
+                for (Iterator<?> iterator = mRefresh.iterator(); iterator.hasNext();) {
+                    if (e2 == null) {
+                        e2 = new EventObject(this);
+                    }
+                    XRefreshListener listener = (XRefreshListener) iterator.next();
+                    listener.refreshed(e2);
+                }
             }
         }
     }
 
-    protected T getElement(String name)
+    protected void removeElement(int idx)
         throws SQLException {
-        T element = null;
-        synchronized (mLock) {
-            if (getNamesInternal().contains(name)) {
-                try {
-                    int index = getNamesInternal().indexOf(name);
-                    element = getElementByIndex(index);
-                } catch (WrappedTargetException e) {
-                    throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-                }
-            }
+        System.out.println("ContainerSuper.removeElement() 1 index: "  + idx);
+        removeElement(idx, true);
+    }
+
+    protected void removeContainerElement(String name) {
+        int idx = getIndexInternal(name);
+        removeContainerElement(idx);
+    }
+
+    protected void removeElement(String name,
+                                 boolean really)
+        throws SQLException {
+        int idx = getIndexInternal(name);
+        removeElement(idx, really);
+    }
+
+    private void removeElement(int idx,
+                               boolean really)
+        throws SQLException {
+        if (really) {
+            String name = getNamesInternal().get(idx);
+            removeDataBaseElement(idx, name);
         }
+        removeContainerElement(idx);
+    }
+
+    protected XPropertySet cloneDescriptor(XPropertySet descriptor) {
+        XPropertySet element = createDescriptor();
+        UnoHelper.copyProperties(descriptor, element);
         return element;
     }
 
-    protected void removeContainerElement(int index)
-        throws SQLException {
-        System.out.println("ContainerBase.removeContainerElement() 1 index: "  + index);
-        String name = getNamesInternal().remove(index);
-        T element = mElements.remove(index);
-        UnoHelper.disposeComponent(element);
-        ContainerEvent event = new ContainerEvent(this, name, null, null);
-        for (XContainerListener listener : getContainerListeners()) {
-            System.out.println("ContainerBase.removeContainerElement() 2 index: "  + index);
-            listener.elementRemoved(event);
+    protected abstract XPropertySet createDescriptor();
+
+    protected void insertElement(String name,
+                                 T element) {
+        synchronized (mLock) {
+            if (!getNamesInternal().contains(name)) {
+                getNamesInternal().add(name);
+                mElements.add(element);
+            }
         }
     }
 
-    // XXX: Shared methods between ContainerBase and ContainerSuper
-    // XXX: ContainerBase support duplicate name and the contents will not be sorted.
-    // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
-    protected List<String> getNamesInternal() {
-        return mNames;
-    }
-
-    protected XEnumeration createEnumerationInternal() {
-        return new ContainerEnumeration(this);
+    @Override
+    protected T createElement(int idx) throws SQLException {
+        String name = getNamesInternal().get(idx);
+        return createElement(name);
     }
 
     // Abstract protected methods
-    protected abstract T createElement(int index) throws SQLException;
+    protected abstract T createElement(String name) throws SQLException;
 
-    // Private methods
-    protected T getElementByIndex(int index)
-        throws WrappedTargetException {
-        T element = mElements.get(index);
-        if (element == null) {
-            try {
-                element = createElement(index);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                System.out.println("ContainerBase.getElementByIndex() 1 index: "  + index);
-                try {
-                    removeContainerElement(index);
-                } catch (Exception ignored) { }
-                throw new WrappedTargetException(e.getMessage(), this, e);
-            }
-            mElements.set(index, element);
-        }
-        return element;
-    }
+    // XXX: Shared methods between ContainerMain, ContainerBase and ContainerSuper
+    // XXX: ContainerBase support duplicate name and the contents will not be sorted.
+    // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
+    // Abstract protected methods
+    protected abstract void refreshInternal();
+    protected abstract T appendElement(XPropertySet descriptor) throws SQLException;
+    protected abstract void removeDataBaseElement(int index, String name) throws SQLException;
 
 }

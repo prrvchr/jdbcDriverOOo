@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
@@ -55,30 +54,38 @@ public class UserContainer
 
     // The constructor method:
     protected UserContainer(Connection connection,
-                            List<String> names,
-                            boolean sensitive)
-        throws ElementExistException {
+                            String[] names,
+                            boolean sensitive) {
         this(connection, sensitive, names, LoggerObjectType.USERCONTAINER);
     }
 
     protected UserContainer(Connection connection,
                             boolean sensitive,
-                            List<String> names,
-                            LoggerObjectType type)
-        throws ElementExistException {
+                            String[] names,
+                            LoggerObjectType type) {
         super(SERVICE, SERVICES, connection, sensitive, names);
         mConnection = connection;
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
     @Override
-    protected List<String> getIndexes() {
-        return getNamesInternal();
+    protected List<String> getNamesInternal() {
+        return super.getNamesInternal();
     }
 
     @Override
-    protected User getElementByIndex(int index) throws WrappedTargetException {
-        return super.getElementByIndex(index);
+    protected int getIndexInternal(String name) {
+        return super.getIndexInternal(name);
+    }
+
+    @Override
+    protected int getIndexInternal(int index) {
+        return super.getIndexInternal(index);
+    }
+
+    @Override
+    protected User getElementByIndex(int idx) throws WrappedTargetException {
+        return super.getElementByIndex(idx);
     }
 
     @Override
@@ -177,7 +184,7 @@ public class UserContainer
     }
 
     @Override
-    protected void refill(List<String> names) {
+    protected void refill(String[] names) {
         super.refill(names);
     }
 

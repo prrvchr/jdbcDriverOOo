@@ -35,6 +35,7 @@ import com.sun.star.uno.Type;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptorSuper;
+import io.github.prrvchr.uno.sdbcx.TableMain;
 
 
 public final class ColumnDescriptor
@@ -58,11 +59,9 @@ public final class ColumnDescriptor
     private Integer mWidth;
 
     // The constructor method:
-    public ColumnDescriptor(String catalog,
-                            String schema,
-                            String table,
+    public ColumnDescriptor(TableMain table,
                             boolean sensitive) {
-        super(SERVICE, SERVICES, catalog, schema, table, sensitive);
+        super(SERVICE, SERVICES, table, sensitive);
         registerProperties();
         System.out.println("sdb.ColumnDescriptor()");
     }

@@ -378,19 +378,20 @@ In order to avoid any regressions on extensions using jdbcDriverOOo:
 
 ### What has been done for version 1.5.6:
 
-Integration of the [Oracle JDBC driver][] `ojdbc17.jar`. This integration required the following modifications to the underlying code:
+Integration of the [Oracle JDBC driver][112] `ojdbc17.jar`. This integration required the following modifications to the underlying code:
 - Added two additional parameters to the `Drivers.xcu` file:
   - `QuotedMetaData`, which forces quotes on identifier names if they are not uppercase for method `DatabaseMetaData.getIndexInfo()`.
   - `CompletedMetaData`, which determines whether the underlying driver provides ResultSets with missing metadata.
-- [QueryHelper][] is now able to determine whether the executed SQL query is a `SELECT` query on a single table.
-- If so, when constructing an XResultSet, [QueryHelper][] provides the fully qualified table name used in the SQL `SELECT` query to the `CachedRowSet` emulating this XResultSet.
+- [QueryHelper][113] is now able to determine whether the executed SQL query is a `SELECT` query on a single table.
+- If so, when constructing an XResultSet, [QueryHelper][113] provides the fully qualified table name used in the SQL `SELECT` query to the `CachedRowSet` emulating this XResultSet.
 - When initializing this CachedRowSet, missing data from the Oracle driver's ResultSet metadata (ie: `getTableName(int index)` and `getSchemaName(int index)`) will be extracted from the table name and assigned to the CachedRowSet's metadata.
 Due to these limitations of the Oracle driver, only ResultSets from SQL `SELECT` queries that apply to a single table will be editable in LibreOffice Base.
 
 - It is now possible to insert records with null values if the columns allow it.
 - User and role management has been completely redesigned:
   - For each user or role there is now only one instance of the `Group` or `User` class, regardless of access.
-  - A new [ContainerListener][] listener allows for necessary updates following the deletion of a user or role
+  - A new [RoleListener][114] listener allows for necessary updates following the deletion of a user or role
+- The `cancelRowUpdates` method of the `CachedRowSetImpl` class now supports execution on an empty `RowSet`. This is necessary to work around the issue [tdf#167434][115].
 
 ### What remains to be done for version 1.5.6:
 
@@ -509,3 +510,7 @@ Due to these limitations of the Oracle driver, only ResultSets from SQL `SELECT`
 [109]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
 [111]: <https://prrvchr.github.io/JaybirdEmbedded/>
+[112]: <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/QueryHelper.java>
+[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleListener.java>
+[115]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>

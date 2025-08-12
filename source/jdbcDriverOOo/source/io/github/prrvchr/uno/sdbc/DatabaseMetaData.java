@@ -771,9 +771,9 @@ public class DatabaseMetaData
     @Override
     public XResultSet getTypeInfo() throws SQLException {
         try {
-            java.sql.ResultSet result = mMetadata.getTypeInfo();
-            DBTools.printResultSet(result);
-            result.close();
+            //java.sql.ResultSet result = mMetadata.getTypeInfo();
+            //DBTools.printResultSet(result);
+            //result.close();
             RowSetData data = mConnection.getProvider().getConfigSQL().getTypeInfoData();
             java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTypeInfo(), data);
             return getResultSet(rs, "getTypeInfo");
@@ -1593,9 +1593,10 @@ public class DatabaseMetaData
             mLogger.logp(LogLevel.SEVERE, message);
             throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
         }
-        ResultSet resultset = new ResultSet(mConnection, result, null,method);
+        ResultSet resultset = new ResultSet(mConnection, result, null, method);
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID,
                        method, resultset.getLogger().getObjectId());
+        mConnection.addResultSet(method);
         return resultset;
     }
 

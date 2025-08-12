@@ -45,29 +45,12 @@ public final class KeyColumn
     private static final String SERVICE = KeyColumn.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.KeyColumn"};
 
-    protected String mRelatedColumn;
+    protected ColumnMain mRelatedColumn;
 
     // The constructor method:
-    public KeyColumn(final String catalog,
-                     final String schema,
-                     final String table,
-                     final boolean sensitive,
-                     final String name,
-                     final String typename,
-                     final String defaultvalue,
-                     final String description,
-                     final int nullable,
-                     final int precision,
-                     final int scale,
-                     final int type,
-                     final boolean autoincrement,
-                     final boolean rowversion,
-                     final boolean currency,
-                     final String referenced) {
-        super(SERVICE, SERVICES, catalog, schema, table, sensitive, name, typename, defaultvalue,
-              description, nullable, precision, scale, type, autoincrement, rowversion, currency);
-        mRelatedColumn = referenced;
-        System.out.println("KeyColumn() RelatedColumn: " + referenced);
+    public KeyColumn(final ColumnMain column, final ColumnMain refColumn) {
+        super(SERVICE, SERVICES, column);
+        mRelatedColumn = refColumn;
         registerProperties();
     }
 
@@ -79,7 +62,7 @@ public final class KeyColumn
         properties.put(PropertyIds.RELATEDCOLUMN.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mRelatedColumn;
+                    return getRelatedColumn();
                 },
                 null));
 
@@ -96,21 +79,12 @@ public final class KeyColumn
         return descriptor;
     }
 
-    // XXX: Called from KeyColumnContainer.rename(String oldname, String newname)
-    protected void setName(String newname) {
-        System.out.println("sdbcx.KeyColumn.rename() *************************************");
-        // We need to rename the RelatedColumn too 
-        setName(newname);
-        mRelatedColumn = newname;
-    }
-
-    // XXX: Called from KeyContainer.renameForeignKeyColumn(String oldname, String newname)
-    protected void setRelatedColumn(String oldcolumn, String newcolumn) {
-        System.out.println("sdbcx.KeyColumn.setRelatedColumn() *************************************");
-        if (mRelatedColumn.equals(oldcolumn)) {
-            mRelatedColumn = newcolumn;
+    private String getRelatedColumn() {
+        String relatedColumn = "";
+        if (mRelatedColumn != null) {
+            relatedColumn = mRelatedColumn.getName();
         }
+        return relatedColumn;
     }
-
 
 }

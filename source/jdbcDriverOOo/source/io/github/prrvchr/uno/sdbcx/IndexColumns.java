@@ -25,10 +25,8 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.List;
-
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Any;
 
@@ -36,58 +34,72 @@ import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
+public final class IndexColumns
+    extends ContainerBase<IndexColumn> {
 
-public final class IndexColumnContainer
-    extends ContainerSuper<IndexColumn> {
-    private static final String SERVICE = IndexColumnContainer.class.getName();
+    private static final String SERVICE = IndexColumns.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.IndexColumns",
                                               "com.sun.star.sdbcx.Container"};
 
-    private final Index mIndex;
+    protected final Index mIndex;
 
     // The constructor method:
-    // XXX: - io.github.prrvchr.uno.sdbcx.IndexDescriptor()
-    public IndexColumnContainer(Index index,
-                                List<String> columns)
-        throws ElementExistException {
-        super(SERVICE, SERVICES, index.getTable(), true, columns);
+    public IndexColumns(Index index,
+                        String[] names,
+                        boolean sensitive) {
+        super(SERVICE, SERVICES, index, sensitive, names);
         mIndex = index;
-        System.out.println("sdbcx.IndexColumnContainer() Count: " + getCount());
+        System.out.println("IndexColumns() 1");
+    }
+
+    public ConnectionSuper getConnection() {
+        return mIndex.getTable().getConnection();
+    }
+
+    @Override
+    public void dispose() {
+        //getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXCOLUMNS_DISPOSING);
+        super.dispose();
     }
 
     @Override
     protected XPropertySet createDescriptor() {
+        System.out.println("sdbcx.IndexColumnContainer.createDescriptor() *********************************");
         return new IndexColumnDescriptor(isCaseSensitive());
     }
-    
-    @Override
+
     protected IndexColumn createElement(String name)
         throws SQLException {
         IndexColumn index = null;
-        boolean isascending = true;
-        final int COLUMN_NAME = 9;
-        final int ASC_OR_DESC = 10;
-        NamedComponents table = mIndex.getTable().getNamedComponents();
-        try {
-            java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+        ContainerBase<?> columns = mIndex.getTable().getColumnsInternal();
+        if (columns.hasByName(name)) {
+            boolean isascending = true;
+            final int COLUMN_NAME = 9;
+            final int ASC_OR_DESC = 10;
+            NamedComponents component = mIndex.getTable().getNamedComponents();
             ConfigSQL config = getConnection().getProvider().getConfigSQL();
-            try (java.sql.ResultSet result = metadata.getIndexInfo(config.getMetaDataIdentifier(table.getCatalog()),
-                                                                   config.getMetaDataIdentifier(table.getSchema()),
-                                                                   config.getMetaDataIdentifier(table.getTable()),
-                                                                   false, false)) {
-                while (result.next()) {
-                    if (name.equals(result.getString(COLUMN_NAME))) {
-                        isascending = !"D".equals(result.getString(ASC_OR_DESC));
+            String catalog = config.getMetaDataIdentifier(component.getCatalog());
+            String schema = config.getMetaDataIdentifier(component.getSchema());
+            String table = config.getMetaDataIdentifier(component.getTable());
+            try {
+                java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+                try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false)) {
+                    while (result.next()) {
+                        if (name.equals(result.getString(COLUMN_NAME))) {
+                            isascending = !"D".equals(result.getString(ASC_OR_DESC));
+                        }
                     }
                 }
+                ColumnMain column = (ColumnMain) columns.getElementByName(name);
+                index = new IndexColumn(column, isascending);
+            } catch (java.sql.SQLException | WrappedTargetException e) {
+                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
-            index = createIndex(metadata, table, name, isascending);
-        } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }
         return index;
     }
 
+    @SuppressWarnings("unused")
     private IndexColumn createIndex(java.sql.DatabaseMetaData metadata,
                                     NamedComponents table,
                                     String name,
@@ -118,8 +130,7 @@ public final class IndexColumnContainer
                     if (result.wasNull()) {
                         defaultvalue = "";
                     }
-                    index = new IndexColumn(table.getCatalog(), table.getSchema(), table.getTable(),
-                                            isCaseSensitive(), name, typename, defaultvalue, "",
+                    index = new IndexColumn(isCaseSensitive(), name, typename, defaultvalue, "",
                                             nullable, precision, scale, datatype,
                                             false, false, false, isascending);
                     break;
@@ -129,36 +140,27 @@ public final class IndexColumnContainer
         return index;
     }
 
-    @Override
-    protected void refreshInternal() {
-        System.out.println("sdbcx.IndexColumnContainer.refreshInternal() *********************************");
-        // FIXME
+    public void renameIndexColumn(String oldname, String newname) throws SQLException {
+        if (hasByName(oldname)) {
+            replaceElement(oldname, newname, false);
+        }
     }
 
     @Override
-    protected IndexColumn appendElement(XPropertySet descriptor)
-        throws SQLException {
+    protected void refreshInternal() {
+        System.out.println("sdbcx.IndexColumnContainer.refreshInternal() *********************************");
+    }
+
+    @Override
+    protected IndexColumn appendElement(XPropertySet descriptor) throws SQLException {
         System.out.println("sdbcx.IndexColumnContainer.appendElement() *********************************");
         throw new SQLException("Unsupported");
     }
 
     @Override
-    protected void removeDataBaseElement(int index,
-                                         String name)
-        throws SQLException {
+    protected void removeDataBaseElement(int index, String name) throws SQLException {
         System.out.println("sdbcx.IndexColumnContainer.removeDataBaseElement() *********************************");
         throw new SQLException("Unsupported");
-    }
-
-    protected ConnectionSuper getConnection() {
-        return mIndex.getTable().getConnection();
-    }
-
-    protected void renameIndexColumn(String oldname, String newname)
-        throws SQLException {
-        if (hasByName(oldname)) {
-            replaceElement(oldname, newname);
-        }
     }
 
 }

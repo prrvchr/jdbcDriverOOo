@@ -38,14 +38,12 @@ import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
 public abstract class TableDescriptorSuper
-    extends Descriptor
+    extends TableMain
     implements XColumnsSupplier,
                XKeysSupplier {
 
     protected ColumnDescriptorContainerSuper<?> mColumns;
     private KeyDescriptorContainer mKeys;
-    private String mCatalogName = "";
-    private String mSchemaName = "";
     private String mDescription = "";
     private String mType = "TABLE";
 
@@ -59,24 +57,6 @@ public abstract class TableDescriptorSuper
     }
 
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
-
-        properties.put(PropertyIds.CATALOGNAME.getName(),
-            new PropertyWrapper(Type.STRING,
-                () -> {
-                    return mCatalogName;
-                },
-                value -> {
-                    mCatalogName = (String) value;
-                }));
-
-        properties.put(PropertyIds.SCHEMANAME.getName(),
-            new PropertyWrapper(Type.STRING,
-                () -> {
-                    return mSchemaName;
-                },
-                value -> {
-                    mSchemaName = (String) value;
-                }));
 
         properties.put(PropertyIds.DESCRIPTION.getName(),
             new PropertyWrapper(Type.STRING,
@@ -114,15 +94,5 @@ public abstract class TableDescriptorSuper
         System.out.println("sdbcx.descriptors.TableDescriptorBase.getKeys()");
         return mKeys;
     }
-
-
-    // 
-    public String getCatalogName() {
-        return mCatalogName;
-    }
-    public String getSchemaName() {
-        return mSchemaName;
-    }
-
 
 }

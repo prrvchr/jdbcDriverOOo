@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
@@ -55,29 +54,38 @@ public class GroupContainer
 
     // The constructor method:
     public GroupContainer(Connection connection,
-                          List<String> names,
-                          boolean sensitive)
-        throws ElementExistException {
+                          String[] names,
+                          boolean sensitive) {
         this(connection, names, sensitive, LoggerObjectType.GROUPCONTAINER);
     }
 
     protected GroupContainer(Connection connection,
-                             List<String> names,
+                             String[] names,
                              boolean sensitive,
-                             LoggerObjectType type)
-        throws ElementExistException {
+                             LoggerObjectType type) {
         super(SERVICE, SERVICES, connection, sensitive, names);
         mConnection = connection;
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
     @Override
-    protected List<String> getIndexes() {
-        return getNamesInternal();
+    protected List<String> getNamesInternal() {
+        return super.getNamesInternal();
     }
 
-    protected Group getElementByIndex(int index) throws WrappedTargetException {
-        return super.getElementByIndex(index);
+    @Override
+    protected int getIndexInternal(String name) {
+        return super.getIndexInternal(name);
+    }
+
+    @Override
+    protected int getIndexInternal(int index) {
+        return super.getIndexInternal(index);
+    }
+
+    @Override
+    protected Group getElementByIndex(int idx) throws WrappedTargetException {
+        return super.getElementByIndex(idx);
     }
 
     protected ConnectionLog getLogger() {
@@ -158,7 +166,7 @@ public class GroupContainer
     }
 
     @Override
-    protected void refill(List<String> names) {
+    protected void refill(String[] names) {
         super.refill(names);
     }
 

@@ -49,8 +49,7 @@ public final class ColumnDescriptorContainer
 
     @Override
     protected XPropertySet createDescriptor() {
-        return new ColumnDescriptor(getTable().getCatalogName(), getTable().getSchemaName(),
-                                    getTable().getName(), isCaseSensitive());
+        return new ColumnDescriptor(getTable(), isCaseSensitive());
     }
 
     private TableDescriptor getTable() {

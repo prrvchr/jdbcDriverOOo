@@ -55,8 +55,8 @@ public final class ViewContainer
 
     // The constructor method:
     public ViewContainer(ConnectionSuper connection,
-                         boolean sensitive,
-                         List<String> names)
+                         String[] names,
+                         boolean sensitive)
         throws ElementExistException {
         super(SERVICE, SERVICES, connection, sensitive, names, LoggerObjectType.VIEWCONTAINER);
     }

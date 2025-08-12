@@ -160,7 +160,7 @@ public final class TableDescriptor
         super.registerProperties(properties);
     }
 
-    protected String getName() {
+    public String getName() {
         return super.getName();
     }
 
