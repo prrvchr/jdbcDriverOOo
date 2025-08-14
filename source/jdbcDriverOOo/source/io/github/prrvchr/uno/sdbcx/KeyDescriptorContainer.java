@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
 
@@ -49,7 +48,7 @@ public final class KeyDescriptorContainer
 
     @Override
     protected KeyDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         System.out.println("sdbcx.descriptors.KeyDescriptorContainer.appendElement() 1");
         XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);

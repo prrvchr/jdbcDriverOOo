@@ -52,6 +52,7 @@ import java.sql.RowIdLifetime;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,7 +61,6 @@ import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XIndexAccess;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.io.XInputStream;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
@@ -70,10 +70,8 @@ import com.sun.star.lib.uno.adapter.XInputStreamToInputStreamAdapter;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XAppend;
 import com.sun.star.sdbcx.XColumnsSupplier;
-import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.XInterface;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
@@ -97,6 +95,21 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public class DBTools {
+
+    public static final Comparator<String> getComparator(boolean sensitive) {
+        return new Comparator<String>() {
+            @Override
+            public int compare(String x, String y) {
+                int comp;
+                if (sensitive) {
+                    comp = x.compareTo(y);
+                } else {
+                    comp = x.compareToIgnoreCase(y);
+                }
+                return comp;
+            }
+        };
+    }
 
     public static class NameComponentSupport {
         boolean mUseCatalogs;
@@ -807,73 +820,9 @@ public class DBTools {
         return provider.getConfigDDL().getCreateViewCommand(ParameterDDL.getCreateView(view, command));
     }
 
-    /** returns the primary key columns of the table.
-     * @param table
-     *    The table as a property set.
-     * @return The primary keys as name access.
-     * @throws SQLException 
-     */
-    public static XNameAccess getPrimaryKeyColumns(XPropertySet table)
-        throws java.sql.SQLException {
-        try {
-            XNameAccess keyColumns = null;
-            XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, table);
-            if (keysSupplier != null) {
-                XIndexAccess keys = keysSupplier.getKeys();
-                if (keys != null) {
-                    keyColumns = getPrimaryKeyColumnsThrow(keys);
-                }
-            }
-            return keyColumns;
-        } catch (IndexOutOfBoundsException | WrappedTargetException e) {
-            throw new java.sql.SQLException(e.getMessage(), e);
-        }
-    }
-
-    /** returns the primary key columns of the table.
-     * @param keys
-     *    The keys as an index access.
-     * @return The primary keys as name access.
-     */
-    public static XNameAccess getPrimaryKeyColumns(XIndexAccess keys)
-        throws SQLException {
-        try {
-            return getPrimaryKeyColumnsThrow(keys);
-        } catch (IndexOutOfBoundsException | IllegalArgumentException | WrappedTargetException e) {
-            throw new SQLException(e.getMessage());
-        }
-    }
-
-    private static XNameAccess getPrimaryKeyColumnsThrow(XIndexAccess keys)
-        throws IndexOutOfBoundsException, IllegalArgumentException, WrappedTargetException {
-        int i = 0;
-        XNameAccess keyColumns = null;
-        while (i < keys.getCount() && keyColumns == null) {
-            keyColumns = getPrimaryKeyColumnsThrow(keys, i);
-            i++;
-        }
-        return keyColumns;
-    }
-
-    private static XNameAccess getPrimaryKeyColumnsThrow(XIndexAccess keys, int i)
-        throws IndexOutOfBoundsException, WrappedTargetException {
-        XNameAccess columns = null;
-        XPropertySet descriptor = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
-        if (descriptor != null) {
-            int keyType = getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-            if (keyType == KeyType.PRIMARY) {
-                XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-                if (supplier != null) {
-                    columns = supplier.getColumns();
-                }
-            }
-        }
-        return columns;
-    }
-
     public static void cloneDescriptorColumns(XPropertySet source,
                                               XPropertySet destination)
-        throws SQLException {
+        throws java.sql.SQLException {
         XColumnsSupplier sourceColumnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, source);
         XIndexAccess sourceColumns = UnoRuntime.queryInterface(XIndexAccess.class, sourceColumnsSupplier.getColumns());
         
@@ -887,8 +836,8 @@ public class DBTools {
                                                                           sourceColumns.getByIndex(i));
                 destinationAppend.appendByDescriptor(columnProperties);
             } catch (WrappedTargetException | IndexOutOfBoundsException |
-                     IllegalArgumentException | ElementExistException exception) {
-                throw new SQLException("Error", Any.VOID, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, exception);
+                     IllegalArgumentException | ElementExistException | SQLException exception) {
+                throw new java.sql.SQLException("Error", StandardSQLState.SQL_GENERAL_ERROR.text(), 0, exception);
             }
         }
     }

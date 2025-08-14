@@ -213,7 +213,7 @@ public abstract class Role
             getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_CREATE_GROUPROLES_NOT_SUPPORTED);
         }
         if (mGroups == null) {
-            mGroups = new Groups(mConnection, mGroupContainer, groups,
+            mGroups = new Groups(mConnection, this, mGroupContainer.getBiMap(), groups,
                                  getName(), isCaseSensitive(), mIsrole);
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPROLES_ID,
                            mGroups.getLogger().getObjectId());

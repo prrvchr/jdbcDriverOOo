@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbc.SQLException;
 
 
 public final class ColumnDescriptorContainer
@@ -41,7 +40,7 @@ public final class ColumnDescriptorContainer
 
     @Override
     protected ColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
 

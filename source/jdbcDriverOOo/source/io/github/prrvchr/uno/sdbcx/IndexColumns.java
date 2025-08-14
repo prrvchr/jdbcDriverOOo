@@ -26,13 +26,10 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 public final class IndexColumns
     extends ContainerBase<IndexColumn> {
@@ -57,6 +54,12 @@ public final class IndexColumns
     }
 
     @Override
+    protected void refreshInternal() {
+        System.out.println("sdbcx.IndexColumns.refreshInternal() *********************************");
+        mIndex.refreshColumns();
+    }
+
+    @Override
     public void dispose() {
         //getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_INDEXCOLUMNS_DISPOSING);
         super.dispose();
@@ -69,7 +72,7 @@ public final class IndexColumns
     }
 
     protected IndexColumn createElement(String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         IndexColumn index = null;
         ContainerBase<?> columns = mIndex.getTable().getColumnsInternal();
         if (columns.hasByName(name)) {
@@ -81,20 +84,16 @@ public final class IndexColumns
             String catalog = config.getMetaDataIdentifier(component.getCatalog());
             String schema = config.getMetaDataIdentifier(component.getSchema());
             String table = config.getMetaDataIdentifier(component.getTable());
-            try {
-                java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
-                try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false)) {
-                    while (result.next()) {
-                        if (name.equals(result.getString(COLUMN_NAME))) {
-                            isascending = !"D".equals(result.getString(ASC_OR_DESC));
-                        }
+            java.sql.DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+            try (java.sql.ResultSet result = metadata.getIndexInfo(catalog, schema, table, false, false)) {
+                while (result.next()) {
+                    if (name.equals(result.getString(COLUMN_NAME))) {
+                        isascending = !"D".equals(result.getString(ASC_OR_DESC));
                     }
                 }
-                ColumnMain column = (ColumnMain) columns.getElementByName(name);
-                index = new IndexColumn(column, isascending);
-            } catch (java.sql.SQLException | WrappedTargetException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
             }
+            ColumnMain column = (ColumnMain) columns.getElementByName(name);
+            index = new IndexColumn(column, isascending);
         }
         return index;
     }
@@ -147,20 +146,15 @@ public final class IndexColumns
     }
 
     @Override
-    protected void refreshInternal() {
-        System.out.println("sdbcx.IndexColumnContainer.refreshInternal() *********************************");
-    }
-
-    @Override
-    protected IndexColumn appendElement(XPropertySet descriptor) throws SQLException {
+    protected IndexColumn appendElement(XPropertySet descriptor) throws java.sql.SQLException {
         System.out.println("sdbcx.IndexColumnContainer.appendElement() *********************************");
-        throw new SQLException("Unsupported");
+        throw new java.sql.SQLException("Unsupported");
     }
 
     @Override
-    protected void removeDataBaseElement(int index, String name) throws SQLException {
+    protected void removeDataBaseElement(int index, String name) throws java.sql.SQLException {
         System.out.println("sdbcx.IndexColumnContainer.removeDataBaseElement() *********************************");
-        throw new SQLException("Unsupported");
+        throw new java.sql.SQLException("Unsupported");
     }
 
 }

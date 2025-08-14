@@ -25,25 +25,26 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.List;
 
 import com.sun.star.container.XEnumeration;
 
-import io.github.prrvchr.uno.driver.helper.BiMap;
+import io.github.prrvchr.uno.driver.container.BiMap;
+import io.github.prrvchr.uno.driver.container.BiMapBase;
+import io.github.prrvchr.uno.driver.container.BiMapSuper;
+import io.github.prrvchr.uno.driver.helper.DBTools;
 
 
 public abstract class ContainerSuper<T extends Descriptor>
     extends ContainerBase<T> {
 
-    protected BiMap<String> mNames;
 
     // The constructor method:
     public ContainerSuper(String service,
                      String[] services,
                      Object lock,
                      boolean sensitive) {
-        super(service, services, lock, sensitive, false);
-        mNames = new BiMap<>(BiMap.getComparator(sensitive));
+        super(service, services, lock,
+              new BiMapBase<T>(DBTools.getComparator(sensitive)), sensitive);
     }
 
     public ContainerSuper(String service,
@@ -51,26 +52,22 @@ public abstract class ContainerSuper<T extends Descriptor>
                      Object lock,
                      boolean sensitive,
                      String[] names) {
-        super(service, services, lock, sensitive, names, false);
-        mNames = new BiMap<>(BiMap.getComparator(sensitive), names);
+        super(service, services, lock,
+              new BiMapBase<T>(DBTools.getComparator(sensitive), names), sensitive);
     }
 
-    @Override
-    protected List<String> getNamesInternal() {
-        return mNames;
-    }
-    @Override
-    protected int getIndexInternal(int index) {
-        return mNames.getIndexInternal(index);
-    }
-    @Override
-    protected int getIndexInternal(String name) {
-        return mNames.indexOf(name);
+    public ContainerSuper(String service,
+                          String[] services,
+                          Object lock,
+                          BiMap<T> bimap,
+                          boolean sensitive) {
+        super(service, services, lock, bimap, sensitive);
+        new BiMapSuper<T>(DBTools.getComparator(sensitive), bimap, new String[0]);
     }
 
     @Override
     protected XEnumeration createEnumerationInternal() {
-        return new ContainerEnumeration(this, mNames.getEnumerationOrder());
+        return new ContainerEnumeration(this, mBimap.getEnumerationOrder());
     }
 
 }

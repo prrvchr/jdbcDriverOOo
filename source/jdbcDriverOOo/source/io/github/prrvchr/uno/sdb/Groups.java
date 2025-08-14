@@ -27,15 +27,16 @@ package io.github.prrvchr.uno.sdb;
 
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
+
 
 public final class Groups
     extends RoleContainer<Group> {
@@ -46,19 +47,16 @@ public final class Groups
 
     // The constructor method:
     public Groups(Connection connection,
-                  GroupContainer groups,
+                  Role owner,
+                  BiMap<Group> bimap,
                   String[] names,
                   String role,
                   boolean sensitive,
                   boolean isrole) {
         // XXX: isrole lets you know the role that holds this class.
         // XXX: Currently it is a role or a user
-        super(SERVICE, SERVICES, connection, connection.getProvider(),
-              groups, names, role, sensitive, isrole, getRoleName(isrole), LoggerObjectType.GROUPS);
-    }
-
-    private GroupContainer getGroups() {
-        return (GroupContainer) mRoles;
+        super(SERVICE, SERVICES, connection, owner, bimap, names,
+              role, sensitive, isrole, getRoleName(isrole), LoggerObjectType.GROUPS);
     }
 
     protected Connection getConnection() {
@@ -95,14 +93,13 @@ public final class Groups
     }
 
     protected Group createRoleElement(String name) throws SQLException {
-        if (!mNames.contains(name) || !getGroups().getNamesInternal().contains(name)) {
+        if (!hasByName(name)) {
             throw new SQLException();
         }
         try {
-            int idx = getGroups().getIndexInternal(name);
-            return getGroups().getElementByIndex(idx);
-        } catch (WrappedTargetException e) {
-            throw new SQLException();
+            return getElementByName(name);
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e);
         }
     }
 

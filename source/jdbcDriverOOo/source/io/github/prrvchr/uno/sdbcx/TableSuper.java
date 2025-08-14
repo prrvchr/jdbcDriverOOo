@@ -191,55 +191,50 @@ public abstract class TableSuper
     @Override
     public void alterColumnByIndex(int index, XPropertySet newcolumn)
         throws SQLException, IndexOutOfBoundsException {
-        System.out.println("TableSuper.alterColumnByIndex() 1 index: " + index);
-        System.out.println("TableSuper.alterColumnByIndex() 2 columns: " +
-                            String.join(", ", mColumns.getElementNames()));
         checkDisposed();
-        ColumnSuper oldcolumn = mColumns.getElement(index);
-        System.out.println("TableSuper.alterColumnByIndex() 3 oldname: " + oldcolumn.getName());
-        if (oldcolumn != null) {
+        try {
+            ColumnSuper oldcolumn = mColumns.getElementByIndex(index);
             alterColumn(oldcolumn, newcolumn);
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+            new SQLException(e.getMessage());
         }
     }
 
     @Override
     public void alterColumnByName(String name, XPropertySet newcolumn)
         throws SQLException, NoSuchElementException {
-        System.out.println("TableSuper.alterColumnByName() 1 oldname: " + name);
         checkDisposed();
-        ColumnSuper oldcolumn = mColumns.getElement(name);
-        if (oldcolumn != null) {
-            System.out.println("TableSuper.alterColumnByName() 2 oldname: " + name);
-            alterColumn(oldcolumn, newcolumn);
+        try {
+            ColumnSuper oldcolumn = mColumns.getElementByName(name);
+            if (oldcolumn != null) {
+                alterColumn(oldcolumn, newcolumn);
+            }
+        } catch (java.sql.SQLException e) {
+            String state = StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text();
+            throw new SQLException(e.getMessage(), this, state, 0, Any.VOID);
         }
     }
 
     private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
-        throws SQLException {
-        System.out.println("TableSuper.alterColumn() 1");
+        throws java.sql.SQLException, SQLException {
         Provider provider = getConnection().getProvider();
 
         String oldname = oldcolumn.getName();
         String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
-        System.out.println("TableSuper.alterColumn() 2 oldname: " + oldname +
-                           " - newname: " + newname);
         int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, newname);
-        System.out.println("TableSuper.alterColumn() 3 flags: " + flags);
 
         // XXX: Identity or Type have been changed?
         // XXX: Identity switching is only allowed if the underlying driver supports it.
         // XXX: Changing column type is only allowed if the underlying driver supports it.
         if (TableHelper.hasColumnIdentityChanged(flags) && !supportColumnIdentityChange(provider) ||
             TableHelper.hasColumnTypeChanged(flags) && !supportColumnTypeChange(provider)) {
-            System.out.println("TableSuper.alterColumn() 4 ERROR");
             int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
 
-        System.out.println("TableSuper.alterColumn() 5");
         int result = alterColumn(provider, oldcolumn, newcolumn, oldname, flags);
-        System.out.println("TableSuper.alterColumn() 6 result: " + result);
         if (result != flags) {
             System.out.println("TableSuper.alterColumn() ERROR ******************************************");
         }
@@ -260,28 +255,19 @@ public abstract class TableSuper
                             XPropertySet newcolumn,
                             String oldname,
                             int flags)
-        throws SQLException {
+        throws java.sql.SQLException {
         int result = 0;
         String table = null;
-        System.out.println("TableSuper.alterColumn() 1");
         List<String> queries = new ArrayList<>();
-        System.out.println("TableSuper.alterColumn() 2");
         NamedComponents component = getNamedComponents();
-        System.out.println("TableSuper.alterColumn() 3");
         ComposeRule rule = ComposeRule.InTableDefinitions;
         try {
-            System.out.println("TableSuper.alterColumn() 4");
             table = DBTools.buildName(provider, component, rule);
-            System.out.println("TableSuper.alterColumn() 5");
             boolean alterpk = isPrimaryKeyColumn(oldname);
-            System.out.println("TableSuper.alterColumn() 6");
             boolean alterfk = isForeignKeyColumn(oldname);
-            System.out.println("TableSuper.alterColumn() 7");
             boolean alterkey = alterpk || alterfk;
-            System.out.println("TableSuper.alterColumn() 8");
             result = TableHelper.getAlterColumnQueries(queries, provider, component, rule, oldname, oldcolumn,
                                                        newcolumn, flags, alterkey, isCaseSensitive());
-            System.out.println("TableSuper.alterColumn() 9");
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY, table, query);
@@ -296,7 +282,7 @@ public abstract class TableSuper
             int resource = Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR;
             String query = String.join("> <", queries);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
         return result;
     }
@@ -304,9 +290,7 @@ public abstract class TableSuper
     private void setColumnProperties(ColumnSuper oldcolumn,
                                      XPropertySet newcolumn,
                                      String oldname,
-                                     int result)
-        throws SQLException, java.sql.SQLException {
-        System.out.println("TableSuper.setColumnProperties() 1");
+                                     int result) {
 
         // Column have changed its description value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DESCRIPTION)) {
@@ -332,50 +316,30 @@ public abstract class TableSuper
         }
         // Column have changed its name
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
-            System.out.println("TableSuper.setColumnProperties() 2");
             String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
             mColumns.replaceElement(oldname, newname);
         }
     }
 
-    @SuppressWarnings("unused")
-    private void renameColumnName(Provider provider,
-                                  NamedComponents component,
-                                  ComposeRule rule,
-                                  String table,
-                                  String oldname,
-                                  String newname,
-                                  boolean alterpk,
-                                  boolean alterfk,
-                                  boolean alteridx)
-        throws SQLException, java.sql.SQLException {
-        mColumns.replaceElement(oldname, newname);
-        if (alterpk) {
-            System.out.println("TableSuper.renameColumnName() 1");
-            //getKeysInternal().renameKeyColumn(KeyType.PRIMARY, oldname, newname);
-            // XXX: If the renamed column is a primary key, we need to know if it is referenced as a foreign key.
-            // XXX: If this is the case then we need to rename the corresponding column in these foreign keys.
-            //Map<String, List<String>> tables = KeyHelper.getExportedTablesColumns(provider, component, newname, rule);
-            //if (!tables.isEmpty()) {
-            //    getConnection().getTablesInternal().renameForeignKeyColumn(tables, table, oldname, newname);
-            //}
+    protected Key getPrimaryKey() {
+        // FIXME: Here we search and retrieve the first primary key having this column.
+        Key key = null;
+        boolean find = false;
+        Iterator<Key> it = getKeysInternal().getElements();
+        while (it.hasNext()) {
+            key = it.next();
+            if (key.getTypeInternal() == KeyType.PRIMARY) {
+                find = true;
+                break;
+            }
         }
-        if (alterfk) {
-            System.out.println("TableSuper.renameColumnName() 2");
-            // XXX: If the renamed column is a foreign key we need to rename the Key column name to.
-            // XXX: Renaming the foreign key should rename the associated Index column name as well.
-            //getKeysInternal().renameKeyColumn(KeyType.FOREIGN, oldname, newname);
+        if (!find) {
+            key = null;
         }
-        if (alteridx) {
-            System.out.println("TableSuper.renameColumnName() 3");
-            // XXX: If the renamed column is declared as index
-            // XXX: we need to rename the Index column name to.
-            //getIndexesInternal().renameIndexColumn(oldname, newname);
-        }
+        return key;
     }
 
-    private boolean isPrimaryKeyColumn(String column)
-        throws SQLException {
+    private boolean isPrimaryKeyColumn(String column) {
         // FIXME: Here we search and retrieve the first primary key having this column.
         boolean primary = false;
         Iterator<Key> it = getKeysInternal().getActiveElements();
@@ -387,8 +351,7 @@ public abstract class TableSuper
         return primary;
     }
 
-    private boolean isForeignKeyColumn(String column)
-        throws SQLException {
+    private boolean isForeignKeyColumn(String column) {
         // FIXME: Here we search and retrieve the first foreign key having this table / column.
         boolean foreign = false;
         Iterator<Key> it = getKeysInternal().getActiveElements();
@@ -473,7 +436,7 @@ public abstract class TableSuper
         boolean renamed = false;
         String query = "";
         ViewContainer views = getConnection().getViewsInternal();
-        View view = (View) views.getElement(table);
+        View view = (View) views.getElementByName(table);
         if (view == null) {
             int resource = Resources.STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
@@ -508,7 +471,7 @@ public abstract class TableSuper
                                                                        getNamedComponents());
             if (mColumns == null) {
                 mColumns = getColumnContainer(columns);
-                mListener = new ColumnListener();
+                mListener = new ColumnListener(getConnection().getTablesInternal());
                 mColumns.addContainerListener(mListener);
             } else {
                 mColumns.refill(getColumnName(columns));
@@ -559,6 +522,19 @@ public abstract class TableSuper
             e.printStackTrace();
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
+    }
+
+    protected boolean hasPrimaryKey(String name) {
+        boolean has = false;
+        Iterator<Key> keys = getKeysInternal().getElements();
+        while (keys.hasNext()) {
+            Key key = keys.next();
+            if (key.getColumnsInternal().hasByName(name)) {
+                has = true;
+                break;
+            }
+        }
+        return has;
     }
 
     protected String composeTableName() {

@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import com.sun.star.beans.XPropertySet;
@@ -43,6 +44,8 @@ import com.sun.star.uno.Any;
 import com.sun.star.util.XRefreshListener;
 import com.sun.star.util.XRefreshable;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
+import io.github.prrvchr.uno.driver.container.BiMapMain;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
@@ -63,45 +66,31 @@ public abstract class ContainerBase<T extends Descriptor>
                      String[] services,
                      Object lock,
                      boolean sensitive) {
-        super(service, services, lock, sensitive);
+        super(service, services, lock, new BiMapMain<>(), sensitive);
     }
 
     public ContainerBase(String service,
                          String[] services,
                          Object lock,
                          boolean sensitive,
-                         boolean master) {
-        super(service, services, lock, sensitive, master);
+                         String[] names) {
+        super(service, services, lock, new BiMapMain<>(names), sensitive);
     }
 
     public ContainerBase(String service,
                          String[] services,
                          Object lock,
-                         boolean sensitive,
-                         String[] names,
-                         boolean master) {
-        super(service, services, lock, sensitive, names, master);
+                         BiMap<T> bimap,
+                         boolean sensitive) {
+        super(service, services, lock, bimap, sensitive);
     }
-
-    public ContainerBase(String service,
-                     String[] services,
-                     Object lock,
-                     boolean sensitive,
-                     String[] names) {
-        super(service, services, lock, sensitive, names);
-    }
-
 
     // com.sun.star.util.XRefreshable
     @Override
     public void refresh() {
         Iterator<?> iterator;
         synchronized (mLock) {
-            for (T element : mElements) {
-                UnoHelper.disposeComponent(element);
-            }
-            mElements.clear();
-            getNamesInternal().clear();
+            mBimap.clear();
             refreshInternal();
             iterator = mRefresh.iterator();
         }
@@ -109,11 +98,7 @@ public abstract class ContainerBase<T extends Descriptor>
             // early disposal
             return;
         }
-        EventObject event = new EventObject(this);
-        while (iterator.hasNext()) {
-            XRefreshListener listener = (XRefreshListener) iterator.next();
-            listener.refreshed(event);
-        }
+        broadcastRefreshed();
     }
 
     @Override
@@ -135,33 +120,35 @@ public abstract class ContainerBase<T extends Descriptor>
     public void dropByIndex(int index)
         throws SQLException,
                IndexOutOfBoundsException {
-        synchronized (mLock) {
-            if (index < 0 || index >= getCount()) {
-                throw new IndexOutOfBoundsException();
-            }
+        if (index < 0 || index >= getCount()) {
+            throw new IndexOutOfBoundsException();
         }
-        removeElement(getIndexInternal(index));
+        try {
+            removeElement(index);
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage());
+        }
     }
 
     @Override
     public void dropByName(String name)
         throws SQLException, NoSuchElementException {
-        synchronized (mLock) {
-            if (!hasByName(name)) {
-                System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
-                throw new NoSuchElementException();
-            }
+        if (!hasByName(name)) {
+            System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
+            throw new NoSuchElementException();
         }
-        removeElement(getIndexInternal(name));
+        try {
+            removeElement(name, true);
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage());
+        }
     }
 
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor() {
-        synchronized (mLock) {
-            return createDescriptor();
-        }
+        return createDescriptor();
     }
 
 
@@ -169,8 +156,7 @@ public abstract class ContainerBase<T extends Descriptor>
     @Override
     public void appendByDescriptor(XPropertySet descriptor)
         throws SQLException, ElementExistException {
-        ContainerEvent event;
-        synchronized (mLock) {
+        try {
             System.out.println("ContainerBase.appendByDescriptor() 1");
             T element = appendElement(descriptor);
             if (element == null) {
@@ -180,99 +166,66 @@ public abstract class ContainerBase<T extends Descriptor>
             }
             // XXX: appendElement() can change the name!!!
             String name = getElementName(descriptor);
-            getNamesInternal().add(name);
-            mElements.add(element);
+            synchronized (mLock) {
+                mBimap.addElement(name, element);
+            }
 
-            // XXX: notify our container listeners
-            event = new ContainerEvent(this, name, element, null);
-        }
-        for (XContainerListener listener : getContainerListeners()) {
-            System.out.println("ContainerBase.appendByDescriptor() 2");
-            listener.elementInserted(event);
+            broadcastElementInserted(element, name);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
     // Protected methods
     protected void refill(String[] names) {
-        // XXX: We only add new elements, as per the C++ implementation.
-        for (String name : names) {
-            if (!getNamesInternal().contains(name)) {
-                getNamesInternal().add(name);
-                mElements.add(null);
+        synchronized (mLock) {
+            // XXX: We only add new elements, as per the C++ implementation.
+            for (String name : names) {
+                if (!hasByName(name)) {
+                    mBimap.addElement(name, null);
+                }
             }
         }
     }
 
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor)
-        throws SQLException {
+    protected String getElementName(XPropertySet descriptor) {
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 
-    protected void replaceElement(String oldname, String newname)
-        throws SQLException {
+    protected void replaceElement(String oldname, String newname) {
         // XXX: We can set the name only for simple name (ie: column, index...)
         replaceElement(oldname, newname, true);
     }
 
-    protected void replaceElement(String oldname, String newname, boolean rename)
-        throws SQLException {
-        synchronized (mLock) {
-            System.out.println("ContainerSuper.replaceElement() 1");
-            if (!newname.equals(oldname) && getNamesInternal().contains(oldname)) {
-                int idx = getIndexInternal(oldname);
-                getNamesInternal().set(idx, newname);
-                T element = mElements.get(idx);
-                if (element != null && rename) {
-                    // XXX: We cannot set the name of composed names (ie: table and view)
-                    element.setName(newname);
-                }
-                ContainerEvent e1 = null;
-                for (XContainerListener listener : getContainerListeners()) {
-                    if (e1 == null) {
-                        e1 = new ContainerEvent(this, newname, element, oldname);
-                    }
-                    System.out.println("ContainerSuper.replaceElement() 2");
-                    listener.elementReplaced(e1);
-                }
-                EventObject e2 = null; 
-                for (Iterator<?> iterator = mRefresh.iterator(); iterator.hasNext();) {
-                    if (e2 == null) {
-                        e2 = new EventObject(this);
-                    }
-                    XRefreshListener listener = (XRefreshListener) iterator.next();
-                    listener.refreshed(e2);
-                }
+    protected void replaceElement(String oldname, String newname, boolean rename) {
+        System.out.println("ContainerSuper.replaceElement() 1");
+        if (!newname.equals(oldname) && hasByName(oldname)) {
+            T element = null;
+            synchronized (mLock) {
+                element = mBimap.renameElement(oldname, newname);
+            }
+            if (element != null && rename) {
+                // XXX: We cannot set the name of composed names (ie: table and view)
+                element.setName(newname);
+            }
+            if (element != null) {
+                broadcastElementReplaced(element, oldname, newname);
             }
         }
     }
 
-    protected void removeElement(int idx)
-        throws SQLException {
-        System.out.println("ContainerSuper.removeElement() 1 index: "  + idx);
-        removeElement(idx, true);
-    }
-
-    protected void removeContainerElement(String name) {
-        int idx = getIndexInternal(name);
-        removeContainerElement(idx);
+    protected void removeElement(int index)
+        throws java.sql.SQLException {
+        System.out.println("ContainerSuper.removeElement() 1 index: "  + index);
+        removeElement(index, true);
     }
 
     protected void removeElement(String name,
                                  boolean really)
-        throws SQLException {
-        int idx = getIndexInternal(name);
-        removeElement(idx, really);
-    }
-
-    private void removeElement(int idx,
-                               boolean really)
-        throws SQLException {
-        if (really) {
-            String name = getNamesInternal().get(idx);
-            removeDataBaseElement(idx, name);
-        }
-        removeContainerElement(idx);
+        throws java.sql.SQLException {
+        int index = mBimap.getIndex(name);
+        removeElement(index, really);
     }
 
     protected XPropertySet cloneDescriptor(XPropertySet descriptor) {
@@ -285,29 +238,83 @@ public abstract class ContainerBase<T extends Descriptor>
 
     protected void insertElement(String name,
                                  T element) {
-        synchronized (mLock) {
-            if (!getNamesInternal().contains(name)) {
-                getNamesInternal().add(name);
-                mElements.add(element);
+        if (!hasByName(name)) {
+            synchronized (mLock) {
+                mBimap.addElement(name, element);
             }
         }
     }
 
     @Override
-    protected T createElement(int idx) throws SQLException {
-        String name = getNamesInternal().get(idx);
+    protected T createElement(int index) throws java.sql.SQLException {
+        String name = mBimap.getName(index);
         return createElement(name);
     }
 
     // Abstract protected methods
-    protected abstract T createElement(String name) throws SQLException;
+    protected abstract T createElement(String name) throws java.sql.SQLException;
 
     // XXX: Shared methods between ContainerMain, ContainerBase and ContainerSuper
     // XXX: ContainerBase support duplicate name and the contents will not be sorted.
     // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
     // Abstract protected methods
     protected abstract void refreshInternal();
-    protected abstract T appendElement(XPropertySet descriptor) throws SQLException;
-    protected abstract void removeDataBaseElement(int index, String name) throws SQLException;
+    protected abstract T appendElement(XPropertySet descriptor) throws java.sql.SQLException;
+    protected abstract void removeDataBaseElement(int index, String name) throws java.sql.SQLException;
+
+    @Override
+    protected void broadcastRefreshed() {
+        EventObject event = null; 
+        for (Iterator<?> iterator = mRefresh.iterator(); iterator.hasNext();) {
+            if (event == null) {
+                event = new EventObject(this);
+            }
+            XRefreshListener listener = (XRefreshListener) iterator.next();
+            listener.refreshed(event);
+        }
+    }
+
+    @Override
+    protected Iterator<T> getActiveElements(Collection<String> filter) {
+        return getActiveElements(filter, true);
+    }
+
+    private void removeElement(int index,
+                               boolean really)
+        throws java.sql.SQLException {
+        if (really) {
+            String name = mBimap.getName(index);
+            removeDataBaseElement(index, name);
+        }
+        removeContainerElement(index);
+    }
+
+    private void broadcastElementReplaced(T element, String oldname, String newname) {
+        broadcastContainerElementReplaced(element, oldname, newname);
+        broadcastRefreshed();
+    }
+
+    protected void broadcastElementInserted(T element, String name) {
+        broadcastContainerElementInserted(element, name);
+        broadcastRefreshed();
+    }
+
+    private void broadcastContainerElementReplaced(T element, String oldname, String newname) {
+        ContainerEvent event = null;
+        for (XContainerListener listener : getContainerListeners()) {
+            if (event == null) {
+                event = new ContainerEvent(this, newname, element, oldname);
+            }
+            listener.elementReplaced(event);
+        }
+    }
+
+    private void broadcastContainerElementInserted(T element, String name) {
+        // XXX: notify our container listeners
+        ContainerEvent event = new ContainerEvent(this, name, element, null);
+        for (XContainerListener listener : getContainerListeners()) {
+            listener.elementInserted(event);
+        }
+    }
 
 }

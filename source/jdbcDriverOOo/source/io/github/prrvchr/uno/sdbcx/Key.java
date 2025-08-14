@@ -30,13 +30,16 @@ import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.KeyHelper;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
@@ -67,8 +70,7 @@ public final class Key
                int type,
                int update,
                int delete,
-               String[] columns)
-        throws ElementExistException {
+               String[] columns) {
         super(SERVICE, SERVICES, sensitive, name);
         System.out.println("sdbcx.Key() 1");
         mTable = table;
@@ -127,6 +129,7 @@ public final class Key
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
     public XNameAccess getColumns() {
+        checkDisposed();
         return getColumnsInternal();
     }
 
@@ -153,13 +156,21 @@ public final class Key
     }
 
     protected KeyColumns getColumnsInternal() {
-        checkDisposed();
+        if (mColumns == null) {
+            refreshColumns();
+        }
+        return mColumns;
+    }
+
+    protected KeyColumns refreshColumns() {
         if (mColumns == null) {
             //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
             System.out.println("sdbcx.Key.getColumnsInternal() Columns: " + String.join(", ", mNames));
             mColumns = new KeyColumns(this, mNames, isCaseSensitive());
             //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID,
             //                   mTables.getLogger().getObjectId());
+        } else {
+            mColumns.refill(getKeyColumns());
         }
         return mColumns;
     }
@@ -182,6 +193,18 @@ public final class Key
             referencedTable = mRefTable.composeTableName();
         }
         return referencedTable;
+    }
+
+    private String[] getKeyColumns() {
+        String[] columns;
+        Provider provider = mTable.getConnection().getProvider();
+        NamedComponents component = mTable.getNamedComponents();
+        if (getTypeInternal() == KeyType.PRIMARY) {
+            columns = KeyHelper.getPrimaryKeyColumns(provider, component, getName());
+        } else {
+            columns = KeyHelper.getForeignKeyColumns(provider, component, getName());
+        }
+        return columns;
     }
 
 }

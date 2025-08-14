@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.driver.helper;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
@@ -53,7 +53,7 @@ public class ConstraintHelper {
                                                   String name,
                                                   ComposeRule rule,
                                                   boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         try {
             int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
             String tablename = DBTools.buildName(provider, table, rule, sensitive);
@@ -72,7 +72,7 @@ public class ConstraintHelper {
             return provider.getConfigDDL().getAddConstraintCommand(arguments, type);
         } catch (java.lang.Exception e) {
             e.printStackTrace();
-            throw new java.sql.SQLException();
+            throw new SQLException();
         }
     }
 
@@ -80,7 +80,7 @@ public class ConstraintHelper {
                                          XPropertySet descriptor,
                                          PropertyIds name,
                                          boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
         XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
         return getKeyColumns(provider, indexes, name, sensitive);
@@ -89,7 +89,7 @@ public class ConstraintHelper {
     public static List<String> getCreatePrimaryKeyParts(Provider provider,
                                                         XPropertySet descriptor,
                                                         boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         List<String> queries = new ArrayList<>();
         XKeysSupplier keysSupplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
         XIndexAccess keys = keysSupplier.getKeys();
@@ -103,7 +103,7 @@ public class ConstraintHelper {
                     }
                 }
             } catch (WrappedTargetException | IndexOutOfBoundsException e) {
-                throw new SQLException(e.getMessage());
+                throw new SQLException(e.getMessage(), e);
             }
         }
         return queries;
@@ -114,7 +114,7 @@ public class ConstraintHelper {
                                                   XPropertySet columnProperties,
                                                   boolean sensitive,
                                                   boolean hasPrimaryKey)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         StringBuilder buffer = new StringBuilder();
         int keyType = DBTools.getDescriptorIntegerValue(columnProperties, PropertyIds.TYPE);
         XColumnsSupplier columnsSupplier = UnoRuntime.queryInterface(XColumnsSupplier.class, columnProperties);
@@ -122,7 +122,7 @@ public class ConstraintHelper {
         if (columns != null && columns.getCount() > 0) {
             if (keyType == KeyType.PRIMARY) {
                 if (hasPrimaryKey) {
-                    throw new java.sql.SQLException();
+                    throw new SQLException();
                 }
                 hasPrimaryKey = true;
                 buffer.append("PRIMARY KEY");
@@ -142,7 +142,7 @@ public class ConstraintHelper {
                                                         nameComponents.getSchemaName(), nameComponents.getTableName(),
                                                         ComposeRule.InTableDefinitions, true);
                 if (composedName.isEmpty()) {
-                    throw new java.sql.SQLException();
+                    throw new SQLException();
                 }
                 
                 buffer.append(getKeyColumns(provider, columns, sensitive));
@@ -156,7 +156,7 @@ public class ConstraintHelper {
     private static String getKeyColumns(Provider provider,
                                         XIndexAccess columns,
                                         boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         String separator = ", ";
         StringBuilder buffer = new StringBuilder();
         String[] names = getKeyColumns(provider, columns, PropertyIds.NAME, sensitive);
@@ -172,7 +172,7 @@ public class ConstraintHelper {
                                           XIndexAccess indexes,
                                           PropertyIds name,
                                           boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         List<String> columns = new ArrayList<>();
         try {
             for (int i = 0; i < indexes.getCount(); i++) {
@@ -183,7 +183,7 @@ public class ConstraintHelper {
                 }
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException e) {
-            throw new SQLException(e.getMessage());
+            throw new SQLException(e.getMessage(), e);
         }
         return columns.toArray(new String[0]);
     }

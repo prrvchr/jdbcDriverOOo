@@ -23,75 +23,120 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.driver.container;
 
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
-import com.sun.star.sdbc.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
+import io.github.prrvchr.uno.sdbcx.Descriptor;
 
 
-public abstract class TableContainerMain<T extends TableMain>
-    extends ContainerSuper<T> {
-    protected final ConnectionSuper mConnection;
-    private final ConnectionLog mLogger;
+public class BiMapMain<T extends Descriptor>
+    implements BiMap<T> {
 
-    // The constructor method:
-    protected TableContainerMain(String service,
-                                 String[] services,
-                                 ConnectionSuper connection,
-                                 boolean sensitive,
-                                 String[] names,
-                                 LoggerObjectType logtype)
-        throws ElementExistException {
-        super(service, services, connection, sensitive, names);
-        mConnection = connection;
-        mLogger = new ConnectionLog(connection.getProvider().getLogger(), logtype);
-    }
+    private List<T> mElement;
+    private List<String> mNames;
 
-    protected ConnectionLog getLogger() {
-        return mLogger;
-    }
-
-    protected ConnectionSuper getConnection() {
-        return mConnection;
-    }
-
-    // FIXME: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
-    // FIXME: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
-    protected void rename(String oldname, String newname)
-        throws SQLException {
-        if (hasByName(oldname)) {
-            replaceElement(oldname, newname, false);
+    public BiMapMain(String[] data) {
+        this();
+        for (String value : data) {
+            mNames.add(value);
+            mElement.add(null);
         }
+    }
+    public BiMapMain() {
+        mElement = new ArrayList<>();
+        mNames = new ArrayList<>();
     }
 
     @Override
-    protected String getElementName(XPropertySet descriptor) {
-        ComposeRule rule = ComposeRule.InTableDefinitions;
-        return DBTools.composeTableName(mConnection.getProvider(), descriptor, rule, false);
+    public int getIndex(String value) {
+        return mNames.indexOf(value);
     }
 
     @Override
-    protected T appendElement(XPropertySet descriptor)
-        throws java.sql.SQLException {
-        T element = null;
-        String name = getElementName(descriptor);
-        if (createDataBaseElement(descriptor, name)) {
-            element = createElement(name);
+    public String getName(int index) {
+        return  mNames.get(index);
+    }
+
+    @Override
+    public int[] getEnumerationOrder() {
+        int[] orders = new int[mNames.size()];
+        for (int i = 0; i < mNames.size(); i++) {
+            orders[i] = i;
         }
+        return orders;
+    }
+
+    @Override
+    public void clear() {
+        clearElements();
+        mNames.clear();
+    }
+
+    @Override
+    public boolean hasByName(String name) {
+        return mNames.contains(name);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return mElement.isEmpty();
+    }
+
+    @Override
+    public int getCount() {
+        return mElement.size();
+    }
+
+    @Override
+    public T getByIndex(int index) {
+        return mElement.get(index);
+    }
+
+    @Override
+    public T getByName(String name) {
+        return mElement.get(mNames.indexOf(name));
+    }
+
+    @Override
+    public String[] getElementNames() {
+        return mNames.toArray(new String[0]);
+    }
+
+    @Override
+    public void setElement(int index, T element) {
+        mElement.set(index, element);
+    }
+
+    @Override
+    public T addElement(String name, T element) {
+        mElement.add(element);
+        mNames.add(name);
         return element;
     }
 
     @Override
-    protected void refreshInternal() {
-        mConnection.refresh();
+    public T removeElement(int index) {
+        mNames.remove(index);
+        return mElement.remove(index);
+
     }
 
-    abstract boolean createDataBaseElement(XPropertySet descriptor, String name) throws java.sql.SQLException;
+    @Override
+    public T renameElement(String oldname, String newname) {
+        int index = mNames.indexOf(oldname);
+        mNames.set(index, newname);
+        return mElement.get(index);
+    }
+
+    private void clearElements() {
+        for (T element : mElement) {
+            if (element != null) {
+                element.dispose();
+            }
+        }
+        mElement.clear();
+    }
 
 }

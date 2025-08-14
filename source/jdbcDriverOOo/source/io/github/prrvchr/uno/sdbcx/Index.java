@@ -25,20 +25,23 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DatabaseMetaData;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.IndexHelper;
+import io.github.prrvchr.uno.driver.helper.IndexHelper.IndexProperties;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -69,8 +72,7 @@ public final class Index
                  boolean unique,
                  boolean primarykey,
                  boolean clustered,
-                 String[] columns)
-        throws ElementExistException {
+                 String[] columns) {
         super(SERVICE, SERVICES, sensitive, name);
         System.out.println("sdbcx.Index() 1");
         mTable = table;
@@ -142,7 +144,7 @@ public final class Index
         UnoHelper.copyProperties(this, descriptor);
         try {
             DBTools.cloneDescriptorColumns(this, descriptor);
-        } catch (SQLException e) {
+        } catch (java.sql.SQLException e) {
         }
         return descriptor;
     }
@@ -150,6 +152,7 @@ public final class Index
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
     public XNameAccess getColumns() {
+        checkDisposed();
         return getColumnsInternal();
     }
 
@@ -158,15 +161,39 @@ public final class Index
         return mColumns != null;
     }
 
-    protected synchronized IndexColumns getColumnsInternal() {
-        checkDisposed();
+    protected IndexColumns getColumnsInternal() {
+        if (mColumns == null) {
+            refreshColumns();
+        }
+        return mColumns;
+    }
+
+    protected synchronized IndexColumns refreshColumns() {
         if (mColumns == null) {
             //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
             mColumns = new IndexColumns(this, mNames, isCaseSensitive());
             //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID,
             //                   mTables.getLogger().getObjectId());
+        } else {
+            mColumns.refill(getIndexColumns());
         }
         return mColumns;
+    }
+
+    private String[] getIndexColumns() {
+        String[] columns = null;
+        try {
+            Provider provider = mTable.getConnection().getProvider();
+            NamedComponents component = mTable.getNamedComponents();
+            DatabaseMetaData metadata;
+            metadata = provider.getConnection().getMetaData();
+            IndexProperties properties = IndexHelper.getIndexProperties(provider, metadata,
+                                                                        component, mCatalog, getName());
+            columns = properties.getColumns();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return columns;
     }
 
 }

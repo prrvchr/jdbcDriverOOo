@@ -29,12 +29,10 @@ package io.github.prrvchr.uno.sdb;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.star.sdbc.SQLException;
-
-import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.sdbcx.ContainerMain;
 
 
@@ -67,56 +65,57 @@ public final class ResultColumnContainer
             for (int i = 1; i <= count; i++) {
                 names.add(metadata.getColumnName(i));
             }
-        } catch (java.sql.SQLException e) { }
+        } catch (SQLException e) { }
         return names.toArray(new String[0]);
     }
 
     @Override
     protected ResultColumn createElement(int index)
         throws SQLException {
-        try {
-            int i = index + 1;
-            String catalog = mRsMetaData.getCatalogName(i);
-            String schema = mRsMetaData.getSchemaName(i);
-            String table = mRsMetaData.getTableName(i);
-            String name = mRsMetaData.getColumnName(i);
-            String typeName = mRsMetaData.getColumnTypeName(i);
-            boolean autoincrement = mRsMetaData.isAutoIncrement(i);
-            boolean currency = mRsMetaData.isCurrency(i);
-            int type = mRsMetaData.getColumnType(i);
-            int precision = mRsMetaData.getPrecision(i);
-            int scale = mRsMetaData.getScale(i);
-            int nullable = mRsMetaData.isNullable(i);
-            String description = "";
-            String defaultValue = "";
-            try (ResultSet rs = mDbMetaData.getColumns(catalog, schema, table, name)) {
-                if (rs.next()) {
-                    description = rs.getString(REMARKS);
-                    if (rs.wasNull()) {
-                        description = "";
-                    }
-                    defaultValue = rs.getString(COLUMN_DEF);
-                    if (rs.wasNull()) {
-                        defaultValue = "";
-                    }
+        int i = index + 1;
+        String catalog = mRsMetaData.getCatalogName(i);
+        String schema = mRsMetaData.getSchemaName(i);
+        String table = mRsMetaData.getTableName(i);
+        String name = mRsMetaData.getColumnName(i);
+        String typeName = mRsMetaData.getColumnTypeName(i);
+        boolean autoincrement = mRsMetaData.isAutoIncrement(i);
+        boolean currency = mRsMetaData.isCurrency(i);
+        int type = mRsMetaData.getColumnType(i);
+        int precision = mRsMetaData.getPrecision(i);
+        int scale = mRsMetaData.getScale(i);
+        int nullable = mRsMetaData.isNullable(i);
+        String description = "";
+        String defaultValue = "";
+        try (ResultSet rs = mDbMetaData.getColumns(catalog, schema, table, name)) {
+            if (rs.next()) {
+                description = rs.getString(REMARKS);
+                if (rs.wasNull()) {
+                    description = "";
+                }
+                defaultValue = rs.getString(COLUMN_DEF);
+                if (rs.wasNull()) {
+                    defaultValue = "";
                 }
             }
-            boolean rowversion = false;
-            try (ResultSet rs = mDbMetaData.getVersionColumns(catalog, schema, table)) {
-                while (rs.next()) {
-                    if (name.equals(rs.getString(COLUMN_NAME))) {
-                        rowversion = true;
-                        break;
-                    }
-                }
-            }
-            return new ResultColumn(mRsMetaData, i, catalog, schema, table,
-                                    isCaseSensitive(), name, typeName, defaultValue,
-                                    description, nullable, precision, scale, type,
-                                    autoincrement, rowversion, currency);
-        } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e, this);
         }
+        boolean rowversion = false;
+        try (ResultSet rs = mDbMetaData.getVersionColumns(catalog, schema, table)) {
+            while (rs.next()) {
+                if (name.equals(rs.getString(COLUMN_NAME))) {
+                    rowversion = true;
+                    break;
+                }
+            }
+        }
+        return new ResultColumn(mRsMetaData, i, catalog, schema, table,
+                                isCaseSensitive(), name, typeName, defaultValue,
+                                description, nullable, precision, scale, type,
+                                autoincrement, rowversion, currency);
+    }
+
+    @Override
+    protected void broadcastRefreshed() {
+        // no ops for a read only container
     }
 
 }

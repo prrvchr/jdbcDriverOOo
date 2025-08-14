@@ -23,31 +23,39 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
-package io.github.prrvchr.uno.sdbcx;
+package io.github.prrvchr.uno.driver.container;
 
 
-import com.sun.star.beans.XPropertySet;
+import io.github.prrvchr.uno.sdbcx.Descriptor;
 
-public final class IndexColumnDescriptorContainer
-    extends DescriptorContainer<IndexColumnDescriptor> {
+public interface BiMap<T extends Descriptor> {
 
-    // The constructor method:
-    public IndexColumnDescriptorContainer(Object lock,
-                                          boolean sensitive) {
-        super(lock, sensitive);
-        System.out.println("sdbcx.descriptors.IndexColumnDescriptorContainer()");
-    }
+    int getIndex(String value);
 
-    @Override
-    protected XPropertySet createDescriptor() {
-        return new IndexColumnDescriptor(isCaseSensitive());
-    }
+    String getName(int index);
 
-    @Override
-    protected IndexColumnDescriptor appendElement(XPropertySet descriptor)
-        throws java.sql.SQLException {
-        return (IndexColumnDescriptor) cloneDescriptor(descriptor);
-    }
+    int[] getEnumerationOrder();
 
+    void clear();
+
+    public boolean hasByName(String name);
+
+    public boolean isEmpty();
+
+    public int getCount();
+
+    T getByIndex(int index);
+
+    T getByName(String name);
+
+    String[] getElementNames();
+
+    T addElement(String name, T element);
+
+    void setElement(int index, T element);
+
+    T removeElement(int index);
+
+    T renameElement(String oldname, String newname);
 
 }

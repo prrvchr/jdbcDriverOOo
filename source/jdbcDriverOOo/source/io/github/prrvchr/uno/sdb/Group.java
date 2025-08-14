@@ -103,7 +103,7 @@ public final class Group
             getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_CREATE_USERROLES_NOT_SUPPORTED);
         }
         if (mUsers == null) {
-            mUsers = new Users(mConnection, mUserContainer, users, getName(), isCaseSensitive());
+            mUsers = new Users(mConnection, this, mUserContainer.getBiMap(), users, getName(), isCaseSensitive());
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERROLES_ID,
                            mUsers.getLogger().getObjectId());
             mListener = new RoleListener<User>(mUsers);

@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.Iterator;
-import java.util.List;
 
 import com.sun.star.container.ContainerEvent;
 import com.sun.star.container.XContainerListener;
@@ -36,8 +35,13 @@ import com.sun.star.uno.AnyConverter;
 
 public class ColumnListener
     implements XContainerListener {
+    
+    @SuppressWarnings("unused")
+    private TableContainerSuper<?> mTables;
 
-    public ColumnListener() { }
+    public ColumnListener(TableContainerSuper<?> tables) {
+        mTables = tables;
+    }
 
     @Override
     public void disposing(EventObject event) {
@@ -56,7 +60,9 @@ public class ColumnListener
         String name = AnyConverter.toString(event.Accessor);
         ColumnBase column = (ColumnBase) event.Element;
         System.out.println("ColumnListener.elementRemoved() 2 ColumnName: " + column.getName());
-        //mContainer.getConnection().getTablesInternal().removeForeignKeyColumns(column, name);
+        //if (mTables.isReferencedTable(column.getTableInternal())) {
+            //mTables.removeReferencedColumns(column, name);
+        //}
         System.out.println("ColumnListener.elementRemoved() 3");
     }
 
@@ -80,9 +86,9 @@ public class ColumnListener
                 System.out.println("ColumnListener.elementReplaced() lasy loaded Index: " + index.getName());
                 continue;
             }
-            List<String> columns = index.getColumnsInternal().getNamesInternal();
-            if (columns.contains(oldname)) {
-                columns.set(columns.indexOf(oldname), newname);
+            IndexColumns columns = index.getColumnsInternal();
+            if (columns.hasByName(oldname)) {
+                columns.replaceElement(oldname, newname, false);
                 System.out.println("ColumnListener.elementReplaced() 3 Column Index: " + oldname +
                                    " renamed: " + newname);
             }
@@ -100,11 +106,11 @@ public class ColumnListener
                 System.out.println("ColumnListener.elementReplaced() lasy loaded Key: " + key.getName());
                 continue;
             }
-            List<String> columns = key.getColumnsInternal().getNamesInternal();
+            KeyColumns columns = key.getColumnsInternal();
             System.out.println("ColumnListener.elementReplaced() 5 Key: " + key.getName() +
-                               " - Columns: " + String.join(", ", columns));
-            if (columns.contains(oldname)) {
-                columns.set(columns.indexOf(oldname), newname);
+                               " - Columns: " + String.join(", ", columns.getElementNames()));
+            if (columns.hasByName(oldname)) {
+                columns.replaceElement(oldname, newname, false);
                 System.out.println("ColumnListener.elementReplaced() 6 Key Column: " + oldname +
                                    " renamed: " + newname);
             }

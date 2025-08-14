@@ -385,13 +385,33 @@ Intégration du [pilote JDBC Oracle][112] `ojdbc17.jar`. Cette intégration a n�
 - [QueryHelper][113] est désormais capable de déterminer si la requête SQL exécutée est une requête `SELECT` sur une seule table.
 - Si tel est le cas, lors de la construction d'un XResultSet, [QueryHelper][113] fournit le nom complet de la table utilisée dans la requête SQL `SELECT` au CachedRowSet émulant ce XResultSet.
 - Lors de l'initialisation de ce CachedRowSet, les données manquantes des métadonnées du ResultSet du pilote Oracle (ie: `getTableName(int index)` et `getSchemaName(int index)`) seront déduites du nom de la table et affectées aux métadonnées du CachedRowSet.
+
 En raison de ces limitations du pilote Oracle, seuls les ResultSets des requêtes SQL `SELECT` qui ne s'appliquent qu'à une seule table seront modifiables dans LibreOffice Base.
 
-- Il est désormais possible d'insérer des enregistrements avec des valeurs nulles si les colonnes le permettent.
-- La gestion des utilisateurs et des rôles a été entièrement repensée:
-  - Pour chaque utilisateur ou rôle il n'existe désormais qu'une seule instance de la classe `Group` ou `User`, quel que soit l'accès.
-  - Un nouvel écouteur [RoleListener][114] permet les mises à jour nécessaires suite à la suppression d'un utilisateur ou d'un rôle.
-- La méthode `cancelRowUpdates` de la classe `CachedRowSetImpl` accepte désormais l'exécution sur un `RowSet` vide. Ceci est nécessaire pour contourner le problème [tdf#167434][115].
+L'implémentation des conteneurs pour les tables, les vues, les colonnes, les index, les clés, les utilisateurs, les groupes et descripteurs a été entièrement repensée. Le nommage et le listage des éléments d'un conteneur sont désormais gérés par trois classes implémentant l'interface [BiMap][114]:
+- [BiMapMain][115] permet la gestion des éléments à l'aide de deux listes `java.util.List`. Cette implémentation liste les éléments par ordre d'insertion et permet la gestion des doublons.
+- [BiMapBase][116] permet la gestion des éléments à l'aide de trois listes `java.util.List` et d'un ensemble `java.util.Set`. Cette implémentation liste les éléments à l'aide d'un comparateur prenant en compte les éléments sensibles à la casse lors du tri. Les doublons sont rejetés.
+- [BiMapSuper][117] permet la gestion des éléments à l'aide d'une liste `java.util.List`, d'un ensemble `java.util.Set` et d'un ensemble `BiMap`. Cette implémentation permet de gérer une sous-liste d'éléments provenant d'une BiMap. Elle assure la gestion des groupes et/ou des utilisateurs pour un groupe et/ou un utilisateur donné.
+
+Quant aux conteneurs eux-mêmes, ils utilisent désormais l'une des anciennes classes `BiMap` selon leurs besoins. Ce choix s'effectue dans l'un des quatre conteneurs suivants et selon leur niveau d'héritage de classe:
+- [ContainerMain][118] utilise `BiMapMain` et implémente les interfaces UNO: `XNameAccess`, `XIndexAccess` et `XEnumerationAccess`. Il permet la gestion des éléments `ResultColumn`.
+- [ContainerBase][119] étend la classe précédente et implémente les interfaces UNO: `XAppend`, `XDrop`, `XDataDescriptorFactory` et `XRefreshable`. Ce conteneur a la particularité de permettre l'ajout et la suppression d'éléments, et de gérer les éléments `Column`, `Index`, `Key` et leurs services `Descriptor` associés.
+- [ContainerSuper][120] utilise `BiMapBase` et étend la classe précédente. Elle n'implémente aucune interface supplémentaire et permet la gestion des éléments suivants: `Table`, `View`, `User` et `Group`.
+- [RoleContainer][121] utilise `BiMapSuper` et étend la classe précédente. Il s'agit simplement d'une façade permettant de filtrer le contenu des conteneurs `UserContainer` et `GroupContainer` afin de gérer les utilisateurs et les rôles appartenant à un groupe et/ou un utilisateur.
+
+La création des trois classes implémentant l'interface `BiMap` permet désormais à tous les conteneurs d'hériter de la classe parente `ContainerMain`, ce qui n'était pas possible jusqu'à présent. Cela simplifie grandement l'implémentation des conteneurs, qui ont pu être débarrassés de toute cette machinerie. Tout est devenu tellement plus simple que je ne comprends pas pourquoi je n'y ai pas pensé plus tôt?  
+De plus, concernant les utilisateurs et les rôles, cette nouvelle implémentation garantira:
+- Une seule instance de la classe `Group` ou `User` par utilisateur ou rôle, quel que soit son accès.
+- Les mises à jour nécessaires suite à la suppression d'un utilisateur ou d'un rôle seront effectuées par un nouveau [RoleListener][122].
+
+La gestion du rafraîchissement suite à la création ou à la suppression d'un élément pose problème dans LibreOffice Base, voir le problème [tdf#167920][123]. Je ne sais pas encore comment résoudre ce problème. Si il faut utiliser un listener ou faire en sorte que Base utilise l'interface `XRefresable` prise en charge par les conteneurs après toute modification le nécessitant. Dans le second cas, c'est le code de LibreOffice Base qui doit encore être amélioré. En attendant pour contourner ce problème, je vous conseille d'actualiser manuellement LibreOffice Base via le menu **Affichage -> Rafraîchir les tables** après toute insertion ou suppression.
+
+De nombreuses petites corrections:
+- `CachedRowSet` permet désormais d'insérer des enregistrements avec des valeurs nulles si les colonnes le permettent.
+- La méthode `cancelRowUpdates` de la classe `CachedRowSetImpl` accepte désormais l'exécution sur un `RowSet` vide. Ceci est nécessaire pour contourner le problème [tdf#167434][124].
+- Il est à nouveau possible d'ajouter une colonne à une table existante avec SQLite.
+
+La prise en charge d'un pilote supplémentaire comme celui d'Oracle me demande beaucoup de travail pour les tests de fonctionnalités. Je compte sur vous pour me signaler tout dysfonctionnement, car la recherche de ces dysfonctionnements est la tâche la plus chronophage. Merci d'avance.
 
 ### Que reste-t-il à faire pour la version 1.5.6:
 
@@ -512,5 +532,14 @@ En raison de ces limitations du pilote Oracle, seuls les ResultSets des requête
 [111]: <https://prrvchr.github.io/JaybirdEmbedded/README_fr>
 [112]: <https://www.oracle.com/fr/database/technologies/appdev/jdbc-downloads.html>
 [113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/QueryHelper.java>
-[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleListener.java>
-[115]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
+[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMap.java>
+[115]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMapMain.java>
+[116]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMapBase.java>
+[117]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMapSuper.java>
+[118]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerMain.java>
+[119]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
+[120]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
+[121]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
+[122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleListener.java>
+[123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
+[124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>

@@ -32,13 +32,11 @@ import java.util.Map;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.ColumnValue;
 import com.sun.star.sdbc.DataType;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XColumnLocate;
-import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper;
@@ -91,12 +89,12 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             String error = String.format("Error Column: %s not fount", name);
             throw new SQLException(error, this, StandardSQLState.SQL_COLUMN_NOT_FOUND.text(), 0, null);
         }
-        return getIndexInternal(name) + 1;
+        return mBimap.getIndex(name) + 1;
     }
 
     @Override
     protected C appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         C column = null;
         String name = getElementName(descriptor);
         if (createColumn(descriptor, name)) {
@@ -106,7 +104,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
     }
 
     private boolean createColumn(XPropertySet descriptor, String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         boolean created = false;
         String table = null;
         List<String> queries = new ArrayList<>();
@@ -123,14 +121,14 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             int resource = Resources.STR_LOG_COLUMN_ALTER_QUERY_ERROR;
             String query = String.join("> <", queries);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
         return created;
     }
 
     @Override
     protected C createElement(String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         C column = null;
         try {
             @SuppressWarnings("unused")
@@ -146,7 +144,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
                 description = getColumnDescription(provider, name);
             }
             if (description == null) {
-                throw new SQLException("No column " + name + " found");
+                throw new java.sql.SQLException("No column " + name + " found");
             }
             
             ExtraColumnInfo info = mExtrainfos.get(name);
@@ -162,16 +160,15 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
                 dataType = info.mDataType;
             }
 
-            XNameAccess primaryKeyColumns = DBTools.getPrimaryKeyColumns(mTable.getKeys());
             int nullable = description.mNullable;
-            if (nullable != ColumnValue.NO_NULLS && primaryKeyColumns != null && primaryKeyColumns.hasByName(name)) {
+            if (nullable != ColumnValue.NO_NULLS && mTable.hasPrimaryKey(name)) {
                 nullable = ColumnValue.NO_NULLS;
             }
             column = getColumn(name, description.mTypeName, description.mDefaultValue, description.mRemarks,
                                nullable, description.mColumnSize, description.mDecimalDigits, description.mType,
                                isAutoIncrement, false, isCurrency);
         } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
         return column;
     }
@@ -192,7 +189,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         UnoHelper.ensure(mTable, "Table is null!", getConnection().getLogger());
         if (mTable == null) {
             return;
@@ -211,7 +208,7 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             int resource = Resources.STR_LOG_COLUMN_REMOVE_QUERY_ERROR;
             String msg = mTable.getLogger().getStringResource(resource, name, query);
             mTable.getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
     }
 

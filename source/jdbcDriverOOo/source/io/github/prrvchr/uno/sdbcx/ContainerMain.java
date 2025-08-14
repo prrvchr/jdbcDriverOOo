@@ -25,10 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.swing.event.EventListenerList;
 
@@ -45,14 +44,13 @@ import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
+import io.github.prrvchr.uno.driver.container.BiMapMain;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.ServiceInfo;
-import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class ContainerMain<T extends Descriptor>
@@ -64,9 +62,8 @@ public abstract class ContainerMain<T extends Descriptor>
                XEnumerationAccess {
 
     protected Object mLock;
-    protected List<T> mElements;
+    protected BiMap<T> mBimap;
     protected boolean mSensitive;
-    private List<String> mNames;
     private final String mService;
     private final String[] mServices;
     private final EventListenerList mContainer = new EventListenerList();
@@ -76,7 +73,7 @@ public abstract class ContainerMain<T extends Descriptor>
                          String[] services,
                          Object lock,
                          boolean sensitive) {
-        this(service, services, lock, sensitive, true);
+        this(service, services, lock, null, sensitive);
     }
 
     public ContainerMain(String service,
@@ -84,40 +81,38 @@ public abstract class ContainerMain<T extends Descriptor>
                      Object lock,
                      boolean sensitive,
                      String[] names) {
-        this(service, services, lock, sensitive, true);
-        for (String name : names) {
-            mNames.add(name);
-            mElements.add(null);
+        this(service, services, lock, null, sensitive, names);
+    }
+
+    public ContainerMain(String service,
+                         String[] services,
+                         Object lock,
+                         BiMap<T> bimap,
+                         boolean sensitive,
+                         String[] names) {
+        this(service, services, lock, bimap, sensitive);
+        if (bimap != null) {
+            mBimap = bimap;
+        } else {
+            mBimap = new BiMapMain<>(names);
         }
     }
 
     public ContainerMain(String service,
                          String[] services,
                          Object lock,
-                         boolean sensitive,
-                         boolean master) {
+                         BiMap<T> bimap,
+                         boolean sensitive) {
         mService = service;
         mServices = services;
         mLock = lock;
         mSensitive = sensitive;
-        mElements = new ArrayList<>();
-        if (master) {
-            mNames = new ArrayList<>();
+        if (bimap != null) {
+            mBimap = bimap;
+        } else {
+            mBimap = new BiMapMain<>();
         }
     }
-
-    public ContainerMain(String service,
-                         String[] services,
-                         Object lock,
-                         boolean sensitive,
-                         String[] names,
-                         boolean master) {
-        this(service, services, lock, sensitive, master);
-        for (int i = 0; i < names.length; i++) {
-            mElements.add(null);
-        }
-    }
-
 
     protected XContainerListener[] getContainerListeners() {
         return mContainer.getListeners(XContainerListener.class);
@@ -128,11 +123,7 @@ public abstract class ContainerMain<T extends Descriptor>
         //EventObject event = new EventObject(this);
         //mContainer.disposeAndClear(event);
         synchronized (mLock) {
-            getNamesInternal().clear();
-            for (T element : mElements) {
-                UnoHelper.disposeComponent(element);
-            }
-            mElements.clear();
+            mBimap.clear();
         }
     }
 
@@ -156,28 +147,25 @@ public abstract class ContainerMain<T extends Descriptor>
     @Override
     public Object getByName(String name)
         throws NoSuchElementException,
-               WrappedTargetException {
-        synchronized (mLock) {
-            if (!hasByName(name)) {
-                throw new NoSuchElementException();
-            }
+           WrappedTargetException {
+        if (!hasByName(name)) {
+            throw new NoSuchElementException();
         }
-        int idx = getIndexInternal(name);
-        return getElementByIndex(idx);
+        try {
+            return getElementByName(name);
+        } catch (SQLException e) {
+            throw new WrappedTargetException(e.getMessage());
+        }
     }
 
     @Override
     public String[] getElementNames() {
-        synchronized (mLock) {
-            return getNamesInternal().toArray(new String[0]);
-        }
+        return mBimap.getElementNames();
     }
 
     @Override
     public boolean hasByName(String name) {
-        synchronized (mLock) {
-            return getNamesInternal().contains(name);
-        }
+        return mBimap.hasByName(name);
     }
 
 
@@ -189,7 +177,7 @@ public abstract class ContainerMain<T extends Descriptor>
 
     @Override
     public boolean hasElements() {
-        return !mElements.isEmpty();
+        return !mBimap.isEmpty();
     }
 
 
@@ -200,17 +188,21 @@ public abstract class ContainerMain<T extends Descriptor>
         if (index < 0 || index >= getCount()) {
             throw new IndexOutOfBoundsException();
         }
-        return getElementByIndex(getIndexInternal(index));
+        try {
+            return getElementByIndex(index);
+        } catch (SQLException e) {
+            throw new WrappedTargetException(e.getMessage());
+        }
     }
 
     @Override
     public int getCount() {
-        return mElements.size();
+        return mBimap.getCount();
     }
 
+
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor)
-        throws SQLException {
+    protected String getElementName(XPropertySet descriptor) {
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 
@@ -250,10 +242,10 @@ public abstract class ContainerMain<T extends Descriptor>
             @Override
             public boolean hasNext() {
                 boolean next = false;
-                while (mIndex < mElements.size()) {
-                    String name = getNamesInternal().get(mIndex);
+                while (mIndex < mBimap.getCount()) {
+                    String name = mBimap.getName(mIndex);
                     if (filter == null || !filter.contains(name)) {
-                        T element = mElements.get(getIndexInternal(mIndex));
+                        T element = mBimap.getByIndex(mIndex);
                         if (element != null) {
                             next = true;
                             break;
@@ -269,32 +261,100 @@ public abstract class ContainerMain<T extends Descriptor>
                 if (!hasNext()) {
                     throw new java.util.NoSuchElementException();
                 }
-                return getNamesInternal().get(mIndex++);
+                return mBimap.getName(mIndex++);
             }
         }
         return new Elements();
     }
-
 
     protected Iterator<T> getActiveElements() {
         return getActiveElements(null);
     }
 
     protected Iterator<T> getActiveElements(Collection<String> filter) {
+        return getActiveElements(filter, false);
+    }
+
+    protected void removeContainerElement(int index) {
+        System.out.println("ContainerBase.removeContainerElement() 1 index: "  + index);
+        T element = null;
+        String name;
+        synchronized (mLock) {
+            name = mBimap.getName(index);
+            element = mBimap.removeElement(index);
+        }
+        broadcastElementRemoved(element, name);
+        if (element != null) {
+            element.dispose();
+        }
+    }
+
+    protected XEnumeration createEnumerationInternal() {
+        return new ContainerEnumeration(this);
+    }
+
+    // Abstract protected methods
+    protected abstract T createElement(int index) throws SQLException;
+
+    protected T getElementByName(String name)
+        throws SQLException {
+        return getElementByIndex(mBimap.getIndex(name));
+    }
+
+    protected T getElementByIndex(int index)
+        throws SQLException {
+        T element = mBimap.getByIndex(index);
+        if (element == null) {
+            synchronized (mLock) {
+                try {
+                    element = createElement(index);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    System.out.println("ContainerBase.getElementByIndex() 1 index: "  + index);
+                    try {
+                        removeContainerElement(index);
+                    } catch (Exception ignored) { }
+                    throw new SQLException(e.getMessage());
+                }
+                mBimap.setElement(index, element);
+            }
+        }
+        return element;
+    }
+
+    private void broadcastElementRemoved(T element, String name) {
+        broadcastContainerElementRemoved(element, name);
+        broadcastRefreshed();
+    }
+
+    private void broadcastContainerElementRemoved(T element, String name) {
+        ContainerEvent event = null;
+        for (XContainerListener listener : getContainerListeners()) {
+            if (event == null) {
+                event = new ContainerEvent(this, name, element, null);
+            }
+            listener.elementRemoved(event);
+        }
+    }
+
+    protected abstract void broadcastRefreshed();
+
+    protected Iterator<T> getElements() {
+        return getElements(null, true);
+    }
+
+    protected Iterator<T> getElements(Collection<String> filter, boolean remove) {
         class Elements implements Iterator<T> {
-            int mIndex = 0;
+            private int mIndex = 0;
 
             @Override
             public boolean hasNext() {
                 boolean next = false;
-                while (mIndex < mElements.size()) {
-                    String name = getNamesInternal().get(mIndex);
+                while (mIndex < getCount()) {
+                    String name = mBimap.getName(mIndex);
                     if (filter == null || !filter.contains(name)) {
-                        T element = mElements.get(getIndexInternal(mIndex));
-                        if (element != null) {
-                            next = true;
-                            break;
-                        }
+                        next = true;
+                        break;
                     }
                     mIndex++;
                 }
@@ -306,100 +366,62 @@ public abstract class ContainerMain<T extends Descriptor>
                 if (!hasNext()) {
                     throw new java.util.NoSuchElementException();
                 }
-                return mElements.get(getIndexInternal(mIndex++));
+                try {
+                    return getElementByIndex(mIndex++);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    throw new java.util.NoSuchElementException(e);
+                }
             }
 
             @Override
             public void remove() {
-                removeContainerElement(getIndexInternal(--mIndex));
+                if (remove) {
+                    mBimap.removeElement(--mIndex);
+                }
             }
         }
         return new Elements();
     }
 
-    protected T getElement(int index)
-        throws SQLException {
-        synchronized (mLock) {
-            try {
-                return getElementByIndex(getIndexInternal(index));
-            } catch (WrappedTargetException e) {
-                throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-            }
-        }
-    }
+    public Iterator<T> getActiveElements(Collection<String> filter, boolean remove) {
+        class Elements implements Iterator<T> {
+            private int mIdx = 0;
 
-    protected T getElement(String name)
-        throws SQLException {
-        T element = null;
-        synchronized (mLock) {
-            if (getNamesInternal().contains(name)) {
-                try {
-                    int idx = getIndexInternal(name);
-                    element = getElementByIndex(idx);
-                } catch (WrappedTargetException e) {
-                    throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            @Override
+            public boolean hasNext() {
+                boolean next = false;
+                while (mIdx < getCount()) {
+                    String name = mBimap.getName(mIdx);
+                    if (filter == null || !filter.contains(name)) {
+                        T element = mBimap.getByIndex(mIdx);
+                        if (element != null) {
+                            next = true;
+                            break;
+                        }
+                    }
+                    mIdx++;
+                }
+                return next;
+            }
+
+            @Override
+            public T next() throws java.util.NoSuchElementException {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                return mBimap.getByIndex(mIdx++);
+            }
+
+            @Override
+            public void remove() {
+                if (remove) {
+                    mBimap.removeElement(--mIdx);
                 }
             }
         }
-        return element;
+        return new Elements();
     }
 
-    protected void removeContainerElement(int idx) {
-        System.out.println("ContainerBase.removeContainerElement() 1 index: "  + idx);
-        String name = getNamesInternal().remove(idx);
-        T element = mElements.remove(idx);
-        ContainerEvent event = new ContainerEvent(this, name, element, null);
-        for (XContainerListener listener : getContainerListeners()) {
-            System.out.println("ContainerBase.removeContainerElement() 2 index: "  + idx);
-            listener.elementRemoved(event);
-        }
-        UnoHelper.disposeComponent(element);
-    }
-
-    // XXX: Shared methods between ContainerBase and ContainerSuper
-    // XXX: ContainerBase support duplicate name and the contents will not be sorted.
-    // XXX: ContainerSuper does not support duplicate names and the contents will be sorted alphabetically.
-    protected List<String> getNamesInternal() {
-        return mNames;
-    }
-    protected int getIndexInternal(int index) {
-        return index;
-    }
-    protected int getIndexInternal(String name) {
-        return mNames.indexOf(name);
-    }
-
-    protected XEnumeration createEnumerationInternal() {
-        return new ContainerEnumeration(this);
-    }
-
-    // Abstract protected methods
-    protected abstract T createElement(int idx) throws SQLException;
-
-    // Private methods
-    protected T getElementByName(String name)
-        throws WrappedTargetException {
-        int idx = getIndexInternal(name);
-        return getElementByIndex(idx);
-    }
-
-    protected T getElementByIndex(int idx)
-        throws WrappedTargetException {
-        T element = mElements.get(idx);
-        if (element == null) {
-            try {
-                element = createElement(idx);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                System.out.println("ContainerBase.getElementByIndex() 1 index: "  + idx);
-                try {
-                    removeContainerElement(idx);
-                } catch (Exception ignored) { }
-                throw new WrappedTargetException(e.getMessage(), this, e);
-            }
-            mElements.set(idx, element);
-        }
-        return element;
-    }
 
 }

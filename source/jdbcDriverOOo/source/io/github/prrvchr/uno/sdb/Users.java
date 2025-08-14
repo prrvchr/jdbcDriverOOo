@@ -27,10 +27,10 @@ package io.github.prrvchr.uno.sdb;
 
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -47,18 +47,15 @@ public final class Users
 
     // The constructor method:
     public Users(Connection connection,
-                 UserContainer users,
+                 Group group,
+                 BiMap<User> bimap,
                  String[] names,
                  String role,
                  boolean sensitive) {
         // XXX: isrole lets you know the role that holds this class.
         // XXX: Currently it is a role since users can only be held by a role
-        super(SERVICE, SERVICES, connection, connection.getProvider(),
-              users, names, role, sensitive, true, "USER", LoggerObjectType.USERS);
-    }
-
-    private UserContainer getUsers() {
-        return (UserContainer) mRoles;
+        super(SERVICE, SERVICES, connection, group, bimap, names,
+              role, sensitive, true, "USER", LoggerObjectType.USERS);
     }
 
     protected Connection getConnection() {
@@ -95,14 +92,13 @@ public final class Users
     }
 
     protected User createRoleElement(String name) throws SQLException {
-        if (!mNames.contains(name) || !getUsers().getNamesInternal().contains(name)) {
+        if (!hasByName(name)) {
             throw new SQLException();
         }
         try {
-            int idx = getUsers().getIndexInternal(name);
-            return getUsers().getElementByIndex(idx);
-        } catch (WrappedTargetException e) {
-            throw new SQLException();
+            return getElementByName(name);
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e);
         }
     }
 

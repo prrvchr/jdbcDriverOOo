@@ -26,12 +26,10 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
-import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
@@ -56,6 +54,12 @@ public final class KeyColumns
 
     public ConnectionSuper getConnection() {
         return mKey.getTable().getConnection();
+    }
+
+    @Override
+    protected void refreshInternal() {
+        System.out.println("sdbcx.KeyContainer.refreshInternal() *********************************");
+        mKey.refreshColumns();
     }
 
     @Override
@@ -90,9 +94,9 @@ public final class KeyColumns
             System.out.println("KeyColumns.createElement() 1 columnName: " + column.getName() +
                                " - refColumnName: '" + refColumnName + "'");
             key = new KeyColumn(column, refColumn);
-        } catch (java.sql.SQLException | WrappedTargetException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         return key;
     }
@@ -101,9 +105,6 @@ public final class KeyColumns
     protected XPropertySet createDescriptor() {
         return new KeyColumnDescriptor(isCaseSensitive());
     }
-
-    @Override
-    protected void refreshInternal() { }
 
     @Override
     protected KeyColumn appendElement(XPropertySet descriptor)
@@ -119,7 +120,7 @@ public final class KeyColumns
     }
 
     private java.sql.ResultSet getImportedKeyResultSet()
-        throws java.sql.SQLException {
+        throws SQLException {
         NamedComponents component = mKey.getTable().getNamedComponents();
         DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
         return metadata.getImportedKeys(component.getCatalog(), component.getSchema(), component.getTable());

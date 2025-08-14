@@ -25,14 +25,13 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.RoleHelper;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
@@ -68,24 +67,8 @@ public class GroupContainer
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
     }
 
-    @Override
-    protected List<String> getNamesInternal() {
-        return super.getNamesInternal();
-    }
-
-    @Override
-    protected int getIndexInternal(String name) {
-        return super.getIndexInternal(name);
-    }
-
-    @Override
-    protected int getIndexInternal(int index) {
-        return super.getIndexInternal(index);
-    }
-
-    @Override
-    protected Group getElementByIndex(int idx) throws WrappedTargetException {
-        return super.getElementByIndex(idx);
+    protected BiMap<Group> getBiMap() {
+        return mBimap;
     }
 
     protected ConnectionLog getLogger() {
@@ -119,11 +102,11 @@ public class GroupContainer
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
             return DBTools.executeSQLQuery(mConnection.getProvider(), query);
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
     }
 
@@ -151,11 +134,11 @@ public class GroupContainer
                 // XXX: A role has just been deleted, it should also be deleted from any member user...
                 mConnection.getUsersInternal().removeRole(name);
             }
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
 
     }
@@ -175,8 +158,7 @@ public class GroupContainer
         return new GroupDescriptor(isCaseSensitive());
     }
 
-    protected void removeRole(String name)
-        throws SQLException {
+    protected void removeRole(String name) {
         Iterator<Group> groups = getActiveElements();
         while (groups.hasNext()) {
             Users users = groups.next().getUsersInternal();

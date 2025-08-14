@@ -25,28 +25,25 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
-import com.sun.star.uno.Any;
-import com.sun.star.uno.Exception;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.ConstraintHelper;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
+import io.github.prrvchr.uno.driver.helper.KeyHelper.ForeignKeyProperties;
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
@@ -90,24 +87,56 @@ public final class KeyContainer
         super.dispose();
     }
 
+    // com.sun.star.sdbcx.XDrop:
+    @Override
+    public void dropByIndex(int index)
+        throws SQLException,
+               IndexOutOfBoundsException {
+        synchronized (mLock) {
+            if (index < 0 || index >= getCount()) {
+                throw new IndexOutOfBoundsException();
+            }
+            try {
+                dropByName(mBimap.getName(index));
+            } catch (NoSuchElementException e) {
+                throw new IndexOutOfBoundsException(e);
+            }
+        }
+    }
+
+    @Override
+    public void dropByName(String name)
+        throws SQLException, NoSuchElementException {
+        System.out.println("sdbcx.KeyContainer() dropByName: " + name);
+        // XXX: we need to delete any corresponding index
+        if (!hasByName(name)) {
+            System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
+            throw new NoSuchElementException();
+        }
+        try {
+            removeElement(name, true);
+            if (mTable.getIndexesInternal().hasByName(name)) {
+                mTable.getIndexesInternal().removeElement(name, false);
+            }
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage());
+        }
+    }
+
     @Override
     protected Key createElement(String name)
-        throws SQLException {
+        throws java.sql.SQLException {
 
         Key key = null;
         if (!name.isEmpty()) {
-            try {
-                ComposeRule rule = ComposeRule.InDataManipulation;
-                System.out.println("KeyContainer.createElement() 1 Name: " + name);
-                key = readKey(name, rule);
-                // XXX: For foreign keys to track any changes on the referenced table name,
-                // XXX: this table itself is loaded and referenced by the key.
-                // XXX: This avoids listeners and for the moment I haven't found anything simpler...
-                if (key.getTypeInternal() == KeyType.FOREIGN) {
-                    getConnection().getTablesInternal().addTrackedTables(key.getRefTableInternal());
-                }
-            } catch (java.sql.SQLException | ElementExistException | WrappedTargetException e) {
-                throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            System.out.println("KeyContainer.createElement() 1 Name: " + name);
+            key = readKey(name, rule);
+            // XXX: For foreign keys to track any changes on the referenced table name,
+            // XXX: this table itself is loaded and referenced by the key.
+            // XXX: This avoids listeners and for the moment I haven't found anything simpler...
+            if (key.getTypeInternal() == KeyType.FOREIGN) {
+                getConnection().getTablesInternal().addReferencedTables(key.getRefTableInternal(), key.getTable());
             }
         }
         System.out.println("KeyContainer.createElement() 2 Name: " + name);
@@ -116,47 +145,16 @@ public final class KeyContainer
 
 
     private Key readKey(String keyname, ComposeRule rule)
-        throws java.sql.SQLException,
-               ElementExistException,
-               WrappedTargetException {
+        throws java.sql.SQLException {
+        Key key;
         Provider provider = getConnection().getProvider();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
         NamedComponents component = mTable.getNamedComponents();
-        Key key = readPrimaryKey(metadata, component, keyname);
-        if (key == null) {
+        String[] columns = KeyHelper.readPrimaryKeyColumns(metadata, component, keyname);
+        if (columns != null) {
+            key = new Key(mTable, null, isCaseSensitive(), keyname, KeyType.PRIMARY, 0, 0, columns);
+        } else {
             key = readForeignKey(provider, metadata, component, keyname, rule);
-        }
-        return key;
-    }
-
-    private Key readPrimaryKey(java.sql.DatabaseMetaData metadata,
-                               NamedComponents component,
-                               String keyname)
-        throws java.sql.SQLException,
-               ElementExistException {
-        Key key = null;
-        final int COLUMN_NAME = 4;
-        final int PK_NAME = 6;
-        ArrayList<String> columns = new ArrayList<>();
-        String name = null;
-        boolean fetched = false;
-        int type = KeyType.PRIMARY;
-        try (java.sql.ResultSet result = metadata.getPrimaryKeys(component.getCatalog(),
-                                                                 component.getSchema(),
-                                                                 component.getTable())) {
-            while (result.next()) {
-                String column = result.getString(COLUMN_NAME);
-                columns.add(column);
-                if (!fetched) {
-                    fetched = true;
-                    String pk = result.getString(PK_NAME);
-                    name = KeyHelper.getKeyName(pk, component.getTable(), type);
-                }
-            }
-        }
-        if (name != null && name.equals(keyname)) {
-            key = new Key(mTable, null, isCaseSensitive(), keyname,
-                          type, 0, 0, columns.toArray(new String[0]));
         }
         return key;
     }
@@ -166,10 +164,9 @@ public final class KeyContainer
                                NamedComponents component,
                                String keyname,
                                ComposeRule rule)
-        throws java.sql.SQLException,
-               ElementExistException, WrappedTargetException {
+        throws java.sql.SQLException {
         Key key = null;
-        ForeignKeyProperties properties = getForeignKeyProperties(metadata, component, keyname);
+        ForeignKeyProperties properties = KeyHelper.getForeignKeyProperties(metadata, component, keyname);
         if (properties != null) {
             String tablename = DBTools.buildName(provider, properties.mTable, rule);
             TableSuper refTable = getConnection().getTablesInternal().getElementByName(tablename);
@@ -179,87 +176,26 @@ public final class KeyContainer
         return key;
     }
 
-    private ForeignKeyProperties getForeignKeyProperties(java.sql.DatabaseMetaData metadata,
-                                                         NamedComponents table,
-                                                         String keyname)
-        throws java.sql.SQLException {
-        String oldname = "";
-        final int PKTABLE_CAT = 1;
-        final int PKTABLE_SCHEM = 2;
-        final int PKTABLE_NAME = 3;
-        final int FKCOLUMN_NAME = 8;
-        final int UPDATE_RULE = 10;
-        final int DELETE_RULE = 11;
-        final int FK_NAME = 12;
-
-        ForeignKeyProperties properties = null;
-        try (java.sql.ResultSet result = metadata.getImportedKeys(table.getCatalog(),
-                                                                  table.getSchema(),
-                                                                  table.getTable())) {
-            while (result.next()) {
-                NamedComponents component = new NamedComponents();
-                String value = result.getString(PKTABLE_CAT);
-                if (!result.wasNull()) {
-                    component.setCatalog(value);
-                }
-                value = result.getString(PKTABLE_SCHEM);
-                if (!result.wasNull()) {
-                    component.setSchema(value);
-                }
-                component.setTable(result.getString(PKTABLE_NAME));
-                String column = result.getString(FKCOLUMN_NAME);
-                int update = result.getInt(UPDATE_RULE);
-                int delete = result.getInt(DELETE_RULE);
-                String name = result.getString(FK_NAME);
-
-                if (isValidForeingKey(result, name)) {
-                    if (!oldname.equals(name)) {
-                        if (properties != null && oldname.equals(keyname)) {
-                            break;
-                        }
-                        properties = new ForeignKeyProperties(component, update, delete);
-                        properties.mColumns.add(column);
-                        oldname = name;
-                    } else if (properties != null) {
-                        properties.mColumns.add(column);
-                    }
-                }
-            }
-        }
-        if (!oldname.equals(keyname)) {
-            properties = null;
-        }
-        return properties;
-    }
-
-
-
     @Override
     protected Key appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         Key key = null;
-        try {
-            System.out.println("sdbcx.KeyContainer.appendElement() 1");
-            int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-            // XXX: For foreign keys, we check if the type between the foreign key and the primary key is the same.
-            if (type == KeyType.FOREIGN) {
-                checkKeyAppendValid(descriptor);
-            }
+        System.out.println("sdbcx.KeyContainer.appendElement() 1");
+        int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
+        // XXX: For foreign keys, we check if the type between the foreign key and the primary key is the same.
+        if (type == KeyType.FOREIGN) {
+            checkKeyAppendValid(descriptor);
+        }
 
-            String name = getElementName(descriptor);
-            if (createNewKey(descriptor, name)) {
-                key = createNewElement(descriptor, name);
-            }
-        } catch (WrappedTargetException | NoSuchElementException e) {
-            int resource = Resources.STR_LOG_FKEY_ADD_UNSPECIFIED_ERROR;
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_INVALID_SQL_DATA_TYPE.text(), 0, e);
+        String name = getElementName(descriptor);
+        if (createNewKey(descriptor, name)) {
+            key = createNewElement(descriptor, name);
         }
         return key;
     }
 
     private void checkKeyAppendValid(XPropertySet descriptor)
-        throws WrappedTargetException, NoSuchElementException, SQLException {
+        throws java.sql.SQLException {
         boolean failed = true;
         ColumnSuper col1 = null;
         ColumnSuper col2 = null;
@@ -271,15 +207,15 @@ public final class KeyContainer
         TableContainerSuper<?> tables = mTable.getConnection().getTablesInternal();
         System.out.println("sdbcx.KeyContainer.appendElement() 3");
         if (tables.hasByName(table)) {
-            ColumnContainerBase<?> columns2 = tables.getElement(table).getColumnsInternal();
+            ColumnContainerBase<?> columns2 = tables.getElementByName(table).getColumnsInternal();
             for (String foreign : columns.keySet()) {
                 System.out.println("sdbcx.KeyContainer.appendElement() 3");
                 String column = columns.get(foreign);
                 System.out.println("sdbcx.KeyContainer.appendElement() 4");
                 if (column != null && columns1.hasByName(foreign) && columns2.hasByName(column)) {
                     System.out.println("sdbcx.KeyContainer.appendElement() 5");
-                    col1 = columns1.getElement(foreign);
-                    col2 = columns2.getElement(column);
+                    col1 = columns1.getElementByName(foreign);
+                    col2 = columns2.getElementByName(column);
                     System.out.println("sdbcx.KeyContainer.appendElement() 6");
                     if (col1.getTypeInternal() == col2.getTypeInternal()) {
                         System.out.println("sdbcx.KeyContainer.appendElement() 7");
@@ -296,69 +232,58 @@ public final class KeyContainer
                                                                                    col1.getName(),
                                                                                    col2.getTypeNameInternal(),
                                                                                    col2.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_ERROR_UNSPECIFIED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_ERROR_UNSPECIFIED.text());
         }
     }
 
     private boolean createNewKey(XPropertySet descriptor, String key)
-            throws SQLException {
-        String query = null;
-        String name = null;
-        ComposeRule rule = ComposeRule.InIndexDefinitions;
+        throws java.sql.SQLException {
         Provider provider = getConnection().getProvider();
         int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-        NamedComponents table = mTable.getNamedComponents();
-
         if (type == KeyType.PRIMARY && !provider.getConfigDDL().supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
         if (type == KeyType.FOREIGN && !provider.getConfigDDL().supportsAlterForeignKey()) {
             int resource = Resources.STR_LOG_FKEY_ADD_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
+        int res1, res2;
+        if (type == KeyType.PRIMARY) {
+            res1 = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
+            res2 = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY_ERROR;
+        } else {
+            res1 = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY;
+            res2 = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY_ERROR;
+        }
+        return createNewKey(provider, descriptor, key, res1, res2);
+    }
 
+    private boolean createNewKey(Provider provider, XPropertySet descriptor, String key, int res1, int res2)
+        throws java.sql.SQLException {
+        String query = null;
+        ComposeRule rule = ComposeRule.InIndexDefinitions;
+        String name = mTable.composeTableName(rule);
         try {
-            name = DBTools.buildName(provider, table, rule);
+            NamedComponents table = mTable.getNamedComponents();
             query = ConstraintHelper.getCreateConstraintQuery(provider, descriptor, table,
                                                               key, rule, isCaseSensitive());
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
-            int resource = getCreateKeyResource(type, false);
-            getLogger().logprb(LogLevel.INFO, resource, key, name, query);
+            getLogger().logprb(LogLevel.INFO, res1, key, name, query);
             return DBTools.executeSQLQuery(provider, query);
         } catch (java.sql.SQLException e) {
-            int resource = getCreateKeyResource(type, true);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, key, name, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, key, name, query);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         } catch (IllegalArgumentException e) {
-            int resource = getCreateKeyResource(type, true);
-            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, key, name, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, key, name, query);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
-    }
-
-    private int getCreateKeyResource(int type, boolean error) {
-        int resource = 0;
-        if (type == KeyType.PRIMARY) {
-            if (error) {
-                resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY_ERROR;
-            } else {
-                resource = Resources.STR_LOG_KEYS_CREATE_PKEY_QUERY;
-            }
-        } else {
-            if (error) {
-                resource = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY_ERROR;
-            } else {
-                resource = Resources.STR_LOG_KEYS_CREATE_FKEY_QUERY;
-            }
-        }
-        return resource;
     }
 
     private Key createNewElement(XPropertySet descriptor, String oldname)
-        throws SQLException {
+        throws java.sql.SQLException {
         try {
             // XXX: Find the name which the database gave the new key
             final int PK_NAME = 6;
@@ -393,11 +318,8 @@ public final class KeyContainer
             }
             String[] columns = ConstraintHelper.getKeyColumns(provider, descriptor, PropertyIds.NAME, false);
             return new Key(mTable, refTable, isCaseSensitive(), newname, type, update, delete, columns);
-        } catch (java.sql.SQLException e) {
-            throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | ElementExistException e) {
-            throw DBTools.getSQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(),
-                                                                                             0, (Exception) e);
+        } catch (java.sql.SQLException | UnknownPropertyException | PropertyVetoException | WrappedTargetException e) {
+            throw new java.sql.SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -417,10 +339,10 @@ public final class KeyContainer
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         String query = null;
         String table = null;
-        Key key = getElement(index);
+        Key key = getElementByIndex(index);
         final int type;
         if (key != null) {
             type = key.getTypeInternal();
@@ -431,12 +353,12 @@ public final class KeyContainer
         if (type == KeyType.PRIMARY && !provider.getConfigDDL().supportsAlterPrimaryKey()) {
             int resource = Resources.STR_LOG_PKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
         if (type == KeyType.FOREIGN && !provider.getConfigDDL().supportsAlterForeignKey()) {
             int resource = Resources.STR_LOG_FKEY_REMOVE_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, mTable.getName());
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
         ComposeRule rule = ComposeRule.InTableDefinitions;
         try {
@@ -463,7 +385,7 @@ public final class KeyContainer
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, resource,
                                                                                    key, table, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
@@ -487,39 +409,13 @@ public final class KeyContainer
 
     @Override
     protected void refreshInternal() {
+        System.out.println("sdbcx.KeyContainer.refreshInternal() *********************************");
         mTable.refreshKeys();
     }
 
     @Override
     protected XPropertySet createDescriptor() {
         return new KeyDescriptor(isCaseSensitive());
-    }
-
-
-    private static boolean isValidForeingKey(java.sql.ResultSet result, String name)
-        throws java.sql.SQLException {
-        return !result.wasNull() && !name.isEmpty();
-    }
-
-    // XXX: Private helper function
-    private static class ForeignKeyProperties {
-        int mUpdate;
-        int mDelete;
-        NamedComponents mTable;
-        List<String> mColumns = new ArrayList<>();
-
-        private ForeignKeyProperties(NamedComponents table,
-                                     int update,
-                                     int delete)
-            throws java.sql.SQLException {
-            mTable = table;
-            mUpdate = update;
-            mDelete = delete;
-        }
-
-        private String[] getColumns() {
-            return mColumns.toArray(new String[0]);
-        }
     }
 
 }

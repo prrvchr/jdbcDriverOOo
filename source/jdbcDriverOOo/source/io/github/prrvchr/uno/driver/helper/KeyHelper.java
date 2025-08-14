@@ -27,6 +27,7 @@ package io.github.prrvchr.uno.driver.helper;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,21 +49,137 @@ import io.github.prrvchr.uno.driver.provider.PropertyIds;
 
 public class KeyHelper {
 
+
+    public static String[] getPrimaryKeyColumns(Provider provider,
+                                                NamedComponents table,
+                                                String keyname) {
+        String[] columns = null;
+        try {
+            DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            columns = readPrimaryKeyColumns(metadata, table, keyname);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return columns;
+    }
+
+    public static String[] readPrimaryKeyColumns(DatabaseMetaData metadata,
+                                                 NamedComponents table,
+                                                 String keyname)
+        throws java.sql.SQLException {
+        final int COLUMN_NAME = 4;
+        final int PK_NAME = 6;
+        ArrayList<String> cols = new ArrayList<>();
+        String name = null;
+        boolean fetched = false;
+        int type = KeyType.PRIMARY;
+        try (ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
+            while (result.next()) {
+                String column = result.getString(COLUMN_NAME);
+                cols.add(column);
+                if (!fetched) {
+                    fetched = true;
+                    String pk = result.getString(PK_NAME);
+                    name = getKeyName(pk, table.getTable(), type);
+                }
+            }
+        }
+        String[] columns = null;
+        if (name != null && name.equals(keyname)) {
+            columns = cols.toArray(new String[0]);
+        }
+        return columns;
+    }
+
+    public static final String[] getForeignKeyColumns(Provider provider,
+                                                      NamedComponents table,
+                                                      String keyname) {
+        String[] columns = null;
+        DatabaseMetaData metadata;
+        try {
+            metadata = provider.getConnection().getMetaData();
+            ForeignKeyProperties properties = getForeignKeyProperties(metadata, table, keyname);
+            columns = properties.getColumns();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return columns;
+    }
+
+    public static final ForeignKeyProperties getForeignKeyProperties(DatabaseMetaData metadata,
+                                                                     NamedComponents table,
+                                                                     String keyname)
+        throws java.sql.SQLException {
+        String oldname = "";
+        final int PKTABLE_CAT = 1;
+        final int PKTABLE_SCHEM = 2;
+        final int PKTABLE_NAME = 3;
+        final int FKCOLUMN_NAME = 8;
+        final int UPDATE_RULE = 10;
+        final int DELETE_RULE = 11;
+        final int FK_NAME = 12;
+
+        ForeignKeyProperties properties = null;
+        try (ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
+            while (result.next()) {
+                NamedComponents component = new NamedComponents();
+                String value = result.getString(PKTABLE_CAT);
+                if (!result.wasNull()) {
+                    component.setCatalog(value);
+                }
+                value = result.getString(PKTABLE_SCHEM);
+                if (!result.wasNull()) {
+                    component.setSchema(value);
+                }
+                component.setTable(result.getString(PKTABLE_NAME));
+                String column = result.getString(FKCOLUMN_NAME);
+                int update = result.getInt(UPDATE_RULE);
+                int delete = result.getInt(DELETE_RULE);
+                String name = result.getString(FK_NAME);
+
+                if (isValidForeingKey(result, name)) {
+                    if (!oldname.equals(name)) {
+                        if (properties != null && oldname.equals(keyname)) {
+                            break;
+                        }
+                        properties = new ForeignKeyProperties(component, update, delete);
+                        properties.mColumns.add(column);
+                        oldname = name;
+                    } else if (properties != null) {
+                        properties.mColumns.add(column);
+                    }
+                }
+            }
+        }
+        if (!oldname.equals(keyname)) {
+            properties = null;
+        }
+        return properties;
+    }
+
+
+
     public static String getKeyFromDescriptor(XPropertySet descriptor,
                                               Map<String, String> ref)
-        throws WrappedTargetException, NoSuchElementException {
+        throws java.sql.SQLException {
         String table = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
         if (supplier != null) {
             XNameAccess columns = UnoRuntime.queryInterface(XNameAccess.class, supplier.getColumns());
-            for (String foreign : columns.getElementNames()) {
-                if (columns.hasByName(foreign)) {
-                    XPropertySet column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByName(foreign));
-                    if (column != null) {
-                        String primay = DBTools.getDescriptorStringValue(column, PropertyIds.RELATEDCOLUMN);
-                        ref.put(foreign, primay);
+            try {
+                for (String foreign : columns.getElementNames()) {
+                    if (columns.hasByName(foreign)) {
+                        XPropertySet column;
+                        column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByName(foreign));
+                        if (column != null) {
+                            String primay = DBTools.getDescriptorStringValue(column, PropertyIds.RELATEDCOLUMN);
+                            ref.put(foreign, primay);
+                        }
                     }
                 }
+            } catch (NoSuchElementException | WrappedTargetException e) {
+                e.printStackTrace();
+                throw new java.sql.SQLException(e);
             }
         }
         return table;
@@ -217,5 +334,32 @@ public class KeyHelper {
         }
         return name;
     }
+
+    private static boolean isValidForeingKey(java.sql.ResultSet result, String name)
+        throws java.sql.SQLException {
+        return !result.wasNull() && !name.isEmpty();
+    }
+
+    // XXX: Private helper function
+    public static class ForeignKeyProperties {
+        public int mUpdate;
+        public int mDelete;
+        public NamedComponents mTable;
+        public List<String> mColumns = new ArrayList<>();
+
+        private ForeignKeyProperties(NamedComponents table,
+                                     int update,
+                                     int delete)
+            throws java.sql.SQLException {
+            mTable = table;
+            mUpdate = update;
+            mDelete = delete;
+        }
+
+        public String[] getColumns() {
+            return mColumns.toArray(new String[0]);
+        }
+    }
+
 
 }
