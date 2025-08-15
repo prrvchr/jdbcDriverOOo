@@ -78,4 +78,12 @@ public final class ResultSet
         return mLogger;
     }
 
+    // com.sun.star.sdbc.XCloseable
+    @Override
+    public synchronized void close() throws SQLException {
+        System.out.println("ResultSet.close() close ResultSet: " + getMethod());
+        mConnection.closeResultSet(getMethod());
+        super.close();
+    }
+
 }

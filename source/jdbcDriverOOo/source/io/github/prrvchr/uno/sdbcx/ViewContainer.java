@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +33,7 @@ import java.util.Map;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.CheckOption;
-import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.DBTools;
@@ -55,8 +54,8 @@ public final class ViewContainer
 
     // The constructor method:
     public ViewContainer(ConnectionSuper connection,
-                         boolean sensitive,
-                         List<String> names)
+                         String[] names,
+                         boolean sensitive)
         throws ElementExistException {
         super(SERVICE, SERVICES, connection, sensitive, names, LoggerObjectType.VIEWCONTAINER);
     }
@@ -81,10 +80,10 @@ public final class ViewContainer
                 tables.insertElement(name, null);
                 created = true;
             }
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         return created;
     }
@@ -94,12 +93,12 @@ public final class ViewContainer
         throws SQLException {
         try {
             return createView(name, ComposeRule.InDataManipulation);
-        } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        } catch (SQLException e) {
+            throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
-    private View createView(String name, ComposeRule rule) throws java.sql.SQLException {
+    private View createView(String name, ComposeRule rule) throws SQLException {
         int option = CheckOption.NONE;
         String command = "";
         Provider provider = getConnection().getProvider();
@@ -136,7 +135,7 @@ public final class ViewContainer
     }
 
     private String getViewCheckOption(java.sql.ResultSet result,
-                                      String value) throws java.sql.SQLException {
+                                      String value) throws SQLException {
         if (result.getMetaData().getColumnCount() > 1) {
             value = result.getString(2);
         }
@@ -158,9 +157,9 @@ public final class ViewContainer
     protected void removeDataBaseElement(int index,
                                          String name)
         throws SQLException {
-        View view = (View) getElement(index);
+        View view = (View) getElementByIndex(index);
         if (view == null) {
-            throw new SQLException("Error", this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+            throw new SQLException("Error", StandardSQLState.SQL_GENERAL_ERROR.text());
         }
         removeView(view);
     }
@@ -173,13 +172,13 @@ public final class ViewContainer
             ComposeRule rule = ComposeRule.InTableDefinitions;
             Provider provider = getConnection().getProvider();
             String table = DBTools.buildName(provider, view.getNamedComponents(), rule, isCaseSensitive());
-            query = DBTools.getDropViewCommand(provider, table);
+            query = provider.getConfigDDL().getDropViewCommand(ParameterDDL.getDropView(table));
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
             DBTools.executeSQLQuery(provider, query);
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, view.getName(), query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 

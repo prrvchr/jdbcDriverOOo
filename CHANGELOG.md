@@ -376,7 +376,48 @@ In order to avoid any regressions on extensions using jdbcDriverOOo:
 - JDBC drivers can be added to the Java ClassPath when they are loaded. This option is even required for the Jaybird 6.0.2 driver to work properly in embedded mode.
 - To ensure consistent driver loading, drivers are now loaded only using the `Class.forName()` method and then registered in `java.sql.DriverManager`.
 
-### What remains to be done for version 1.5.5:
+### What has been done for version 1.5.6:
+
+Integration of the [Oracle JDBC driver][112] `ojdbc17.jar`. This integration required the following modifications to the underlying code:
+- Added two additional parameters to the `Drivers.xcu` file:
+  - `QuotedMetaData`, which forces quotes on identifier names if they are not uppercase for method `DatabaseMetaData.getIndexInfo()`.
+  - `CompletedMetaData`, which determines whether the underlying driver provides ResultSets with missing metadata.
+- [QueryHelper][113] is now able to determine whether the executed SQL query is a `SELECT` query on a single table.
+- If so, when constructing an XResultSet, [QueryHelper][113] provides the fully qualified table name used in the SQL `SELECT` query to the `CachedRowSet` emulating this XResultSet.
+- When initializing this CachedRowSet, missing data from the Oracle driver's ResultSet metadata (ie: `getTableName(int index)` and `getSchemaName(int index)`) will be extracted from the table name and assigned to the CachedRowSet's metadata.
+
+Due to these limitations of the Oracle driver, only ResultSets from SQL `SELECT` queries that apply to a single table will be editable in LibreOffice Base.
+
+The implementation of containers for tables, views, columns, indexes, keys, users, groups and descriptors has been completely redesigned. Now containers delegate the management of their elements to three classes implementing the [BiMap][114] interface:
+- [BiMapMain][115] allows element management using two `java.util.List` lists. This implementation will list elements in insertion order and allows duplicate management.
+- [BiMapBase][116] allows element management using three `java.util.List` lists and one `java.util.Set` set. This implementation will list elements using a comparator that can take case-sensitive elements into account when sorting. It will reject duplicate insertions.
+- [BiMapSuper][117] allows element management through the use of one list `java.util.List`, one set `java.util.Set` and one `BiMap`. This implementation allows to manage a sublist of elements coming from a `BiMap` interface implementation instance. It is this which ensures the management of groups and/or users for a given group and/or user.
+
+As for the containers themselves, they now use one of the previous classes implementing `BiMap` depending on their needs. This choice is made in one of the following four containers and according to their class inheritance level:
+- [ContainerMain][118] uses `BiMapMain` and implements the UNO interfaces: `XNameAccess`, `XIndexAccess` and `XEnumerationAccess`. It allows management of `ResultColumn` elements.
+- [ContainerBase][119] extends the previous class and implements the UNO interfaces: `XAppend`, `XDrop`, `XDataDescriptorFactory` and `XRefreshable`. This container has the particularity of allowing addition and deletion, and allows management of `Column`, `Index`, `Key` elements and their associated `Descriptor` services.
+- [ContainerSuper][120] uses `BiMapBase` and extends the previous class. It does not implement any additional interfaces and allows the management of the following elements: `Table`, `View`, `User`, and `Group`.
+- [RoleContainer][121] uses `BiMapSuper` and extends the previous class. It is simply a facade for filtering the contents of the `UserContainer` and `GroupContainer` containers to allow the management of users and roles belonging to a group and/or user.
+
+The creation of the three classes implementing the `BiMap` interface now allows all containers to inherit from the parent `ContainerMain` class, which was not possible until now. This greatly simplifies the implementation of containers, which have been able to get rid of all this machinery. Everything has become so much simpler that I don't understand why I didn't think of it sooner?  
+Furthermore, regarding users and roles, this new implementation will guarantee:
+- That there is only one instance of the `Group` or `User` class per user or role, regardless of their access.
+- That any necessary updates following the deletion of a user or role are performed by a new [RoleListener][122].
+
+On this same principle, it would be possible to have only one instance of a loaded column, whether it is accessed through a `Table` or a `ResultSet`. Something to think about...
+
+The refresh management following the creation or deletion of an element has problems in LibreOffice Base, see issue [tdf#167920][123]. I don't know yet how to proceed to get rid of this. Use of listener or that Base uses the `XRefresable` interface supported by the containers after any modification requiring it. In the second case it is the code of LibreOffice Base which remains to be improved. In the meantime, to work around this problem I advise you to manually refresh LibreOffice Base via the menu **View -> Refresh tables** after any insertion or deletion.
+
+Many small fixes:
+- `CachedRowSet` now allows inserting records with null values if the columns allow it.
+- The `cancelRowUpdates` method of the `CachedRowSetImpl` class now supports execution on an empty `RowSet`. This is necessary to work around issue [tdf#167434][124].
+- It is again possible to add a column to an existing table with SQLite.
+
+Supporting an additional driver like Oracle's requires a lot of work for functionality testing. I'm counting on you to report any issues, as tracking down these issues is the most time-consuming task. Thanks in advance.
+
+If you use multiple accounts to connect to a database, you will not be able to reconnect to that database again if you opened it with an account other than the one offered and then closed it without saving the file. You must restart LibreOffice. See [tdf#167960][125].
+
+### What remains to be done for version 1.5.6:
 
 - Add new languages for internationalization...
 
@@ -493,3 +534,17 @@ In order to avoid any regressions on extensions using jdbcDriverOOo:
 [109]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
 [110]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
 [111]: <https://prrvchr.github.io/JaybirdEmbedded/>
+[112]: <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html>
+[113]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/helper/QueryHelper.java>
+[114]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMap.java>
+[115]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMapMain.java>
+[116]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMapBase.java>
+[117]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/driver/container/BiMapSuper.java>
+[118]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerMain.java>
+[119]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerBase.java>
+[120]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/ContainerSuper.java>
+[121]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleContainer.java>
+[122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleListener.java>
+[123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
+[124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
+[125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>

@@ -45,9 +45,12 @@
  *************************************************************/
 package io.github.prrvchr.uno.driver.helper;
 
+import java.util.Map;
+
 import com.sun.star.beans.XPropertySet;
 
 import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.config.ParameterDCL;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 
 
@@ -59,7 +62,7 @@ public class RoleHelper {
      *    The driver provider.
      * @param descriptor
      *    The descriptor of the new user.
-     * @param name
+     * @param user
      *    The name of the new user.
      * @param sensitive
      *    Is the name case sensitive.
@@ -70,13 +73,12 @@ public class RoleHelper {
      */
     public static String getCreateUserCommand(Provider provider,
                                               XPropertySet descriptor,
-                                              String name,
+                                              String user,
                                               boolean sensitive)
         throws java.sql.SQLException {
         String password = DBTools.getDescriptorStringValue(descriptor, PropertyIds.PASSWORD);
-        name = provider.enquoteIdentifier(name, sensitive);
-        password = provider.enquoteLiteral(password);
-        return provider.getConfigDCL().getCreateUserCommand(name, password);
+        Map<String, Object> arguments = ParameterDCL.getUserArguments(provider, user, password, sensitive);
+        return provider.getConfigDCL().getCreateUserCommand(arguments);
     }
 
     /** creates a SQL DROP USER statement.
@@ -93,8 +95,8 @@ public class RoleHelper {
      * @throws java.sql.SQLException 
      */
     public static String getDropUserCommand(Provider provider,
-                                          String name,
-                                          boolean sensitive)
+                                            String name,
+                                            boolean sensitive)
         throws java.sql.SQLException {
         name = provider.enquoteIdentifier(name, sensitive);
         return provider.getConfigDCL().getDropUserCommand(name);
@@ -104,7 +106,7 @@ public class RoleHelper {
      *
      * @param provider
      *    The driver provider.
-     * @param name
+     * @param user
      *    The name of the user.
      * @param password
      *    The new password of the user.
@@ -116,13 +118,12 @@ public class RoleHelper {
      * @throws java.sql.SQLException 
      */
     public static String getChangeUserPasswordCommand(Provider provider,
-                                                      String name,
+                                                      String user,
                                                       String password,
                                                       boolean sensitive)
         throws java.sql.SQLException {
-        name = provider.enquoteIdentifier(name, sensitive);
-        password = provider.enquoteLiteral(password);
-        return provider.getConfigDCL().getAlterUserCommand(name, password);
+        Map<String, Object> arguments = ParameterDCL.getUserArguments(provider, user, password, sensitive);
+        return provider.getConfigDCL().getAlterUserCommand(arguments);
     }
 
     /** creates a SQL CREATE ROLE statement.

@@ -25,7 +25,9 @@
 */
 package io.github.prrvchr.uno.sdbc;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import com.sun.star.beans.PropertyValue;
@@ -68,6 +70,7 @@ public abstract class ConnectionBase
     private final String[] mServices;
     private final Provider mProvider;
     private final WeakMap<StatementMain, StatementMain> mStatements = new WeakMap<StatementMain, StatementMain>();
+    private final List<String> mOpenResultSet = new ArrayList<>();
 
     // The constructor method:
     protected ConnectionBase(XComponentContext ctx,
@@ -94,22 +97,40 @@ public abstract class ConnectionBase
         return mStatements;
     }
 
+    protected void addResultSet(String name) {
+        mOpenResultSet.add(name);
+    }
+
+    protected void closeResultSet(String name) {
+        if (mOpenResultSet.contains(name)) {
+            mOpenResultSet.remove(name);
+        }
+    }
+
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing() {
+    public synchronized void dispose() {
+        if (!mOpenResultSet.isEmpty()) {
+            System.out.println("Connection.dispose() Open ResultSet: " + String.join(", ", mOpenResultSet));
+        } else {
+            System.out.println("Connection.dispose() No ResultSet Open...");
+        }
+
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CONNECTION_SHUTDOWN);
         try {
             for (Iterator<StatementMain> it = mStatements.keySet().iterator(); it.hasNext();) {
                 StatementMain statement = it.next();
+                System.out.println("Connection.dispose() dispose statement: " + statement.mQuery.toString());
                 it.remove();
                 statement.dispose();
             }
             getProvider().closeConnection();
         } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             getLogger().logp(LogLevel.WARNING, e);
-            System.out.println("Connection.postDisposing() ERROR:\n" + UnoHelper.getStackTrace(e));
+            System.out.println("Connection.dispose() ERROR:\n" + UnoHelper.getStackTrace(e));
         }
-        super.postDisposing();
+        super.dispose();
     }
 
     // com.sun.star.lang.XServiceInfo:
@@ -178,7 +199,7 @@ public abstract class ConnectionBase
     }
 
     @Override
-    public void close()
+    public synchronized void close()
         throws SQLException {
         dispose();
     }
@@ -393,9 +414,20 @@ public abstract class ConnectionBase
     protected final synchronized void checkDisposed() {
         if (bInDispose || bDisposed) {
             String msg = "sdbc.ConnectionBase.checkDisposed() ERROR: **************************";
+            lastMethod();
             System.out.println(msg + this.getClass().getName());
             throw new DisposedException();
         }
+    }
+
+    private void lastMethod() { 
+        final int max = 4;
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        for (int i = 1; i < stackTraceElements.length && i <= max; i++) {
+            StackTraceElement stackTraceElement = stackTraceElements[i]; 
+            System.out.println(stackTraceElement.getClassName() + " Method " + stackTraceElement.getMethodName()); 
+            //$NON-NLS-1$`
+        } 
     }
 
 }

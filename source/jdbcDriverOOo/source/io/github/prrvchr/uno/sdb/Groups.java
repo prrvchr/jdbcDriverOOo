@@ -25,42 +25,42 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.sdbcx.RoleContainer;
 
+
 public final class Groups
     extends RoleContainer<Group> {
+
     private static final String SERVICE = Groups.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Groups",
                                               "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public Groups(Connection connection,
-                  boolean sensitive,
+                  Role owner,
+                  BiMap<Group> bimap,
+                  String[] names,
                   String role,
-                  List<String> names,
-                  boolean isrole)
-        throws ElementExistException {
-        super(SERVICE, SERVICES, connection, connection.getProvider(),
-              role, connection.getGroupsInternal(), sensitive, names, isrole,
-              getRoleName(isrole), LoggerObjectType.GROUPS);
+                  boolean sensitive,
+                  boolean isrole) {
+        // XXX: isrole lets you know the role that holds this class.
+        // XXX: Currently it is a role or a user
+        super(SERVICE, SERVICES, connection, owner, bimap, names,
+              role, sensitive, isrole, getRoleName(isrole), LoggerObjectType.GROUPS);
     }
 
-    private static final String getRoleName(boolean isrole) {
-        String name = null;
-        if (isrole) {
-            name = "";
-        }
-        return name;
+    protected Connection getConnection() {
+        return (Connection) mConnection;
     }
 
     protected ConnectionLog getLogger() {
@@ -83,13 +83,31 @@ public final class Groups
     }
 
     @Override
-    protected void refill(List<String> roles) {
+    protected void refill(String[] roles) {
         super.refill(roles);
     }
 
-    @Override
-    protected void removeElement(String name) {
-        super.removeElement(name);
+    protected Group createRoleElement(String name) throws SQLException {
+        if (!hasByName(name)) {
+            throw new SQLException();
+        }
+        try {
+            return getElementByName(name);
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e);
+        }
+    }
+
+    protected void removeContainerElement(String name, boolean dispose) {
+        super.removeContainerElement(name, dispose);
+    }
+
+    private static final String getRoleName(boolean isrole) {
+        String name = null;
+        if (isrole) {
+            name = "";
+        }
+        return name;
     }
 
 }

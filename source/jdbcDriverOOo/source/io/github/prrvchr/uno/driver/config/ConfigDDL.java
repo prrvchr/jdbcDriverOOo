@@ -542,6 +542,6 @@ public class ConfigDDL extends ConfigSQL {
     }
 
     private boolean getSupportsColumnDescription() {
-        return getPropertyBoolean(SUPPORTS_COLUMN_DESCRIPTION, true);
+        return getPropertyBoolean(SUPPORTS_COLUMN_DESCRIPTION, false);
     }
 }

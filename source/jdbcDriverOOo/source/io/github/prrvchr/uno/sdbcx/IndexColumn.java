@@ -49,10 +49,7 @@ public final class IndexColumn
 
 
     // The constructor method:
-    public IndexColumn(final String catalog,
-                       final String schema,
-                       final String table,
-                       final boolean sensitive,
+    public IndexColumn(final boolean sensitive,
                        final String name,
                        final String typename,
                        final String defaultvalue,
@@ -65,12 +62,18 @@ public final class IndexColumn
                        final boolean rowversion,
                        final boolean currency,
                        final boolean ascending) {
-        super(SERVICE, SERVICES, catalog, schema, table, sensitive, name, typename, defaultvalue,
+        super(SERVICE, SERVICES, sensitive, name, typename, defaultvalue,
               description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         mIsAscending = ascending;
         registerProperties();
     }
 
+    public IndexColumn(final ColumnMain column,
+                       final boolean ascending) {
+        super(SERVICE, SERVICES, column);
+        mIsAscending = ascending;
+        registerProperties();
+    }
 
     private void registerProperties() {
         Map<String, PropertyWrapper> properties = new HashMap<String, PropertyWrapper>();

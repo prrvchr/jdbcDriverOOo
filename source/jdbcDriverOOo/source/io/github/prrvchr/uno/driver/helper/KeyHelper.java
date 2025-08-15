@@ -25,13 +25,15 @@
 */
 package io.github.prrvchr.uno.driver.helper;
 
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.NoSuchElementException;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.lang.WrappedTargetException;
@@ -43,252 +45,70 @@ import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.sdbcx.Key;
-import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public class KeyHelper {
 
-    public static String getKeyFromDescriptor(XPropertySet descriptor,
-                                              Map<String, String> ref)
-        throws WrappedTargetException, NoSuchElementException {
-        String table = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
-        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
-        if (supplier != null) {
-            XNameAccess columns = UnoRuntime.queryInterface(XNameAccess.class, supplier.getColumns());
-            for (String foreign : columns.getElementNames()) {
-                if (columns.hasByName(foreign)) {
-                    XPropertySet column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByName(foreign));
-                    if (column != null) {
-                        String primay = DBTools.getDescriptorStringValue(column, PropertyIds.RELATEDCOLUMN);
-                        ref.put(foreign, primay);
-                    }
-                }
-            }
+
+    public static String[] getPrimaryKeyColumns(Provider provider,
+                                                NamedComponents table,
+                                                String keyname) {
+        String[] columns = null;
+        try {
+            DatabaseMetaData metadata = provider.getConnection().getMetaData();
+            columns = readPrimaryKeyColumns(metadata, table, keyname);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return table;
+        return columns;
     }
 
-
-    public static List<String> refreshKeys(Provider provider,
-                                           NamedComponents table)
-        throws java.sql.SQLException,
-               ElementExistException {
-        List<String> keys = new ArrayList<>();
-        refreshPrimaryKeys(keys, provider, table);
-        refreshForeignKeys(keys, provider, table);
-        return keys;
-    }
-
-    public static Key readKey(Provider provider,
-                              TableSuper table,
-                              NamedComponents component,
-                              String keyname,
-                              ComposeRule rule,
-                              boolean sensitive)
-        throws java.sql.SQLException,
-               ElementExistException {
-        Key key = readPrimaryKey(provider, table, component, keyname, sensitive);
-        if (key == null) {
-            key = readForeignKey(provider, table, component, keyname, rule, sensitive);
-        }
-        return key;
-    }
-
-    public static String getKeyName(String name,
-                                    String table,
-                                    int type) {
-        return getKeyName(name, getKeyPrefix(type), table);
-    }
-
-    public static Map<String, List<String>> getExportedTablesColumns(Provider provider,
-                                                                     NamedComponents table,
-                                                                     String column,
-                                                                     ComposeRule rule)
-        throws java.sql.SQLException {
-        // XXX: Here we need to retrieve all tables having this table / column as foreign key.
-        final int PKCOLUMN_NAME = 4;
-        final int FKTABLE_CAT = 5;
-        final int FKTABLE_SCHEM = 6;
-        final int FKTABLE_NAME = 7;
-        final int FKCOLUMN_NAME = 8;
-        Map<String, List<String>> tables = new TreeMap<String, List<String>>();
-        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getExportedKeys(table.getCatalog(),
-                                                                                                table.getSchema(),
-                                                                                                table.getTable())) {
-            while (result.next()) {
-                String value = result.getString(PKCOLUMN_NAME);
-                if (!result.wasNull() && column.equals(value)) {
-                    NamedComponents component = new NamedComponents();
-                    value = result.getString(FKTABLE_CAT);
-                    if (!result.wasNull()) {
-                        component.setCatalog(value);
-                    }
-                    value = result.getString(FKTABLE_SCHEM);
-                    if (!result.wasNull()) {
-                        component.setSchema(value);
-                    }
-                    component.setTable(result.getString(FKTABLE_NAME));
-                    String name = DBTools.buildName(provider, component, rule);
-                    value = result.getString(FKCOLUMN_NAME);
-                    if (!tables.containsKey(name)) {
-                        tables.put(name, List.of(value));
-                    } else {
-                        tables.get(name).add(value);
-                    }
-                }
-            }
-        }
-        return tables;
-    }
-
-    public static List<String> getExportedTables(Provider provider,
+    public static String[] readPrimaryKeyColumns(DatabaseMetaData metadata,
                                                  NamedComponents table,
-                                                 ComposeRule rule)
+                                                 String keyname)
         throws java.sql.SQLException {
-        // XXX: Here we need to retrieve all tables having this table as foreign key.
-        final int PKCOLUMN_NAME = 4;
-        final int FKTABLE_CAT = 5;
-        final int FKTABLE_SCHEM = 6;
-        final int FKTABLE_NAME = 7;
-        List<String> tables = new ArrayList<>();
-        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getExportedKeys(table.getCatalog(),
-                                                                                                table.getSchema(),
-                                                                                                table.getTable())) {
-            while (result.next()) {
-                String value = result.getString(PKCOLUMN_NAME);
-                if (!result.wasNull()) {
-                    NamedComponents component = new NamedComponents();
-                    value = result.getString(FKTABLE_CAT);
-                    if (!result.wasNull()) {
-                        component.setCatalog(value);
-                    }
-                    value = result.getString(FKTABLE_SCHEM);
-                    if (!result.wasNull()) {
-                        component.setSchema(value);
-                    }
-                    component.setTable(result.getString(FKTABLE_NAME));
-                    String name = DBTools.buildName(provider, component, rule);
-                    if (!tables.contains(name)) {
-                        tables.add(name);
-                    }
-                }
-            }
-        }
-        return tables;
-    }
-
-
-    // XXX: Private helper function
-    private static class ForeignKeyProperties {
-        ArrayList<String> mColumns = new ArrayList<>();
-        String mTable;
-        int mUpdate;
-        int mDelete;
-
-        ForeignKeyProperties(Provider provider,
-                             NamedComponents table,
-                             ComposeRule rule,
-                             int update,
-                             int delete)
-            throws java.sql.SQLException {
-            mTable = DBTools.buildName(provider, table, rule);
-            mUpdate = update;
-            mDelete = delete;
-        }
-    }
-
-    private static void refreshPrimaryKeys(List<String> keys,
-                                           Provider provider,
-                                           NamedComponents table)
-        throws java.sql.SQLException {
-        int type = KeyType.PRIMARY;
-        final int PK_NAME = 6;
-        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getPrimaryKeys(table.getCatalog(),
-                                                                                               table.getSchema(),
-                                                                                               table.getTable())) {
-            // XXX: There can only be one primary key per table.
-            if (result.next()) {
-                String pk = result.getString(PK_NAME);
-                keys.add(getKeyName(pk, table.getTable(), type));
-            }
-        }
-    }
-
-    private static void refreshForeignKeys(List<String> keys,
-                                           Provider provider,
-                                           NamedComponents table)
-        throws java.sql.SQLException {
-        String previous = "";
-        final int FK_NAME = 12;
-        try (java.sql.ResultSet result = provider.getConnection().getMetaData().getImportedKeys(table.getCatalog(),
-                                                                                                table.getSchema(),
-                                                                                                table.getTable())) {
-            while (result.next()) {
-                String name = result.getString(FK_NAME);
-                if (!result.wasNull() && !name.equals(previous)) {
-                    keys.add(name);
-                    previous = name;
-                }
-            }
-        }
-    }
-
-    private static Key readPrimaryKey(Provider provider,
-                                      TableSuper table,
-                                      NamedComponents component,
-                                      String keyname,
-                                      boolean sensitive)
-        throws java.sql.SQLException,
-               ElementExistException {
-        Key key = null;
         final int COLUMN_NAME = 4;
         final int PK_NAME = 6;
-        ArrayList<String> columns = new ArrayList<>();
+        ArrayList<String> cols = new ArrayList<>();
         String name = null;
         boolean fetched = false;
         int type = KeyType.PRIMARY;
-        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-        try (java.sql.ResultSet result = metadata.getPrimaryKeys(component.getCatalog(),
-                                                                 component.getSchema(),
-                                                                 component.getTable())) {
+        try (ResultSet result = metadata.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
             while (result.next()) {
                 String column = result.getString(COLUMN_NAME);
-                columns.add(column);
+                cols.add(column);
                 if (!fetched) {
                     fetched = true;
                     String pk = result.getString(PK_NAME);
-                    name = getKeyName(pk, component.getTable(), type);
+                    name = getKeyName(pk, table.getTable(), type);
                 }
             }
         }
+        String[] columns = null;
         if (name != null && name.equals(keyname)) {
-            key = new Key(table, sensitive, keyname, "", type, 0, 0, columns);
+            columns = cols.toArray(new String[0]);
         }
-        return key;
+        return columns;
     }
 
-    private static Key readForeignKey(Provider provider,
-                                      TableSuper table,
-                                      NamedComponents component,
-                                      String keyname,
-                                      ComposeRule rule,
-                                      boolean sensitive)
-        throws java.sql.SQLException,
-               ElementExistException {
-        Key key = null;
-        ForeignKeyProperties properties = getForeignKeyProperties(provider, component, keyname, rule);
-        if (properties != null) {
-            key = new Key(table, sensitive, keyname, properties.mTable, KeyType.FOREIGN,
-                          properties.mUpdate, properties.mDelete, properties.mColumns);
+    public static final String[] getForeignKeyColumns(Provider provider,
+                                                      NamedComponents table,
+                                                      String keyname) {
+        String[] columns = null;
+        DatabaseMetaData metadata;
+        try {
+            metadata = provider.getConnection().getMetaData();
+            ForeignKeyProperties properties = getForeignKeyProperties(metadata, table, keyname);
+            columns = properties.getColumns();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return key;
+        return columns;
     }
 
-    private static ForeignKeyProperties getForeignKeyProperties(Provider provider,
-                                                                NamedComponents component,
-                                                                String keyname,
-                                                                ComposeRule rule)
+    public static final ForeignKeyProperties getForeignKeyProperties(DatabaseMetaData metadata,
+                                                                     NamedComponents table,
+                                                                     String keyname)
         throws java.sql.SQLException {
         String oldname = "";
         final int PKTABLE_CAT = 1;
@@ -298,22 +118,20 @@ public class KeyHelper {
         final int UPDATE_RULE = 10;
         final int DELETE_RULE = 11;
         final int FK_NAME = 12;
+
         ForeignKeyProperties properties = null;
-        java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-        try (java.sql.ResultSet result = metadata.getImportedKeys(component.getCatalog(),
-                                                                  component.getSchema(),
-                                                                  component.getTable())) {
+        try (ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
             while (result.next()) {
-                NamedComponents fk = new NamedComponents();
+                NamedComponents component = new NamedComponents();
                 String value = result.getString(PKTABLE_CAT);
                 if (!result.wasNull()) {
-                    fk.setCatalog(value);
+                    component.setCatalog(value);
                 }
                 value = result.getString(PKTABLE_SCHEM);
                 if (!result.wasNull()) {
-                    fk.setSchema(value);
+                    component.setSchema(value);
                 }
-                fk.setTable(result.getString(PKTABLE_NAME));
+                component.setTable(result.getString(PKTABLE_NAME));
                 String column = result.getString(FKCOLUMN_NAME);
                 int update = result.getInt(UPDATE_RULE);
                 int delete = result.getInt(DELETE_RULE);
@@ -324,7 +142,7 @@ public class KeyHelper {
                         if (properties != null && oldname.equals(keyname)) {
                             break;
                         }
-                        properties = new ForeignKeyProperties(provider, fk, rule, update, delete);
+                        properties = new ForeignKeyProperties(component, update, delete);
                         properties.mColumns.add(column);
                         oldname = name;
                     } else if (properties != null) {
@@ -339,9 +157,157 @@ public class KeyHelper {
         return properties;
     }
 
-    private static boolean isValidForeingKey(java.sql.ResultSet result, String name)
+
+
+    public static String getKeyFromDescriptor(XPropertySet descriptor,
+                                              Map<String, String> ref)
         throws java.sql.SQLException {
-        return !result.wasNull() && !name.isEmpty();
+        String table = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
+        XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
+        if (supplier != null) {
+            XNameAccess columns = UnoRuntime.queryInterface(XNameAccess.class, supplier.getColumns());
+            try {
+                for (String foreign : columns.getElementNames()) {
+                    if (columns.hasByName(foreign)) {
+                        XPropertySet column;
+                        column = UnoRuntime.queryInterface(XPropertySet.class, columns.getByName(foreign));
+                        if (column != null) {
+                            String primay = DBTools.getDescriptorStringValue(column, PropertyIds.RELATEDCOLUMN);
+                            ref.put(foreign, primay);
+                        }
+                    }
+                }
+            } catch (NoSuchElementException | WrappedTargetException e) {
+                e.printStackTrace();
+                throw new java.sql.SQLException(e);
+            }
+        }
+        return table;
+    }
+
+    public static String[] refreshKeys(Provider provider,
+                                       NamedComponents table)
+        throws java.sql.SQLException {
+        List<String> keys = new ArrayList<>();
+        refreshPrimaryKeys(keys, provider, table);
+        refreshForeignKeys(keys, provider, table);
+        return keys.toArray(new String[0]);
+    }
+
+    public static String getKeyName(String name,
+                                    String table,
+                                    int type) {
+        return getKeyName(name, getKeyPrefix(type), table);
+    }
+
+    public static Map<String, List<String>> getExportedTablesColumns(Provider provider,
+                                                                     NamedComponents table,
+                                                                     String column,
+                                                                     ComposeRule rule)
+        throws java.sql.SQLException {
+        // XXX: Here we need to retrieve all tables having this table / column as foreign key.
+        String value, name;
+        final int PKCOLUMN_NAME = 4;
+        final int FKTABLE_CAT = 5;
+        final int FKTABLE_SCHEM = 6;
+        final int FKTABLE_NAME = 7;
+        final int FKCOLUMN_NAME = 8;
+        Map<String, List<String>> tables = new TreeMap<>();
+        DatabaseMetaData dbmd = provider.getConnection().getMetaData();
+        try (ResultSet result = dbmd.getExportedKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
+            while (result.next()) {
+                value = result.getString(PKCOLUMN_NAME);
+                if (!result.wasNull() && column.equals(value)) {
+                    NamedComponents component = new NamedComponents();
+                    value = result.getString(FKTABLE_CAT);
+                    if (!result.wasNull()) {
+                        component.setCatalog(value);
+                    }
+                    value = result.getString(FKTABLE_SCHEM);
+                    if (!result.wasNull()) {
+                        component.setSchema(value);
+                    }
+                    component.setTable(result.getString(FKTABLE_NAME));
+                    name = DBTools.buildName(provider, component, rule);
+                    value = result.getString(FKCOLUMN_NAME);
+                    if (!tables.containsKey(name)) {
+                        tables.put(name, new ArrayList<>());
+                    }
+                    tables.get(name).add(value);
+                }
+            }
+        }
+        return tables;
+    }
+
+    public static List<String> getExportedTables(Provider provider,
+                                                 NamedComponents table,
+                                                 ComposeRule rule)
+        throws java.sql.SQLException {
+        // XXX: Here we need to retrieve all tables having this table as foreign key.
+        String value, name;
+        final int PKCOLUMN_NAME = 4;
+        final int FKTABLE_CAT = 5;
+        final int FKTABLE_SCHEM = 6;
+        final int FKTABLE_NAME = 7;
+        List<String> tables = new ArrayList<>();
+        DatabaseMetaData dbmd = provider.getConnection().getMetaData();
+        try (ResultSet result = dbmd.getExportedKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
+            while (result.next()) {
+                value = result.getString(PKCOLUMN_NAME);
+                if (!result.wasNull()) {
+                    NamedComponents component = new NamedComponents();
+                    value = result.getString(FKTABLE_CAT);
+                    if (!result.wasNull()) {
+                        component.setCatalog(value);
+                    }
+                    value = result.getString(FKTABLE_SCHEM);
+                    if (!result.wasNull()) {
+                        component.setSchema(value);
+                    }
+                    component.setTable(result.getString(FKTABLE_NAME));
+                    name = DBTools.buildName(provider, component, rule);
+                    if (!tables.contains(name)) {
+                        tables.add(name);
+                    }
+                }
+            }
+        }
+        return tables;
+    }
+
+    private static void refreshPrimaryKeys(List<String> keys,
+                                           Provider provider,
+                                           NamedComponents table)
+        throws java.sql.SQLException {
+        int type = KeyType.PRIMARY;
+        final int PK_NAME = 6;
+        DatabaseMetaData dbmd = provider.getConnection().getMetaData();
+        try (ResultSet result = dbmd.getPrimaryKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
+            // XXX: There can only be one primary key per table.
+            if (result.next()) {
+                String pk = result.getString(PK_NAME);
+                keys.add(getKeyName(pk, table.getTable(), type));
+            }
+        }
+    }
+
+    private static void refreshForeignKeys(List<String> keys,
+                                           Provider provider,
+                                           NamedComponents table)
+        throws java.sql.SQLException {
+        String previous = "";
+        final int FK_NAME = 12;
+        DatabaseMetaData dbmd = provider.getConnection().getMetaData();
+        try (ResultSet result = dbmd.getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
+            while (result.next()) {
+                String name = result.getString(FK_NAME);
+                if (!result.wasNull() && !name.equals(previous)) {
+                    keys.add(name);
+                    previous = name;
+                }
+            }
+        }
     }
 
     private static String getKeyPrefix(int type) {
@@ -368,5 +334,32 @@ public class KeyHelper {
         }
         return name;
     }
+
+    private static boolean isValidForeingKey(java.sql.ResultSet result, String name)
+        throws java.sql.SQLException {
+        return !result.wasNull() && !name.isEmpty();
+    }
+
+    // XXX: Private helper function
+    public static class ForeignKeyProperties {
+        public int mUpdate;
+        public int mDelete;
+        public NamedComponents mTable;
+        public List<String> mColumns = new ArrayList<>();
+
+        private ForeignKeyProperties(NamedComponents table,
+                                     int update,
+                                     int delete)
+            throws java.sql.SQLException {
+            mTable = table;
+            mUpdate = update;
+            mDelete = delete;
+        }
+
+        public String[] getColumns() {
+            return mColumns.toArray(new String[0]);
+        }
+    }
+
 
 }

@@ -29,7 +29,7 @@
 
 **The use of this software subjects you to our [Terms Of Use][4]**
 
-# version [1.5.5][5]
+# version [1.5.6][5]
 
 ## Introduction:
 
@@ -47,7 +47,8 @@ It embeds the drivers for the following databases:
 - [Apache Derby][18] version 11.16.1.1
 - Firebird via [Jaybird][19] version 6.0.2 and [JaybirdEmbedded][20] version 1.0.0
 - [MySQL via Connector/J][21] version 9.3.0
-- [Trino or PrestoSQL][22] version 458-SNAPSHOT (currently being integrated, use with caution)
+- Oracle Database 23ai Free version 23ai (23.9.0.25.07) via [ojdbc17.jar][22].
+- [Trino or PrestoSQL][23] version 458-SNAPSHOT (currently being integrated, use with caution)
 
 Thanks to drivers providing an integrated database engine such as: HsqlDB, H2, SQLite, Derby or Jaybird, it is possible in Base to very easily create and manage databases, as easily as creating Writer documents.  
 You will find the information needed to create a database with these drivers in the section: [Connection URL][30]
@@ -314,7 +315,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_en>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-155>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-156>
 [6]: <https://prrvchr.github.io/>
 [7]: <https://www.libreoffice.org/download/download-libreoffice/>
 [8]: <https://www.openoffice.org/download/index.html>
@@ -331,7 +332,8 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [19]: <https://firebirdsql.org/en/jdbc-driver/>
 [20]: <https://prrvchr.github.io/JaybirdEmbedded/>
 [21]: <https://dev.mysql.com/downloads/connector/j/>
-[22]: <https://trino.io/docs/current/client/jdbc.html#installing>
+[22]: <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html>
+[23]: <https://trino.io/docs/current/client/jdbc.html#installing>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/#connection-url>
 [31]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
@@ -344,7 +346,7 @@ It also provides functionality that the JDBC driver implemented in LibreOffice d
 [39]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG#what-has-been-done-for-version-110>
 [40]: <img/jdbcDriverOOo.svg#middle>
 [41]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.5#right>
+[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.6#right>
 [43]: <img/jdbcDriverOOo-1.png>
 [44]: <img/jdbcDriverOOo-2.png>
 [45]: <img/jdbcDriverOOo-3.png>

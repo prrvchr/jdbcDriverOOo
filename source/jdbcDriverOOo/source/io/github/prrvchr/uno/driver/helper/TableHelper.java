@@ -47,6 +47,7 @@ package io.github.prrvchr.uno.driver.helper;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,14 +55,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.XIndexAccess;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.sdbc.ColumnValue;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
@@ -97,7 +96,7 @@ public class TableHelper {
         private boolean mIsRowversion;
 
         private ColumnProperties(String identifier1, String identifier2, String name)
-            throws java.sql.SQLException {
+            throws SQLException {
             mNewName = name;
             mOldIdentifier = identifier1;
             mNewIdentifier = identifier2;
@@ -110,16 +109,16 @@ public class TableHelper {
         }
 
         private ColumnProperties(String identifier, String name)
-                throws java.sql.SQLException {
+                throws SQLException {
             this(identifier, identifier, name);
         }
 
         ColumnProperties(Provider provider, String name, boolean sensitive)
-            throws java.sql.SQLException {
+            throws SQLException {
             this(provider.enquoteIdentifier(name, sensitive), name);
         }
         ColumnProperties(Provider provider, String name1, String name2, boolean sensitive)
-            throws java.sql.SQLException {
+            throws SQLException {
             // XXX: If it's a new column then name1 is empty...
             this(provider.enquoteIdentifier(getDefaultName(name1, name2), sensitive),
                  provider.enquoteIdentifier(name2, sensitive),
@@ -155,14 +154,14 @@ public class TableHelper {
             return builder.toString();
         }
 
-        public Map<String, Object> toArguments(String table)
-            throws java.sql.SQLException {
+        public Map<String, Object> toArguments(String tablename, String table)
+            throws SQLException {
             // XXX: We try to have arguments to be able to fill two query:
             // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${Column} ${Type} ${Default} ${Nullable} ${Autoincrement}
             // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${OldName} RENAME TO ${Column}
-            return ParameterDDL.getColumnProperties(table, mOldIdentifier, mNewIdentifier, mColumnType.toString(),
-                                                    mDefaultValue, mNotNull, mIsAutoincrement,
-                                                    mAutoincrement, toString());
+            return ParameterDDL.getColumnProperties(tablename, table, mOldIdentifier, mNewIdentifier,
+                                                    mColumnType.toString(), mDefaultValue, mNotNull,
+                                                    mIsAutoincrement, mAutoincrement, toString());
         }
 
         public boolean isRowVersion() {
@@ -195,10 +194,6 @@ public class TableHelper {
      * @return
      *   The CREATE TABLE statement.
      * @throws java.sql.SQLException
-     * @throws SQLException 
-     * @throws WrappedTargetException 
-     * @throws IndexOutOfBoundsException 
-     * @throws UnknownPropertyException 
      */
     public static List<String> getCreateTableQueries(Provider provider,
                                                      XPropertySet property,
@@ -206,8 +201,7 @@ public class TableHelper {
                                                      String type,
                                                      ComposeRule rule,
                                                      boolean sensitive)
-        throws java.sql.SQLException, SQLException, WrappedTargetException,
-               IndexOutOfBoundsException, UnknownPropertyException {
+        throws SQLException {
         XIndexAccess columns = null;
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, property);
         if (supplier != null) {
@@ -231,7 +225,7 @@ public class TableHelper {
                                                       String type,
                                                       ComposeRule rule,
                                                       boolean sensitive)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         List<String> queries = new ArrayList<>();
         List<String> parts = new ArrayList<>();
         List<String> versions = new ArrayList<>();
@@ -263,7 +257,7 @@ public class TableHelper {
                                                 final List<String> versions,
                                                 final String table,
                                                 final boolean sensitive)
-        throws SQLException, java.sql.SQLException {
+        throws SQLException {
         boolean hasAutoIncrement = false;
         try {
             for (int i = 0, count = columns.getCount(); i < count; i++) {
@@ -298,7 +292,7 @@ public class TableHelper {
                                                 XPropertySet descriptor,
                                                 String table,
                                                 boolean sensitive)
-        throws IllegalArgumentException, SQLException, java.sql.SQLException {
+        throws SQLException {
         boolean hasAutoIncrement = false;
         ColumnProperties column = getStandardColumnProperties(provider, descriptor, sensitive);
         if (provider.getConfigDDL().supportsColumnDescription()) {
@@ -326,7 +320,7 @@ public class TableHelper {
                                                     String column,
                                                     String comment,
                                                     boolean sensitive)
-        throws java.sql.SQLException {
+        throws SQLException {
         String name = DBTools.composeColumnName(provider, table, column, sensitive);
         comment = provider.enquoteLiteral(comment);
         Map<String, Object> arguments = ParameterDDL.getColumnDescription(name, comment);
@@ -347,7 +341,6 @@ public class TableHelper {
     * @param sensitive
     *      Is identifier case sensitive.
     * @throws java.sql.SQLException 
-    * @throws SQLException 
     */
     // XXX: This method is called from:
     // XXX: - ColumnContainerBase.createColumn() for any new column.
@@ -356,7 +349,7 @@ public class TableHelper {
                                            TableSuper table,
                                            XPropertySet descriptor,
                                            boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         // XXX: Create a new column
         String name = DBTools.composeTableName(provider, table, ComposeRule.InTableDefinitions, sensitive);
         ColumnProperties column = getStandardColumnProperties(provider, "", descriptor, sensitive);
@@ -411,26 +404,26 @@ public class TableHelper {
     *      The old column descriptor.
     * @param descriptor2
     *      The new column descriptor.
-    * @param name
+    * @param oldname
     *      The old the column name.
-    * @param autoincrement
-    *      Is the new column autoincrement.
+    * @param newname
+    *      The new the column name.
     * @return
     *      The binary status (ie: 1 -> renamed, 2 -> type changed ...) as int
     */
     public static int getAlterColumnChanges(XPropertySet descriptor1,
                                             XPropertySet descriptor2,
-                                            String name,
-                                            boolean autoincrement) {
+                                            String oldname,
+                                            String newname) {
         int changes = 0;
         // XXX: Column name have been changed?
-        String name2 = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.NAME);
-        if (!name.equals(name2)) {
+        if (!oldname.equals(newname)) {
             changes |= COLUMN_NAME;
         }
         // XXX: Identity have been changed?
         boolean auto1 = DBTools.getDescriptorBooleanValue(descriptor1, PropertyIds.ISAUTOINCREMENT);
-        if (auto1 != autoincrement) {
+        boolean auto2 = DBTools.getDescriptorBooleanValue(descriptor2, PropertyIds.ISAUTOINCREMENT);
+        if (auto1 != auto2) {
             changes |= COLUMN_IDENTITY;
         }
         // XXX: Type have been changed?
@@ -467,8 +460,10 @@ public class TableHelper {
     *      The list of queries to fill.
     * @param provider
     *      The driver provider.
-    * @param tablename
-    *      The table of the column.
+    * @param component
+    *      The component of the table.
+    * @param rule
+    *      The rule of the component.
     * @param oldname
     *      The old column name.
     * @param descriptor1
@@ -484,29 +479,30 @@ public class TableHelper {
     * @return
     *      The binary result (ie: 1 -> renamed, 2 -> type changed ...)
     * @throws java.sql.SQLException
-    * @throws SQLException 
     */
     // XXX: This method is called from:
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static Integer getAlterColumnQueries(List<String> queries,
                                                 Provider provider,
-                                                String tablename,
+                                                NamedComponents component,
+                                                ComposeRule rule,
                                                 String oldname,
                                                 XPropertySet descriptor1,
                                                 XPropertySet descriptor2,
                                                 int flags,
                                                 boolean alterkey,
                                                 boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         // XXX: see: libreoffice/connectivity/source/drivers/postgresql/
         // XXX: file: pq_xcolumns.cxx method: void alterColumnByDescriptor()
         // XXX: Added the possibility of changing column type if the contained data can be cast
         // XXX: Added the possibility of renaming a primary key
         // XXX: Added the possibility of adding or removing Identity (auto increment on column) {
-
+        String tablename = DBTools.composeTableName(provider, component, rule, sensitive);
+        String table = provider.enquoteIdentifier(component.getTable(), sensitive);
         ColumnProperties column = getStandardColumnProperties(provider, oldname, descriptor2, sensitive);
         int result = setAlterColumnQueries(provider, queries, column, descriptor2, flags,
-                                           alterkey, tablename);
+                                           alterkey, tablename, table);
         // XXX: Column description have been changed?
         if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && provider.getConfigDDL().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
@@ -526,13 +522,14 @@ public class TableHelper {
                                              XPropertySet descriptor,
                                              int flags,
                                              boolean alterkey,
+                                             String tablename,
                                              String table)
-        throws java.sql.SQLException {
+        throws SQLException {
 
         // XXX: Modify an existing column
         int results = 0;
         boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
-        Map<String, Object> arguments = column.toArguments(table);
+        Map<String, Object> arguments = column.toArguments(tablename, table);
 
         // XXX: Column name have changed
         if (hasPropertyChanged(flags, COLUMN_NAME)) {
@@ -716,7 +713,7 @@ public class TableHelper {
     private static ColumnProperties getStandardColumnProperties(Provider provider,
                                                                 XPropertySet descriptor,
                                                                 boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
         ColumnProperties column = new ColumnProperties(provider, newname, sensitive);
         return getStandardColumnProperties(provider, column, descriptor);
@@ -726,7 +723,7 @@ public class TableHelper {
                                                                 String oldname,
                                                                 XPropertySet descriptor,
                                                                 boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
         ColumnProperties column = new ColumnProperties(provider, oldname, newname, sensitive);
         return getStandardColumnProperties(provider, column, descriptor);
@@ -741,14 +738,13 @@ public class TableHelper {
      *      The descriptor of the column.
      * @return
      *      The column properties.
-     * @throws SQLException
      * @throws java.sql.SQLException 
      */
 
     private static ColumnProperties getStandardColumnProperties(Provider provider,
                                                                 ColumnProperties column,
                                                                 XPropertySet descriptor)
-        throws java.sql.SQLException, SQLException {
+        throws SQLException {
         boolean isAutoIncrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
         String typename = DBTools.getDescriptorStringValue(descriptor, PropertyIds.TYPENAME);
         int datatype = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
@@ -795,7 +791,7 @@ public class TableHelper {
     }
 
     private static final boolean useLiteral(Provider provider, String typename, int datatype)
-        throws java.sql.SQLException {
+        throws SQLException {
         boolean useliteral = false;
         String createparams = "";
         final int TYPE_NAME = 1;
@@ -907,7 +903,6 @@ public class TableHelper {
      *      Is identifier case sensitive.
      * @return
      *      The keys parts.
-     * @throws SQLException
      * @throws java.sql.SQLException 
      */
 
@@ -917,7 +912,7 @@ public class TableHelper {
                                                            String name,
                                                            ComposeRule rule,
                                                            boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+        throws java.sql.SQLException {
         List<String> queries = new ArrayList<>();
         NamedComponents table = DBTools.getTableNamedComponents(provider, property);
 
@@ -934,7 +929,7 @@ public class TableHelper {
                 }
             }
         } catch (IllegalArgumentException | WrappedTargetException | IndexOutOfBoundsException e) {
-            throw new SQLException(e.getMessage());
+            throw new java.sql.SQLException(e.getMessage(), e);
         }
         return queries;
     }

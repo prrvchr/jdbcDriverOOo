@@ -72,8 +72,8 @@ public final class Column
                   final boolean autoincrement,
                   final boolean rowversion,
                   final boolean currency) {
-        super(SERVICE, SERVICES, table.getConnection(), table.getCatalogName(), table.getSchemaName(),
-              table.getName(),sensitive, name, typeName, defaultValue, description, nullable,
+        super(SERVICE, SERVICES, table.getConnection(), table, sensitive,
+              name, typeName, defaultValue, description, nullable,
               precision, scale, type, autoincrement, rowversion, currency);
         registerProperties();
     }
@@ -173,7 +173,7 @@ public final class Column
     public XPropertySet createDataDescriptor() {
         System.out.println("sdb.Column.createDataDescriptor() 1");
 
-        ColumnDescriptor descriptor = new ColumnDescriptor(mCatalog, mSchema, mTable, isCaseSensitive());
+        ColumnDescriptor descriptor = new ColumnDescriptor(mTable, isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

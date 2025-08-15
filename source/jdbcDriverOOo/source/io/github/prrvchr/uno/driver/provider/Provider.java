@@ -28,7 +28,6 @@ package io.github.prrvchr.uno.driver.provider;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.URL;
 import java.nio.file.Path;
 import java.io.PrintWriter;
 import java.sql.Driver;
@@ -117,10 +116,8 @@ public class Provider {
                 System.out.println("jdbcdriver.Provider() 2 Location: "  + location);
 
                 Driver driver = DriverManager.getDriverByClassName(source, clspath, clsname, add);
-                URL drvurl = driver.getClass().getProtectionDomain().getCodeSource().getLocation();
-                Path drvpath = Path.of(drvurl.toURI()).toRealPath();
-                DriverManager.registerDriver(source, driver, drvpath, clspath, clsname, name);
-                logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, drvpath);
+                Path path = DriverManager.registerDriver(source, driver, clspath, clsname, name);
+                logger.logprb(LogLevel.INFO, Resources.STR_LOG_DRIVER_ARCHIVE_LOADING, path);
 
             }
 

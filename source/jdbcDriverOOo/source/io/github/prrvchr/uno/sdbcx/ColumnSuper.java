@@ -32,8 +32,8 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
-import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
@@ -41,15 +41,13 @@ public abstract class ColumnSuper
     extends ColumnBase
     implements XDataDescriptorFactory {
 
-    private final Provider mProvider;
+    private final ConfigSQL mConfig;
 
     // The constructor method:
     public ColumnSuper(final String service,
                        final String[] services,
                        ConnectionSuper connection,
-                       final String catalog,
-                       final String schema,
-                       final String table,
+                       final TableSuper table,
                        final boolean sensitive,
                        final String name,
                        final String typename,
@@ -62,9 +60,9 @@ public abstract class ColumnSuper
                        final boolean autoincrement,
                        final boolean rowversion,
                        final boolean currency) {
-        super(service, services, catalog, schema, table, sensitive, name, typename, defaultvalue,
+        super(service, services, table, sensitive, name, typename, defaultvalue,
               description, nullable, precision, scale, type, autoincrement, rowversion, currency);
-        mProvider = connection.getProvider();
+        mConfig = connection.getProvider().getConfigSQL();
     }
 
     @Override
@@ -74,7 +72,7 @@ public abstract class ColumnSuper
         properties.put(PropertyIds.AUTOINCREMENTCREATION.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mProvider.getConfigSQL().getAutoIncrementCreation();
+                    return mConfig.getAutoIncrementCreation();
                 },
                 null));
 

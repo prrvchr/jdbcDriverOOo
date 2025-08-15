@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
 
@@ -48,7 +47,7 @@ public final class IndexDescriptorContainer
 
     @Override
     protected IndexDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         XPropertySet newDescriptor = cloneDescriptor(descriptor);
         DBTools.cloneDescriptorColumns(descriptor, newDescriptor);
         return (IndexDescriptor) newDescriptor;

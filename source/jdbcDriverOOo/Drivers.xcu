@@ -291,7 +291,7 @@
         </node>
         <node oor:name="DropViewCommand" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>DROP VIEW ${Name}</value>
+            <value>DROP VIEW ${ViewName}</value>
           </prop>
         </node>
         <node oor:name="AlterViewCommands" oor:op="replace">
@@ -1604,6 +1604,198 @@
         <node oor:name="TablePrivilegesQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
             <value>SELECT CASE TRIM(RDB$PRIVILEGE) WHEN 'S' THEN 1 WHEN 'I' THEN 2 WHEN 'U' THEN 4 WHEN 'D' THEN 8 WHEN 'R' THEN 128 END FROM RDB$USER_PRIVILEGES WHERE RDB$OBJECT_TYPE = 0 AND TRIM(RDB$USER) = ${Grantee} AND TRIM(RDB$RELATION_NAME) = ${Table}</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+
+<!-- Oracle FREE Driver ********************************************************************************* -->
+
+    <node oor:name="xdbc:oracle:*" oor:op="replace">
+      <prop oor:name="ParentURLPattern">
+        <value>xdbc:*</value>
+      </prop>
+      <prop oor:name="DriverTypeDisplayName" oor:type="xs:string">
+        <value xml:lang="en-US">Oracle pure Java</value>
+      </prop>
+
+      <!-- Properties node is for connection properties -->
+      <!-- To be accessible by Base, the properties must be listed in the DriverBase.getPropertyInfo() method. -->
+      <node oor:name="Properties">
+        <node oor:name="PrivilegesSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">SELECT|1|INSERT|2|UPDATE|4|DELETE|8</value>
+          </prop>
+        </node>
+        <node oor:name="GenerateASBeforeCorrelationName" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="SystemSchemaSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = ANONYMOUS|null|Column(1) = APPQOSSYS|null|Column(1) = AUDSYS|null|Column(1) = CTXSYS|null|Column(1) = DBSFWUSER|null|Column(1) = DBSNMP|null|Column(1) = DGPDB_INT|null|Column(1) = DIP|null|Column(1) = DVF|null|Column(1) = DVSYS|null|Column(1) = GGSHAREDCAP|null|Column(1) = GGSYS|null|Column(1) = GSMADMIN_INTERNAL|null|Column(1) = GSMCATUSER|null|Column(1) = GSMUSER|null|Column(1) = LBACSYS|null|Column(1) = MDDATA|null|Column(1) = MDSYS|null|Column(1) = OJVMSYS|null|Column(1) = OLAPSYS|null|Column(1) = OUTLN|null|Column(1) = PDBADMIN|null|Column(1) = REMOTE_SCHEDULER_AGENT|null|Column(1) = SYS|null|Column(1) = SYS$UMF|null|Column(1) = SYSBACKUP|null|Column(1) = SYSDG|null|Column(1) = SYSKM|null|Column(1) = SYSRAC|null|Column(1) = SYSTEM|null|Column(1) = VECSYS|null|Column(1) = WMSYS|null|Column(1) = XDB|null|Column(1) = XS$NULL|null</value>
+          </prop>
+        </node>
+        <node oor:name="SystemTableSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(2) = APPQOSSYS|null|Column(2) = AUDSYS|null|Column(2) = CTXSYS|null|Column(2) = DBSFWUSER|null|Column(2) = DBSNMP|null|Column(2) = DVSYS|null|Column(2) = GGSHAREDCAP|null|Column(2) = GSMADMIN_INTERNAL|null|Column(2) = LBACSYS|null|Column(2) = MDSYS|null|Column(2) = OJVMSYS|null|Column(2) = OLAPSYS|null|Column(2) = OUTLN|null|Column(2) = SYS|null|Column(2) = SYSTEM|null|Column(2) = VECSYS|null|Column(2) = WMSYS|null|Column(2) = XDB|null</value>
+          </prop>
+        </node>
+        <node oor:name="TypeInfoSettings" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">Column(1) = NUMBER|Column(6) = PRECISION,SCALE|Column(1) = NUMBER|Column(12) = 1|Column(1) = VARCHAR2|Column(6) = LENGTH|Column(1) = NVARCHAR2|Column(6) = LENGTH|Column(1) = TIME|Column(6) = SCALE|Column(1) = TIME|Column(14) = 0|Column(1) = TIME|Column(15) = 6|Column(1) = TIMESTAMP|Column(6) = SCALE|Column(1) = TIMESTAMP|Column(14) = 0|Column(1) = TIMESTAMP|Column(15) = 6|Column(1) = TIME WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIME WITH TIME ZONE|Column(14) = 0|Column(1) = TIME WITH TIME ZONE|Column(15) = 6|Column(1) = TIMESTAMP WITH TIME ZONE|Column(6) = SCALE|Column(1) = TIMESTAMP WITH TIME ZONE|Column(14) = 0|Column(1) = TIMESTAMP WITH TIME ZONE|Column(15) = 6</value>
+          </prop>
+        </node>
+        <node oor:name="AddIndexAppendix" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="JavaDriverClassPath" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>%origin%/driver/ojdbc17.jar</value>
+          </prop>
+        </node>
+        <node oor:name="JavaDriverClass" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>oracle.jdbc.OracleDriver</value>
+          </prop>
+        </node>
+        <node oor:name="IsAutoRetrievingEnabled" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="AutoIncrementCreation" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>GENERATED ALWAYS AS IDENTITY</value>
+          </prop>
+        </node>
+        <node oor:name="RowVersionCreation" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">GENERATED ALWAYS AS ROW START|GENERATED ALWAYS AS ROW END</value>
+          </prop>
+        </node>
+        <node oor:name="AutoRetrievingStatement" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT * FROM %s WHERE %s</value>
+          </prop>
+        </node>
+      </node>
+
+      <!-- MetaData node is for the driver properties -->
+      <node oor:name="MetaData">
+        <node oor:name="QuotedMetaData" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="CompletedMetaData" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="AutoIncrementIsPrimaryKey" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>false</value>
+          </prop>
+        </node>
+        <node oor:name="DropTableCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>DROP TABLE ${TableName} CASCADE CONSTRAINTS</value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnNameCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} RENAME COLUMN ${OldName} TO ${Column}</value>
+          </prop>
+        </node>
+        <node oor:name="AlterColumnTypeCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} MODIFY ${Column} ${Type}</value>
+          </prop>
+        </node>
+        <node oor:name="AddColumnCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER TABLE ${TableName} ADD ${ColumnDescription}</value>
+          </prop>
+        </node>
+        <node oor:name="SupportsColumnDescription" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="ViewDefinitionQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT TEXT FROM SYS.ALL_VIEWS WHERE OWNER = ${Schema} AND VIEW_NAME = ${View}</value>
+          </prop>
+        </node>
+        <node oor:name="AlterViewCommands" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">CREATE OR REPLACE VIEW ${ViewName} AS ${SelectCommand}</value>
+          </prop>
+        </node>
+        <node oor:name="RenameTableCommands" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">RENAME ${Table} TO ${NewTable}</value>
+          </prop>
+        </node>
+        <node oor:name="SystemVersioningCommands" oor:op="replace">
+          <prop oor:name="Value" oor:type="oor:string-list">
+            <value oor:separator="|">PERIOD FOR SYSTEM_TIME(${ColumnNames})|WITH SYSTEM VERSIONING</value>
+          </prop>
+        </node>
+        <node oor:name="SupportsAlterIdentity" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:boolean">
+            <value>true</value>
+          </prop>
+        </node>
+        <node oor:name="GetUsersQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT USERNAME FROM ALL_USERS WHERE INHERITED = 'NO'</value>
+          </prop>
+        </node>
+        <node oor:name="GetGroupsQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT ROLE FROM DBA_ROLES WHERE INHERITED = 'NO' OR ROLE IN ('CONNECT', 'DBA', 'RESOURCE')</value>
+          </prop>
+        </node>
+        <node oor:name="GetUserGroupsQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+          <!-- XXX: We use recursion to find privileges inherited from roles.
+               XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
+            <value>SELECT DRP.GRANTED_ROLE FROM DBA_ROLE_PRIVS DRP INNER JOIN DBA_ROLES DR ON DRP.GRANTED_ROLE = DR.ROLE WHERE (DR.INHERITED = 'NO' OR DR.ROLE IN ('CONNECT', 'DBA', 'RESOURCE')) AND DRP.GRANTEE = ${User}</value>
+          </prop>
+        </node>
+        <node oor:name="GetGroupUsersQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT DRP.GRANTEE FROM DBA_ROLE_PRIVS DRP INNER JOIN ALL_USERS AU ON DRP.GRANTEE = AU.USERNAME WHERE AU.INHERITED = 'NO' AND DRP.GRANTED_ROLE = ${Group}</value>
+          </prop>
+        </node>
+        <node oor:name="GetGroupRolesQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT DRP.GRANTEE FROM DBA_ROLE_PRIVS DRP INNER JOIN DBA_ROLES DR ON DRP.GRANTEE = DR.ROLE WHERE DR.INHERITED = 'NO' AND DRP.GRANTED_ROLE = ${Group}</value>
+          </prop>
+        </node>
+        <node oor:name="TablePrivilegesQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT PRIVILEGE FROM DBA_TAB_PRIVS WHERE GRANTEE = ${Grantee} AND OWNER = ${Schema} AND TABLE_NAME = ${Table}</value>
+          </prop>
+        </node>
+        <node oor:name="GrantablePrivilegesQuery" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>SELECT PRIVILEGE FROM DBA_TAB_PRIVS WHERE GRANTEE = ${Grantee} AND OWNER = ${Schema} AND TABLE_NAME = ${Table}</value>
+          </prop>
+        </node>
+        <node oor:name="CreateUserCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>CREATE USER ${User} IDENTIFIED BY ${RawPwd}</value>
+          </prop>
+        </node>
+        <node oor:name="AlterUserCommand" oor:op="replace">
+          <prop oor:name="Value" oor:type="xs:string">
+            <value>ALTER USER ${User} IDENTIFIED BY ${RawPwd}</value>
           </prop>
         </node>
       </node>

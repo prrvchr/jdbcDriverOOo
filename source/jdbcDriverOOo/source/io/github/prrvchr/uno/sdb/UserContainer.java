@@ -25,15 +25,13 @@
 */
 package io.github.prrvchr.uno.sdb;
 
+import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.Any;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.RoleHelper;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
@@ -50,24 +48,26 @@ public class UserContainer
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
     protected final Connection mConnection;
-    private final ConnectionLog mLogger; 
+    private final ConnectionLog mLogger;
 
     // The constructor method:
     protected UserContainer(Connection connection,
-                            boolean sensitive,
-                            List<String> names)
-        throws ElementExistException {
+                            String[] names,
+                            boolean sensitive) {
         this(connection, sensitive, names, LoggerObjectType.USERCONTAINER);
     }
 
     protected UserContainer(Connection connection,
                             boolean sensitive,
-                            List<String> names,
-                            LoggerObjectType type)
-        throws ElementExistException {
+                            String[] names,
+                            LoggerObjectType type) {
         super(SERVICE, SERVICES, connection, sensitive, names);
         mConnection = connection;
         mLogger = new ConnectionLog(connection.getProvider().getLogger(), type);
+    }
+
+    protected BiMap<User> getBiMap() {
+        return mBimap;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class UserContainer
         if (!mConnection.getProvider().getConfigDCL().supportsCreateUser()) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_FEATURE_NOT_IMPLEMENTED;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name);
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
         User user = null;
         if (createUser(descriptor, name)) {
@@ -92,19 +92,20 @@ public class UserContainer
 
     @Override
     public void dispose() {
+        System.out.println("UserContainer.dispose() ******************************************");
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_DISPOSING);
         super.dispose();
     }
 
     @Override
-    protected User getElement(int index)
+    protected User getElementByIndex(int index)
         throws SQLException {
-        return super.getElement(index);
+        return super.getElementByIndex(index);
     }
     @Override
-    protected User getElement(String name)
+    protected User getElementByName(String name)
         throws SQLException {
-        return super.getElement(name);
+        return super.getElementByName(name);
     }
 
     protected boolean createUser(XPropertySet descriptor,
@@ -116,11 +117,11 @@ public class UserContainer
             System.out.println("sdbcx.UserContainer._createUser() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_CREATE_USER_QUERY, name, query);
             return DBTools.executeSQLQuery(mConnection.getProvider(), query);
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_USERS_CREATE_USER_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
     }
 
@@ -128,11 +129,10 @@ public class UserContainer
     protected User createElement(String name)
         throws SQLException {
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USER);
-        User user = new User(mConnection, isCaseSensitive(), name);
+        User user = new User(mConnection, mConnection.getGroupsInternal(), name, isCaseSensitive());
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USER_ID, user.getLogger().getObjectId());
         return user;
     }
-
 
     @Override
     protected void removeDataBaseElement(int index,
@@ -141,17 +141,23 @@ public class UserContainer
         String query = null;
         try {
             query = RoleHelper.getDropUserCommand(mConnection.getProvider(), name, isCaseSensitive());
-            System.out.println("sdbcx.UserContainer.removeDataBaseElement() SQL: " + query);
+            System.out.println("sdbcx.UserContainer.removeDataBaseElement() 1 SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_REMOVE_USER_QUERY, name, query);
             if (DBTools.executeSQLQuery(mConnection.getProvider(), query)) {
                 // XXX: A user has just been deleted, they should also be deleted from any role they are a member of...
-                mConnection.getGroupsInternal().removeRole(name);
+                System.out.println("sdbcx.UserContainer.removeDataBaseElement() 2");
+                //mConnection.getGroupsInternal().removeRole(name);
+                System.out.println("sdbcx.UserContainer.removeDataBaseElement() 3");
             }
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
+            e.printStackTrace();
             int resource = Resources.STR_LOG_USERS_REMOVE_USER_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
+        } catch (Throwable e) {
+            System.out.println("sdbcx.UserContainer.removeDataBaseElement() ERROR");
+            e.printStackTrace();
         }
     }
 
@@ -161,7 +167,7 @@ public class UserContainer
     }
 
     @Override
-    protected void refill(List<String> names) {
+    protected void refill(String[] names) {
         super.refill(names);
     }
 
@@ -174,14 +180,13 @@ public class UserContainer
         return descriptor;
     }
 
-    protected void removeRole(String name)
-        throws SQLException {
+    protected void removeRole(String name) {
         Iterator<User> users = getActiveElements();
         while (users.hasNext()) {
             Groups groups = users.next().getGroupsInternal();
             if (groups.hasByName(name)) {
                 System.out.println("sdb.UserContainer.removeRole() Role: " + name);
-                groups.removeElement(name);
+                groups.removeContainerElement(name, false);
             }
         }
     }

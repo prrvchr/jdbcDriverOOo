@@ -25,12 +25,12 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.List;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
+import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -40,24 +40,32 @@ import io.github.prrvchr.uno.sdbcx.RoleContainer;
 
 public final class Users
     extends RoleContainer<User> {
+
     private static final String SERVICE = Users.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Users",
                                               "com.sun.star.sdbcx.Container"};
 
     // The constructor method:
     public Users(Connection connection,
-                 boolean sensitive,
+                 Group group,
+                 BiMap<User> bimap,
+                 String[] names,
                  String role,
-                 List<String> names)
-        throws ElementExistException {
-        // XXX: isrole must be true because this Class Users can only be held by a Group
-        super(SERVICE, SERVICES, connection, connection.getProvider(),
-              role, connection.getUsersInternal(), sensitive, names, true, "USER", LoggerObjectType.USERS);
+                 boolean sensitive) {
+        // XXX: isrole lets you know the role that holds this class.
+        // XXX: Currently it is a role since users can only be held by a role
+        super(SERVICE, SERVICES, connection, group, bimap, names,
+              role, sensitive, true, "USER", LoggerObjectType.USERS);
+    }
+
+    protected Connection getConnection() {
+        return (Connection) mConnection;
     }
 
     protected ConnectionLog getLogger() {
         return mLogger;
     }
+
     protected Provider getProvider() {
         return mProvider;
     }
@@ -74,7 +82,7 @@ public final class Users
     }
 
     @Override
-    protected void refill(List<String> roles) {
+    protected void refill(String[] roles) {
         super.refill(roles);
     }
 
@@ -82,5 +90,21 @@ public final class Users
     protected void removeElement(String name) {
         super.removeElement(name);
     }
+
+    protected User createRoleElement(String name) throws SQLException {
+        if (!hasByName(name)) {
+            throw new SQLException();
+        }
+        try {
+            return getElementByName(name);
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e);
+        }
+    }
+
+    protected void removeContainerElement(String name, boolean dispose) {
+        super.removeContainerElement(name, dispose);
+    }
+
 
 }

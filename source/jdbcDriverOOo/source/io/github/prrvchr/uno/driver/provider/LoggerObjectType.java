@@ -36,6 +36,8 @@ public enum LoggerObjectType {
     USERCONTAINER ("UserContainer"),
     KEYCONTAINER ("KeyContainer"),
     INDEXCONTAINER ("IndexContainer"),
+    KEYCOLUMNS ("KeyColumns"),
+    INDEXCOLUMNS ("IndexColumns"),
     TABLE ("Table"),
     VIEW ("View"),
     GROUP ("Group"),

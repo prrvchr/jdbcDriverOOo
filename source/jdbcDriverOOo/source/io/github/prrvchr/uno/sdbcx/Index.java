@@ -25,21 +25,23 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DatabaseMetaData;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
-import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.IndexHelper;
+import io.github.prrvchr.uno.driver.helper.IndexHelper.IndexProperties;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.UnoHelper;
 
@@ -51,14 +53,16 @@ public final class Index
 
     private static final String SERVICE = Index.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Index"};
-    
-    protected IndexColumnContainer mColumns = null;
+
+    protected IndexColumns mColumns = null;
     protected final TableSuper mTable;
-    
     protected String mCatalog;
     protected boolean mIsUnique;
     protected boolean mIsPrimaryKeyIndex;
     protected boolean mIsClustered;
+
+    //private ColumnListener<IndexColumn> mListener;
+    private final String[] mNames;
 
     // The constructor method:
     public Index(TableSuper table,
@@ -68,8 +72,7 @@ public final class Index
                  boolean unique,
                  boolean primarykey,
                  boolean clustered,
-                 List<String> columns)
-        throws ElementExistException {
+                 String[] columns) {
         super(SERVICE, SERVICES, sensitive, name);
         System.out.println("sdbcx.Index() 1");
         mTable = table;
@@ -77,7 +80,8 @@ public final class Index
         mIsUnique = unique;
         mIsPrimaryKeyIndex = primarykey;
         mIsClustered = clustered;
-        mColumns = new IndexColumnContainer(this, columns);
+        mNames = columns;
+        //mColumns = new IndexColumns(this, columns, sensitive);
         registerProperties();
     }
 
@@ -116,33 +120,80 @@ public final class Index
         super.registerProperties(properties);
     }
 
-    protected IndexColumnContainer getColumnsInternal() {
-        return mColumns;
-    }
-
-    public TableSuper getTable() {
+    protected TableSuper getTable() {
         return mTable;
     }
 
+    // com.sun.star.lang.XComponent
+    @Override
+    public void dispose() {
+        if (mColumns != null) {
+            //if (mListener != null) {
+            //    mTable.getColumnsInternal().removeContainerListener(mListener);
+            //}
+            mColumns.dispose();
+        }
+        super.dispose();
+    }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor() {
-        System.out.println("sdbcx.Table.createDataDescriptor() ***************************************************");
+        System.out.println("sdbcx.Index.createDataDescriptor() ***************************************************");
         IndexDescriptor descriptor = new IndexDescriptor(isCaseSensitive());
         UnoHelper.copyProperties(this, descriptor);
         try {
             DBTools.cloneDescriptorColumns(this, descriptor);
-        } catch (SQLException e) {
+        } catch (java.sql.SQLException e) {
         }
         return descriptor;
     }
 
-
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
     public XNameAccess getColumns() {
+        checkDisposed();
+        return getColumnsInternal();
+    }
+
+    // Protected methods
+    protected boolean isColumnsLoaded() {
+        return mColumns != null;
+    }
+
+    protected IndexColumns getColumnsInternal() {
+        if (mColumns == null) {
+            refreshColumns();
+        }
         return mColumns;
+    }
+
+    protected synchronized IndexColumns refreshColumns() {
+        if (mColumns == null) {
+            //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
+            mColumns = new IndexColumns(this, mNames, isCaseSensitive());
+            //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID,
+            //                   mTables.getLogger().getObjectId());
+        } else {
+            mColumns.refill(getIndexColumns());
+        }
+        return mColumns;
+    }
+
+    private String[] getIndexColumns() {
+        String[] columns = null;
+        try {
+            Provider provider = mTable.getConnection().getProvider();
+            NamedComponents component = mTable.getNamedComponents();
+            DatabaseMetaData metadata;
+            metadata = provider.getConnection().getMetaData();
+            IndexProperties properties = IndexHelper.getIndexProperties(provider, metadata,
+                                                                        component, mCatalog, getName());
+            columns = properties.getColumns();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return columns;
     }
 
 }

@@ -50,14 +50,14 @@ public final class Array
 
     // com.sun.star.lang.XComponent
     @Override
-    protected void postDisposing() {
+    public void dispose() {
         try {
             mArray.free();
         } catch (java.sql.SQLException e) {
-            mConnection.getLogger().log(LogLevel.WARNING, e);
+            mConnection.getLogger().log(LogLevel.WARNING, e.getMessage());
         }
     }
-    
+
 
     // com.sun.star.sdbc.XArray
     @Override

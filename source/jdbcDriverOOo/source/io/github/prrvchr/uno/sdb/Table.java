@@ -181,17 +181,17 @@ public final class Table
     }
 
     @Override
-    protected String getCatalogName() {
+    public String getCatalogName() {
         return super.getCatalogName();
     }
 
     @Override
-    protected String getSchemaName() {
+    public String getSchemaName() {
         return super.getSchemaName();
     }
 
     @Override
-    protected String getName() {
+    public String getName() {
         return super.getName();
     }
 

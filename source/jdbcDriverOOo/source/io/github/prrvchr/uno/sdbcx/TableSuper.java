@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +68,7 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 
 public abstract class TableSuper
-    extends TableMain
+    extends TableBase
     implements XColumnsSupplier,
                XIndexesSupplier,
                XKeysSupplier,
@@ -78,6 +79,7 @@ public abstract class TableSuper
     protected String mType = "";
     protected int mPrivileges = 0;
     private ColumnContainerBase<?> mColumns = null;
+    private ColumnListener mListener = null;
     private KeyContainer mKeys = null;
     private IndexContainer mIndexes = null;
     private boolean mQualifiedindex = false;
@@ -150,7 +152,7 @@ public abstract class TableSuper
     }
 
     @Override
-    protected void postDisposing() {
+    public void dispose() {
         if (mKeys != null) {
             mKeys.dispose();
         }
@@ -158,9 +160,12 @@ public abstract class TableSuper
             mIndexes.dispose();
         }
         if (mColumns != null) {
+            if (mListener != null) {
+                mColumns.removeContainerListener(mListener);
+            }
             mColumns.dispose();
         }
-        super.postDisposing();
+        super.dispose();
     }
 
     // com.sun.star.sdbcx.XColumnsSupplier:
@@ -187,9 +192,12 @@ public abstract class TableSuper
     public void alterColumnByIndex(int index, XPropertySet newcolumn)
         throws SQLException, IndexOutOfBoundsException {
         checkDisposed();
-        ColumnSuper oldcolumn = mColumns.getElement(index);
-        if (oldcolumn != null) {
+        try {
+            ColumnSuper oldcolumn = mColumns.getElementByIndex(index);
             alterColumn(oldcolumn, newcolumn);
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+            new SQLException(e.getMessage());
         }
     }
 
@@ -197,19 +205,24 @@ public abstract class TableSuper
     public void alterColumnByName(String name, XPropertySet newcolumn)
         throws SQLException, NoSuchElementException {
         checkDisposed();
-        ColumnSuper oldcolumn = mColumns.getElement(name);
-        if (oldcolumn != null) {
-            alterColumn(oldcolumn, newcolumn);
+        try {
+            ColumnSuper oldcolumn = mColumns.getElementByName(name);
+            if (oldcolumn != null) {
+                alterColumn(oldcolumn, newcolumn);
+            }
+        } catch (java.sql.SQLException e) {
+            String state = StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text();
+            throw new SQLException(e.getMessage(), this, state, 0, Any.VOID);
         }
     }
 
     private void alterColumn(ColumnSuper oldcolumn, XPropertySet newcolumn)
-        throws SQLException {
+        throws java.sql.SQLException, SQLException {
         Provider provider = getConnection().getProvider();
 
         String oldname = oldcolumn.getName();
-        boolean autoincrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
-        int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, autoincrement);
+        String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
+        int flags = TableHelper.getAlterColumnChanges(oldcolumn, newcolumn, oldname, newname);
 
         // XXX: Identity or Type have been changed?
         // XXX: Identity switching is only allowed if the underlying driver supports it.
@@ -218,7 +231,7 @@ public abstract class TableSuper
             TableHelper.hasColumnTypeChanged(flags) && !supportColumnTypeChange(provider)) {
             int resource = Resources.STR_LOG_ALTER_IDENTITY_UNSUPPORTED_FEATURE_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, oldname);
-            throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
 
         int result = alterColumn(provider, oldcolumn, newcolumn, oldname, flags);
@@ -242,7 +255,7 @@ public abstract class TableSuper
                             XPropertySet newcolumn,
                             String oldname,
                             int flags)
-        throws SQLException {
+        throws java.sql.SQLException {
         int result = 0;
         String table = null;
         List<String> queries = new ArrayList<>();
@@ -252,10 +265,8 @@ public abstract class TableSuper
             table = DBTools.buildName(provider, component, rule);
             boolean alterpk = isPrimaryKeyColumn(oldname);
             boolean alterfk = isForeignKeyColumn(oldname);
-            boolean alteridx = isIndexColumn(oldname);
             boolean alterkey = alterpk || alterfk;
-            String tablename = DBTools.composeTableName(provider, component, rule, isCaseSensitive());
-            result = TableHelper.getAlterColumnQueries(queries, provider, tablename, oldname, oldcolumn,
+            result = TableHelper.getAlterColumnQueries(queries, provider, component, rule, oldname, oldcolumn,
                                                        newcolumn, flags, alterkey, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
@@ -264,127 +275,92 @@ public abstract class TableSuper
                     System.out.println("TableSuper.alterColumn() Query: " + q);
                 }
                 if (DBTools.executeSQLQueries(provider, queries)) {
-                    setColumnProperties(provider, oldcolumn, newcolumn, component, rule,
-                                        table, oldname, alterpk, alterfk, alteridx, result);
+                    setColumnProperties(oldcolumn, newcolumn, oldname, result);
                 }
             }
         } catch (java.sql.SQLException e) {
             int resource = Resources.STR_LOG_TABLE_ALTER_COLUMN_QUERY_ERROR;
             String query = String.join("> <", queries);
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new java.sql.SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
         }
         return result;
     }
 
-    private void setColumnProperties(Provider provider,
-                                     ColumnSuper oldcolumn,
+    private void setColumnProperties(ColumnSuper oldcolumn,
                                      XPropertySet newcolumn,
-                                     NamedComponents component,
-                                     ComposeRule rule,
-                                     String table,
                                      String oldname,
-                                     boolean alterpk,
-                                     boolean alterfk,
-                                     boolean alteridx,
-                                     int result)
-        throws SQLException, java.sql.SQLException {
+                                     int result) {
+
         // Column have changed its description value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DESCRIPTION)) {
-            oldcolumn.mDescription = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION);
+            oldcolumn.setDescriptionInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DESCRIPTION));
         }
         // Column have changed its not null constraint
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NULLABLE)) {
-            oldcolumn.mIsNullable = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE);
+            oldcolumn.setIsNullableInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.ISNULLABLE));
         }
         // Column have changed its default value
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_DEFAULT_VALUE)) {
-            oldcolumn.mDefaultValue = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE);
+            oldcolumn.setDefaultValueInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.DEFAULTVALUE));
         }
         // Column have changed its type
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_TYPE)) {
-            oldcolumn.mType = DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE);
-            oldcolumn.mTypeName = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME);
+            oldcolumn.setTypeInternal(DBTools.getDescriptorIntegerValue(newcolumn, PropertyIds.TYPE));
+            oldcolumn.setTypeNameInternal(DBTools.getDescriptorStringValue(newcolumn, PropertyIds.TYPENAME));
         }
         // Column have changed its identity (auto-increment)
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_IDENTITY)) {
-            oldcolumn.mIsAutoIncrement = DBTools.getDescriptorBooleanValue(newcolumn, PropertyIds.ISAUTOINCREMENT);
+            oldcolumn.setIsAutoIncrementInternal(DBTools.getDescriptorBooleanValue(newcolumn,
+                                                                                   PropertyIds.ISAUTOINCREMENT));
         }
         // Column have changed its name
         if (TableHelper.hasPropertyChanged(result, TableHelper.COLUMN_NAME)) {
             String newname = DBTools.getDescriptorStringValue(newcolumn, PropertyIds.NAME);
-            renameColumnName(provider, component, rule, table, oldname,
-                             newname, alterpk, alterfk, alteridx);
+            mColumns.replaceElement(oldname, newname);
         }
     }
 
-    private void renameColumnName(Provider provider,
-                                  NamedComponents component,
-                                  ComposeRule rule,
-                                  String table,
-                                  String oldname,
-                                  String newname,
-                                  boolean alterpk,
-                                  boolean alterfk,
-                                  boolean alteridx)
-        throws SQLException, java.sql.SQLException {
-        mColumns.replaceElement(oldname, newname);
-        if (alterpk) {
-            getKeysInternal().renameKeyColumn(KeyType.PRIMARY, oldname, newname);
-            // XXX: If the renamed column is a primary key, we need to know if it is referenced as a foreign key.
-            // XXX: If this is the case then we need to rename the corresponding column in these foreign keys.
-            Map<String, List<String>> tables = KeyHelper.getExportedTablesColumns(provider, component, newname, rule);
-            if (!tables.isEmpty()) {
-                getConnection().getTablesInternal().renameForeignKeyColumn(tables, table, oldname, newname);
+    protected Key getPrimaryKey() {
+        // FIXME: Here we search and retrieve the first primary key having this column.
+        Key key = null;
+        boolean find = false;
+        Iterator<Key> it = getKeysInternal().getElements();
+        while (it.hasNext()) {
+            key = it.next();
+            if (key.getTypeInternal() == KeyType.PRIMARY) {
+                find = true;
+                break;
             }
         }
-        if (alterfk) {
-            // XXX: If the renamed column is a foreign key we need to rename the Key column name to.
-            // XXX: Renaming the foreign key should rename the associated Index column name as well.
-            getKeysInternal().renameKeyColumn(KeyType.FOREIGN, oldname, newname);
+        if (!find) {
+            key = null;
         }
-        if (alteridx) {
-            // XXX: If the renamed column is declared as index
-            // XXX: we need to rename the Index column name to.
-            getIndexesInternal().renameIndexColumn(oldname, newname);
-        }
+        return key;
     }
 
-    private boolean isPrimaryKeyColumn(String column)
-        throws SQLException {
+    private boolean isPrimaryKeyColumn(String column) {
         // FIXME: Here we search and retrieve the first primary key having this column.
         boolean primary = false;
-        KeyContainer keys = getKeysInternal();
-        for (String name : keys.getElementNames()) {
-            Key key = keys.getElement(name);
-            primary = key.mType == KeyType.PRIMARY && key.getColumnsInternal().hasByName(column);
+        Iterator<Key> it = getKeysInternal().getActiveElements();
+        while (it.hasNext()) {
+            Key key = it.next();
+            primary = key.getTypeInternal() == KeyType.PRIMARY && key.getColumnsInternal().hasByName(column);
             break;
         }
         return primary;
     }
 
-    private boolean isForeignKeyColumn(String column)
-        throws SQLException {
+    private boolean isForeignKeyColumn(String column) {
         // FIXME: Here we search and retrieve the first foreign key having this table / column.
         boolean foreign = false;
-        KeyContainer keys = getKeysInternal();
-        for (String name: keys.getElementNames()) {
-            Key key = keys.getElement(name);
-            foreign = key.mType == KeyType.FOREIGN && key.getColumnsInternal().hasByName(column);
+        Iterator<Key> it = getKeysInternal().getActiveElements();
+        while (it.hasNext()) {
+            Key key = it.next();
+            foreign = key.getTypeInternal() == KeyType.FOREIGN && key.getColumnsInternal().hasByName(column);
             break;
         }
         return foreign;
-    }
-
-    private boolean isIndexColumn(String column)
-        throws SQLException {
-        boolean index = false;
-        // FIXME: Here we search and retrieve if this column is declared as index.
-        IndexContainer indexes = getIndexesInternal();
-        for (String name : indexes.getElementNames()) {
-            index = indexes.getElement(name).getColumnsInternal().hasByName(column);
-        }
-        return index;
     }
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
@@ -439,12 +415,13 @@ public abstract class TableSuper
                 // XXX: the referenced table name is not any more valid.
                 // XXX: So we need to rename the referenced table name in all other
                 // XXX: table having a foreign keys referencing this table.
-                if (!isview) {
-                    List<String> filter = KeyHelper.getExportedTables(provider, component, rule);
-                    getConnection().getTablesInternal().renameReferencedTableName(filter, table, name);
-                }
+                //if (!isview) {
+                    //List<String> filter = KeyHelper.getExportedTables(provider, component, rule);
+                    //getConnection().getTablesInternal().renameReferencedTableName(filter, table, name);
+                //}
             }
         } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             int resource = Resources.STR_LOG_VIEW_RENAME_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table, query);
             throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -459,7 +436,7 @@ public abstract class TableSuper
         boolean renamed = false;
         String query = "";
         ViewContainer views = getConnection().getViewsInternal();
-        View view = (View) views.getElement(table);
+        View view = (View) views.getElementByName(table);
         if (view == null) {
             int resource = Resources.STR_LOG_VIEW_RENAME_VIEW_NOT_FOUND_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
@@ -494,6 +471,8 @@ public abstract class TableSuper
                                                                        getNamedComponents());
             if (mColumns == null) {
                 mColumns = getColumnContainer(columns);
+                mListener = new ColumnListener(getConnection().getTablesInternal());
+                mColumns.addContainerListener(mListener);
             } else {
                 mColumns.refill(getColumnName(columns));
             }
@@ -502,18 +481,18 @@ public abstract class TableSuper
         }
     }
 
-    private List<String> getColumnName(List<ColumnDescription> descriptions) {
+    private String[] getColumnName(List<ColumnDescription> descriptions) {
         List<String> columns = new ArrayList<>();
         for (ColumnDescription column: descriptions) {
             columns.add(column.mColumnName);
         }
-        return columns;
+        return columns.toArray(new String[0]);
     }
 
     protected void refreshKeys() {
         try {
             Provider provider = getConnection().getProvider();
-            List<String> keys = KeyHelper.refreshKeys(provider, getNamedComponents());
+            String[] keys = KeyHelper.refreshKeys(provider, getNamedComponents());
             if (mKeys == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_KEYS);
                 mKeys = new KeyContainer(this, isCaseSensitive(), keys);
@@ -521,7 +500,7 @@ public abstract class TableSuper
             } else {
                 mKeys.refill(keys);
             }
-        } catch (java.sql.SQLException | ElementExistException e) {
+        } catch (java.sql.SQLException e) {
             System.out.println("TableSuper.refreshKeys() ERROR: " + UnoHelper.getStackTrace(e));
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
@@ -529,8 +508,8 @@ public abstract class TableSuper
 
     protected void refreshIndexes() {
         try {
-            List<String> indexes = IndexHelper.readIndexes(getConnection().getProvider(),
-                                                           getNamedComponents(), mQualifiedindex);
+            String[] indexes = IndexHelper.readIndexes(getConnection().getProvider(),
+                                                       getNamedComponents(), mQualifiedindex);
             if (mIndexes == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_INDEXES);
                 mIndexes = new IndexContainer(this, isCaseSensitive(), indexes);
@@ -539,9 +518,32 @@ public abstract class TableSuper
             } else {
                 mIndexes.refill(indexes);
             }
-        } catch (java.sql.SQLException | ElementExistException e) {
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             throw new com.sun.star.uno.RuntimeException("Error", e);
         }
+    }
+
+    protected boolean hasPrimaryKey(String name) {
+        boolean has = false;
+        Iterator<Key> keys = getKeysInternal().getElements();
+        while (keys.hasNext()) {
+            Key key = keys.next();
+            if (key.getColumnsInternal().hasByName(name)) {
+                has = true;
+                break;
+            }
+        }
+        return has;
+    }
+
+    protected String composeTableName() {
+        return composeTableName(ComposeRule.InTableDefinitions);
+    }
+
+    protected String composeTableName(ComposeRule rule) {
+        NamedComponents component = getNamedComponents();
+        return DBTools.buildName(getConnection().getProvider(), component, rule);
     }
 
     protected abstract int getPrivileges() throws WrappedTargetException;

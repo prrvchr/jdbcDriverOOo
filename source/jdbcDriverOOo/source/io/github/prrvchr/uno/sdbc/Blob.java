@@ -51,11 +51,11 @@ public final class Blob
 
     // com.sun.star.lang.XComponent
     @Override
-    protected void postDisposing() {
+    public void dispose() {
         try {
             mBlob.free();
         } catch (java.sql.SQLException e) {
-            mConnection.getLogger().log(LogLevel.WARNING, e);
+            mConnection.getLogger().log(LogLevel.WARNING, e.getMessage());
         }
     }
 

@@ -186,7 +186,6 @@ public abstract class RowSetBase
     public int[] deleteRows(Object[] bookmarks)
         throws SQLException {
         try {
-            System.out.println("RowSetSuper.deleteRows() **********************************");
             List<Integer> rows = new ArrayList<Integer>();
             int index = 0;
             for (Object bookmark : bookmarks) {
@@ -252,7 +251,7 @@ public abstract class RowSetBase
 
     private void acceptChanges() throws java.sql.SQLException {
         try {
-            getRowSet().acceptChanges();
+            getRowSet().acceptChanges(mConnection.getProvider().getConnection());
         } catch (SyncProviderException e) {
             // XXX: If conflicts occur then the current operation will be canceled
 

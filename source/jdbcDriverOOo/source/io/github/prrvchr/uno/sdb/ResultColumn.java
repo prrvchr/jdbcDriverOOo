@@ -69,23 +69,23 @@ public final class ResultColumn
     private Integer mWidth = WIDTH;
 
     // The constructor method:
-    public ResultColumn(final ResultSetMetaData metadata,
-                        final int index,
-                        final String catalog,
-                        final String schema,
-                        final String table,
-                        final boolean sensitive,
-                        final String name,
-                        final String typeName,
-                        final String defaultValue,
-                        final String description,
-                        final int nullable,
-                        final int precision,
-                        final int scale,
-                        final int type,
-                        final boolean autoincrement,
-                        final boolean rowversion,
-                        final boolean currency) {
+    protected ResultColumn(final ResultSetMetaData metadata,
+                           final int index,
+                           final String catalog,
+                           final String schema,
+                           final String table,
+                           final boolean sensitive,
+                           final String name,
+                           final String typeName,
+                           final String defaultValue,
+                           final String description,
+                           final int nullable,
+                           final int precision,
+                           final int scale,
+                           final int type,
+                           final boolean autoincrement,
+                           final boolean rowversion,
+                           final boolean currency) {
         super(SERVICE, SERVICES, catalog, schema, table, sensitive, name, typeName, defaultValue,
               description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         try {

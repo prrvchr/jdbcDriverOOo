@@ -37,20 +37,14 @@ public abstract class ColumnDescriptorSuper
     extends ColumnDescriptorBase {
 
     protected String mAutoIncrementCreation = "";
-    private String mCatalog;
-    private String mSchema;
-    private String mTable;
+    private TableMain mTable;
 
     // The constructor method:
-    public ColumnDescriptorSuper(String service,
-                                 String[] services,
-                                 String catalog,
-                                 String schema,
-                                 String table,
-                                 boolean sensitive) {
+    public ColumnDescriptorSuper(final String service,
+                                 final String[] services,
+                                 final TableMain table,
+                                 final boolean sensitive) {
         super(service, services, sensitive);
-        mCatalog = catalog;
-        mSchema = schema;
         mTable = table;
         System.out.println("sdbcx.descriptors.ColumnDescriptorSuper()");
     }
@@ -64,21 +58,21 @@ public abstract class ColumnDescriptorSuper
         properties.put(PropertyIds.CATALOGNAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mCatalog;
+                    return mTable.getCatalogName();
                 },
                 null));
 
         properties.put(PropertyIds.SCHEMANAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mSchema;
+                    return mTable.getSchemaName();
                 },
                 null));
 
         properties.put(PropertyIds.TABLENAME.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mTable;
+                    return mTable.getName();
                 },
                 null));
 

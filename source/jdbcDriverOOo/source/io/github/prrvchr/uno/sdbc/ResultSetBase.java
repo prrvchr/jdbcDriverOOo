@@ -170,6 +170,10 @@ public abstract class ResultSetBase
         return mLogger;
     }
 
+    protected String getMethod() {
+        return mMethod;
+    }
+
     @Override
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
         short readonly = PropertyAttribute.READONLY;
@@ -283,7 +287,7 @@ public abstract class ResultSetBase
     protected int getResultSetConcurrency()
         throws WrappedTargetException {
         try {
-            System.out.println("ResultSetBase._getResultSetConcurrency() 1 type: " + mResult.getConcurrency());
+            System.out.println("ResultSetBase.getResultSetConcurrency() 1 type: " + mResult.getConcurrency());
             int concurrency = mResult.getConcurrency();
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CONCURRENCY, Integer.toString(concurrency));
             return concurrency;
@@ -295,7 +299,7 @@ public abstract class ResultSetBase
     protected int getResultSetType()
         throws WrappedTargetException {
         try {
-            System.out.println("ResultSetBase._getResultSetType() 1 type: " + mResult.getType());
+            System.out.println("ResultSetBase.getResultSetType() 1 type: " + mResult.getType());
             int type = mResult.getType();
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_TYPE, type);
             return type;
@@ -306,9 +310,9 @@ public abstract class ResultSetBase
 
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing() {
+    public synchronized void dispose() {
         try {
-            System.out.println("sdbc.ResultSetBase.postDisposing() 1 method: " + mMethod);
+            System.out.println("sdbc.ResultSetBase.dispose() 1 method: " + mMethod);
             if (mResult != null) {
                 // FIXME: Can't log here without LibreOffice crashing
                 //mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_RESULTSET_CLOSING);
@@ -320,7 +324,7 @@ public abstract class ResultSetBase
                     mLogger.logp(LogLevel.WARNING, e);
                 }
                 mResult = null;
-                super.postDisposing();
+                super.dispose();
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -329,7 +333,7 @@ public abstract class ResultSetBase
 
     // com.sun.star.sdbc.XCloseable
     @Override
-    public void close() throws SQLException {
+    public synchronized void close() throws SQLException {
         checkDisposed();
         dispose();
     }

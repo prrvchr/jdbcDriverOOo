@@ -26,10 +26,12 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XConnection;
+import com.sun.star.sdbcx.XCreateCatalog;
 import com.sun.star.sdbcx.XDataDefinitionSupplier;
 import com.sun.star.sdbcx.XTablesSupplier;
 import com.sun.star.uno.Exception;
@@ -44,7 +46,8 @@ import io.github.prrvchr.uno.sdbc.DriverBase;
 
 public abstract class DriverSuper
     extends DriverBase
-    implements XDataDefinitionSupplier {
+    implements XDataDefinitionSupplier,
+               XCreateCatalog {
 
     // The constructor method:
     public DriverSuper(XComponentContext ctx,
@@ -54,6 +57,14 @@ public abstract class DriverSuper
         throws Exception {
         super(ctx, service, services, api);
     }
+
+    // com.sun.star.sdbcx.XCreateCatalog:
+    @Override
+    public void createCatalog(PropertyValue[] properties)
+        throws SQLException, ElementExistException {
+        System.out.println("DriverSuper.createCatalog 1 ********************************");
+    }
+
 
     // com.sun.star.lang.XDataDefinitionSupplier:
     @Override

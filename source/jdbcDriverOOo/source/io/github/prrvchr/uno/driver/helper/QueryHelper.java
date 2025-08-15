@@ -23,9 +23,31 @@
 ║                                                                                    ║
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 */
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Ultra light, Ultra fast parser to extract table name out SQLs, supports oracle dialect SQLs as well.
+ * @author Nadeem Mohammad
+ *
+ */
 package io.github.prrvchr.uno.driver.helper;
 
 import java.sql.DatabaseMetaData;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,27 +60,29 @@ import io.github.prrvchr.uno.helper.UnoHelper;
 
 public final class QueryHelper {
 
+    public static final String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
+    public static final String SPACE = " ";
+
     private static final int NO_INDEX = -1;
 
-    private static final String SPACE = " ";
     private static final String REGEX_SPACE = "\\s+";
     private static final String TOKEN_MULTI_LINE_COMMENT_START = "/*+";
     private static final String TOKEN_MULTI_LINE_COMMENT_END = "*/";
     private static final String TOKEN_SINGLE_LINE_COMMENT = "--";
-    private static final String TOKEN_NEWLINE = "\\r\\n|\\r|\\n|\\n\\r";
     private static final String TOKEN_SEMI_COLON = ";";
     private static final String TOKEN_COMMA = ",";
 
     private static final String KEYWORD_INTO = "into";
     private static final String KEYWORD_UPDATE = "update";
     private static final String KEYWORD_FROM = "from";
+    private static final String KEYWORD_JOIN = "join";
+    private static final String KEYWORD_UNION = "union";
 
     private static final String SQL_INSERT = "insert";
     private static final String SQL_UPDATE = "update";
     private static final String SQL_SELECT = "select";
 
-    private static final String[] SQL_COMMANDS = {SQL_INSERT, SQL_UPDATE, SQL_SELECT};
-
+    private static final List<String> SQL_COMMANDS = List.of(SQL_INSERT, SQL_UPDATE, SQL_SELECT);
 
     private String mCatalog = null;
     private String mSchema = null;
@@ -69,8 +93,10 @@ public final class QueryHelper {
     private String mType = null;
 
     private Boolean mPrimaryKey = null;
+    private Boolean mSingleTableSelect = false;
 
     private DatabaseMetaData mMetaData = null;
+
     /**
      * Extracts table name out of SQL if query is INSERT, UPDATE or SELECT.
      * ie queries executed by: - java.sql.Statement.executeUpdate()
@@ -89,12 +115,12 @@ public final class QueryHelper {
         if (table != null) {
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
-                NamedComponents namedComponent = DBTools.qualifiedNameComponents(provider, table, rule, true);
-                mCatalog = namedComponent.getCatalog();
-                mSchema = namedComponent.getSchema();
-                mTable = namedComponent.getTable();
+                NamedComponents tablename = DBTools.qualifiedNameComponents(provider, table, rule, true);
+                mCatalog = tablename.getCatalog();
+                mSchema = tablename.getSchema();
+                mTable = tablename.getTable();
                 mIdentifier = table;
-                mTableName = DBTools.composeTableName(provider, namedComponent, rule, false);
+                mTableName = DBTools.composeTableName(provider, tablename, rule, false);
                 mMetaData = provider.getConnection().getMetaData();
             } catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e);
@@ -190,23 +216,51 @@ public final class QueryHelper {
         return SQL_SELECT.equals(mType);
     }
 
+    /**
+     * 
+     * @return if SQL command is an SELECT command on a single table
+     */
+    public boolean isSingleTableSelect() {
+        return mSingleTableSelect;
+    }
+
     private String getTableName(String query) {
         String table = null;
         String nocomments = removeComments(query);
         String normalized = normalize(nocomments);
         String cleaned = clean(normalized);
+        String token;
         String[] tokens = cleaned.split(REGEX_SPACE);
-        if (tokens.length > 0 && isCommand(tokens[0])) {
+        if (tokens.length > 0 && isCommand(tokens[0].toLowerCase())) {
             int index = 1;
             while (index < tokens.length) {
-                String token = tokens[index++];
-                if (shouldProcess(token)) {
+                token = tokens[index++];
+                if (shouldProcess(token.toLowerCase())) {
                     table = tokens[index];
                     break;
                 }
             }
+            if (table != null && isSelectCommand()) {
+                mSingleTableSelect = isLastTable(tokens, ++index);
+            }
         }
         return table;
+    }
+
+    private boolean isLastTable(String[] tokens, int index) {
+        String token, keyword;
+        boolean last = true;
+        while (index < tokens.length) {
+            token = tokens[index++];
+            keyword = token.toLowerCase();
+            if (TOKEN_COMMA.equals(token) ||
+                KEYWORD_JOIN.equals(keyword) ||
+                KEYWORD_UNION.equals(keyword)) {
+                last = false;
+                break;
+            }
+        }
+        return last;
     }
 
     private String removeComments(final String sql) {
@@ -272,12 +326,9 @@ public final class QueryHelper {
 
     private boolean isCommand(final String token) {
         boolean iscommand = false;
-        for (String type : SQL_COMMANDS) {
-            if (type.equals(token.toLowerCase())) {
-                mType = type;
-                iscommand = true;
-                break;
-            }
+        if (SQL_COMMANDS.contains(token)) {
+            mType = token;
+            iscommand = true;
         }
         return iscommand;
     }
@@ -286,13 +337,13 @@ public final class QueryHelper {
         boolean process = false;
         switch (mType) {
             case SQL_INSERT:
-                process = KEYWORD_INTO.equals(token.toLowerCase());
+                process = KEYWORD_INTO.equals(token);
                 break;
             case SQL_UPDATE:
-                process = KEYWORD_UPDATE.equals(token.toLowerCase());
+                process = KEYWORD_UPDATE.equals(token);
                 break;
             case SQL_SELECT:
-                process = KEYWORD_FROM.equals(token.toLowerCase());
+                process = KEYWORD_FROM.equals(token);
                 break;
         }
         return process;

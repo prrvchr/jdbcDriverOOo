@@ -25,18 +25,14 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.List;
-
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 
 
 public abstract class TableContainerMain<T extends TableMain>
@@ -49,7 +45,7 @@ public abstract class TableContainerMain<T extends TableMain>
                                  String[] services,
                                  ConnectionSuper connection,
                                  boolean sensitive,
-                                 List<String> names,
+                                 String[] names,
                                  LoggerObjectType logtype)
         throws ElementExistException {
         super(service, services, connection, sensitive, names);
@@ -75,19 +71,14 @@ public abstract class TableContainerMain<T extends TableMain>
     }
 
     @Override
-    protected String getElementName(XPropertySet descriptor)
-        throws SQLException {
-        try {
-            return DBTools.composeTableName(mConnection.getProvider(), descriptor,
-                                            ComposeRule.InTableDefinitions, false);
-        } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
-        }
+    protected String getElementName(XPropertySet descriptor) {
+        ComposeRule rule = ComposeRule.InTableDefinitions;
+        return DBTools.composeTableName(mConnection.getProvider(), descriptor, rule, false);
     }
 
     @Override
     protected T appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         T element = null;
         String name = getElementName(descriptor);
         if (createDataBaseElement(descriptor, name)) {
@@ -101,6 +92,6 @@ public abstract class TableContainerMain<T extends TableMain>
         mConnection.refresh();
     }
 
-    abstract boolean createDataBaseElement(XPropertySet descriptor, String name) throws SQLException;
+    abstract boolean createDataBaseElement(XPropertySet descriptor, String name) throws java.sql.SQLException;
 
 }

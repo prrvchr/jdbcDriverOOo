@@ -39,6 +39,7 @@ import com.sun.star.sdbc.XDatabaseMetaData2;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.uno.AnyConverter;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBException;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
@@ -362,11 +363,14 @@ public class DatabaseMetaData
     }
 
     @Override
-    public XResultSet getIndexInfo(Object catalog, String schema, String table, boolean arg3, boolean arg4)
+    public XResultSet getIndexInfo(Object catalog, String schema, String table, boolean unique, boolean approximate)
         throws SQLException {
         try {
-            java.sql.ResultSet resultset = mMetadata.getIndexInfo(getPattern(catalog),
-                                                                  getPattern(schema), table, arg3, arg4);
+            ConfigSQL config = mConnection.getProvider().getConfigSQL();
+            java.sql.ResultSet resultset = mMetadata.getIndexInfo(config.getMetaDataIdentifier(getPattern(catalog)),
+                                                                  config.getMetaDataIdentifier(getPattern(schema)),
+                                                                  config.getMetaDataIdentifier(table),
+                                                                  unique, approximate);
             return getResultSet(resultset, "getIndexInfo");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -741,10 +745,10 @@ public class DatabaseMetaData
             RowSetData filter = mConnection.getProvider().getConfigSQL().getSytemTableFilter();
             RowSetData rewrite = mConnection.getProvider().getConfigSQL().getRewriteTableData();
             java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTables(getPattern(catalog),
-                                                                                           getPattern(schema),
-                                                                                           table,
-                                                                                           getPattern(types)),
-                                                                       data, filter, rewrite);
+                                                                                               getPattern(schema),
+                                                                                               table,
+                                                                                               getPattern(types)),
+                                                                           data, filter, rewrite);
             return getResultSet(rs, "getTables");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
@@ -767,9 +771,12 @@ public class DatabaseMetaData
     @Override
     public XResultSet getTypeInfo() throws SQLException {
         try {
+            //java.sql.ResultSet result = mMetadata.getTypeInfo();
+            //DBTools.printResultSet(result);
+            //result.close();
             RowSetData data = mConnection.getProvider().getConfigSQL().getTypeInfoData();
-            java.sql.ResultSet resultset = ResultSetHelper.getCustomDataResultSet(mMetadata.getTypeInfo(), data);
-            return getResultSet(resultset, "getTypeInfo");
+            java.sql.ResultSet rs = ResultSetHelper.getCustomDataResultSet(mMetadata.getTypeInfo(), data);
+            return getResultSet(rs, "getTypeInfo");
         } catch (java.sql.SQLException e) {
             throw UnoHelper.getSQLException(e, this);
         }
@@ -1586,9 +1593,10 @@ public class DatabaseMetaData
             mLogger.logp(LogLevel.SEVERE, message);
             throw DBException.getSQLException(message, this, StandardSQLState.SQL_GENERAL_ERROR);
         }
-        ResultSet resultset = new ResultSet(mConnection, result, null,method);
+        ResultSet resultset = new ResultSet(mConnection, result, null, method);
         mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_DATABASE_METADATA_CREATED_RESULTSET_ID,
                        method, resultset.getLogger().getObjectId());
+        mConnection.addResultSet(method);
         return resultset;
     }
 

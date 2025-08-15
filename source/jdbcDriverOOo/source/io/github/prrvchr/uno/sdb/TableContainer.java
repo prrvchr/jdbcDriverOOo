@@ -25,12 +25,9 @@
 */
 package io.github.prrvchr.uno.sdb;
 
-import java.util.List;
-
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
@@ -45,8 +42,8 @@ public final class TableContainer
 
     // The constructor method:
     public TableContainer(Connection connection,
-                          boolean sensitive,
-                          List<String> names)
+                          String[] names,
+                          boolean sensitive)
         throws ElementExistException {
         super(SERVICE, SERVICES, connection, sensitive, names);
     }
@@ -79,15 +76,15 @@ public final class TableContainer
     }
 
     @Override
-    protected Table getElement(String name)
-        throws SQLException {
-        return (Table) super.getElement(name);
+    protected Table getElementByName(String name)
+        throws java.sql.SQLException {
+        return (Table) super.getElementByName(name);
     }
 
     @Override
-    protected Table getElement(int index)
-        throws SQLException {
-        return (Table) super.getElement(index);
+    protected Table getElementByIndex(int index)
+        throws java.sql.SQLException {
+        return (Table) super.getElementByIndex(index);
     }
 
 }

@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.sdb;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +45,7 @@ import com.sun.star.sdbcx.XUsersSupplier;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.uno.XInterface;
 
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -62,6 +64,8 @@ public final class Connection
     private static final String[] SERVICES = {"com.sun.star.sdb.Connection",
                                               "com.sun.star.sdbc.Connection",
                                               "com.sun.star.sdbcx.DatabaseDefinition"};
+
+    private final boolean mSupportsDCL;
     private UserContainer mUsers = null;
     private GroupContainer mGroups = null;
     private XDataSource mDataSource = null;
@@ -72,7 +76,8 @@ public final class Connection
                          String url,
                          Set<String> properties) {
         super(ctx, SERVICE, SERVICES, provider, url, properties);
-        mDataSource = DocumentContainer.getDataSource();
+        mSupportsDCL = provider.getConfigSQL().supportsDCLQuery();
+        //mDataSource = DocumentContainer.getDataSource();
     }
 
     protected Provider getProvider() {
@@ -85,7 +90,7 @@ public final class Connection
 
     // com.sun.star.lang.XComponent
     @Override
-    protected synchronized void postDisposing() {
+    public synchronized void dispose() {
         if (mUsers != null) {
             mUsers.dispose();
             mUsers = null;
@@ -94,7 +99,7 @@ public final class Connection
             mGroups.dispose();
             mGroups = null;
         }
-        super.postDisposing();
+        super.dispose();
     }
 
     // com.sun.star.container.XChild:
@@ -172,34 +177,34 @@ public final class Connection
     // com.sun.star.sdbcx.XUsersSupplier:
     @Override
     public synchronized XNameAccess getUsers() {
-        XNameAccess users = null;
-        if (getProvider().getConfigSQL().supportsDCLQuery()) {
-            users = getUsersInternal();
-        }
-        return users;
+        checkDisposed();
+        return getUsersInternal();
     }
 
     // com.sun.star.sdbcx.XGroupsSupplier:
     @Override
     public XNameAccess getGroups() {
-        XNameAccess groups = null;
-        if (getProvider().getConfigSQL().supportsDCLQuery()) {
-            groups = getGroupsInternal();
+        checkDisposed();
+        return getGroupsInternal();
+    }
+
+    public synchronized void refresh() {
+        super.refresh();
+        if (mSupportsDCL) {
+            refreshUsers();
+            refreshGroups();
         }
-        return groups;
     }
 
     protected synchronized GroupContainer getGroupsInternal() {
-        checkDisposed();
-        if (mGroups == null) {
+        if (mSupportsDCL && mGroups == null) {
             refreshGroups();
         }
         return mGroups;
     }
 
     protected synchronized UserContainer getUsersInternal() {
-        checkDisposed();
-        if (mUsers == null) {
+        if (mSupportsDCL && mUsers == null) {
             refreshUsers();
         }
         return mUsers;
@@ -239,78 +244,105 @@ public final class Connection
         return statement;
     }
 
-    public synchronized void refresh() {
-        super.refresh();
-        refreshUsers();
-        refreshGroups();
-    }
-
-    public void refreshUsers() {
-        String query = getProvider().getConfigDCL().getUsersQuery();
-        if (query != null) {
-            List<String> names = new ArrayList<>();
-            try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-                try (java.sql.ResultSet result = statement.executeQuery(query)) {
-                    while (result.next()) {
-                        String name = result.getString(1);
-                        if (!result.wasNull() && !name.isBlank()) {
-                            names.add(name);
-                        }
-                    }
-                }
-                if (mUsers == null) {
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
-                    mUsers = new UserContainer(this, getProvider().isCaseSensitive(), names);
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID,
-                                       mUsers.getLogger().getObjectId());
-                } else {
-                    mUsers.refill(names);
-                }
-            } catch (ElementExistException | java.sql.SQLException e) {
-                throw new com.sun.star.uno.RuntimeException("Error", e);
-            }
-        }
-    }
-
-    public void refreshGroups() {
-        String query = getProvider().getConfigDCL().getGroupsQuery();
-        if (query != null) {
-            List<String> names = new ArrayList<>();
-            try (java.sql.Statement statement = getProvider().getConnection().createStatement()) {
-                try (java.sql.ResultSet result = statement.executeQuery(query)) {
-                    while (result.next()) {
-                        String name = result.getString(1);
-                        if (!result.wasNull() && !name.isBlank()) {
-                            names.add(name);
-                        }
-                    }
-                }
-                if (mGroups == null) {
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
-                    mGroups = new GroupContainer(this, getProvider().isCaseSensitive(), names);
-                    getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID,
-                                       mGroups.getLogger().getObjectId());
-                }  else {
-                    mGroups.refill(names);
-                }
-            } catch (ElementExistException | java.sql.SQLException e) {
-                throw new com.sun.star.uno.RuntimeException("Error", e);
-            }
-        }
-    }
-
     @Override
-    protected TableContainer getTableContainer(List<String> names)
+    protected TableContainer getTableContainer(String[] names)
         throws ElementExistException {
-        TableContainer tables = new TableContainer(this, getProvider().isCaseSensitive(), names);
+        TableContainer tables = new TableContainer(this, names, getProvider().isCaseSensitive());
         return tables;
     }
 
     @Override
-    protected ViewContainer getViewContainer(List<String> names)
+    protected ViewContainer getViewContainer(String[] names)
         throws ElementExistException {
-        ViewContainer views = new ViewContainer(this, getProvider().isCaseSensitive(), names);
+        ViewContainer views = new ViewContainer(this, names, getProvider().isCaseSensitive());
         return views;
+    }
+
+    protected String[] getRoleNames(ConnectionLog logger,
+                                    Collection<Object> values,
+                                    String query,
+                                    int resource) {
+        List<String> names = new ArrayList<>();
+        if (query != null) {
+            String name;
+            try (java.sql.PreparedStatement stmt = getRolesStatement(query, values);
+                 java.sql.ResultSet result = stmt.executeQuery()) {
+                while (result.next()) {
+                    name = result.getString(1);
+                    if (!result.wasNull() && !name.isBlank()) {
+                        names.add(name);
+                    }
+                }
+            } catch (Throwable e) {
+                String msg = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
+                logger.logprb(LogLevel.SEVERE, resource, msg);
+            }
+        }
+        return names.toArray(new String[0]);
+    }
+
+    private  String[] getRoleNames(String query,
+                                   int resource) {
+        return getRoleNames(getLogger(), null, query, resource);
+    }
+
+    private java.sql.PreparedStatement getRolesStatement(String query,
+                                                         Collection<Object> values)
+        throws java.sql.SQLException {
+        java.sql.PreparedStatement stmt = getProvider().getConnection().prepareStatement(query);
+        if (values != null) {
+            int index = 1;
+            for (Object value : values) {
+                stmt.setObject(index++, value);
+            }
+        }
+        return stmt;
+    }
+
+    private void refreshUsers() {
+        String[] users;
+        String query = null;
+        if (mUsers == null) {
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_USERS);
+        }
+        query = getProvider().getConfigDCL().getUsersQuery();
+        if (query != null) {
+            int resource = Resources.STR_LOG_CREATE_USERS_ERROR;
+            users = getRoleNames(query, resource);
+        } else {
+            users = new String[0];
+            getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_CREATE_USERS_NOT_SUPPORTED);
+        }
+        if (mUsers == null) {
+            mUsers = new UserContainer(this, users, getProvider().isCaseSensitive());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_USERS_ID,
+                               mUsers.getLogger().getObjectId());
+        } else {
+            mUsers.refill(users);
+        }
+    }
+
+    private void refreshGroups() {
+        String[] groups;
+        String query = null;
+        if (mGroups == null) {
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_GROUPS);
+        }
+        query = getProvider().getConfigDCL().getGroupsQuery();
+        if (query != null) {
+            int resource = Resources.STR_LOG_CREATE_GROUPS_ERROR;
+            groups = getRoleNames(query, resource);
+        } else {
+            groups = new String[0];
+            getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_CREATE_GROUPS_NOT_SUPPORTED);
+        }
+        if (mGroups == null) {
+            mGroups = new GroupContainer(this, groups, getProvider().isCaseSensitive());
+            getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUPS_ID,
+                               mGroups.getLogger().getObjectId());
+        }  else {
+            mGroups.refill(groups);
+        }
     }
 
 }

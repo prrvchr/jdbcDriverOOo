@@ -26,6 +26,7 @@
 package io.github.prrvchr.uno.driver.config;
 
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ import com.sun.star.container.XHierarchicalNameAccess;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.PropertiesHelper;
 
 
@@ -51,6 +53,8 @@ public class ConfigSQL extends ConfigBase {
 
     private static final String SQL_COMMAND_SUFFIX = "SQLCommandSuffix";
     private static final String SUPPORTS_DCL_QUERY = "SupportsDCLQuery";
+    private static final String QUOTED_METADATA = "QuotedMetaData";
+    private static final String COMPLETED_METADATA = "CompletedMetaData";
 
     private static final String EMPTY_RESULTSET_QUERY = "SELECT * FROM %s WHERE 0 = 1";
     private static final String GENERATED_KEY_QUERY = "SELECT * FROM %s WHERE %s";
@@ -99,6 +103,35 @@ public class ConfigSQL extends ConfigBase {
         mStringsProperties = new HashMap<>();
     }
 
+    public boolean useCachedRowSet(ResultSet rs, QueryHelper query)
+        throws SQLException {
+        boolean use = true;
+        try {
+            switch (mCachedRowSet) {
+                case 0:
+                    use = false;
+                    break;
+                case 1:
+                    use = hasRequiredMetaData(query) && isEditableResultSet(rs, query);
+                    break;
+            }
+        } catch (java.sql.SQLException e) {
+            throw new SQLException(e.getMessage());
+        }
+        return use;
+    }
+
+    public boolean needCompletedMetaData() {
+        return getPropertyBoolean(COMPLETED_METADATA, false);
+    }
+
+    public String getMetaDataIdentifier(String identifier) {
+        if (identifier != null && getQuotedMetaData() && !identifier.toUpperCase().equals(identifier)) {
+            identifier = enquoteIdentifier(identifier);
+        }
+        return identifier;
+    }
+
     public String enquoteIdentifier(String identifier) {
         return mIdentifierQuote + identifier + mIdentifierQuote;
     }
@@ -126,19 +159,6 @@ public class ConfigSQL extends ConfigBase {
 
     public String getResultSetMetaDataQuery() {
         return METADATA_RESULTSET_QUERY;
-    }
-
-    private static String getDriverCommandSuffix(XHierarchicalNameAccess config, String subprotocol) {
-        String suffix = "";
-        try {
-            String path = PropertiesHelper.getConfigMetaDataPath(subprotocol, SQL_COMMAND_SUFFIX);
-            if (config.hasByHierarchicalName(path)) {
-                suffix = (String) config.getByHierarchicalName(path);
-            }
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
-        }
-        return suffix;
     }
 
     protected Boolean getPropertyBoolean(String key) {
@@ -214,6 +234,30 @@ public class ConfigSQL extends ConfigBase {
         return template.toString();
     }
 
+    private boolean hasRequiredMetaData(QueryHelper query) {
+        return !needCompletedMetaData() || query.isSingleTableSelect();
+    }
+
+    private boolean isEditableResultSet(ResultSet rs, QueryHelper query)
+        throws java.sql.SQLException {
+        return rs.getType() == ResultSet.TYPE_FORWARD_ONLY ||
+               rs.getConcurrency() == ResultSet.CONCUR_READ_ONLY ||
+               !query.hasPrimaryKeys();
+    }
+
+    private static String getDriverCommandSuffix(XHierarchicalNameAccess config, String subprotocol) {
+        String suffix = "";
+        try {
+            String path = PropertiesHelper.getConfigMetaDataPath(subprotocol, SQL_COMMAND_SUFFIX);
+            if (config.hasByHierarchicalName(path)) {
+                suffix = (String) config.getByHierarchicalName(path);
+            }
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+        }
+        return suffix;
+    }
+
     private Boolean getConfigurationBoolean(final String name, Boolean value) throws NoSuchElementException {
         return (Boolean) getConfiguration(mConfig, mSubProtocol, name, value);
     }
@@ -250,6 +294,10 @@ public class ConfigSQL extends ConfigBase {
 
     private boolean getSupportsDCLQuery() {
         return getPropertyBoolean(SUPPORTS_DCL_QUERY, true);
+    }
+
+    private boolean getQuotedMetaData() {
+        return getPropertyBoolean(QUOTED_METADATA, false);
     }
 
     private static final Object getConfiguration(final XHierarchicalNameAccess config,

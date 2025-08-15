@@ -79,6 +79,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -109,6 +110,7 @@ import io.github.prrvchr.java.rowset.internal.BaseRow;
 import io.github.prrvchr.java.rowset.internal.CachedRowSetReader;
 import io.github.prrvchr.java.rowset.internal.CachedRowSetWriter;
 import io.github.prrvchr.java.rowset.internal.InsertRow;
+import io.github.prrvchr.java.rowset.internal.NamedComponent;
 import io.github.prrvchr.java.rowset.internal.Row;
 import io.github.prrvchr.java.rowset.internal.RowSetHelper;
 
@@ -710,13 +712,20 @@ public class CachedRowSetImpl
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.populate").toString());
         }
 
-        //resultSet = data;
-
         // get the meta data for this ResultSet
         ResultSetMetaData rsmd = data.getMetaData();
+        int count = rsmd.getColumnCount();
+        NamedComponent table = null;
+        List<String> autoColumns = null;
+        // XXX: If tableName was given then it is necessary to retrieve the metadata from that table
+        if (hasTableName()) {
+            DatabaseMetaData dbmd = data.getStatement().getConnection().getMetaData();
+            table = new NamedComponent(dbmd, tableName);
+            autoColumns = RowSetHelper.getAutoIncrementColumns(dbmd, table);
+        }
 
         // set up the metadata
-        initMetaData(rsmd);
+        initMetaData(rsmd, autoColumns, table, count);
         setMetaData(data);
 
         numRows = fetchData(data);
@@ -724,6 +733,10 @@ public class CachedRowSetImpl
 
         // notify any listeners that the rowset has changed
         notifyRowSetChanged();
+    }
+
+    private boolean hasTableName() {
+        return tableName != null && !tableName.isBlank();
     }
 
     private int fetchData(ResultSet data) throws SQLException {
@@ -790,19 +803,33 @@ public class CachedRowSetImpl
      *
      * @param md the <code>ResultSetMetaData</code> object from which new
      *             values for md will be read
+     * @param autoColumns the <code>List</code> of auto-incrementable column
+     * @param table the <code>NamedComponent</code> the full qualified table name
+     * @param count the <code>int</code> column count
+     *
      * @throws SQLException if an error occurs
      */
-    private void initMetaData(ResultSetMetaData md) throws SQLException {
+    private void initMetaData(ResultSetMetaData md, List<String> autoColumns, NamedComponent table, int count)
+        throws SQLException {
 
         RowSetMD = new RowSetMetaDataImpl();
-        int count = md.getColumnCount();
         RowSetMD.setColumnCount(count);
-
+        
+        String column;
+        boolean auto;
         for (int i = 1; i <= count; i++) {
-            RowSetMD.setAutoIncrement(i, md.isAutoIncrement(i));
-            if (md.isAutoIncrement(i)) {
+            column = md.getColumnName(i);
+            RowSetMD.setColumnName(i, column);
+            if (table != null) {
+                auto = autoColumns.contains(column);
+            } else {
+                auto = md.isAutoIncrement(i);
+            }
+            RowSetMD.setAutoIncrement(i, auto);
+            if (auto) {
                 updateOnInsert = true;
             }
+            RowSetMD.setColumnLabel(i, md.getColumnLabel(i));
             RowSetMD.setCaseSensitive(i, md.isCaseSensitive(i));
             RowSetMD.setCurrency(i, md.isCurrency(i));
             RowSetMD.setNullable(i, md.isNullable(i));
@@ -817,9 +844,6 @@ public class CachedRowSetImpl
                 size = 0;
             }
             RowSetMD.setColumnDisplaySize(i, size);
-            RowSetMD.setColumnLabel(i, md.getColumnLabel(i));
-            RowSetMD.setColumnName(i, md.getColumnName(i));
-            RowSetMD.setSchemaName(i, md.getSchemaName(i));
             /*
              * Drivers return some strange values for precision, for non-numeric data, including reports of
              * non-integer values; maybe we should check type, & set to 0 for non-numeric types.
@@ -840,8 +864,17 @@ public class CachedRowSetImpl
                 scale = 0;
             }
             RowSetMD.setScale(i, scale);
-            RowSetMD.setTableName(i, md.getTableName(i));
-            RowSetMD.setCatalogName(i, md.getCatalogName(i));
+
+            if (table != null) {
+                RowSetMD.setCatalogName(i, table.getCatalog());
+                RowSetMD.setSchemaName(i, table.getSchema());
+                RowSetMD.setTableName(i, table.getName());
+            } else {
+                RowSetMD.setCatalogName(i, md.getCatalogName(i));
+                RowSetMD.setSchemaName(i, md.getSchemaName(i));
+                RowSetMD.setTableName(i, md.getTableName(i));
+            }
+
             RowSetMD.setColumnType(i, md.getColumnType(i));
             RowSetMD.setColumnTypeName(i, md.getColumnTypeName(i));
         }
@@ -5425,10 +5458,15 @@ public class CachedRowSetImpl
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.invalidcp").toString());
         }
 
-        Row row = (Row) getCurrentRow();
-        if (row.getUpdated()) {
-            row.clearUpdated();
-            notifyRowChanged();
+        // XXX: We need to allow cancelRowUpdate when RowSet is empty. This is required
+        // XXX: for LibreOffice Base and in this case this method will have no effect.
+        // XXX: see: https://bugs.documentfoundation.org/show_bug.cgi?id=167434
+        if (numRows > 0) {
+            Row row = (Row) getCurrentRow();
+            if (row.getUpdated()) {
+                row.clearUpdated();
+                notifyRowChanged();
+            }
         }
     }
 
@@ -7135,9 +7173,18 @@ public class CachedRowSetImpl
 
         // get the meta data for this ResultSet
         ResultSetMetaData rsmd = data.getMetaData();
+        int count = rsmd.getColumnCount();
+        NamedComponent table = null;
+        List<String> autoColumns = null;
+        // XXX: If tableName was given then it is necessary to retrieve the metadata from that table
+        if (hasTableName()) {
+            DatabaseMetaData dbmd = data.getStatement().getConnection().getMetaData();
+            table = new NamedComponent(dbmd, tableName);
+            autoColumns = RowSetHelper.getAutoIncrementColumns(dbmd, table);
+        }
 
         // set up the metadata
-        initMetaData(rsmd);
+        initMetaData(rsmd, autoColumns, table, count);
         setMetaData(data);
 
         int numCols = RowSetMD.getColumnCount();

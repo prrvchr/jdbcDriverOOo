@@ -187,9 +187,8 @@ public class DriverManager {
                                                 final String clsname)
         throws SQLException {
         final URLClassLoader loader = new URLClassLoader(urls, source.getClass().getClassLoader());
-        Class<?> clazz;
         try {
-            clazz = Class.forName(clsname, true, loader);
+            Class<?> clazz = Class.forName(clsname, true, loader);
             return (Driver) clazz.getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException | IllegalAccessException e) {
             final int resource = Resources.STR_LOG_DRIVER_CLASS_NOT_FOUND;
@@ -204,22 +203,25 @@ public class DriverManager {
         }
     }
 
-    public static final void registerDriver(final XInterface source,
+    public static final Path registerDriver(final XInterface source,
                                             final Driver driver,
-                                            final Path drvpath,
                                             final String clspath,
                                             final String clsname,
                                             final String name)
         throws SQLException {
         Path path = null;
+        Path location = null;
         try {
-            path = Path.of(new URI(clspath)).toRealPath();
-        } catch (URISyntaxException | IOException e) { }
-        // XXX: Does Java provide the jdbcDriverOOo embedded driver?
-        if (path == null || !drvpath.startsWith(path)) {
+            URL url = driver.getClass().getProtectionDomain().getCodeSource().getLocation();
+            path = Path.of(url.toURI()).toRealPath();
+            location = Path.of(new URI(clspath)).toRealPath();
+        } catch (Throwable e) {
+            throw DBException.getSQLException(e.getMessage(), source, StandardSQLState.SQL_UNABLE_TO_CONNECT);
+        }
+        // XXX: Does the loaded JDBC driver come from the built-in drivers of jdbcDriverOOo?
+        if (!path.startsWith(location)) {
             final int resource = Resources.STR_LOG_DRIVER_JAVA_CLASS_NOT_SUPPORTED;
-            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource,
-                                                                                         drvpath.toString(), name);
+            final String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, path, name);
             throw DBException.getSQLException(msg, source, StandardSQLState.SQL_UNABLE_TO_CONNECT);
         }
         try {
@@ -231,6 +233,7 @@ public class DriverManager {
                                               DBException.getSQLException(source, e));
         }
         mRegisteredDriver.add(clsname);
+        return path;
     }
 
     private static final String expandURL(final XComponentContext context,

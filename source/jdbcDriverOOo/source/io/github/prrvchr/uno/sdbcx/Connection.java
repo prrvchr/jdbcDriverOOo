@@ -25,7 +25,6 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
-import java.util.List;
 import java.util.Set;
 
 import com.sun.star.container.ElementExistException;
@@ -98,15 +97,15 @@ public final class Connection
     }
 
     @Override
-    protected TableContainer getTableContainer(List<String> names)
+    protected TableContainer getTableContainer(String[] names)
         throws ElementExistException {
-        return new TableContainer(this, getProvider().isCaseSensitive(), names);
+        return new TableContainer(this, names, getProvider().isCaseSensitive());
     }
 
     @Override
-    protected ViewContainer getViewContainer(List<String> names)
+    protected ViewContainer getViewContainer(String[] names)
         throws ElementExistException {
-        return new ViewContainer(this, getProvider().isCaseSensitive(), names);
+        return new ViewContainer(this, names, getProvider().isCaseSensitive());
     }
 
 }

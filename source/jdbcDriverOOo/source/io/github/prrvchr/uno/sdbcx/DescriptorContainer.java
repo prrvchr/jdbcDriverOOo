@@ -26,15 +26,13 @@
 package io.github.prrvchr.uno.sdbcx;
 
 
-import com.sun.star.sdbc.SQLException;
-
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public abstract class DescriptorContainer<T extends Descriptor>
-    extends ContainerSuper<T> {
+    extends ContainerBase<T> {
     private static final String SERVICE = DescriptorContainer.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Container"};
 
@@ -46,17 +44,17 @@ public abstract class DescriptorContainer<T extends Descriptor>
 
     @Override
     protected T createElement(String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         // This should never be called. DescriptorContainer always starts off empty,
         // and only grows as a result of appending.
         String error = SharedResources.getInstance().getResource(Resources.STR_ERRORMSG_SEQUENCE);
-        throw new SQLException(error, this, StandardSQLState.SQL_FUNCTION_SEQUENCE_ERROR.text(), 0, null);
+        throw new java.sql.SQLException(error, StandardSQLState.SQL_FUNCTION_SEQUENCE_ERROR.text());
     }
     
     @Override
     protected void removeDataBaseElement(int index,
                                          String name)
-        throws SQLException {
+        throws java.sql.SQLException {
     }
     
     @Override

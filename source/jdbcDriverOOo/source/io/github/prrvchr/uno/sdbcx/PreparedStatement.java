@@ -33,6 +33,7 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
@@ -59,9 +60,10 @@ public final class PreparedStatement
         throws SQLException {
         XResultSet resultset = null;
         java.sql.ResultSet rs = getJdbcResultSet();
+        Provider provider = getConnectionInternal().getProvider();
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
-        if (mUseBookmarks && getConnectionInternal().getProvider().getConfigSQL().useCachedRowSet(rs, mQuery)) {
-            CachedRowSet crs = ResultSetHelper.getCachedRowSet(rs);
+        if (mUseBookmarks && provider.getConfigSQL().useCachedRowSet(rs, mQuery)) {
+            CachedRowSet crs = ResultSetHelper.getCachedRowSet(provider, rs, mQuery);
             if (!crs.isReadOnly()) {
                 RowSet rowset = new RowSet(getConnectionInternal(), crs, this);
                 String services = String.join(", ", rowset.getSupportedServiceNames());

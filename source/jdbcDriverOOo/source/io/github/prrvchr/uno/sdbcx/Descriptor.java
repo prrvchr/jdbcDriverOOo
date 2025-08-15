@@ -43,33 +43,41 @@ public abstract class Descriptor
     implements XServiceInfo {
 
     protected final String mService;
+    protected final boolean mReadonly;
+    protected String mName;
+    protected ColumnMain mColumn;
     private final String[] mServices;
-    private String mName;
     private final boolean mSensitive;
-    private final boolean mReadonly;
 
     // The constructor method:
     public Descriptor(String service,
                       String[] services,
                       boolean sensitive) {
-        this(service, services, sensitive, "", false);
+        this(service, services, sensitive, false);
+        mName = "";
     }
+    public Descriptor(String service,
+                      String[] services,
+                      ColumnMain column) {
+        this(service, services, column.isCaseSensitive(), true);
+        mColumn = column;
+    }
+
     public Descriptor(String service,
                       String[] services,
                       boolean sensitive,
                       String name) {
-        this(service, services, sensitive, name, true);
+        this(service, services, sensitive, true);
+        mName = name;
     }
 
     private Descriptor(String service,
                        String[] services,
                        boolean sensitive,
-                       String name,
                        boolean readonly) {
         mService = service;
         mServices = services;
         mSensitive = sensitive;
-        mName = name;
         mReadonly = readonly;
     }
 
@@ -91,7 +99,7 @@ public abstract class Descriptor
         properties.put(PropertyIds.NAME.getName(),
             new PropertyWrapper(Type.STRING, attribute,
                 () -> {
-                    return mName;
+                    return getName();
                 },
                 setter));
 
@@ -116,13 +124,20 @@ public abstract class Descriptor
 
     // Method for internal use (no UNO method)
     protected String getName() {
-        return mName;
+        String value;
+        if (mColumn != null) {
+            value = mColumn.mName;
+        } else {
+            value = mName;
+        }
+        return value;
     }
-    
+
     protected void setName(String name) {
         mName = name;
     }
     
+
     protected boolean isCaseSensitive() {
         return mSensitive;
     }

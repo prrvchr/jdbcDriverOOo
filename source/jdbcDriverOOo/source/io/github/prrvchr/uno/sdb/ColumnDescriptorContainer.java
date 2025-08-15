@@ -26,7 +26,6 @@
 package io.github.prrvchr.uno.sdb;
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbc.SQLException;
 
 import io.github.prrvchr.uno.sdbcx.ColumnDescriptorContainerSuper;
 import io.github.prrvchr.uno.sdbcx.TableDescriptorSuper;
@@ -43,14 +42,13 @@ public final class ColumnDescriptorContainer
 
     @Override
     protected ColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         return (ColumnDescriptor) cloneDescriptor(descriptor);
     }
 
     @Override
     protected XPropertySet createDescriptor() {
-        return new ColumnDescriptor(getTable().getCatalogName(), getTable().getSchemaName(),
-                                    getTable().getName(), isCaseSensitive());
+        return new ColumnDescriptor(getTable(), isCaseSensitive());
     }
 
     private TableDescriptor getTable() {

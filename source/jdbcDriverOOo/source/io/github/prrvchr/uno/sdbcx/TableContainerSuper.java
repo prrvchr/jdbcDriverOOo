@@ -25,22 +25,20 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.container.NoSuchElementException;
 import com.sun.star.lang.IllegalArgumentException;
-import com.sun.star.lang.IndexOutOfBoundsException;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.logging.LogLevel;
-import com.sun.star.sdbc.SQLException;
-import com.sun.star.uno.Any;
-import com.sun.star.uno.Exception;
+import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.DBTools;
@@ -57,18 +55,37 @@ import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 public abstract class TableContainerSuper<T extends TableSuper>
     extends TableContainerMain<T> {
 
+    // XXX: In order to be able to remove correctly any reference after deleting
+    // XXX: a table, I need to keep track of all tables with a foreign key.
+    // XXX: Only loading a foreign Key will add entry to mReferencedTables
+    private Map<TableSuper, Set<TableSuper>> mReferencedTables = new HashMap<>();
+
     // The constructor method:
     public TableContainerSuper(String service,
                                String[] services,
                                ConnectionSuper connection,
                                boolean sensitive,
-                               List<String> names)
+                               String[] names)
         throws ElementExistException {
         super(service, services, connection, sensitive, names, LoggerObjectType.TABLECONTAINER);
     }
 
     protected ConnectionSuper getConnection() {
         return mConnection;
+    }
+
+    protected boolean isReferencedTable(TableSuper primary) {
+        return mReferencedTables.containsKey(primary);
+    }
+
+    protected void addReferencedTables(TableSuper primary, TableSuper foreign) {
+        if (!mReferencedTables.containsKey(primary)) {
+            mReferencedTables.put(primary, new HashSet<>());
+        }
+        Set<TableSuper> refs = mReferencedTables.get(primary);
+        if (!refs.contains(foreign)) {
+            refs.add(foreign);
+        }
     }
 
     @Override
@@ -107,19 +124,18 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 }
                 created = DBTools.executeSQLQueries(mConnection.getProvider(), queries);
             }
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
             String query = String.join("> <", queries);
             String msg = getLogger().getStringResource(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        } catch (IllegalArgumentException | WrappedTargetException |
-                 IndexOutOfBoundsException | UnknownPropertyException e) {
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+        } catch (IllegalArgumentException e) {
             int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
             String query = String.join("> <", queries);
             String msg = getLogger().getStringResource(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, (Exception) e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         return created;
     }
@@ -148,14 +164,14 @@ public abstract class TableContainerSuper<T extends TableSuper>
                     table = getTable(component, type, remarks);
                 }
             }
-        } catch (java.sql.SQLException e) {
-            throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
+        } catch (SQLException e) {
+            throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
         return table;
     }
 
     private java.sql.ResultSet getcreateElementResultSet(NamedComponents table)
-            throws java.sql.SQLException {
+            throws SQLException {
         java.sql.DatabaseMetaData metadata = mConnection.getProvider().getConnection().getMetaData();
         return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTable(), null);
     }
@@ -167,13 +183,13 @@ public abstract class TableContainerSuper<T extends TableSuper>
         String query = null;
         try {
             boolean isview = false;
-            TableSuper element = (TableSuper) getElement(name);
+            TableSuper element = (TableSuper) getElementByName(name);
             if (element != null) {
                 isview = element.mType.toUpperCase().contains("VIEW");
             }
             if (isview) {
                 ViewContainer views = mConnection.getViewsInternal();
-                views.dropByName(name);
+                views.removeElement(name, true);
                 return;
             }
             Provider provider = mConnection.getProvider();
@@ -184,63 +200,102 @@ public abstract class TableContainerSuper<T extends TableSuper>
             System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
             DBTools.executeSQLQuery(mConnection.getProvider(), query);
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;
             String msg = getLogger().getStringResource(resource, name, query);
             getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        } catch (NoSuchElementException e) {
-            int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
     }
 
-    // XXX: This is the Java implementation of com.sun.star.sdbcx.XContainer interface for the
-    // XXX: com.sun.star.sdbcx.XRename interface available for the com.sun.star.sdbcx.XTable and XView
-    // XXX: This is called from TableSuper.rename(String name) (ie: com.sun.star.sdbcx.XRename)
-    // XXX: If renamed table are part of a foreign key the referenced table name is not any more valid.
-    // XXX: So we need to rename the referenced table name in all other
-    // XXX: table having a foreign keys referencing this table.
-    protected void renameReferencedTableName(List<String> filter,
-                                             String oldname,
-                                             String newname)
-        throws SQLException {
-        Iterator<T> tables = getActiveElements(filter);
-        while (tables.hasNext()) {
-            T table = tables.next();
-            // XXX: We are looking for foreign key on other table.
-            if (table.getName().equals(newname)) {
-                continue;
-            }
-            Iterator<Key> keys = table.getKeysInternal().getActiveElements();
-            while (keys.hasNext()) {
-                Key key = keys.next();
-                if (key.mReferencedTable.equals(oldname)) {
-                    key.mReferencedTable = newname;
+
+    // XXX: ColumnListener methods
+    protected void removeReferencedColumns(ColumnBase column, String name) {
+        for (TableSuper table : mReferencedTables.get(column.getTableInternal())) {
+            removeReferencedColumns(column.getTableInternal(), table, name);
+        }
+    }
+
+
+    // XXX: TableListener methods
+    protected void removeForeignKeyTables(TableSuper table, String name) {
+        if (mReferencedTables.containsKey(table)) {
+            removeForeignKeyTables(table, name);
+            mReferencedTables.remove(table);
+        }
+    }
+
+
+    protected abstract T getTable(NamedComponents component,
+                                  String type,
+                                  String remarks);
+
+    // XXX: ColumnListener methods
+    @SuppressWarnings("unused")
+    private void removeReferencedColumns(TableSuper primary, TableSuper foreign, String name) {
+        //removeReferencedKeyColumns(primary, foreign, name);
+        //removeReferencedIndexColumns(foreign, name);
+    }
+
+    @SuppressWarnings("unused")
+    private void removeReferencedKeyColumns(TableSuper primary, TableSuper foreign, String name) {
+        Iterator<Key> it = foreign.getKeysInternal().getActiveElements();
+        while (it.hasNext()) {
+            Key key = it.next();
+            if (key.getTypeInternal() == KeyType.FOREIGN &&
+                key.getRefTableInternal().equals(primary)) {
+                KeyColumns columns = key.getColumnsInternal();
+                Iterator<KeyColumn> iter = columns.getActiveElements();
+                while (iter.hasNext()) {
+                    KeyColumn column = iter.next();
+                    if (column.getName().equals(name)) {
+                        iter.remove();
+                        System.out.println("TableContainer.removeReferencedKeyColumns() 1 **************");
+                    }
+                }
+                if (!columns.hasElements()) {
+                    it.remove();
+                    System.out.println("TableContainer.removeReferencedKeyColumns() 2 **************");
                 }
             }
         }
     }
 
-    // XXX: If the renamed column is a foreign key we need to rename the RelatedColumn on the KeyColumn to.
-    protected void renameForeignKeyColumn(Map<String, List<String>> filters,
-                                          String referenced,
-                                          String oldname,
-                                          String newname)
-        throws SQLException {
-        Iterator<String> tables = getActiveNames(filters.keySet());
-        while (tables.hasNext()) {
-            // XXX: We are looking for foreign key on other table.
-            String table = tables.next();
-            getElement(table).getKeysInternal().renameForeignKeyColumn(filters.get(table), referenced,
-                                                                       oldname, newname);
+    @SuppressWarnings("unused")
+    private void removeReferencedIndexColumns(TableSuper foreign, String name) {
+        Iterator<Index> it = foreign.getIndexesInternal().getActiveElements();
+        while (it.hasNext()) {
+            Index index = it.next();
+            IndexColumns columns = index.getColumnsInternal();
+            Iterator<IndexColumn> iter = columns.getActiveElements();
+            while (iter.hasNext()) {
+                IndexColumn column = iter.next();
+                if (column.getName().equals(name)) {
+                    iter.remove();
+                    System.out.println("TableContainer.removeReferencedIndexColumns() 1 **************");
+                }
+            }
+            if (!columns.hasElements()) {
+                it.remove();
+                System.out.println("TableContainer.removeReferencedIndexColumns() 2 **************");
+            }
         }
     }
 
-    protected abstract T getTable(NamedComponents component,
-                                  String type,
-                                  String remarks);
+
+
+    @SuppressWarnings("unused")
+    private void removeForeignKeyTables1(TableSuper t, String name) {
+        for (TableSuper table : mReferencedTables.get(t)) {
+            Iterator<Key> it = table.getKeysInternal().getActiveElements();
+            while (it.hasNext()) {
+                Key key = it.next();
+                if (key.getReferencedTableInternal().equals(name)) {
+                    it.remove();
+                    System.out.println("TableContainer.removeForeignKeyTables() 1 **************");
+                }
+            }
+        }
+    }
 
 }

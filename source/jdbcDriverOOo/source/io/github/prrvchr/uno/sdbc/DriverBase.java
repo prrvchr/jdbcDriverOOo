@@ -115,7 +115,7 @@ public abstract class DriverBase
 
     // com.sun.star.lang.XComponent:
     @Override
-    protected synchronized void postDisposing() {
+    public synchronized void dispose() {
         mContext = null;
         SharedResources.revokeClient();
         UnoHelper.disposeComponent(mDriver);

@@ -39,9 +39,7 @@ public final class Column
 
     // The constructor method:
     public Column(final ConnectionSuper connection,
-                  final String catalog,
-                  final String schema,
-                  final String table,
+                  final TableSuper table,
                   final boolean sensitive,
                   final String name,
                   final String typename,
@@ -54,7 +52,7 @@ public final class Column
                   final boolean autoincrement,
                   final boolean rowversion,
                   final boolean currency) {
-        super(SERVICE, SERVICES, connection, catalog, schema, table, sensitive, name, typename, defaultvalue,
+        super(SERVICE, SERVICES, connection, table, sensitive, name, typename, defaultvalue,
               description, nullable, precision, scale, type, autoincrement, rowversion, currency);
         registerProperties(new HashMap<String, PropertyWrapper>());
     }
@@ -62,7 +60,7 @@ public final class Column
     // XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor() {
-        ColumnDescriptor descriptor = new ColumnDescriptor(mCatalog, mSchema, mTable, isCaseSensitive());
+        ColumnDescriptor descriptor = new ColumnDescriptor(mTable, isCaseSensitive());
         synchronized (this) {
             UnoHelper.copyProperties(this, descriptor);
         }

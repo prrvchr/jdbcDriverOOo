@@ -27,7 +27,6 @@ package io.github.prrvchr.uno.sdbcx;
 
 
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.sdbc.SQLException;
 
 public final class IndexColumnDescriptorContainer
     extends DescriptorContainer<IndexColumnDescriptor> {
@@ -46,7 +45,7 @@ public final class IndexColumnDescriptorContainer
 
     @Override
     protected IndexColumnDescriptor appendElement(XPropertySet descriptor)
-        throws SQLException {
+        throws java.sql.SQLException {
         return (IndexColumnDescriptor) cloneDescriptor(descriptor);
     }
 

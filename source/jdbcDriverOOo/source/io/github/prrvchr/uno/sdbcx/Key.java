@@ -26,18 +26,20 @@
 package io.github.prrvchr.uno.sdbcx;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.ElementExistException;
 import com.sun.star.container.XNameAccess;
+import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.KeyHelper;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
+import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
 
@@ -48,31 +50,35 @@ public final class Key
 
     private static final String SERVICE = Key.class.getName();
     private static final String[] SERVICES = {"com.sun.star.sdbcx.Key"};
-    public int mType;
-    protected int mDeleteRule;
-    protected String mReferencedTable;
-    protected KeyColumnContainer mColumns = null;
-    protected int mUpdateRule;
+
+    private KeyColumns mColumns = null;
     private final TableSuper mTable;
+    private int mType;
+    private int mUpdateRule;
+    private int mDeleteRule;
+    private String mReferencedTable;
+    private TableSuper mRefTable;
+
+    //private ColumnListener<KeyColumn> mListener;
+    private final String[] mNames;
 
     // The constructor method:
     public Key(TableSuper table,
+               TableSuper refTable,
                boolean sensitive,
                String name,
-               String reference,
                int type,
                int update,
                int delete,
-               List<String> columns)
-        throws ElementExistException {
+               String[] columns) {
         super(SERVICE, SERVICES, sensitive, name);
         System.out.println("sdbcx.Key() 1");
         mTable = table;
+        mRefTable = refTable;
         mType = type;
-        mReferencedTable = reference;
         mUpdateRule = update;
         mDeleteRule = delete;
-        mColumns = new KeyColumnContainer(this, columns);
+        mNames = columns;
         registerProperties();
     }
 
@@ -90,7 +96,7 @@ public final class Key
         properties.put(PropertyIds.REFERENCEDTABLE.getName(),
             new PropertyWrapper(Type.STRING, readonly,
                 () -> {
-                    return mReferencedTable;
+                    return getReferencedTable();
                 },
                 null));
 
@@ -111,43 +117,30 @@ public final class Key
         super.registerProperties(properties);
     }
 
-    protected KeyColumnContainer getColumnsInternal() {
-        return mColumns;
+    // com.sun.star.lang.XComponent
+    @Override
+    public void dispose() {
+        if (mColumns != null) {
+            mColumns.dispose();
+        }
+        super.dispose();
     }
-
 
     // com.sun.star.sdbcx.XColumnsSupplier
     @Override
     public XNameAccess getColumns() {
+        checkDisposed();
         return getColumnsInternal();
     }
-
-
-/*    protected void _addColumn(KeyColumn column) {
-        int index = 0;
-        for (KeyColumn element : m_columns.m_Elements) {
-            if (column.m_position < element.m_position) {
-                m_columns.m_Elements.add(index, column);
-                m_columns.m_Names.add(index, column.m_Name);
-                break;
-            }
-            if (column.m_position > element.m_position) {
-                m_columns.m_Elements.add(index + 1, column);
-                m_columns.m_Names.add(index + 1, column.m_Name);
-                break;
-            }
-            index++;
-        }
-    }*/
-
 
     // com.sun.star.sdbcx.XDataDescriptorFactory
     @Override
     public XPropertySet createDataDescriptor() {
+        System.out.println("sdbcx.Key.createDataDescriptor() ***************************************************");
         return new KeyDescriptor(isCaseSensitive());
     }
 
-    public TableSuper getTable() {
+    protected TableSuper getTable() {
         return mTable;
     }
 
@@ -156,4 +149,62 @@ public final class Key
         return String.format("%s: Name: %s, Type: %s, ReferencedTable: %s, UpdateRule: %s, DeleteRule: %s ",
                              this.getClass().getName(), getName(), mType, mReferencedTable, mUpdateRule, mDeleteRule);
     }
+
+    // Protected methods
+    protected boolean isColumnsLoaded() {
+        return mColumns != null;
+    }
+
+    protected KeyColumns getColumnsInternal() {
+        if (mColumns == null) {
+            refreshColumns();
+        }
+        return mColumns;
+    }
+
+    protected KeyColumns refreshColumns() {
+        if (mColumns == null) {
+            //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLES);
+            System.out.println("sdbcx.Key.getColumnsInternal() Columns: " + String.join(", ", mNames));
+            mColumns = new KeyColumns(this, mNames, isCaseSensitive());
+            //getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_TABLES_ID,
+            //                   mTables.getLogger().getObjectId());
+        } else {
+            mColumns.refill(getKeyColumns());
+        }
+        return mColumns;
+    }
+
+    protected int getTypeInternal() {
+        return mType;
+    }
+
+    protected String getReferencedTableInternal() {
+        return getReferencedTable();
+    }
+
+    protected TableSuper getRefTableInternal() {
+        return mRefTable;
+    }
+
+    private String getReferencedTable() {
+        String referencedTable = "";
+        if (mRefTable != null) {
+            referencedTable = mRefTable.composeTableName();
+        }
+        return referencedTable;
+    }
+
+    private String[] getKeyColumns() {
+        String[] columns;
+        Provider provider = mTable.getConnection().getProvider();
+        NamedComponents component = mTable.getNamedComponents();
+        if (getTypeInternal() == KeyType.PRIMARY) {
+            columns = KeyHelper.getPrimaryKeyColumns(provider, component, getName());
+        } else {
+            columns = KeyHelper.getForeignKeyColumns(provider, component, getName());
+        }
+        return columns;
+    }
+
 }
