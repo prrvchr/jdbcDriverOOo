@@ -102,4 +102,9 @@ public final class Users
         }
     }
 
+    protected void removeContainerElement(String name, boolean dispose) {
+        super.removeContainerElement(name, dispose);
+    }
+
+
 }

@@ -1758,14 +1758,14 @@
         </node>
         <node oor:name="GetGroupsQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
-            <value>SELECT ROLE FROM DBA_ROLES WHERE INHERITED = 'NO'</value>
+            <value>SELECT ROLE FROM DBA_ROLES WHERE INHERITED = 'NO' OR ROLE IN ('CONNECT', 'DBA', 'RESOURCE')</value>
           </prop>
         </node>
         <node oor:name="GetUserGroupsQuery" oor:op="replace">
           <prop oor:name="Value" oor:type="xs:string">
           <!-- XXX: We use recursion to find privileges inherited from roles.
                XXX: We need to filter recursive entries (even ROLE_NAME and GRANTEE) -->
-            <value>SELECT DRP.GRANTED_ROLE FROM DBA_ROLE_PRIVS DRP INNER JOIN DBA_ROLES DR ON DRP.GRANTED_ROLE = DR.ROLE WHERE DR.INHERITED = 'NO' AND DRP.GRANTEE = ${User}</value>
+            <value>SELECT DRP.GRANTED_ROLE FROM DBA_ROLE_PRIVS DRP INNER JOIN DBA_ROLES DR ON DRP.GRANTED_ROLE = DR.ROLE WHERE (DR.INHERITED = 'NO' OR DR.ROLE IN ('CONNECT', 'DBA', 'RESOURCE')) AND DRP.GRANTEE = ${User}</value>
           </prop>
         </node>
         <node oor:name="GetGroupUsersQuery" oor:op="replace">

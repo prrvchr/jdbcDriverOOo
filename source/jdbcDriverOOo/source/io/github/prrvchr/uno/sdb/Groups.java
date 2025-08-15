@@ -87,11 +87,6 @@ public final class Groups
         super.refill(roles);
     }
 
-    @Override
-    protected void removeElement(String name) {
-        super.removeElement(name);
-    }
-
     protected Group createRoleElement(String name) throws SQLException {
         if (!hasByName(name)) {
             throw new SQLException();
@@ -101,6 +96,10 @@ public final class Groups
         } catch (java.sql.SQLException e) {
             throw new SQLException(e);
         }
+    }
+
+    protected void removeContainerElement(String name, boolean dispose) {
+        super.removeContainerElement(name, dispose);
     }
 
     private static final String getRoleName(boolean isrole) {

@@ -276,6 +276,15 @@ public abstract class ContainerMain<T extends Descriptor>
     }
 
     protected void removeContainerElement(int index) {
+        removeContainerElement(index, true);
+    }
+
+    protected void removeContainerElement(String name, boolean dispose) {
+        int index = mBimap.getIndex(name);
+        removeContainerElement(index, dispose);
+    }
+
+    protected void removeContainerElement(int index, boolean dispose) {
         System.out.println("ContainerBase.removeContainerElement() 1 index: "  + index);
         T element = null;
         String name;
@@ -284,7 +293,7 @@ public abstract class ContainerMain<T extends Descriptor>
             element = mBimap.removeElement(index);
         }
         broadcastElementRemoved(element, name);
-        if (element != null) {
+        if (dispose && element != null) {
             element.dispose();
         }
     }

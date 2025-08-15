@@ -248,13 +248,11 @@ public final class QueryHelper {
     }
 
     private boolean isLastTable(String[] tokens, int index) {
-        System.out.println("QueryHelper.isLastTable() 1");
         String token, keyword;
         boolean last = true;
         while (index < tokens.length) {
             token = tokens[index++];
             keyword = token.toLowerCase();
-            System.out.println("QueryHelper.isLastTable() 2 token: " + token);
             if (TOKEN_COMMA.equals(token) ||
                 KEYWORD_JOIN.equals(keyword) ||
                 KEYWORD_UNION.equals(keyword)) {

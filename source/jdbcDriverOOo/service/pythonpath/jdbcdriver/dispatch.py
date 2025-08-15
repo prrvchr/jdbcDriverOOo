@@ -75,15 +75,19 @@ class Dispatch(unohelper.Base,
         if connection is None:
             self._showDialog(parent, 'MessageBox.Connection')
         elif url.Path == 'ShowUsers':
-            if self._supportDCL(connection):
+            if self._supportAdministration(connection):
                 state, result = self._showUsers(connection, parent, connection.getGroups())
+            elif self._supportXUsers(connection) and self._supportXGroups(connection):
+                self._showDialog(parent, 'MessageBox.AdminError')
             else:
-                self._showDialog(parent, 'MessageBox.Admin')
+                self._showDialog(parent, 'MessageBox.AdminSupport')
         elif url.Path == 'ShowGroups':
-            if self._supportDCL(connection):
+            if self._supportAdministration(connection):
                 state, result = self._showGroups(connection, parent, connection.getGroups())
+            elif self._supportXGroups(connection) and self._supportXUsers(connection):
+                self._showDialog(parent, 'MessageBox.AdminError')
             else:
-                self._showDialog(parent, 'MessageBox.Admin')
+                self._showDialog(parent, 'MessageBox.AdminSupport')
         if close and connection is not None:
             connection.close()
         return state, result
@@ -101,14 +105,20 @@ class Dispatch(unohelper.Base,
             self._listeners.remove(listener)
 
 # AdminDispatch private methods
-    def _supportDCL(self, connection):
+    def _supportAdministration(self, connection):
         return self._supportUsers(connection) and self._supportGroups(connection)
 
     def _supportUsers(self, connection):
+        return self._supportXUsers(connection) and connection.getUsers().hasElements()
+
+    def _supportXUsers(self, connection):
         xusers = 'com.sun.star.sdbcx.XUsersSupplier'
         return hasInterface(connection, xusers) and connection.getUsers() is not None
 
     def _supportGroups(self, connection):
+        return self._supportXGroups(connection) and connection.getGroups().hasElements()
+
+    def _supportXGroups(self, connection):
         xgroups = 'com.sun.star.sdbcx.XGroupsSupplier'
         return hasInterface(connection, xgroups) and connection.getGroups() is not None
 

@@ -57,7 +57,7 @@ public class RoleListener<T extends Role>
         System.out.println("RoleListener.elementRemoved() 1");
         String name = AnyConverter.toString(event.Accessor);
         if (mContainer.hasByName(name)) {
-            mContainer.removeElement(name);
+            mContainer.removeContainerElement(name, false);
         }
         System.out.println("RoleListener.elementRemoved() 2");
     }

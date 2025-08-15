@@ -92,6 +92,7 @@ public class UserContainer
 
     @Override
     public void dispose() {
+        System.out.println("UserContainer.dispose() ******************************************");
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_USERS_DISPOSING);
         super.dispose();
     }
@@ -185,7 +186,7 @@ public class UserContainer
             Groups groups = users.next().getGroupsInternal();
             if (groups.hasByName(name)) {
                 System.out.println("sdb.UserContainer.removeRole() Role: " + name);
-                groups.removeElement(name);
+                groups.removeContainerElement(name, false);
             }
         }
     }

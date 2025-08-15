@@ -388,12 +388,12 @@ Intégration du [pilote JDBC Oracle][112] `ojdbc17.jar`. Cette intégration a n�
 
 En raison de ces limitations du pilote Oracle, seuls les ResultSets des requêtes SQL `SELECT` qui ne s'appliquent qu'à une seule table seront modifiables dans LibreOffice Base.
 
-L'implémentation des conteneurs pour les tables, les vues, les colonnes, les index, les clés, les utilisateurs, les groupes et descripteurs a été entièrement repensée. Le nommage et le listage des éléments d'un conteneur sont désormais gérés par trois classes implémentant l'interface [BiMap][114]:
+L'implémentation des conteneurs pour les tables, les vues, les colonnes, les index, les clés, les utilisateurs, les groupes et descripteurs a été entièrement repensée. Désormais les conteneurs déléguent la gestion de leurs elements à trois classes implémentant l'interface [BiMap][114]:
 - [BiMapMain][115] permet la gestion des éléments à l'aide de deux listes `java.util.List`. Cette implémentation liste les éléments par ordre d'insertion et permet la gestion des doublons.
 - [BiMapBase][116] permet la gestion des éléments à l'aide de trois listes `java.util.List` et d'un ensemble `java.util.Set`. Cette implémentation liste les éléments à l'aide d'un comparateur prenant en compte les éléments sensibles à la casse lors du tri. Les doublons sont rejetés.
-- [BiMapSuper][117] permet la gestion des éléments à l'aide d'une liste `java.util.List`, d'un ensemble `java.util.Set` et d'un ensemble `BiMap`. Cette implémentation permet de gérer une sous-liste d'éléments provenant d'une BiMap. Elle assure la gestion des groupes et/ou des utilisateurs pour un groupe et/ou un utilisateur donné.
+- [BiMapSuper][117] permet la gestion des éléments à l'aide d'une liste `java.util.List`, d'un ensemble `java.util.Set` et d'un ensemble `BiMap`. Cette implémentation permet de gérer une sous-liste d'éléments provenant d'une instance de l'implémentation de l'interface `BiMap`. Elle assure la gestion des groupes et/ou des utilisateurs pour un groupe et/ou un utilisateur donné.
 
-Quant aux conteneurs eux-mêmes, ils utilisent désormais l'une des anciennes classes `BiMap` selon leurs besoins. Ce choix s'effectue dans l'un des quatre conteneurs suivants et selon leur niveau d'héritage de classe:
+Quant aux conteneurs eux-mêmes, ils utilisent désormais l'une des précédente classes implémentant `BiMap` selon leurs besoins. Ce choix s'effectue dans l'un des quatre conteneurs suivants et selon leur niveau d'héritage de classe:
 - [ContainerMain][118] utilise `BiMapMain` et implémente les interfaces UNO: `XNameAccess`, `XIndexAccess` et `XEnumerationAccess`. Il permet la gestion des éléments `ResultColumn`.
 - [ContainerBase][119] étend la classe précédente et implémente les interfaces UNO: `XAppend`, `XDrop`, `XDataDescriptorFactory` et `XRefreshable`. Ce conteneur a la particularité de permettre l'ajout et la suppression d'éléments, et de gérer les éléments `Column`, `Index`, `Key` et leurs services `Descriptor` associés.
 - [ContainerSuper][120] utilise `BiMapBase` et étend la classe précédente. Elle n'implémente aucune interface supplémentaire et permet la gestion des éléments suivants: `Table`, `View`, `User` et `Group`.
@@ -404,6 +404,8 @@ De plus, concernant les utilisateurs et les rôles, cette nouvelle implémentati
 - Une seule instance de la classe `Group` ou `User` par utilisateur ou rôle, quel que soit son accès.
 - Les mises à jour nécessaires suite à la suppression d'un utilisateur ou d'un rôle seront effectuées par un nouveau [RoleListener][122].
 
+Sur ce même principe, il serait possible de n'avoir qu'une seule instance d'une colonne chargée, qu'elle soit accédée au travers d'une `Table` ou d'un `ResultSet`. À méditer...
+
 La gestion du rafraîchissement suite à la création ou à la suppression d'un élément pose problème dans LibreOffice Base, voir le problème [tdf#167920][123]. Je ne sais pas encore comment résoudre ce problème. Si il faut utiliser un listener ou faire en sorte que Base utilise l'interface `XRefresable` prise en charge par les conteneurs après toute modification le nécessitant. Dans le second cas, c'est le code de LibreOffice Base qui doit encore être amélioré. En attendant pour contourner ce problème, je vous conseille d'actualiser manuellement LibreOffice Base via le menu **Affichage -> Rafraîchir les tables** après toute insertion ou suppression.
 
 De nombreuses petites corrections:
@@ -412,6 +414,8 @@ De nombreuses petites corrections:
 - Il est à nouveau possible d'ajouter une colonne à une table existante avec SQLite.
 
 La prise en charge d'un pilote supplémentaire comme celui d'Oracle me demande beaucoup de travail pour les tests de fonctionnalités. Je compte sur vous pour me signaler tout dysfonctionnement, car la recherche de ces dysfonctionnements est la tâche la plus chronophage. Merci d'avance.
+
+Si vous utilisez plusieurs comptes pour vous connecter à une base de données, vous ne pourrez pas vous reconnecter à cette base de données à nouveau si vous l'aviez ouverte avec un compte autre que celui proposé puis fermée sans enregistrer le fichier. Vous devez redémarrer LibreOffice. Voir [tdf#167960][125].
 
 ### Que reste-t-il à faire pour la version 1.5.6:
 
@@ -543,3 +547,4 @@ La prise en charge d'un pilote supplémentaire comme celui d'Oracle me demande b
 [122]: <https://github.com/prrvchr/jdbcDriverOOo/blob/master/source/jdbcDriverOOo/source/io/github/prrvchr/uno/sdbcx/RoleListener.java>
 [123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
 [124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
+[125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>

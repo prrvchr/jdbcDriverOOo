@@ -1131,7 +1131,6 @@ public class CachedRowSetImpl
 
             Row row = (Row) getCurrentRow();
             if (!row.getRemoved()) {
-                System.out.println("CachedRowSet.undoDelete() ERROR");
                 throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.illegalop").toString());
             }
 
@@ -1164,7 +1163,6 @@ public class CachedRowSetImpl
 
         Row row = (Row) getCurrentRow();
         if (!row.getInserted()) {
-            System.out.println("CachedRowSet.undoInsert() ERROR");
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.illegalop").toString());
         }
 
@@ -1202,7 +1200,6 @@ public class CachedRowSetImpl
 
         Row row = (Row) getCurrentRow();
         if (!row.getUpdated()) {
-            System.out.println("CachedRowSet.undoUpdate() ERROR");
             throw new SQLException(resBundle.handleGetObject("cachedrowsetimpl.illegalop").toString());
         }
 

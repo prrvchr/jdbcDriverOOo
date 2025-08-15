@@ -142,11 +142,9 @@ public abstract class Role
                     privileges = mProvider.getConfigDCL().getMockPrivileges();
                 }
             } catch (Throwable e) {
+                e.printStackTrace();
                 String msg = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
                 getLogger().logprb(LogLevel.SEVERE, Resources.STR_LOG_TABLE_PRIVILEGE_ACCESS_ERROR, msg);
-            }
-            if (privileges == 0) {
-                privileges = mProvider.getConfigDCL().getMockPrivileges();
             }
         }
         return privileges;
@@ -230,6 +228,7 @@ public abstract class Role
                                  int res1,
                                  int res2)
         throws SQLException {
+        System.out.println("Role.grantPrivileges() 1 name: " + name);
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
             String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
@@ -238,14 +237,16 @@ public abstract class Role
                 query = PrivilegesHelper.getGrantPrivilegesCommand(mProvider, table, privileges,
                                                                    mIsrole, getName(), mRule, isCaseSensitive());
                 getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
-                System.out.println("Role.grantPrivileges() Query: " + query);
+                System.out.println("Role.grantPrivileges() 2 Query: " + query);
                 DBTools.executeSQLQuery(mConnection.getProvider(), query);
             } catch (java.sql.SQLException e) {
+                e.printStackTrace();
                 String error = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, error);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw new SQLException(msg);
-                //throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }
     }
@@ -256,6 +257,7 @@ public abstract class Role
                                   int res1,
                                   int res2)
         throws SQLException {
+        System.out.println("Role.revokePrivileges() 1 name: " + name);
         if (type == PrivilegeObject.TABLE || type == PrivilegeObject.VIEW) {
             String query = null;
             String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
@@ -266,13 +268,17 @@ public abstract class Role
                     query = PrivilegesHelper.getRevokePrivilegesCommand(mProvider, table, privileges,
                                                                         mIsrole, getName(), mRule, isCaseSensitive());
                     getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
+                    System.out.println("Role.revokePrivileges() 2 Query: " + query);
                     DBTools.executeSQLQuery(mProvider, query);
                 }
             } catch (java.sql.SQLException e) {
+                e.printStackTrace();
                 String error = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, error);
                 getLogger().logp(LogLevel.SEVERE, msg);
                 throw new SQLException(msg);
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }
     }

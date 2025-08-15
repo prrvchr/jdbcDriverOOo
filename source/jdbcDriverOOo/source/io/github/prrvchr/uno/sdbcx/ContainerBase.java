@@ -94,11 +94,10 @@ public abstract class ContainerBase<T extends Descriptor>
             refreshInternal();
             iterator = mRefresh.iterator();
         }
-        if (iterator == null) {
-            // early disposal
-            return;
+        // early disposal
+        if (iterator != null) {
+            broadcastRefreshed(iterator);
         }
-        broadcastRefreshed();
     }
 
     @Override
@@ -126,6 +125,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(index);
         } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             throw new SQLException(e.getMessage());
         }
     }
@@ -134,12 +134,12 @@ public abstract class ContainerBase<T extends Descriptor>
     public void dropByName(String name)
         throws SQLException, NoSuchElementException {
         if (!hasByName(name)) {
-            System.out.println("sdbcx.Container.dropByName() ERROR: " + name);
             throw new NoSuchElementException();
         }
         try {
             removeElement(name, true);
         } catch (java.sql.SQLException e) {
+            e.printStackTrace();
             throw new SQLException(e.getMessage());
         }
     }
@@ -173,6 +173,7 @@ public abstract class ContainerBase<T extends Descriptor>
             broadcastElementInserted(element, name);
         } catch (Throwable e) {
             e.printStackTrace();
+            throw new SQLException(e.getMessage());
         }
     }
 
@@ -264,14 +265,7 @@ public abstract class ContainerBase<T extends Descriptor>
 
     @Override
     protected void broadcastRefreshed() {
-        EventObject event = null; 
-        for (Iterator<?> iterator = mRefresh.iterator(); iterator.hasNext();) {
-            if (event == null) {
-                event = new EventObject(this);
-            }
-            XRefreshListener listener = (XRefreshListener) iterator.next();
-            listener.refreshed(event);
-        }
+        broadcastRefreshed(mRefresh.iterator());
     }
 
     @Override
@@ -314,6 +308,17 @@ public abstract class ContainerBase<T extends Descriptor>
         ContainerEvent event = new ContainerEvent(this, name, element, null);
         for (XContainerListener listener : getContainerListeners()) {
             listener.elementInserted(event);
+        }
+    }
+
+    private void broadcastRefreshed(Iterator<?> refresh) {
+        EventObject event = null;
+        while (refresh.hasNext()) {
+            if (event == null) {
+                event = new EventObject(this);
+            }
+            XRefreshListener listener = (XRefreshListener) refresh.next();
+            listener.refreshed(event);
         }
     }
 

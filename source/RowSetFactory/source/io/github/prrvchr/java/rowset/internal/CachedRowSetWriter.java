@@ -1290,13 +1290,10 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
          * a lot of the jdbc drivers can't provide the tab.
          */
         int index = keyCols[0];
-        System.out.println("CachedRowSetWriter.setSQLStatements() 1 Index: " + index);
         String table = callerMd.getTableName(index);
         if (table == null || table.isBlank()) {
-            System.out.println("CachedRowSetWriter.setSQLStatements() 4 ERROR ***********");
             throw new SQLException(resBundle.handleGetObject("crswriter.tname").toString());
         }
-        System.out.println("CachedRowSetWriter.setSQLStatements() 5 Table: " + table);
         String catalog = callerMd.getCatalogName(index);
         String schema = callerMd.getSchemaName(index);
 

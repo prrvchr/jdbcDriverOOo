@@ -186,7 +186,6 @@ public abstract class RowSetBase
     public int[] deleteRows(Object[] bookmarks)
         throws SQLException {
         try {
-            System.out.println("RowSetSuper.deleteRows() **********************************");
             List<Integer> rows = new ArrayList<Integer>();
             int index = 0;
             for (Object bookmark : bookmarks) {
@@ -218,15 +217,11 @@ public abstract class RowSetBase
     public void insertRow() throws SQLException {
         try {
             // XXX: ResultSetBase.insertRow() take in account moveToCurrentRow() after insertion
-            System.out.println("RowSetBase.insertRow() 1");
             super.insertRow();
-            System.out.println("RowSetBase.insertRow() 2");
             // XXX: We must position the cursor on the new inserted row (ie last row)
             mResult.last();
             // XXX: The insert will be committed
-            System.out.println("RowSetBase.insertRow() 3");
             acceptChanges();
-            System.out.println("RowSetBase.insertRow() 4");
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }
@@ -235,12 +230,9 @@ public abstract class RowSetBase
     @Override
     public void updateRow() throws SQLException {
         try {
-            System.out.println("RowSetBase.updateRow() 1");
             mResult.updateRow();
             // XXX: the update will be committed
-            System.out.println("RowSetBase.updateRow() 2");
             acceptChanges();
-            System.out.println("RowSetBase.updateRow() 3");
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);
         }

@@ -274,7 +274,6 @@ public final class Connection
                     }
                 }
             } catch (Throwable e) {
-                e.printStackTrace();
                 String msg = e.getMessage().replaceAll(QueryHelper.TOKEN_NEWLINE, QueryHelper.SPACE);
                 logger.logprb(LogLevel.SEVERE, resource, msg);
             }

@@ -189,6 +189,7 @@ public class PrivilegesHelper {
             String query = provider.getConfigDCL().getTablePrivilegesQuery(arguments, values);
             privileges = getPrivileges(provider, query, values);
         } else {
+            System.out.println("PrivilegesHelper.getTablePrivileges() MockPrivileges ********************");
             privileges = provider.getConfigDCL().getMockPrivileges();
         }
         return privileges;
@@ -221,6 +222,7 @@ public class PrivilegesHelper {
             String query = provider.getConfigDCL().getGrantablePrivilegesQuery(arguments, values);
             privileges = getPrivileges(provider, query, values);
         } else {
+            System.out.println("PrivilegesHelper.getGrantablePrivileges() MockPrivileges ********************");
             privileges = provider.getConfigDCL().getMockPrivileges();
         }
         return privileges;
@@ -257,6 +259,7 @@ public class PrivilegesHelper {
                 }
             }
         } catch (Throwable e) {
+            e.printStackTrace();
             throw new java.sql.SQLException(e);
         }
         return privileges;

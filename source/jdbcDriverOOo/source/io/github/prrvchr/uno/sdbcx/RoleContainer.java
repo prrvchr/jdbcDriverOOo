@@ -108,7 +108,7 @@ public abstract class RoleContainer<T extends Role>
         synchronized (mOwner) {
             String name = mBimap.getName(index);
             if (revokeRole(name)) {
-                removeElement(name);
+                removeContainerElement(index, false);
             }
         }
     }
@@ -122,7 +122,8 @@ public abstract class RoleContainer<T extends Role>
         }
         synchronized (mOwner) {
             if (revokeRole(name)) {
-                removeElement(name);
+                int index = mBimap.getIndex(name);
+                removeContainerElement(index, false);
             }
         }
     }
@@ -209,9 +210,13 @@ public abstract class RoleContainer<T extends Role>
         }
     }
 
+    protected void removeContainerElement(String name, boolean dispose) {
+        super.removeContainerElement(name, dispose);
+    }
+
     protected void removeElement(String name) {
         int index = mBimap.getIndex(name);
-        removeContainerElement(index);
+        removeContainerElement(index, false);
     }
 
     protected boolean isCaseSensitive() {

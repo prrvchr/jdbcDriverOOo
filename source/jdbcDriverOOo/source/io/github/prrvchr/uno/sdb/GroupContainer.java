@@ -77,6 +77,7 @@ public class GroupContainer
 
     @Override
     public void dispose() {
+        System.out.println("GroupContainer.dispose() ******************************************");
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_DISPOSING);
         super.dispose();
     }
@@ -113,7 +114,6 @@ public class GroupContainer
     @Override
     protected Group createElement(String name)
         throws SQLException {
-        System.out.println("sdbcx.GroupContainer.createElement() name: " + name);
         getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_CREATE_GROUP);
         Group group = new Group(mConnection, this, mConnection.getUsersInternal(), name, isCaseSensitive());
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATED_GROUP_ID, group.getLogger().getObjectId());
@@ -164,7 +164,7 @@ public class GroupContainer
             Users users = groups.next().getUsersInternal();
             if (users.hasByName(name)) {
                 System.out.println("sdb.GroupContainer.removeRole() Role: " + name);
-                users.removeElement(name);
+                users.removeContainerElement(name, false);
             }
         }
     }
