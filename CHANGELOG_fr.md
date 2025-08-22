@@ -417,7 +417,16 @@ La prise en charge d'un pilote supplémentaire comme celui d'Oracle me demande b
 
 Si vous utilisez plusieurs comptes pour vous connecter à une base de données, vous ne pourrez pas vous reconnecter à cette base de données à nouveau si vous l'aviez ouverte avec un compte autre que celui proposé puis fermée sans enregistrer le fichier. Vous devez redémarrer LibreOffice. Voir [tdf#167960][125].
 
-### Que reste-t-il à faire pour la version 1.5.6:
+### Ce qui a été fait pour la version 1.5.7:
+
+Intégration du [pilote JDBC SQL Server][126] `mssql-jdbc-13.2.0.jre11.jar`. Cette intégration a nécessité les modifications suivantes du code sous-jacent:
+- Utilisation des paramètres `UseCatalog` et `UseCatalogInSelect` dans le fichier `Drivers.xcu` avec des valeurs fausses.
+- Ajout d'un nouvel élément `InViewDefinitions` à l'énumération [ComposeRule][127]. Cette nouvelle règle de nommage permet de ne pas utiliser le nom du catalogue dans la construction d'un identifiant si le paramètre `UseCatalog` est défini sur `false`, sinon elle suivra la valeur de l'élément `InTableDefinitions`.
+- Utilisation de cette nouvelle règle de nommage pour la construction des requêtes SQL permettant la création et la suppression d'une vue.
+
+Avec ces modifications, le catalogue, qui est en fait le nom de la base de données sous SQL Server, ne sera pas utilisé pour nommer les identifiants des requêtes SQL gérant la création et la supression des vues, comme l'exige le pilote JDBC de SQL Server.
+
+### Que reste-t-il à faire pour la version 1.5.7:
 
 - Ajouter de nouvelles langues pour l'internationalisation...
 
@@ -548,3 +557,4 @@ Si vous utilisez plusieurs comptes pour vous connecter à une base de données, 
 [123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
 [124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
 [125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>
+[126]: <https://github.com/microsoft/mssql-jdbc>

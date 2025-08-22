@@ -47,6 +47,8 @@ package io.github.prrvchr.uno.driver.provider;
 
 public enum ComposeRule {
     InTableDefinitions,
+    InViewDefinitions,
+    InSelectDefinitions,
     InIndexDefinitions,
     InDataManipulation,
     InProcedureCalls,

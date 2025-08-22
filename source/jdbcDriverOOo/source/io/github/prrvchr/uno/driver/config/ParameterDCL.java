@@ -30,74 +30,87 @@ import java.util.Map;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 
 
 public class ParameterDCL extends ParameterBase {
 
-    public static Map<String, Object> getUserArguments(Provider provider,
+    public static Map<String, Object> getUserArguments(NamedSupport support,
                                                        String user,
                                                        String password,
                                                        boolean sensitive)
         throws java.sql.SQLException {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${User} quoted / unquoted user name
-        arguments.put("User", provider.enquoteIdentifier(user, sensitive));
+        arguments.put("User", support.enquoteIdentifier(user, sensitive));
+        arguments.put("RawUser", user);
         // XXX: ${Password} quoted password
-        arguments.put("Password", provider.enquoteLiteral(password));
+        arguments.put("Password", support.enquoteLiteral(password));
         // XXX: ${RawPwd} unquoted password
         arguments.put("RawPwd", password);
         return arguments;
     }
 
-    public static Map<String, Object> getPrivilegesArguments(String grantee,
-                                                             NamedComponents table)
+    public static Map<String, Object> getGroupArguments(NamedSupport support,
+                                                        String group,
+                                                        boolean sensitive)
         throws java.sql.SQLException {
         Map<String, Object> arguments = new HashMap<>();
-        // XXX: ${Grantee} quoted / unquoted grantee name
+        // XXX: ${Role} quoted / unquoted user name
+        arguments.put("Role", support.enquoteIdentifier(group, sensitive));
+        arguments.put("RawRole", group);
+        return arguments;
+    }
+
+    public static Map<String, Object> getPrivilegesArguments(NamedSupport support,
+                                                             NamedComponent table,
+                                                             String grantee)
+        throws java.sql.SQLException {
+        // These parameters do not need to be quoted, it will be used with a PreparedStatement
+        Map<String, Object> arguments = new HashMap<>();
+        // XXX: ${Grantee} unquoted grantee name
         arguments.put("Grantee", grantee);
-        // XXX: ${Catalog} quoted / unquoted catalog name
+        // XXX: ${TableName} unquoted full table name
+        arguments.put("TableName", ComponentHelper.buildName(support, table));
+        // XXX: ${Catalog} unquoted catalog name
         arguments.put("Catalog", table.getCatalogName());
-        // XXX: ${Schema} quoted / unquoted schema name
+        // XXX: ${Schema} unquoted schema name
         arguments.put("Schema", table.getSchemaName());
-        // XXX: ${Table} quoted / unquoted table name
+        // XXX: ${Table} unquoted table name
         arguments.put("Table",  table.getTableName());
         return arguments;
     }
 
-    public static Map<String, Object> getAlterPrivilegesArguments(Provider provider,
-                                                                  NamedComponents table,
+    public static Map<String, Object> getAlterPrivilegesArguments(NamedSupport support,
+                                                                  NamedComponent table,
                                                                   String privileges,
                                                                   boolean isrole,
                                                                   String grantee,
-                                                                  ComposeRule rule,
                                                                   boolean sensitive)
         throws java.sql.SQLException, SQLException {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Privileges} the list of privileges to revoke
         arguments.put("Privileges", privileges);
         // XXX: ${TableName} quoted / unquoted full qualified table name
-        arguments.put("TableName", DBTools.buildName(provider, table, rule, sensitive));
+        arguments.put("TableName", ComponentHelper.buildName(support, table, sensitive));
         // XXX: ${RoleType} literal (USER or ROLE)
         arguments.put("RoleType", getRole(isrole));
         // XXX: ${Grantee} quoted / unquoted grantee name
-        arguments.put("Grantee", provider.enquoteIdentifier(grantee, sensitive));
+        arguments.put("Grantee", support.enquoteIdentifier(grantee, sensitive));
         return arguments;
     }
 
-    public static Map<String, Object> getAlterRoleArguments(Provider provider,
+    public static Map<String, Object> getAlterRoleArguments(NamedSupport support,
                                                             String role1,
                                                             String role2,
                                                             boolean isrole,
                                                             String role,
-                                                            boolean sensitive)
-        throws java.sql.SQLException, SQLException {
+                                                            boolean sensitive) {
         Map<String, Object> arguments = new HashMap<>();
         // XXX: ${Grantor} quoted / unquoted role name
-        arguments.put("Grantor", provider.enquoteIdentifier(role1, sensitive));
+        arguments.put("Grantor", support.enquoteIdentifier(role1, sensitive));
         // XXX: ${RoleType} unquoted literal
         if (role != null) {
             arguments.put("RoleType", role);
@@ -105,7 +118,7 @@ public class ParameterDCL extends ParameterBase {
             arguments.put("RoleType", getRole(isrole));
         }
         // XXX: ${Grantee} quoted / unquoted role name
-        arguments.put("Grantee", provider.enquoteIdentifier(role2, sensitive));
+        arguments.put("Grantee", support.enquoteIdentifier(role2, sensitive));
         return arguments;
     }
 

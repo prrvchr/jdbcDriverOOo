@@ -30,7 +30,7 @@ import java.util.Map;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 import io.github.prrvchr.uno.helper.PropertySetAdapter.PropertySetter;
@@ -106,8 +106,8 @@ public abstract class TableMain
         return mSchemaName;
     }
 
-    protected NamedComponents getNamedComponents() {
-        return new NamedComponents(mCatalogName, mSchemaName, getName());
+    protected NamedComponent getNamedComponents() {
+        return new NamedComponent(mCatalogName, mSchemaName, getName());
     }
 
 }

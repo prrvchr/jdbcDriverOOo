@@ -42,6 +42,7 @@ import javax.sql.rowset.spi.SyncFactory;
 
 import com.sun.star.sdbc.SQLException;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.Provider;
 
@@ -142,17 +143,17 @@ public class ResultSetHelper {
         return rowset;
     }
 
-    public static ResultSet getDefaultTablePrivilegesResultset(Provider provider,
+    public static ResultSet getDefaultTablePrivilegesResultset(ConfigSQL config,
                                                                String catalog,
                                                                String schema,
                                                                String table,
                                                                String user)
         throws java.sql.SQLException {
-        String[] columns = provider.getConfigSQL().getTablePrivilegesColumns();
+        String[] columns = config.getTablePrivilegesColumns();
         CachedRowSet rowset = getCachedRowSet();
         rowset.setMetaData(getTablePrivilegesMetadata(columns));
         int i = 1;
-        for (String privilege : provider.getConfigSQL().getDefaultTablePrivileges()) {
+        for (String privilege : config.getDefaultTablePrivileges()) {
             rowset.moveToInsertRow();
             rowset.updateString(i++, catalog);
             rowset.updateString(i++, schema);

@@ -189,37 +189,38 @@ public abstract class DriverBase
                 }
                 if (mDriver.hasByHierarchicalName(path)) {
                     String value = null;
+                    String[] choices;
                     String description = null;
                     Boolean state = false;
                     Object[] values = null;
                     switch (info.Name) {
                         case "IsAutoRetrievingEnabled":
                             state = (Boolean) mDriver.getByHierarchicalName(path);
-                            String[] choices1 = {"false", "true"};
+                            choices = new String[]{"false", "true"};
                             description = "Retrieve generated values.";
                             properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled",
-                                           description, true, state.toString(), choices1));
+                                           description, true, state.toString(), choices));
                             break;
                         case "IgnoreDriverPrivileges":
                             state = (Boolean) mDriver.getByHierarchicalName(path);
-                            String[] choices2 = {"false", "true"};
+                            choices = new String[]{"false", "true"};
                             description = "Ignore DatabaseMetaData.getTablePrivileges method.";
                             properties.add(new DriverPropertyInfo("IgnoreDriverPrivileges",
-                                           description, false, state.toString(), choices2));
+                                           description, false, state.toString(), choices));
                             break;
                         case "AutoRetrievingStatement":
                             value = (String) mDriver.getByHierarchicalName(path);
-                            String[] choices3 = {value, };
+                            choices = new String[]{value, };
                             description = "Last inserted id statement.";
                             properties.add(new DriverPropertyInfo("AutoRetrievingStatement",
-                                           description, true, value, choices3));
+                                           description, true, value, choices));
                             break;
                         case "AutoIncrementCreation":
                             value = (String) mDriver.getByHierarchicalName(path);
-                            String[] choices4 = {value, };
+                            choices = new String[]{value, };
                             description = "Auto-increment creation statement.";
                             properties.add(new DriverPropertyInfo("AutoIncrementCreation",
-                                           description, true, value, choices4));
+                                           description, true, value, choices));
                             break;
                         case "RowVersionCreation":
                             values = (Object[]) mDriver.getByHierarchicalName(path);
@@ -241,6 +242,13 @@ public abstract class DriverBase
                             description = "Lists privileges supported by the underlying driver.";
                             properties.add(new DriverPropertyInfo("PrivilegesSettings",
                                            description, true, value, (String[]) values));
+                            break;
+                        case "UseCatalog":
+                            state = (Boolean) mDriver.getByHierarchicalName(path);
+                            choices = new String[]{"false", "true"};
+                            description = "Use Catalog in table or view creation.";
+                            properties.add(new DriverPropertyInfo("IsAutoRetrievingEnabled",
+                                           description, true, state.toString(), choices));
                             break;
                     }
                 }

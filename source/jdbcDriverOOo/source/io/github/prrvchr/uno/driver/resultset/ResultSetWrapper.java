@@ -27,23 +27,26 @@ package io.github.prrvchr.uno.driver.resultset;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 
+// XXX: This wrapper around the ResultSet allows us to cleanly close the Statement
+// XXX: or PreparedStatement that created that ResultSet, when it is closed.
 
 public class ResultSetWrapper
     extends ResultSet {
 
-    private PreparedStatement mStatement;
+    private Statement mStatement;
 
     // The constructor method:
     public ResultSetWrapper(PreparedStatement statement)
         throws SQLException {
-        super(getResultSet(statement));
+        super(statement.executeQuery());
         mStatement = statement;
     }
-
-    private static java.sql.ResultSet getResultSet(PreparedStatement statement)
+    public ResultSetWrapper(Statement statement, String query)
         throws SQLException {
-        return statement.executeQuery();
+        super(statement.executeQuery(query));
+        mStatement = statement;
     }
 
     @Override

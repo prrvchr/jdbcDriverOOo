@@ -25,6 +25,7 @@
 */
 package io.github.prrvchr.uno.sdbcx;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +56,9 @@ import io.github.prrvchr.uno.driver.helper.IndexHelper;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -259,10 +262,11 @@ public abstract class TableSuper
         int result = 0;
         String table = null;
         List<String> queries = new ArrayList<>();
-        NamedComponents component = getNamedComponents();
+        NamedComponent component = getNamedComponents();
         ComposeRule rule = ComposeRule.InTableDefinitions;
+        NamedSupport support = provider.getNamedSupport(rule);
         try {
-            table = DBTools.buildName(provider, component, rule);
+            table = ComponentHelper.buildName(support, component);
             boolean alterpk = isPrimaryKeyColumn(oldname);
             boolean alterfk = isForeignKeyColumn(oldname);
             boolean alterkey = alterpk || alterfk;
@@ -388,8 +392,9 @@ public abstract class TableSuper
             // XXX: Table and View use the same functions to rename.
             boolean isview = mType.toUpperCase().contains("VIEW");
             ComposeRule rule = ComposeRule.InDataManipulation;
+            NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
             Provider provider = getConnection().getProvider();
-            table = DBTools.buildName(provider, getNamedComponents(), rule);
+            table = ComponentHelper.buildName(support, getNamedComponents());
 
             // XXX: We can handle renaming if it is a table and the driver does not have a command to rename the table
             // XXX: or it's a view and we don't have access to the view's command definition.
@@ -399,7 +404,7 @@ public abstract class TableSuper
                 String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, table);
                 throw new SQLException(msg, this, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text(), 0, Any.VOID);
             }
-            NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
+            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
             if (isview) {
                 renamed = renameView(provider, component, rule, table, name);
             } else {
@@ -429,7 +434,7 @@ public abstract class TableSuper
     }
 
     private boolean renameView(Provider provider,
-                               NamedComponents component,
+                               NamedComponent component,
                                ComposeRule rule,
                                String table,
                                String name) throws SQLException, java.sql.SQLException {
@@ -450,7 +455,9 @@ public abstract class TableSuper
                 renamed = true;
             } else {
                 getConnection().getViewsInternal().removeView(view);
-                query = DBTools.getCreateViewCommand(provider, component, view.mCommand, rule, isCaseSensitive());
+                query = DBTools.getCreateViewCommand(provider.getConfigDDL(),
+                                                     provider.getNamedSupport(rule),
+                                                     component, view.mCommand, isCaseSensitive());
                 getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_RENAME_QUERY, name, query);
                 if (DBTools.executeSQLQuery(provider, query)) {
                     views.rename(table, name);
@@ -468,7 +475,7 @@ public abstract class TableSuper
     protected void refreshColumns() {
         try {
             List<ColumnDescription> columns = ColumnHelper.readColumns(getConnection().getProvider(),
-                                                                       getNamedComponents());
+                                                                       getNamedComponents(), isCaseSensitive());
             if (mColumns == null) {
                 mColumns = getColumnContainer(columns);
                 mListener = new ColumnListener(getConnection().getTablesInternal());
@@ -508,8 +515,9 @@ public abstract class TableSuper
 
     protected void refreshIndexes() {
         try {
-            String[] indexes = IndexHelper.readIndexes(getConnection().getProvider(),
-                                                       getNamedComponents(), mQualifiedindex);
+            DatabaseMetaData metadata = getConnection().getProvider().getConnection().getMetaData();
+            String[] indexes = IndexHelper.readIndexes(getConnection().getProvider().getConfigSQL(),
+                                                       metadata, getNamedComponents(), mQualifiedindex);
             if (mIndexes == null) {
                 getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_INDEXES);
                 mIndexes = new IndexContainer(this, isCaseSensitive(), indexes);
@@ -542,8 +550,9 @@ public abstract class TableSuper
     }
 
     protected String composeTableName(ComposeRule rule) {
-        NamedComponents component = getNamedComponents();
-        return DBTools.buildName(getConnection().getProvider(), component, rule);
+        NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
+        NamedComponent component = getNamedComponents();
+        return ComponentHelper.buildName(support, component);
     }
 
     protected abstract int getPrivileges() throws WrappedTargetException;

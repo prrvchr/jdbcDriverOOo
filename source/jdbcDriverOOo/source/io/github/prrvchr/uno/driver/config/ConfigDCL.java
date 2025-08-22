@@ -107,15 +107,13 @@ public class ConfigDCL extends ConfigDDL {
         return format(command, keys);
     }
 
-    public String getCreateRoleCommand(final String name) {
+    public String getCreateRoleCommand(Map<String, Object> keys) {
         String command = getCreateRoleCommand();
-        Map<String, Object> keys = Map.of("Role", name);
         return format(command, keys);
     }
 
-    public String getDropRoleCommand(final String name) {
+    public String getDropRoleCommand(Map<String, Object> keys) {
         String command = getDropRoleCommand();
-        Map<String, Object> keys = Map.of("Role", name);
         return format(command, keys);
     }
 
@@ -170,7 +168,15 @@ public class ConfigDCL extends ConfigDDL {
     public String getGrantablePrivilegesQuery(final Map<String, Object> parameters,
                                               List<Object> values) {
         String command = getGrantablePrivilegesQuery();
-        return format(command, parameters, values, "?");
+        String query = format(command, parameters, values, "?");
+        String[] objs = new String[values.size()];
+        int i = 0;
+        for (Object obj : values) {
+            objs[i++] = obj.toString();
+        }
+        System.out.println("PrivilegesHelper.getGrantablePrivilegesQuery() Query: " + query +
+                           " - Values: " + String.join(", ", objs));
+        return query;
     }
 
     public String getUsersQuery() {

@@ -31,8 +31,10 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XUser;
 
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.RoleHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
@@ -64,7 +66,9 @@ public final class User
         String query = null;
         try (java.sql.Statement statement = mConnection.getProvider().getConnection().createStatement()) {
             int resource = Resources.STR_LOG_USER_CHANGE_PASSWORD_QUERY;
-            query = RoleHelper.getChangeUserPasswordCommand(mConnection.getProvider(), getName(),
+            ConfigDCL config = mConnection.getProvider().getConfigDCL();
+            NamedSupport support = mConnection.getProvider().getNamedSupport();
+            query = RoleHelper.getChangeUserPasswordCommand(config, support, getName(),
                                                             password, isCaseSensitive());
             getLogger().logprb(LogLevel.INFO, resource, getName());
             statement.execute(query);

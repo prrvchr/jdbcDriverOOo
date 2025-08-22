@@ -39,7 +39,8 @@ import com.sun.star.sdbcx.XViewsSupplier;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.XComponentContext;
 
-import io.github.prrvchr.uno.driver.helper.DBTools;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -173,10 +174,12 @@ public abstract class ConnectionSuper
         RowSetData data = getProvider().getConfigSQL().getTableData();
         RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
         String[] types = getProvider().getConfigSQL().getTableTypes();
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        NamedSupport support = getProvider().getNamedSupport(rule);
         try (ResultSet rs = ResultSetHelper.getCustomDataResultSet(metadata.getTables(null, null, "%", types),
                                                                    data, filter)) {
             while (rs.next()) {
-                String name = buildName(rs);
+                String name = buildName(support, rs);
                 names.add(name);
             }
         }
@@ -188,19 +191,21 @@ public abstract class ConnectionSuper
         String[] types = getProvider().getConfigSQL().getViewTypes();
         RowSetData filter = getProvider().getConfigSQL().getSytemTableFilter();
         java.sql.ResultSet rs = getProvider().getConnection().getMetaData().getTables(null, null, "%", types);
+        ComposeRule rule = ComposeRule.InDataManipulation;
+        NamedSupport support = getProvider().getNamedSupport(rule);
         try (java.sql.ResultSet result = ResultSetHelper.getCustomDataResultSet(rs, filter)) {
             while (result.next()) {
-                String name = buildName(result);
+                String name = buildName(support, result);
                 names.add(name);
             }
         }
         return names.toArray(new String[0]);
     }
 
-    private String buildName(java.sql.ResultSet result)
+    private String buildName(NamedSupport support, java.sql.ResultSet result)
         throws SQLException {
         try {
-            return DBTools.buildName(getProvider(), result, ComposeRule.InDataManipulation);
+            return ComponentHelper.buildName(support, result);
         } catch (java.sql.SQLException e) {
             throw new SQLException(e.getMessage(), this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, Any.VOID);
         }

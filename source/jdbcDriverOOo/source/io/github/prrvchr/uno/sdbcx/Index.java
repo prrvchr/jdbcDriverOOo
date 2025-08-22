@@ -36,8 +36,8 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.helper.IndexHelper;
 import io.github.prrvchr.uno.driver.helper.IndexHelper.IndexProperties;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
@@ -184,11 +184,11 @@ public final class Index
         String[] columns = null;
         try {
             Provider provider = mTable.getConnection().getProvider();
-            NamedComponents component = mTable.getNamedComponents();
+            NamedComponent component = mTable.getNamedComponents();
             DatabaseMetaData metadata;
             metadata = provider.getConnection().getMetaData();
-            IndexProperties properties = IndexHelper.getIndexProperties(provider, metadata,
-                                                                        component, mCatalog, getName());
+            IndexProperties properties = IndexHelper.getIndexProperties(provider.getConfigSQL(),
+                                                                        metadata, component, mCatalog, getName());
             columns = properties.getColumns();
         } catch (java.sql.SQLException e) {
             e.printStackTrace();

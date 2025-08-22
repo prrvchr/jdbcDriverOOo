@@ -75,6 +75,7 @@ class TabModel():
         self._name = 'DriverTypeDisplayName'
         self._class = 'JavaDriverClass'
         self._classpath = 'JavaDriverClassPath'
+        self._callback = createService(ctx, "com.sun.star.awt.AsyncCallback")
         self._package = 'vnd.sun.star.expand:$UNO_USER_PACKAGES_CACHE/uno_packages'
         path = 'org.openoffice.Office.DataAccess.Drivers'
         self._config = getConfiguration(ctx, path, True)
@@ -482,7 +483,7 @@ class TabModel():
             sf.kill(folder)
         sf.createFolder(folder)
 
-    def _setDriverVersions(self, apilevel, update):
+    def _setDriverVersions(self, apilevel, caller):
         driver = None
         try:
             versions = {}
@@ -508,7 +509,7 @@ class TabModel():
                 versions[protocol] = default
             with self._lock:
                 self._versions = versions
-            update(versions)
+            self._callback.addCallback(caller, versions)
         except UnoException as e:
             # If the driver fails, the error is already logged
             pass

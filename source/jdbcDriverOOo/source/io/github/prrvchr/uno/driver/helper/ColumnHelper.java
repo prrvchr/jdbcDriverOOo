@@ -45,6 +45,8 @@
  *************************************************************/
 package io.github.prrvchr.uno.driver.helper;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +55,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.UnoHelper;
 import io.github.prrvchr.uno.sdbcx.ColumnContainerBase.ExtraColumnInfo;
@@ -73,10 +77,11 @@ public class ColumnHelper {
         public int mOrdinalPosition;
     }
 
-    public static List<ColumnDescription> readColumns(Provider provider,
-                                                      NamedComponents table)
+    public static List<ColumnDescription> readColumns(final Provider provider,
+                                                      final NamedComponent table,
+                                                      final boolean sensitive)
         throws java.sql.SQLException {
-        List<ColumnDescription> descriptions = collectColumnDescriptions(provider, table);
+        List<ColumnDescription> descriptions = collectColumnDescriptions(provider, table, sensitive);
         sanitizeColumnDescriptions(provider, descriptions);
         List<ColumnDescription> columns = new ArrayList<>(descriptions);
         for (ColumnDescription description : descriptions) {
@@ -85,8 +90,9 @@ public class ColumnHelper {
         return columns;
     }
 
-    private static List<ColumnDescription> collectColumnDescriptions(Provider provider,
-                                                                     NamedComponents table)
+    private static List<ColumnDescription> collectColumnDescriptions(final Provider provider,
+                                                                     final NamedComponent table,
+                                                                     final boolean sensitive)
         throws java.sql.SQLException {
         List<ColumnDescription> columns = new ArrayList<>();
 
@@ -95,13 +101,30 @@ public class ColumnHelper {
                                                                                            table.getTable(),
                                                                                            "%")) {
             while (result.next()) {
-                columns.add(getColumnDescription(provider, result));
+                columns.add(getColumnDescription(provider, table, result, sensitive));
             }
         }
         return columns;
     }
 
-    private static ColumnDescription getColumnDescription(Provider provider, java.sql.ResultSet result)
+    private static ColumnDescription getColumnDescription(final Provider provider,
+                                                          final NamedComponent table,
+                                                          final java.sql.ResultSet result,
+                                                          final boolean sensitive)
+        throws SQLException {
+
+        ColumnDescription description = new ColumnDescription();
+        setColumnDescription(provider, result, description);
+
+        if (provider.getConfigDDL().hasColumnDescriptionQuery()) {
+            setColumnDescription(provider, table, description, sensitive);
+        }
+        return description;
+    }
+
+    private static void setColumnDescription(final Provider provider,
+                                             final java.sql.ResultSet result,
+                                             final ColumnDescription description)
         throws SQLException {
 
         final int COLUMN_NAME = 4;
@@ -113,8 +136,6 @@ public class ColumnHelper {
         final int REMARKS = 12;
         final int COLUMN_DEF = 13;
         final int ORDINAL_POSITION = 17;
-
-        ColumnDescription description = new ColumnDescription();
 
         String svalue = result.getString(COLUMN_NAME);
         if (result.wasNull()) {
@@ -168,8 +189,27 @@ public class ColumnHelper {
         }
 
         description.mOrdinalPosition = result.getInt(ORDINAL_POSITION);
+    }
 
-        return description;
+    private static void setColumnDescription(final Provider provider,
+                                             final NamedComponent table,
+                                             final ColumnDescription description,
+                                             final boolean sensitive)
+        throws SQLException {
+        String remark = null;
+        ComposeRule rule = ComposeRule.InTableDefinitions;
+        Map<String, Object> arguments = ParameterDDL.getColumnDescription(provider.getNamedSupport(rule),
+                                                                          table, description.mColumnName, sensitive);
+        String query = provider.getConfigDDL().getColumnDescriptionQuery(arguments);
+        try (PreparedStatement stmt = provider.getConnection().prepareStatement(query);
+             ResultSet result = stmt.executeQuery()) {
+            if (result.next()) {
+                remark = result.getString(1);
+                if (!result.wasNull()) {
+                    description.mRemarks = remark;
+                }
+            }
+        }
     }
 
     private static void sanitizeColumnDescriptions(Provider provider,

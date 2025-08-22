@@ -39,54 +39,54 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
+import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
-import io.github.prrvchr.uno.driver.provider.Provider;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 
 public class ConstraintHelper {
 
-    public static String getCreateConstraintQuery(Provider provider,
+    public static String getCreateConstraintQuery(ConfigDDL config,
+                                                  NamedSupport support,
                                                   XPropertySet descriptor,
-                                                  NamedComponents table,
+                                                  NamedComponent table,
                                                   String name,
-                                                  ComposeRule rule,
                                                   boolean sensitive)
         throws SQLException {
         try {
             int type = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.TYPE);
-            String tablename = DBTools.buildName(provider, table, rule, sensitive);
+            String tablename = ComponentHelper.buildName(support, table, sensitive);
             String keyname = KeyHelper.getKeyName(name, table.getTableName(), type);
-            keyname = provider.enquoteIdentifier(keyname, sensitive);
-            String[] columns = getKeyColumns(provider, descriptor, PropertyIds.NAME, sensitive);
+            keyname = support.enquoteIdentifier(keyname, sensitive);
+            String[] columns = getKeyColumns(support, descriptor, PropertyIds.NAME, sensitive);
             Map<String, Object> arguments = ParameterDDL.getCreateConstraint(tablename, keyname, columns);
             if (type == KeyType.FOREIGN) {
                 String reftable = DBTools.getDescriptorStringValue(descriptor, PropertyIds.REFERENCEDTABLE);
-                reftable = DBTools.quoteTableName(provider, reftable, rule, sensitive);
-                columns = getKeyColumns(provider, descriptor, PropertyIds.RELATEDCOLUMN, sensitive);
+                reftable = ComponentHelper.quoteTableName(support, reftable, sensitive);
+                columns = getKeyColumns(support, descriptor, PropertyIds.RELATEDCOLUMN, sensitive);
                 int update = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.UPDATERULE);
                 int delete = DBTools.getDescriptorIntegerValue(descriptor, PropertyIds.DELETERULE);
                 ParameterDDL.setCreateConstraint(arguments, reftable, columns, update, delete);
             }
-            return provider.getConfigDDL().getAddConstraintCommand(arguments, type);
+            return config.getAddConstraintCommand(arguments, type);
         } catch (java.lang.Exception e) {
             e.printStackTrace();
             throw new SQLException();
         }
     }
 
-    public static String[] getKeyColumns(Provider provider,
+    public static String[] getKeyColumns(NamedSupport support,
                                          XPropertySet descriptor,
                                          PropertyIds name,
                                          boolean sensitive)
         throws SQLException {
         XColumnsSupplier supplier = UnoRuntime.queryInterface(XColumnsSupplier.class, descriptor);
         XIndexAccess indexes = UnoRuntime.queryInterface(XIndexAccess.class, supplier.getColumns());
-        return getKeyColumns(provider, indexes, name, sensitive);
+        return getKeyColumns(support, indexes, name, sensitive);
     }
 
-    public static List<String> getCreatePrimaryKeyParts(Provider provider,
+    public static List<String> getCreatePrimaryKeyParts(NamedSupport support,
                                                         XPropertySet descriptor,
                                                         boolean sensitive)
         throws SQLException {
@@ -99,7 +99,7 @@ public class ConstraintHelper {
                 for (int i = 0; i < keys.getCount(); i++) {
                     XPropertySet columnProperties = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
                     if (columnProperties != null) {
-                        setCreatePrimaryKeyQueries(provider, queries, columnProperties, sensitive, hasPrimaryKey);
+                        setCreatePrimaryKeyQueries(support, queries, columnProperties, sensitive, hasPrimaryKey);
                     }
                 }
             } catch (WrappedTargetException | IndexOutOfBoundsException e) {
@@ -109,7 +109,7 @@ public class ConstraintHelper {
         return queries;
     }
 
-    public static void setCreatePrimaryKeyQueries(Provider provider,
+    public static void setCreatePrimaryKeyQueries(NamedSupport support,
                                                   List<String> queries,
                                                   XPropertySet columnProperties,
                                                   boolean sensitive,
@@ -126,26 +126,23 @@ public class ConstraintHelper {
                 }
                 hasPrimaryKey = true;
                 buffer.append("PRIMARY KEY");
-                buffer.append(getKeyColumns(provider, columns, sensitive));
+                buffer.append(getKeyColumns(support, columns, sensitive));
             } else if (keyType == KeyType.UNIQUE) {
                 buffer.append("UNIQUE");
-                buffer.append(getKeyColumns(provider, columns, sensitive));
+                buffer.append(getKeyColumns(support, columns, sensitive));
             } else if (keyType == KeyType.FOREIGN) {
                 int deleteRule = DBTools.getDescriptorIntegerValue(columnProperties, PropertyIds.DELETERULE);
                 buffer.append("FOREIGN KEY");
                 
-                String referencedTable = DBTools.getDescriptorStringValue(columnProperties,
-                                                                          PropertyIds.REFERENCEDTABLE);
-                NamedComponents nameComponents = DBTools.qualifiedNameComponents(provider, referencedTable,
-                                                                                 ComposeRule.InDataManipulation);
-                String composedName = DBTools.buildName(provider, nameComponents.getCatalogName(),
-                                                        nameComponents.getSchemaName(), nameComponents.getTableName(),
-                                                        ComposeRule.InTableDefinitions, true);
+                String refTable = DBTools.getDescriptorStringValue(columnProperties, PropertyIds.REFERENCEDTABLE);
+                NamedComponent nameComponents = ComponentHelper.qualifiedNameComponents(support, refTable);
+                String composedName = ComponentHelper.buildName(support, nameComponents, true);
                 if (composedName.isEmpty()) {
-                    throw new SQLException();
+                    String msg = "ConstraintHelper::setCreatePrimaryKeyQueries: Error Referenced table can't de read";
+                    throw new SQLException(msg);
                 }
                 
-                buffer.append(getKeyColumns(provider, columns, sensitive));
+                buffer.append(getKeyColumns(support, columns, sensitive));
                 buffer.append(" ");
                 buffer.append(ParameterDDL.getKeyRuleString(false, deleteRule));
             }
@@ -153,13 +150,13 @@ public class ConstraintHelper {
         }
     }
 
-    private static String getKeyColumns(Provider provider,
+    private static String getKeyColumns(NamedSupport support,
                                         XIndexAccess columns,
                                         boolean sensitive)
         throws SQLException {
         String separator = ", ";
         StringBuilder buffer = new StringBuilder();
-        String[] names = getKeyColumns(provider, columns, PropertyIds.NAME, sensitive);
+        String[] names = getKeyColumns(support, columns, PropertyIds.NAME, sensitive);
         if (names.length > 0) {
             buffer.append(" (");
             buffer.append(String.join(separator, names));
@@ -168,7 +165,7 @@ public class ConstraintHelper {
         return buffer.toString();
     }
 
-    private static String[] getKeyColumns(Provider provider,
+    private static String[] getKeyColumns(NamedSupport support,
                                           XIndexAccess indexes,
                                           PropertyIds name,
                                           boolean sensitive)
@@ -179,7 +176,7 @@ public class ConstraintHelper {
                 XPropertySet property = UnoRuntime.queryInterface(XPropertySet.class, indexes.getByIndex(i));
                 if (property != null) {
                     String value = DBTools.getDescriptorStringValue(property, name);
-                    columns.add(provider.enquoteIdentifier(value, sensitive));
+                    columns.add(support.enquoteIdentifier(value, sensitive));
                 }
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException e) {

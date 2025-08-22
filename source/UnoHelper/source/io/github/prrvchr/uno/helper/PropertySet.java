@@ -68,19 +68,21 @@ public abstract class PropertySet
                XFastPropertySet,
                XMultiPropertySet {
 
-    private PropertySetAdapter mAdapter;
+    private final PropertySetAdapter mAdapter;
 
-    protected PropertySet() { }
+    protected PropertySet() {
+        mAdapter = new PropertySetAdapter(this, this);
+    }
 
     protected void registerProperties(Map<String, PropertyWrapper> properties) {
-        getAdapter().registerProperties(properties);
+        mAdapter.registerProperties(properties);
     }
 
 
     @Override
     protected void postDisposing() {
         super.postDisposing();
-        getAdapter().dispose();
+        mAdapter.dispose();
     }
 
     public synchronized void addPropertyChangeListener(String name,
@@ -89,7 +91,7 @@ public abstract class PropertySet
                WrappedTargetException {
         // XXX: Only add listeners if you are not disposed
         if (!bDisposed) {
-            getAdapter().addPropertyChangeListener(name, listener);
+            mAdapter.addPropertyChangeListener(name, listener);
         }
     }
 
@@ -99,7 +101,7 @@ public abstract class PropertySet
                WrappedTargetException {
         // XXX: Only add listeners if you are not disposed
         if (!bDisposed) {
-            getAdapter().addVetoableChangeListener(name, listener);
+            mAdapter.addVetoableChangeListener(name, listener);
         }
     }
 
@@ -107,19 +109,19 @@ public abstract class PropertySet
                                                          XPropertiesChangeListener listener) {
         // XXX: Only add listeners if you are not disposed
         if (!bDisposed) {
-            getAdapter().addPropertiesChangeListener(names, listener);
+            mAdapter.addPropertiesChangeListener(names, listener);
         }
     }
 
     public XPropertySetInfo getPropertySetInfo() {
-        return getAdapter().getPropertySetInfo();
+        return mAdapter.getPropertySetInfo();
     }
 
     public synchronized Object getPropertyValue(String name)
         throws UnknownPropertyException,
                WrappedTargetException {
         checkDisposed();
-        return getAdapter().getPropertyValue(name);
+        return mAdapter.getPropertyValue(name);
     }
 
     @Override
@@ -127,12 +129,12 @@ public abstract class PropertySet
         throws UnknownPropertyException,
                WrappedTargetException {
         checkDisposed();
-        return getAdapter().getFastPropertyValue(handle);
+        return mAdapter.getFastPropertyValue(handle);
     }
 
     public synchronized Object[] getPropertyValues(String[] names) {
         checkDisposed();
-        return getAdapter().getPropertyValues(names);
+        return mAdapter.getPropertyValues(names);
     }
 
     public synchronized void removePropertyChangeListener(String name,
@@ -141,7 +143,7 @@ public abstract class PropertySet
                WrappedTargetException {
         // XXX: All listeners are automatically released in a dispose call
         if (!bDisposed) {
-            getAdapter().removePropertyChangeListener(name, listener);
+            mAdapter.removePropertyChangeListener(name, listener);
         }
     }
 
@@ -151,14 +153,14 @@ public abstract class PropertySet
                WrappedTargetException {
         // XXX: All listeners are automatically released in a dispose call
         if (!bDisposed) {
-            getAdapter().removeVetoableChangeListener(name, listener);
+            mAdapter.removeVetoableChangeListener(name, listener);
         }
     }
 
     public synchronized void removePropertiesChangeListener(XPropertiesChangeListener listener) {
         // XXX: All listeners are automatically released in a dispose call
         if (!bDisposed) {
-            getAdapter().removePropertiesChangeListener(listener);
+            mAdapter.removePropertiesChangeListener(listener);
         }
     }
 
@@ -169,7 +171,7 @@ public abstract class PropertySet
                IllegalArgumentException,
                WrappedTargetException {
         checkDisposed();
-        getAdapter().setPropertyValue(name, value);
+        mAdapter.setPropertyValue(name, value);
     }
 
     public synchronized void setFastPropertyValue(int handle,
@@ -179,7 +181,7 @@ public abstract class PropertySet
                IllegalArgumentException,
                WrappedTargetException {
         checkDisposed();
-        getAdapter().setFastPropertyValue(handle, value);
+        mAdapter.setFastPropertyValue(handle, value);
     }
 
     public synchronized void setPropertyValues(String[] names,
@@ -188,20 +190,13 @@ public abstract class PropertySet
                IllegalArgumentException,
                WrappedTargetException {
         checkDisposed();
-        getAdapter().setPropertyValues(names, values);
+        mAdapter.setPropertyValues(names, values);
     }
 
     public synchronized void firePropertiesChangeEvent(String[] names,
                                                        XPropertiesChangeListener listener) {
         checkDisposed();
-        getAdapter().firePropertiesChangeEvent(names, listener);
-    }
-
-    private PropertySetAdapter getAdapter() {
-        if (mAdapter == null) {
-            mAdapter = new PropertySetAdapter(this, this);
-        }
-        return mAdapter;
+        mAdapter.firePropertiesChangeEvent(names, listener);
     }
 
     // XXX: Checks whether this component (which you should have locked, prior to this call,

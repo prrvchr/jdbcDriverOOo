@@ -29,7 +29,7 @@
 
 **L'utilisation de ce logiciel vous soumet à nos [Conditions d'utilisation][4]**
 
-# version [1.5.6][5]
+# version [1.5.7][5]
 
 ## Introduction:
 
@@ -48,7 +48,8 @@ Elle embarque les pilotes pour les base de données suivantes:
 - Firebird via [Jaybird][19] version 6.0.2 et [JaybirdEmbedded][20] version 1.0.0
 - [MySQL via Connector/J][21] version 9.3.0
 - Oracle Database 23ai Free version 23ai (23.9.0.25.07) via [ojdbc17.jar][22].
-- [Trino ou PrestoSQL][23] version 458-SNAPSHOT (en cours d'intégration, à utiliser avec prudence)
+- Microsoft SQL Server via [mssql-jdbc-13.2.0.jre11.jar][23].
+- [Trino ou PrestoSQL][24] version 458-SNAPSHOT (en cours d'intégration, à utiliser avec prudence)
 
 Grâce aux pilotes fournissant un moteur de base de données intégré tels que: HsqlDB, H2, SQLite, Derby ou Jaybird, il est possible dans Base de créer et gérer très facilement des bases de données, aussi facilement que de créer des documents Writer.  
 Vous trouverez les informations nécessaires à la création d'une base de données avec ces pilotes dans la section: [URL de connexion][30]
@@ -315,7 +316,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [2]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [3]: <https://prrvchr.github.io/jdbcDriverOOo/>
 [4]: <https://prrvchr.github.io/jdbcDriverOOo/source/jdbcDriverOOo/registration/TermsOfUse_fr>
-[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-156>
+[5]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-157>
 [6]: <https://prrvchr.github.io/README_fr>
 [7]: <https://fr.libreoffice.org/download/telecharger-libreoffice/>
 [8]: <https://www.openoffice.org/fr/Telecharger/>
@@ -333,7 +334,8 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [20]: <https://prrvchr.github.io/JaybirdEmbedded/README_fr>
 [21]: <https://dev.mysql.com/downloads/connector/j/>
 [22]: <https://www.oracle.com/fr/database/technologies/appdev/jdbc-downloads.html>
-[23]: <https://trino.io/docs/current/client/jdbc.html#installing>
+[23]: <https://github.com/microsoft/mssql-jdbc>
+[24]: <https://trino.io/docs/current/client/jdbc.html#installing>
 [30]: <https://prrvchr.github.io/jdbcDriverOOo/README_fr#url-de-connexion>
 [31]: <https://github.com/prrvchr/jdbcDriverOOo/>
 [32]: <https://github.com/prrvchr/jdbcDriverOOo/issues/new>
@@ -346,7 +348,7 @@ Il permet également d'offrir des fonctionnalités que le pilote JDBC implément
 [39]: <https://prrvchr.github.io/jdbcDriverOOo/CHANGELOG_fr#ce-qui-a-%C3%A9t%C3%A9-fait-pour-la-version-110>
 [40]: <img/jdbcDriverOOo.svg#middle>
 [41]: <https://github.com/prrvchr/jdbcDriverOOo/releases/latest/download/jdbcDriverOOo.oxt>
-[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.6#right>
+[42]: <https://img.shields.io/github/downloads/prrvchr/jdbcDriverOOo/latest/total?label=v1.5.7#right>
 [43]: <img/jdbcDriverOOo-1_fr.png>
 [44]: <img/jdbcDriverOOo-2_fr.png>
 [45]: <img/jdbcDriverOOo-3_fr.png>

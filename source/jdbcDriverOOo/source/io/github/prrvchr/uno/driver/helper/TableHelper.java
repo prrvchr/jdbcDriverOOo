@@ -66,13 +66,12 @@ import com.sun.star.sdbcx.XKeysSupplier;
 import com.sun.star.uno.UnoRuntime;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.resultset.ResultSetHelper;
 import io.github.prrvchr.uno.driver.resultset.RowSetData;
-import io.github.prrvchr.uno.sdbcx.TableSuper;
 
 
 public class TableHelper {
@@ -84,10 +83,9 @@ public class TableHelper {
     public static final int COLUMN_NULLABLE = 16;
     public static final int COLUMN_DESCRIPTION = 32;
 
-    private static class ColumnProperties {
+    public static class ColumnProperties {
+        private String mOldName;
         private String mNewName;
-        private String mOldIdentifier = "";
-        private String mNewIdentifier;
         private StringBuilder mColumnType;
         private String mDefaultValue;
         private boolean mIsAutoincrement;
@@ -95,34 +93,18 @@ public class TableHelper {
         private boolean mNotNull;
         private boolean mIsRowversion;
 
-        private ColumnProperties(String identifier1, String identifier2, String name)
-            throws SQLException {
-            mNewName = name;
-            mOldIdentifier = identifier1;
-            mNewIdentifier = identifier2;
+        private ColumnProperties(String name) {
+            this(name, name);
+        }
+        private ColumnProperties(String oldname, String newname) {
+            mOldName = getDefaultName(oldname, newname);
+            mNewName = newname;
             mColumnType = new StringBuilder();
             mDefaultValue = "";
             mIsAutoincrement = false;
             mAutoincrement = "";
             mNotNull = false;
             mIsRowversion = false;
-        }
-
-        private ColumnProperties(String identifier, String name)
-                throws SQLException {
-            this(identifier, identifier, name);
-        }
-
-        ColumnProperties(Provider provider, String name, boolean sensitive)
-            throws SQLException {
-            this(provider.enquoteIdentifier(name, sensitive), name);
-        }
-        ColumnProperties(Provider provider, String name1, String name2, boolean sensitive)
-            throws SQLException {
-            // XXX: If it's a new column then name1 is empty...
-            this(provider.enquoteIdentifier(getDefaultName(name1, name2), sensitive),
-                 provider.enquoteIdentifier(name2, sensitive),
-                 name2);
         }
 
         private static final String getDefaultName(String name1, String name2) {
@@ -135,33 +117,15 @@ public class TableHelper {
             return dfltName;
         }
 
-        public String toString() {
-            // XXX: We try to construct the Column part needed for Table creation
-            StringBuilder builder = new StringBuilder(mNewIdentifier);
-            builder.append(" ");
-            builder.append(mColumnType.toString());
-            if (!mDefaultValue.isBlank()) {
-                builder.append(" DEFAULT ");
-                builder.append(mDefaultValue);
-            }
-            if (mNotNull) {
-                builder.append(" NOT NULL");
-            }
-            if (mIsAutoincrement) {
-                builder.append(" ");
-                builder.append(mAutoincrement);
-            }
-            return builder.toString();
-        }
-
-        public Map<String, Object> toArguments(String tablename, String table)
+        public Map<String, Object> toArguments(Provider provider,
+                                               NamedComponent component,
+                                               ComposeRule rule,
+                                               boolean sensitive)
             throws SQLException {
             // XXX: We try to have arguments to be able to fill two query:
             // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${Column} ${Type} ${Default} ${Nullable} ${Autoincrement}
             // XXX: - ALTER TABLE ${TableName} ALTER COLUMN ${OldName} RENAME TO ${Column}
-            return ParameterDDL.getColumnProperties(tablename, table, mOldIdentifier, mNewIdentifier,
-                                                    mColumnType.toString(), mDefaultValue, mNotNull,
-                                                    mIsAutoincrement, mAutoincrement, toString());
+            return ParameterDDL.getColumnProperties(provider.getNamedSupport(rule), component, this, sensitive);
         }
 
         public boolean isRowVersion() {
@@ -172,9 +136,30 @@ public class TableHelper {
             return mIsAutoincrement;
         }
 
-        public String getName() {
-            return mNewIdentifier;
+        public String getAutoIncrement() {
+            return mAutoincrement;
         }
+
+        public String getType() {
+            return mColumnType.toString();
+        }
+
+        public String getDefaultValue() {
+            return mDefaultValue;
+        }
+
+        public boolean getNotNull() {
+            return mNotNull;
+        }
+
+        public String getName() {
+            return mOldName;
+        }
+
+        public String getNewName() {
+            return mNewName;
+        }
+
     }
 
     /** creates a SQL CREATE TABLE statement.
@@ -183,12 +168,10 @@ public class TableHelper {
      *      The driver provider.
      * @param property
      *      The descriptor of the new table.
-     * @param table
-     *      The name of the new table.
-     * @param type
-     *      The type of the new table (ie: TABLE or TEXT TABLE).
      * @param rule
      *      The rule for composing the table name.
+     * @param type
+     *      The type of the new table (ie: TABLE or TEXT TABLE).
      * @param sensitive
      *      Is identifier case sensitive.
      * @return
@@ -197,9 +180,8 @@ public class TableHelper {
      */
     public static List<String> getCreateTableQueries(Provider provider,
                                                      XPropertySet property,
-                                                     String table,
-                                                     String type,
                                                      ComposeRule rule,
+                                                     String type,
                                                      boolean sensitive)
         throws SQLException {
         XIndexAccess columns = null;
@@ -209,27 +191,27 @@ public class TableHelper {
         }
         if (columns == null || columns.getCount() <= 0) {
             String template = "The '%s' table has no columns, it is not possible to create the table";
+            String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule), property, sensitive);
             String message = String.format(template, table);
             throw new SQLException(message);
         }
         // XXX: The first thing to do is to retrieve the columns
         // XXX: to find out if there are any auto-increment columns.
-        return getCreateTableQueries(provider, property, columns,
-                                     table, type, rule, sensitive);
+        return getCreateTableQueries(provider, property, rule, columns, type, sensitive);
     }
 
     private static List<String> getCreateTableQueries(Provider provider,
                                                       XPropertySet property,
-                                                      XIndexAccess columns,
-                                                      String table,
-                                                      String type,
                                                       ComposeRule rule,
+                                                      XIndexAccess columns,
+                                                      String type,
                                                       boolean sensitive)
         throws SQLException {
         List<String> queries = new ArrayList<>();
         List<String> parts = new ArrayList<>();
         List<String> versions = new ArrayList<>();
-        boolean hasAutoIncrement = setCreateTableColumn(provider, columns, queries, parts, versions, table, sensitive);
+        boolean hasAutoIncrement = setCreateTableColumn(provider, property, rule, columns,
+                                                        queries, parts, versions, sensitive);
         boolean versioning = !versions.isEmpty() && provider.getConfigDDL().supportsSystemVersioning();
         if (versioning) {
             parts.add(provider.getConfigDDL().getSystemVersioningColumnQuery(versions));
@@ -244,18 +226,20 @@ public class TableHelper {
         // XXX: SQLite only allows creating PK with table creation and if there is no auto increment column (first test)
         // XXX: MariaDB only permit to create auto increment if the PK is created while the table creation (second test)
         } else if (!alterpk && !hasAutoIncrement || isCreationSupported(alterpk, autopk, hasAutoIncrement)) {
-            parts.addAll(ConstraintHelper.getCreatePrimaryKeyParts(provider, property, sensitive));
+            parts.addAll(ConstraintHelper.getCreatePrimaryKeyParts(provider.getNamedSupport(rule),
+                                                                   property, sensitive));
         }
-        addCreateTableCommand(provider, queries, parts, type, table, versioning);
+        addCreateTableCommand(provider, property, rule, queries, parts, type, versioning, sensitive);
         return queries;
     }
 
     private static boolean setCreateTableColumn(final Provider provider,
+                                                final XPropertySet property,
+                                                final ComposeRule rule,
                                                 final XIndexAccess columns,
                                                 final List<String> queries,
                                                 final List<String> parts,
                                                 final List<String> versions,
-                                                final String table,
                                                 final boolean sensitive)
         throws SQLException {
         boolean hasAutoIncrement = false;
@@ -265,47 +249,53 @@ public class TableHelper {
                 if (descriptor == null) {
                     continue;
                 }
-                hasAutoIncrement |= getCreateTableColumn(provider, queries, parts, versions,
-                                                         descriptor, table, sensitive);
+                hasAutoIncrement |= getCreateTableColumn(provider, property, rule, queries, parts, versions,
+                                                         descriptor, sensitive);
             }
         } catch (IndexOutOfBoundsException | WrappedTargetException | IllegalArgumentException e) {
             throw new SQLException(e.getMessage());
         }
         return hasAutoIncrement;
-
     }
+
     private static void addCreateTableCommand(final Provider provider,
+                                              final XPropertySet property,
+                                              final ComposeRule rule,
                                               final List<String> queries,
                                               final List<String> parts,
                                               final String type,
-                                              final String table,
-                                              final boolean versioning) {
+                                              final boolean versioning,
+                                              final boolean sensitive)
+        throws SQLException {
         Map<String, Object> arguments = new HashMap<>();
-        String key = ParameterDDL.setCreateTable(arguments, type, table, parts);
+        String key = ParameterDDL.setCreateTable(arguments, provider.getNamedSupport(rule),
+                                                 property, type, parts, sensitive);
         queries.add(0, provider.getConfigDDL().getCreateTableCommand(arguments, versioning, key));
     }
 
-    private static boolean getCreateTableColumn(Provider provider,
-                                                List<String> queries,
-                                                List<String> parts,
-                                                List<String> columnversion,
-                                                XPropertySet descriptor,
-                                                String table,
+    private static boolean getCreateTableColumn(final Provider provider,
+                                                final XPropertySet property,
+                                                final ComposeRule rule,
+                                                final List<String> queries,
+                                                final List<String> parts,
+                                                final List<String> columnversion,
+                                                final XPropertySet descriptor,
                                                 boolean sensitive)
         throws SQLException {
         boolean hasAutoIncrement = false;
-        ColumnProperties column = getStandardColumnProperties(provider, descriptor, sensitive);
+        ColumnProperties column = getStandardColumnProperties(provider, descriptor);
         if (provider.getConfigDDL().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!comment.isEmpty()) {
-                queries.add(getColumnDescriptionQuery(provider, table, column.mNewName, comment, sensitive));
+                NamedComponent component = ComponentHelper.getTableNamedComponents(property);
+                queries.add(getColumnDescriptionQuery(provider, component, rule, column, comment, sensitive));
             }
         }
         hasAutoIncrement |= column.isAutoIncrement();
         if (column.isRowVersion()) {
-            columnversion.add(column.getName());
+            columnversion.add(column.getNewName());
         }
-        parts.add(column.toString());
+        parts.add(ParameterDDL.getColumnDescription(column));
         return hasAutoIncrement;
     }
 
@@ -315,15 +305,15 @@ public class TableHelper {
         return supportsAlterPk && isAutoIncrementPk && autoIncrement;
     }
 
-    private static String getColumnDescriptionQuery(Provider provider,
-                                                    String table,
-                                                    String column,
-                                                    String comment,
-                                                    boolean sensitive)
+    private static String getColumnDescriptionQuery(final Provider provider,
+                                                    final NamedComponent component,
+                                                    final ComposeRule rule,
+                                                    final ColumnProperties column,
+                                                    final String comment,
+                                                    final boolean sensitive)
         throws SQLException {
-        String name = DBTools.composeColumnName(provider, table, column, sensitive);
-        comment = provider.enquoteLiteral(comment);
-        Map<String, Object> arguments = ParameterDDL.getColumnDescription(name, comment);
+        Map<String, Object> arguments = ParameterDDL.getColumnDescription(provider.getNamedSupport(rule), component,
+                                                                          column.getNewName(), comment, sensitive);
         String query = provider.getConfigDDL().getColumnDescriptionCommand(arguments);
         return query;
     }
@@ -334,8 +324,10 @@ public class TableHelper {
     *      The list of queries to fill.
     * @param provider
     *      The driver provider.
-    * @param table
-    *      The table of the column.
+    * @param component
+    *      The table NamedComponent.
+    * @param rule
+    *      The table name rule.
     * @param descriptor
     *      The descriptor of the new column.
     * @param sensitive
@@ -346,19 +338,20 @@ public class TableHelper {
     // XXX: - ColumnContainerBase.createColumn() for any new column.
     public static void getAddColumnQueries(List<String> queries,
                                            Provider provider,
-                                           TableSuper table,
+                                           NamedComponent component,
+                                           ComposeRule rule,
                                            XPropertySet descriptor,
                                            boolean sensitive)
         throws SQLException {
         // XXX: Create a new column
-        String name = DBTools.composeTableName(provider, table, ComposeRule.InTableDefinitions, sensitive);
-        ColumnProperties column = getStandardColumnProperties(provider, "", descriptor, sensitive);
-        Map<String, Object> arguments = ParameterDDL.getAddColumn(name, column.toString());
+        ColumnProperties column = getStandardColumnProperties(provider, "", descriptor);
+        Map<String, Object> arguments = ParameterDDL.getAddColumn(provider.getNamedSupport(rule),
+                                                                  component, column, sensitive);
         String query = provider.getConfigDDL().getAddColumnCommand(arguments);
         queries.add(query);
         if (provider.getConfigDDL().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
-            queries.add(getColumnDescriptionQuery(provider, name, column.mNewName, comment, sensitive));
+            queries.add(getColumnDescriptionQuery(provider, component, rule, column, comment, sensitive));
         }
     }
 
@@ -484,7 +477,7 @@ public class TableHelper {
     // XXX: - TableSuper.alterColumn() for already existing columns.
     public static Integer getAlterColumnQueries(List<String> queries,
                                                 Provider provider,
-                                                NamedComponents component,
+                                                NamedComponent component,
                                                 ComposeRule rule,
                                                 String oldname,
                                                 XPropertySet descriptor1,
@@ -498,15 +491,13 @@ public class TableHelper {
         // XXX: Added the possibility of changing column type if the contained data can be cast
         // XXX: Added the possibility of renaming a primary key
         // XXX: Added the possibility of adding or removing Identity (auto increment on column) {
-        String tablename = DBTools.composeTableName(provider, component, rule, sensitive);
-        String table = provider.enquoteIdentifier(component.getTable(), sensitive);
-        ColumnProperties column = getStandardColumnProperties(provider, oldname, descriptor2, sensitive);
-        int result = setAlterColumnQueries(provider, queries, column, descriptor2, flags,
-                                           alterkey, tablename, table);
+        ColumnProperties column = getStandardColumnProperties(provider, oldname, descriptor2);
+        int result = setAlterColumnQueries(provider, component, rule, queries, column, descriptor2, flags,
+                                           alterkey, sensitive);
         // XXX: Column description have been changed?
         if (hasPropertyChanged(flags, COLUMN_DESCRIPTION) && provider.getConfigDDL().supportsColumnDescription()) {
             String comment = DBTools.getDescriptorStringValue(descriptor2, PropertyIds.DESCRIPTION);
-            queries.add(getColumnDescriptionQuery(provider, tablename, column.mNewName, comment, sensitive));
+            queries.add(getColumnDescriptionQuery(provider, component, rule, column, comment, sensitive));
             result |= COLUMN_DESCRIPTION;
         }
         return result;
@@ -517,19 +508,20 @@ public class TableHelper {
     }
 
     private static int setAlterColumnQueries(Provider provider,
+                                             NamedComponent component,
+                                             ComposeRule rule,
                                              List<String> queries,
                                              ColumnProperties column,
                                              XPropertySet descriptor,
                                              int flags,
                                              boolean alterkey,
-                                             String tablename,
-                                             String table)
+                                             boolean sensitive)
         throws SQLException {
 
         // XXX: Modify an existing column
         int results = 0;
         boolean autoincrement = DBTools.getDescriptorBooleanValue(descriptor, PropertyIds.ISAUTOINCREMENT);
-        Map<String, Object> arguments = column.toArguments(tablename, table);
+        Map<String, Object> arguments = column.toArguments(provider, component, rule, sensitive);
 
         // XXX: Column name have changed
         if (hasPropertyChanged(flags, COLUMN_NAME)) {
@@ -568,11 +560,10 @@ public class TableHelper {
         boolean isset = true;
         int i = 0;
         while (i < properties.length && isset) {
-            int property = properties[i];
+            int property = properties[i++];
             if (hasColumnProperty(flags, property) && !hasColumnProperty(results, property)) {
                 isset = false;
             }
-            i++;
         }
         return isset;
     }
@@ -711,21 +702,19 @@ public class TableHelper {
     }
 
     private static ColumnProperties getStandardColumnProperties(Provider provider,
-                                                                XPropertySet descriptor,
-                                                                boolean sensitive)
+                                                                XPropertySet descriptor)
         throws SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
-        ColumnProperties column = new ColumnProperties(provider, newname, sensitive);
+        ColumnProperties column = new ColumnProperties(newname);
         return getStandardColumnProperties(provider, column, descriptor);
     }
 
     private static ColumnProperties getStandardColumnProperties(Provider provider,
                                                                 String oldname,
-                                                                XPropertySet descriptor,
-                                                                boolean sensitive)
+                                                                XPropertySet descriptor)
         throws SQLException {
         String newname = DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
-        ColumnProperties column = new ColumnProperties(provider, oldname, newname, sensitive);
+        ColumnProperties column = new ColumnProperties(oldname, newname);
         return getStandardColumnProperties(provider, column, descriptor);
     }
 
@@ -914,7 +903,7 @@ public class TableHelper {
                                                            boolean sensitive)
         throws java.sql.SQLException {
         List<String> queries = new ArrayList<>();
-        NamedComponents table = DBTools.getTableNamedComponents(provider, property);
+        NamedComponent table = ComponentHelper.getTableNamedComponents(property);
 
         XKeysSupplier supplier = UnoRuntime.queryInterface(XKeysSupplier.class, descriptor);
         XIndexAccess keys = supplier.getKeys();
@@ -923,8 +912,9 @@ public class TableHelper {
                 for (int i = 0; i < keys.getCount(); i++) {
                     XPropertySet key = UnoRuntime.queryInterface(XPropertySet.class, keys.getByIndex(i));
                     if (key != null) {
-                        queries.add(ConstraintHelper.getCreateConstraintQuery(provider, key, table,
-                                                                              name, rule, sensitive));
+                        queries.add(ConstraintHelper.getCreateConstraintQuery(provider.getConfigDDL(),
+                                                                              provider.getNamedSupport(rule),
+                                                                              key, table, name, sensitive));
                     }
                 }
             }

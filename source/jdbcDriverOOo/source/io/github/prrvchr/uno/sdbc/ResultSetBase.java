@@ -566,20 +566,14 @@ public abstract class ResultSetBase
     public void clearWarnings()
         throws SQLException {
         System.out.println("ResultSetBase.clearWarnings() 1");
-        if (mConnection.getProvider().supportWarningsSupplier()) {
-            WarningsSupplier.clearWarnings(mResult, this);
-        }
+        WarningsSupplier.clearWarnings(mResult, this);
     }
 
     @Override
     public Object getWarnings()
         throws SQLException {
         System.out.println("ResultSetBase.getWarnings() 1");
-        Object warning = Any.VOID;
-        if (mConnection.getProvider().supportWarningsSupplier()) {
-            warning = WarningsSupplier.getWarnings(mResult, this);
-        }
-        return warning;
+        return WarningsSupplier.getWarnings(mResult, this);
     }
 
     // com.sun.star.sdbc.XResultSetUpdate:
@@ -871,7 +865,6 @@ public abstract class ResultSetBase
     public Object getObject(int index, XNameAccess map)
         throws SQLException {
         try {
-            System.out.println("ResultSetBase.getObject() 1");
             return DBTools.getObject(mResult.getObject(index));
         } catch (java.sql.SQLException e) {
             throw DBException.getSQLException(this, e);

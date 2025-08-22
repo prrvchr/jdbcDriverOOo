@@ -43,6 +43,8 @@ import io.github.prrvchr.uno.driver.helper.ColumnHelper;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -106,12 +108,13 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
     private boolean createColumn(XPropertySet descriptor, String name)
         throws java.sql.SQLException {
         boolean created = false;
-        String table = null;
         List<String> queries = new ArrayList<>();
+        Provider provider = getConnection().getProvider();
+        ComposeRule rule = ComposeRule.InTableDefinitions;
+        String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule), mTable, false);
         try {
-            Provider provider = getConnection().getProvider();
-            table = DBTools.composeTableName(provider, mTable, ComposeRule.InTableDefinitions, false);
-            TableHelper.getAddColumnQueries(queries, provider, mTable,  descriptor, isCaseSensitive());
+            TableHelper.getAddColumnQueries(queries, provider, mTable.getNamedComponents(),
+                                            rule, descriptor, isCaseSensitive());
             if (!queries.isEmpty()) {
                 String query = String.join("> <", queries);
                 mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_ALTER_QUERY, name, table, query);
@@ -149,7 +152,9 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
             
             ExtraColumnInfo info = mExtrainfos.get(name);
             if (info == null) {
-                String composedName = DBTools.composeTableNameForSelect(provider, mTable, isCaseSensitive());
+                ComposeRule rule = ComposeRule.InSelectDefinitions;
+                NamedSupport support = provider.getNamedSupport(rule);
+                String composedName = ComponentHelper.composeTableNameForSelect(support, mTable, isCaseSensitive());
                 mExtrainfos = ColumnHelper.collectColumnInformation(provider, composedName, "*");
                 info = mExtrainfos.get(name);
             }
@@ -176,7 +181,9 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
     private ColumnDescription getColumnDescription(Provider provider,
                                                    String name) throws java.sql.SQLException {
         // could be a recently added column. Refresh:
-        List<ColumnDescription> newcolumns = ColumnHelper.readColumns(provider, mTable.getNamedComponents());
+        List<ColumnDescription> newcolumns = ColumnHelper.readColumns(provider,
+                                                                      mTable.getNamedComponents(),
+                                                                      isCaseSensitive());
         for (ColumnDescription newcolumn : newcolumns) {
             if (newcolumn.mColumnName.equals(name)) {
                 mDescriptions.put(name, newcolumn);
@@ -198,10 +205,11 @@ public abstract class ColumnContainerBase<C extends ColumnSuper>
         Provider provider = getConnection().getProvider();
         try {
             ComposeRule rule = ComposeRule.InTableDefinitions;
-            String table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
-            String column = provider.enquoteIdentifier(name, isCaseSensitive());
+            NamedSupport support = provider.getNamedSupport(rule);
+            String table = ComponentHelper.composeTableName(support, mTable, isCaseSensitive());
+            String column = support.enquoteIdentifier(name, isCaseSensitive());
             query = provider.getConfigDDL().getDropColumnCommand(ParameterDDL.getDropColumn(table, column));
-            table = DBTools.composeTableName(provider, mTable, rule, false);
+            table = ComponentHelper.composeTableName(support, mTable, false);
             mTable.getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_COLUMN_REMOVE_QUERY, name, table, query);
             DBTools.executeSQLQuery(provider, query);
         } catch (java.sql.SQLException e) {

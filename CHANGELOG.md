@@ -417,7 +417,16 @@ Supporting an additional driver like Oracle's requires a lot of work for functio
 
 If you use multiple accounts to connect to a database, you will not be able to reconnect to that database again if you opened it with an account other than the one offered and then closed it without saving the file. You must restart LibreOffice. See [tdf#167960][125].
 
-### What remains to be done for version 1.5.6:
+### What has been done for version 1.5.7:
+
+Integration of the [SQL Server JDBC driver][126] `mssql-jdbc-13.2.0.jre11.jar`. This integration required the following modifications to the underlying code:
+- Using `UseCatalog` and `UseCatalogInSelect` parameters in `Drivers.xcu` file with false values.
+- Added a new `InViewDefinitions` element to the [ComposeRule][127] enum. This new naming rule allows the catalog name to be omitted when constructing an identifier if the `UseCatalog` parameter is set to `false`, otherwise it will follow the value of the `InTableDefinitions` element.
+- Use this new naming rule for constructing SQL queries for creating and deleting a view.
+
+With these changes, the catalog, which is actually the name of the database under SQL Server, will not be used to name the identifiers of the SQL queries managing the creation and deletion of views, as required by the SQL Server JDBC driver.
+
+### What remains to be done for version 1.5.7:
 
 - Add new languages for internationalization...
 
@@ -548,3 +557,4 @@ If you use multiple accounts to connect to a database, you will not be able to r
 [123]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167920>
 [124]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167434>
 [125]: <https://bugs.documentfoundation.org/show_bug.cgi?id=167960>
+[126]: <https://github.com/microsoft/mssql-jdbc>

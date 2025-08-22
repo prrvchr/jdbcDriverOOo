@@ -125,8 +125,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(index);
         } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -139,8 +138,7 @@ public abstract class ContainerBase<T extends Descriptor>
         try {
             removeElement(name, true);
         } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            throw new SQLException(e.getMessage());
+            throw DBTools.getSQLException(e, this);
         }
     }
 
@@ -190,7 +188,7 @@ public abstract class ContainerBase<T extends Descriptor>
     }
 
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor) {
+    protected String getElementName(XPropertySet descriptor) throws java.sql.SQLException {
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 

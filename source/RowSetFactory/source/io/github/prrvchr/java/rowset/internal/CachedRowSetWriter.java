@@ -474,10 +474,8 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 status.add(row, SyncResolver.NO_ROW_CONFLICT);
 
             } catch (SQLException e) {
-                e.printStackTrace();
                 conflicts.add(e);
             } catch (Throwable ex) {
-                ex.printStackTrace();
                 SQLException e = new SQLException(ex.getMessage());
                 conflicts.add(e);
             }

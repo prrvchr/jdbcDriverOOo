@@ -37,9 +37,12 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.XAlterView;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -103,16 +106,18 @@ public final class View
             String name = null;
             List<String> queries = new ArrayList<>();
             try {
-                NamedComponents component = getNamedComponents();
-                ComposeRule rule = ComposeRule.InDataManipulation;
+                NamedComponent component = getNamedComponents();
+                ComposeRule rule = ComposeRule.InViewDefinitions;
+                NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
                 Provider provider = getConnection().getProvider();
-                name = DBTools.buildName(provider, component, rule);
-                Map<String, Object> arguments = ParameterDDL.getAlterView(provider, component,
-                                                                                   name, command, rule,
-                                                                                   isCaseSensitive());
-                queries =  provider.getConfigDDL().getAlterViewCommands(arguments);
+                name = ComponentHelper.buildName(support, component);
+                Map<String, Object> arguments = ParameterDDL.getAlterView(support, component,
+                                                                          command, isCaseSensitive());
+                ConfigDDL config = mConnection.getProvider().getConfigDDL();
+                queries =  config.getAlterViewCommands(arguments);
                 if (!queries.isEmpty()) {
                     String query = String.join("> <", queries);
+                    name = ComponentHelper.buildName(support, component, false);
                     getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEW_ALTER_QUERY, name, query);
                     DBTools.executeSQLQueries(provider, queries);
                 }
@@ -135,9 +140,9 @@ public final class View
         String oldname = null;
         try {
             ComposeRule rule = ComposeRule.InDataManipulation;
-            Provider provider = getConnection().getProvider();
-            oldname = DBTools.buildName(provider, getNamedComponents(), rule);
-            NamedComponents table = DBTools.qualifiedNameComponents(provider, newname, rule);
+            NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
+            oldname = ComponentHelper.buildName(support, getNamedComponents());
+            NamedComponent table = ComponentHelper.qualifiedNameComponents(support, newname);
             if (rename(table, oldname, newname, true, rule)) {
                 mCatalogName = table.getCatalogName();
                 mSchemaName = table.getSchemaName();

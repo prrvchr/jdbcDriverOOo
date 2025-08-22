@@ -36,8 +36,10 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.CheckOption;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -71,8 +73,11 @@ public final class ViewContainer
         boolean created = false;
         String query = null;
         try {
+            ComposeRule rule = ComposeRule.InViewDefinitions;
             Provider provider = getConnection().getProvider();
-            query = DBTools.getCreateViewCommand(provider, descriptor, isCaseSensitive());
+            query = DBTools.getCreateViewCommand(provider.getConfigDDL(),
+                                                 provider.getNamedSupport(rule),
+                                                 descriptor, isCaseSensitive());
             System.out.println("sdbcx.ViewContainer.createDataBaseElement() SQL: '" + query + "'");
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_CREATE_VIEW_QUERY, name, query);
             if (DBTools.executeSQLQuery(provider, query)) {
@@ -92,7 +97,7 @@ public final class ViewContainer
     protected View createElement(String name)
         throws SQLException {
         try {
-            return createView(name, ComposeRule.InDataManipulation);
+            return createView(name, ComposeRule.InViewDefinitions);
         } catch (SQLException e) {
             throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
         }
@@ -101,11 +106,11 @@ public final class ViewContainer
     private View createView(String name, ComposeRule rule) throws SQLException {
         int option = CheckOption.NONE;
         String command = "";
+        NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
         Provider provider = getConnection().getProvider();
-        NamedComponents component = DBTools.qualifiedNameComponents(provider, name, rule);
+        NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
         if (provider.getConfigDDL().supportsViewDefinition()) {
-            Map<String, Object> parameters = ParameterDDL.getViewDefinition(provider, component,
-                                                                                     name, rule, false);
+            Map<String, Object> parameters = ParameterDDL.getViewDefinition(support, component, isCaseSensitive());
             List<Object> values = new ArrayList<Object>();
             String query = provider.getConfigDDL().getViewDefinitionQuery(parameters, values);
             if (query != null && !query.isBlank() && !values.isEmpty()) {
@@ -169,10 +174,12 @@ public final class ViewContainer
         throws SQLException {
         String query = null;
         try {
-            ComposeRule rule = ComposeRule.InTableDefinitions;
+            ComposeRule rule = ComposeRule.InViewDefinitions;
+            NamedSupport support = getConnection().getProvider().getNamedSupport(rule);
             Provider provider = getConnection().getProvider();
-            String table = DBTools.buildName(provider, view.getNamedComponents(), rule, isCaseSensitive());
+            String table = ComponentHelper.buildName(support, view.getNamedComponents(), isCaseSensitive());
             query = provider.getConfigDDL().getDropViewCommand(ParameterDDL.getDropView(table));
+            System.out.println("ViewContainer.removeView() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_VIEWS_REMOVE_VIEW_QUERY, view.getName(), query);
             DBTools.executeSQLQuery(provider, query);
         } catch (SQLException e) {
@@ -186,6 +193,5 @@ public final class ViewContainer
     protected XPropertySet createDescriptor() {
         return new ViewDescriptor(isCaseSensitive());
     }
-
 
 }

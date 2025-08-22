@@ -35,9 +35,10 @@ import com.sun.star.container.ElementExistException;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Type;
 
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
 import io.github.prrvchr.uno.driver.helper.ColumnHelper.ColumnDescription;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
@@ -176,7 +177,7 @@ public final class Table
     }
 
     @Override
-    protected NamedComponents getNamedComponents() {
+    protected NamedComponent getNamedComponents() {
         return super.getNamedComponents();
     }
 
@@ -200,8 +201,10 @@ public final class Table
         try {
             System.out.println("scb.Table.getPrivileges() 1");
             if (mPrivileges == 0) {
+                java.sql.Connection connection = getConnection().getProvider().getConnection();
+                ConfigDCL config = getConnection().getProvider().getConfigDCL();
                 Provider provider = getConnection().getProvider();
-                int privileges = PrivilegesHelper.getTablePrivileges(provider, getNamedComponents());
+                int privileges = PrivilegesHelper.getTablePrivileges(connection, config, getNamedComponents());
                 if (privileges == 0) {
                     privileges = provider.getConfigDCL().getMockPrivileges();
                 }

@@ -31,7 +31,6 @@ import java.io.StringWriter;
 import java.nio.file.Path;
 import java.io.PrintWriter;
 import java.sql.Driver;
-import java.sql.ResultSet;
 import java.util.Map;
 import java.util.Properties;
 
@@ -48,6 +47,8 @@ import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.DBException;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponentSupport;
 import io.github.prrvchr.uno.helper.ResourceBasedEventLogger;
 import io.github.prrvchr.uno.helper.SharedResources;
 
@@ -60,34 +61,13 @@ public class Provider {
 
     private ConfigSQL mConfig;
 
-    private final boolean mWarnings = true;
     private String mSubProtocol;
     private PropertyValue[] mInfos;
     private java.sql.Statement mStatement = null;
 
-    private Boolean mInsertVisibleInsensitive;
-    private Boolean mInsertVisibleSensitive;
-    private Boolean mDeleteVisibleInsensitive;
-    private Boolean mDeleteVisibleSensitive;
-    private Boolean mUpdateVisibleInsensitive;
-    private Boolean mUpdateVisibleSensitive;
-
-    private boolean mCatalogsInTableDefinitions;
-    private boolean mSchemasInTableDefinitions;
-    private boolean mCatalogsInIndexDefinitions;
-    private boolean mSchemasInIndexDefinitions;
-    private boolean mCatalogsInDataManipulation;
-    private boolean mSchemasInDataManipulation;
-    private boolean mCatalogsInProcedureCalls;
-    private boolean mSchemasInProcedureCalls;
-    private boolean mCatalogsInPrivilegeDefinitions;
-    private boolean mSchemasInPrivilegeDefinitions;
-
     private boolean mSupportsTransactions = true;
-    private boolean mIsCatalogAtStart = true;
 
-    private String mCatalogSeparator = "";
-    private String mIdentifierQuoteString = "";
+    private NamedComponentSupport mNamedComponentSupport;
 
     // The constructor method:
     public Provider(final XComponentContext ctx,
@@ -145,14 +125,16 @@ public class Provider {
             }
 
             // XXX: keep some DataBaseMetaData data in cache...
-            setDataBaseMetaDataCache(config, metadata);
+            mSupportsTransactions = metadata.supportsTransactions();
+            mNamedComponentSupport = new NamedComponentSupport(metadata, mConfig);
 
             // XXX: We do not keep the connection but the statement
             // XXX: which allows us to find the connection if necessary.
             mStatement = connection.createStatement();
 
-        } catch (SQLException e) {
-            throw e;
+        } catch (java.sql.SQLException e) {
+            System.out.println("jdbcdriver.DriverProvider() ERROR: SQLState: "  + e.getSQLState());
+            throw new SQLException(e.getMessage(), null, e.getSQLState(), 0, null);
         } catch (Throwable e) {
             e.printStackTrace();
             StringWriter sw = new StringWriter();
@@ -164,25 +146,12 @@ public class Provider {
         }
     }
 
-    private void setDataBaseMetaDataCache(final XHierarchicalNameAccess driver,
-                                          final java.sql.DatabaseMetaData metadata)
-            throws java.sql.SQLException {
-        // XXX: We need to cache some metadata setting
-        mCatalogsInTableDefinitions = metadata.supportsCatalogsInTableDefinitions();
-        mSchemasInTableDefinitions = metadata.supportsSchemasInTableDefinitions();
-        mCatalogsInIndexDefinitions = metadata.supportsCatalogsInIndexDefinitions();
-        mSchemasInIndexDefinitions = metadata.supportsSchemasInIndexDefinitions();
-        mCatalogsInDataManipulation = metadata.supportsCatalogsInDataManipulation();
-        mSchemasInDataManipulation = metadata.supportsSchemasInDataManipulation();
-        mCatalogsInProcedureCalls = metadata.supportsCatalogsInProcedureCalls();
-        mSchemasInProcedureCalls = metadata.supportsSchemasInProcedureCalls();
-        mCatalogsInPrivilegeDefinitions = metadata.supportsCatalogsInPrivilegeDefinitions();
-        mSchemasInPrivilegeDefinitions = metadata.supportsSchemasInPrivilegeDefinitions();
-        mSupportsTransactions = metadata.supportsTransactions() &&
-                                getDriverBooleanProperty(driver, "SupportTransaction", true);
-        mIsCatalogAtStart = metadata.isCatalogAtStart();
-        mCatalogSeparator = metadata.getCatalogSeparator();
-        mIdentifierQuoteString = metadata.getIdentifierQuoteString();
+    public NamedSupport getNamedSupport() {
+        return getNamedSupport(ComposeRule.Complete);
+    }
+
+    public NamedSupport getNamedSupport(ComposeRule rule) {
+        return mNamedComponentSupport.getNameSupport(rule);
     }
 
     public ConnectionLog getLogger() {
@@ -193,36 +162,8 @@ public class Provider {
         return mInfos;
     }
 
-    public String enquoteLiteral(final String literal)
-        throws java.sql.SQLException {
-        return getStatement().enquoteLiteral(literal);
-    }
-
     public boolean isCaseSensitive() {
-        return true;
-    }
-
-    public boolean isResultSetUpdatable(final java.sql.ResultSet result)
-        throws java.sql.SQLException {
-        return result.getConcurrency() == ResultSet.CONCUR_UPDATABLE;
-    }
-
-    public String enquoteIdentifier(String identifier) {
-        return enquoteIdentifier(identifier, true);
-    }
-
-    public String enquoteIdentifier(String identifier,
-                                    final boolean always) {
-        // XXX: enquoteIdentifier don't support blank string (ie: catalog or schema name can be empty)
-        // XXX: mySQL don't support Statement.enquoteIdentifier()
-        // XXX: It seems that double quotes are used instead of backticks
-        //if (always && !identifier.isBlank()) {
-        //    identifier = getStatement().enquoteIdentifier(identifier, always);
-        //}
-        if (always) {
-            identifier = mConfig.enquoteIdentifier(identifier);
-        }
-        return identifier;
+        return mNamedComponentSupport.isCaseSensitive();
     }
 
     public ConfigSQL getConfigSQL() {
@@ -262,94 +203,9 @@ public class Provider {
         return accept;
     }
 
-    public boolean supportWarningsSupplier() {
-        return mWarnings;
-    }
-
-    public boolean isInsertVisible(final ResultSet result)
-        throws java.sql.SQLException {
-        return isResultSetUpdatable(result) && isInsertVisible(result.getType());
-    }
-
-    private boolean isInsertVisible(final int rstype)
-        throws java.sql.SQLException {
-        boolean visible = false;
-        if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && mInsertVisibleInsensitive != null) {
-            visible = mInsertVisibleInsensitive;
-        } else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && mInsertVisibleSensitive != null) {
-            visible = mInsertVisibleSensitive;
-        } else {
-            visible = getConnection().getMetaData().ownInsertsAreVisible(rstype);
-        }
-        return visible;
-    }
-
-    public boolean isUpdateVisible(final ResultSet result)
-        throws java.sql.SQLException {
-        return isResultSetUpdatable(result) && isUpdateVisible(result.getType());
-    }
-
-    private boolean isUpdateVisible(final int rstype)
-        throws java.sql.SQLException {
-        boolean visible = false;
-        if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && mUpdateVisibleInsensitive != null) {
-            visible = mUpdateVisibleInsensitive;
-        } else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && mUpdateVisibleSensitive != null) {
-            visible = mUpdateVisibleSensitive;
-        } else {
-            visible = getConnection().getMetaData().ownUpdatesAreVisible(rstype);
-        }
-        return visible;
-    }
-
-    public boolean isDeleteVisible(final ResultSet result)
-        throws java.sql.SQLException {
-        return isResultSetUpdatable(result) && isDeleteVisible(result.getType());
-    }
-
-    // FIXME: We only consider 2 cases here:
-    // FIXME: - Deletions are visible for ResultSet that actually delete rows.
-    // FIXME: - Deletions are not visible for ResultSet that do not actually delete rows
-    // FIXME:   (ie: replaced with an empty or invalid row or deletion is not visible)
-    private boolean isDeleteVisible(final int rstype)
-        throws java.sql.SQLException {
-        boolean visible = false;
-        if (rstype == ResultSet.TYPE_SCROLL_INSENSITIVE && mDeleteVisibleInsensitive != null) {
-            visible = mDeleteVisibleInsensitive;
-        } else if (rstype == ResultSet.TYPE_SCROLL_SENSITIVE && mDeleteVisibleSensitive != null) {
-            visible = mDeleteVisibleSensitive;
-        } else {
-            visible = getConnection().getMetaData().ownDeletesAreVisible(rstype);
-            if (visible) {
-                visible = !getConnection().getMetaData().deletesAreDetected(rstype);
-            }
-        }
-        return visible;
-    }
-
-    public void setHoldability(final int holdability) {
-        try {
-            getConnection().setHoldability(holdability);
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     // DatabaseMetadata cache data
     public boolean supportsTransactions() {
         return mSupportsTransactions;
-    }
-
-    public boolean isCatalogAtStart() {
-        return mIsCatalogAtStart;
-    }
-
-    public String getCatalogSeparator() {
-        return mCatalogSeparator;
-    }
-
-    public String getIdentifierQuoteString() {
-        return mIdentifierQuoteString;
     }
 
     public int getGeneratedKeysOption() {
@@ -425,41 +281,6 @@ public class Provider {
         return value;
     }
 
-    public boolean supportsCatalogsInTableDefinitions() {
-        return mCatalogsInTableDefinitions;
-    }
-    public boolean supportsSchemasInTableDefinitions() {
-        return mSchemasInTableDefinitions;
-    }
-
-    public boolean supportsCatalogsInIndexDefinitions() {
-        return mCatalogsInIndexDefinitions;
-    }
-    public boolean supportsSchemasInIndexDefinitions() {
-        return mSchemasInIndexDefinitions;
-    }
-
-    public boolean supportsCatalogsInDataManipulation() {
-        return mCatalogsInDataManipulation;
-    }
-    public boolean supportsSchemasInDataManipulation() {
-        return mSchemasInDataManipulation;
-    }
-
-    public boolean supportsCatalogsInProcedureCalls() {
-        return mCatalogsInProcedureCalls;
-    }
-    public boolean supportsSchemasInProcedureCalls() {
-        return mSchemasInProcedureCalls;
-    }
-
-    public boolean supportsCatalogsInPrivilegeDefinitions() {
-        return mCatalogsInPrivilegeDefinitions;
-    }
-    public boolean supportsSchemasInPrivilegeDefinitions() {
-        return mSchemasInPrivilegeDefinitions;
-    }
-
     public Object[] getDriverProperties(final XHierarchicalNameAccess driver,
                                         final String name) {
         return getDriverProperties(driver, name , null);
@@ -471,9 +292,4 @@ public class Provider {
         return (Object[]) PropertiesHelper.getConfigMetaData(driver, mSubProtocol, name , values);
     }
 
-    private Boolean getDriverBooleanProperty(final XHierarchicalNameAccess driver,
-                                             final String name,
-                                             final Boolean dflt) {
-        return PropertiesHelper.getConfigBooleanProperty(driver, mSubProtocol, name , dflt);
-    }
 }

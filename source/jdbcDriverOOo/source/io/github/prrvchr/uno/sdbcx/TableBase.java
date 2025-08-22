@@ -36,8 +36,10 @@ import com.sun.star.sdbcx.XRename;
 import com.sun.star.uno.Any;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.DBTools;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
@@ -82,7 +84,7 @@ public abstract class TableBase
     public abstract void rename(String name) throws SQLException, ElementExistException;
 
     // Here we execute the SQL command allowing you to move and/or rename a table or view
-    protected boolean rename(NamedComponents component,
+    protected boolean rename(NamedComponent component,
                              String oldname,
                              String newname,
                              boolean isview,
@@ -109,7 +111,7 @@ public abstract class TableBase
         return renameTableOrView(component, oldname, newname, isview, rule, moved, renamed);
     }
 
-    private boolean renameTableOrView(NamedComponents component,
+    private boolean renameTableOrView(NamedComponent component,
                                       String oldname,
                                       String newname,
                                       boolean isview,
@@ -126,18 +128,19 @@ public abstract class TableBase
         List<String> queries = new ArrayList<>();
 
         try {
+            NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
             // FIXME: We have 2 commands for moving and renaming and we need to find the right order
             // FIXME: to execute queries. Change first the catalog / schema (ie: moved) and after
             // FIXME: the table name (ie: renamed) or the reverse if possible...
             if (fullchange) {
                 // FIXME: try to move first
-                String name = DBTools.buildName(mConnection.getProvider(), component.getCatalogName(),
-                                                component.getSchemaName(), getName(), rule, false);
+                String name = ComponentHelper.buildName(support, component.getCatalogName(),
+                                                        component.getSchemaName(), getName(), false);
                 reversed = mConnection.getTablesInternal().hasByName(name);
                 if (reversed) {
                     // FIXME: try to rename first
-                    fname = DBTools.buildName(mConnection.getProvider(), mCatalogName,
-                                              mSchemaName, component.getTableName(), rule, false);
+                    fname = ComponentHelper.buildName(support, mCatalogName,
+                                                      mSchemaName, component.getTableName(), false);
                 }
             }
 
@@ -149,11 +152,8 @@ public abstract class TableBase
                 throw new SQLException(msg, this, StandardSQLState.SQL_TABLE_OR_VIEW_EXISTS.text(), 0, Any.VOID);
             }
 
-            Map<String, Object> arguments = ParameterDDL.getRenameTable(mConnection.getProvider(),
-                                                                        component,
-                                                                        getNamedComponents(),
-                                                                        oldname, reversed,
-                                                                        rule, isCaseSensitive());
+            Map<String, Object> arguments = ParameterDDL.getRenameTable(support, component, getNamedComponents(),
+                                                                        oldname, reversed, isCaseSensitive());
             queries = mConnection.getProvider().getConfigDDL().getRenameTableCommands(arguments, reversed);
             changed = renameTableOrView(queries, newname, isview, moved, renamed, multiquery, fullchange);
 

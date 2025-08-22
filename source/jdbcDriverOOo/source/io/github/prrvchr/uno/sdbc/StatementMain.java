@@ -38,13 +38,12 @@ import com.sun.star.sdbc.XGeneratedResultSet;
 import com.sun.star.sdbc.XMultipleResults;
 import com.sun.star.sdbc.XResultSet;
 import com.sun.star.sdbc.XWarningsSupplier;
-import com.sun.star.uno.Any;
 import com.sun.star.uno.Type;
 import com.sun.star.util.XCancellable;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -360,19 +359,13 @@ public abstract class StatementMain
     @Override
     public synchronized void clearWarnings() throws SQLException {
         // XXX: clearWargnings() should not prevent the Statement from lazy loading
-        if (mConnection.getProvider().supportWarningsSupplier()) {
-            WarningsSupplier.clearWarnings(mStatement, this);
-        }
+        WarningsSupplier.clearWarnings(mStatement, this);
     }
 
     @Override
     public synchronized Object getWarnings() throws SQLException {
         // XXX: getWarnings() should not prevent the Statement from lazy loading
-        Object warning = Any.VOID;
-        if (mConnection.getProvider().supportWarningsSupplier()) {
-            warning =  WarningsSupplier.getWarnings(mStatement, this);
-        }
-        return warning;
+        return WarningsSupplier.getWarnings(mStatement, this);
     }
 
 
@@ -419,7 +412,7 @@ public abstract class StatementMain
         try {
             checkDisposed();
             checkSqlCommand();
-            java.sql.ResultSet result = getGeneratedValues(mConnection.getProvider(), mStatement);
+            java.sql.ResultSet result = getGeneratedValues(mConnection.getProvider().getConfigSQL(), mStatement);
             mLogger.logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_RESULTSET);
             ResultSet resultset = new ResultSet(getConnectionInternal(), result);
             String services = String.join(", ", resultset.getSupportedServiceNames());
@@ -470,7 +463,7 @@ public abstract class StatementMain
         return resultset;
     } */
 
-    protected abstract java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
+    protected abstract java.sql.ResultSet getGeneratedValues(ConfigSQL config, java.sql.Statement statement)
         throws SQLException;
 
     private String getColumnNames(java.sql.ResultSet result,

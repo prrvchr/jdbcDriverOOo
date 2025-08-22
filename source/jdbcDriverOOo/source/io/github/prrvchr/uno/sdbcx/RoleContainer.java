@@ -43,7 +43,6 @@ import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
 import io.github.prrvchr.uno.helper.SharedResources;
 import io.github.prrvchr.uno.sdb.Role;
 
@@ -106,9 +105,15 @@ public abstract class RoleContainer<T extends Role>
             throw new IndexOutOfBoundsException();
         }
         synchronized (mOwner) {
-            String name = mBimap.getName(index);
-            if (revokeRole(name)) {
-                removeContainerElement(index, false);
+            System.out.println("sdbcx.Container.dropByIndex() 1 index: " + index);
+            try {
+                String name = mBimap.getName(index);
+                if (revokeRole(name)) {
+                    removeContainerElement(index, false);
+                }
+                System.out.println("sdbcx.Container.dropByIndex() 2 name: " + name);
+            } catch (java.sql.SQLException e) {
+                throw DBTools.getSQLException(e, this);
             }
         }
     }
@@ -121,9 +126,15 @@ public abstract class RoleContainer<T extends Role>
             throw new NoSuchElementException();
         }
         synchronized (mOwner) {
-            if (revokeRole(name)) {
-                int index = mBimap.getIndex(name);
-                removeContainerElement(index, false);
+            System.out.println("sdbcx.Container.dropByName() 1 name: " + name);
+            try {
+                if (revokeRole(name)) {
+                    int index = mBimap.getIndex(name);
+                    removeContainerElement(index, false);
+                }
+                System.out.println("sdbcx.Container.dropByName() 2");
+            } catch (java.sql.SQLException e) {
+                throw DBTools.getSQLException(e, this);
             }
         }
     }
@@ -136,16 +147,20 @@ public abstract class RoleContainer<T extends Role>
         if (hasByName(name)) {
             throw new ElementExistException();
         }
-        if (grantRole(name)) {
-            T element = mBimap.addElement(name, null);
-            // XXX: notify our container listeners
-            broadcastElementInserted(element, name);
+        try {
+            if (grantRole(name)) {
+                T element = mBimap.addElement(name, null);
+                // XXX: notify our container listeners
+                broadcastElementInserted(element, name);
+            }
+        } catch (java.sql.SQLException e) {
+            throw DBTools.getSQLException(e, this);
         }
     }
 
     // Protected methods
     protected boolean grantRole(String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         boolean granted = false;
         if (mIsrole) {
             int res1 = Resources.STR_LOG_GROUPROLES_GRANT_ROLE_QUERY;
@@ -160,25 +175,27 @@ public abstract class RoleContainer<T extends Role>
     }
 
     private boolean grantRole(String role1, String role2, int res1, int res2)
-        throws SQLException {
+        throws java.sql.SQLException {
         String query = null;
+        System.out.println("RoleContainer.grantRole() 1 Role1: " + role1 + " - Role2: " + role2);
         try {
-            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(),
+            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider().getNamedSupport(),
                                                                                role1, role2,
                                                                                mIsrole, mRole,
                                                                                isCaseSensitive());
             query = getProvider().getConfigDCL().getGrantRoleCommand(Arguments);
+            System.out.println("RoleContainer.grantRole() 2 query: " + query);
             getLogger().logprb(LogLevel.INFO, res1, role1, role2, query);
             return DBTools.executeSQLQuery(getProvider(), query);
         } catch (java.sql.SQLException e) {
             String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, role1, role2, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            getLogger().logp(LogLevel.SEVERE, msg, e);
+            throw new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
     }
 
     private boolean revokeRole(String name)
-        throws SQLException {
+        throws java.sql.SQLException {
         boolean revoked = false;
         if (mIsrole) {
             int res1 = Resources.STR_LOG_GROUPROLES_REVOKE_ROLE_QUERY;
@@ -193,20 +210,22 @@ public abstract class RoleContainer<T extends Role>
     }
 
     private boolean revokeRole(String role1, String role2, int res1, int res2)
-        throws SQLException {
+        throws java.sql.SQLException {
         String query = null;
+        System.out.println("RoleContainer.revokeRole() 1 Role1: " + role1 + " - Role2: " + role2);
         try {
-            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider(),
+            Map<String, Object> Arguments = ParameterDCL.getAlterRoleArguments(getProvider().getNamedSupport(),
                                                                                role1, role2,
                                                                                mIsrole, mRole,
                                                                                isCaseSensitive());
             query = getProvider().getConfigDCL().getRevokeRoleCommand(Arguments);
+            System.out.println("RoleContainer.revokeRole() 2 query: " + query);
             getLogger().logprb(LogLevel.INFO, res1, role1, role2, query);
             return DBTools.executeSQLQuery(getProvider(), query);
         } catch (java.sql.SQLException e) {
             String msg = SharedResources.getInstance().getResourceWithSubstitution(res2, role1, role2, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw DBTools.getSQLException(msg, this, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            getLogger().logp(LogLevel.SEVERE, msg, e);
+            throw new java.sql.SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
     }
 

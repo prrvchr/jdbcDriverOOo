@@ -40,11 +40,13 @@ import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.ConstraintHelper;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
 import io.github.prrvchr.uno.driver.helper.KeyHelper.ForeignKeyProperties;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -149,7 +151,7 @@ public final class KeyContainer
         Key key;
         Provider provider = getConnection().getProvider();
         java.sql.DatabaseMetaData metadata = provider.getConnection().getMetaData();
-        NamedComponents component = mTable.getNamedComponents();
+        NamedComponent component = mTable.getNamedComponents();
         String[] columns = KeyHelper.readPrimaryKeyColumns(metadata, component, keyname);
         if (columns != null) {
             key = new Key(mTable, null, isCaseSensitive(), keyname, KeyType.PRIMARY, 0, 0, columns);
@@ -161,14 +163,14 @@ public final class KeyContainer
 
     private Key readForeignKey(Provider provider,
                                java.sql.DatabaseMetaData metadata,
-                               NamedComponents component,
+                               NamedComponent component,
                                String keyname,
                                ComposeRule rule)
         throws java.sql.SQLException {
         Key key = null;
         ForeignKeyProperties properties = KeyHelper.getForeignKeyProperties(metadata, component, keyname);
         if (properties != null) {
-            String tablename = DBTools.buildName(provider, properties.mTable, rule);
+            String tablename = ComponentHelper.buildName(provider.getNamedSupport(rule), properties.mTable);
             TableSuper refTable = getConnection().getTablesInternal().getElementByName(tablename);
             key = new Key(mTable, refTable, isCaseSensitive(), keyname, KeyType.FOREIGN,
                           properties.mUpdate, properties.mDelete, properties.getColumns());
@@ -267,9 +269,10 @@ public final class KeyContainer
         ComposeRule rule = ComposeRule.InIndexDefinitions;
         String name = mTable.composeTableName(rule);
         try {
-            NamedComponents table = mTable.getNamedComponents();
-            query = ConstraintHelper.getCreateConstraintQuery(provider, descriptor, table,
-                                                              key, rule, isCaseSensitive());
+            NamedComponent table = mTable.getNamedComponents();
+            query = ConstraintHelper.getCreateConstraintQuery(provider.getConfigDDL(),
+                                                              provider.getNamedSupport(rule),
+                                                              descriptor, table, key, isCaseSensitive());
             System.out.println("sdbcx.KeyContainer.createKey() Query: " + query);
             getLogger().logprb(LogLevel.INFO, res1, key, name, query);
             return DBTools.executeSQLQuery(provider, query);
@@ -316,7 +319,9 @@ public final class KeyContainer
                     }
                 }
             }
-            String[] columns = ConstraintHelper.getKeyColumns(provider, descriptor, PropertyIds.NAME, false);
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            String[] columns = ConstraintHelper.getKeyColumns(provider.getNamedSupport(rule),
+                                                              descriptor, PropertyIds.NAME, false);
             return new Key(mTable, refTable, isCaseSensitive(), newname, type, update, delete, columns);
         } catch (java.sql.SQLException | UnknownPropertyException | PropertyVetoException | WrappedTargetException e) {
             throw new java.sql.SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
@@ -327,7 +332,7 @@ public final class KeyContainer
                                                int keytype)
         throws java.sql.SQLException {
         java.sql.ResultSet result = null;
-        NamedComponents table = mTable.getNamedComponents();
+        NamedComponent table = mTable.getNamedComponents();
         if (keytype == KeyType.FOREIGN) {
             result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable());
         } else {
@@ -361,14 +366,15 @@ public final class KeyContainer
             throw new java.sql.SQLException(msg, StandardSQLState.SQL_FEATURE_NOT_IMPLEMENTED.text());
         }
         ComposeRule rule = ComposeRule.InTableDefinitions;
+        NamedSupport support = provider.getNamedSupport(rule);
         try {
-            table = DBTools.composeTableName(provider, mTable, rule, isCaseSensitive());
-            String contraint = provider.enquoteIdentifier(name, isCaseSensitive());
+            table = ComponentHelper.composeTableName(support, mTable, isCaseSensitive());
+            String contraint = support.enquoteIdentifier(name, isCaseSensitive());
             query = provider.getConfigDDL().getDropConstraintCommand(ParameterDDL.getDropConstraint(table, contraint),
                                                                     type);
             System.out.println("sdbcx.KeyContainer.removeDataBaseElement() Query: " + query);
             int resource = getRemoveKeyResource(type, false);
-            table = DBTools.composeTableName(provider, mTable, rule, false);
+            table = ComponentHelper.composeTableName(support, mTable, false);
             getLogger().logprb(LogLevel.INFO, resource, name, table, query);
             if (!DBTools.executeSQLQuery(provider, query)) {
                 System.out.println("sdbcx.KeyContainer.removeDataBaseElement() ERROR");

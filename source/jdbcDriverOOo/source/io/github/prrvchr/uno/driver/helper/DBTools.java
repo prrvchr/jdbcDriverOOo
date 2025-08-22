@@ -85,8 +85,10 @@ import com.sun.star.util.DateWithTimezone;
 import com.sun.star.util.Time;
 import com.sun.star.util.TimeWithTimezone;
 
+import io.github.prrvchr.uno.driver.config.ConfigDDL;
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
-import io.github.prrvchr.uno.driver.provider.ComposeRule;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
@@ -111,674 +113,12 @@ public class DBTools {
         };
     }
 
-    public static class NameComponentSupport {
-        boolean mUseCatalogs;
-        boolean mUseSchemas;
-        boolean mCatalogAtStart;
-        String mCatalogSeparator;
-        String mIdentifierQuote;
-
-        NameComponentSupport(boolean usecatalog,
-                             boolean useschema,
-                             boolean atstart,
-                             String separator,
-                             String quote) {
-            mUseCatalogs = usecatalog;
-            mUseSchemas = useschema;
-            mCatalogAtStart = atstart;
-            mCatalogSeparator = separator;
-            mIdentifierQuote = quote;
-        }
-    }
-
-    public static class NamedComponents {
-        private String mCatalog;
-        private String mSchema;
-        private String mTable;
-
-        public NamedComponents(String catalog, String schema, String table) {
-            mCatalog = catalog;
-            mSchema = schema;
-            mTable = table;
-        }
-
-        public NamedComponents() {
-        }
-
-        // Java DataBaseMetadata specific getter
-        public String getCatalog() {
-            String catalog = null;
-            if (mCatalog != null && !mCatalog.isBlank()) {
-                catalog = mCatalog;
-            }
-            return catalog;
-        }
-
-        // UNO getter (String can not be null)
-        public String getCatalogName() {
-            String catalog = "";
-            if (mCatalog != null) {
-                catalog = mCatalog;
-            }
-            return catalog;
-        }
-
-        public void setCatalog(String catalog) {
-            mCatalog = catalog;
-        }
-
-        // Java DataBaseMetadata specific getter
-        public String getSchema() {
-            String schema = null;
-            if (mSchema != null && !mSchema.isBlank()) {
-                schema = mSchema;
-            }
-            return schema;
-        }
-
-        // UNO getter (String can not be null)
-        public String getSchemaName() {
-            String schema = "";
-            if (mSchema != null) {
-                schema = mSchema;
-            }
-            return schema;
-        }
-
-        public void setSchema(String schema) {
-            mSchema = schema;
-        }
-
-        // Java DataBaseMetadata specific getter
-        public String getTable() {
-            return mTable;
-        }
-
-        public String getTableName() {
-            return mTable;
-        }
-
-        public void setTable(String table) {
-            mTable = table;
-        }
-    }
-
-    public static NamedComponents getNamedComponents(ResultSetMetaData metadata, int index)
-        throws java.sql.SQLException {
-        return new NamedComponents(metadata.getCatalogName(index), metadata.getSchemaName(index),
-                                   metadata.getTableName(index));
-    }
-
-    public static NameComponentSupport getNameComponentSupport(Provider provider,
-                                                               ComposeRule rule) {
-        NameComponentSupport support;
-        switch (rule) {
-            case InTableDefinitions:
-                support = new NameComponentSupport(provider.supportsCatalogsInTableDefinitions(),
-                                                   provider.supportsSchemasInTableDefinitions(),
-                                                   provider.isCatalogAtStart(),
-                                                   provider.getCatalogSeparator(),
-                                                   provider.getIdentifierQuoteString());
-                break;
-            case InIndexDefinitions:
-                support = new NameComponentSupport(provider.supportsCatalogsInIndexDefinitions(),
-                                                   provider.supportsSchemasInIndexDefinitions(),
-                                                   provider.isCatalogAtStart(),
-                                                   provider.getCatalogSeparator(),
-                                                   provider.getIdentifierQuoteString());
-                break;
-            case InDataManipulation:
-                support = new NameComponentSupport(provider.supportsCatalogsInDataManipulation(),
-                                                   provider.supportsSchemasInDataManipulation(),
-                                                   provider.isCatalogAtStart(),
-                                                   provider.getCatalogSeparator(),
-                                                   provider.getIdentifierQuoteString());
-                break;
-            case InProcedureCalls:
-                support = new NameComponentSupport(provider.supportsCatalogsInProcedureCalls(),
-                                                   provider.supportsSchemasInProcedureCalls(),
-                                                   provider.isCatalogAtStart(),
-                                                   provider.getCatalogSeparator(),
-                                                   provider.getIdentifierQuoteString());
-                break;
-            case InPrivilegeDefinitions:
-                support = new NameComponentSupport(provider.supportsCatalogsInPrivilegeDefinitions(),
-                                                   provider.supportsSchemasInPrivilegeDefinitions(),
-                                                   provider.isCatalogAtStart(),
-                                                   provider.getCatalogSeparator(),
-                                                   provider.getIdentifierQuoteString());
-                break;
-            case Complete:
-                support = new NameComponentSupport(true,
-                                                   true,
-                                                   provider.isCatalogAtStart(),
-                                                   provider.getCatalogSeparator(),
-                                                   provider.getIdentifierQuoteString());
-                break;
-            default:
-                throw new UnsupportedOperationException("Invalid/unknown enum value");
-        }
-        return support;
-    }
-
-    /** compose a complete column name from it's up to two parts, regarding to the database meta data composing rules.
-     *
-     * @param provider
-     *    The driver provider.
-     * @param table
-     *    The table name.
-     * @param column
-     *    The column name.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *
-     * @return the composed column name (ie: with the catalog, schema, table and column name)
-     * 
-     * @throws java.sql.SQLException, SQLException
-     */
-
-    public static String composeColumnName(Provider provider,
-                                           String table,
-                                           String column,
-                                           boolean sensitive)
-        throws java.sql.SQLException {
-        StringBuilder buffer = new StringBuilder(table);
-        buffer.append('.');
-        buffer.append(provider.enquoteIdentifier(column, sensitive));
-        return buffer.toString();
-    }
-
-
-    /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules.
-     *
-     * @param provider
-     *    The driver provider.
-     * @param catalog
-     *    The table catalog name.
-     * @param schema
-     *    The table schema name.
-     * @param table
-     *    The table name.
-     * @param sensitive
-     *    Is the name case sensitive.
-     * @param rule
-     *    The naming rule.
-     *
-     * @return the composed table name (ie: with the catalog, schema and table name)
-     *
-     * @throws java.sql.SQLException 
-     */
-    public static String composeTableName(Provider provider,
-                                          String catalog,
-                                          String schema,
-                                          String table,
-                                          boolean sensitive,
-                                          ComposeRule rule)
-        throws java.sql.SQLException {
-        NameComponentSupport support = getNameComponentSupport(provider, rule);
-        return composeTableName(provider, catalog, schema, table, support, sensitive);
-    }
-
-
-    /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules.
-     *
-     * @param provider
-     *    The driver provider.
-     * @param component
-     *    The named component.
-     * @param sensitive
-     *    Is the name case sensitive.
-     * @param rule
-     *    The naming rule.
-     *
-     * @return the composed table name (ie: with the catalog, schema and table name)
-     *
-     * @throws java.sql.SQLException 
-     */
-    public static String composeTableName(Provider provider,
-                                          NamedComponents component,
-                                          ComposeRule rule,
-                                          boolean sensitive)
-        throws java.sql.SQLException {
-        NameComponentSupport support = getNameComponentSupport(provider, rule);
-        return composeTableName(provider, component, support, sensitive);
-    }
-
-    /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules.
-     * @param provider
-     *    The driver provider.
-     * @param component
-     *    The component.
-     * @param support
-     *    The component.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *
-     * @return the composed table name (ie: with the catalog, schema and table name)
-     *
-     * @throws java.sql.SQLException 
-     */
-    public static String composeTableName(Provider provider,
-                                          NamedComponents component,
-                                          NameComponentSupport support,
-                                          boolean sensitive)
-        throws java.sql.SQLException {
-        return composeTableName(provider, component.getCatalogName(), component.getSchemaName(),
-                                component.getTable(), support, sensitive);
-    }
-
-    /** compose a complete table name from it's up to three parts, regarding to the database meta data composing rules.
-     * @param provider
-     *    The driver provider.
-     * @param catalog
-     *    The table catalog name.
-     * @param schema
-     *    The table schema name.
-     * @param table
-     *    The table name.
-     * @param support
-     *    The component.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *
-     * @return the composed table name (ie: with the catalog, schema and table name)
-     *
-     * @throws java.sql.SQLException 
-     */
-    public static String composeTableName(Provider provider,
-                                          String catalog,
-                                          String schema,
-                                          String table,
-                                          NameComponentSupport support,
-                                          boolean sensitive)
-        throws java.sql.SQLException {
-        StringBuilder buffer = new StringBuilder();
-        String catalogSeparator = "";
-        boolean catalogAtStart = true;
-        if (!catalog.isEmpty() && support.mUseCatalogs) {
-            catalogSeparator = support.mCatalogSeparator;
-            catalogAtStart = support.mCatalogAtStart;
-            if (isCatalogValid(catalogAtStart, catalogSeparator)) {
-                buffer.append(provider.enquoteIdentifier(catalog, sensitive));
-                buffer.append(catalogSeparator);
-            }
-        }
-        if (!schema.isEmpty() && support.mUseSchemas) {
-            buffer.append(provider.enquoteIdentifier(schema, sensitive));
-            buffer.append('.');
-        }
-        buffer.append(provider.enquoteIdentifier(table, sensitive));
-        if (!catalog.isEmpty() && support.mUseCatalogs && isCatalogValid(!catalogAtStart, catalogSeparator)) {
-            buffer.append(catalogSeparator);
-            buffer.append(provider.enquoteIdentifier(catalog, sensitive));
-        }
-        System.out.println("DataBaseTools.composeTableName(): Name: " + buffer.toString());
-        return buffer.toString();
-    }
-
-    public static String buildName(Provider provider,
-                                   NamedComponents component,
-                                   ComposeRule rule) {
-        return buildName(provider, component, rule, false);
-    }
-
-    public static String buildName(Provider provider,
-                                   NamedComponents component,
-                                   ComposeRule rule,
-                                   boolean sensitive) {
-        return buildName(provider, component.getCatalogName(),
-                         component.getSchemaName(), component.getTableName(), rule, sensitive);
-    }
-
-    public static String buildName(Provider provider,
-                                   String catalog,
-                                   String schema,
-                                   String table,
-                                   ComposeRule rule) {
-        return buildName(provider, catalog, schema, table, rule, false);
-    }
-
-    public static String buildName(Provider provider,
-                                   String catalog,
-                                   String schema,
-                                   String table,
-                                   ComposeRule rule,
-                                   boolean sensitive) {
-        NameComponentSupport support = getNameComponentSupport(provider, rule);
-        return doComposeTableName(provider, support, catalog, schema, table, sensitive);
-    }
-
-    public static String buildName(Provider provider,
-                                   NamedComponents component,
-                                   NameComponentSupport support,
-                                   boolean sensitive) {
-        return doComposeTableName(provider, support, component, sensitive);
-    }
-
-    public static String composeTableName(Provider provider,
-                                          XPropertySet table,
-                                          ComposeRule rule,
-                                          boolean catalog,
-                                          boolean schema,
-                                          boolean sensitive) {
-        NameComponentSupport support = getNameComponentSupport(provider, rule);
-        NamedComponents component = getTableNamedComponents(provider, table);
-        String catalogName;
-        if (catalog) {
-            catalogName = component.getCatalogName();
-        } else {
-            catalogName = "";
-        }
-        String schemaName;
-        if (schema) {
-            schemaName = component.getSchemaName();
-        } else {
-            schemaName = "";
-        }
-        return doComposeTableName(provider, support, catalogName, schemaName,
-                                  component.getTableName(), sensitive);
-    }
-
-    public static String composeTableName(Provider provider,
-                                          XPropertySet table,
-                                          ComposeRule rule,
-                                          boolean sensitive) {
-        NamedComponents component = getTableNamedComponents(provider, table);
-        NameComponentSupport support = getNameComponentSupport(provider, rule);
-        String catalogName;
-        if (support.mUseCatalogs) {
-            catalogName = component.getCatalogName();
-        } else {
-            catalogName = "";
-        }
-        String schemaName;
-        if (support.mUseSchemas) {
-            schemaName = component.getSchemaName();
-        } else {
-            schemaName = "";
-        }
-        return doComposeTableName(provider, support, catalogName, schemaName,
-                                  component.getTableName(), sensitive);
-    }
-
-    public static String composeTableName(Provider provider,
-                                          XPropertySet table,
-                                          NameComponentSupport support,
-                                          boolean sensitive) {
-        NamedComponents component = getTableNamedComponents(provider, table);
-        String catalogName;
-        if (support.mUseCatalogs) {
-            catalogName = component.getCatalogName();
-        } else {
-            catalogName = "";
-        }
-        String schemaName;
-        if (support.mUseSchemas) {
-            schemaName = component.getSchemaName();
-        } else {
-            schemaName = "";
-        }
-        return doComposeTableName(provider, support, catalogName, schemaName,
-                                  component.getTableName(), sensitive);
-    }
-
-    public static String doComposeTableName(Provider provider,
-                                            NameComponentSupport support,
-                                            NamedComponents component,
-                                            boolean sensitive) {
-        return doComposeTableName(provider, support, component.getCatalog(),
-                                  component.getSchema(), component.getTable(), sensitive);
-    }
-
-    public static String doComposeTableName(Provider provider,
-                                            NameComponentSupport support,
-                                            String catalog,
-                                            String schema,
-                                            String table,
-                                            boolean sensitive) {
-        StringBuilder buffer = new StringBuilder();
-
-        String catalogSeparator = "";
-        boolean catalogAtStart = true;
-        if (!catalog.isEmpty() && support.mUseCatalogs) {
-            catalogSeparator = support.mCatalogSeparator;
-            catalogAtStart = support.mCatalogAtStart;
-            
-            if (isCatalogValid(catalogAtStart, catalogSeparator)) {
-                buffer.append(provider.enquoteIdentifier(catalog, sensitive));
-                buffer.append(catalogSeparator);
-            }
-        }
-
-        if (!schema.isEmpty() && support.mUseSchemas) {
-            buffer.append(provider.enquoteIdentifier(schema, sensitive));
-            buffer.append(".");
-        }
-
-        buffer.append(provider.enquoteIdentifier(table, sensitive));
-
-        if (!catalog.isEmpty() && isCatalogValid(!catalogAtStart, catalogSeparator) && support.mUseCatalogs) {
-            buffer.append(catalogSeparator);
-            buffer.append(provider.enquoteIdentifier(catalog, sensitive));
-        }
-        return buffer.toString();
-    }
-
-    /** composes a table name for usage in a SELECT statement.
-     *
-     * This includes quoting of the table as indicated by the connection's meta data, plus respecting
-     * the settings "UseCatalogInSelect" and "UseSchemaInSelect", which might be present
-     * in the data source which the connection belongs to.
-     *
-     * @param provider
-     *    The driver provider.
-     * @param catalog
-     *    The table catalog name.
-     * @param schema
-     *    The table schema name.
-     * @param table
-     *    The table name.
-     * @param sensitive
-     *    Is the name case sensitive.
-     *
-     * @return the composed table name (ie: with the catalog, schema and table name)
-     * @throws java.sql.SQLException 
-     */
-    public static String composeTableNameForSelect(Provider provider,
-                                                   String catalog,
-                                                   String schema,
-                                                   String table,
-                                                   boolean sensitive)
-        throws java.sql.SQLException {
-        boolean usecatalog = UnoHelper.getDefaultPropertyValue(provider.getInfos(), "UseCatalogInSelect", true);
-        boolean useschema = UnoHelper.getDefaultPropertyValue(provider.getInfos(), "UseSchemaInSelect", true);
-        String catalogName;
-        if (usecatalog) {
-            catalogName = catalog;
-        } else {
-            catalogName = "";
-        }
-        String schemaName;
-        if (useschema) {
-            schemaName = schema;
-        } else {
-            schemaName = "";
-        }
-        return buildName(provider, catalogName, schemaName, table, ComposeRule.InDataManipulation, sensitive);
-    }
-
-    /** composes a table name for usage in a SELECT statement.
-     *
-     * This includes quoting of the table as indicated by the connection's meta data, plus respecting
-     * the settings "UseCatalogInSelect" and "UseSchemaInSelect", which might be present
-     * in the data source which the connection belongs to.
-     * 
-     * @param provider
-     *    The driver provider.
-     * @param table
-     *    The table as property set.
-     * @param sensitive
-     *    Is the name case sensitive.
-     * @return the composed table name (ie: with the catalog, schema and table name)
-     * @throws java.sql.SQLException 
-     */
-    public static String composeTableNameForSelect(Provider provider,
-                                                   XPropertySet table,
-                                                   boolean sensitive)
-        throws java.sql.SQLException {
-        NamedComponents component = getTableNamedComponents(provider, table);
-        return composeTableNameForSelect(provider, component.getCatalogName(), component.getSchemaName(),
-                                         component.getTableName(), sensitive);
-    }
-
-    public static NamedComponents getTableNamedComponents(Provider provider,
-                                                          XPropertySet table) {
-        NamedComponents component = new NamedComponents();
-        if (hasDescriptorProperty(table, PropertyIds.NAME)) {
-            if (hasDescriptorProperty(table, PropertyIds.CATALOGNAME)) {
-                component.setCatalog(getDescriptorStringValue(table, PropertyIds.CATALOGNAME));
-            }
-            if (hasDescriptorProperty(table, PropertyIds.SCHEMANAME)) {
-                component.setSchema(getDescriptorStringValue(table, PropertyIds.SCHEMANAME));
-            }
-            component.setTable(getDescriptorStringValue(table, PropertyIds.NAME));
-        } else {
-            UnoHelper.ensure(false, "this is not a table object", provider.getLogger());
-        }
-        return component;
-    }
-
-    /** quote the given table name (which may contain a catalog and a schema) according
-     *      to the rules provided by the meta data.
-     *
-     * @param provider
-     *    The driver provider.
-     * @param name
-     *    The full unquoted table name.
-     * @param sensitive
-     *    Is the name case sensitive.
-     * @param rule
-     *    The naming rule.
-     * @return the full quoted table name (ie: with the catalog, schema and table name)
-     */
-    public static String quoteTableName(Provider provider,
-                                        String name,
-                                        ComposeRule rule,
-                                        boolean sensitive)
-        throws java.sql.SQLException {
-        if (sensitive) {
-            NamedComponents nameComponents = qualifiedNameComponents(provider, name, rule);
-            name = composeTableName(provider, nameComponents.getCatalogName(),
-                                    nameComponents.getSchemaName(), nameComponents.getTableName(), true, rule);
-        }
-        return name;
-    }
-
-    /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
-     * @param provider
-     *    The driver provider.
-     * @param name
-     *    The full unquoted table name.
-     * @param rule
-     *    The naming rule.
-     * @return the NameComponents object with the catalog, schema and table
-     */
-    public static NamedComponents qualifiedNameComponents(Provider provider,
-                                                          String name,
-                                                          ComposeRule rule)
-        throws java.sql.SQLException {
-        return qualifiedNameComponents(provider, name, rule, false);
-    }
-
-
-    /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
-     * @param provider
-     *    The driver provider.
-     * @param name
-     *    The full unquoted table name.
-     * @param rule
-     *    The naming rule.
-     * @param unquote
-     *    The quoted rule.
-     * @return the NameComponents object with the catalog, schema and table
-     */
-    public static NamedComponents qualifiedNameComponents(Provider provider,
-                                                          String name,
-                                                          ComposeRule rule,
-                                                          boolean unquote)
-        throws java.sql.SQLException {
-        NameComponentSupport support = getNameComponentSupport(provider, rule);
-        return qualifiedNameComponents(name, support, unquote);
-    }
-
-    /** split a fully qualified table name (including catalog and schema, if applicable) into its component parts.
-     * @param name
-     *    The table name.
-     * @param support
-     *    The component.
-     * @param unquote
-     *    need to unquote the name before.
-     *
-     * @return the NameComponents object with the catalog, schema and table
-     */
-    public static NamedComponents qualifiedNameComponents(String name,
-                                                          NameComponentSupport support,
-                                                          boolean unquote)
-        throws java.sql.SQLException {
-        NamedComponents component = new NamedComponents();
-        String buffer;
-        if (unquote) {
-            buffer = unQuoteTableName(support, name);
-        } else {
-            buffer = name;
-        }
-        // do we have catalogs ?
-        if (support.mUseCatalogs) {
-            if (support.mCatalogAtStart) {
-                // search for the catalog name at the beginning
-                int index = buffer.indexOf(support.mCatalogSeparator);
-                if (-1 != index) {
-                    component.setCatalog(buffer.substring(0, index));
-                    buffer = buffer.substring(index + 1);
-                }
-            } else {
-                // catalog name at end
-                int index = buffer.lastIndexOf(support.mCatalogSeparator);
-                if (-1 != index) {
-                    component.setCatalog(buffer.substring(index + 1));
-                    buffer = buffer.substring(0, index);
-                }
-            }
-        }
-        if (support.mUseSchemas) {
-            int index = buffer.indexOf(".");
-            //UnoHelper.ensure(-1 != index, "QualifiedNameComponents : no schema separator!", provider.getLogger());
-            if (index != -1) {
-                component.setSchema(buffer.substring(0, index));
-                buffer = buffer.substring(index + 1);
-            }
-        }
-        component.setTable(buffer);
-        return component;
-    }
-
-    /** unquote the given table name (which may contain a catalog and a schema).
-     *
-     * @param support
-     *    The component.
-     * @param name
-     *    The table name.
-     * @return the unquoted full table name.
-     */
-    public static String unQuoteTableName(NameComponentSupport support,
-                                          String name) {
-        return name.replace(support.mIdentifierQuote, "");
-    }
-
     /** creates a SQL CREATE VIEW statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DDL configuration.
+     * @param support
+     *    The named component support.
      * @param descriptor
      *    The descriptor of the new view.
      * @param sensitive
@@ -787,37 +127,38 @@ public class DBTools {
      * @return
      *   The CREATE VIEW statement.
      */
-    public static String getCreateViewCommand(Provider provider,
+    public static String getCreateViewCommand(ConfigDDL config,
+                                              NamedSupport support,
                                               XPropertySet descriptor,
                                               boolean sensitive)
         throws java.sql.SQLException {
-        String view = composeTableName(provider, descriptor, ComposeRule.InTableDefinitions, sensitive);
+        String view = ComponentHelper.composeTableName(support, descriptor, sensitive);
         String command = getDescriptorStringValue(descriptor, PropertyIds.COMMAND);
-        return provider.getConfigDDL().getCreateViewCommand(ParameterDDL.getCreateView(view, command));
+        return config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
     }
 
     /** creates a SQL CREATE VIEW statement.
      *
-     * @param provider
-     *    The driver provider.
+     * @param config
+     *    The DDL configuration.
+     * @param support
+     *    The named component support.
      * @param component
      *    The component name.
      * @param command
      *    The SQL command to create view.
-     * @param rule
-     *    The naming rule.
      * @param sensitive
      *    Is the name case sensitive.
      * @return The CREATE VIEW statement.
      */
-    public static String getCreateViewCommand(Provider provider,
-                                              NamedComponents component,
+    public static String getCreateViewCommand(ConfigDDL config,
+                                              NamedSupport support,
+                                              NamedComponent component,
                                               String command,
-                                              ComposeRule rule,
                                               boolean sensitive)
         throws java.sql.SQLException {
-        String view = composeTableName(provider, component, rule, sensitive);
-        return provider.getConfigDDL().getCreateViewCommand(ParameterDDL.getCreateView(view, command));
+        String view = ComponentHelper.composeTableName(support, component, sensitive);
+        return config.getCreateViewCommand(ParameterDDL.getCreateView(view, command));
     }
 
     public static void cloneDescriptorColumns(XPropertySet source,
@@ -1137,31 +478,6 @@ public class DBTools {
         return UnoHelper.getUnoDateTime(timestamp.toLocalDateTime());
     }
 
-    public static String buildName(Provider provider,
-                                   java.sql.ResultSet result,
-                                   ComposeRule rule)
-        throws java.sql.SQLException {
-        String catalog = "";
-        String schema = "";
-        String table = "";
-        final int TABLE_CAT = 1;
-        final int TABLE_SCHEM = 2;
-        final int TABLE_NAME = 3;
-        catalog = result.getString(TABLE_CAT);
-        if (result.wasNull()) {
-            catalog = "";
-        }
-        schema = result.getString(TABLE_SCHEM);
-        if (result.wasNull()) {
-            schema = "";
-        }
-        table = result.getString(TABLE_NAME);
-        if (result.wasNull()) {
-            table = "";
-        }
-        return buildName(provider, catalog, schema, table, rule, false);
-    }
-
     public static boolean useBookmarks(Provider provider) {
         RowIdLifetime lifetime = RowIdLifetime.ROWID_UNSUPPORTED;
         try {
@@ -1475,13 +791,37 @@ public class DBTools {
         return exception;
     }
 
-    public static SQLException getSQLException(java.sql.SQLException e,
+    public static SQLException getSQLException(Throwable e,
                                                XInterface context) {
-        SQLException exception = new SQLException(e.getMessage());
-        exception.Context = context;
-        exception.ErrorCode = e.getErrorCode();
-        exception.SQLState = e.getSQLState();
-        setNextSQLException(e, exception, context);
+        SQLException ex = getUnoSQLException(e, context);
+        if (e instanceof java.sql.SQLException) {
+            SQLException prev = ex;
+            java.sql.SQLException e1 = (java.sql.SQLException) e;
+            Iterator<Throwable> it = e1.iterator();
+            while (it.hasNext()) {
+                prev = getUnoSQLException(prev, it.next(), context);
+            }
+        }
+        return ex;
+    }
+
+    private static SQLException getUnoSQLException(Throwable e,
+                                                   XInterface context) {
+        SQLException ex = new SQLException(e.getMessage());
+        ex.Context = context;
+        if (e instanceof java.sql.SQLException) {
+            java.sql.SQLException e1 = (java.sql.SQLException) e;
+            ex.ErrorCode = e1.getErrorCode();
+            ex.SQLState = e1.getSQLState();
+        }
+        return ex;
+    }
+
+    private static SQLException getUnoSQLException(SQLException ex,
+                                                   Throwable e,
+                                                   XInterface context) {
+        SQLException exception = getUnoSQLException(e, context);
+        ex.NextException = exception;
         return exception;
     }
 
@@ -1527,10 +867,6 @@ public class DBTools {
             len = length - 1;
         }
         return len;
-    }
-
-    private static boolean isCatalogValid(boolean catalogAtStart, String catalogSeparator) {
-        return catalogAtStart && !catalogSeparator.isEmpty();
     }
 
 }

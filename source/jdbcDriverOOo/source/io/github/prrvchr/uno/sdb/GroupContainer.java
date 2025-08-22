@@ -31,11 +31,12 @@ import java.util.Iterator;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.logging.LogLevel;
 
+import io.github.prrvchr.uno.driver.config.ConfigDCL;
 import io.github.prrvchr.uno.driver.container.BiMap;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.RoleHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
-import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.driver.provider.StandardSQLState;
@@ -99,7 +100,9 @@ public class GroupContainer
         throws SQLException {
         String query = null;
         try {
-            query = RoleHelper.getCreateGroupCommand(mConnection.getProvider(), descriptor, name, isCaseSensitive());
+            ConfigDCL config = mConnection.getProvider().getConfigDCL();
+            NamedSupport support = mConnection.getProvider().getNamedSupport();
+            query = RoleHelper.getCreateGroupCommand(config, support, descriptor, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer._createGroup() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_CREATE_GROUP_QUERY, name, query);
             return DBTools.executeSQLQuery(mConnection.getProvider(), query);
@@ -125,20 +128,21 @@ public class GroupContainer
                                          String name)
         throws SQLException {
         String query = null;
-        Provider provider = mConnection.getProvider();
         try {
-            query = RoleHelper.getDropGroupCommand(provider, name, isCaseSensitive());
+            ConfigDCL config = mConnection.getProvider().getConfigDCL();
+            NamedSupport support = mConnection.getProvider().getNamedSupport();
+            query = RoleHelper.getDropGroupCommand(config, support, name, isCaseSensitive());
             System.out.println("sdbcx.GroupContainer.removeDataBaseElement() SQL: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY, name, query);
-            if (DBTools.executeSQLQuery(provider, query)) {
+            if (DBTools.executeSQLQuery(mConnection.getProvider(), query)) {
                 // XXX: A role has just been deleted, it should also be deleted from any member user...
                 mConnection.getUsersInternal().removeRole(name);
             }
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_GROUPS_REMOVE_GROUP_QUERY_ERROR;
             String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), e);
+            getLogger().logp(LogLevel.SEVERE, msg, e);
+            throw new SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
 
     }

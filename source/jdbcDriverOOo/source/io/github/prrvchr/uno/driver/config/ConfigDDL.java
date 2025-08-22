@@ -75,6 +75,7 @@ public class ConfigDDL extends ConfigSQL {
     private static final String DROP_INDEX_COMMAND = "DropIndexCommand";
     private static final String TABLE_DESCRIPTION_COMMAND = "TableDescriptionCommand";
     private static final String COLUMN_DESCRIPTION_COMMAND = "ColumnDescriptionCommand";
+    private static final String COLUMN_DESCRIPTION_QUERY = "ColumnDescriptionQuery";
     private static final String CREATE_INDEX_COMMAND = "CreateIndexCommand";
 
     private static final String ALTER_VIEW_COMMANDS = "AlterViewCommands";
@@ -365,6 +366,20 @@ public class ConfigDDL extends ConfigSQL {
         return query;
     }
 
+    public boolean hasColumnDescriptionQuery() {
+        return getColumnDescriptionQuery() != null;
+    }
+
+    public String getColumnDescriptionQuery(Map<String, Object> keys) {
+        String query = null;
+        String command = getColumnDescriptionQuery();
+        if (command != null) {
+            query = format(command, keys);
+        }
+        return query;
+    }
+
+
     public String getAddIndexCommand(final Map<String, Object> keys,
                                      final boolean unique) {
         String command = null;
@@ -507,6 +522,10 @@ public class ConfigDDL extends ConfigSQL {
 
     private String getColumnDescriptionCommand() {
         return getPropertyString(COLUMN_DESCRIPTION_COMMAND);
+    }
+
+    private String getColumnDescriptionQuery() {
+        return getPropertyString(COLUMN_DESCRIPTION_QUERY);
     }
 
     private String[] getSystemVersioningCommands() {

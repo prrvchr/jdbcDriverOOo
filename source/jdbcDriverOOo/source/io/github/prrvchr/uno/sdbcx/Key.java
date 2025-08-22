@@ -36,7 +36,7 @@ import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.sdbcx.XDataDescriptorFactory;
 import com.sun.star.uno.Type;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.helper.KeyHelper;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -198,7 +198,7 @@ public final class Key
     private String[] getKeyColumns() {
         String[] columns;
         Provider provider = mTable.getConnection().getProvider();
-        NamedComponents component = mTable.getNamedComponents();
+        NamedComponent component = mTable.getNamedComponents();
         if (getTypeInternal() == KeyType.PRIMARY) {
             columns = KeyHelper.getPrimaryKeyColumns(provider, component, getName());
         } else {

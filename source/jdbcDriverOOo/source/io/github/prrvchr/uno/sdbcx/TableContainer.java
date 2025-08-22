@@ -29,7 +29,7 @@ import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
 import com.sun.star.logging.LogLevel;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.Resources;
 
 
@@ -53,7 +53,7 @@ public final class TableContainer
         return new TableDescriptor(isCaseSensitive());
     }
 
-    protected Table getTable(NamedComponents component,
+    protected Table getTable(NamedComponent component,
                              String type,
                              String remarks) {
         getLogger().logprb(LogLevel.FINE, Resources.STR_LOG_CREATE_TABLE);

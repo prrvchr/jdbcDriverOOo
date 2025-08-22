@@ -41,7 +41,7 @@ import com.sun.star.sdbcx.KeyType;
 import com.sun.star.sdbcx.XColumnsSupplier;
 import com.sun.star.uno.UnoRuntime;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
@@ -51,7 +51,7 @@ public class KeyHelper {
 
 
     public static String[] getPrimaryKeyColumns(Provider provider,
-                                                NamedComponents table,
+                                                NamedComponent table,
                                                 String keyname) {
         String[] columns = null;
         try {
@@ -64,7 +64,7 @@ public class KeyHelper {
     }
 
     public static String[] readPrimaryKeyColumns(DatabaseMetaData metadata,
-                                                 NamedComponents table,
+                                                 NamedComponent table,
                                                  String keyname)
         throws java.sql.SQLException {
         final int COLUMN_NAME = 4;
@@ -92,7 +92,7 @@ public class KeyHelper {
     }
 
     public static final String[] getForeignKeyColumns(Provider provider,
-                                                      NamedComponents table,
+                                                      NamedComponent table,
                                                       String keyname) {
         String[] columns = null;
         DatabaseMetaData metadata;
@@ -107,7 +107,7 @@ public class KeyHelper {
     }
 
     public static final ForeignKeyProperties getForeignKeyProperties(DatabaseMetaData metadata,
-                                                                     NamedComponents table,
+                                                                     NamedComponent table,
                                                                      String keyname)
         throws java.sql.SQLException {
         String oldname = "";
@@ -122,7 +122,7 @@ public class KeyHelper {
         ForeignKeyProperties properties = null;
         try (ResultSet result = metadata.getImportedKeys(table.getCatalog(), table.getSchema(), table.getTable())) {
             while (result.next()) {
-                NamedComponents component = new NamedComponents();
+                NamedComponent component = new NamedComponent();
                 String value = result.getString(PKTABLE_CAT);
                 if (!result.wasNull()) {
                     component.setCatalog(value);
@@ -186,7 +186,7 @@ public class KeyHelper {
     }
 
     public static String[] refreshKeys(Provider provider,
-                                       NamedComponents table)
+                                       NamedComponent table)
         throws java.sql.SQLException {
         List<String> keys = new ArrayList<>();
         refreshPrimaryKeys(keys, provider, table);
@@ -201,7 +201,7 @@ public class KeyHelper {
     }
 
     public static Map<String, List<String>> getExportedTablesColumns(Provider provider,
-                                                                     NamedComponents table,
+                                                                     NamedComponent table,
                                                                      String column,
                                                                      ComposeRule rule)
         throws java.sql.SQLException {
@@ -218,7 +218,7 @@ public class KeyHelper {
             while (result.next()) {
                 value = result.getString(PKCOLUMN_NAME);
                 if (!result.wasNull() && column.equals(value)) {
-                    NamedComponents component = new NamedComponents();
+                    NamedComponent component = new NamedComponent();
                     value = result.getString(FKTABLE_CAT);
                     if (!result.wasNull()) {
                         component.setCatalog(value);
@@ -228,7 +228,7 @@ public class KeyHelper {
                         component.setSchema(value);
                     }
                     component.setTable(result.getString(FKTABLE_NAME));
-                    name = DBTools.buildName(provider, component, rule);
+                    name = ComponentHelper.buildName(provider.getNamedSupport(rule), component);
                     value = result.getString(FKCOLUMN_NAME);
                     if (!tables.containsKey(name)) {
                         tables.put(name, new ArrayList<>());
@@ -241,7 +241,7 @@ public class KeyHelper {
     }
 
     public static List<String> getExportedTables(Provider provider,
-                                                 NamedComponents table,
+                                                 NamedComponent table,
                                                  ComposeRule rule)
         throws java.sql.SQLException {
         // XXX: Here we need to retrieve all tables having this table as foreign key.
@@ -256,7 +256,7 @@ public class KeyHelper {
             while (result.next()) {
                 value = result.getString(PKCOLUMN_NAME);
                 if (!result.wasNull()) {
-                    NamedComponents component = new NamedComponents();
+                    NamedComponent component = new NamedComponent();
                     value = result.getString(FKTABLE_CAT);
                     if (!result.wasNull()) {
                         component.setCatalog(value);
@@ -266,7 +266,7 @@ public class KeyHelper {
                         component.setSchema(value);
                     }
                     component.setTable(result.getString(FKTABLE_NAME));
-                    name = DBTools.buildName(provider, component, rule);
+                    name = ComponentHelper.buildName(provider.getNamedSupport(rule), component);
                     if (!tables.contains(name)) {
                         tables.add(name);
                     }
@@ -278,7 +278,7 @@ public class KeyHelper {
 
     private static void refreshPrimaryKeys(List<String> keys,
                                            Provider provider,
-                                           NamedComponents table)
+                                           NamedComponent table)
         throws java.sql.SQLException {
         int type = KeyType.PRIMARY;
         final int PK_NAME = 6;
@@ -294,7 +294,7 @@ public class KeyHelper {
 
     private static void refreshForeignKeys(List<String> keys,
                                            Provider provider,
-                                           NamedComponents table)
+                                           NamedComponent table)
         throws java.sql.SQLException {
         String previous = "";
         final int FK_NAME = 12;
@@ -344,14 +344,14 @@ public class KeyHelper {
     public static class ForeignKeyProperties {
         public int mUpdate;
         public int mDelete;
-        public NamedComponents mTable;
+        public NamedComponent mTable;
         public List<String> mColumns = new ArrayList<>();
 
-        private ForeignKeyProperties(NamedComponents table,
+        private ForeignKeyProperties(NamedComponent component,
                                      int update,
                                      int delete)
             throws java.sql.SQLException {
-            mTable = table;
+            mTable = component;
             mUpdate = update;
             mDelete = delete;
         }

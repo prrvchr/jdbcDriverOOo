@@ -27,6 +27,10 @@
 ╚════════════════════════════════════════════════════════════════════════════════════╝
 """
 
+import unohelper
+
+from com.sun.star.awt import XCallback
+
 from com.sun.star.ui.dialogs.ExecutableDialogResults import OK
 
 from com.sun.star.logging.LogLevel import INFO
@@ -52,7 +56,8 @@ from threading import RLock
 import traceback
 
 
-class TabManager():
+class TabManager(unohelper.Base,
+                 XCallback):
     def __init__(self, ctx, window, restart):
         self._ctx = ctx
         self._lock = RLock()
@@ -68,6 +73,13 @@ class TabManager():
         self._disabled = True
         self._view.selectDriver(0)
 
+# XCallback
+    def notify(self, versions):
+        if not self._disposed:
+            driver = self._view.getDriver()
+            if driver in versions:
+                self._view.setVersion(versions[driver])
+
 # TabManager setter methods
     def dispose(self):
         with self._lock:
@@ -76,7 +88,7 @@ class TabManager():
             self._disposed = True
 
     def setDriverVersions(self, apilevel):
-        self._model.setDriverVersions(apilevel, self.updateVersion)
+        self._model.setDriverVersions(apilevel, self)
 
     def setRestart(self, state):
         self._model.setRestart(state)
@@ -85,13 +97,6 @@ class TabManager():
     def loadSetting(self):
         self._model.loadSetting()
         self._view.setDrivers(self._model.getDrivers())
-
-    def updateVersion(self, versions):
-        with self._lock:
-            if not self._disposed:
-                driver = self._view.getDriver()
-                if driver in versions:
-                    self._view.setVersion(versions[driver])
 
 # TabManager getter methods
     def saveSetting(self):

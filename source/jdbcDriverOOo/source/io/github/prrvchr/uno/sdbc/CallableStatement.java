@@ -31,8 +31,8 @@ import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XResultSet;
 
+import io.github.prrvchr.uno.driver.config.ConfigSQL;
 import io.github.prrvchr.uno.driver.helper.GeneratedKeys;
-import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.Resources;
 import io.github.prrvchr.uno.helper.PropertyWrapper;
 
@@ -69,9 +69,9 @@ public final class CallableStatement
         return result;
     }
 
-    protected java.sql.ResultSet getGeneratedValues(Provider provider, java.sql.Statement statement)
+    protected java.sql.ResultSet getGeneratedValues(ConfigSQL config, java.sql.Statement statement)
         throws SQLException {
-        return GeneratedKeys.getGeneratedResult(provider, statement, mQuery);
+        return GeneratedKeys.getGeneratedResult(config, statement, mQuery);
     }
 
 }

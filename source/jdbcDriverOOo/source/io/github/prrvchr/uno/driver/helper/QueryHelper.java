@@ -53,7 +53,8 @@ import java.util.regex.Pattern;
 
 import com.sun.star.sdbc.SQLException;
 
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.helper.UnoHelper;
@@ -115,12 +116,13 @@ public final class QueryHelper {
         if (table != null) {
             try {
                 ComposeRule rule = ComposeRule.InDataManipulation;
-                NamedComponents tablename = DBTools.qualifiedNameComponents(provider, table, rule, true);
+                NamedSupport support = provider.getNamedSupport(rule);
+                NamedComponent tablename = ComponentHelper.qualifiedNameComponents(support, table, true);
                 mCatalog = tablename.getCatalog();
                 mSchema = tablename.getSchema();
                 mTable = tablename.getTable();
                 mIdentifier = table;
-                mTableName = DBTools.composeTableName(provider, tablename, rule, false);
+                mTableName = ComponentHelper.composeTableName(support, tablename, false);
                 mMetaData = provider.getConnection().getMetaData();
             } catch (java.sql.SQLException e) {
                 throw UnoHelper.getSQLException(e);

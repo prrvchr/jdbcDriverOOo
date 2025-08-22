@@ -202,7 +202,7 @@ public abstract class ContainerMain<T extends Descriptor>
 
 
     // XXX: For all container but TableContainerMain has its own method
-    protected String getElementName(XPropertySet descriptor) {
+    protected String getElementName(XPropertySet descriptor) throws SQLException {
         return DBTools.getDescriptorStringValue(descriptor, PropertyIds.NAME);
     }
 

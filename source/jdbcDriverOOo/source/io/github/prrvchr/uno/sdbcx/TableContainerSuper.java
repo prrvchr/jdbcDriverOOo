@@ -36,20 +36,21 @@ import java.util.Set;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
-import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.logging.LogLevel;
 import com.sun.star.sdbcx.KeyType;
 
 import io.github.prrvchr.uno.driver.config.ParameterDDL;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.TableHelper;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.Provider;
 import io.github.prrvchr.uno.driver.provider.LoggerObjectType;
 import io.github.prrvchr.uno.driver.provider.PropertyIds;
 import io.github.prrvchr.uno.driver.provider.Resources;
-import io.github.prrvchr.uno.driver.provider.StandardSQLState;
+import io.github.prrvchr.uno.helper.SharedResources;
 
 
 public abstract class TableContainerSuper<T extends TableSuper>
@@ -107,10 +108,11 @@ public abstract class TableContainerSuper<T extends TableSuper>
             }
             ComposeRule rule = ComposeRule.InTableDefinitions;
             Provider provider = mConnection.getProvider();
-            String table = DBTools.composeTableName(provider, descriptor, rule, isCaseSensitive());
-            queries = TableHelper.getCreateTableQueries(provider, descriptor, table, type, rule, isCaseSensitive());
+            queries = TableHelper.getCreateTableQueries(provider, descriptor, rule, type, isCaseSensitive());
             String description = DBTools.getDescriptorStringValue(descriptor, PropertyIds.DESCRIPTION);
             if (!description.isEmpty() && provider.getConfigDDL().supportsTableDescription()) {
+                String table = ComponentHelper.composeTableName(provider.getNamedSupport(rule),
+                                                                descriptor, isCaseSensitive());
                 Map<String, Object> arguments = ParameterDDL.getTableDescription(table, description);
                 String query = provider.getConfigDDL().getTableDescriptionCommand(arguments);
                 queries.add(query);
@@ -127,15 +129,9 @@ public abstract class TableContainerSuper<T extends TableSuper>
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
             String query = String.join("> <", queries);
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
-        } catch (IllegalArgumentException e) {
-            int resource = Resources.STR_LOG_TABLES_CREATE_TABLE_QUERY_ERROR;
-            String query = String.join("> <", queries);
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg, e);
+            throw new SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
         return created;
     }
@@ -147,8 +143,9 @@ public abstract class TableContainerSuper<T extends TableSuper>
         final int TABLE_TYPE = 4; 
         final int REMARKS = 5; 
         try {
-            NamedComponents component = DBTools.qualifiedNameComponents(mConnection.getProvider(), name,
-                                                                        ComposeRule.InDataManipulation);
+            ComposeRule rule = ComposeRule.InDataManipulation;
+            NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
+            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
             try (java.sql.ResultSet result = getcreateElementResultSet(component)) {
                 if (result.next()) {
                     String type = result.getString(TABLE_TYPE);
@@ -165,12 +162,12 @@ public abstract class TableContainerSuper<T extends TableSuper>
                 }
             }
         } catch (SQLException e) {
-            throw new SQLException(e.getMessage(), StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            throw new SQLException(e.getMessage(), e.getSQLState(), e.getErrorCode(), e);
         }
         return table;
     }
 
-    private java.sql.ResultSet getcreateElementResultSet(NamedComponents table)
+    private java.sql.ResultSet getcreateElementResultSet(NamedComponent table)
             throws SQLException {
         java.sql.DatabaseMetaData metadata = mConnection.getProvider().getConnection().getMetaData();
         return metadata.getTables(table.getCatalog(), table.getSchema(), table.getTable(), null);
@@ -180,34 +177,38 @@ public abstract class TableContainerSuper<T extends TableSuper>
     public void removeDataBaseElement(int index,
                                       String name)
         throws SQLException {
+        boolean isview = false;
+        TableSuper element = (TableSuper) getElementByName(name);
+        if (element != null) {
+            isview = element.mType.toUpperCase().contains("VIEW");
+        }
+        if (isview) {
+            ViewContainer views = mConnection.getViewsInternal();
+            views.removeElement(name, true);
+        } else {
+            removeDataBaseElement(name);
+        }
+    }
+
+    private void removeDataBaseElement(String name) throws SQLException {
         String query = null;
         try {
-            boolean isview = false;
-            TableSuper element = (TableSuper) getElementByName(name);
-            if (element != null) {
-                isview = element.mType.toUpperCase().contains("VIEW");
-            }
-            if (isview) {
-                ViewContainer views = mConnection.getViewsInternal();
-                views.removeElement(name, true);
-                return;
-            }
             Provider provider = mConnection.getProvider();
-            ComposeRule rule = ComposeRule.InDataManipulation;
-            NamedComponents component = DBTools.qualifiedNameComponents(mConnection.getProvider(), name, rule);
-            String table = DBTools.buildName(provider, component, rule, isCaseSensitive());
+            ComposeRule rule = ComposeRule.InTableDefinitions;
+            NamedSupport support = mConnection.getProvider().getNamedSupport(rule);
+            NamedComponent component = ComponentHelper.qualifiedNameComponents(support, name);
+            String table = ComponentHelper.buildName(support, component, isCaseSensitive());
             query = provider.getConfigDDL().getDropTableCommand(ParameterDDL.getDropTable(table));
             System.out.println("TableContainer.removeDataBaseElement() Query: " + query);
             getLogger().logprb(LogLevel.INFO, Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY, name, query);
             DBTools.executeSQLQuery(mConnection.getProvider(), query);
         } catch (SQLException e) {
             int resource = Resources.STR_LOG_TABLES_REMOVE_TABLE_QUERY_ERROR;
-            String msg = getLogger().getStringResource(resource, name, query);
-            getLogger().logp(LogLevel.SEVERE, msg);
-            throw new SQLException(msg, StandardSQLState.SQL_GENERAL_ERROR.text(), 0, e);
+            String msg = SharedResources.getInstance().getResourceWithSubstitution(resource, name, query);
+            getLogger().logp(LogLevel.SEVERE, msg, e);
+            throw new SQLException(msg, e.getSQLState(), e.getErrorCode(), e);
         }
     }
-
 
     // XXX: ColumnListener methods
     protected void removeReferencedColumns(ColumnBase column, String name) {
@@ -226,7 +227,7 @@ public abstract class TableContainerSuper<T extends TableSuper>
     }
 
 
-    protected abstract T getTable(NamedComponents component,
+    protected abstract T getTable(NamedComponent component,
                                   String type,
                                   String remarks);
 

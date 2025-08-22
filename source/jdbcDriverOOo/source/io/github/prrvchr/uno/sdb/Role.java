@@ -35,10 +35,12 @@ import com.sun.star.sdbcx.PrivilegeObject;
 import com.sun.star.sdbcx.XAuthorizable;
 import com.sun.star.sdbcx.XGroupsSupplier;
 
+import io.github.prrvchr.uno.driver.helper.ComponentHelper;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedComponent;
+import io.github.prrvchr.uno.driver.helper.ComponentHelper.NamedSupport;
 import io.github.prrvchr.uno.driver.helper.DBTools;
 import io.github.prrvchr.uno.driver.helper.PrivilegesHelper;
 import io.github.prrvchr.uno.driver.helper.QueryHelper;
-import io.github.prrvchr.uno.driver.helper.DBTools.NamedComponents;
 import io.github.prrvchr.uno.driver.provider.ComposeRule;
 import io.github.prrvchr.uno.driver.provider.ConnectionLog;
 import io.github.prrvchr.uno.driver.provider.Provider;
@@ -111,12 +113,17 @@ public abstract class Role
             try {
                 XNameAccess tables = mConnection.getTables();
                 if (tables.hasByName(name)) {
-                    NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, mRule);
-                    java.sql.DatabaseMetaData metadata = mProvider.getConnection().getMetaData();
-                    if (!mIsrole && getName().equals(metadata.getUserName())) {
-                        privileges = PrivilegesHelper.getTablePrivileges(mProvider, metadata, table);
+                    NamedSupport support = mProvider.getNamedSupport(mRule);
+                    NamedComponent table = ComponentHelper.qualifiedNameComponents(support, name);
+                    java.sql.Connection connection = mProvider.getConnection();
+                    if (!mIsrole && getName().equals(connection.getMetaData().getUserName())) {
+                        privileges = PrivilegesHelper.getTablePrivileges(connection,
+                                                                         mProvider.getConfigDCL(),
+                                                                         support, table, getName());
                     } else {
-                        privileges = PrivilegesHelper.getGrantablePrivileges(mProvider, getName(), table, mRule);
+                        privileges = PrivilegesHelper.getGrantablePrivileges(connection,
+                                                                             mProvider.getConfigDCL(),
+                                                                             support, table, getName());
                     }
                 } else {
                     privileges = mProvider.getConfigDCL().getMockPrivileges();
@@ -136,8 +143,11 @@ public abstract class Role
             try {
                 XNameAccess tables = mConnection.getTables();
                 if (tables.hasByName(name)) {
-                    NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, mRule);
-                    privileges = PrivilegesHelper.getTablePrivileges(mProvider, getName(), table, mRule);
+                    NamedSupport support = mProvider.getNamedSupport(mRule);
+                    NamedComponent table = ComponentHelper.qualifiedNameComponents(support, name);
+                    privileges = PrivilegesHelper.getTablePrivileges(mProvider.getConnection(),
+                                                                     mProvider.getConfigDCL(),
+                                                                     table);
                 } else {
                     privileges = mProvider.getConfigDCL().getMockPrivileges();
                 }
@@ -233,9 +243,10 @@ public abstract class Role
             String query = null;
             String privileges = String.join(", ", mProvider.getConfigDCL().getPrivileges(privilege));
             try {
-                NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, mRule);
-                query = PrivilegesHelper.getGrantPrivilegesCommand(mProvider, table, privileges,
-                                                                   mIsrole, getName(), mRule, isCaseSensitive());
+                NamedSupport support = mProvider.getNamedSupport(mRule);
+                NamedComponent table = ComponentHelper.qualifiedNameComponents(support, name);
+                query = PrivilegesHelper.getGrantPrivilegesCommand(mProvider.getConfigDCL(), support, table,
+                                                                   privileges, mIsrole, getName(), isCaseSensitive());
                 getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
                 System.out.println("Role.grantPrivileges() 2 Query: " + query);
                 DBTools.executeSQLQuery(mConnection.getProvider(), query);
@@ -264,9 +275,11 @@ public abstract class Role
             try {
                 XNameAccess tables = mConnection.getTables();
                 if (tables.hasByName(name)) {
-                    NamedComponents table = DBTools.qualifiedNameComponents(mProvider, name, mRule);
-                    query = PrivilegesHelper.getRevokePrivilegesCommand(mProvider, table, privileges,
-                                                                        mIsrole, getName(), mRule, isCaseSensitive());
+                    NamedSupport support = mProvider.getNamedSupport(mRule);
+                    NamedComponent table = ComponentHelper.qualifiedNameComponents(support, name);
+                    query = PrivilegesHelper.getRevokePrivilegesCommand(mProvider.getConfigDCL(), support,
+                                                                        table, privileges, mIsrole, getName(),
+                                                                        isCaseSensitive());
                     getLogger().logprb(LogLevel.INFO, res1, privileges, getName(), name, query);
                     System.out.println("Role.revokePrivileges() 2 Query: " + query);
                     DBTools.executeSQLQuery(mProvider, query);

@@ -73,6 +73,9 @@ public abstract class ConfigBase extends ParameterBase {
     private static final String ADD_INDEX_APPENDIX = "AddIndexAppendix";
     private static final String AUTO_RETRIEVING_STATEMENT = "AutoRetrievingStatement";
     private static final String IS_AUTORETRIEVING_ENABLED = "IsAutoRetrievingEnabled";
+    private static final String USE_CATALOG_IN_VIEW = "UseCatalogInView";
+    private static final String USE_CATALOG_IN_SELECT = "UseCatalogInSelect";
+    private static final String USE_SCHEMA_IN_SELECT = "UseSchemaInSelect";
 
     private static final String INDEX_PATTERN = "[(]\\s*(\\d+)\\s*[)]";
     private static final String VALUE_PATTERN = "[=]\\s*([\\w+\\s*\\W*]+)";
@@ -93,6 +96,9 @@ public abstract class ConfigBase extends ParameterBase {
  
     private Boolean mIsAutoRetrievingEnabled = null;
     private Boolean mShowSystemTable = null;
+    private boolean mUseCatalogsInViewDefinitions;
+    private boolean mUseCatalogsInSelectCompositions;
+    private boolean mUseSchemasInSelectCompositions;
 
     private XOfficeDatabaseDocument mDocument = null;
 
@@ -122,8 +128,32 @@ public abstract class ConfigBase extends ParameterBase {
         // XXX: Driver.xcs default properties
         Object[] typeInfo = null;
         Object[] tableType = null;
-        setPropertiesInfo(infos, typeInfo, tableType);
+        Boolean useCatalogInSelect = null;
+        Boolean useSchemaInSelect = null;
+        Boolean useCatalogInView = null;
+        setPropertiesInfo(infos, typeInfo, tableType, useCatalogInSelect, useSchemaInSelect, useCatalogInView);
+
         mInfos = infos;
+        if (useCatalogInSelect == null) {
+            useCatalogInSelect = (boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                                USE_CATALOG_IN_SELECT,
+                                                                                Boolean.valueOf(true));
+        }
+        mUseCatalogsInSelectCompositions = useCatalogInSelect;
+
+        if (useSchemaInSelect == null) {
+            useSchemaInSelect = (boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                               USE_SCHEMA_IN_SELECT,
+                                                                               Boolean.valueOf(true));
+        }
+        mUseCatalogsInSelectCompositions = useSchemaInSelect;
+
+        if (useCatalogInView == null) {
+            useCatalogInView = (boolean) PropertiesHelper.getConfigProperties(config, subProtocol,
+                                                                              USE_CATALOG_IN_VIEW,
+                                                                              Boolean.valueOf(true));
+        }
+        mUseCatalogsInViewDefinitions = useCatalogInView;
 
         if (typeInfo == null) {
             typeInfo = (Object[]) PropertiesHelper.getConfigProperties(config, subProtocol,
@@ -171,6 +201,18 @@ public abstract class ConfigBase extends ParameterBase {
 
     public PropertyValue[] getConnectionInfo() {
         return mInfos;
+    }
+
+    public boolean useCatalogsInViewDefinitions() {
+        return mUseCatalogsInViewDefinitions;
+    }
+
+    public boolean useCatalogsInSelectCompositions() {
+        return mUseCatalogsInSelectCompositions;
+    }
+
+    public boolean useSchemasInSelectCompositions() {
+        return mUseSchemasInSelectCompositions;
     }
 
     public String getTableType(String type) {
@@ -435,9 +477,13 @@ public abstract class ConfigBase extends ParameterBase {
         mTableTypes = tableTypes;
     }
 
+    @SuppressWarnings("unused")
     private void setPropertiesInfo(PropertyValue[] infos,
-                                   @SuppressWarnings("unused") Object[] typeInfo,
-                                   @SuppressWarnings("unused") Object[] tableType)
+                                   Object[] typeInfo,
+                                   Object[] tableType,
+                                   Boolean useCatalogInSelect,
+                                   Boolean useSchemaInSelect,
+                                   Boolean useCatalogInView)
         throws java.sql.SQLException {
         Object obj;
         for (PropertyValue info : infos) {
@@ -488,6 +534,15 @@ public abstract class ConfigBase extends ParameterBase {
                     if (obj != null && AnyConverter.isString(obj)) {
                         mUrl = AnyConverter.toString(obj);
                     }
+                    break;
+                case USE_CATALOG_IN_SELECT:
+                    useCatalogInSelect = (Boolean) obj;
+                    break;
+                case USE_SCHEMA_IN_SELECT:
+                    useSchemaInSelect = (Boolean) obj;
+                    break;
+                case USE_CATALOG_IN_VIEW:
+                    useCatalogInView = (Boolean) obj;
                     break;
             }
         }
@@ -573,7 +628,7 @@ public abstract class ConfigBase extends ParameterBase {
         return types.toArray(new String[0]);
     }
 
-    private RowSetData getRewriteTableData(String[] tableTypes)
+    private RowSetData getRewriteTableData(final String[] tableTypes)
         throws java.sql.SQLException {
         final Integer TABLE_TYPE = 4;
         Map<Integer, List<String>> keys = new HashMap<>();
